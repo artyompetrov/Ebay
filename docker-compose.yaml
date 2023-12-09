@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+  ebay:
+    container_name: ebay
+    image: ghcr.io/artyompetrov/ebay:latest
+    ports:
+      - 17443:443
+    restart: unless-stopped
+
+volumes:
+  portainer_data:
