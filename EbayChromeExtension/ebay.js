@@ -1,4 +1,14 @@
-function createControlPanel() {
+const panelClass = "panel-div";
+const idFieldName = "id";
+const nameFieldName = "name";
+const pcsFieldName = "pcs";
+const priceFieldName = "price";
+const shippingFieldName = "shipping";
+const shippingAdditionalFieldName = "shippingAdditional";
+const descriptionFieldName = "description";
+const conditionFieldName = "condition";
+
+function createHistoryButton() {
   const itemId = location.pathname.match(/\/itm\/([0-9]+)/)[1];
   const domain = location.hostname;
   const historyButton = document.createElement('a');
@@ -18,36 +28,100 @@ function createControlPanel() {
   historyButton.target = '_blank';
 
   return historyButton;
-  
-  /*const itemId = location.pathname.match(/\/itm\/([0-9]+)/)[1];
-  const domain = location.hostname;
-  const div = document.createElement('div');
-  div.style.cssText = `
-	width: 300px;
-	height: 50px;
-	text-align: center;
-	padding: 15px;
-	border: 3px solid #0000cc;
-	border-radius: 10px;
-	color: #0000cc;
-  `;
-
-  return historyButton;*/
 }
 
-function addControlPanel() {
-  const productTitleContainer = document.querySelector('.vim[data-testid="x-item-title"]');
+function addHistoryButton() {
+  let productTitleContainer = document.querySelector('.vim[data-testid="x-item-title"]');
   if (productTitleContainer) {
-    const existingButton = productTitleContainer.querySelector('a.history-button');
+    let existingButton = productTitleContainer.querySelector('a.history-button');
     if (!existingButton) {
-      const historyButton = createControlPanel();
+      let historyButton = createHistoryButton();
       productTitleContainer.appendChild(historyButton);
     }
   }
 }
 
-addControlPanel();
+function createPanel() {
+  let div = document.createElement('div');
+  div.classList.add(panelClass);
+  div.style.cssText = `
+    text-align: left;
+    padding: 15px;
+    border: 3px solid #0000cc;
+    border-radius: 10px;
+    color: #0000cc;
+    position:fixed;
+    z-index:100;
+    left:1%;
+    bottom:5%;
+    background-color: white;
+    `;
+  div.innerHTML = `
+<form action="">
+  <label for="${idFieldName}">Id:</label>
+  <input id="${idFieldName}" type="number" name="${idFieldName}" readonly/>
+  <br>
+  <label for="${nameFieldName}">Name:</label>
+  <input id="${nameFieldName}" type="text" name="${nameFieldName}" />
+  <br>
+  <label for="${pcsFieldName}">PCS:</label>
+  <input id="${pcsFieldName}" type="text" name="${pcsFieldName}" />
+  <br>
+  <label for="${priceFieldName}">Price US$:</label>
+  <input id="${priceFieldName}" type="text" name="${priceFieldName}" />
+  <br>
+  <label for="${shippingFieldName}">Shipping to Germany:</label>
+  <input id="${shippingFieldName}" type="number" name="${shippingFieldName}" />
+  <br>
+  <label for="${shippingFieldName}">Shipping to Germany:</label>
+  <input id="${shippingFieldName}" type="number" name="${shippingFieldName}" />
+  <br>
+  <label for="${conditionFieldName}">Condition:</label>
+  <input id="${conditionFieldName}" type="text" name="${conditionFieldName}" />
+  <br>
+  <label for="${descriptionFieldName}">Description:</label>
+  <input id="${descriptionFieldName}" type="text" name="${descriptionFieldName}" />
+  <br>
+  <input type="submit" value="Save" />
+</form>`;
+  return div;
+}
+
+function fillPanelWithData() {
+  let panel = document.querySelector('div.' + panelClass)
+  
+  let idField = panel.querySelector('input#' + idFieldName)
+  idField.value = location.pathname.match(/\/itm\/([0-9]+)/)[1];
+
+  let priceField = panel.querySelector('input#' + priceFieldName)
+  priceField.value = document.querySelector('div.x-price-primary span').innerText
+      .match(/\d+(?:[,.]\d+)?/)[0].replace(',','.')
+
+  let nameField = panel.querySelector('input#' + nameFieldName)
+  nameField.value = document.querySelector('.vim h1').innerText
+
+  let descriptionField = panel.querySelector('input#' + descriptionFieldName)
+}
+
+function addPanel() {
+  let bodyElement = document.querySelector('body');
+  if (bodyElement) {
+    let existingPanel = bodyElement.querySelector('div.'+panelClass );
+    if (!existingPanel) {
+      let panel = createPanel();
+      bodyElement.appendChild(panel);
+    }
+  }
+}
+
+function run() {
+  addHistoryButton();
+  addPanel();
+  fillPanelWithData();
+}
+
+run();
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-	addControlPanel();
+  run();
 });
