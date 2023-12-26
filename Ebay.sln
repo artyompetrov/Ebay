@@ -8,10 +8,22 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Dockerfile = Dockerfile
 		.dockerignore = .dockerignore
 		.gitignore = .gitignore
-		.github\workflows\action.yaml = .github\workflows\action.yaml
 		docker-compose.yaml = docker-compose.yaml
 		README.md = README.md
 	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "EbayChromeExtension", "EbayChromeExtension", "{5FBBDAFE-DAD8-4A80-BBB2-7E9F14C52B69}"
+	ProjectSection(SolutionItems) = preProject
+		EbayChromeExtension\ebay.js = EbayChromeExtension\ebay.js
+		EbayChromeExtension\manifest.json = EbayChromeExtension\manifest.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{14CB0094-005A-41DB-A35A-E90FCE8D2D79}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\action.yaml = .github\workflows\action.yaml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{48DA1592-2C5B-4228-9BF9-45E64F4CAF39}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,5 +35,10 @@ Global
 		{15A8559D-B2EF-43FA-A891-7A1444430CA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{15A8559D-B2EF-43FA-A891-7A1444430CA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{15A8559D-B2EF-43FA-A891-7A1444430CA6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5FBBDAFE-DAD8-4A80-BBB2-7E9F14C52B69} = {AFE141F9-4F20-4390-BDD1-1D2ED0928EFD}
+		{14CB0094-005A-41DB-A35A-E90FCE8D2D79} = {AFE141F9-4F20-4390-BDD1-1D2ED0928EFD}
+		{48DA1592-2C5B-4228-9BF9-45E64F4CAF39} = {14CB0094-005A-41DB-A35A-E90FCE8D2D79}
 	EndGlobalSection
 EndGlobal
