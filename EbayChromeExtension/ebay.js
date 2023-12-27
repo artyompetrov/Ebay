@@ -7,6 +7,26 @@ const shippingFieldName = "shipping";
 const shippingAdditionalFieldName = "shippingAdditional";
 const descriptionFieldName = "description";
 const conditionFieldName = "condition";
+const sellerFieldName = "seller";
+const purchaseHistoryFieldName = "purchaseHistory";
+
+function fetchResource(input, init) {
+  return new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage({input, init}, messageResponse => {
+      const [response, error] = messageResponse;
+      if (response === null) {
+        reject(error);
+      } else {
+        // Use undefined on a 204 - No Content
+        const body = response.body ? new Blob([response.body]) : undefined;
+        resolve(new Response(body, {
+          status: response.status,
+          statusText: response.statusText,
+        }));
+      }
+    });
+  });
+}
 
 function createHistoryButton() {
   const itemId = location.pathname.match(/\/itm\/([0-9]+)/)[1];
@@ -73,8 +93,8 @@ function createPanel() {
   <label for="${shippingFieldName}">Shipping to Germany:</label>
   <input id="${shippingFieldName}" type="number" name="${shippingFieldName}" />
   <br>
-  <label for="${shippingFieldName}">Shipping to Germany:</label>
-  <input id="${shippingFieldName}" type="number" name="${shippingFieldName}" />
+  <label for="${shippingAdditionalFieldName}">Shipping each additional:</label>
+  <input id="${shippingAdditionalFieldName}" type="number" name="${shippingAdditionalFieldName}" />
   <br>
   <label for="${conditionFieldName}">Condition:</label>
   <input id="${conditionFieldName}" type="text" name="${conditionFieldName}" />
@@ -82,26 +102,64 @@ function createPanel() {
   <label for="${descriptionFieldName}">Description:</label>
   <input id="${descriptionFieldName}" type="text" name="${descriptionFieldName}" />
   <br>
+  <label for="${purchaseHistoryFieldName}">PurchaseHistory:</label>
+  <input id="${purchaseHistoryFieldName}" type="text" name="${purchaseHistoryFieldName}" />
+  <br>
+  <label for="${sellerFieldName}">Seller:</label>
+  <input id="${sellerFieldName}" type="text" name="${sellerFieldName}" />
+  <br>
   <input type="submit" value="Save" />
 </form>`;
   return div;
 }
 
-function fillPanelWithData() {
+async function fillPanelWithData() {
   let panel = document.querySelector('div.' + panelClass)
-  
+
   let idField = panel.querySelector('input#' + idFieldName)
-  idField.value = location.pathname.match(/\/itm\/([0-9]+)/)[1];
+  let itemId = location.pathname.match(/\/itm\/([0-9]+)/)[1];
+  idField.value = itemId;
 
   let priceField = panel.querySelector('input#' + priceFieldName)
   priceField.value = document.querySelector('div.x-price-primary span').innerText
-      .match(/\d+(?:[,.]\d+)?/)[0].replace(',','.')
+      .match(/\d+(?:[,.]\d+)?/)[0].replace(',', '.')
 
   let nameField = panel.querySelector('input#' + nameFieldName)
   nameField.value = document.querySelector('.vim h1').innerText
+  
+  let conditionField = panel.querySelector('input#' + conditionFieldName)
+  conditionField.value = document.querySelector('div.x-item-condition-text').innerText
 
+  let sellerField = panel.querySelector('input#' + sellerFieldName)
+  sellerField.value = document.querySelector('div.x-sellercard-atf__info__about-seller a').innerText
+
+  let deliveryColumns = [...document.querySelector('div.d-shipping-maxview tbody')
+      .querySelector('tr')
+      .querySelectorAll('td')]
+
+  let shippingField = panel.querySelector('input#' + shippingFieldName)
+  shippingField.value = deliveryColumns[0].querySelector('span').innerText
+      .match(/\d+(?:[,.]\d+)?/)[0]
+      .replace(',', '.')
+
+  let hippingAdditionalField = panel.querySelector('input#' + shippingAdditionalFieldName)
+  hippingAdditionalField.value = deliveryColumns[1].querySelector('span').innerText
+      .match(/\d+(?:[,.]\d+)?/)[0]
+      .replace(',', '.')
+  
+  // далее ассинхронные запросы
+  
   let descriptionField = panel.querySelector('input#' + descriptionFieldName)
+  let descriptionUrl = document.querySelector('#desc_ifr').src
+  descriptionField.value = await (await fetchResource(descriptionUrl, null)).text()
+
+  let purchaseHistoryField = panel.querySelector('input#' + purchaseHistoryFieldName)
+  let domain = location.hostname;
+  let purchaseHistoryUrl = `https://${domain}/bin/purchaseHistory?item=${itemId}`;
+  purchaseHistoryField.value = await (await fetchResource(purchaseHistoryUrl, null)).text()
 }
+
+
 
 function addPanel() {
   let bodyElement = document.querySelector('body');
@@ -114,14 +172,14 @@ function addPanel() {
   }
 }
 
-function run() {
-  addHistoryButton();
-  addPanel();
-  fillPanelWithData();
+async function run() {
+    addHistoryButton();
+    addPanel();
+    await fillPanelWithData();
 }
 
 run();
 
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  run();
+chrome.runtime.onMessage.addListener(async function (request, sender, sendResponse) {
+  await run();
 });

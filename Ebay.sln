@@ -16,6 +16,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "EbayChromeExtension", "Ebay
 	ProjectSection(SolutionItems) = preProject
 		EbayChromeExtension\ebay.js = EbayChromeExtension\ebay.js
 		EbayChromeExtension\manifest.json = EbayChromeExtension\manifest.json
+		EbayChromeExtension\background.js = EbayChromeExtension\background.js
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{14CB0094-005A-41DB-A35A-E90FCE8D2D79}"
