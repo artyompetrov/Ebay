@@ -7,8 +7,11 @@ const shippingFieldName = "shipping";
 const shippingAdditionalFieldName = "shippingAdditional";
 const descriptionFieldName = "description";
 const conditionFieldName = "condition";
+const conditionDescriptionFieldName = "conditionDescription";
 const sellerFieldName = "seller";
 const purchaseHistoryFieldName = "purchaseHistory";
+const errorElementId = "errorElement"
+const submitId = "submit"
 
 function fetchResource(input, init) {
   return new Promise((resolve, reject) => {
@@ -61,56 +64,80 @@ function addHistoryButton() {
   }
 }
 
-function createPanel() {
+function createPanel(bodyElement) {
+  let styles = `
+    .${panelClass} {
+      text-align: left;
+      padding: 15px;
+      border: 3px solid #0000cc;
+      border-radius: 10px;
+      color: #0000cc;
+      position:fixed;
+      z-index:100;
+      left:1%;
+      bottom:5%;
+      background-color: white;
+    }
+    
+    .${panelClass} label {
+      font-weight: bold;
+      display: block;
+      width: 200px;
+      float: left;
+    }
+    
+    .${panelClass} label:after { content: ": " }
+`
+
+  let styleSheet = document.createElement("style")
+  styleSheet.innerText = styles
+  bodyElement.appendChild(styleSheet)
+  
   let div = document.createElement('div');
   div.classList.add(panelClass);
-  div.style.cssText = `
-    text-align: left;
-    padding: 15px;
-    border: 3px solid #0000cc;
-    border-radius: 10px;
-    color: #0000cc;
-    position:fixed;
-    z-index:100;
-    left:1%;
-    bottom:5%;
-    background-color: white;
-    `;
+
+  // language=HTML
   div.innerHTML = `
-<form action="">
-  <label for="${idFieldName}">Id:</label>
-  <input id="${idFieldName}" type="number" name="${idFieldName}" readonly/>
-  <br>
-  <label for="${nameFieldName}">Name:</label>
-  <input id="${nameFieldName}" type="text" name="${nameFieldName}" />
-  <br>
-  <label for="${pcsFieldName}">PCS:</label>
-  <input id="${pcsFieldName}" type="text" name="${pcsFieldName}" />
-  <br>
-  <label for="${priceFieldName}">Price US$:</label>
-  <input id="${priceFieldName}" type="text" name="${priceFieldName}" />
-  <br>
-  <label for="${shippingFieldName}">Shipping to Germany:</label>
-  <input id="${shippingFieldName}" type="number" name="${shippingFieldName}" />
-  <br>
-  <label for="${shippingAdditionalFieldName}">Shipping each additional:</label>
-  <input id="${shippingAdditionalFieldName}" type="number" name="${shippingAdditionalFieldName}" />
-  <br>
-  <label for="${conditionFieldName}">Condition:</label>
-  <input id="${conditionFieldName}" type="text" name="${conditionFieldName}" />
-  <br>
-  <label for="${descriptionFieldName}">Description:</label>
-  <input id="${descriptionFieldName}" type="text" name="${descriptionFieldName}" />
-  <br>
-  <label for="${purchaseHistoryFieldName}">PurchaseHistory:</label>
-  <input id="${purchaseHistoryFieldName}" type="text" name="${purchaseHistoryFieldName}" />
-  <br>
-  <label for="${sellerFieldName}">Seller:</label>
-  <input id="${sellerFieldName}" type="text" name="${sellerFieldName}" />
-  <br>
-  <input type="submit" value="Save" />
-</form>`;
-  return div;
+    <form action="">
+      <label for="${idFieldName}">Id</label>
+      <input id="${idFieldName}" type="number" name="${idFieldName}" readonly/>
+      <br>
+      <label for="${nameFieldName}">Name</label>
+      <input id="${nameFieldName}" type="text" name="${nameFieldName}" readonly/>
+      <br>
+      <label for="${pcsFieldName}">PCS</label>
+      <input id="${pcsFieldName}" type="text" name="${pcsFieldName}"/>
+      <br>
+      <label for="${priceFieldName}">Price US$</label>
+      <input id="${priceFieldName}" type="text" name="${priceFieldName}"/>
+      <br>
+      <label for="${shippingFieldName}">Shipping to Germany</label>
+      <input id="${shippingFieldName}" type="number" name="${shippingFieldName}"/>
+      <br>
+      <label for="${shippingAdditionalFieldName}">Shipping each additional</label>
+      <input id="${shippingAdditionalFieldName}" type="number" name="${shippingAdditionalFieldName}"/>
+      <br>
+      <label for="${conditionFieldName}">Condition</label>
+      <input id="${conditionFieldName}" type="text" name="${conditionFieldName}"/>
+      <br>
+      <label for="${conditionDescriptionFieldName}">Condition description</label>
+      <input id="${conditionDescriptionFieldName}" type="text" name="${conditionDescriptionFieldName}"/>
+      <br>
+      <label for="${descriptionFieldName}">Description</label>
+      <input id="${descriptionFieldName}" type="text" name="${descriptionFieldName}" readonly/>
+      <br>
+      <label for="${purchaseHistoryFieldName}">PurchaseHistory</label>
+      <input id="${purchaseHistoryFieldName}" type="text" name="${purchaseHistoryFieldName}" readonly/>
+      <br>
+      <label for="${sellerFieldName}">Seller</label>
+      <input id="${sellerFieldName}" type="text" name="${sellerFieldName}" readonly/>
+      <br>
+      <div style="color: red;" id="${errorElementId}"></div>
+      <br>
+      <input id="${submitId}" type="submit" value="Save" disabled/>
+    </form>`;
+  
+  bodyElement.appendChild(div);
 }
 
 async function fillPanelWithData() {
@@ -126,37 +153,89 @@ async function fillPanelWithData() {
 
   let nameField = panel.querySelector('input#' + nameFieldName)
   nameField.value = document.querySelector('.vim h1').innerText
+
+  //todo seller не всегда правильно извлекается https://www.ebay.com/itm/134867374969?hash=item1f66b8d379:g:OfAAAOSwVNdk8KwU&amdata=enc%3AAQAIAAAA0OSeqn%2FREw2KNs1dcGci6e45%2BHSI4nHITB00b0YOLxopb9NaCJe4R1BkOVYt6oXtBq0fjrejU85j0r8xKlug21XYny77DuN%2FJCmqOOSkNbG5PX1fBEGNbHCLdnDTqUaQsbTBVFoENEuoZxnh8raR3cVLSY%2FIQxJqYy%2B6G%2BNkm%2FoBpTnRKW1GHokeC5RpydqA8I2A%2FvWvuOw6Bdc1y6VgaB2E%2FLp%2FcgTLhErIDCiZciNo9KeDMM%2Fd1NqR73YOS7XEDGQqwpMgU84A9k5tU3sokKE%3D%7Ctkp%3ABFBMhM-fmJZj
+  let sellerField = panel.querySelector('input#' + sellerFieldName)
+  sellerField.value = document.querySelector('div.x-sellercard-atf__info__about-seller a').innerText.toLowerCase()
   
   let conditionField = panel.querySelector('input#' + conditionFieldName)
-  conditionField.value = document.querySelector('div.x-item-condition-text').innerText
+  conditionField.value = document.querySelector('div.x-item-condition-text span.ux-textspans').innerText
+  
+  let conditionDescriptionElement = document.querySelector('div.x-item-condition-desc')
+  if (conditionDescriptionElement != null) {
+    let conditionDescriptionField = panel.querySelector('input#' + conditionDescriptionFieldName)
+    conditionDescriptionField.value = conditionDescriptionElement.innerText
+        .replace('“', '')
+        .replace('”', '')
+  }
 
-  let sellerField = panel.querySelector('input#' + sellerFieldName)
-  sellerField.value = document.querySelector('div.x-sellercard-atf__info__about-seller a').innerText
+  let shippingField = panel.querySelector('input#' + shippingFieldName)
+  let shippingAdditionalField = panel.querySelector('input#' + shippingAdditionalFieldName)
 
-  let deliveryColumns = [...document.querySelector('div.d-shipping-maxview tbody')
+  let deliveryColumnsHeader = [...document.querySelector('div.d-shipping-maxview thead')
+      .querySelectorAll('th')]
+  let deliveryColumnsValues = [...document.querySelector('div.d-shipping-maxview tbody')
       .querySelector('tr')
       .querySelectorAll('td')]
 
-  let shippingField = panel.querySelector('input#' + shippingFieldName)
-  shippingField.value = deliveryColumns[0].querySelector('span').innerText
-      .match(/\d+(?:[,.]\d+)?/)[0]
-      .replace(',', '.')
+  let shippingMaxviewValues = {};
+  for (let i = 0; i < 3; i++) {
+    let key = deliveryColumnsHeader[i].innerText
+    shippingMaxviewValues[key] = deliveryColumnsValues[i].querySelector('span').innerText
+  }
 
-  let hippingAdditionalField = panel.querySelector('input#' + shippingAdditionalFieldName)
-  hippingAdditionalField.value = deliveryColumns[1].querySelector('span').innerText
-      .match(/\d+(?:[,.]\d+)?/)[0]
-      .replace(',', '.')
+  if (shippingMaxviewValues['To'] !== 'Germany') {
+    throw new Error('Shipping country must be Germany');
+  }
+
+  let shippingValue = shippingMaxviewValues['Shipping and handling']
+
+  if (shippingValue !== 'Free shipping') {
+    shippingField.value = shippingValue.match(/\d+(?:[,.]\d+)?/)[0].replace(',', '.')
+
+    if (shippingMaxviewValues.hasOwnProperty('Each additional item')) {
+      shippingAdditionalField.value = shippingMaxviewValues['Each additional item']
+          .match(/\d+(?:[,.]\d+)?/)[0]
+          .replace(',', '.')
+    } else {
+      shippingAdditionalField.value = 0;
+    }
+
+  } else {
+    shippingField.value = 0;
+    shippingAdditionalField.value = 0;
+  }
+
+  //todo добавить извлечение located in
+  //todo количество отзывов у пользователя
   
   // далее ассинхронные запросы
-  
-  let descriptionField = panel.querySelector('input#' + descriptionFieldName)
-  let descriptionUrl = document.querySelector('#desc_ifr').src
-  descriptionField.value = await (await fetchResource(descriptionUrl, null)).text()
 
-  let purchaseHistoryField = panel.querySelector('input#' + purchaseHistoryFieldName)
-  let domain = location.hostname;
-  let purchaseHistoryUrl = `https://${domain}/bin/purchaseHistory?item=${itemId}`;
-  purchaseHistoryField.value = await (await fetchResource(purchaseHistoryUrl, null)).text()
+  let descriptionUrl = document.querySelector('#desc_ifr').src
+  fetchResource(descriptionUrl, {method: 'GET', credentials: 'include'})
+      .then((response) => {
+        response.text().then((text) => {
+          panel.querySelector('input#' + descriptionFieldName).value = text
+        }).catch((err) => {
+          showError(err);
+        })
+      })
+      .catch((err) => {
+        showError(err)
+      })
+
+  let purchaseHistoryUrl = `https://${location.hostname}/bin/purchaseHistory?item=${itemId}`;
+  fetchResource(purchaseHistoryUrl, {method: 'GET', credentials: 'include'})
+      .then((response) => {
+        response.text().then((text) => {
+          panel.querySelector('input#' + purchaseHistoryFieldName).value = text
+        }).catch((err) => {
+          showError(err);
+        })
+      })
+      .catch((err) => {
+        showError(err)
+      })
 }
 
 
@@ -166,16 +245,35 @@ function addPanel() {
   if (bodyElement) {
     let existingPanel = bodyElement.querySelector('div.'+panelClass );
     if (!existingPanel) {
-      let panel = createPanel();
-      bodyElement.appendChild(panel);
+      createPanel(bodyElement);
     }
   }
 }
 
+function showError(error) {
+  let errorDiv = document.querySelector('div.' + panelClass + ' #' + errorElementId)
+  
+  let span = document.createElement('span');
+  span.innerHTML = error;
+  errorDiv.appendChild(span)
+}
+
+function enableSubmitButton() {
+  document.querySelector('#' + submitId).disabled = false
+}
+
 async function run() {
+  
+  try {
     addHistoryButton();
     addPanel();
     await fillPanelWithData();
+    //todo разрешать только если вообще нет ошибок
+    enableSubmitButton()
+  }
+  catch (error) {
+    showError(error);
+  }
 }
 
 run();
