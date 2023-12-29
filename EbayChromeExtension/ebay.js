@@ -31,6 +31,16 @@ function fetchResource(input, init) {
   });
 }
 
+function extractPrice(price) {
+  let matches = price.match(/(\D+)(\d+(?:[,.]\d+)?)/)
+  if (matches[1] !== "US $") {
+    throw new Error('US $ price expected, but was')
+  }
+
+  return matches[2].replace(',', '.')
+}
+
+
 function createHistoryButton() {
   const itemId = location.pathname.match(/\/itm\/([0-9]+)/)[1];
   const domain = location.hostname;
@@ -140,6 +150,76 @@ function createPanel(bodyElement) {
   bodyElement.appendChild(div);
 }
 
+function fillSoldItemsResult(fixedPriceRows, result) {
+  for (let fixedPriceRow of fixedPriceRows) {
+    let columns = [...fixedPriceRow.querySelectorAll('td')]
+        .map(function (item) {
+          return item.innerText;
+        })
+    
+    let price = columns[1]
+    
+    if (price === "Expired" || price === "Declined"){
+      continue
+    }
+    
+    let resultItem = {}
+    
+    if (price !== "Sold as a special offer" && price !== "Counter-offered" && price !== "Accepted") {
+      resultItem['price'] = extractPrice(price)
+    }
+
+    resultItem['quantity'] = columns[2]
+    resultItem['date'] =  parseDate(columns[3])
+
+    result.push(resultItem)
+  }
+}
+
+function parseDate(dateString) {
+  let matches = dateString.match(/(\d+\s[A-z]+\s\d+)\sat\s(\d+):(\d+):(\d+)(am|pm)\s([A-z]+)/)
+  
+  let date = new Date(Date.parse(matches[1] + ' 00:00:00.000Z'))
+  
+  date.setUTCHours(parseInt(matches[2]));
+  date.setUTCMinutes(parseInt(matches[3]));
+  date.setUTCSeconds(parseInt(matches[4]));
+  
+  if (matches[5] === "pm" && date.getUTCHours() !== 12) {
+    date.setHours(date.getHours() + 12);
+  }
+  if (matches[5] === "am" && date.getUTCHours() === 12) {
+    date.setHours(date.getHours() - 12);
+  }
+  
+  if (matches[6] === "MSK") {
+    date.setHours(date.getHours() - 3);
+  } else {
+    throw new Error("unknown timezone " + matches[6])
+  }
+
+  return date.toISOString()
+}
+
+function parseSoldItemsPage(text) {
+  let doc = new DOMParser().parseFromString(text, "text/html")
+
+  let result = []
+  let fixedPriceBlock = doc.querySelector('div.fixed-price tbody')
+  if (fixedPriceBlock !== null) {
+    let fixedPriceRows = [...fixedPriceBlock.querySelectorAll('tr')]
+    fillSoldItemsResult(fixedPriceRows, result);
+  }
+
+  let offerBlock = doc.querySelector('div.offer tbody')
+  if (offerBlock !== null) {
+    let offerRows = [...offerBlock.querySelectorAll('tr')]
+    fillSoldItemsResult(offerRows, result);
+  }
+
+  return JSON.stringify(result);
+}
+
 async function fillPanelWithData() {
   let panel = document.querySelector('div.' + panelClass)
 
@@ -148,19 +228,17 @@ async function fillPanelWithData() {
   idField.value = itemId;
 
   let priceField = panel.querySelector('input#' + priceFieldName)
-  priceField.value = document.querySelector('div.x-price-primary span').innerText
-      .match(/\d+(?:[,.]\d+)?/)[0].replace(',', '.')
+  priceField.value = extractPrice(document.querySelector('div.x-price-primary span').innerText)
 
   let nameField = panel.querySelector('input#' + nameFieldName)
   nameField.value = document.querySelector('.vim h1').innerText
 
-  //todo seller не всегда правильно извлекается https://www.ebay.com/itm/134867374969?hash=item1f66b8d379:g:OfAAAOSwVNdk8KwU&amdata=enc%3AAQAIAAAA0OSeqn%2FREw2KNs1dcGci6e45%2BHSI4nHITB00b0YOLxopb9NaCJe4R1BkOVYt6oXtBq0fjrejU85j0r8xKlug21XYny77DuN%2FJCmqOOSkNbG5PX1fBEGNbHCLdnDTqUaQsbTBVFoENEuoZxnh8raR3cVLSY%2FIQxJqYy%2B6G%2BNkm%2FoBpTnRKW1GHokeC5RpydqA8I2A%2FvWvuOw6Bdc1y6VgaB2E%2FLp%2FcgTLhErIDCiZciNo9KeDMM%2Fd1NqR73YOS7XEDGQqwpMgU84A9k5tU3sokKE%3D%7Ctkp%3ABFBMhM-fmJZj
   let sellerField = panel.querySelector('input#' + sellerFieldName)
   sellerField.value = document.querySelector('div.x-sellercard-atf__info__about-seller a').innerText.toLowerCase()
   
   let conditionField = panel.querySelector('input#' + conditionFieldName)
   conditionField.value = document.querySelector('div.x-item-condition-text span.ux-textspans').innerText
-  
+
   let conditionDescriptionElement = document.querySelector('div.x-item-condition-desc')
   if (conditionDescriptionElement != null) {
     let conditionDescriptionField = panel.querySelector('input#' + conditionDescriptionFieldName)
@@ -191,12 +269,11 @@ async function fillPanelWithData() {
   let shippingValue = shippingMaxviewValues['Shipping and handling']
 
   if (shippingValue !== 'Free shipping') {
-    shippingField.value = shippingValue.match(/\d+(?:[,.]\d+)?/)[0].replace(',', '.')
+    shippingField.value = extractPrice(shippingValue)
 
     if (shippingMaxviewValues.hasOwnProperty('Each additional item')) {
-      shippingAdditionalField.value = shippingMaxviewValues['Each additional item']
-          .match(/\d+(?:[,.]\d+)?/)[0]
-          .replace(',', '.')
+      shippingAdditionalField.value = extractPrice(shippingMaxviewValues['Each additional item'])
+          
     } else {
       shippingAdditionalField.value = 0;
     }
@@ -207,8 +284,7 @@ async function fillPanelWithData() {
   }
 
   //todo добавить извлечение located in
-  //todo количество отзывов у пользователя
-  
+
   // далее ассинхронные запросы
 
   let descriptionUrl = document.querySelector('#desc_ifr').src
@@ -228,7 +304,8 @@ async function fillPanelWithData() {
   fetchResource(purchaseHistoryUrl, {method: 'GET', credentials: 'include'})
       .then((response) => {
         response.text().then((text) => {
-          panel.querySelector('input#' + purchaseHistoryFieldName).value = text
+          panel.querySelector('input#' + purchaseHistoryFieldName).value = parseSoldItemsPage(text)
+
         }).catch((err) => {
           showError(err);
         })
@@ -273,6 +350,7 @@ async function run() {
   }
   catch (error) {
     showError(error);
+    throw error;
   }
 }
 
