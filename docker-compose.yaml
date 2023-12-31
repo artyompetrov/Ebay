@@ -5,8 +5,11 @@ services:
     container_name: ebay
     image: ghcr.io/artyompetrov/ebay:latest
     ports:
-      - 17443:443
+      - 17443:5000
     restart: unless-stopped
-
-volumes:
-  portainer_data:
+    environment:
+      - ASPNETCORE_URLS=https://+:5000
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=qwerty123
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/pfx.pfx
+    volumes:
+      - ./certs/pfx.pfx:/https/pfx.pfx:ro
