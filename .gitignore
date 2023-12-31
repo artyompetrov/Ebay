@@ -6,3 +6,4 @@ riderModule.iml
 .idea/
 /Ebay/Server/app.db-shm
 /Ebay/Server/app.db-wal
+/Ebay/Server/app.db
