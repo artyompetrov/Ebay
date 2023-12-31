@@ -299,6 +299,11 @@ function fillShipping(panel) {
     }
 }
 
+function fillLocatedIn(panel) {
+    let locatedInField = panel.querySelector('input#' + locatedInFieldName)
+    locatedInField.value = document.querySelector('div.ux-labels-values--legalShipping div.col-9').innerText.split("Located in: ")[1]
+}
+
 function fillDescription(panel) {
     let descriptionUrl = document.querySelector('#desc_ifr').src
     fetchResource(descriptionUrl, {method: 'GET', credentials: 'include'})
@@ -341,8 +346,7 @@ function fillPanelWithData() {
     fillCondition(panel);
     fillConditionDescription(panel);
     fillShipping(panel);
-
-    //todo добавить извлечение located in
+    fillLocatedIn(panel);
     fillDescription(panel);
     fillPurchaseHistory(panel);
 }
