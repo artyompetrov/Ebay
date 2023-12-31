@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{AFE141F9-4F20-4390-BDD1-1D2ED0928EFD}"
 	ProjectSection(SolutionItems) = preProject
 		Ebay.sln.DotSettings = Ebay.sln.DotSettings
-		Dockerfile = Dockerfile
-		.dockerignore = .dockerignore
 		.gitignore = .gitignore
 		docker-compose.yaml = docker-compose.yaml
 		README.md = README.md
@@ -18,11 +16,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "EbayChromeExtension", "Ebay
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{14CB0094-005A-41DB-A35A-E90FCE8D2D79}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{48DA1592-2C5B-4228-9BF9-45E64F4CAF39}"
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\action.yaml = .github\workflows\action.yaml
 	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{48DA1592-2C5B-4228-9BF9-45E64F4CAF39}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ebay.Server", "Ebay\Server\Ebay.Server.csproj", "{313F456D-150D-48BE-A999-02D44014D57E}"
 EndProject
