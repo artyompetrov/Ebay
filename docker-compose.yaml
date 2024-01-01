@@ -28,7 +28,7 @@ services:
       - ASPNETCORE_IdentityServer__Key__Type=File
       - ASPNETCORE_IdentityServer__Key__FilePath=/https/pfx.pfx
       - ASPNETCORE_IdentityServer__Key__Password=qwerty123
-      - ASPNETCORE_ConnectionStrings__DefaultConnection=User ID=pt_system;Password=marine-4buckskin-drainage8;Server=postgres;Port=5432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=30;Enlist=true;
+      - ASPNETCORE_ConnectionStrings__DefaultConnection=User ID=ebay;Password=marine-4buckskin-drainage8;Server=postgres;Port=5432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=30;Enlist=true;
     volumes:
       - ./certs/pfx.pfx:/https/pfx.pfx:ro
 
