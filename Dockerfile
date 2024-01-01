@@ -7,7 +7,6 @@ FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 COPY ["Ebay/Server/Ebay.Server.csproj", "Ebay/Server/"]
 COPY ["Ebay/Client/Ebay.Client.csproj", "Ebay/Client/"]
-COPY ["Ebay/Shared/Ebay.Shared.csproj", "Ebay/Shared/"]
 RUN dotnet restore "Ebay/Server/Ebay.Server.csproj"
 COPY . .
 WORKDIR "/src/Ebay/Server"
