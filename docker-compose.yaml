@@ -14,6 +14,8 @@ services:
       CFG_TIMEZONE: 'Europe/Moscow'
     volumes:
       - pgdata:/var/lib/postgresql/data
+    networks:
+      - ebay_internal_network
 
   ebay_server:
     container_name: ebay_server
@@ -28,9 +30,15 @@ services:
       - ASPNETCORE_IdentityServer__Key__Type=File
       - ASPNETCORE_IdentityServer__Key__FilePath=/https/pfx.pfx
       - ASPNETCORE_IdentityServer__Key__Password=qwerty123
-      - ASPNETCORE_ConnectionStrings__DefaultConnection=User ID=ebay;Password=marine-4buckskin-drainage8;Server=postgres;Port=5432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=30;Enlist=true;
+      - ASPNETCORE_ConnectionStrings__DefaultConnection=User ID=ebay;Password=marine-4buckskin-drainage8;Server=ebay_postgres;Port=5432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=30;Enlist=true;
     volumes:
       - ./certs/pfx.pfx:/https/pfx.pfx:ro
+    networks:
+      - ebay_internal_network
+
+networks:
+  ebay_internal_network:
+    driver: bridge
 
 volumes:
   pgdata:

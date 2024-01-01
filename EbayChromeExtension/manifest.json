@@ -1,17 +1,53 @@
 {
-    "name": "EbayChromeExtension",
-    "description": "EbayChromeExtension",
-    "version": "1.0",
-    "manifest_version": 3,
-    "icons": {},
-    "action": {},
-	"content_scripts": [ {
-      "js": [ "ebay.js" ],
-      "matches": [ "https://*.ebay.com/itm/*", "https://*.ebay.com/itm/*/*", "https://*.ebay.co.uk/itm/*", "https://*.ebay.co.uk/itm/*/*", "https://*.ebay.com.au/itm/*", "https://*.ebay.com.au/itm/*/*", "https://*.ebay.ca/itm/*", "https://*.ebay.ca/itm/*/*", "https://*.ebay.de/itm/*", "https://*.ebay.de/itm/*/*", "https://*.ebay.fr/itm/*", "https://*.ebay.fr/itm/*/*", "https://*.ebay.it/itm/*", "https://*.ebay.it/itm/*/*", "https://*.ebay.es/itm/*", "https://*.ebay.es/itm/*/*", "https://*.ebay.nl/itm/*", "https://*.ebay.nl/itm/*/*", "https://*.ebay.be/itm/*", "https://*.ebay.be/itm/*/*", "https://*.ebay.ie/itm/*", "https://*.ebay.ie/itm/*/*", "https://*.ebay.at/itm/*", "https://*.ebay.at/itm/*/*", "https://*.ebay.ch/itm/*", "https://*.ebay.ch/itm/*/*" ]
-    } ],
-    "permissions": ["scripting", "activeTab"],
-    "host_permissions": [ "https://vi.vipr.ebaydesc.com/*" ],
-    "background":{
-        "service_worker": "background.js"
+  "name": "EbayChromeExtension",
+  "description": "EbayChromeExtension",
+  "version": "1.0",
+  "manifest_version": 3,
+  "icons": {},
+  "action": {},
+  "content_scripts": [
+    {
+      "js": [
+        "ebay.js"
+      ],
+      "matches": [
+        "https://*.ebay.com/itm/*",
+        "https://*.ebay.com/itm/*/*",
+        "https://*.ebay.co.uk/itm/*",
+        "https://*.ebay.co.uk/itm/*/*",
+        "https://*.ebay.com.au/itm/*",
+        "https://*.ebay.com.au/itm/*/*",
+        "https://*.ebay.ca/itm/*",
+        "https://*.ebay.ca/itm/*/*",
+        "https://*.ebay.de/itm/*",
+        "https://*.ebay.de/itm/*/*",
+        "https://*.ebay.fr/itm/*",
+        "https://*.ebay.fr/itm/*/*",
+        "https://*.ebay.it/itm/*",
+        "https://*.ebay.it/itm/*/*",
+        "https://*.ebay.es/itm/*",
+        "https://*.ebay.es/itm/*/*",
+        "https://*.ebay.nl/itm/*",
+        "https://*.ebay.nl/itm/*/*",
+        "https://*.ebay.be/itm/*",
+        "https://*.ebay.be/itm/*/*",
+        "https://*.ebay.ie/itm/*",
+        "https://*.ebay.ie/itm/*/*",
+        "https://*.ebay.at/itm/*",
+        "https://*.ebay.at/itm/*/*",
+        "https://*.ebay.ch/itm/*",
+        "https://*.ebay.ch/itm/*/*"
+      ]
     }
+  ],
+  "permissions": [
+    "scripting",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://vi.vipr.ebaydesc.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
 }
