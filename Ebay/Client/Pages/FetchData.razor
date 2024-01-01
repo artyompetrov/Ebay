@@ -1,8 +1,9 @@
 ﻿@page "/fetchdata"
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+
 @attribute [Authorize]
-@inject HttpClient Http
+@inject EbayClient EbayClient
 
 <PageTitle>Weather forecast</PageTitle>
 
@@ -42,13 +43,14 @@ else
 }
 
 @code {
-    private WeatherForecast[]? _forecasts;
+    private ICollection<WeatherForecast> _forecasts = null!;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            _forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("/api/ebay/v1/");
+            _forecasts = await EbayClient.GetAllAsync();
+           
         }
         catch (AccessTokenNotAvailableException exception)
         {
