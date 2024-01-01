@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Ebay.Server.Controllers;
 
-//[Authorize]
+[Authorize]
 public class WeatherForecastController : DefaultApiController
 {
     
