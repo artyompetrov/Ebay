@@ -7,3 +7,4 @@ riderModule.iml
 /Ebay/Server/app.db-shm
 /Ebay/Server/app.db-wal
 /Ebay/Server/app.db
+./*.lnk
