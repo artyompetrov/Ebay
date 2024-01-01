@@ -1,13 +1,35 @@
-﻿openapi: "3.0.0"
+﻿swagger: '2.0'
 info:
-  title: Ebay api
+  description: EbayApi
+  title: EbayApi
   version: 1.0.0
+consumes:
+  - application/json
+produces:
+  - application/json
+basePath: /api/ebay/v1/
 paths:
-  /api/:
+  /:
     get:
       operationId: GetAll
       summary: List API versions
       responses:
-        '200':
-          description:
-            200 response
+        200:
+          description: 'OK'
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/WeatherForecast'
+
+definitions:
+  WeatherForecast:
+    type: object
+    properties:
+      Date:
+        type: string
+      TemperatureC:
+        type: string
+      Summary:
+        type: string
+      TemperatureF:
+        type: string

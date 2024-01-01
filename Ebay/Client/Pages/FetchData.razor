@@ -1,5 +1,4 @@
 ﻿@page "/fetchdata"
-@using Ebay.Shared
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @attribute [Authorize]
@@ -32,7 +31,7 @@ else
         @foreach (var forecast in _forecasts)
         {
             <tr>
-                <td>@forecast.Date.ToShortDateString()</td>
+                <td>@forecast.Date</td>
                 <td>@forecast.TemperatureC</td>
                 <td>@forecast.TemperatureF</td>
                 <td>@forecast.Summary</td>
@@ -49,7 +48,7 @@ else
     {
         try
         {
-            _forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("WeatherForecast");
+            _forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("/api/ebay/v1/");
         }
         catch (AccessTokenNotAvailableException exception)
         {

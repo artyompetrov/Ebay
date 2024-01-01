@@ -1,36 +1,35 @@
-using Ebay.Shared;
+using Ebay.GeneratedController.Controllers;
+using Ebay.GeneratedController.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ebay.Server.Controllers;
 
-[Authorize]
-[ApiController]
-[Route("[controller]")]
-public class WeatherForecastController : ControllerBase
+//[Authorize]
+public class WeatherForecastController : DefaultApiController
 {
-    private static readonly string[] Summaries =
-    {
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
-
+    
     private readonly ILogger<WeatherForecastController> _logger;
 
     public WeatherForecastController(ILogger<WeatherForecastController> logger)
     {
         _logger = logger;
     }
+    
 
-    [HttpGet]
-    public IEnumerable<WeatherForecast> Get()
+    public override async Task<IActionResult> GetAll()
     {
-        return Enumerable.Range(1, 5).Select(
-                index => new WeatherForecast
-                {
-                    Date = DateTime.Now.AddDays(index),
-                    TemperatureC = Random.Shared.Next(-20, 55),
-                    Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-                })
-            .ToArray();
+        var result = 
+
+        Enumerable.Range(0, 100).Select(
+            x => new WeatherForecast
+            {
+                Date = x.ToString(),
+                TemperatureC = x.ToString(),
+                Summary = x.ToString(),
+                TemperatureF = x.ToString()
+            }).ToList();
+        
+        return Ok(result);
     }
 }

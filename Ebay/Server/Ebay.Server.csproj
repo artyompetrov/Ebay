@@ -15,6 +15,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Client\Ebay.Client.csproj"/>
+        <ProjectReference Include="..\GeneratedController\Ebay.GeneratedController.csproj" />
         <ProjectReference Include="..\Shared\Ebay.Shared.csproj"/>
     </ItemGroup>
 
@@ -28,7 +29,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Controllers\Generated\" />
       <Folder Include="Data\Migrations\" />
     </ItemGroup>
 </Project>
