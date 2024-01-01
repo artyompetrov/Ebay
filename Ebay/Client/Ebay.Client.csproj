@@ -16,9 +16,6 @@
     <PackageReference Include="NSwag.CodeGeneration.CSharp" Version="13.20.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Shared\Ebay.Shared.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <OpenApiReference Include=".\Ebay.yaml" CodeGenerator="NSwagCSharp" />
+    <OpenApiReference Include="..\Server\Contracts\Ebay.yaml" CodeGenerator="NSwagCSharp" />
   </ItemGroup>
 </Project>

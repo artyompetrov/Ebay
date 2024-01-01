@@ -11,12 +11,14 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="6.0.7"/>
+        <PackageReference Include="NSwag.MSBuild" Version="13.20.0">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\Client\Ebay.Client.csproj"/>
-        <ProjectReference Include="..\GeneratedController\Ebay.GeneratedController.csproj" />
-        <ProjectReference Include="..\Shared\Ebay.Shared.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -31,4 +33,9 @@
     <ItemGroup>
       <Folder Include="Data\Migrations\" />
     </ItemGroup>
+    
+    <Target Name="NSwag" BeforeTargets="Build">
+        <Exec Command="$(NSwagExe) openapi2cscontroller /input:Contracts/Ebay.yaml /classname:Ebay /namespace:Ebay.Controllers.Generated /output:Controllers/Generated/EbayController.cs /UseLiquidTemplates:true /AspNetNamespace:Microsoft.AspNetCore.Mvc /ControllerBaseClass:Microsoft.AspNetCore.Mvc.Controller" />
+    </Target>
+    
 </Project>
