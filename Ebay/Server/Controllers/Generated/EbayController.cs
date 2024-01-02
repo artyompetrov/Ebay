@@ -24,12 +24,12 @@ namespace Ebay.Controllers.Generated
     {
 
         /// <summary>
-        /// List API versions
+        /// List all products
         /// </summary>
 
         /// <returns>OK</returns>
 
-        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<WeatherForecast>> GetAllAsync();
+        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<Product>> GetAllProductsAsync();
 
     }
 
@@ -46,32 +46,32 @@ namespace Ebay.Controllers.Generated
         }
 
         /// <summary>
-        /// List API versions
+        /// List all products
         /// </summary>
         /// <returns>OK</returns>
-        [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("")]
-        public System.Threading.Tasks.Task<System.Collections.Generic.ICollection<WeatherForecast>> GetAll()
+        [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("products")]
+        public System.Threading.Tasks.Task<System.Collections.Generic.ICollection<Product>> GetAllProducts()
         {
 
-            return _implementation.GetAllAsync();
+            return _implementation.GetAllProductsAsync();
         }
 
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class WeatherForecast
+    public partial class Product
     {
-        [Newtonsoft.Json.JsonProperty("Date", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string Date { get; set; }
+        [Newtonsoft.Json.JsonProperty("Id", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public System.Guid Id { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("TemperatureC", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string TemperatureC { get; set; }
+        [Newtonsoft.Json.JsonProperty("Name", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Name { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("Summary", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string Summary { get; set; }
-
-        [Newtonsoft.Json.JsonProperty("TemperatureF", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string TemperatureF { get; set; }
+        [Newtonsoft.Json.JsonProperty("SearchQuery", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string SearchQuery { get; set; }
 
     }
 

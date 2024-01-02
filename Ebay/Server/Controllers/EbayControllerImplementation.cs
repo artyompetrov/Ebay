@@ -1,22 +1,25 @@
 ﻿using Ebay.Controllers.Generated;
+using Ebay.Server.Services;
 
 namespace Ebay.Server.Controllers;
 
 public class EbayControllerImplementation : IEbayController
 {
-    public Task<ICollection<WeatherForecast>> GetAllAsync() 
-    {
-        var result = 
+    private readonly ProductService _productService;
 
-            Enumerable.Range(0, 100).Select(
-                x => new WeatherForecast
-                {
-                    Date = x.ToString(),
-                    TemperatureC = x.ToString(),
-                    Summary = x.ToString(),
-                    TemperatureF = x.ToString()
-                }).ToList();
-        
-        return Task.FromResult<ICollection<WeatherForecast>>(result);
+    public EbayControllerImplementation(ProductService productService)
+    {
+        _productService = productService;
+    }
+
+    public async Task<ICollection<Product>> GetAllProductsAsync()
+    {
+        return (await _productService.GetAllProducts())
+            .Select(x => new Product
+            {
+                Id = x.Id,
+                Name = x.Name,
+                SearchQuery = x.SearchQuery
+            }).ToList();
     }
 }

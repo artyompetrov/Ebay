@@ -5,16 +5,14 @@
 @attribute [Authorize]
 @inject EbayClient EbayClient
 
-<PageTitle>Weather forecast</PageTitle>
+<PageTitle>Перечень продуктов</PageTitle>
 
-<h1>Weather forecast</h1>
+<h1>Перечень продуктов</h1>
 
-<p>This component demonstrates fetching data from the server.</p>
-
-@if (_forecasts == null)
+@if (_products == null)
 {
     <p>
-        <em>Loading...</em>
+        <em>Загрузка...</em>
     </p>
 }
 else
@@ -22,20 +20,18 @@ else
     <table class="table">
         <thead>
         <tr>
-            <th>Date</th>
-            <th>Temp. (C)</th>
-            <th>Temp. (F)</th>
-            <th>Summary</th>
+            <th>Id</th>
+            <th>Название</th>
+            <th>Поисковый запрос</th>
         </tr>
         </thead>
         <tbody>
-        @foreach (var forecast in _forecasts)
+        @foreach (var forecast in _products)
         {
             <tr>
-                <td>@forecast.Date</td>
-                <td>@forecast.TemperatureC</td>
-                <td>@forecast.TemperatureF</td>
-                <td>@forecast.Summary</td>
+                <td>@forecast.Id</td>
+                <td>@forecast.Name</td>
+                <td>@forecast.SearchQuery</td>
             </tr>
         }
         </tbody>
@@ -43,14 +39,14 @@ else
 }
 
 @code {
-    private ICollection<WeatherForecast> _forecasts = null!;
+    private ICollection<Product>? _products;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            _forecasts = await EbayClient.GetAllAsync();
-           
+            _products = await EbayClient.GetAllProductsAsync();
+
         }
         catch (AccessTokenNotAvailableException exception)
         {

@@ -9,27 +9,30 @@ produces:
   - application/json
 basePath: /api/ebay/v1/
 paths:
-  /:
+  /products:
     get:
-      operationId: GetAll
-      summary: List API versions
+      operationId: GetAllProducts
+      summary: List all products
       responses:
         200:
           description: 'OK'
           schema:
             type: array
             items:
-              $ref: '#/definitions/WeatherForecast'
+              $ref: '#/definitions/Product'
 
 definitions:
-  WeatherForecast:
+  Product:
     type: object
     properties:
-      Date:
+      Id:
         type: string
-      TemperatureC:
+        format: guid
+      Name:
         type: string
-      Summary:
+      SearchQuery:
         type: string
-      TemperatureF:
-        type: string
+    required:
+      - Id
+      - Name
+      - SearchQuery
