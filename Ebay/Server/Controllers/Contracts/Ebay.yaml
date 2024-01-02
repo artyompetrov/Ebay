@@ -20,6 +20,48 @@ paths:
             type: array
             items:
               $ref: '#/definitions/Product'
+    post:
+      operationId: CreateProduct
+      summary: Create product
+      parameters:
+        - name: product
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ProductWithoutId'
+      responses:
+        200:
+          description: 'Created'
+          schema:
+            type: string
+            format: guid
+  
+  /products/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+        format: guid
+    put:
+      operationId: UpdateProduct
+      summary: Update product
+      parameters:
+        - name: product
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ProductWithoutId'
+      responses: 
+        200:
+          description: 'Updated'
+    delete:
+      operationId: DeleteProduct
+      summary: Delete product
+      responses: 
+        200:
+          description: 'Deleted'
+        
 
 definitions:
   Product:
@@ -34,5 +76,16 @@ definitions:
         type: string
     required:
       - Id
+      - Name
+      - SearchQuery
+
+  ProductWithoutId:
+    type: object
+    properties:
+      Name:
+        type: string
+      SearchQuery:
+        type: string
+    required:
       - Name
       - SearchQuery

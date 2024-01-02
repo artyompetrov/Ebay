@@ -1,0 +1,81 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+
+@attribute [Authorize]
+@inject EbayClient EbayClient
+
+<PageTitle>Перечень товаров</PageTitle>
+
+<h1>Перечень товаров</h1>
+<button class="btn btn-primary" @onclick="AddNewProduct">Добавить</button>
+
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Id</th>
+        <th>Название</th>
+        <th>Поисковый запрос</th>
+        <th>Редактировать</th>
+        <th>Удалить</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var forecast in _products)
+    {
+        <tr>
+            <td>@forecast.Id</td>
+            <td>@forecast.Name</td>
+            <td>@forecast.SearchQuery</td>
+            <td>
+                <button class="btn btn-primary" @onclick="rename">Редактировать</button>
+            </td>
+            <td>
+                <button class="btn btn-primary" @onclick="@(e => DeleteProduct(forecast.Id))">Удалить</button>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+
+@code {
+    private ICollection<Product> _products = new List<Product>();
+
+    private async Task AddNewProduct()
+    {
+        var product = new ProductWithoutId { Name = "Test", SearchQuery = "Test" };
+         await EbayClient.CreateProductAsync(product);
+        
+        await LoadActualProductList();
+    }
+    
+    private async Task DeleteProduct(Guid id)
+    {
+        await EbayClient.DeleteProductAsync(id);
+        await LoadActualProductList();
+    }
+
+    private void rename() //todo нужно переименовать
+    {
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadActualProductList();
+    }
+
+    private async Task LoadActualProductList()
+    {
+        try
+        {
+            _products = await EbayClient.GetAllProductsAsync();
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+
+}

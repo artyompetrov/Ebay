@@ -29,7 +29,34 @@ namespace Ebay.Controllers.Generated
 
         /// <returns>OK</returns>
 
-        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<Product>> GetAllProductsAsync();
+        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<Product>> GetAllProductsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+
+        /// <summary>
+        /// Create product
+        /// </summary>
+
+
+        /// <returns>Created</returns>
+
+        System.Threading.Tasks.Task<System.Guid> CreateProductAsync(ProductWithoutId product, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+
+        /// <summary>
+        /// Update product
+        /// </summary>
+
+
+        /// <returns>Updated</returns>
+
+        System.Threading.Tasks.Task UpdateProductAsync(ProductWithoutId product, System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+
+        /// <summary>
+        /// Delete product
+        /// </summary>
+
+
+        /// <returns>Deleted</returns>
+
+        System.Threading.Tasks.Task DeleteProductAsync(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
     }
 
@@ -50,10 +77,43 @@ namespace Ebay.Controllers.Generated
         /// </summary>
         /// <returns>OK</returns>
         [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("products")]
-        public System.Threading.Tasks.Task<System.Collections.Generic.ICollection<Product>> GetAllProducts()
+        public System.Threading.Tasks.Task<System.Collections.Generic.ICollection<Product>> GetAllProducts(System.Threading.CancellationToken cancellationToken)
         {
 
-            return _implementation.GetAllProductsAsync();
+            return _implementation.GetAllProductsAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Create product
+        /// </summary>
+        /// <returns>Created</returns>
+        [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("products")]
+        public System.Threading.Tasks.Task<System.Guid> CreateProduct([Microsoft.AspNetCore.Mvc.FromBody] ProductWithoutId product, System.Threading.CancellationToken cancellationToken)
+        {
+
+            return _implementation.CreateProductAsync(product, cancellationToken);
+        }
+
+        /// <summary>
+        /// Update product
+        /// </summary>
+        /// <returns>Updated</returns>
+        [Microsoft.AspNetCore.Mvc.HttpPut, Microsoft.AspNetCore.Mvc.Route("products/{id}")]
+        public System.Threading.Tasks.Task UpdateProduct([Microsoft.AspNetCore.Mvc.FromBody] ProductWithoutId product, System.Guid id, System.Threading.CancellationToken cancellationToken)
+        {
+
+            return _implementation.UpdateProductAsync(product, id, cancellationToken);
+        }
+
+        /// <summary>
+        /// Delete product
+        /// </summary>
+        /// <returns>Deleted</returns>
+        [Microsoft.AspNetCore.Mvc.HttpDelete, Microsoft.AspNetCore.Mvc.Route("products/{id}")]
+        public System.Threading.Tasks.Task DeleteProduct(System.Guid id, System.Threading.CancellationToken cancellationToken)
+        {
+
+            return _implementation.DeleteProductAsync(id, cancellationToken);
         }
 
     }
@@ -65,6 +125,19 @@ namespace Ebay.Controllers.Generated
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         public System.Guid Id { get; set; }
 
+        [Newtonsoft.Json.JsonProperty("Name", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Name { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("SearchQuery", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string SearchQuery { get; set; }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ProductWithoutId
+    {
         [Newtonsoft.Json.JsonProperty("Name", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         public string Name { get; set; }

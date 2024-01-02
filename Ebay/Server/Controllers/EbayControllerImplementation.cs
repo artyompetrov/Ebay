@@ -1,25 +1,61 @@
 ﻿using Ebay.Controllers.Generated;
-using Ebay.Server.Services;
+using Ebay.Server.Data;
+using Microsoft.EntityFrameworkCore;
+using DbProduct = Ebay.Server.Data.Models.Product;
 
 namespace Ebay.Server.Controllers;
 
 public class EbayControllerImplementation : IEbayController
 {
-    private readonly ProductService _productService;
+    private readonly ApplicationDbContext _applicationContext;
 
-    public EbayControllerImplementation(ProductService productService)
+    public EbayControllerImplementation(ApplicationDbContext applicationContext)
     {
-        _productService = productService;
+        _applicationContext = applicationContext;
     }
 
-    public async Task<ICollection<Product>> GetAllProductsAsync()
+    public async Task<ICollection<Product>> GetAllProductsAsync(CancellationToken cancellationToken)
     {
-        return (await _productService.GetAllProducts())
-            .Select(x => new Product
-            {
-                Id = x.Id,
-                Name = x.Name,
-                SearchQuery = x.SearchQuery
-            }).ToList();
+        var dbProducts = await _applicationContext.Products.ToListAsync(cancellationToken);
+
+        return dbProducts
+            .Select(
+                x => new Product
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    SearchQuery = x.SearchQuery
+                }).ToList();
+    }
+
+    public async Task<Guid> CreateProductAsync(
+        ProductWithoutId product,
+        CancellationToken cancellationToken)
+    {
+        var id = Guid.NewGuid();
+        var dbProduct = new DbProduct { Id = id, Name = product.Name, SearchQuery = product.SearchQuery };
+
+        await _applicationContext.Products.AddAsync(entity: dbProduct, cancellationToken: cancellationToken);
+        await _applicationContext.SaveChangesAsync(cancellationToken);
+        return id;
+    }
+
+    public async Task UpdateProductAsync(
+        ProductWithoutId product,
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var dbProduct = _applicationContext.Products.Attach(new DbProduct { Id = id });
+        dbProduct.Entity.SearchQuery = product.SearchQuery;
+        dbProduct.Entity.SearchQuery = product.Name;
+        await _applicationContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task DeleteProductAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var product = _applicationContext.Products.Attach(new DbProduct { Id = id });
+        product.State = EntityState.Deleted;
+        await _applicationContext.SaveChangesAsync(cancellationToken);
+        
     }
 }

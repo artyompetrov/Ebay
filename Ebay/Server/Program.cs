@@ -2,7 +2,6 @@ using Ebay.Controllers.Generated;
 using Ebay.Server.Controllers;
 using Ebay.Server.Data;
 using Ebay.Server.Data.Models;
-using Ebay.Server.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,7 +10,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString));
-builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<IEbayController, EbayControllerImplementation>();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
