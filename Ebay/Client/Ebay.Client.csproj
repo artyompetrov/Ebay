@@ -16,6 +16,9 @@
     <PackageReference Include="NSwag.CodeGeneration.CSharp" Version="13.20.0" />
   </ItemGroup>
   <ItemGroup>
-    <OpenApiReference Include="..\Server\Contracts\Ebay.yaml" CodeGenerator="NSwagCSharp" />
+    <OpenApiReference Include="..\Server\Contracts\Ebay.yaml" CodeGenerator="NSwagCSharp">
+      <Link>Contracts\Ebay.yaml</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </OpenApiReference>
   </ItemGroup>
 </Project>
