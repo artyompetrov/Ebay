@@ -6,18 +6,19 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
+    
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.7" PrivateAssets="all" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="6.0.7" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
-    <PackageReference Include="NSwag.CodeGeneration.CSharp" Version="13.20.0" />
+    <PackageReference Include="NSwag.MSBuild" Version="13.20.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
-  <ItemGroup>
-    <OpenApiReference Include="..\Server\Contracts\Ebay.yaml" CodeGenerator="NSwagCSharp">
-      <Link>Contracts\Ebay.yaml</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </OpenApiReference>
-  </ItemGroup>
+  <Target Name="NSwag" BeforeTargets="Build">
+    <Exec Command="$(NSwagExe_Net60) openapi2csclient /input:../Server/Contracts/Ebay.yaml /classname:EbayClient /namespace:Ebay.Client /output:Clients/Generated/EbayClient.cs" />
+  </Target>
 </Project>
