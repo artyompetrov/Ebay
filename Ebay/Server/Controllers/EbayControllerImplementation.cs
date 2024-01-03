@@ -14,7 +14,7 @@ public class EbayControllerImplementation : IEbayController
         _applicationContext = applicationContext;
     }
 
-    public async Task<ICollection<Product>> GetAllProductsAsync(CancellationToken cancellationToken)
+    public async Task<ICollection<ProductWithId>> GetAllProductsAsync(CancellationToken cancellationToken)
     {
         var dbProducts = await _applicationContext.Products
             .OrderBy(x => x.Name).ThenBy(x => x.Id)
@@ -22,7 +22,7 @@ public class EbayControllerImplementation : IEbayController
 
         return dbProducts
             .Select(
-                x => new Product
+                x => new ProductWithId
                 {
                     Id = x.Id,
                     Name = x.Name,

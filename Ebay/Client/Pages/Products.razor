@@ -30,7 +30,7 @@
 <PageTitle>Перечень товаров</PageTitle>
 
 <h1>Перечень товаров</h1>
-<button class="btn btn-primary" @onclick="AddNewProduct">Добавить</button>
+<button class="btn btn-primary" @onclick="OnAddNewProductButtonClick">Добавить</button>
 
 
 <table class="table">
@@ -49,7 +49,7 @@
             <td>@product.Name</td>
             <td>@product.SearchQuery</td>
             <td>
-                <button class="btn btn-primary" @onclick="@(e => SelectEditFormModel(product))">Редактировать</button>
+                <button class="btn btn-primary" @onclick="@(e => SelectProductToEdit(product))">Редактировать</button>
             </td>
             <td>
                 <button class="btn btn-primary" @onclick="@(e => DeleteProduct(product))">Удалить</button>
@@ -58,56 +58,43 @@
     }
     </tbody>
 </table>
-
-@if (_editFormModel != null)
+@if (_createFormModel != null)
 {
-    <div class="hoverPanel">
-        <h3>Редактировать @_editElementName</h3>
-        <EditForm Model="@_editFormModel">
-            <p>
-                <label for="name">Название</label>
-                <InputText id="name" @bind-Value="_editFormModel.Name"/>
-            </p>
-            <p>
-                <label for="searchQuery">Поисковый запрос</label>
-                <InputText id="searchQuery" @bind-Value="_editFormModel.SearchQuery"/>
-            </p>
-        </EditForm>
-        <button class="btn btn-primary" @onclick="EditFormSubmit">Сохранить</button>
-        <button class="btn btn-secondary" @onclick="EditFormCancel">Отмена</button>
-    </div>
+    <EditProduct Product="@_createFormModel" ActionName="Создать" OnSubmit="@CreateFormSubmit" OnCancel="@HideCreateAndEditForms"/>
+}
+else if (_editFormModel != null)
+{
+    <EditProduct Product="@_editFormModel" ActionName="Редактировать" OnSubmit="@OnEditFormSubmit" OnCancel="@HideCreateAndEditForms"/>
 }
 
-
 @code {
-    private ICollection<Product> _products = new List<Product>();
-    string? _editElementName;
-    Product? _editFormModel;
-
-    private async Task AddNewProduct()
-    {
-        var product = new ProductWithoutId { Name = "Test", SearchQuery = "Test" };
-        await EbayClient.CreateProductAsync(product);
-        await LoadActualProductList();
-    }
-
-    private async Task DeleteProduct(Product product)
-    {
-        await EbayClient.DeleteProductAsync(product.Id);
-        await LoadActualProductList();
-    }
-
-    private void SelectEditFormModel(Product product)
-    {
-        _editFormModel = product.Copy();
-        _editElementName = _editFormModel.Name;
-    }
+    private ICollection<ProductWithId> _products = new List<ProductWithId>();
+    ProductWithId? _editFormModel;
+    ProductWithId? _createFormModel;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadActualProductList();
     }
+    
+    private void OnAddNewProductButtonClick()
+    {
+        _createFormModel = new ProductWithId { Name = "", SearchQuery = "" };
+        _editFormModel = null;
+    }
 
+    private async Task DeleteProduct(ProductWithId product)
+    {
+        await EbayClient.DeleteProductAsync(product.Id);
+        await LoadActualProductList();
+    }
+
+    private void SelectProductToEdit(ProductWithId product)
+    {
+        _editFormModel = product.Copy();
+        _createFormModel = null;
+    }
+    
     private async Task LoadActualProductList()
     {
         try
@@ -116,25 +103,30 @@
         }
         catch (AccessTokenNotAvailableException exception)
         {
-            exception.Redirect();
+            exception.Redirect(); //todo по хорошему надо вообще все вызовы оборачивать
         }
     }
 
-    private async Task EditFormSubmit()
+    private async Task OnEditFormSubmit()
     {
-        if (_editFormModel != null)
-        {
-            await EbayClient.UpdateProductAsync(product: _editFormModel.ToProductWithoutId(), id: _editFormModel.Id);
-            await LoadActualProductList();
-        }
-        _editFormModel = null;
+        if (_editFormModel == null) throw new InvalidOperationException($"{nameof(_editFormModel)} expected to be not null");
+        await EbayClient.UpdateProductAsync(product: _editFormModel, id: _editFormModel.Id);
+        HideCreateAndEditForms();
+        await LoadActualProductList();
     }
 
-    private void EditFormCancel()
+    private async Task CreateFormSubmit()
     {
-        _editFormModel = null;
+        if (_createFormModel == null) throw new InvalidOperationException($"{nameof(_createFormModel)} expected to be not null");
+        await EbayClient.CreateProductAsync(_createFormModel);
+        HideCreateAndEditForms();
+        await LoadActualProductList();
     }
 
-
+    private void HideCreateAndEditForms()
+    {
+        _createFormModel = null;
+        _editFormModel = null;
+    }
 
 }

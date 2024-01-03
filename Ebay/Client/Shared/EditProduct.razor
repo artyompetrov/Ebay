@@ -1,0 +1,37 @@
+﻿<div class="hoverPanel">
+    <h3>@ActionName @_editElementName</h3>
+    <EditForm Model="@Product">
+        <p>
+            <label for="name">Название</label>
+            <InputText id="name" @bind-Value="Product.Name"/>
+        </p>
+        <p>
+            <label for="searchQuery">Поисковый запрос</label>
+            <InputText id="searchQuery" @bind-Value="Product.SearchQuery"/>
+        </p>
+    </EditForm>
+    <button class="btn btn-primary" @onclick="OnSubmit">Сохранить</button>
+    <button class="btn btn-secondary" @onclick="OnCancel">Отмена</button>
+</div>
+
+@code {
+    private string? _editElementName;
+
+    protected override void OnInitialized()
+    {
+        if (Product == null) throw new InvalidOperationException($"{nameof(Product)} Expected to be initialized");
+        _editElementName = Product.Name;
+    }
+
+    [Parameter]
+    public string ActionName { get; set; } = null!;
+    
+    [Parameter]
+    public ProductWithId Product { get; set; } = null!;
+
+    [Parameter]
+    public Func<Task> OnSubmit { get; set; } = null!;
+    
+    [Parameter]
+    public Action OnCancel { get; set; } = null!;
+}

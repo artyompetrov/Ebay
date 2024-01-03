@@ -29,7 +29,7 @@ namespace Ebay.Controllers.Generated
 
         /// <returns>OK</returns>
 
-        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<Product>> GetAllProductsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ProductWithId>> GetAllProductsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
         /// <summary>
         /// Create product
@@ -77,7 +77,7 @@ namespace Ebay.Controllers.Generated
         /// </summary>
         /// <returns>OK</returns>
         [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("products")]
-        public System.Threading.Tasks.Task<System.Collections.Generic.ICollection<Product>> GetAllProducts(System.Threading.CancellationToken cancellationToken)
+        public System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ProductWithId>> GetAllProducts(System.Threading.CancellationToken cancellationToken)
         {
 
             return _implementation.GetAllProductsAsync(cancellationToken);
@@ -119,12 +119,8 @@ namespace Ebay.Controllers.Generated
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class Product
+    public partial class ProductWithoutId
     {
-        [Newtonsoft.Json.JsonProperty("Id", Required = Newtonsoft.Json.Required.Always)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public System.Guid Id { get; set; }
-
         [Newtonsoft.Json.JsonProperty("Name", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         public string Name { get; set; }
@@ -136,15 +132,11 @@ namespace Ebay.Controllers.Generated
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class ProductWithoutId
+    public partial class ProductWithId : ProductWithoutId
     {
-        [Newtonsoft.Json.JsonProperty("Name", Required = Newtonsoft.Json.Required.Always)]
+        [Newtonsoft.Json.JsonProperty("Id", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string Name { get; set; }
-
-        [Newtonsoft.Json.JsonProperty("SearchQuery", Required = Newtonsoft.Json.Required.Always)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string SearchQuery { get; set; }
+        public System.Guid Id { get; set; }
 
     }
 

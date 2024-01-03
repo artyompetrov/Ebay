@@ -19,7 +19,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Product'
+              $ref: '#/definitions/ProductWithId'
     post:
       operationId: CreateProduct
       summary: Create product
@@ -64,21 +64,6 @@ paths:
         
 
 definitions:
-  Product:
-    type: object
-    properties:
-      Id:
-        type: string
-        format: guid
-      Name:
-        type: string
-      SearchQuery:
-        type: string
-    required:
-      - Id
-      - Name
-      - SearchQuery
-
   ProductWithoutId:
     type: object
     properties:
@@ -89,3 +74,17 @@ definitions:
     required:
       - Name
       - SearchQuery
+  
+  ProductWithId:
+    allOf:
+      - $ref: '#/definitions/ProductWithoutId'
+    type: object
+    properties:
+      Id:
+        type: string
+        format: guid
+    required:
+      - Id
+      - Name
+      - SearchQuery
+
