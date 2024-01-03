@@ -1,5 +1,5 @@
 ﻿<div class="hoverPanel">
-    <h3>@ActionName @_editElementName</h3>
+    <h3>@ActionName</h3>
     <EditForm Model="@Product">
         <p>
             <label for="name">Название</label>
@@ -15,12 +15,10 @@
 </div>
 
 @code {
-    private string? _editElementName;
 
     protected override void OnInitialized()
     {
         if (Product == null) throw new InvalidOperationException($"{nameof(Product)} Expected to be initialized");
-        _editElementName = Product.Name;
     }
 
     [Parameter]

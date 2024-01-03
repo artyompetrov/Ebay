@@ -64,7 +64,7 @@
 }
 else if (_editFormModel != null)
 {
-    <EditProduct Product="@_editFormModel" ActionName="Редактировать" OnSubmit="@OnEditFormSubmit" OnCancel="@HideCreateAndEditForms"/>
+    <EditProduct Product="@_editFormModel" ActionName="@($"Редактировать {_editFormModel.Name}")" OnSubmit="@OnEditFormSubmit" OnCancel="@HideCreateAndEditForms"/>
 }
 
 @code {
@@ -85,6 +85,7 @@ else if (_editFormModel != null)
 
     private async Task DeleteProduct(ProductWithId product)
     {
+        HideCreateAndEditForms();
         await EbayClient.DeleteProductAsync(product.Id);
         await LoadActualProductList();
     }
@@ -110,7 +111,7 @@ else if (_editFormModel != null)
     private async Task OnEditFormSubmit()
     {
         if (_editFormModel == null) throw new InvalidOperationException($"{nameof(_editFormModel)} expected to be not null");
-        await EbayClient.UpdateProductAsync(product: _editFormModel, id: _editFormModel.Id);
+        await EbayClient.UpdateProductAsync(product: _editFormModel.ToProductWithoutId(), id: _editFormModel.Id);
         HideCreateAndEditForms();
         await LoadActualProductList();
     }
@@ -118,7 +119,7 @@ else if (_editFormModel != null)
     private async Task CreateFormSubmit()
     {
         if (_createFormModel == null) throw new InvalidOperationException($"{nameof(_createFormModel)} expected to be not null");
-        await EbayClient.CreateProductAsync(_createFormModel);
+        await EbayClient.CreateProductAsync(_createFormModel.ToProductWithoutId());
         HideCreateAndEditForms();
         await LoadActualProductList();
     }

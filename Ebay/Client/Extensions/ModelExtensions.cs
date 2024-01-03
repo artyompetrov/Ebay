@@ -7,4 +7,10 @@ public static class ModelExtensions
 
     public static ProductWithId Copy(this ProductWithId product) => new()
         { Id = product.Id, Name = product.Name, SearchQuery = product.SearchQuery };
+
+    public static ProductWithoutId ToProductWithoutId(this ProductWithId productWithId) => new()
+    {
+        Name = productWithId.Name,
+        SearchQuery = productWithId.SearchQuery
+    };
 }
