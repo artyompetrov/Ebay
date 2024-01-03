@@ -1,0 +1,16 @@
+﻿<div class="questionPanel">
+    <h3>@QuestionText</h3>
+    <button class="btn btn-secondary" @onclick="OnSubmit">ОК</button>
+    <button class="btn btn-primary" @onclick="OnCancel">Отмена</button>
+</div>
+
+@code {
+    [Parameter]
+    public string QuestionText { get; set; } = null!;
+
+    [Parameter]
+    public Func<Task> OnSubmit { get; set; } = null!;
+    
+    [Parameter]
+    public Action OnCancel { get; set; } = null!;
+}

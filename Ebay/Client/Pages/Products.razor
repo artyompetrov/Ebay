@@ -6,27 +6,6 @@
 @attribute [Authorize]
 @inject EbayClient EbayClient
 
-<style>
-.hoverPanel {
-  text-align: left;
-  padding: 15px;
-  border: 3px solid;
-  border-radius: 10px;
-  position:fixed;
-  z-index:100;
-  bottom:5%;
-  background-color: white;
-}
-.hoverPanel  label
-{
-  font-weight: bold;
-  display: block;
-  width: 200px;
-  float: left;
-}
-.hoverPanel label:after { content: ": " }
-</style>
-
 <PageTitle>Перечень товаров</PageTitle>
 
 <h1>Перечень товаров</h1>
@@ -49,28 +28,33 @@
             <td>@product.Name</td>
             <td>@product.SearchQuery</td>
             <td>
-                <button class="btn btn-primary" @onclick="@(e => SelectProductToEdit(product))">Редактировать</button>
+                <button class="btn btn-primary" @onclick="@(e => OnEditButtonClick(product))">Редактировать</button>
             </td>
             <td>
-                <button class="btn btn-primary" @onclick="@(e => DeleteProduct(product))">Удалить</button>
+                <button class="btn btn-primary" @onclick="@(e => OnDeleteButtonClick(product))">Удалить</button>
             </td>
         </tr>
     }
     </tbody>
 </table>
-@if (_createFormModel != null)
+@if (_productToCreate != null)
 {
-    <EditProduct Product="@_createFormModel" ActionName="Создать" OnSubmit="@CreateFormSubmit" OnCancel="@HideCreateAndEditForms"/>
+    <EditProduct Product="@_productToCreate" ActionName="Создать" OnSubmit="@CreateFormSubmit" OnCancel="@HideAllHoverForms"/>
 }
-else if (_editFormModel != null)
+@if (_productToEdit != null)
 {
-    <EditProduct Product="@_editFormModel" ActionName="@($"Редактировать {_editFormModel.Name}")" OnSubmit="@OnEditFormSubmit" OnCancel="@HideCreateAndEditForms"/>
+    <EditProduct Product="@_productToEdit" ActionName="@($"Редактировать {_productToEdit.Name}")" OnSubmit="@OnEditFormSubmit" OnCancel="@HideAllHoverForms"/>
+}
+@if (_productToDelete != null)
+{
+    <Question QuestionText="@($"Удалить {_productToDelete.Name}?")" OnSubmit="@OnDeleteFormSubmit" OnCancel="@HideAllHoverForms"/>
 }
 
 @code {
     private ICollection<ProductWithId> _products = new List<ProductWithId>();
-    ProductWithId? _editFormModel;
-    ProductWithId? _createFormModel;
+    ProductWithId? _productToEdit;
+    ProductWithId? _productToCreate;
+    ProductWithId? _productToDelete;
 
     protected override async Task OnInitializedAsync()
     {
@@ -79,55 +63,58 @@ else if (_editFormModel != null)
     
     private void OnAddNewProductButtonClick()
     {
-        _createFormModel = new ProductWithId { Name = "", SearchQuery = "" };
-        _editFormModel = null;
+        HideAllHoverForms();
+        _productToCreate = new ProductWithId { Name = "", SearchQuery = "" };
+        _productToEdit = null;
     }
 
-    private async Task DeleteProduct(ProductWithId product)
+    private void OnDeleteButtonClick(ProductWithId product)
     {
-        HideCreateAndEditForms();
-        await EbayClient.DeleteProductAsync(product.Id);
-        await LoadActualProductList();
-    }
-
-    private void SelectProductToEdit(ProductWithId product)
-    {
-        _editFormModel = product.Copy();
-        _createFormModel = null;
+        HideAllHoverForms();
+        _productToDelete = product;
     }
     
-    private async Task LoadActualProductList()
+    private async Task OnDeleteFormSubmit()
     {
-        try
-        {
-            _products = await EbayClient.GetAllProductsAsync();
-        }
-        catch (AccessTokenNotAvailableException exception)
-        {
-            exception.Redirect(); //todo по хорошему надо вообще все вызовы оборачивать
-        }
+        if (_productToDelete == null) throw new InvalidOperationException($"{nameof(_productToDelete)} expected to be not null");
+        await EbayClient.DeleteProductAsync(_productToDelete.Id);
+        await LoadActualProductList();
+        HideAllHoverForms();
     }
+
+    private void OnEditButtonClick(ProductWithId product)
+    {
+        HideAllHoverForms();
+        _productToEdit = product.Copy();
+    }
+    
 
     private async Task OnEditFormSubmit()
     {
-        if (_editFormModel == null) throw new InvalidOperationException($"{nameof(_editFormModel)} expected to be not null");
-        await EbayClient.UpdateProductAsync(product: _editFormModel.ToProductWithoutId(), id: _editFormModel.Id);
-        HideCreateAndEditForms();
+        if (_productToEdit == null) throw new InvalidOperationException($"{nameof(_productToEdit)} expected to be not null");
+        await EbayClient.UpdateProductAsync(product: _productToEdit.ToProductWithoutId(), id: _productToEdit.Id);
+        HideAllHoverForms();
         await LoadActualProductList();
     }
 
     private async Task CreateFormSubmit()
     {
-        if (_createFormModel == null) throw new InvalidOperationException($"{nameof(_createFormModel)} expected to be not null");
-        await EbayClient.CreateProductAsync(_createFormModel.ToProductWithoutId());
-        HideCreateAndEditForms();
+        if (_productToCreate == null) throw new InvalidOperationException($"{nameof(_productToCreate)} expected to be not null");
+        await EbayClient.CreateProductAsync(_productToCreate.ToProductWithoutId());
+        HideAllHoverForms();
         await LoadActualProductList();
     }
-
-    private void HideCreateAndEditForms()
+    
+    private async Task LoadActualProductList()
     {
-        _createFormModel = null;
-        _editFormModel = null;
+        _products = await EbayClient.GetAllProductsAsync();
+    }
+
+    private void HideAllHoverForms()
+    {
+        _productToDelete = null;
+        _productToCreate = null;
+        _productToEdit = null;
     }
 
 }
