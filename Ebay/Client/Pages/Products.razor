@@ -1,9 +1,31 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using Ebay.Client.Extensions
 
 @attribute [Authorize]
 @inject EbayClient EbayClient
+
+<style>
+.hoverPanel {
+  text-align: left;
+  padding: 15px;
+  border: 3px solid;
+  border-radius: 10px;
+  position:fixed;
+  z-index:100;
+  bottom:5%;
+  background-color: white;
+}
+.hoverPanel  label
+{
+  font-weight: bold;
+  display: block;
+  width: 200px;
+  float: left;
+}
+.hoverPanel label:after { content: ": " }
+</style>
 
 <PageTitle>Перечень товаров</PageTitle>
 
@@ -14,7 +36,6 @@
 <table class="table">
     <thead>
     <tr>
-        <th>Id</th>
         <th>Название</th>
         <th>Поисковый запрос</th>
         <th>Редактировать</th>
@@ -22,43 +43,64 @@
     </tr>
     </thead>
     <tbody>
-    @foreach (var forecast in _products)
+    @foreach (var product in _products)
     {
         <tr>
-            <td>@forecast.Id</td>
-            <td>@forecast.Name</td>
-            <td>@forecast.SearchQuery</td>
+            <td>@product.Name</td>
+            <td>@product.SearchQuery</td>
             <td>
-                <button class="btn btn-primary" @onclick="rename">Редактировать</button>
+                <button class="btn btn-primary" @onclick="@(e => SelectEditFormModel(product))">Редактировать</button>
             </td>
             <td>
-                <button class="btn btn-primary" @onclick="@(e => DeleteProduct(forecast.Id))">Удалить</button>
+                <button class="btn btn-primary" @onclick="@(e => DeleteProduct(product))">Удалить</button>
             </td>
         </tr>
     }
     </tbody>
 </table>
 
+@if (_editFormModel != null)
+{
+    <div class="hoverPanel">
+        <h3>Редактировать @_editElementName</h3>
+        <EditForm Model="@_editFormModel">
+            <p>
+                <label for="name">Название</label>
+                <InputText id="name" @bind-Value="_editFormModel.Name"/>
+            </p>
+            <p>
+                <label for="searchQuery">Поисковый запрос</label>
+                <InputText id="searchQuery" @bind-Value="_editFormModel.SearchQuery"/>
+            </p>
+        </EditForm>
+        <button class="btn btn-primary" @onclick="EditFormSubmit">Сохранить</button>
+        <button class="btn btn-secondary" @onclick="EditFormCancel">Отмена</button>
+    </div>
+}
+
 
 @code {
     private ICollection<Product> _products = new List<Product>();
+    string? _editElementName;
+    Product? _editFormModel;
 
     private async Task AddNewProduct()
     {
         var product = new ProductWithoutId { Name = "Test", SearchQuery = "Test" };
-         await EbayClient.CreateProductAsync(product);
-        
-        await LoadActualProductList();
-    }
-    
-    private async Task DeleteProduct(Guid id)
-    {
-        await EbayClient.DeleteProductAsync(id);
+        await EbayClient.CreateProductAsync(product);
         await LoadActualProductList();
     }
 
-    private void rename() //todo нужно переименовать
+    private async Task DeleteProduct(Product product)
     {
+        await EbayClient.DeleteProductAsync(product.Id);
+        await LoadActualProductList();
+    }
+
+    private void SelectEditFormModel(Product product)
+    {
+        _editFormModel = product.Copy();
+        _editElementName = _editFormModel.Name;
     }
 
     protected override async Task OnInitializedAsync()
@@ -77,5 +119,22 @@
             exception.Redirect();
         }
     }
+
+    private async Task EditFormSubmit()
+    {
+        if (_editFormModel != null)
+        {
+            await EbayClient.UpdateProductAsync(product: _editFormModel.ToProductWithoutId(), id: _editFormModel.Id);
+            await LoadActualProductList();
+        }
+        _editFormModel = null;
+    }
+
+    private void EditFormCancel()
+    {
+        _editFormModel = null;
+    }
+
+
 
 }

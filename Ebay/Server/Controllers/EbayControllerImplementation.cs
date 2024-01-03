@@ -16,7 +16,9 @@ public class EbayControllerImplementation : IEbayController
 
     public async Task<ICollection<Product>> GetAllProductsAsync(CancellationToken cancellationToken)
     {
-        var dbProducts = await _applicationContext.Products.ToListAsync(cancellationToken);
+        var dbProducts = await _applicationContext.Products
+            .OrderBy(x => x.Name).ThenBy(x => x.Id)
+            .ToListAsync(cancellationToken);
 
         return dbProducts
             .Select(
@@ -46,8 +48,8 @@ public class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken)
     {
         var dbProduct = _applicationContext.Products.Attach(new DbProduct { Id = id });
+        dbProduct.Entity.Name = product.Name;
         dbProduct.Entity.SearchQuery = product.SearchQuery;
-        dbProduct.Entity.SearchQuery = product.Name;
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 
@@ -56,6 +58,5 @@ public class EbayControllerImplementation : IEbayController
         var product = _applicationContext.Products.Attach(new DbProduct { Id = id });
         product.State = EntityState.Deleted;
         await _applicationContext.SaveChangesAsync(cancellationToken);
-        
     }
 }
