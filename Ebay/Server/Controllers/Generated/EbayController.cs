@@ -36,21 +36,21 @@ namespace Ebay.Controllers.Generated
         /// </summary>
         /// <returns>Created</returns>
         [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("products")]
-        public abstract System.Threading.Tasks.Task<System.Guid> CreateProduct([Microsoft.AspNetCore.Mvc.FromBody] [Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] ProductWithoutId product, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+        public abstract System.Threading.Tasks.Task<System.Guid> CreateProduct([Microsoft.AspNetCore.Mvc.FromBody] ProductWithoutId product, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
         /// <summary>
         /// Update product
         /// </summary>
         /// <returns>Updated</returns>
         [Microsoft.AspNetCore.Mvc.HttpPut, Microsoft.AspNetCore.Mvc.Route("products/{id}")]
-        public abstract System.Threading.Tasks.Task UpdateProduct([Microsoft.AspNetCore.Mvc.FromBody] [Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] ProductWithoutId product, [Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+        public abstract System.Threading.Tasks.Task UpdateProduct([Microsoft.AspNetCore.Mvc.FromBody] ProductWithoutId product, System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
         /// <summary>
         /// Delete product
         /// </summary>
         /// <returns>Deleted</returns>
         [Microsoft.AspNetCore.Mvc.HttpDelete, Microsoft.AspNetCore.Mvc.Route("products/{id}")]
-        public abstract System.Threading.Tasks.Task DeleteProduct([Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+        public abstract System.Threading.Tasks.Task DeleteProduct(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
     }
 
