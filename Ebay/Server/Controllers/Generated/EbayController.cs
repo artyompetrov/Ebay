@@ -20,101 +20,37 @@ namespace Ebay.Controllers.Generated
     using System = global::System;
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public interface IEbayController
-    {
-
-        /// <summary>
-        /// List all products
-        /// </summary>
-
-        /// <returns>OK</returns>
-
-        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ProductWithId>> GetAllProductsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
-
-        /// <summary>
-        /// Create product
-        /// </summary>
-
-
-        /// <returns>Created</returns>
-
-        System.Threading.Tasks.Task<System.Guid> CreateProductAsync(ProductWithoutId product, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
-
-        /// <summary>
-        /// Update product
-        /// </summary>
-
-
-        /// <returns>Updated</returns>
-
-        System.Threading.Tasks.Task UpdateProductAsync(ProductWithoutId product, System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
-
-        /// <summary>
-        /// Delete product
-        /// </summary>
-
-
-        /// <returns>Deleted</returns>
-
-        System.Threading.Tasks.Task DeleteProductAsync(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NSwag", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
     [Microsoft.AspNetCore.Mvc.Route("api/ebay/v1/")]
 
-    public partial class EbayController : Microsoft.AspNetCore.Mvc.Controller
+    public abstract class EbayControllerBase : Microsoft.AspNetCore.Mvc.Controller
     {
-        private IEbayController _implementation;
-
-        public EbayController(IEbayController implementation)
-        {
-            _implementation = implementation;
-        }
-
         /// <summary>
         /// List all products
         /// </summary>
         /// <returns>OK</returns>
         [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("products")]
-        public System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ProductWithId>> GetAllProducts(System.Threading.CancellationToken cancellationToken)
-        {
-
-            return _implementation.GetAllProductsAsync(cancellationToken);
-        }
+        public abstract System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ProductWithId>> GetAllProducts(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
         /// <summary>
         /// Create product
         /// </summary>
         /// <returns>Created</returns>
         [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("products")]
-        public System.Threading.Tasks.Task<System.Guid> CreateProduct([Microsoft.AspNetCore.Mvc.FromBody] [Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] ProductWithoutId product, System.Threading.CancellationToken cancellationToken)
-        {
-
-            return _implementation.CreateProductAsync(product, cancellationToken);
-        }
+        public abstract System.Threading.Tasks.Task<System.Guid> CreateProduct([Microsoft.AspNetCore.Mvc.FromBody] [Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] ProductWithoutId product, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
         /// <summary>
         /// Update product
         /// </summary>
         /// <returns>Updated</returns>
         [Microsoft.AspNetCore.Mvc.HttpPut, Microsoft.AspNetCore.Mvc.Route("products/{id}")]
-        public System.Threading.Tasks.Task UpdateProduct([Microsoft.AspNetCore.Mvc.FromBody] [Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] ProductWithoutId product, [Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] System.Guid id, System.Threading.CancellationToken cancellationToken)
-        {
-
-            return _implementation.UpdateProductAsync(product, id, cancellationToken);
-        }
+        public abstract System.Threading.Tasks.Task UpdateProduct([Microsoft.AspNetCore.Mvc.FromBody] [Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] ProductWithoutId product, [Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
         /// <summary>
         /// Delete product
         /// </summary>
         /// <returns>Deleted</returns>
         [Microsoft.AspNetCore.Mvc.HttpDelete, Microsoft.AspNetCore.Mvc.Route("products/{id}")]
-        public System.Threading.Tasks.Task DeleteProduct([Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] System.Guid id, System.Threading.CancellationToken cancellationToken)
-        {
-
-            return _implementation.DeleteProductAsync(id, cancellationToken);
-        }
+        public abstract System.Threading.Tasks.Task DeleteProduct([Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
     }
 

@@ -1,12 +1,14 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Ebay.Controllers.Generated;
 using Ebay.Server.Data;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DbProduct = Ebay.Server.Data.Models.Product;
 
 namespace Ebay.Server.Controllers;
 
-public class EbayControllerImplementation : IEbayController
+[ApiController]
+public class EbayControllerImplementation : EbayControllerBase
 {
     private readonly ApplicationDbContext _applicationContext;
 
@@ -15,7 +17,8 @@ public class EbayControllerImplementation : IEbayController
         _applicationContext = applicationContext;
     }
 
-    public async Task<ICollection<ProductWithId>> GetAllProductsAsync(CancellationToken cancellationToken)
+    public override async Task<ICollection<ProductWithId>> GetAllProducts(CancellationToken cancellationToken = default(CancellationToken))
+    
     {
         var dbProducts = await _applicationContext.Products
             .OrderBy(x => x.Name).ThenBy(x => x.Id)
@@ -31,20 +34,10 @@ public class EbayControllerImplementation : IEbayController
                 }).ToList();
     }
 
-    public async Task<Guid> CreateProductAsync(
+    public override async Task<Guid> CreateProduct(
         ProductWithoutId product,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default(CancellationToken))
     {
-        var context = new ValidationContext(product, serviceProvider: null, items: null);
-        var errorResults = new List<ValidationResult>();
-
-        // carry out validation.
-        Validator.TryValidateObject(product, context, errorResults, true);
-        if (errorResults.Count > 0)
-        {
-            throw new InvalidOperationException("");
-        }
-        
         var id = Guid.NewGuid();
         var dbProduct = new DbProduct { Id = id, Name = product.Name, SearchQuery = product.SearchQuery };
 
@@ -53,31 +46,23 @@ public class EbayControllerImplementation : IEbayController
         return id;
     }
 
-    public async Task UpdateProductAsync(
+    public override async Task UpdateProduct(
         ProductWithoutId product,
         Guid id,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default(CancellationToken))
     {
-        var context = new ValidationContext(product, serviceProvider: null, items: null);
-        var errorResults = new List<ValidationResult>();
-
-        // carry out validation.
-        Validator.TryValidateObject(product, context, errorResults);
-        if (errorResults.Count > 0)
-        {
-            throw new InvalidOperationException("");
-        }
-        
         var dbProduct = _applicationContext.Products.Attach(new DbProduct { Id = id });
         dbProduct.Entity.Name = product.Name;
         dbProduct.Entity.SearchQuery = product.SearchQuery;
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task DeleteProductAsync(Guid id, CancellationToken cancellationToken)
+    public override async Task DeleteProduct(Guid id, CancellationToken cancellationToken = default(CancellationToken))
     {
         var product = _applicationContext.Products.Attach(new DbProduct { Id = id });
         product.State = EntityState.Deleted;
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
+
+   
 }
