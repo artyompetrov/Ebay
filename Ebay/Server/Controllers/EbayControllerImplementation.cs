@@ -7,7 +7,7 @@ using DbProduct = Ebay.Server.Data.Models.Product;
 
 namespace Ebay.Server.Controllers;
 
-[ApiController]
+//[ApiController]
 public class EbayControllerImplementation : EbayControllerBase
 {
     private readonly ApplicationDbContext _applicationContext;

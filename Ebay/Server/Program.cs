@@ -2,6 +2,7 @@ using Ebay.Controllers.Generated;
 using Ebay.Server.Controllers;
 using Ebay.Server.Data;
 using Ebay.Server.Data.Models;
+using Ebay.Server.Infrastructure;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,7 +20,7 @@ builder.Services.AddIdentityServer().AddApiAuthorization<ApplicationUser, Applic
 
 builder.Services.AddAuthentication().AddIdentityServerJwt();
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(option => { option.Filters.Add<ValidationFilter>(); });
 builder.Services.AddRazorPages();
 
 var app = builder.Build();

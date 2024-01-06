@@ -35,6 +35,10 @@ paths:
           schema:
             type: string
             format: guid
+        400:
+          description: 'Error'
+          schema:
+            $ref: '#/definitions/ErrorResponse'
   
   /products/{id}:
     parameters:
@@ -99,3 +103,14 @@ definitions:
       - Name
       - SearchQuery
 
+  ErrorResponse:
+    type: array
+    items:
+      $ref: '#/definitions/ErrorResponseItem'
+
+  ErrorResponseItem:
+    properties:
+      FieldName:
+        type: string
+      Message:
+        type: string
