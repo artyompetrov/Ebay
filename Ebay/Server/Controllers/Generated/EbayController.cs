@@ -112,7 +112,6 @@ namespace Ebay.Controllers.Generated
         [Microsoft.AspNetCore.Mvc.HttpDelete, Microsoft.AspNetCore.Mvc.Route("products/{id}")]
         public System.Threading.Tasks.Task DeleteProduct(System.Guid id, System.Threading.CancellationToken cancellationToken)
         {
-
             return _implementation.DeleteProductAsync(id, cancellationToken);
         }
 
@@ -122,11 +121,13 @@ namespace Ebay.Controllers.Generated
     public partial class ProductWithoutId
     {
         [Newtonsoft.Json.JsonProperty("Name", Required = Newtonsoft.Json.Required.Always)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^\d+$")]
         public string Name { get; set; }
 
         [Newtonsoft.Json.JsonProperty("SearchQuery", Required = Newtonsoft.Json.Required.Always)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^\d+$")]
         public string SearchQuery { get; set; }
 
     }
@@ -135,15 +136,15 @@ namespace Ebay.Controllers.Generated
     public partial class ProductWithId : ProductWithoutId
     {
         [Newtonsoft.Json.JsonProperty("Id", Required = Newtonsoft.Json.Required.Always)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [System.ComponentModel.DataAnnotations.Required]
         public System.Guid Id { get; set; }
 
         [Newtonsoft.Json.JsonProperty("Name", Required = Newtonsoft.Json.Required.Always)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [System.ComponentModel.DataAnnotations.Required]
         public string Name { get; set; }
 
         [Newtonsoft.Json.JsonProperty("SearchQuery", Required = Newtonsoft.Json.Required.Always)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [System.ComponentModel.DataAnnotations.Required]
         public string SearchQuery { get; set; }
 
     }

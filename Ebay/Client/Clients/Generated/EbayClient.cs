@@ -490,11 +490,13 @@ namespace Ebay.Client
     public partial class ProductWithoutId
     {
         [Newtonsoft.Json.JsonProperty("Name", Required = Newtonsoft.Json.Required.Always)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^\d+$")]
         public string Name { get; set; }
 
         [Newtonsoft.Json.JsonProperty("SearchQuery", Required = Newtonsoft.Json.Required.Always)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^\d+$")]
         public string SearchQuery { get; set; }
 
     }
@@ -503,15 +505,15 @@ namespace Ebay.Client
     public partial class ProductWithId : ProductWithoutId
     {
         [Newtonsoft.Json.JsonProperty("Id", Required = Newtonsoft.Json.Required.Always)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [System.ComponentModel.DataAnnotations.Required]
         public System.Guid Id { get; set; }
 
         [Newtonsoft.Json.JsonProperty("Name", Required = Newtonsoft.Json.Required.Always)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [System.ComponentModel.DataAnnotations.Required]
         public string Name { get; set; }
 
         [Newtonsoft.Json.JsonProperty("SearchQuery", Required = Newtonsoft.Json.Required.Always)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [System.ComponentModel.DataAnnotations.Required]
         public string SearchQuery { get; set; }
 
     }

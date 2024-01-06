@@ -69,8 +69,12 @@ definitions:
     properties:
       Name:
         type: string
+        pattern: ^\d+$
+        minLength: 1
       SearchQuery:
         type: string
+        pattern: ^\d+$
+        minLength: 1
     required:
       - Name
       - SearchQuery
@@ -83,10 +87,13 @@ definitions:
       Id:
         type: string
         format: guid
+        minLength: 1
       Name:
         type: string
+        minLength: 1
       SearchQuery:
         type: string
+        minLength: 1
     required:
       - Id
       - Name

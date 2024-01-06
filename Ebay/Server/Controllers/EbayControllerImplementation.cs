@@ -1,4 +1,5 @@
-﻿using Ebay.Controllers.Generated;
+﻿using System.ComponentModel.DataAnnotations;
+using Ebay.Controllers.Generated;
 using Ebay.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using DbProduct = Ebay.Server.Data.Models.Product;
@@ -34,6 +35,16 @@ public class EbayControllerImplementation : IEbayController
         ProductWithoutId product,
         CancellationToken cancellationToken)
     {
+        var context = new ValidationContext(product, serviceProvider: null, items: null);
+        var errorResults = new List<ValidationResult>();
+
+        // carry out validation.
+        Validator.TryValidateObject(product, context, errorResults, true);
+        if (errorResults.Count > 0)
+        {
+            throw new InvalidOperationException("");
+        }
+        
         var id = Guid.NewGuid();
         var dbProduct = new DbProduct { Id = id, Name = product.Name, SearchQuery = product.SearchQuery };
 
@@ -47,6 +58,16 @@ public class EbayControllerImplementation : IEbayController
         Guid id,
         CancellationToken cancellationToken)
     {
+        var context = new ValidationContext(product, serviceProvider: null, items: null);
+        var errorResults = new List<ValidationResult>();
+
+        // carry out validation.
+        Validator.TryValidateObject(product, context, errorResults);
+        if (errorResults.Count > 0)
+        {
+            throw new InvalidOperationException("");
+        }
+        
         var dbProduct = _applicationContext.Products.Attach(new DbProduct { Id = id });
         dbProduct.Entity.Name = product.Name;
         dbProduct.Entity.SearchQuery = product.SearchQuery;
