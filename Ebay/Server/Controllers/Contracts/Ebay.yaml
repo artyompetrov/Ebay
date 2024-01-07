@@ -38,7 +38,7 @@ paths:
         400:
           description: 'Error'
           schema:
-            $ref: '#/definitions/ErrorResponse'
+            $ref: '#/definitions/ValidationErrorResponse'
   
   /products/{id}:
     parameters:
@@ -59,6 +59,10 @@ paths:
       responses: 
         200:
           description: 'Updated'
+        400:
+          description: 'Error'
+          schema:
+            $ref: '#/definitions/ValidationErrorResponse'
     delete:
       operationId: DeleteProduct
       summary: Delete product
@@ -104,13 +108,31 @@ definitions:
       - SearchQuery
 
   ErrorResponse:
-    type: array
-    items:
-      $ref: '#/definitions/ErrorResponseItem'
-
-  ErrorResponseItem:
+    x-abstract: true
+    properties:
+      ErrorType:
+        type: string
+    required:
+      - ErrorType
+  
+  ValidationErrorResponse:
+    allOf:
+      - $ref: '#/definitions/ErrorResponse'
+    properties:
+      ValidationErrors:
+        type: array
+        items:
+          $ref: '#/definitions/ValidationErrorResponseItem'
+    required:
+      - ErrorType
+      - ValidationErrors
+  
+  ValidationErrorResponseItem:
     properties:
       FieldName:
         type: string
       Message:
         type: string
+    required:
+      - Message
+      - FieldName

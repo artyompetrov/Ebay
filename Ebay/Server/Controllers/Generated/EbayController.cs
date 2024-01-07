@@ -20,37 +20,101 @@ namespace Ebay.Controllers.Generated
     using System = global::System;
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public interface IEbayController
+    {
+
+        /// <summary>
+        /// List all products
+        /// </summary>
+
+        /// <returns>OK</returns>
+
+        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ProductWithId>> GetAllProductsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+
+        /// <summary>
+        /// Create product
+        /// </summary>
+
+
+        /// <returns>Created</returns>
+
+        System.Threading.Tasks.Task<System.Guid> CreateProductAsync(ProductWithoutId product, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+
+        /// <summary>
+        /// Update product
+        /// </summary>
+
+
+        /// <returns>Updated</returns>
+
+        System.Threading.Tasks.Task UpdateProductAsync(ProductWithoutId product, System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+
+        /// <summary>
+        /// Delete product
+        /// </summary>
+
+
+        /// <returns>Deleted</returns>
+
+        System.Threading.Tasks.Task DeleteProductAsync(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NSwag", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
     [Microsoft.AspNetCore.Mvc.Route("api/ebay/v1/")]
 
-    public abstract class EbayControllerBase : Microsoft.AspNetCore.Mvc.Controller
+    public partial class EbayController : Microsoft.AspNetCore.Mvc.Controller
     {
+        private IEbayController _implementation;
+
+        public EbayController(IEbayController implementation)
+        {
+            _implementation = implementation;
+        }
+
         /// <summary>
         /// List all products
         /// </summary>
         /// <returns>OK</returns>
         [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("products")]
-        public abstract System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ProductWithId>> GetAllProducts(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+        public System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ProductWithId>> GetAllProducts(System.Threading.CancellationToken cancellationToken)
+        {
+
+            return _implementation.GetAllProductsAsync(cancellationToken);
+        }
 
         /// <summary>
         /// Create product
         /// </summary>
         /// <returns>Created</returns>
         [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("products")]
-        public abstract System.Threading.Tasks.Task<System.Guid> CreateProduct([Microsoft.AspNetCore.Mvc.FromBody] ProductWithoutId product, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+        public System.Threading.Tasks.Task<System.Guid> CreateProduct([Microsoft.AspNetCore.Mvc.FromBody] ProductWithoutId product, System.Threading.CancellationToken cancellationToken)
+        {
+
+            return _implementation.CreateProductAsync(product, cancellationToken);
+        }
 
         /// <summary>
         /// Update product
         /// </summary>
         /// <returns>Updated</returns>
         [Microsoft.AspNetCore.Mvc.HttpPut, Microsoft.AspNetCore.Mvc.Route("products/{id}")]
-        public abstract System.Threading.Tasks.Task UpdateProduct([Microsoft.AspNetCore.Mvc.FromBody] ProductWithoutId product, System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+        public System.Threading.Tasks.Task UpdateProduct([Microsoft.AspNetCore.Mvc.FromBody] ProductWithoutId product, System.Guid id, System.Threading.CancellationToken cancellationToken)
+        {
+
+            return _implementation.UpdateProductAsync(product, id, cancellationToken);
+        }
 
         /// <summary>
         /// Delete product
         /// </summary>
         /// <returns>Deleted</returns>
         [Microsoft.AspNetCore.Mvc.HttpDelete, Microsoft.AspNetCore.Mvc.Route("products/{id}")]
-        public abstract System.Threading.Tasks.Task DeleteProduct(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+        public System.Threading.Tasks.Task DeleteProduct(System.Guid id, System.Threading.CancellationToken cancellationToken)
+        {
+
+            return _implementation.DeleteProductAsync(id, cancellationToken);
+        }
 
     }
 
@@ -87,18 +151,32 @@ namespace Ebay.Controllers.Generated
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class ErrorResponse : System.Collections.ObjectModel.Collection<ErrorResponseItem>
+    public abstract partial class ErrorResponse
     {
+        [Newtonsoft.Json.JsonProperty("ErrorType", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string ErrorType { get; set; }
 
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class ErrorResponseItem
+    public partial class ValidationErrorResponse : ErrorResponse
     {
-        [Newtonsoft.Json.JsonProperty("FieldName", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("ValidationErrors", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.List<ValidationErrorResponseItem> ValidationErrors { get; set; } = new System.Collections.Generic.List<ValidationErrorResponseItem>();
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ValidationErrorResponseItem
+    {
+        [Newtonsoft.Json.JsonProperty("FieldName", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         public string FieldName { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("Message", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("Message", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         public string Message { get; set; }
 
     }

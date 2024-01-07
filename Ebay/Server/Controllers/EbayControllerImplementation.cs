@@ -7,8 +7,7 @@ using DbProduct = Ebay.Server.Data.Models.Product;
 
 namespace Ebay.Server.Controllers;
 
-//[ApiController]
-public class EbayControllerImplementation : EbayControllerBase
+public class EbayControllerImplementation : IEbayController
 {
     private readonly ApplicationDbContext _applicationContext;
 
@@ -17,7 +16,7 @@ public class EbayControllerImplementation : EbayControllerBase
         _applicationContext = applicationContext;
     }
 
-    public override async Task<ICollection<ProductWithId>> GetAllProducts(CancellationToken cancellationToken = default(CancellationToken))
+    public async Task<ICollection<ProductWithId>> GetAllProductsAsync(CancellationToken cancellationToken)
     
     {
         var dbProducts = await _applicationContext.Products
@@ -34,9 +33,9 @@ public class EbayControllerImplementation : EbayControllerBase
                 }).ToList();
     }
 
-    public override async Task<Guid> CreateProduct(
+    public async Task<Guid> CreateProductAsync(
         ProductWithoutId product,
-        CancellationToken cancellationToken = default(CancellationToken))
+        CancellationToken cancellationToken)
     {
         var id = Guid.NewGuid();
         var dbProduct = new DbProduct { Id = id, Name = product.Name, SearchQuery = product.SearchQuery };
@@ -46,10 +45,10 @@ public class EbayControllerImplementation : EbayControllerBase
         return id;
     }
 
-    public override async Task UpdateProduct(
+    public async Task UpdateProductAsync(
         ProductWithoutId product,
         Guid id,
-        CancellationToken cancellationToken = default(CancellationToken))
+        CancellationToken cancellationToken)
     {
         var dbProduct = _applicationContext.Products.Attach(new DbProduct { Id = id });
         dbProduct.Entity.Name = product.Name;
@@ -57,7 +56,7 @@ public class EbayControllerImplementation : EbayControllerBase
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 
-    public override async Task DeleteProduct(Guid id, CancellationToken cancellationToken = default(CancellationToken))
+    public async Task DeleteProductAsync(Guid id, CancellationToken cancellationToken)
     {
         var product = _applicationContext.Products.Attach(new DbProduct { Id = id });
         product.State = EntityState.Deleted;
