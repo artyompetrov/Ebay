@@ -23,12 +23,7 @@ public class EbayControllerImplementation : IEbayController
 
         return dbProducts
             .Select(
-                x => new ProductWithId
-                {
-                    Id = x.Id,
-                    Name = x.Name,
-                    SearchQuery = x.SearchQuery
-                }).ToList();
+                x => new ProductWithId(x.Id, x.Name, searchQuery: x.SearchQuery)).ToList();
     }
 
     public async Task<Guid> CreateProductAsync(

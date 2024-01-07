@@ -35,7 +35,7 @@
     </ItemGroup>
     
     <Target Name="NSwag" BeforeTargets="Build">
-        <Exec Command="$(NSwagExe_Net60) openapi2cscontroller /input:Controllers/Contracts/Ebay.yaml /classname:Ebay /namespace:Ebay.Server.Controllers.Generated /output:Controllers/Generated/EbayController.cs /AspNetNamespace:Microsoft.AspNetCore.Mvc /ControllerBaseClass:Microsoft.AspNetCore.Mvc.Controller /UseCancellationToken:true /GenerateImmutableArrayProperties:true /GenerateImmutableDictionaryProperties:true /GenerateNullableReferenceTypes:true /GenerateOptionalPropertiesAsNullable:true" />
+        <Exec Command="$(NSwagExe_Net60) openapi2cscontroller /input:Controllers/Contracts/Ebay.yaml /classname:Ebay /namespace:Ebay.Server.Controllers.Generated /output:Controllers/Generated/EbayController.cs /AspNetNamespace:Microsoft.AspNetCore.Mvc /ControllerBaseClass:Microsoft.AspNetCore.Mvc.Controller /UseCancellationToken:true /GenerateImmutableArrayProperties:true /GenerateImmutableDictionaryProperties:true /GenerateNullableReferenceTypes:true /GenerateOptionalPropertiesAsNullable:true /ClassStyle:Record" />
     </Target>
     
 </Project>

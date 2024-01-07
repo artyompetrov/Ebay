@@ -14,22 +14,18 @@ public sealed class ValidationFilter : IAsyncActionFilter
                 .Where(x => x.Value!.Errors.Count > 0)
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value!.Errors.Select(x => x.ErrorMessage).ToArray());
 
-            var errorResponse = new ValidationErrorResponse();
+            var errors = new List<ValidationErrorResponseItem>();
 
             foreach (var error in errorsInModelState)
             {
                 foreach (var subError in error.Value)
                 {
-                    var errorModel = new ValidationErrorResponseItem
-                    {
-                        FieldName = error.Key,
-                        Message = subError
-                    };
+                    var errorModel = new ValidationErrorResponseItem(fieldName: error.Key,message: subError);
 
-                    errorResponse.ValidationErrors.Add(errorModel);
+                    errors.Add(errorModel);
                 }
 
-                context.Result = new BadRequestObjectResult(errorResponse);
+                context.Result = new BadRequestObjectResult(new ValidationErrorResponse("",errors)); //todo
                 return;
             }
         }

@@ -123,63 +123,113 @@ namespace Ebay.Server.Controllers.Generated
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class ProductWithoutId
     {
-        [Newtonsoft.Json.JsonProperty("Name", Required = Newtonsoft.Json.Required.Always)]
+        [Newtonsoft.Json.JsonConstructor]
+
+        public ProductWithoutId(string @name, string @searchQuery)
+
+        {
+
+            this.Name = @name;
+
+            this.SearchQuery = @searchQuery;
+
+        }    [Newtonsoft.Json.JsonProperty("Name", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required]
         [System.ComponentModel.DataAnnotations.RegularExpression(@"^\d+$")]
-        public string Name { get; set; } = default!;
+        public string Name { get; }
 
         [Newtonsoft.Json.JsonProperty("SearchQuery", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required]
         [System.ComponentModel.DataAnnotations.RegularExpression(@"^\d+$")]
-        public string SearchQuery { get; set; } = default!;
+        public string SearchQuery { get; }
 
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class ProductWithId
     {
-        [Newtonsoft.Json.JsonProperty("Id", Required = Newtonsoft.Json.Required.Always)]
+        [Newtonsoft.Json.JsonConstructor]
+
+        public ProductWithId(System.Guid @id, string @name, string @searchQuery)
+
+        {
+
+            this.Id = @id;
+
+            this.Name = @name;
+
+            this.SearchQuery = @searchQuery;
+
+        }    [Newtonsoft.Json.JsonProperty("Id", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required]
-        public System.Guid Id { get; set; } = default!;
+        public System.Guid Id { get; }
 
         [Newtonsoft.Json.JsonProperty("Name", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required]
-        public string Name { get; set; } = default!;
+        public string Name { get; }
 
         [Newtonsoft.Json.JsonProperty("SearchQuery", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required]
-        public string SearchQuery { get; set; } = default!;
+        public string SearchQuery { get; }
 
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
     public abstract partial class ErrorResponse
     {
-        [Newtonsoft.Json.JsonProperty("ErrorType", Required = Newtonsoft.Json.Required.Always)]
+        [Newtonsoft.Json.JsonConstructor]
+
+        protected ErrorResponse(string @errorType)
+
+        {
+
+            this.ErrorType = @errorType;
+
+        }    [Newtonsoft.Json.JsonProperty("ErrorType", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string ErrorType { get; set; } = default!;
+        public string ErrorType { get; }
 
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class ValidationErrorResponse : ErrorResponse
     {
-        [Newtonsoft.Json.JsonProperty("ValidationErrors", Required = Newtonsoft.Json.Required.Always)]
+        [Newtonsoft.Json.JsonConstructor]
+
+        public ValidationErrorResponse(string @errorType, System.Collections.Generic.List<ValidationErrorResponseItem> @validationErrors)
+
+            : base(errorType)
+
+        {
+
+            this.ValidationErrors = @validationErrors;
+
+        }    [Newtonsoft.Json.JsonProperty("ValidationErrors", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required]
-        public System.Collections.Generic.List<ValidationErrorResponseItem> ValidationErrors { get; } = new System.Collections.Generic.List<ValidationErrorResponseItem>();
+        public System.Collections.Generic.List<ValidationErrorResponseItem> ValidationErrors { get; }
 
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class ValidationErrorResponseItem
     {
-        [Newtonsoft.Json.JsonProperty("FieldName", Required = Newtonsoft.Json.Required.Always)]
+        [Newtonsoft.Json.JsonConstructor]
+
+        public ValidationErrorResponseItem(string @fieldName, string @message)
+
+        {
+
+            this.FieldName = @fieldName;
+
+            this.Message = @message;
+
+        }    [Newtonsoft.Json.JsonProperty("FieldName", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string FieldName { get; set; } = default!;
+        public string FieldName { get; }
 
         [Newtonsoft.Json.JsonProperty("Message", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string Message { get; set; } = default!;
+        public string Message { get; }
 
     }
 
