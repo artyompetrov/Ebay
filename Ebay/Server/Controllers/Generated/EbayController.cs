@@ -175,77 +175,24 @@ namespace Ebay.Server.Controllers.Generated
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public abstract partial class ProblemDetails
+    public partial class Errors
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        protected ProblemDetails(string? @detail, string? @instance, int? @status, string? @title, string? @type)
+        public Errors()
 
         {
 
-            this.Type = @type;
+        }
 
-            this.Title = @title;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
-            this.Status = @status;
-
-            this.Detail = @detail;
-
-            this.Instance = @instance;
-
-        }    [Newtonsoft.Json.JsonProperty("type", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string? Type { get; }
-
-        [Newtonsoft.Json.JsonProperty("title", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string? Title { get; }
-
-        [Newtonsoft.Json.JsonProperty("status", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public int? Status { get; }
-
-        [Newtonsoft.Json.JsonProperty("detail", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string? Detail { get; }
-
-        [Newtonsoft.Json.JsonProperty("instance", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string? Instance { get; }
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class ValidationProblemDetails : ProblemDetails
-    {
-        [Newtonsoft.Json.JsonConstructor]
-
-        public ValidationProblemDetails(string? @detail, System.Collections.Generic.IDictionary<string, Anonymous>? @errors, string? @instance, int? @status, string? @title, string? @type)
-
-            : base(detail, instance, status, title, type)
-
+        [Newtonsoft.Json.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
         {
-
-            this.Errors = @errors;
-
-        }    [Newtonsoft.Json.JsonProperty("errors", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public System.Collections.Generic.IDictionary<string, Anonymous>? Errors { get; }
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class Anonymous
-    {
-        [Newtonsoft.Json.JsonConstructor]
-
-        public Anonymous(string? @code, System.Collections.Generic.List<string>? @text)
-
-        {
-
-            this.Code = @code;
-
-            this.Text = @text;
-
-        }    [Newtonsoft.Json.JsonProperty("code", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string? Code { get; }
-
-        [Newtonsoft.Json.JsonProperty("text", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public System.Collections.Generic.List<string>? Text { get; }
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
 
     }
 
