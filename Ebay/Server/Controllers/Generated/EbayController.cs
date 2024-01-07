@@ -164,7 +164,7 @@ namespace Ebay.Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonProperty("ValidationErrors", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required]
-        public System.Collections.Generic.List<ValidationErrorResponseItem> ValidationErrors { get; set; } = new System.Collections.Generic.List<ValidationErrorResponseItem>();
+        public System.Collections.Generic.List<ValidationErrorResponseItem> ValidationErrors { get; } = new System.Collections.Generic.List<ValidationErrorResponseItem>();
 
     }
 
