@@ -30,7 +30,7 @@ paths:
           schema:
             $ref: '#/definitions/ProductWithoutId'
       responses:
-        201:
+        200:
           description: 'Updated'
           schema:
             type: string
@@ -57,7 +57,7 @@ paths:
           schema:
             $ref: '#/definitions/ProductWithoutId'
       responses: 
-        201:
+        200:
           description: 'Updated'
         400:
           description: 'Error'
@@ -67,7 +67,7 @@ paths:
       operationId: DeleteProduct
       summary: Delete product
       responses: 
-        204:
+        200:
           description: 'Deleted'
         
 
