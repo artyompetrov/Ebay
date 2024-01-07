@@ -31,16 +31,16 @@ namespace Ebay.Server.Controllers.Generated
 
         /// <returns>OK</returns>
 
-        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ProductWithId>> GetAllProductsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+        System.Threading.Tasks.Task<SwaggerResponse<System.Collections.Generic.ICollection<ProductWithId>>> GetAllProductsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
         /// <summary>
         /// Create product
         /// </summary>
 
 
-        /// <returns>Created</returns>
+        /// <returns>Updated</returns>
 
-        System.Threading.Tasks.Task<System.Guid> CreateProductAsync(ProductWithoutId product, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+        System.Threading.Tasks.Task<SwaggerResponse<System.Guid>> CreateProductAsync(ProductWithoutId product, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
         /// <summary>
         /// Update product
@@ -49,7 +49,7 @@ namespace Ebay.Server.Controllers.Generated
 
         /// <returns>Updated</returns>
 
-        System.Threading.Tasks.Task UpdateProductAsync(ProductWithoutId product, System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+        System.Threading.Tasks.Task<SwaggerResponse> UpdateProductAsync(ProductWithoutId product, System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
         /// <summary>
         /// Delete product
@@ -58,7 +58,7 @@ namespace Ebay.Server.Controllers.Generated
 
         /// <returns>Deleted</returns>
 
-        System.Threading.Tasks.Task DeleteProductAsync(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+        System.Threading.Tasks.Task<SwaggerResponse> DeleteProductAsync(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
     }
 
@@ -79,21 +79,37 @@ namespace Ebay.Server.Controllers.Generated
         /// </summary>
         /// <returns>OK</returns>
         [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("products")]
-        public System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ProductWithId>> GetAllProducts(System.Threading.CancellationToken cancellationToken)
+        public async System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetAllProducts(System.Threading.CancellationToken cancellationToken)
         {
 
-            return _implementation.GetAllProductsAsync(cancellationToken);
+            var result = await _implementation.GetAllProductsAsync(cancellationToken).ConfigureAwait(false);
+
+            var status = result.StatusCode;
+            Microsoft.AspNetCore.Mvc.ObjectResult response = new Microsoft.AspNetCore.Mvc.ObjectResult(result.Result) { StatusCode = status };
+
+            foreach (var header in result.Headers)
+                Request.HttpContext.Response.Headers.Add(header.Key, new Microsoft.Extensions.Primitives.StringValues(header.Value.ToArray()));
+
+            return response;
         }
 
         /// <summary>
         /// Create product
         /// </summary>
-        /// <returns>Created</returns>
+        /// <returns>Updated</returns>
         [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("products")]
-        public System.Threading.Tasks.Task<System.Guid> CreateProduct([Microsoft.AspNetCore.Mvc.FromBody] ProductWithoutId product, System.Threading.CancellationToken cancellationToken)
+        public async System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> CreateProduct([Microsoft.AspNetCore.Mvc.FromBody] ProductWithoutId product, System.Threading.CancellationToken cancellationToken)
         {
 
-            return _implementation.CreateProductAsync(product, cancellationToken);
+            var result = await _implementation.CreateProductAsync(product, cancellationToken).ConfigureAwait(false);
+
+            var status = result.StatusCode;
+            Microsoft.AspNetCore.Mvc.ObjectResult response = new Microsoft.AspNetCore.Mvc.ObjectResult(result.Result) { StatusCode = status };
+
+            foreach (var header in result.Headers)
+                Request.HttpContext.Response.Headers.Add(header.Key, new Microsoft.Extensions.Primitives.StringValues(header.Value.ToArray()));
+
+            return response;
         }
 
         /// <summary>
@@ -101,10 +117,18 @@ namespace Ebay.Server.Controllers.Generated
         /// </summary>
         /// <returns>Updated</returns>
         [Microsoft.AspNetCore.Mvc.HttpPut, Microsoft.AspNetCore.Mvc.Route("products/{id}")]
-        public System.Threading.Tasks.Task UpdateProduct([Microsoft.AspNetCore.Mvc.FromBody] ProductWithoutId product, System.Guid id, System.Threading.CancellationToken cancellationToken)
+        public async System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> UpdateProduct([Microsoft.AspNetCore.Mvc.FromBody] ProductWithoutId product, System.Guid id, System.Threading.CancellationToken cancellationToken)
         {
 
-            return _implementation.UpdateProductAsync(product, id, cancellationToken);
+            var result = await _implementation.UpdateProductAsync(product, id, cancellationToken).ConfigureAwait(false);
+
+            var status = result.StatusCode;
+            Microsoft.AspNetCore.Mvc.ObjectResult response = new Microsoft.AspNetCore.Mvc.ObjectResult(result) { StatusCode = status };
+
+            foreach (var header in result.Headers)
+                Request.HttpContext.Response.Headers.Add(header.Key, new Microsoft.Extensions.Primitives.StringValues(header.Value.ToArray()));
+
+            return response;
         }
 
         /// <summary>
@@ -112,10 +136,18 @@ namespace Ebay.Server.Controllers.Generated
         /// </summary>
         /// <returns>Deleted</returns>
         [Microsoft.AspNetCore.Mvc.HttpDelete, Microsoft.AspNetCore.Mvc.Route("products/{id}")]
-        public System.Threading.Tasks.Task DeleteProduct(System.Guid id, System.Threading.CancellationToken cancellationToken)
+        public async System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> DeleteProduct(System.Guid id, System.Threading.CancellationToken cancellationToken)
         {
 
-            return _implementation.DeleteProductAsync(id, cancellationToken);
+            var result = await _implementation.DeleteProductAsync(id, cancellationToken).ConfigureAwait(false);
+
+            var status = result.StatusCode;
+            Microsoft.AspNetCore.Mvc.ObjectResult response = new Microsoft.AspNetCore.Mvc.ObjectResult(result) { StatusCode = status };
+
+            foreach (var header in result.Headers)
+                Request.HttpContext.Response.Headers.Add(header.Key, new Microsoft.Extensions.Primitives.StringValues(header.Value.ToArray()));
+
+            return response;
         }
 
     }
@@ -232,6 +264,34 @@ namespace Ebay.Server.Controllers.Generated
         public string Message { get; }
 
     }
+
+
+    [System.CodeDom.Compiler.GeneratedCode("NSwag", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class SwaggerResponse
+    {
+        public int StatusCode { get; private set; }
+
+        public System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IEnumerable<string>> Headers { get; private set; }
+
+        public SwaggerResponse(int statusCode, System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IEnumerable<string>> headers)
+        {
+            StatusCode = statusCode;
+            Headers = headers;
+        }
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NSwag", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class SwaggerResponse<TResult> : SwaggerResponse
+    {
+        public TResult Result { get; private set; }
+
+        public SwaggerResponse(int statusCode, System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IEnumerable<string>> headers, TResult result)
+            : base(statusCode, headers)
+        {
+            Result = result;
+        }
+    }
+
 
 
 }

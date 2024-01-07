@@ -136,7 +136,7 @@ namespace Ebay.Client.Clients.Generated
         /// <summary>
         /// Create product
         /// </summary>
-        /// <returns>Created</returns>
+        /// <returns>Updated</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
         public virtual System.Threading.Tasks.Task<System.Guid> CreateProductAsync(ProductWithoutId product)
         {
@@ -147,7 +147,7 @@ namespace Ebay.Client.Clients.Generated
         /// <summary>
         /// Create product
         /// </summary>
-        /// <returns>Created</returns>
+        /// <returns>Updated</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
         public virtual async System.Threading.Tasks.Task<System.Guid> CreateProductAsync(ProductWithoutId product, System.Threading.CancellationToken cancellationToken)
         {
@@ -191,7 +191,7 @@ namespace Ebay.Client.Clients.Generated
                         ProcessResponse(client_, response_);
 
                         var status_ = (int)response_.StatusCode;
-                        if (status_ == 200)
+                        if (status_ == 201)
                         {
                             var objectResponse_ = await ReadObjectResponseAsync<System.Guid>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
@@ -291,7 +291,7 @@ namespace Ebay.Client.Clients.Generated
                         ProcessResponse(client_, response_);
 
                         var status_ = (int)response_.StatusCode;
-                        if (status_ == 200)
+                        if (status_ == 201)
                         {
                             return;
                         }
@@ -379,7 +379,7 @@ namespace Ebay.Client.Clients.Generated
                         ProcessResponse(client_, response_);
 
                         var status_ = (int)response_.StatusCode;
-                        if (status_ == 200)
+                        if (status_ == 204)
                         {
                             return;
                         }

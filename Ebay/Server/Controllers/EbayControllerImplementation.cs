@@ -14,19 +14,19 @@ public class EbayControllerImplementation : IEbayController
         _applicationContext = applicationContext;
     }
 
-    public async Task<ICollection<ProductWithId>> GetAllProductsAsync(CancellationToken cancellationToken)
+    public async Task<SwaggerResponse<ICollection<ProductWithId>>> GetAllProductsAsync(CancellationToken cancellationToken)
 
     {
         var dbProducts = await _applicationContext.Products
             .OrderBy(x => x.Name).ThenBy(x => x.Id)
             .ToListAsync(cancellationToken);
 
-        return dbProducts
+        return SwaggerResponse.Ok<ICollection<ProductWithId>>(dbProducts
             .Select(
-                x => new ProductWithId(x.Id, x.Name, searchQuery: x.SearchQuery)).ToList();
+                x => new ProductWithId(x.Id, x.Name, searchQuery: x.SearchQuery)).ToList());
     }
 
-    public async Task<Guid> CreateProductAsync(
+    public async Task<SwaggerResponse<Guid>> CreateProductAsync(
         ProductWithoutId product,
         CancellationToken cancellationToken)
     {
@@ -35,10 +35,10 @@ public class EbayControllerImplementation : IEbayController
 
         await _applicationContext.Products.AddAsync(entity: dbProduct, cancellationToken: cancellationToken);
         await _applicationContext.SaveChangesAsync(cancellationToken);
-        return id;
+        return SwaggerResponse.Created(id);
     }
 
-    public async Task UpdateProductAsync(
+    public async Task<SwaggerResponse> UpdateProductAsync(
         ProductWithoutId product,
         Guid id,
         CancellationToken cancellationToken)
@@ -47,12 +47,16 @@ public class EbayControllerImplementation : IEbayController
         dbProduct.Entity.Name = product.Name;
         dbProduct.Entity.SearchQuery = product.SearchQuery;
         await _applicationContext.SaveChangesAsync(cancellationToken);
+
+        return SwaggerResponse.Created(id);
     }
 
-    public async Task DeleteProductAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<SwaggerResponse> DeleteProductAsync(Guid id, CancellationToken cancellationToken)
     {
         var product = _applicationContext.Products.Attach(new DbProduct { Id = id });
         product.State = EntityState.Deleted;
         await _applicationContext.SaveChangesAsync(cancellationToken);
+        
+        return SwaggerResponse.NoContent();
     }
 }
