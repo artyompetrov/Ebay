@@ -38,7 +38,7 @@ paths:
         400:
           description: 'Error'
           schema:
-            $ref: '#/definitions/ValidationErrorResponse'
+            $ref: '#/definitions/ValidationProblemDetails'
   
   /products/{id}:
     parameters:
@@ -62,7 +62,7 @@ paths:
         400:
           description: 'Error'
           schema:
-            $ref: '#/definitions/ValidationErrorResponse'
+            $ref: '#/definitions/ValidationProblemDetails'
     delete:
       operationId: DeleteProduct
       summary: Delete product
@@ -105,32 +105,32 @@ definitions:
       - Name
       - SearchQuery
 
-  ErrorResponse:
+  ProblemDetails:
     x-abstract: true
     properties:
-      ErrorType:
+      type:
         type: string
-    required:
-      - ErrorType
+      title:
+        type: string
+      status:
+        type: integer
+      detail:
+        type: string
+      instance:
+        type: string
   
-  ValidationErrorResponse:
+  ValidationProblemDetails:
     allOf:
-      - $ref: '#/definitions/ErrorResponse'
+      - $ref: '#/definitions/ProblemDetails'
     properties:
-      ValidationErrors:
-        type: array
-        items:
-          $ref: '#/definitions/ValidationErrorResponseItem'
-    required:
-      - ErrorType
-      - ValidationErrors
-  
-  ValidationErrorResponseItem:
-    properties:
-      FieldName:
-        type: string
-      Message:
-        type: string
-    required:
-      - Message
-      - FieldName
+      errors:
+        type: object
+        additionalProperties:
+          type: object
+          properties: 
+            code:
+              type: string
+            text:
+              type: array
+              items:
+                type: string

@@ -203,12 +203,12 @@ namespace Ebay.Client.Clients.Generated
                         else
                         if (status_ == 400)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<ValidationErrorResponse>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<ValidationProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<ValidationErrorResponse>("Error", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<ValidationProblemDetails>("Error", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         {
@@ -298,12 +298,12 @@ namespace Ebay.Client.Clients.Generated
                         else
                         if (status_ == 400)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<ValidationErrorResponse>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<ValidationProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<ValidationErrorResponse>("Error", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<ValidationProblemDetails>("Error", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         {
@@ -539,33 +539,41 @@ namespace Ebay.Client.Clients.Generated
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public abstract partial class ErrorResponse
+    public abstract partial class ProblemDetails
     {
-        [Newtonsoft.Json.JsonProperty("ErrorType", Required = Newtonsoft.Json.Required.Always)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string ErrorType { get; set; }
+        [Newtonsoft.Json.JsonProperty("type", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string Type { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("title", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string Title { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("status", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public int? Status { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("detail", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string Detail { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("instance", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string Instance { get; set; }
 
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class ValidationErrorResponse : ErrorResponse
+    public partial class ValidationProblemDetails : ProblemDetails
     {
-        [Newtonsoft.Json.JsonProperty("ValidationErrors", Required = Newtonsoft.Json.Required.Always)]
-        [System.ComponentModel.DataAnnotations.Required]
-        public System.Collections.Generic.ICollection<ValidationErrorResponseItem> ValidationErrors { get; set; } = new System.Collections.ObjectModel.Collection<ValidationErrorResponseItem>();
+        [Newtonsoft.Json.JsonProperty("errors", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public System.Collections.Generic.IDictionary<string, Anonymous> Errors { get; set; }
 
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class ValidationErrorResponseItem
+    public partial class Anonymous
     {
-        [Newtonsoft.Json.JsonProperty("FieldName", Required = Newtonsoft.Json.Required.Always)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string FieldName { get; set; }
+        [Newtonsoft.Json.JsonProperty("code", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string Code { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("Message", Required = Newtonsoft.Json.Required.Always)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string Message { get; set; }
+        [Newtonsoft.Json.JsonProperty("text", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public System.Collections.Generic.ICollection<string> Text { get; set; }
 
     }
 

@@ -19,7 +19,7 @@ builder.Services.AddIdentityServer().AddApiAuthorization<ApplicationUser, Applic
 
 builder.Services.AddAuthentication().AddIdentityServerJwt();
 
-builder.Services.AddControllersWithViews(option => { option.Filters.Add<ValidationFilter>(); })
+builder.Services.AddControllersWithViews(option => { option.Filters.Add<ErrorFilter>(); })
     .AddNewtonsoftJson();
 builder.Services.AddRazorPages();
 
