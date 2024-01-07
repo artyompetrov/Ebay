@@ -88,8 +88,6 @@ definitions:
       - SearchQuery
   
   ProductWithId:
-    allOf:
-      - $ref: '#/definitions/ProductWithoutId'
     type: object
     properties:
       Id:
