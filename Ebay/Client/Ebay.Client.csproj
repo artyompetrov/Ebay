@@ -19,6 +19,6 @@
     </PackageReference>
   </ItemGroup>
   <Target Name="NSwag" BeforeTargets="Build">
-    <Exec Command="$(NSwagExe_Net60) openapi2csclient /input:../Server/Controllers/Contracts/Ebay.yaml /classname:EbayClient /namespace:Ebay.Client /output:Clients/Generated/EbayClient.cs" />
+    <Exec Command="$(NSwagExe_Net60) openapi2csclient /input:../Server/Controllers/Contracts/Ebay.yaml /classname:EbayClient /namespace:Ebay.Client.Clients.Generated /output:Clients/Generated/EbayClient.cs" />
   </Target>
 </Project>

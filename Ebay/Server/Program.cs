@@ -1,8 +1,7 @@
-using Ebay.Controllers.Generated;
 using Ebay.Server.Controllers;
+using Ebay.Server.Controllers.Generated;
 using Ebay.Server.Data;
 using Ebay.Server.Data.Models;
-using Ebay.Server.Infrastructure;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 

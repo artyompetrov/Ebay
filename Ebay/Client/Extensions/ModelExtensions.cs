@@ -1,4 +1,6 @@
-﻿namespace Ebay.Client.Extensions;
+﻿using Ebay.Client.Clients.Generated;
+
+namespace Ebay.Client.Extensions;
 
 public static class ModelExtensions
 {

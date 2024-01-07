@@ -1,8 +1,8 @@
-﻿using Ebay.Controllers.Generated;
+﻿using Ebay.Server.Controllers.Generated;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace Ebay.Server.Infrastructure;
+namespace Ebay.Server.Controllers;
 
 public sealed class ValidationFilter : IAsyncActionFilter
 {

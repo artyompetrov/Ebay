@@ -15,7 +15,7 @@
 #pragma warning disable 8603 // Disable "CS8603 Possible null reference return"
 #pragma warning disable 8604 // Disable "CS8604 Possible null reference argument for parameter"
 
-namespace Ebay.Controllers.Generated
+namespace Ebay.Server.Controllers.Generated
 {
     using System = global::System;
 

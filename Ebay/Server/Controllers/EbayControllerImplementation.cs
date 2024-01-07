@@ -1,7 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Ebay.Controllers.Generated;
+﻿using Ebay.Server.Controllers.Generated;
 using Ebay.Server.Data;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DbProduct = Ebay.Server.Data.Models.Product;
 
@@ -17,7 +15,7 @@ public class EbayControllerImplementation : IEbayController
     }
 
     public async Task<ICollection<ProductWithId>> GetAllProductsAsync(CancellationToken cancellationToken)
-    
+
     {
         var dbProducts = await _applicationContext.Products
             .OrderBy(x => x.Name).ThenBy(x => x.Id)
@@ -62,6 +60,4 @@ public class EbayControllerImplementation : IEbayController
         product.State = EntityState.Deleted;
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
-
-   
 }
