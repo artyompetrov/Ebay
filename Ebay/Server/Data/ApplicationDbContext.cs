@@ -8,11 +8,11 @@ namespace Ebay.Server.Data;
 
 public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
 {
-    public DbSet<Product> Products { get; set; } = null!;
-    
     public ApplicationDbContext(
         DbContextOptions options,
         IOptions<OperationalStoreOptions> operationalStoreOptions) : base(options, operationalStoreOptions)
     {
     }
+
+    public DbSet<Product> Products { get; set; } = null!;
 }

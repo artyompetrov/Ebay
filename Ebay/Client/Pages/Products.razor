@@ -1,8 +1,6 @@
 ﻿@page "/"
-@using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-@using Ebay.Client.Extensions
 @using Ebay.Client.Clients.Generated
+@using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
 @inject EbayClient EbayClient
 
@@ -45,7 +43,6 @@
     private ProductPopup _productPopupComponent = null!;
     private QuestionPopup _questionPopup = null!;
 
-    
     private ICollection<ProductWithId> _products = new List<ProductWithId>();
 
     protected override async Task OnInitializedAsync()

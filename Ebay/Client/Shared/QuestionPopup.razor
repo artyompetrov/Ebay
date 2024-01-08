@@ -24,7 +24,7 @@
         _questionState = new QuestionStateInternal(questionText, onSubmit);
         StateHasChanged();
     }
-    
+
     private void OnSubmit()
     {
         if (_questionState == null) throw new NullReferenceException(nameof(_questionState));
@@ -36,7 +36,7 @@
     {
         _questionState = null;
     }
-    
+
     private record struct QuestionStateInternal(string QuestionText, Func<Task> OnSubmit);
 
 }

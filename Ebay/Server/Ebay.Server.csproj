@@ -11,10 +11,10 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="6.0.7"/>
-        <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.25" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.25"/>
         <PackageReference Include="NSwag.MSBuild" Version="13.20.0">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
     </ItemGroup>
 
@@ -32,11 +32,11 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Data\Migrations\" />
+        <Folder Include="Data\Migrations\"/>
     </ItemGroup>
-    
+
     <Target Name="NSwag" BeforeTargets="Build">
-        <Exec Command="$(NSwagExe_Net60) openapi2cscontroller /input:Controllers/Contracts/Ebay.yaml /classname:Ebay /namespace:Ebay.Server.Controllers.Generated /output:Controllers/Generated/EbayController.cs /AspNetNamespace:Microsoft.AspNetCore.Mvc /ControllerBaseClass:Microsoft.AspNetCore.Mvc.Controller /UseCancellationToken:true /GenerateImmutableArrayProperties:true /GenerateImmutableDictionaryProperties:true /GenerateNullableReferenceTypes:true /GenerateOptionalPropertiesAsNullable:true /ClassStyle:Record /ExcludedTypeNames:ProblemDetails,ValidationProblemDetails" />
+        <Exec Command="$(NSwagExe_Net60) openapi2cscontroller /input:Controllers/Contracts/Ebay.yaml /classname:Ebay /namespace:Ebay.Server.Controllers.Generated /output:Controllers/Generated/EbayController.cs /AspNetNamespace:Microsoft.AspNetCore.Mvc /ControllerBaseClass:Microsoft.AspNetCore.Mvc.Controller /UseCancellationToken:true /GenerateImmutableArrayProperties:true /GenerateImmutableDictionaryProperties:true /GenerateNullableReferenceTypes:true /GenerateOptionalPropertiesAsNullable:true /ClassStyle:Record /ExcludedTypeNames:ProblemDetails,ValidationProblemDetails"/>
     </Target>
-    
+
 </Project>

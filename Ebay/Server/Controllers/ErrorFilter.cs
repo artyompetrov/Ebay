@@ -1,5 +1,4 @@
-﻿using Ebay.Server.Controllers.Generated;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 
@@ -43,8 +42,8 @@ public sealed class ErrorFilter : IAsyncActionFilter, IExceptionFilter
             httpContext: httpContext,
             statusCode: 500,
             title: exception.Message,
-            detail:exception.ToString());
-        
+            detail: exception.ToString());
+
         context.Result = new ObjectResult(problemDetails)
         {
             StatusCode = problemDetails.Status
