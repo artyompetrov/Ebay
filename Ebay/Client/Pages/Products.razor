@@ -9,7 +9,7 @@
 <PageTitle>Перечень товаров</PageTitle>
 
 <h1>Перечень товаров</h1>
-<button class="btn btn-primary" @onclick="OnAddNewProductButtonClick">Добавить</button>
+<button class="btn btn-primary" @onclick="@(() => _productPopupComponent.ShowCreate())">Добавить</button>
 
 
 <table class="table">
@@ -28,7 +28,7 @@
             <td>@product.Name</td>
             <td>@product.SearchQuery</td>
             <td>
-                <button class="btn btn-primary" @onclick="@(e => OnEditButtonClick(product))">Редактировать</button>
+                <button class="btn btn-primary" @onclick="@(e => _productPopupComponent.ShowEdit(product))">Редактировать</button>
             </td>
             <td>
                 <button class="btn btn-primary" @onclick="@(e => OnDeleteButtonClick(product))">Удалить</button>
@@ -37,84 +37,36 @@
     }
     </tbody>
 </table>
-@if (_productToCreate != null)
-{
-    <EditProduct Product="@_productToCreate" ActionName="Создать" OnSubmit="@CreateFormSubmit" OnCancel="@HideAllHoverForms"/>
-}
-@if (_productToEdit != null)
-{
-    <EditProduct Product="@_productToEdit" ActionName="@($"Редактировать {_productToEdit.Name}")" OnSubmit="@OnEditFormSubmit" OnCancel="@HideAllHoverForms"/>
-}
-@if (_productToDelete != null)
-{
-    <Question QuestionText="@($"Удалить {_productToDelete.Name}?")" OnSubmit="@OnDeleteFormSubmit" OnCancel="@HideAllHoverForms"/>
-}
+
+<ProductPopup @ref="_productPopupComponent" OnSuccess="LoadActualProductList"/>
+<QuestionPopup @ref="_questionPopup"/>
 
 @code {
+    private ProductPopup _productPopupComponent = null!;
+    private QuestionPopup _questionPopup = null!;
+
+    
     private ICollection<ProductWithId> _products = new List<ProductWithId>();
-    ProductWithId? _productToEdit;
-    ProductWithId? _productToCreate;
-    ProductWithId? _productToDelete;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadActualProductList();
     }
-    
-    private void OnAddNewProductButtonClick()
-    {
-        HideAllHoverForms();
-        _productToCreate = new ProductWithId { Name = "", SearchQuery = "" };
-        _productToEdit = null;
-    }
 
     private void OnDeleteButtonClick(ProductWithId product)
     {
-        HideAllHoverForms();
-        _productToDelete = product;
-    }
-    
-    private async Task OnDeleteFormSubmit()
-    {
-        if (_productToDelete == null) throw new InvalidOperationException($"{nameof(_productToDelete)} expected to be not null");
-        await EbayClient.DeleteProductAsync(_productToDelete.Id);
-        await LoadActualProductList();
-        HideAllHoverForms();
+        _questionPopup.AskQuestion($"Вы действительно хотите удалить товар '{product.Name}'?", async () =>
+        {
+            await EbayClient.DeleteProductAsync(product.Id);
+            await LoadActualProductList();
+        });
     }
 
-    private void OnEditButtonClick(ProductWithId product)
-    {
-        HideAllHoverForms();
-        _productToEdit = product.Copy();
-    }
-    
-
-    private async Task OnEditFormSubmit()
-    {
-        if (_productToEdit == null) throw new InvalidOperationException($"{nameof(_productToEdit)} expected to be not null");
-        await EbayClient.UpdateProductAsync(product: _productToEdit.ToProductWithoutId(), id: _productToEdit.Id);
-        HideAllHoverForms();
-        await LoadActualProductList();
-    }
-
-    private async Task CreateFormSubmit()
-    {
-        if (_productToCreate == null) throw new InvalidOperationException($"{nameof(_productToCreate)} expected to be not null");
-        await EbayClient.CreateProductAsync(_productToCreate.ToProductWithoutId());
-        HideAllHoverForms();
-        await LoadActualProductList();
-    }
-    
     private async Task LoadActualProductList()
     {
         _products = await EbayClient.GetAllProductsAsync();
+        StateHasChanged();
     }
 
-    private void HideAllHoverForms()
-    {
-        _productToDelete = null;
-        _productToCreate = null;
-        _productToEdit = null;
-    }
 
 }
