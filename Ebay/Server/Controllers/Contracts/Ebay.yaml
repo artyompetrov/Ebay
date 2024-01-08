@@ -77,11 +77,11 @@ definitions:
     properties:
       Name:
         type: string
-        pattern: ^\d+$
+        pattern: ^\w+(?:[ ]+\w+)*$
         minLength: 1
       SearchQuery:
         type: string
-        pattern: ^\d+$
+        pattern: ^\w+(?:[ ]+\w+)*$
         minLength: 1
     required:
       - Name

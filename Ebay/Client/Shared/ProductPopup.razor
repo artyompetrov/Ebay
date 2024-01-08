@@ -8,17 +8,19 @@
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">@GetWindowHeader(_actionType, _product)</h5>
+                    <h5 class="modal-title">@GetWindowHeader(actionType: _actionType, product: _product)</h5>
                 </div>
-                <EditForm Model="@_product" class="">
+                <EditForm EditContext="@_editContext" class="">
                     <div class="modal-body">
                         <div class="form-group">
                             <label for="name">Название</label>
                             <InputText id="name" @bind-Value="_product.Name" class="form-control"/>
+                            <ValidationMessage For="@(() => _product.Name)"/>
                         </div>
                         <div class="form-group">
                             <label for="searchQuery">Поисковый запрос</label>
                             <InputText id="searchQuery" @bind-Value="_product.SearchQuery" class="form-control"/>
+                            <ValidationMessage For="@(() => _product.SearchQuery)"/>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -38,6 +40,8 @@
     private Guid? _id = null;
     private ActionType _actionType;
     private string _oldName = null!;
+    private EditContext _editContext = null!;
+    private ValidationMessageStore _validationMessageStore = null!;
 
     [Parameter]
     [EditorRequired]
@@ -47,6 +51,8 @@
     {
         _actionType = ActionType.Create;
         _product = new ProductWithoutId();
+        _editContext = new EditContext(_product);
+        _validationMessageStore = new ValidationMessageStore(_editContext);
         StateHasChanged();
     }
 
@@ -56,27 +62,40 @@
         _id = product.Id;
         _oldName = product.Name;
         _product = product.ToProductWithoutId();
+        _editContext = new EditContext(_product);
+        _validationMessageStore = new ValidationMessageStore(_editContext);
         StateHasChanged();
     }
 
     private async Task OnSave()
     {
         if (_product == null) throw new InvalidOperationException($"{nameof(_product)} expected to be not null");
-        switch (_actionType)
+        try
         {
-            case ActionType.Create:
-                await EbayClient.CreateProductAsync(_product);
-                break;
-            case ActionType.Edit:
-                if (_id == null) throw new InvalidOperationException($"{nameof(_id)} expected to be not null");
-                await EbayClient.UpdateProductAsync(_product, _id.Value);
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
+            _validationMessageStore.Clear();
 
-        await OnSuccess();
-        _product = null;
+            switch (_actionType)
+            {
+                case ActionType.Create:
+                    await EbayClient.CreateProductAsync(_product);
+                    break;
+                case ActionType.Edit:
+                    if (_id == null) throw new InvalidOperationException($"{nameof(_id)} expected to be not null");
+                    await EbayClient.UpdateProductAsync(product: _product, id: _id.Value);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            await OnSuccess();
+            _product = null;
+        }
+        catch (ApiException<ValidationProblemDetails> validationError)
+        {
+            validationError.FillValidationMessageStore(validationMessageStore: _validationMessageStore,
+                model: _product ?? throw new NullReferenceException($"{nameof(_product)} expected to be not null"));
+            StateHasChanged();
+        }
     }
 
     private void OnCancel()

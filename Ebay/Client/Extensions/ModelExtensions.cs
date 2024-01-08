@@ -1,4 +1,6 @@
 ﻿using Ebay.Client.Clients.Generated;
+using Microsoft.AspNetCore.Components.Forms;
+using Newtonsoft.Json.Linq;
 
 namespace Ebay.Client.Extensions;
 
@@ -15,4 +17,43 @@ public static class ModelExtensions
         Name = productWithId.Name,
         SearchQuery = productWithId.SearchQuery
     };
+
+    public static IEnumerable<ValidationProblemParsed> Parse(this ValidationProblemDetails validationProblemDetails)
+    {
+        foreach (var errorsAdditionalProperty in validationProblemDetails.Errors.AdditionalProperties)
+        {
+            var fieldName = errorsAdditionalProperty.Key;
+            var errors = new List<string>();
+            if (errorsAdditionalProperty.Value is JArray jArray)
+            {
+                foreach (var error in jArray)
+                {
+                    errors.Add(error.ToString());
+                }
+            }
+            else
+                throw new InvalidOperationException(
+                    $"{nameof(errorsAdditionalProperty)}.{nameof(errorsAdditionalProperty.Value)} expected to be jArray");
+
+            yield return new ValidationProblemParsed(FieldName: fieldName, Errors: errors);
+        }
+    }
+
+    public static void FillValidationMessageStore(
+        this ApiException<ValidationProblemDetails> errorException,
+        ValidationMessageStore validationMessageStore,
+        object model)
+    {
+        foreach (var validationProblemParsed in errorException.Result.Parse())
+        {
+            foreach (var error in validationProblemParsed.Errors)
+            {
+                validationMessageStore.Add(
+                    fieldIdentifier: new FieldIdentifier(model: model, fieldName: validationProblemParsed.FieldName),
+                    message: error);
+            }
+        }
+    }
+
+    public record struct ValidationProblemParsed(string FieldName, IReadOnlyList<string> Errors);
 }
