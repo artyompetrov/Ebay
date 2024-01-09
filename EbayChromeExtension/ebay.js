@@ -13,7 +13,9 @@ const purchaseHistoryFieldName = "purchaseHistory";
 const locatedInFieldName = "locatedIn";
 const errorElementId = "errorElement"
 const submitId = "submit"
-
+const baseUrl = "https://178.208.65.100:17443/"
+//todo подключить модуль
+//todo добавить автокомпиляцию ts
 function fetchResource(input, init) {
     return new Promise((resolve, reject) => {
         chrome.runtime.sendMessage({input, init}, messageResponse => {
