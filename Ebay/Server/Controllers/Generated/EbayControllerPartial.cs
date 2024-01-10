@@ -2,7 +2,7 @@
 
 namespace Ebay.Server.Controllers.Generated;
 
-[Authorize]
+//[Authorize]
 public partial class EbayController 
 {
 }

@@ -12,7 +12,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     });
     return true;
 });
-
+/*
 import {Client} from './EbayClient/EbayClient.js'
 
 const baseUrl = "https://178.208.65.100:17443/";
@@ -36,3 +36,4 @@ function fetchResource(input, init) {
 }
 const client = new Client(baseUrl, {fetch: fetchResource});
 client.getAllProducts()
+*/
