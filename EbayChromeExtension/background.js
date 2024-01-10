@@ -12,3 +12,27 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     });
     return true;
 });
+
+import {Client} from './EbayClient/EbayClient.js'
+
+const baseUrl = "https://178.208.65.100:17443/";
+
+function fetchResource(input, init) {
+    return new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage({input, init}, messageResponse => {
+            const [response, error] = messageResponse;
+            if (response === null) {
+                reject(error);
+            } else {
+                // Use undefined on a 204 - No Content
+                const body = response.body ? new Blob([response.body]) : undefined;
+                resolve(new Response(body, {
+                    status: response.status,
+                    statusText: response.statusText,
+                }));
+            }
+        });
+    });
+}
+const client = new Client(baseUrl, {fetch: fetchResource});
+client.getAllProducts()

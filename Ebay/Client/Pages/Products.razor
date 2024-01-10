@@ -26,10 +26,10 @@
             <td>@product.Name</td>
             <td>@product.SearchQuery</td>
             <td>
-                <button class="btn btn-primary" @onclick="@(e => _productPopupComponent.ShowEdit(product))">Редактировать</button>
+                <button class="btn btn-primary btn-sm" @onclick="@(e => _productPopupComponent.ShowEdit(product))">Редактировать</button>
             </td>
             <td>
-                <button class="btn btn-primary" @onclick="@(e => OnDeleteButtonClick(product))">Удалить</button>
+                <button class="btn btn-primary btn-sm" @onclick="@(e => OnDeleteButtonClick(product))">Удалить</button>
             </td>
         </tr>
     }

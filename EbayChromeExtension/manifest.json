@@ -45,9 +45,11 @@
     "activeTab"
   ],
   "host_permissions": [
-    "https://vi.vipr.ebaydesc.com/*"
+    "https://vi.vipr.ebaydesc.com/*",
+    "https://178.208.65.100:17443/*"
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   }
 }
