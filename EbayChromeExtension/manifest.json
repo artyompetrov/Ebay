@@ -53,6 +53,6 @@
   },
   "web_accessible_resources": [{
     "matches": ["<all_urls>"],
-    "resources": ["EbayClient/EbayClient.js"]
+    "resources": ["main.js","EbayClient/EbayClient.js"]
   }]
 }

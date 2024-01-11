@@ -29,10 +29,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ebay.Client", "Ebay\Client\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "EbayClient", "EbayClient", "{9AD77C94-4C3C-4DA1-9B07-7F395C0B7837}"
 	ProjectSection(SolutionItems) = preProject
-		EbayChromeExtension\EbayClient\EbayClient.ts = EbayChromeExtension\EbayClient\EbayClient.ts
 		EbayChromeExtension\EbayClient\EbayClient.js = EbayChromeExtension\EbayClient\EbayClient.js
 		EbayChromeExtension\EbayClient\EbayClient.js.map = EbayChromeExtension\EbayClient\EbayClient.js.map
-		EbayChromeExtension\EbayClient\tsconfig.json = EbayChromeExtension\EbayClient\tsconfig.json
+		EbayChromeExtension\main.js = EbayChromeExtension\main.js
 	EndProjectSection
 EndProject
 Global
