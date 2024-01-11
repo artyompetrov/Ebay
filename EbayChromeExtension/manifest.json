@@ -49,7 +49,10 @@
     "https://178.208.65.100:17443/*"
   ],
   "background": {
-    "service_worker": "background.js",
-    "type": "module"
-  }
+    "service_worker": "background.js"
+  },
+  "web_accessible_resources": [{
+    "matches": ["<all_urls>"],
+    "resources": ["EbayClient/EbayClient.js"]
+  }]
 }

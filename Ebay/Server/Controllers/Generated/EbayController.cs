@@ -63,7 +63,6 @@ namespace Ebay.Server.Controllers.Generated
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    [Microsoft.AspNetCore.Mvc.Route("api/ebay/v1/")]
 
     public partial class EbayController : Microsoft.AspNetCore.Mvc.Controller
     {
@@ -78,7 +77,7 @@ namespace Ebay.Server.Controllers.Generated
         /// List all products
         /// </summary>
         /// <returns>OK</returns>
-        [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("products")]
+        [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("api/ebay/v1/products")]
         public System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ProductWithId>> GetAllProducts(System.Threading.CancellationToken cancellationToken)
         {
 
@@ -89,7 +88,7 @@ namespace Ebay.Server.Controllers.Generated
         /// Create product
         /// </summary>
         /// <returns>Updated</returns>
-        [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("products")]
+        [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("api/ebay/v1/products")]
         public System.Threading.Tasks.Task<System.Guid> CreateProduct([Microsoft.AspNetCore.Mvc.FromBody] ProductWithoutId product, System.Threading.CancellationToken cancellationToken)
         {
 
@@ -100,7 +99,7 @@ namespace Ebay.Server.Controllers.Generated
         /// Update product
         /// </summary>
         /// <returns>Updated</returns>
-        [Microsoft.AspNetCore.Mvc.HttpPut, Microsoft.AspNetCore.Mvc.Route("products/{id}")]
+        [Microsoft.AspNetCore.Mvc.HttpPut, Microsoft.AspNetCore.Mvc.Route("api/ebay/v1/products/{id}")]
         public System.Threading.Tasks.Task UpdateProduct([Microsoft.AspNetCore.Mvc.FromBody] ProductWithoutId product, System.Guid id, System.Threading.CancellationToken cancellationToken)
         {
 
@@ -111,7 +110,7 @@ namespace Ebay.Server.Controllers.Generated
         /// Delete product
         /// </summary>
         /// <returns>Deleted</returns>
-        [Microsoft.AspNetCore.Mvc.HttpDelete, Microsoft.AspNetCore.Mvc.Route("products/{id}")]
+        [Microsoft.AspNetCore.Mvc.HttpDelete, Microsoft.AspNetCore.Mvc.Route("api/ebay/v1/products/{id}")]
         public System.Threading.Tasks.Task DeleteProduct(System.Guid id, System.Threading.CancellationToken cancellationToken)
         {
 

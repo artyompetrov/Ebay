@@ -13,7 +13,14 @@ const purchaseHistoryFieldName = "purchaseHistory";
 const locatedInFieldName = "locatedIn";
 const errorElementId = "errorElement"
 const submitId = "submit"
-const baseUrl = "https://178.208.65.100:17443/";
+const baseUrl = "https://178.208.65.100:17443";
+
+async function f() {
+    const src = chrome.runtime.getURL("EbayClient/EbayClient.js");
+    const contentMain = await import(src);
+    let client = new contentMain.Client(baseUrl, {fetch: fetchResource});
+    return client.getAllProducts()
+}
 
 //todo подключить модуль
 //todo добавить автокомпиляцию ts
@@ -307,19 +314,10 @@ function fillLocatedIn(panel) {
     locatedInField.value = document.querySelector('div.ux-labels-values--legalShipping div.col-9').innerText.split("Located in: ")[1]
 }
 
-function fillDescription(panel) {
-    let descriptionUrl = document.querySelector('#desc_ifr').src
-    fetchResource(descriptionUrl, {method: 'GET', credentials: 'include'})
-        .then((response) => {
-            response.text().then((text) => {
-                panel.querySelector('input#' + descriptionFieldName).value = text
-            }).catch((err) => {
-                showError(err);
-            })
-        })
-        .catch((err) => {
-            showError(err)
-        })
+async function fillDescription(panel) {
+   // let descriptionUrl = document.querySelector('#desc_ifr').src
+    let locatedInField = panel.querySelector('input#' + descriptionFieldName)
+    locatedInField.value = JSON.stringify(await f())
 }
 
 function fillPurchaseHistory(panel) {
@@ -339,7 +337,7 @@ function fillPurchaseHistory(panel) {
         })
 }
 
-function fillPanelWithData() {
+async function fillPanelWithData() {
     let panel = document.querySelector('div.' + panelClass)
 
     fillId(panel);
@@ -350,7 +348,7 @@ function fillPanelWithData() {
     fillConditionDescription(panel);
     fillShipping(panel);
     fillLocatedIn(panel);
-    fillDescription(panel);
+    await fillDescription(panel);
     fillPurchaseHistory(panel);
 }
 
@@ -382,7 +380,7 @@ async function run() {
     try {
         addHistoryButton();
         addPanel();
-        fillPanelWithData();
+        await fillPanelWithData();
         //todo разрешать только если вообще нет ошибок
         enableSubmitButton()
     } catch (error) {

@@ -12,10 +12,10 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     });
     return true;
 });
-/*
-import {Client} from './EbayClient/EbayClient.js'
 
-const baseUrl = "https://178.208.65.100:17443/";
+/*import {Client} from './EbayClient/EbayClient.js'
+
+const baseUrl = "https://178.208.65.100:17443/api/ebay/v1/";
 
 function fetchResource(input, init) {
     return new Promise((resolve, reject) => {
