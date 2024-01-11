@@ -12,16 +12,21 @@
         <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" PrivateAssets="all" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" />
         <PackageReference Include="Microsoft.Extensions.Http" />
+        <PackageReference Include="Microsoft.TypeScript.MSBuild">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="Newtonsoft.Json" />
         <PackageReference Include="NSwag.MSBuild">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
     </ItemGroup>
-    <Target Name="NSwag" BeforeTargets="Build">
+
+    <Target Name="NSwag" BeforeTargets="BeforeBuild">
         <Exec Command="$(NSwagExe_Net60) openapi2csclient /input:../Server/Controllers/Contracts/Ebay.yaml /classname:EbayClient /namespace:Ebay.Client.Clients.Generated /output:Clients/Generated/EbayClient.cs /RequiredPropertiesMustBeDefined:false" />
     </Target>
-    <Target Name="NSwag" BeforeTargets="Build">
-        <Exec Command="$(NSwagExe_Net60) openapi2tsclient /input:../Server/Controllers/Contracts/Ebay.yaml /output:../../EbayChromeExtension/EbayClient/EbayClient.ts" />
+    <Target Name="NSwag" BeforeTargets="BeforeBuild">
+        <Exec Command="$(NSwagExe_Net60) openapi2tsclient /input:../Server/Controllers/Contracts/Ebay.yaml /output:./Clients/Generated/EbayClient.ts" />
     </Target>
 </Project>
