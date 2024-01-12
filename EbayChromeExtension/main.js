@@ -3,6 +3,7 @@ import {Client} from "/EbayClient/EbayClient.js"
 const panelClass = "panel-div";
 const idFieldName = "id";
 const nameFieldName = "name";
+const productFieldName = "product";
 const pcsFieldName = "pcs";
 const priceFieldName = "price";
 const shippingFieldName = "shipping";
@@ -18,9 +19,6 @@ const submitId = "submit"
 const baseUrl = "https://178.208.65.100:17443";
 
 
-
-//todo подключить модуль
-//todo добавить автокомпиляцию ts
 function fetchResource(input, init) {
     return new Promise((resolve, reject) => {
         chrome.runtime.sendMessage({input, init}, messageResponse => {
@@ -118,6 +116,11 @@ function createPanel(bodyElement) {
         <form action="">
             <label for="${idFieldName}">Id</label>
             <input id="${idFieldName}" type="number" name="${idFieldName}" readonly/>
+            <br>
+            <label for="${productFieldName}">Товар:</label>
+            <select name="pets" id="${productFieldName}">
+                <option value="">Выберите товар</option>
+            </select>
             <br>
             <label for="${nameFieldName}">Name</label>
             <input id="${nameFieldName}" type="text" name="${nameFieldName}" readonly/>
@@ -314,7 +317,7 @@ function fillLocatedIn(panel) {
 async function fillDescription(panel, client) {
     //todo вернуть расчет описания
     let locatedInField = panel.querySelector('input#' + descriptionFieldName)
-    locatedInField.value = JSON.stringify(await client.getAllProducts())
+    
 }
 
 function fillPurchaseHistory(panel) {
@@ -334,10 +337,25 @@ function fillPurchaseHistory(panel) {
         })
 }
 
+async function fillProduct(panel, client) {
+    let productField = panel.querySelector('input#' + productFieldName);
+
+    let products = await client.getAllProducts()
+    for (var i = min; i<=products; i++){
+        var opt = document.createElement('option');
+        opt.value = i;
+        opt.innerHTML = i;
+        select.appendChild(opt);
+    }
+    
+    productField
+}
+
 async function fillPanelWithData(client) {
     let panel = document.querySelector('div.' + panelClass)
 
     fillId(panel);
+    await fillProduct(panel);
     fillPrice(panel);
     fillName(panel);
     fillSeller(panel);

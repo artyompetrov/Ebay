@@ -48,7 +48,6 @@ export class Client {
                 else {
                     result200 = null;
                 }
-                return result200;
             });
         }
         else if (status !== 200 && status !== 204) {
