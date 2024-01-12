@@ -24,7 +24,7 @@ const purchaseHistoryFieldName = "purchaseHistory";
 const locatedInFieldName = "locatedIn";
 const errorElementId = "errorElement";
 const submitId = "submit";
-const baseUrl = "https://178.208.65.100:17443";
+const baseUrl = "https://178.208.65.100:17443/api/ebay/v1";
 function fetchResource(input, init) {
     return new Promise((resolve, reject) => {
         chrome.runtime.sendMessage({ input, init }, messageResponse => {
@@ -288,10 +288,18 @@ function fillLocatedIn(panel) {
     let locatedInField = panel.querySelector('input#' + locatedInFieldName);
     locatedInField.value = document.querySelector('div.ux-labels-values--legalShipping div.col-9').innerText.split("Located in: ")[1];
 }
-function fillDescription(panel, client) {
-    return __awaiter(this, void 0, void 0, function* () {
-        //todo вернуть расчет описания
-        let locatedInField = panel.querySelector('input#' + descriptionFieldName);
+function fillDescription(panel) {
+    let descriptionUrl = document.querySelector('#desc_ifr').src;
+    fetchResource(descriptionUrl, { method: 'GET', credentials: 'include' })
+        .then((response) => {
+        response.text().then((text) => {
+            panel.querySelector('input#' + descriptionFieldName).value = text;
+        }).catch((err) => {
+            showError(err);
+        });
+    })
+        .catch((err) => {
+        showError(err);
     });
 }
 function fillPurchaseHistory(panel) {
@@ -333,7 +341,7 @@ function fillPanelWithData(client) {
         fillConditionDescription(panel);
         fillShipping(panel);
         fillLocatedIn(panel);
-        yield fillDescription(panel, client);
+        fillDescription(panel);
         fillPurchaseHistory(panel);
     });
 }

@@ -10,14 +10,14 @@ export class Client {
     constructor(baseUrl, http) {
         this.jsonParseReviver = undefined;
         this.http = http ? http : window;
-        this.baseUrl = baseUrl !== undefined && baseUrl !== null ? baseUrl : "";
+        this.baseUrl = baseUrl !== undefined && baseUrl !== null ? baseUrl : "/api/ebay/v1";
     }
     /**
      * List all products
      * @return OK
      */
     getAllProducts() {
-        let url_ = this.baseUrl + "/api/ebay/v1/products";
+        let url_ = this.baseUrl + "/products";
         url_ = url_.replace(/[?&]$/, "");
         let options_ = {
             method: "GET",
@@ -63,7 +63,7 @@ export class Client {
      * @return Updated
      */
     createProduct(product) {
-        let url_ = this.baseUrl + "/api/ebay/v1/products";
+        let url_ = this.baseUrl + "/products";
         url_ = url_.replace(/[?&]$/, "");
         const content_ = JSON.stringify(product);
         let options_ = {
@@ -113,7 +113,7 @@ export class Client {
      * @return Updated
      */
     updateProduct(product, id) {
-        let url_ = this.baseUrl + "/api/ebay/v1/products/{id}";
+        let url_ = this.baseUrl + "/products/{id}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
@@ -162,7 +162,7 @@ export class Client {
      * @return Deleted
      */
     deleteProduct(id) {
-        let url_ = this.baseUrl + "/api/ebay/v1/products/{id}";
+        let url_ = this.baseUrl + "/products/{id}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));

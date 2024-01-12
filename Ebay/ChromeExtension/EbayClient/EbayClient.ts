@@ -15,7 +15,7 @@ export class Client {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl !== undefined && baseUrl !== null ? baseUrl : "";
+        this.baseUrl = baseUrl !== undefined && baseUrl !== null ? baseUrl : "/api/ebay/v1";
     }
 
     /**
@@ -23,7 +23,7 @@ export class Client {
      * @return OK
      */
     getAllProducts(): Promise<ProductWithId[]> {
-        let url_ = this.baseUrl + "/api/ebay/v1/products";
+        let url_ = this.baseUrl + "/products";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -68,7 +68,7 @@ export class Client {
      * @return Updated
      */
     createProduct(product: ProductWithoutId): Promise<string> {
-        let url_ = this.baseUrl + "/api/ebay/v1/products";
+        let url_ = this.baseUrl + "/products";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(product);
@@ -118,7 +118,7 @@ export class Client {
      * @return Updated
      */
     updateProduct(product: ProductWithoutId, id: string): Promise<void> {
-        let url_ = this.baseUrl + "/api/ebay/v1/products/{id}";
+        let url_ = this.baseUrl + "/products/{id}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
@@ -166,7 +166,7 @@ export class Client {
      * @return Deleted
      */
     deleteProduct(id: string): Promise<void> {
-        let url_ = this.baseUrl + "/api/ebay/v1/products/{id}";
+        let url_ = this.baseUrl + "/products/{id}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));

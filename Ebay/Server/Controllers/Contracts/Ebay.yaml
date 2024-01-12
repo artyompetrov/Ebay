@@ -7,8 +7,9 @@ consumes:
   - application/json
 produces:
   - application/json
+basePath: /api/ebay/v1
 paths:
-  /api/ebay/v1/products:
+  /products:
     get:
       operationId: GetAllProducts
       summary: List all products
@@ -39,7 +40,7 @@ paths:
           schema:
             $ref: '#/definitions/ValidationProblemDetails'
   
-  /api/ebay/v1/products/{id}:
+  /products/{id}:
     parameters:
       - name: id
         in: path

@@ -16,7 +16,7 @@ const purchaseHistoryFieldName = "purchaseHistory";
 const locatedInFieldName = "locatedIn";
 const errorElementId = "errorElement"
 const submitId = "submit"
-const baseUrl = "https://178.208.65.100:17443";
+const baseUrl = "https://178.208.65.100:17443/api/ebay/v1";
 
 
 function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response> {
@@ -322,10 +322,19 @@ function fillLocatedIn(panel) {
     locatedInField.value = (<HTMLElement>document.querySelector('div.ux-labels-values--legalShipping div.col-9')).innerText.split("Located in: ")[1]
 }
 
-async function fillDescription(panel, client) {
-    //todo вернуть расчет описания
-    let locatedInField = panel.querySelector('input#' + descriptionFieldName)
-
+function fillDescription(panel) {
+    let descriptionUrl = (<HTMLIFrameElement>document.querySelector('#desc_ifr')).src
+    fetchResource(descriptionUrl, {method: 'GET', credentials: 'include'})
+        .then((response) => {
+            response.text().then((text) => {
+                panel.querySelector('input#' + descriptionFieldName).value = text
+            }).catch((err) => {
+                showError(err);
+            })
+        })
+        .catch((err) => {
+            showError(err)
+        })
 }
 
 function fillPurchaseHistory(panel) {
@@ -368,7 +377,7 @@ async function fillPanelWithData(client) {
     fillConditionDescription(panel);
     fillShipping(panel);
     fillLocatedIn(panel);
-    await fillDescription(panel, client);
+    fillDescription(panel);
     fillPurchaseHistory(panel);
 }
 
