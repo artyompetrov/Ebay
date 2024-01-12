@@ -19,7 +19,7 @@ const submitId = "submit"
 const baseUrl = "https://178.208.65.100:17443";
 
 
-function fetchResource( input: RequestInfo,  init:RequestInit) : Promise<Response> {
+function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response> {
     return new Promise((resolve, reject) => {
         chrome.runtime.sendMessage({input, init}, messageResponse => {
             const [response, error] = messageResponse;
@@ -36,6 +36,7 @@ function fetchResource( input: RequestInfo,  init:RequestInit) : Promise<Respons
         });
     });
 }
+
 function extractPrice(price) {
     let matches = price.match(/(\D+)(\d+(?:[,.]\d+)?)/)
     if (matches[1] !== "US $") {
@@ -324,7 +325,7 @@ function fillLocatedIn(panel) {
 async function fillDescription(panel, client) {
     //todo вернуть расчет описания
     let locatedInField = panel.querySelector('input#' + descriptionFieldName)
-    
+
 }
 
 function fillPurchaseHistory(panel) {
@@ -344,14 +345,14 @@ function fillPurchaseHistory(panel) {
         })
 }
 
-async function fillProduct(panel: HTMLDivElement, client : Client) {
+async function fillProduct(panel: HTMLDivElement, client: Client) {
     let productField = panel.querySelector('select#' + productFieldName);
 
     let products = await client.getAllProducts()
-    for (let i = 0; i < products.length; i++){
+    for (let i = 0; i < products.length; i++) {
         let opt = document.createElement('option');
         opt.value = products[i].id;
-        opt.innerHTML = products[i].name ;
+        opt.innerHTML = products[i].name;
         productField.appendChild(opt);
     }
 }
