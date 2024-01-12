@@ -1,5 +1,13 @@
-import {Client} from "/EbayClient/EbayClient.js"
-
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+import { Client } from "./EbayClient/EbayClient.js";
 const panelClass = "panel-div";
 const idFieldName = "id";
 const nameFieldName = "name";
@@ -14,18 +22,17 @@ const conditionDescriptionFieldName = "conditionDescription";
 const sellerFieldName = "seller";
 const purchaseHistoryFieldName = "purchaseHistory";
 const locatedInFieldName = "locatedIn";
-const errorElementId = "errorElement"
-const submitId = "submit"
+const errorElementId = "errorElement";
+const submitId = "submit";
 const baseUrl = "https://178.208.65.100:17443";
-
-
 function fetchResource(input, init) {
     return new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage({input, init}, messageResponse => {
+        chrome.runtime.sendMessage({ input, init }, messageResponse => {
             const [response, error] = messageResponse;
             if (response === null) {
                 reject(error);
-            } else {
+            }
+            else {
                 // Use undefined on a 204 - No Content
                 const body = response.body ? new Blob([response.body]) : undefined;
                 resolve(new Response(body, {
@@ -36,16 +43,13 @@ function fetchResource(input, init) {
         });
     });
 }
-
 function extractPrice(price) {
-    let matches = price.match(/(\D+)(\d+(?:[,.]\d+)?)/)
+    let matches = price.match(/(\D+)(\d+(?:[,.]\d+)?)/);
     if (matches[1] !== "US $") {
-        throw new Error('US $ price expected, but was')
+        throw new Error('US $ price expected, but was');
     }
-
-    return matches[2].replace(',', '.')
+    return matches[2].replace(',', '.');
 }
-
 function createHistoryButton() {
     let itemId = location.pathname.match(/\/itm\/([0-9]+)/)[1];
     let domain = location.hostname;
@@ -64,10 +68,8 @@ function createHistoryButton() {
     color: black;
   `;
     historyButton.target = '_blank';
-
     return historyButton;
 }
-
 function addHistoryButton() {
     let productTitleContainer = document.querySelector('.vim[data-testid="x-item-title"]');
     if (productTitleContainer) {
@@ -78,7 +80,6 @@ function addHistoryButton() {
         }
     }
 }
-
 function createPanel(bodyElement) {
     let styles = `
     .${panelClass} {
@@ -102,15 +103,12 @@ function createPanel(bodyElement) {
     }
     
     .${panelClass} label:after { content: ": " }
-`
-
-    let styleSheet = document.createElement("style")
-    styleSheet.innerText = styles
-    bodyElement.appendChild(styleSheet)
-
+`;
+    let styleSheet = document.createElement("style");
+    styleSheet.innerText = styles;
+    bodyElement.appendChild(styleSheet);
     let div = document.createElement('div');
     div.classList.add(panelClass);
-
     // language=HTML
     div.innerHTML = `
         <form action="">
@@ -159,215 +157,178 @@ function createPanel(bodyElement) {
             <br>
             <input id="${submitId}" type="submit" value="Save" disabled/>
         </form>`;
-
     bodyElement.appendChild(div);
 }
-
 function fillSoldItemsResult(fixedPriceRows, result) {
     for (let fixedPriceRow of fixedPriceRows) {
         let columns = [...fixedPriceRow.querySelectorAll('td')]
             .map(function (item) {
-                return item.innerText;
-            })
-
-        let price = columns[1]
-
+            return item.innerText;
+        });
+        let price = columns[1];
         if (price === "Expired" || price === "Declined") {
-            continue
+            continue;
         }
-
-        let resultItem = {}
-
+        let resultItem = {};
         if (price !== "Sold as a special offer" && price !== "Counter-offered" && price !== "Accepted") {
-            resultItem['price'] = extractPrice(price)
+            resultItem['price'] = extractPrice(price);
         }
-
-        resultItem['quantity'] = columns[2]
-        resultItem['date'] = parseDate(columns[3])
-
-        result.push(resultItem)
+        resultItem['quantity'] = columns[2];
+        resultItem['date'] = parseDate(columns[3]);
+        result.push(resultItem);
     }
 }
-
 function parseDate(dateString) {
-    let matches = dateString.match(/(\d+\s[A-z]+\s\d+)\sat\s(\d+):(\d+):(\d+)(am|pm)\s([A-z]+)/)
-
-    let date = new Date(Date.parse(matches[1] + ' 00:00:00.000Z'))
-
+    let matches = dateString.match(/(\d+\s[A-z]+\s\d+)\sat\s(\d+):(\d+):(\d+)(am|pm)\s([A-z]+)/);
+    let date = new Date(Date.parse(matches[1] + ' 00:00:00.000Z'));
     date.setUTCHours(parseInt(matches[2]));
     date.setUTCMinutes(parseInt(matches[3]));
     date.setUTCSeconds(parseInt(matches[4]));
-
     if (matches[5] === "pm" && date.getUTCHours() !== 12) {
         date.setHours(date.getHours() + 12);
     }
     if (matches[5] === "am" && date.getUTCHours() === 12) {
         date.setHours(date.getHours() - 12);
     }
-
     if (matches[6] === "MSK") {
         date.setHours(date.getHours() - 3);
-    } else {
-        throw new Error("unknown timezone " + matches[6])
     }
-
-    return date.toISOString()
+    else {
+        throw new Error("unknown timezone " + matches[6]);
+    }
+    return date.toISOString();
 }
-
 function parseSoldItemsPage(text) {
-    let doc = new DOMParser().parseFromString(text, "text/html")
-
-    let result = []
-    let fixedPriceBlock = doc.querySelector('div.fixed-price tbody')
+    let doc = new DOMParser().parseFromString(text, "text/html");
+    let result = [];
+    let fixedPriceBlock = doc.querySelector('div.fixed-price tbody');
     if (fixedPriceBlock !== null) {
-        let fixedPriceRows = [...fixedPriceBlock.querySelectorAll('tr')]
+        let fixedPriceRows = [...fixedPriceBlock.querySelectorAll('tr')];
         fillSoldItemsResult(fixedPriceRows, result);
     }
-
-    let offerBlock = doc.querySelector('div.offer tbody')
+    let offerBlock = doc.querySelector('div.offer tbody');
     if (offerBlock !== null) {
-        let offerRows = [...offerBlock.querySelectorAll('tr')]
+        let offerRows = [...offerBlock.querySelectorAll('tr')];
         fillSoldItemsResult(offerRows, result);
     }
-
     return JSON.stringify(result);
 }
-
 function fillId(panel) {
-    let idField = panel.querySelector('input#' + idFieldName)
+    let idField = panel.querySelector('input#' + idFieldName);
     idField.value = location.pathname.match(/\/itm\/([0-9]+)/)[1];
 }
-
 function fillPrice(panel) {
-    let priceField = panel.querySelector('input#' + priceFieldName)
-    priceField.value = extractPrice(document.querySelector('div.x-price-primary span').innerText)
+    let priceField = panel.querySelector('input#' + priceFieldName);
+    priceField.value = extractPrice(document.querySelector('div.x-price-primary span').innerText);
 }
-
 function fillName(panel) {
-    let nameField = panel.querySelector('input#' + nameFieldName)
-    nameField.value = document.querySelector('.vim h1').innerText
+    let nameField = panel.querySelector('input#' + nameFieldName);
+    nameField.value = document.querySelector('.vim h1').innerText;
 }
-
 function fillSeller(panel) {
-    let sellerField = panel.querySelector('input#' + sellerFieldName)
-    sellerField.value = document.querySelector('div.x-sellercard-atf__info__about-seller a').innerText.toLowerCase()
+    let sellerField = panel.querySelector('input#' + sellerFieldName);
+    sellerField.value = document.querySelector('div.x-sellercard-atf__info__about-seller a').innerText.toLowerCase();
 }
-
 function fillCondition(panel) {
-    let conditionField = panel.querySelector('input#' + conditionFieldName)
-    conditionField.value = document.querySelector('div.x-item-condition-text span.ux-textspans').innerText
+    let conditionField = panel.querySelector('input#' + conditionFieldName);
+    conditionField.value = document.querySelector('div.x-item-condition-text span.ux-textspans').innerText;
 }
-
 function fillConditionDescription(panel) {
-    let conditionDescriptionElement = document.querySelector('div.x-item-condition-desc')
+    let conditionDescriptionElement = document.querySelector('div.x-item-condition-desc');
     if (conditionDescriptionElement != null) {
-        let conditionDescriptionField = panel.querySelector('input#' + conditionDescriptionFieldName)
+        let conditionDescriptionField = panel.querySelector('input#' + conditionDescriptionFieldName);
         conditionDescriptionField.value = conditionDescriptionElement.innerText
             .replace('“', '')
-            .replace('”', '')
+            .replace('”', '');
     }
 }
-
 function fillShipping(panel) {
-    let shippingField = panel.querySelector('input#' + shippingFieldName)
-    let shippingAdditionalField = panel.querySelector('input#' + shippingAdditionalFieldName)
-    let shippingRatesAvailable = document.querySelector('div.ux-layout-section__textual-display--askSeller') === null
+    let shippingField = panel.querySelector('input#' + shippingFieldName);
+    let shippingAdditionalField = panel.querySelector('input#' + shippingAdditionalFieldName);
+    let shippingRatesAvailable = document.querySelector('div.ux-layout-section__textual-display--askSeller') === null;
     if (shippingRatesAvailable) {
         let deliveryColumnsHeader = [...document.querySelector('div.d-shipping-maxview thead')
-            .querySelectorAll('th')]
+                .querySelectorAll('th')];
         let deliveryColumnsValues = [...document.querySelector('div.d-shipping-maxview tbody')
-            .querySelector('tr')
-            .querySelectorAll('td')]
-
+                .querySelector('tr')
+                .querySelectorAll('td')];
         let shippingMaxviewValues = {};
-
         for (let i = 0; i < 3; i++) {
-            let key = deliveryColumnsHeader[i].innerText
-            shippingMaxviewValues[key] = deliveryColumnsValues[i].querySelector('span').innerText
+            let key = deliveryColumnsHeader[i].innerText;
+            shippingMaxviewValues[key] = deliveryColumnsValues[i].querySelector('span').innerText;
         }
-
         if (shippingMaxviewValues['To'] !== 'Germany') {
             throw new Error('Shipping country must be Germany');
         }
-
-        let shippingValue = shippingMaxviewValues['Shipping and handling']
-
+        let shippingValue = shippingMaxviewValues['Shipping and handling'];
         if (shippingValue !== 'Free shipping') {
-            shippingField.value = extractPrice(shippingValue)
-
+            shippingField.value = extractPrice(shippingValue);
             if (shippingMaxviewValues.hasOwnProperty('Each additional item')) {
-                shippingAdditionalField.value = extractPrice(shippingMaxviewValues['Each additional item'])
-
-            } else {
+                shippingAdditionalField.value = extractPrice(shippingMaxviewValues['Each additional item']);
+            }
+            else {
                 shippingAdditionalField.value = 0;
             }
-
-        } else {
+        }
+        else {
             shippingField.value = 0;
             shippingAdditionalField.value = 0;
         }
     }
 }
-
 function fillLocatedIn(panel) {
-    let locatedInField = panel.querySelector('input#' + locatedInFieldName)
-    locatedInField.value = document.querySelector('div.ux-labels-values--legalShipping div.col-9').innerText.split("Located in: ")[1]
+    let locatedInField = panel.querySelector('input#' + locatedInFieldName);
+    locatedInField.value = document.querySelector('div.ux-labels-values--legalShipping div.col-9').innerText.split("Located in: ")[1];
 }
-
-async function fillDescription(panel, client) {
-    //todo вернуть расчет описания
-    let locatedInField = panel.querySelector('input#' + descriptionFieldName)
-    
+function fillDescription(panel, client) {
+    return __awaiter(this, void 0, void 0, function* () {
+        //todo вернуть расчет описания
+        let locatedInField = panel.querySelector('input#' + descriptionFieldName);
+    });
 }
-
 function fillPurchaseHistory(panel) {
     let itemId = location.pathname.match(/\/itm\/([0-9]+)/)[1];
     let purchaseHistoryUrl = `https://${location.hostname}/bin/purchaseHistory?item=${itemId}`;
-    fetchResource(purchaseHistoryUrl, {method: 'GET', credentials: 'include'})
+    fetchResource(purchaseHistoryUrl, { method: 'GET', credentials: 'include' })
         .then((response) => {
-            response.text().then((text) => {
-                panel.querySelector('input#' + purchaseHistoryFieldName).value = parseSoldItemsPage(text)
-
-            }).catch((err) => {
-                showError(err);
-            })
-        })
+        response.text().then((text) => {
+            panel.querySelector('input#' + purchaseHistoryFieldName).value = parseSoldItemsPage(text);
+        }).catch((err) => {
+            showError(err);
+        });
+    })
         .catch((err) => {
-            showError(err)
-        })
+        showError(err);
+    });
 }
-
-async function fillProduct(panel, client) {
-    let productField = panel.querySelector('input#' + productFieldName);
-
-    let products = await client.getAllProducts()
-    for (var i = min; i<=products; i++){
-        var opt = document.createElement('option');
-        opt.value = i;
-        opt.innerHTML = i;
-        select.appendChild(opt);
-    }
-    
-    productField
+function fillProduct(panel, client) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let productField = panel.querySelector('select#' + productFieldName);
+        let products = yield client.getAllProducts();
+        for (let i = 0; i <= products.length; i++) {
+            let opt = document.createElement('option');
+            opt.value = i.toString();
+            opt.innerHTML = i.toString();
+            productField.appendChild(opt);
+        }
+    });
 }
-
-async function fillPanelWithData(client) {
-    let panel = document.querySelector('div.' + panelClass)
-
-    fillId(panel);
-    await fillProduct(panel);
-    fillPrice(panel);
-    fillName(panel);
-    fillSeller(panel);
-    fillCondition(panel);
-    fillConditionDescription(panel);
-    fillShipping(panel);
-    fillLocatedIn(panel);
-    await fillDescription(panel, client);
-    fillPurchaseHistory(panel);
+function fillPanelWithData(client) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let panel = document.querySelector('div.' + panelClass);
+        fillId(panel);
+        yield fillProduct(panel, client);
+        fillPrice(panel);
+        fillName(panel);
+        fillSeller(panel);
+        fillCondition(panel);
+        fillConditionDescription(panel);
+        fillShipping(panel);
+        fillLocatedIn(panel);
+        yield fillDescription(panel, client);
+        fillPurchaseHistory(panel);
+    });
 }
-
-
 function addPanel() {
     let bodyElement = document.querySelector('body');
     if (bodyElement) {
@@ -377,31 +338,29 @@ function addPanel() {
         }
     }
 }
-
 function showError(error) {
-    let errorDiv = document.querySelector('div.' + panelClass + ' #' + errorElementId)
-
+    let errorDiv = document.querySelector('div.' + panelClass + ' #' + errorElementId);
     let span = document.createElement('span');
     span.innerHTML = error.stack;
-    errorDiv.appendChild(span)
+    errorDiv.appendChild(span);
 }
-
 function enableSubmitButton() {
-    document.querySelector('#' + submitId).disabled = false
+    document.querySelector('#' + submitId).disabled = false;
 }
-
-export async function run() {
-
-    try {
-        let client = new Client(baseUrl, {fetch: fetchResource});
-
-        addHistoryButton();
-        addPanel();
-        await fillPanelWithData(client);
-        //todo разрешать только если вообще нет ошибок
-        enableSubmitButton()
-    } catch (error) {
-        showError(error);
-        throw error;
-    }
+export function run() {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            let client = new Client(baseUrl, { fetch: fetchResource });
+            addHistoryButton();
+            addPanel();
+            yield fillPanelWithData(client);
+            //todo разрешать только если вообще нет ошибок
+            enableSubmitButton();
+        }
+        catch (error) {
+            showError(error);
+            throw error;
+        }
+    });
 }
+//# sourceMappingURL=main.js.map

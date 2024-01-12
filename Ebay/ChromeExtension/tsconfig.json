@@ -5,14 +5,12 @@
     "removeComments": false,
     "sourceMap": true,
     "target": "ES6",
-    "allowImportingTsExtensions": true,
-    "noEmit": true,
     "types": ["chrome"],
     "outDir": "../../EbayChromeExtension"
   },
   "include": [
+    "main.ts",
     "EbayClient/EbayClient.ts", 
-    "main.ts"
   ],
   "exclude": [
     "node_modules",

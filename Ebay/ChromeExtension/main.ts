@@ -1,4 +1,4 @@
-import {Client} from "EbayClient/EbayClient.ts"
+import {Client} from "./EbayClient/EbayClient.js"
 
 const panelClass = "panel-div";
 const idFieldName = "id";
@@ -336,8 +336,8 @@ function fillPurchaseHistory(panel) {
         })
 }
 
-async function fillProduct(panel, client) {
-    let productField = panel.querySelector('input#' + productFieldName);
+async function fillProduct(panel: HTMLDivElement, client : Client) {
+    let productField = panel.querySelector('select#' + productFieldName);
 
     let products = await client.getAllProducts()
     for (let i = 0; i<=products.length; i++){
@@ -349,7 +349,7 @@ async function fillProduct(panel, client) {
 }
 
 async function fillPanelWithData(client) {
-    let panel = document.querySelector('div.' + panelClass)
+    let panel = <HTMLDivElement>document.querySelector('div.' + panelClass)
 
     
     fillId(panel);
