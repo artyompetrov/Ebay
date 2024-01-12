@@ -100,6 +100,14 @@ function createPanel(bodyElement) {
       float: left;
     }
     
+    .${panelClass} input {
+      width: 200px;
+    }
+    
+    .${panelClass} select {
+      width: 200px;
+    }
+    
     .${panelClass} label:after { content: ": " }
 `
 
@@ -340,17 +348,16 @@ async function fillProduct(panel: HTMLDivElement, client : Client) {
     let productField = panel.querySelector('select#' + productFieldName);
 
     let products = await client.getAllProducts()
-    for (let i = 0; i<=products.length; i++){
+    for (let i = 0; i < products.length; i++){
         let opt = document.createElement('option');
-        opt.value = i.toString();
-        opt.innerHTML = i.toString();
+        opt.value = products[i].id;
+        opt.innerHTML = products[i].name ;
         productField.appendChild(opt);
     }
 }
 
 async function fillPanelWithData(client) {
     let panel = <HTMLDivElement>document.querySelector('div.' + panelClass)
-
     fillId(panel);
     await fillProduct(panel, client);
     fillPrice(panel);
@@ -391,7 +398,6 @@ export async function run() {
 
     try {
         let client = new Client(baseUrl, {fetch: fetchResource});
-
         addHistoryButton();
         addPanel();
         await fillPanelWithData(client);

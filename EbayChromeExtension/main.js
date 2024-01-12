@@ -102,6 +102,14 @@ function createPanel(bodyElement) {
       float: left;
     }
     
+    .${panelClass} input {
+      width: 200px;
+    }
+    
+    .${panelClass} select {
+      width: 200px;
+    }
+    
     .${panelClass} label:after { content: ": " }
 `;
     let styleSheet = document.createElement("style");
@@ -305,10 +313,10 @@ function fillProduct(panel, client) {
     return __awaiter(this, void 0, void 0, function* () {
         let productField = panel.querySelector('select#' + productFieldName);
         let products = yield client.getAllProducts();
-        for (let i = 0; i <= products.length; i++) {
+        for (let i = 0; i < products.length; i++) {
             let opt = document.createElement('option');
-            opt.value = i.toString();
-            opt.innerHTML = i.toString();
+            opt.value = products[i].id;
+            opt.innerHTML = products[i].name;
             productField.appendChild(opt);
         }
     });
