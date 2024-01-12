@@ -26,7 +26,4 @@
     <Target Name="NSwag" BeforeTargets="BeforeBuild">
         <Exec Command="$(NSwagExe_Net60) openapi2csclient /input:../Server/Controllers/Contracts/Ebay.yaml /classname:EbayClient /namespace:Ebay.Client.Clients.Generated /output:Clients/Generated/EbayClient.cs /RequiredPropertiesMustBeDefined:false" />
     </Target>
-    <Target Name="NSwag" BeforeTargets="BeforeBuild">
-        <Exec Command="$(NSwagExe_Net60) openapi2tsclient /input:../Server/Controllers/Contracts/Ebay.yaml /output:./Clients/Generated/EbayClient.ts" />
-    </Target>
 </Project>
