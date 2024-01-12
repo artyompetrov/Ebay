@@ -6,7 +6,7 @@
     "sourceMap": true,
     "target": "ES6",
     "allowImportingTsExtensions": true,
-    "noEmit": false,
+    "noEmit": true,
     "types": ["chrome"],
     "outDir": "../../EbayChromeExtension"
   },
