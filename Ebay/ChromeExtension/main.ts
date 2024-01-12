@@ -351,7 +351,6 @@ async function fillProduct(panel: HTMLDivElement, client : Client) {
 async function fillPanelWithData(client) {
     let panel = <HTMLDivElement>document.querySelector('div.' + panelClass)
 
-    
     fillId(panel);
     await fillProduct(panel, client);
     fillPrice(panel);
