@@ -1,4 +1,4 @@
-import {Client} from "./EbayClient/EbayClient.js"
+import {Client} from "./EbayClient/EbayClient"
 
 const panelClass = "panel-div";
 const idFieldName = "id";
