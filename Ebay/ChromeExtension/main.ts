@@ -1,5 +1,5 @@
 import {Client} from "./EbayClient/EbayClient"
-import { OAuth2Client } from '@badgateway/oauth2-client';
+import {OAuth2Client} from '@badgateway/oauth2-client';
 
 const panelClass = "panel-div";
 const idFieldName = "id";
@@ -18,8 +18,8 @@ const locatedInFieldName = "locatedIn";
 const errorElementId = "errorElement"
 const submitId = "submit"
 const baseUrl = "https://178.208.65.100:17443/api/ebay/v1";
-console.log('something');
 
+// fetch через background script, по другому не работает
 function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response> {
     return new Promise((resolve, reject) => {
         chrome.runtime.sendMessage({input, init}, messageResponse => {
@@ -406,55 +406,45 @@ function enableSubmitButton() {
 }
 
 
+async function authorize() {
+    let oAuth2Client = new OAuth2Client({
+
+        //todo вынести в переменную
+        
+        // The base URI of your OAuth2 server
+        server: 'https://178.208.65.100:17443/',
+
+        // OAuth2 client id
+        clientId: 'Ebay.ServerAPI',
+
+        /* // OAuth2 client secret. Only required for 'client_credentials', 'password'
+         // flows. Don't specify this in insecure contexts, such as a browser using
+         // the authorization_code flow.
+         clientSecret: '...'*/
+        
+        // OAuth2 Metadata discovery endpoint.
+        //
+        // This document is used to determine various server features.
+        // If not specified, we assume it's on /.well-known/oauth2-authorization-server
+        discoveryEndpoint: '/.well-known/openid-configuration',
+
+        fetch: fetchResource
+    });
+
+    const token = await oAuth2Client.clientCredentials();
+    console.log(token.accessToken);
+    console.log("auth finished")
+}
 
 export async function run() {
 
     try {
-        const oAuth2Client = new OAuth2Client({
-
-            // The base URI of your OAuth2 server
-            server: 'https://my-auth-server/',
-
-            // OAuth2 client id
-            clientId: '...',
-
-            // OAuth2 client secret. Only required for 'client_credentials', 'password'
-            // flows. Don't specify this in insecure contexts, such as a browser using
-            // the authorization_code flow.
-            clientSecret: '...',
-
-
-            // The following URIs are all optional. If they are not specified, we will
-            // attempt to discover them using the oauth2 discovery document.
-            // If your server doesn't have support this, you may need to specify these.
-            // you may use relative URIs for any of these.
-
-
-            // Token endpoint. Most flows need this.
-            // If not specified we'll use the information for the discovery document
-            // first, and otherwise default to /token
-            tokenEndpoint: '/token',
-
-            // Authorization endpoint.
-            //
-            // You only need this to generate URLs for authorization_code flows.
-            // If not specified we'll use the information for the discovery document
-            // first, and otherwise default to /authorize
-            authorizationEndpoint: '/authorize',
-
-            // OAuth2 Metadata discovery endpoint.
-            //
-            // This document is used to determine various server features.
-            // If not specified, we assume it's on /.well-known/oauth2-authorization-server
-            discoveryEndpoint: '/.well-known/oauth2-authorization-server',
-
-        });
-
-        const token = await oAuth2Client.clientCredentials();
-        console.log(token.accessToken);
-        let client = new Client(baseUrl, {fetch: fetchResource});
         addHistoryButton();
         addPanel();
+        await authorize();
+
+        let client = new Client(baseUrl, {fetch: fetchResource});
+
         await fillPanelWithData(client);
         //todo разрешать только если вообще нет ошибок
         enableSubmitButton()
