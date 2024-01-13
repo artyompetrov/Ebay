@@ -15,8 +15,8 @@ module.exports = {
         ],
     },
     output: {
-        path: path.resolve(__dirname, "../dist"),
-        filename: "bundle.js"
+        path: path.resolve(__dirname, "../../EbayChromeExtension/build/"),
+        filename: "ebay.js"
     },
     mode: 'production',
     plugins: [ new CleanWebpackPlugin() ]
