@@ -17,7 +17,7 @@ const locatedInFieldName = "locatedIn";
 const errorElementId = "errorElement"
 const submitId = "submit"
 const baseUrl = "https://178.208.65.100:17443/api/ebay/v1";
-
+console.log('something');
 
 function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response> {
     return new Promise((resolve, reject) => {
@@ -418,3 +418,5 @@ export async function run() {
         throw error;
     }
 }
+
+run();
