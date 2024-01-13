@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@badgateway/oauth2-client": "^2.2.4",
     "@types/chrome": "^0.0.256"
   }
 }
