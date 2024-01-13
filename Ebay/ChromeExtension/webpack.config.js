@@ -18,6 +18,7 @@ module.exports = {
         path: path.resolve(__dirname, "../../EbayChromeExtension/build/"),
         filename: "ebay.js"
     },
-    mode: 'production',
+    mode: 'development',
+    devtool: 'inline-source-map',
     plugins: [ new CleanWebpackPlugin() ]
 };
