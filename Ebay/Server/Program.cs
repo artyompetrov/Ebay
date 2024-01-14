@@ -1,3 +1,4 @@
+using Duende.IdentityServer.EntityFramework.Entities;
 using Ebay.Server.Controllers;
 using Ebay.Server.Controllers.Generated;
 using Ebay.Server.Data;
@@ -15,7 +16,8 @@ builder.Services.AddScoped<IEbayController, EbayControllerImplementation>();
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
-builder.Services.AddIdentityServer().AddApiAuthorization<ApplicationUser, ApplicationDbContext>();
+builder.Services.AddIdentityServer()
+    .AddApiAuthorization<ApplicationUser, ApplicationDbContext>();
 
 builder.Services.AddAuthentication().AddIdentityServerJwt();
 

@@ -1,5 +1,5 @@
 import {Client} from "./EbayClient/EbayClient"
-import {OAuth2Client} from '@badgateway/oauth2-client';
+import {OAuth2Client, generateCodeVerifier} from '@badgateway/oauth2-client';
 
 const panelClass = "panel-div";
 const idFieldName = "id";
@@ -431,6 +431,21 @@ async function authorize() {
         fetch: fetchResource
     });
 
+    const codeVerifier = await generateCodeVerifier();
+    document.location = await oAuth2Client.authorizationCode.getAuthorizeUri({
+
+        // URL in the app that the user should get redirected to after authenticating
+        redirectUri: document.location.href,
+
+        // Optional string that can be sent along to the auth server. This value will
+        // be sent along with the redirect back to the app verbatim.
+        //state: 'some-string',
+
+        codeVerifier,
+
+        scope: ['scope1', 'scope2'],
+
+    });
     const token = await oAuth2Client.clientCredentials();
     console.log(token.accessToken);
     console.log("auth finished")
