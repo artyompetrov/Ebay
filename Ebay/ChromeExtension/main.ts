@@ -1,5 +1,6 @@
 import {Client} from "./EbayClient/EbayClient"
-import {OAuth2Client, generateCodeVerifier} from '@badgateway/oauth2-client';
+import {generateCodeVerifier, OAuth2Client} from '@badgateway/oauth2-client';
+import {FetchWrapperCustom} from "./FetchWrapperCustom";
 
 const panelClass = "panel-div";
 const idFieldName = "id";
@@ -17,7 +18,9 @@ const purchaseHistoryFieldName = "purchaseHistory";
 const locatedInFieldName = "locatedIn";
 const errorElementId = "errorElement"
 const submitId = "submit"
-const baseUrl = "https://178.208.65.100:17443/api/ebay/v1";
+const backendUrl = "https://localhost:7095/"
+const baseApiUrl = `${backendUrl}api/ebay/v1`;
+const authRedirectUrl = "https://www.ebay.com/"
 
 // fetch через background script, по другому не работает
 function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response> {
@@ -405,67 +408,74 @@ function enableSubmitButton() {
     (<HTMLButtonElement>document.querySelector('#' + submitId)).disabled = false
 }
 
-
-async function authorize() {
-    let oAuth2Client = new OAuth2Client({
-
-        //todo вынести в переменную
-        
-        // The base URI of your OAuth2 server
-        server: 'https://178.208.65.100:17443/',
-
-        // OAuth2 client id
-        clientId: 'Ebay.ServerAPI',
-
-        /* // OAuth2 client secret. Only required for 'client_credentials', 'password'
-         // flows. Don't specify this in insecure contexts, such as a browser using
-         // the authorization_code flow.
-         clientSecret: '...'*/
-        
-        // OAuth2 Metadata discovery endpoint.
-        //
-        // This document is used to determine various server features.
-        // If not specified, we assume it's on /.well-known/oauth2-authorization-server
-        discoveryEndpoint: '/.well-known/openid-configuration',
-
+function getAuthorizeFetch(oAuth2Client: OAuth2Client) : FetchWrapperCustom {
+    return  new FetchWrapperCustom({
+        client: oAuth2Client,
+        getNewToken: async () => {
+            let currentPage = location.protocol + '//' + location.host + location.pathname
+            let codeVerifier = await generateCodeVerifier();
+            await chrome.storage.local.set({code_verifier: codeVerifier, return_to_page: currentPage})
+            document.location = await oAuth2Client.authorizationCode.getAuthorizeUri({
+                redirectUri: authRedirectUrl,
+                codeVerifier,
+                scope: ['Ebay.ServerAPI']
+            });
+            return null;
+        },
+        getStoredToken: async () => {
+            let token = (await chrome.storage.local.get(["token_store"])).token_store;
+            if (token) return JSON.parse(token);
+            return null;
+        },
         fetch: fetchResource
-    });
-
-    const codeVerifier = await generateCodeVerifier();
-    document.location = await oAuth2Client.authorizationCode.getAuthorizeUri({
-
-        // URL in the app that the user should get redirected to after authenticating
-        redirectUri: document.location.href,
-
-        // Optional string that can be sent along to the auth server. This value will
-        // be sent along with the redirect back to the app verbatim.
-        //state: 'some-string',
-
-        codeVerifier,
-
-        scope: ['scope1', 'scope2'],
-
-    });
-    const token = await oAuth2Client.clientCredentials();
-    console.log(token.accessToken);
-    console.log("auth finished")
+    })
 }
 
-export async function run() {
-
+async function productPage(client: Client) {
+    addHistoryButton();
+    addPanel();
+    await fillPanelWithData(client);
+    //todo разрешать только если вообще нет ошибок
+    enableSubmitButton()
     try {
-        addHistoryButton();
-        addPanel();
-        await authorize();
 
-        let client = new Client(baseUrl, {fetch: fetchResource});
-
-        await fillPanelWithData(client);
-        //todo разрешать только если вообще нет ошибок
-        enableSubmitButton()
     } catch (error) {
         showError(error);
         throw error;
+    }
+}
+
+async function authPage(oAuth2Client: OAuth2Client) {
+    let url = new URL(document.location.href)
+    if (url.searchParams.has("code")) {
+        let codeVerifier = (await chrome.storage.local.get(["code_verifier"])).code_verifier;
+        let oauth2Token = await oAuth2Client.authorizationCode.getTokenFromCodeRedirect(
+            document.location.href,
+            {
+                redirectUri: authRedirectUrl,
+                codeVerifier
+            }
+        );
+
+        await chrome.storage.local.set({token_store: JSON.stringify(oauth2Token)})
+        document.location.href = (await chrome.storage.local.get(["return_to_page"])).return_to_page
+    }
+}
+
+export async function run() {
+    let oAuth2Client = new OAuth2Client({
+        server: backendUrl,
+        clientId: 'Ebay.ChromeExtension',
+        tokenEndpoint: '/connect/token',
+        authorizationEndpoint: '/connect/authorize',
+        fetch: fetchResource
+    });
+
+    if (location.protocol + '//' + location.host + location.pathname === authRedirectUrl) {
+        await authPage(oAuth2Client);
+    } else {
+        let client = new Client(baseApiUrl, getAuthorizeFetch(oAuth2Client));
+        await productPage(client);
     }
 }
 

@@ -24,6 +24,14 @@ builder.Services.AddAuthentication().AddIdentityServerJwt();
 builder.Services.AddControllersWithViews(option => { option.Filters.Add<ErrorFilter>(); })
     .AddNewtonsoftJson();
 builder.Services.AddRazorPages();
+builder.Services.AddLogging(options =>
+{
+    options.AddSimpleConsole(c =>
+    {
+        c.TimestampFormat = "[yyyy-MM-dd HH:mm:ss] ";
+        // c.UseUtcTimestamp = true;
+    });
+});
 
 var app = builder.Build();
 
