@@ -1,8 +1,9 @@
-import {Client} from "./EbayClient/EbayClient"
+import {ApiException, Client, LotInfo} from "./EbayClient/EbayClient"
 import {generateCodeVerifier, OAuth2Client} from '@badgateway/oauth2-client';
 import {FetchWrapperCustom} from "./FetchWrapperCustom";
 
 const panelClass = "panel-div";
+const formId = "product-form-id"
 const idFieldName = "lotId";
 const nameFieldName = "name";
 const productFieldName = "productId";
@@ -40,6 +41,8 @@ function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response>
         });
     });
 }
+
+
 
 function extractPrice(price) {
     let matches = price.match(/(\D+)(\d+(?:[,.]\d+)?)/)
@@ -83,7 +86,9 @@ function addHistoryButton() {
     }
 }
 
-function createPanel(bodyElement) {
+
+
+function createPanel(bodyElement, client: Client) {
     let styles = `
     .${panelClass} {
       text-align: left;
@@ -123,14 +128,17 @@ function createPanel(bodyElement) {
     let div = document.createElement('div');
     div.classList.add(panelClass);
 
+    
+    let form = document.createElement('form')
+    form.id = formId
+    
     // language=HTML
-    div.innerHTML = `
-        <form action="">
+    form.innerHTML = `
             <label for="${idFieldName}">Id</label>
             <input id="${idFieldName}" type="number" name="${idFieldName}" readonly/>
             <br>
             <label for="${productFieldName}">Товар</label>
-            <select name="pets" id="${productFieldName}">
+            <select name="${productFieldName}" id="${productFieldName}">
                 <option value="">Выберите товар</option>
             </select>
             <br>
@@ -169,11 +177,37 @@ function createPanel(bodyElement) {
             <br>
             <div style="color: red;" id="${errorElementId}"></div>
             <br>
-            <input id="${submitId}" type="submit" value="Save" disabled/>
-        </form>`;
+            <input id="${submitId}" type="submit" value="Save" disabled/>`;
 
+    form.addEventListener("submit", async function ( event: SubmitEvent) {
+        await handleSubmit(event, client)
+    }); 
+    
+    div.appendChild(form)
     bodyElement.appendChild(div);
 }
+
+async function handleSubmit(event: SubmitEvent, client: Client) {
+    event.preventDefault();
+    let data = new FormData(<HTMLFormElement>event.target);
+    let object = {};
+    data.forEach(function(value, key){ object[key] = value; });
+    
+    try {
+        await client.upsertLotInfo(LotInfo.fromJS(data), data.get('productId').toString())
+        
+    }
+    catch (error) {
+        if (error instanceof ApiException) {
+            let apiException = <ApiException>error
+            console.log(apiException.status)
+            //todo тут 400
+        }
+        else throw error;
+    }
+}
+
+
 
 function fillSoldItemsResult(fixedPriceRows, result) {
     for (let fixedPriceRow of fixedPriceRows) {
@@ -386,12 +420,12 @@ async function fillPanelWithData(client) {
 }
 
 
-function addPanel() {
+function addPanel(client: Client) {
     let bodyElement = document.querySelector('body');
     if (bodyElement) {
         let existingPanel = bodyElement.querySelector('div.' + panelClass);
         if (!existingPanel) {
-            createPanel(bodyElement);
+            createPanel(bodyElement, client);
         }
     }
 }
@@ -432,13 +466,12 @@ function getAuthorizeFetch(oAuth2Client: OAuth2Client) : FetchWrapperCustom {
 }
 
 async function productPage(client: Client) {
-    addHistoryButton();
-    addPanel();
-    await fillPanelWithData(client);
-    //todo разрешать только если вообще нет ошибок
-    enableSubmitButton()
     try {
-
+        addHistoryButton();
+        addPanel(client);
+        await fillPanelWithData(client);
+        //todo разрешать только если вообще нет ошибок
+        enableSubmitButton()
     } catch (error) {
         showError(error);
         throw error;
@@ -478,5 +511,7 @@ export async function run() {
         await productPage(client);
     }
 }
+
+
 
 run();
