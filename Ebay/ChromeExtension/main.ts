@@ -3,9 +3,9 @@ import {generateCodeVerifier, OAuth2Client} from '@badgateway/oauth2-client';
 import {FetchWrapperCustom} from "./FetchWrapperCustom";
 
 const panelClass = "panel-div";
-const idFieldName = "id";
+const idFieldName = "lotId";
 const nameFieldName = "name";
-const productFieldName = "product";
+const productFieldName = "productId";
 const pcsFieldName = "pcs";
 const priceFieldName = "price";
 const shippingFieldName = "shipping";
@@ -129,7 +129,7 @@ function createPanel(bodyElement) {
             <label for="${idFieldName}">Id</label>
             <input id="${idFieldName}" type="number" name="${idFieldName}" readonly/>
             <br>
-            <label for="${productFieldName}">Товар:</label>
+            <label for="${productFieldName}">Товар</label>
             <select name="pets" id="${productFieldName}">
                 <option value="">Выберите товар</option>
             </select>

@@ -197,6 +197,47 @@ export class Client {
         }
         return Promise.resolve<void>(null as any);
     }
+
+    /**
+     * Обновляет информацию о лоте
+     * @return Ok
+     */
+    upsertLotInfo(lotInfo: LotInfo, id: string): Promise<void> {
+        let url_ = this.baseUrl + "/products/{id}/lots/";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(lotInfo);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpsertLotInfo(_response);
+        });
+    }
+
+    protected processUpsertLotInfo(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
 }
 
 export class ProductWithoutId implements IProductWithoutId {
@@ -281,6 +322,145 @@ export interface IProductWithId {
     id: string;
     name: string;
     searchQuery: string;
+}
+
+export class LotInfo implements ILotInfo {
+    productId!: string;
+    lotId!: number;
+    name!: string;
+    pcs!: number;
+    price!: number;
+    shipping!: number;
+    shippingAdditional!: number;
+    description!: string;
+    condition!: string;
+    conditionDescription!: string;
+    seller!: string;
+    locatedIn!: string;
+    purchaseHistory!: PurchaseInfo[];
+
+    constructor(data?: ILotInfo) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+        if (!data) {
+            this.purchaseHistory = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.productId = _data["productId"];
+            this.lotId = _data["lotId"];
+            this.name = _data["name"];
+            this.pcs = _data["pcs"];
+            this.price = _data["price"];
+            this.shipping = _data["shipping"];
+            this.shippingAdditional = _data["shippingAdditional"];
+            this.description = _data["description"];
+            this.condition = _data["condition"];
+            this.conditionDescription = _data["conditionDescription"];
+            this.seller = _data["seller"];
+            this.locatedIn = _data["locatedIn"];
+            if (Array.isArray(_data["purchaseHistory"])) {
+                this.purchaseHistory = [] as any;
+                for (let item of _data["purchaseHistory"])
+                    this.purchaseHistory!.push(PurchaseInfo.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): LotInfo {
+        data = typeof data === 'object' ? data : {};
+        let result = new LotInfo();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["productId"] = this.productId;
+        data["lotId"] = this.lotId;
+        data["name"] = this.name;
+        data["pcs"] = this.pcs;
+        data["price"] = this.price;
+        data["shipping"] = this.shipping;
+        data["shippingAdditional"] = this.shippingAdditional;
+        data["description"] = this.description;
+        data["condition"] = this.condition;
+        data["conditionDescription"] = this.conditionDescription;
+        data["seller"] = this.seller;
+        data["locatedIn"] = this.locatedIn;
+        if (Array.isArray(this.purchaseHistory)) {
+            data["purchaseHistory"] = [];
+            for (let item of this.purchaseHistory)
+                data["purchaseHistory"].push(item.toJSON());
+        }
+        return data;
+    }
+}
+
+export interface ILotInfo {
+    productId: string;
+    lotId: number;
+    name: string;
+    pcs: number;
+    price: number;
+    shipping: number;
+    shippingAdditional: number;
+    description: string;
+    condition: string;
+    conditionDescription: string;
+    seller: string;
+    locatedIn: string;
+    purchaseHistory: PurchaseInfo[];
+}
+
+export class PurchaseInfo implements IPurchaseInfo {
+    price?: number | undefined;
+    quantity!: number;
+    date!: string;
+
+    constructor(data?: IPurchaseInfo) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.price = _data["price"];
+            this.quantity = _data["quantity"];
+            this.date = _data["date"];
+        }
+    }
+
+    static fromJS(data: any): PurchaseInfo {
+        data = typeof data === 'object' ? data : {};
+        let result = new PurchaseInfo();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["price"] = this.price;
+        data["quantity"] = this.quantity;
+        data["date"] = this.date;
+        return data;
+    }
+}
+
+export interface IPurchaseInfo {
+    price?: number | undefined;
+    quantity: number;
+    date: string;
 }
 
 export abstract class ProblemDetails implements IProblemDetails {
