@@ -1,4 +1,4 @@
-import {ApiException, Client, LotInfo} from "./EbayClient/EbayClient"
+import {ApiException, Client, LotInfo, ValidationProblemDetails} from "./EbayClient/EbayClient"
 import {generateCodeVerifier, OAuth2Client} from '@badgateway/oauth2-client';
 import {FetchWrapperCustom} from "./FetchWrapperCustom";
 
@@ -192,15 +192,19 @@ async function handleSubmit(event: SubmitEvent, client: Client) {
     let data = new FormData(<HTMLFormElement>event.target);
     let object = {};
     data.forEach(function(value, key){ object[key] = value; });
+
+    let  lotinfo = LotInfo.fromJS(object)
     
     try {
-        await client.upsertLotInfo(LotInfo.fromJS(data), data.get('productId').toString())
+        await client.upsertLotInfo(lotinfo, data.get('productId').toString())
         
     }
     catch (error) {
         if (error instanceof ApiException) {
             let apiException = <ApiException>error
             console.log(apiException.status)
+            console.log(apiException.response)
+            console.log(lotinfo.toJSON().toString())
             //todo тут 400
         }
         else throw error;
