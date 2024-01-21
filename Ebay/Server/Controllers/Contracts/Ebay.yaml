@@ -197,6 +197,7 @@ definitions:
         type: boolean
       manualConditionId:
         type: string
+        minLength: 1
       purchaseHistory:
         type: array
         items:

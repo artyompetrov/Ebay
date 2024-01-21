@@ -31,6 +31,8 @@ public static class ModelsExtensions
             ConditionDescription = lotInfo.ConditionDescription,
             Seller = lotInfo.Seller,
             LocatedIn = lotInfo.LocatedIn,
+            ManualCondition = lotInfo.ManualConditionId,
+            IgnoreThatLot = lotInfo.IgnoreThatLot,
             UpdateDate = updateDate
         };
 

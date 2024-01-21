@@ -317,7 +317,7 @@ namespace Ebay.Server.Controllers.Generated
         public bool IgnoreThatLot { get; }
 
         [Newtonsoft.Json.JsonProperty("manualConditionId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [System.ComponentModel.DataAnnotations.Required]
         public string ManualConditionId { get; }
 
         [Newtonsoft.Json.JsonProperty("purchaseHistory", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]

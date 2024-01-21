@@ -92,9 +92,9 @@ public class EbayControllerImplementation : IEbayController
             x => new LotState(ignoreThatLot: x.IgnoreThatLot, lastUpdate: x.UpdateDate.ToString("O"), lotId: x.Id)).ToList();
     }
 
-    public async Task<ICollection<ManualCondition>> GetManualConditionsListAsync(
+    public Task<ICollection<ManualCondition>> GetManualConditionsListAsync(
         CancellationToken cancellationToken) =>
-        new List<ManualCondition>
+        Task.FromResult<ICollection<ManualCondition>>(new List<ManualCondition>
         {
             new(description: "NEW, Matched", id: "newAndMatched"),
             new(description: "NEW, Tested", id: "newAndTested"),
@@ -103,5 +103,5 @@ public class EbayControllerImplementation : IEbayController
             new(description: "USED, Tested", id: "usedAndTested"),
             new(description: "USED", id: "usedAndNotTested"),
             new(description: "NOT WORKING", id: "notWorking")
-        };
+        });
 }

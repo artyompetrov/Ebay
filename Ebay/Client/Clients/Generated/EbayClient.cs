@@ -840,7 +840,7 @@ namespace Ebay.Client.Clients.Generated
         public bool IgnoreThatLot { get; set; }
 
         [Newtonsoft.Json.JsonProperty("manualConditionId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [System.ComponentModel.DataAnnotations.Required]
         public string ManualConditionId { get; set; }
 
         [Newtonsoft.Json.JsonProperty("purchaseHistory", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]

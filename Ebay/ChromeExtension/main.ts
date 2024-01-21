@@ -2,14 +2,14 @@ import {ApiException, Client, LotInfo, PurchaseInfo} from "./EbayClient/EbayClie
 import {generateCodeVerifier, OAuth2Client} from '@badgateway/oauth2-client';
 import {FetchWrapperCustom} from "./FetchWrapperCustom";
 
+const ignoreThatLotFieldName = "ignoreThatLot";
+const manualConditionIdFieldName = "manualConditionId";
+const productFieldName = "productId";
+const pcsFieldName = "pcs";
+
 const panelClass = "panel-div";
 const lastUpdateTime = "lastUpdate"
 const formId = "product-form-id"
-const productFieldName = "productId";
-const pcsFieldName = "pcs";
-const priceFieldName = "price";
-const shippingFieldName = "shipping";
-const shippingAdditionalFieldName = "shippingAdditional";
 const errorElementId = "errorElement"
 const submitId = "submit"
 const backendUrl = "https://localhost:7095/"
@@ -127,25 +127,25 @@ function createPanel(bodyElement, client: Client) {
 
     // language=HTML
     form.innerHTML = `
+        <label for="${ignoreThatLotFieldName}">Забыть про этот лот</label>
+        <input id="${ignoreThatLotFieldName}" type="checkbox" name="${ignoreThatLotFieldName}"/>
+        <br>
+        <br>
         <label for="${lastUpdateTime}">Время актуализации</label>
         <input id="${lastUpdateTime}" type="text" name="${lastUpdateTime}" readonly/>
         <br>
         <label for="${productFieldName}">Товар</label>
         <select name="${productFieldName}" id="${productFieldName}">
-            <option value="">Выберите товар</option>
+            <option>Выберите товар</option>
         </select>
         <br>
         <label for="${pcsFieldName}">PCS</label>
         <input id="${pcsFieldName}" type="number" name="${pcsFieldName}"/>
         <br>
-        <label for="${priceFieldName}">Price US$</label>
-        <input id="${priceFieldName}" type="number" step="0.01" name="${priceFieldName}"/>
-        <br>
-        <label for="${shippingFieldName}">Shipping to Germany</label>
-        <input id="${shippingFieldName}" type="number" step="0.01" name="${shippingFieldName}"/>
-        <br>
-        <label for="${shippingAdditionalFieldName}">Shipping each additional</label>
-        <input id="${shippingAdditionalFieldName}" type="number" step="0.01" name="${shippingAdditionalFieldName}"/>
+        <label for="${manualConditionIdFieldName}">Состояние</label>
+        <select name="${manualConditionIdFieldName}" id="${manualConditionIdFieldName}">
+            <option>Выберите Состояние</option>
+        </select>
         <br>
         <div style="color: red;" id="${errorElementId}"></div>
         <br>
@@ -176,7 +176,6 @@ async function handleSubmit(event: SubmitEvent, client: Client) {
         showError(error)
     }
 }
-
 
 function fillSoldItemsResult(fixedPriceRows: HTMLTableRowElement[], result: PurchaseInfo[]) {
     for (let fixedPriceRow of fixedPriceRows) {
@@ -255,9 +254,8 @@ function fillId() {
     lotInfo.lotId = parseInt(location.pathname.match(/\/itm\/([0-9]+)/)[1]);
 }
 
-function fillPrice(panel) {
-    let priceField = panel.querySelector('input#' + priceFieldName)
-    priceField.value = extractPrice((<HTMLElement>document.querySelector('div.x-price-primary span')).innerText)
+function fillPrice() {
+    lotInfo.price = extractPrice((<HTMLElement>document.querySelector('div.x-price-primary span')).innerText)
 }
 
 function fillName() {
@@ -281,9 +279,7 @@ function fillConditionDescription() {
     }
 }
 
-function fillShipping(panel) {
-    let shippingField = panel.querySelector('input#' + shippingFieldName)
-    let shippingAdditionalField = panel.querySelector('input#' + shippingAdditionalFieldName)
+function fillShipping() {
     let shippingRatesAvailable = document.querySelector('div.ux-layout-section__textual-display--askSeller') === null
     if (shippingRatesAvailable) {
         let deliveryColumnsHeader = [...document.querySelector('div.d-shipping-maxview thead')
@@ -306,18 +302,18 @@ function fillShipping(panel) {
         let shippingValue = shippingMaxviewValues['Shipping and handling']
 
         if (shippingValue !== 'Free shipping') {
-            shippingField.value = extractPrice(shippingValue)
+            lotInfo.shipping = extractPrice(shippingValue)
 
             if (shippingMaxviewValues.hasOwnProperty('Each additional item')) {
-                shippingAdditionalField.value = extractPrice(shippingMaxviewValues['Each additional item'])
+                lotInfo.shippingAdditional = extractPrice(shippingMaxviewValues['Each additional item'])
 
             } else {
-                shippingAdditionalField.value = 0;
+                lotInfo.shippingAdditional = 0;
             }
 
         } else {
-            shippingField.value = 0;
-            shippingAdditionalField.value = 0;
+            lotInfo.shipping = 0;
+            lotInfo.shippingAdditional = 0;
         }
     }
 }
@@ -393,13 +389,26 @@ async function fillLastUpdateDate(panel: HTMLDivElement, client: Client) {
     }
 }
 
-async function fillPanelWithData(client: Client) {
+async function fillManualCondition(panel: HTMLDivElement, client: Client) {
+    let manualConditionField = panel.querySelector('select#' + manualConditionIdFieldName);
+    
+    let manualConditions = await client.getManualConditionsList()
+    for (let i = 0; i < manualConditions.length; i++) {
+        let opt = document.createElement('option');
+        opt.value = manualConditions[i].id;
+        opt.innerHTML = manualConditions[i].description;
+        manualConditionField.appendChild(opt);
+    }
+}
+
+async function getDataFromPage(client: Client) {
     let panel = <HTMLDivElement>document.querySelector('div.' + panelClass)
     fillId();
     await fillLastUpdateDate(panel, client)
     await fillProduct(panel, client);
-    fillPrice(panel);
-    fillShipping(panel);
+    await fillManualCondition(panel, client);
+    fillPrice();
+    fillShipping();
     fillName();
     fillSeller();
     fillCondition();
@@ -445,9 +454,8 @@ function getAuthorizeFetch(oAuth2Client: OAuth2Client): FetchWrapperCustom {
     return new FetchWrapperCustom({
         client: oAuth2Client,
         getNewToken: async () => {
-            let currentPage = location.protocol + '//' + location.host + location.pathname
             let codeVerifier = await generateCodeVerifier();
-            await chrome.storage.local.set({code_verifier: codeVerifier, return_to_page: currentPage})
+            await chrome.storage.local.set({code_verifier: codeVerifier})
             document.location = await oAuth2Client.authorizationCode.getAuthorizeUri({
                 redirectUri: authRedirectUrl,
                 codeVerifier,
@@ -468,7 +476,7 @@ async function productPage(client: Client) {
     try {
         addHistoryButton();
         addPanel(client);
-        await fillPanelWithData(client);
+        await getDataFromPage(client);
         //todo разрешать только если вообще нет ошибок
         enableSubmitButton()
     } catch (error) {
@@ -555,6 +563,9 @@ export async function run() {
     if (currentPage === authRedirectUrl) {
         await authPage(oAuth2Client);
     } else {
+        let currentPage = location.protocol + '//' + location.host + location.pathname
+        await chrome.storage.local.set({return_to_page: currentPage})
+        
         let client = new Client(baseApiUrl, getAuthorizeFetch(oAuth2Client));
         if (currentPage.startsWith("https://www.ebay.com/itm/")) {
             await productPage(client);
