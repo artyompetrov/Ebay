@@ -139,7 +139,7 @@ function createPanel(bodyElement, client: Client) {
         <br>
         <label for="${productFieldName}">Товар</label>
         <select name="${productFieldName}" id="${productFieldName}">
-            <option>Выберите товар</option>
+            <option value="">Выберите товар</option>
         </select>
         <br>
         <label for="${pcsFieldName}">PCS</label>
@@ -147,7 +147,7 @@ function createPanel(bodyElement, client: Client) {
         <br>
         <label for="${manualConditionIdFieldName}">Состояние</label>
         <select name="${manualConditionIdFieldName}" id="${manualConditionIdFieldName}">
-            <option>Выберите Состояние</option>
+            <option value="">Выберите Состояние</option>
         </select>
         <br>
         <div style="color: red;" id="${errorElementId}"></div>
