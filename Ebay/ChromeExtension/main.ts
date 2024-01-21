@@ -319,7 +319,7 @@ function fillShipping(panel) {
 }
 
 function fillLocatedIn() {
-    lotInfo.locatedIn = (<HTMLElement>document.querySelector('div.ux-labels-values--legalShipping div.col-9')).innerText.split("Located in: ")[1]
+    lotInfo.locatedIn = (<HTMLElement>document.querySelector('div.d-shipping-minview')).innerText.match(/Located\sin:\s(.+)/)[1]
 }
 
 function fillDescription() {
