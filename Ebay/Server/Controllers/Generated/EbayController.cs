@@ -199,7 +199,7 @@ namespace Ebay.Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public LotInfo(string @condition, string @conditionDescription, string @description, string @locatedIn, long @lotId, string @name, int @pcs, double @price, System.Collections.Generic.List<PurchaseInfo> @purchaseHistory, string @seller, double @shipping, double @shippingAdditional)
+        public LotInfo(string @condition, string? @conditionDescription, string @description, string @locatedIn, long @lotId, string @name, int @pcs, double @price, System.Collections.Generic.List<PurchaseInfo> @purchaseHistory, string @seller, double @shipping, double @shippingAdditional)
 
         {
 
@@ -258,9 +258,8 @@ namespace Ebay.Server.Controllers.Generated
         [System.ComponentModel.DataAnnotations.Required]
         public string Condition { get; }
 
-        [Newtonsoft.Json.JsonProperty("conditionDescription", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string ConditionDescription { get; }
+        [Newtonsoft.Json.JsonProperty("conditionDescription", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string? ConditionDescription { get; }
 
         [Newtonsoft.Json.JsonProperty("seller", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]

@@ -173,7 +173,6 @@ definitions:
       - shippingAdditional
       - description
       - condition
-      - conditionDescription
       - seller
       - locatedIn
       - purchaseHistory

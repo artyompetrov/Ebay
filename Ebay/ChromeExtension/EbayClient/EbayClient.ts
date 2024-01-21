@@ -333,7 +333,7 @@ export class LotInfo implements ILotInfo {
     shippingAdditional!: number;
     description!: string;
     condition!: string;
-    conditionDescription!: string;
+    conditionDescription?: string | undefined;
     seller!: string;
     locatedIn!: string;
     purchaseHistory!: PurchaseInfo[];
@@ -409,7 +409,7 @@ export interface ILotInfo {
     shippingAdditional: number;
     description: string;
     condition: string;
-    conditionDescription: string;
+    conditionDescription?: string | undefined;
     seller: string;
     locatedIn: string;
     purchaseHistory: PurchaseInfo[];

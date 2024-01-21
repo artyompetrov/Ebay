@@ -1,27 +1,21 @@
-import {ApiException, Client, LotInfo, ValidationProblemDetails} from "./EbayClient/EbayClient"
+import {ApiException, Client, LotInfo, PurchaseInfo, ValidationProblemDetails} from "./EbayClient/EbayClient"
 import {generateCodeVerifier, OAuth2Client} from '@badgateway/oauth2-client';
 import {FetchWrapperCustom} from "./FetchWrapperCustom";
 
 const panelClass = "panel-div";
 const formId = "product-form-id"
-const idFieldName = "lotId";
-const nameFieldName = "name";
 const productFieldName = "productId";
 const pcsFieldName = "pcs";
 const priceFieldName = "price";
 const shippingFieldName = "shipping";
 const shippingAdditionalFieldName = "shippingAdditional";
-const descriptionFieldName = "description";
-const conditionFieldName = "condition";
-const conditionDescriptionFieldName = "conditionDescription";
-const sellerFieldName = "seller";
-const purchaseHistoryFieldName = "purchaseHistory";
-const locatedInFieldName = "locatedIn";
 const errorElementId = "errorElement"
 const submitId = "submit"
 const backendUrl = "https://localhost:7095/"
 const baseApiUrl = `${backendUrl}api/ebay/v1`;
 const authRedirectUrl = "https://www.ebay.com/"
+
+const lotInfo = new LotInfo();
 
 // fetch через background script, по другому не работает
 function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response> {
@@ -41,7 +35,6 @@ function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response>
         });
     });
 }
-
 
 
 function extractPrice(price) {
@@ -87,7 +80,6 @@ function addHistoryButton() {
 }
 
 
-
 function createPanel(bodyElement, client: Client) {
     let styles = `
     .${panelClass} {
@@ -128,61 +120,37 @@ function createPanel(bodyElement, client: Client) {
     let div = document.createElement('div');
     div.classList.add(panelClass);
 
-    
+
     let form = document.createElement('form')
     form.id = formId
-    
+
     // language=HTML
     form.innerHTML = `
-            <label for="${idFieldName}">Id</label>
-            <input id="${idFieldName}" type="number" name="${idFieldName}" readonly/>
-            <br>
-            <label for="${productFieldName}">Товар</label>
-            <select name="${productFieldName}" id="${productFieldName}">
-                <option value="">Выберите товар</option>
-            </select>
-            <br>
-            <label for="${nameFieldName}">Name</label>
-            <input id="${nameFieldName}" type="text" name="${nameFieldName}" readonly/>
-            <br>
-            <label for="${pcsFieldName}">PCS</label>
-            <input id="${pcsFieldName}" type="number" name="${pcsFieldName}"/>
-            <br>
-            <label for="${priceFieldName}">Price US$</label>
-            <input id="${priceFieldName}" type="number" step="0.01" name="${priceFieldName}"/>
-            <br>
-            <label for="${shippingFieldName}">Shipping to Germany</label>
-            <input id="${shippingFieldName}" type="number" step="0.01" name="${shippingFieldName}"/>
-            <br>
-            <label for="${shippingAdditionalFieldName}">Shipping each additional</label>
-            <input id="${shippingAdditionalFieldName}" type="number" step="0.01" name="${shippingAdditionalFieldName}"/>
-            <br>
-            <label for="${conditionFieldName}">Condition</label>
-            <input id="${conditionFieldName}" type="text" name="${conditionFieldName}"/>
-            <br>
-            <label for="${conditionDescriptionFieldName}">Condition description</label>
-            <input id="${conditionDescriptionFieldName}" type="text" name="${conditionDescriptionFieldName}"/>
-            <br>
-            <label for="${descriptionFieldName}">Description</label>
-            <input id="${descriptionFieldName}" type="text" name="${descriptionFieldName}" readonly/>
-            <br>
-            <label for="${purchaseHistoryFieldName}">PurchaseHistory</label>
-            <input id="${purchaseHistoryFieldName}" type="text" name="${purchaseHistoryFieldName}" readonly/>
-            <br>
-            <label for="${sellerFieldName}">Seller</label>
-            <input id="${sellerFieldName}" type="text" name="${sellerFieldName}" readonly/>
-            <br>
-            <label for="${locatedInFieldName}">Located in</label>
-            <input id="${locatedInFieldName}" type="text" name="${locatedInFieldName}" readonly/>
-            <br>
-            <div style="color: red;" id="${errorElementId}"></div>
-            <br>
-            <input id="${submitId}" type="submit" value="Save" disabled/>`;
+        <label for="${productFieldName}">Товар</label>
+        <select name="${productFieldName}" id="${productFieldName}">
+            <option value="">Выберите товар</option>
+        </select>
+        <br>
+        <label for="${pcsFieldName}">PCS</label>
+        <input id="${pcsFieldName}" type="number" name="${pcsFieldName}"/>
+        <br>
+        <label for="${priceFieldName}">Price US$</label>
+        <input id="${priceFieldName}" type="number" step="0.01" name="${priceFieldName}"/>
+        <br>
+        <label for="${shippingFieldName}">Shipping to Germany</label>
+        <input id="${shippingFieldName}" type="number" step="0.01" name="${shippingFieldName}"/>
+        <br>
+        <label for="${shippingAdditionalFieldName}">Shipping each additional</label>
+        <input id="${shippingAdditionalFieldName}" type="number" step="0.01" name="${shippingAdditionalFieldName}"/>
+        <br>
+        <div style="color: red;" id="${errorElementId}"></div>
+        <br>
+        <input id="${submitId}" type="submit" value="Save" disabled/>`;
 
-    form.addEventListener("submit", async function ( event: SubmitEvent) {
+    form.addEventListener("submit", async function (event: SubmitEvent) {
         await handleSubmit(event, client)
-    }); 
-    
+    });
+
     div.appendChild(form)
     bodyElement.appendChild(div);
 }
@@ -190,28 +158,27 @@ function createPanel(bodyElement, client: Client) {
 async function handleSubmit(event: SubmitEvent, client: Client) {
     event.preventDefault();
     let data = new FormData(<HTMLFormElement>event.target);
-    let object = {};
-    data.forEach(function(value, key){ object[key] = value; });
 
-    let  lotinfo = LotInfo.fromJS(object)
+    data.forEach(function (value, key) {
+        lotInfo[key] = value;
+    });
+
+    console.log(JSON.stringify(lotInfo))
     
     try {
-        await client.upsertLotInfo(lotinfo, data.get('productId').toString())
-    }
-    catch (error) {
+        await client.upsertLotInfo(lotInfo, data.get('productId').toString())
+    } catch (error) {
         if (error instanceof ApiException) {
             let apiException = <ApiException>error
             console.log(apiException.status)
             console.log(apiException.response)
             //todo тут 400
-        }
-        else throw error;
+        } else throw error;
     }
 }
 
 
-
-function fillSoldItemsResult(fixedPriceRows, result) {
+function fillSoldItemsResult(fixedPriceRows: HTMLTableRowElement[], result: PurchaseInfo[]) {
     for (let fixedPriceRow of fixedPriceRows) {
         let columns = [...fixedPriceRow.querySelectorAll('td')]
             .map(function (item) {
@@ -224,16 +191,19 @@ function fillSoldItemsResult(fixedPriceRows, result) {
             continue
         }
 
-        let resultItem = {}
-
         if (price !== "Sold as a special offer" && price !== "Counter-offered" && price !== "Accepted") {
-            resultItem['price'] = extractPrice(price)
+            
+            result.push(new PurchaseInfo({
+                date: parseDate(columns[3]),
+                quantity: parseInt(columns[2]),
+                price: extractPrice(price)
+            }))
+        } else {
+            result.push(new PurchaseInfo({
+                date: parseDate(columns[3]),
+                quantity: parseInt(columns[2])
+            }))
         }
-
-        resultItem['quantity'] = columns[2]
-        resultItem['date'] = parseDate(columns[3])
-
-        result.push(resultItem)
     }
 }
 
@@ -262,10 +232,10 @@ function parseDate(dateString) {
     return date.toISOString()
 }
 
-function parseSoldItemsPage(text) {
+function parseSoldItemsPage(text): PurchaseInfo[] {
     let doc = new DOMParser().parseFromString(text, "text/html")
 
-    let result = []
+    let result = new Array<PurchaseInfo>();
     let fixedPriceBlock = doc.querySelector('div.fixed-price tbody')
     if (fixedPriceBlock !== null) {
         let fixedPriceRows = [...fixedPriceBlock.querySelectorAll('tr')]
@@ -278,12 +248,11 @@ function parseSoldItemsPage(text) {
         fillSoldItemsResult(offerRows, result);
     }
 
-    return JSON.stringify(result);
+    return result;
 }
 
-function fillId(panel) {
-    let idField = panel.querySelector('input#' + idFieldName)
-    idField.value = location.pathname.match(/\/itm\/([0-9]+)/)[1];
+function fillId() {
+    lotInfo.lotId = parseInt(location.pathname.match(/\/itm\/([0-9]+)/)[1]);
 }
 
 function fillPrice(panel) {
@@ -291,26 +260,22 @@ function fillPrice(panel) {
     priceField.value = extractPrice((<HTMLElement>document.querySelector('div.x-price-primary span')).innerText)
 }
 
-function fillName(panel) {
-    let nameField = panel.querySelector('input#' + nameFieldName)
-    nameField.value = (<HTMLElement>document.querySelector('.vim h1')).innerText
+function fillName() {
+    lotInfo.name = (<HTMLElement>document.querySelector('.vim h1')).innerText
 }
 
-function fillSeller(panel) {
-    let sellerField = panel.querySelector('input#' + sellerFieldName)
-    sellerField.value = (<HTMLElement>document.querySelector('div.x-sellercard-atf__info__about-seller a')).innerText.toLowerCase()
+function fillSeller() {
+    lotInfo.seller = (<HTMLElement>document.querySelector('div.x-sellercard-atf__info__about-seller a')).innerText.toLowerCase()
 }
 
-function fillCondition(panel) {
-    let conditionField = panel.querySelector('input#' + conditionFieldName)
-    conditionField.value = (<HTMLElement>document.querySelector('div.x-item-condition-text span.ux-textspans')).innerText
+function fillCondition() {
+    lotInfo.condition = (<HTMLElement>document.querySelector('div.x-item-condition-text span.ux-textspans')).innerText
 }
 
-function fillConditionDescription(panel) {
+function fillConditionDescription() {
     let conditionDescriptionElement = document.querySelector('div.x-item-condition-desc')
     if (conditionDescriptionElement != null) {
-        let conditionDescriptionField = panel.querySelector('input#' + conditionDescriptionFieldName)
-        conditionDescriptionField.value = (<HTMLElement>conditionDescriptionElement).innerText
+        lotInfo.conditionDescription = (<HTMLElement>conditionDescriptionElement).innerText
             .replace('“', '')
             .replace('”', '')
     }
@@ -357,17 +322,16 @@ function fillShipping(panel) {
     }
 }
 
-function fillLocatedIn(panel) {
-    let locatedInField = panel.querySelector('input#' + locatedInFieldName)
-    locatedInField.value = (<HTMLElement>document.querySelector('div.ux-labels-values--legalShipping div.col-9')).innerText.split("Located in: ")[1]
+function fillLocatedIn() {
+    lotInfo.locatedIn = (<HTMLElement>document.querySelector('div.ux-labels-values--legalShipping div.col-9')).innerText.split("Located in: ")[1]
 }
 
-function fillDescription(panel) {
+function fillDescription() {
     let descriptionUrl = (<HTMLIFrameElement>document.querySelector('#desc_ifr')).src
     fetchResource(descriptionUrl, {method: 'GET', credentials: 'include'})
         .then((response) => {
             response.text().then((text) => {
-                panel.querySelector('input#' + descriptionFieldName).value = text
+                lotInfo.description = text
             }).catch((err) => {
                 showError(err);
             })
@@ -377,14 +341,13 @@ function fillDescription(panel) {
         })
 }
 
-function fillPurchaseHistory(panel) {
+function fillPurchaseHistory() {
     let itemId = location.pathname.match(/\/itm\/([0-9]+)/)[1];
     let purchaseHistoryUrl = `https://${location.hostname}/bin/purchaseHistory?item=${itemId}`;
     fetchResource(purchaseHistoryUrl, {method: 'GET', credentials: 'include'})
         .then((response) => {
             (<Response>response).text().then((text) => {
-                panel.querySelector('input#' + purchaseHistoryFieldName).value = parseSoldItemsPage(text)
-
+                lotInfo.purchaseHistory = parseSoldItemsPage(text)
             }).catch((err) => {
                 showError(err);
             })
@@ -396,15 +359,15 @@ function fillPurchaseHistory(panel) {
 
 async function fillProduct(panel: HTMLDivElement, client: Client) {
     let productField = panel.querySelector('select#' + productFieldName);
-    let searchQuery  = new URLSearchParams(document.referrer)?.get('_nkw')?.trim()?.toLowerCase();
+    let searchQuery = new URLSearchParams(document.referrer)?.get('_nkw')?.trim()?.toLowerCase();
 
     let products = await client.getAllProducts()
     for (let i = 0; i < products.length; i++) {
         let opt = document.createElement('option');
         opt.value = products[i].id;
         opt.innerHTML = products[i].name;
-        
-        if (searchQuery !== undefined && searchQuery === products[i].searchQuery.trim().toLowerCase() ) {
+
+        if (searchQuery !== undefined && searchQuery === products[i].searchQuery.trim().toLowerCase()) {
             opt.selected = true
         }
         productField.appendChild(opt);
@@ -413,17 +376,17 @@ async function fillProduct(panel: HTMLDivElement, client: Client) {
 
 async function fillPanelWithData(client) {
     let panel = <HTMLDivElement>document.querySelector('div.' + panelClass)
-    fillId(panel);
+    fillId();
     await fillProduct(panel, client);
     fillPrice(panel);
-    fillName(panel);
-    fillSeller(panel);
-    fillCondition(panel);
-    fillConditionDescription(panel);
     fillShipping(panel);
-    fillLocatedIn(panel);
-    fillDescription(panel);
-    fillPurchaseHistory(panel);
+    fillName();
+    fillSeller();
+    fillCondition();
+    fillConditionDescription();
+    fillLocatedIn();
+    fillDescription();
+    fillPurchaseHistory();
 }
 
 
@@ -449,8 +412,8 @@ function enableSubmitButton() {
     (<HTMLButtonElement>document.querySelector('#' + submitId)).disabled = false
 }
 
-function getAuthorizeFetch(oAuth2Client: OAuth2Client) : FetchWrapperCustom {
-    return  new FetchWrapperCustom({
+function getAuthorizeFetch(oAuth2Client: OAuth2Client): FetchWrapperCustom {
+    return new FetchWrapperCustom({
         client: oAuth2Client,
         getNewToken: async () => {
             let currentPage = location.protocol + '//' + location.host + location.pathname
@@ -518,7 +481,6 @@ export async function run() {
         await productPage(client);
     }
 }
-
 
 
 run();

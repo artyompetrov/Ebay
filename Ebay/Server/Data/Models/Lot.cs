@@ -25,7 +25,7 @@ public class Lot
 
     public string Condition { get; set; } = null!;
 
-    public string ConditionDescription { get; set; } = null!;
+    public string? ConditionDescription { get; set; }
 
     public string Seller { get; set; } = null!;
 
