@@ -396,12 +396,17 @@ function fillPurchaseHistory(panel) {
 
 async function fillProduct(panel: HTMLDivElement, client: Client) {
     let productField = panel.querySelector('select#' + productFieldName);
+    let searchQuery  = new URLSearchParams(document.referrer)?.get('_nkw')?.trim()?.toLowerCase();
 
     let products = await client.getAllProducts()
     for (let i = 0; i < products.length; i++) {
         let opt = document.createElement('option');
         opt.value = products[i].id;
         opt.innerHTML = products[i].name;
+        
+        if (searchQuery !== undefined && searchQuery === products[i].searchQuery.trim().toLowerCase() ) {
+            opt.selected = true
+        }
         productField.appendChild(opt);
     }
 }
