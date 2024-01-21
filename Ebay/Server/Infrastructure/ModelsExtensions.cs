@@ -38,7 +38,7 @@ public static class ModelsExtensions
         new()
         {
             LotId = lotId,
-            Date = DateTime.Parse(purchaseInfo.Date),
+            Date = DateTime.Parse(purchaseInfo.Date).ToUniversalTime(),
             Price = purchaseInfo.Price,
             Quantity = purchaseInfo.Quantity
         };

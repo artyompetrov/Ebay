@@ -156,24 +156,20 @@ function createPanel(bodyElement, client: Client) {
 }
 
 async function handleSubmit(event: SubmitEvent, client: Client) {
-    event.preventDefault();
-    let data = new FormData(<HTMLFormElement>event.target);
-
-    data.forEach(function (value, key) {
-        lotInfo[key] = value;
-    });
-
-    console.log(JSON.stringify(lotInfo))
-    
     try {
+        event.preventDefault();
+        let data = new FormData(<HTMLFormElement>event.target);
+
+        data.forEach(function (value, key) {
+            lotInfo[key] = value;
+        });
+
+        console.log(JSON.stringify(lotInfo))
+
+
         await client.upsertLotInfo(lotInfo, data.get('productId').toString())
     } catch (error) {
-        if (error instanceof ApiException) {
-            let apiException = <ApiException>error
-            console.log(apiException.status)
-            console.log(apiException.response)
-            //todo тут 400
-        } else throw error;
+        showError(error)
     }
 }
 
@@ -192,7 +188,7 @@ function fillSoldItemsResult(fixedPriceRows: HTMLTableRowElement[], result: Purc
         }
 
         if (price !== "Sold as a special offer" && price !== "Counter-offered" && price !== "Accepted") {
-            
+
             result.push(new PurchaseInfo({
                 date: parseDate(columns[3]),
                 quantity: parseInt(columns[2]),
@@ -400,11 +396,21 @@ function addPanel(client: Client) {
     }
 }
 
-function showError(error) {
-    let errorDiv = document.querySelector('div.' + panelClass + ' #' + errorElementId)
 
+function showError(error: Error) {
+    let errorDiv = document.querySelector('div.' + panelClass + ' #' + errorElementId)
     let span = document.createElement('span');
-    span.innerHTML = error.stack;
+
+    if (error instanceof ApiException) {
+        let apiException = <ApiException>error
+        console.log(apiException.status + " code received")
+        console.log(apiException.response)
+        span.innerHTML = apiException.status + " " + apiException.response;
+    } else {
+        console.log(error.stack)
+        span.innerHTML = error.stack;
+    }
+
     errorDiv.appendChild(span)
 }
 
