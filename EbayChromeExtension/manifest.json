@@ -37,7 +37,20 @@
         "https://*.ebay.at/itm/*/*",
         "https://*.ebay.ch/itm/*",
         "https://*.ebay.ch/itm/*/*",
-        "https://www.ebay.com/?code=*"
+        "https://www.ebay.com/?code=*",
+        "https://*.ebay.com/sch/*",
+        "https://*.ebay.co.uk/sch/*",
+        "https://*.ebay.com.au/sch/*",
+        "https://*.ebay.ca/sch/*",
+        "https://*.ebay.de/sch/*",
+        "https://*.ebay.fr/sch/*",
+        "https://*.ebay.it/sch/*",
+        "https://*.ebay.es/sch/*",
+        "https://*.ebay.nl/sch/*",
+        "https://*.ebay.be/sch/*",
+        "https://*.ebay.ie/sch/*",
+        "https://*.ebay.at/sch/*",
+        "https://*.ebay.ch/sch/*"
       ]
     }
   ],

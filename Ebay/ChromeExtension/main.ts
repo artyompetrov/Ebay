@@ -1,8 +1,9 @@
-import {ApiException, Client, LotInfo, PurchaseInfo, ValidationProblemDetails} from "./EbayClient/EbayClient"
+import {ApiException, Client, LotInfo, PurchaseInfo} from "./EbayClient/EbayClient"
 import {generateCodeVerifier, OAuth2Client} from '@badgateway/oauth2-client';
 import {FetchWrapperCustom} from "./FetchWrapperCustom";
 
 const panelClass = "panel-div";
+const lastUpdateTime = "lastUpdate"
 const formId = "product-form-id"
 const productFieldName = "productId";
 const pcsFieldName = "pcs";
@@ -14,6 +15,7 @@ const submitId = "submit"
 const backendUrl = "https://localhost:7095/"
 const baseApiUrl = `${backendUrl}api/ebay/v1`;
 const authRedirectUrl = "https://www.ebay.com/"
+const rescanTimeDays = 60
 
 const lotInfo = new LotInfo();
 
@@ -79,7 +81,6 @@ function addHistoryButton() {
     }
 }
 
-
 function createPanel(bodyElement, client: Client) {
     let styles = `
     .${panelClass} {
@@ -126,6 +127,9 @@ function createPanel(bodyElement, client: Client) {
 
     // language=HTML
     form.innerHTML = `
+        <label for="${lastUpdateTime}">Время актуализации</label>
+        <input id="${lastUpdateTime}" type="text" name="${lastUpdateTime}" readonly/>
+        <br>
         <label for="${productFieldName}">Товар</label>
         <select name="${productFieldName}" id="${productFieldName}">
             <option value="">Выберите товар</option>
@@ -370,9 +374,29 @@ async function fillProduct(panel: HTMLDivElement, client: Client) {
     }
 }
 
-async function fillPanelWithData(client) {
+async function fillLastUpdateDate(panel: HTMLDivElement, client: Client) {
+    let currentLotInfo = await client.getLotStates([lotInfo.lotId])
+    let lastUpdateInput = <HTMLInputElement>panel.querySelector('input#' + lastUpdateTime);
+    if (currentLotInfo.length > 0) {
+        let lastUpdate = currentLotInfo[0].lastUpdate
+
+        let diffInDays = Math.ceil(Math.abs(new Date().getTime() - new Date(lastUpdate).getTime()) / (1000 * 60 * 60 * 24));
+        console.log("diff in days " + diffInDays)
+        if (diffInDays > rescanTimeDays) {
+            lastUpdateInput.style.cssText = `background-color: #df9191;`
+        } else {
+            lastUpdateInput.style.cssText = `background-color: none;`
+        }
+        lastUpdateInput.value = lastUpdate
+    } else {
+        lastUpdateInput.style.cssText = `background-color: #df9191;`
+    }
+}
+
+async function fillPanelWithData(client: Client) {
     let panel = <HTMLDivElement>document.querySelector('div.' + panelClass)
     fillId();
+    await fillLastUpdateDate(panel, client)
     await fillProduct(panel, client);
     fillPrice(panel);
     fillShipping(panel);
@@ -395,7 +419,6 @@ function addPanel(client: Client) {
         }
     }
 }
-
 
 function showError(error: Error) {
     let errorDiv = document.querySelector('div.' + panelClass + ' #' + errorElementId)
@@ -471,6 +494,53 @@ async function authPage(oAuth2Client: OAuth2Client) {
     }
 }
 
+async function searchPage(client: Client) {
+    //только на странице проданые лоты
+    if (new URLSearchParams(document.location.href)?.get('LH_Sold')?.trim() !== "1") return;
+
+    let links = [...document.querySelector('ul.srp-results').querySelectorAll('li.s-item')]
+        .map(function (x: HTMLElement) {
+            let link = <HTMLAnchorElement>x.querySelector('a.s-item__link')
+            let soldDate = new Date((<HTMLElement>x.querySelector('span.POSITIVE')).innerText.replace("Sold ", ""))
+            return new LotLink(parseInt(link.href.match(/https:\/\/[^\/]+\/itm\/(\d+)/)[1]), link, soldDate);
+        })
+
+    let getLotStatesAnswer = await client.getLotStates(links.map(function (x) {
+        return x.id
+    }))
+
+    let knownLots = new Map(getLotStatesAnswer.map(p => [p.lotId, p]));
+
+    links.forEach(function (x) {
+        if (knownLots.has(x.id)) {
+            let lotState = knownLots.get(x.id)
+            let diffInDays = Math.ceil((x.soldDate.getTime() - new Date(lotState.lastUpdate).getTime()) / (1000 * 60 * 60 * 24));
+            console.log(diffInDays)
+            if (diffInDays > 0) {
+                x.link.style.cssText = `background-color: #e0e07f;`
+            }
+            else {
+                x.link.style.cssText = `background-color: none;`
+            }
+            
+        } else {
+            x.link.style.cssText = `background-color: lightpink;`
+        }
+    })
+}
+
+class LotLink {
+    constructor(id: number, link: HTMLAnchorElement, soldDate: Date) {
+        this.id = id
+        this.link = link
+        this.soldDate = soldDate
+    }
+
+    id: number;
+    link: HTMLAnchorElement;
+    soldDate: Date
+}
+
 export async function run() {
     let oAuth2Client = new OAuth2Client({
         server: backendUrl,
@@ -480,11 +550,17 @@ export async function run() {
         fetch: fetchResource
     });
 
-    if (location.protocol + '//' + location.host + location.pathname === authRedirectUrl) {
+    let currentPage = location.protocol + '//' + location.host + location.pathname
+
+    if (currentPage === authRedirectUrl) {
         await authPage(oAuth2Client);
     } else {
         let client = new Client(baseApiUrl, getAuthorizeFetch(oAuth2Client));
-        await productPage(client);
+        if (currentPage.startsWith("https://www.ebay.com/itm/")) {
+            await productPage(client);
+        } else if (currentPage.startsWith("https://www.ebay.com/sch/")) {
+            await searchPage(client);
+        }
     }
 }
 

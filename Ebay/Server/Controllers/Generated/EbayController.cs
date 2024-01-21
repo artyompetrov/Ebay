@@ -69,6 +69,15 @@ namespace Ebay.Server.Controllers.Generated
 
         System.Threading.Tasks.Task UpsertLotInfoAsync(LotInfo lotInfo, System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
+        /// <summary>
+        /// Получает информацию о учтенных лотах
+        /// </summary>
+
+
+        /// <returns>Ok</returns>
+
+        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<LotState>> GetLotStatesAsync(System.Collections.Generic.IEnumerable<long> lotIds, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
@@ -136,6 +145,17 @@ namespace Ebay.Server.Controllers.Generated
         {
 
             return _implementation.UpsertLotInfoAsync(lotInfo, productId, cancellationToken);
+        }
+
+        /// <summary>
+        /// Получает информацию о учтенных лотах
+        /// </summary>
+        /// <returns>Ok</returns>
+        [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("lot_state_requests/")]
+        public System.Threading.Tasks.Task<System.Collections.Generic.ICollection<LotState>> GetLotStates([Microsoft.AspNetCore.Mvc.FromBody] System.Collections.Generic.IEnumerable<long> lotIds, System.Threading.CancellationToken cancellationToken)
+        {
+
+            return _implementation.GetLotStatesAsync(lotIds, cancellationToken);
         }
 
     }
@@ -303,6 +323,28 @@ namespace Ebay.Server.Controllers.Generated
         [System.ComponentModel.DataAnnotations.Required]
         [System.ComponentModel.DataAnnotations.RegularExpression(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$")]
         public string Date { get; }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class LotState
+    {
+        [Newtonsoft.Json.JsonConstructor]
+
+        public LotState(string? @lastUpdate, long? @lotId)
+
+        {
+
+            this.LotId = @lotId;
+
+            this.LastUpdate = @lastUpdate;
+
+        }    [Newtonsoft.Json.JsonProperty("lotId", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public long? LotId { get; }
+
+        [Newtonsoft.Json.JsonProperty("lastUpdate", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$")]
+        public string? LastUpdate { get; }
 
     }
 

@@ -1,4 +1,5 @@
-﻿using System.Transactions;
+﻿using System.Globalization;
+using System.Transactions;
 using Ebay.Server.Controllers.Generated;
 using Ebay.Server.Data;
 using Ebay.Server.Data.Models;
@@ -77,5 +78,17 @@ public class EbayControllerImplementation : IEbayController
         await _applicationContext.Purchases.UpsertRange(dbPurchaseHistory).RunAsync(cancellationToken);
 
         transaction.Complete();
+    }
+
+    public async Task<ICollection<LotState>> GetLotStatesAsync(
+        IEnumerable<long> lotIds,
+        CancellationToken cancellationToken)
+    {
+        var idsToSelect = lotIds.ToHashSet();
+        var result = await _applicationContext.Lots.Where(x => idsToSelect.Contains(x.Id))
+            .Select(x => new { x.Id, x.UpdateDate }).ToListAsync(cancellationToken);
+
+        return result.Select(
+            x => new LotState(lastUpdate: x.UpdateDate.ToString("O"), lotId: x.Id)).ToList();
     }
 }

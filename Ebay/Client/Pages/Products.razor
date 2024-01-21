@@ -24,7 +24,7 @@
     {
         <tr>
             <td>@product.Name</td>
-            <td>@product.SearchQuery</td>
+            <td><a href="@GetSearchLink(product)" target=”_blank”>@product.SearchQuery</a></td>
             <td>
                 <button class="btn btn-primary btn-sm" @onclick="@(e => _productPopupComponent.ShowEdit(product))">Редактировать</button>
             </td>
@@ -64,6 +64,8 @@
         _products = await EbayClient.GetAllProductsAsync();
         StateHasChanged();
     }
+
+    private string GetSearchLink(ProductWithId product) => $"https://www.ebay.com/sch/i.html?_nkw={product.SearchQuery}&LH_Sold=1";
 
 
 }

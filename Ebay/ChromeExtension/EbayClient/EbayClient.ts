@@ -238,6 +238,55 @@ export class Client {
         }
         return Promise.resolve<void>(null as any);
     }
+
+    /**
+     * Получает информацию о учтенных лотах
+     * @return Ok
+     */
+    getLotStates(lotIds: number[]): Promise<LotState[]> {
+        let url_ = this.baseUrl + "/lot_state_requests/";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(lotIds);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetLotStates(_response);
+        });
+    }
+
+    protected processGetLotStates(response: Response): Promise<LotState[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(LotState.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<LotState[]>(null as any);
+    }
 }
 
 export class ProductWithoutId implements IProductWithoutId {
@@ -457,6 +506,46 @@ export interface IPurchaseInfo {
     price?: number | undefined;
     quantity: number;
     date: string;
+}
+
+export class LotState implements ILotState {
+    lotId?: number | undefined;
+    lastUpdate?: string | undefined;
+
+    constructor(data?: ILotState) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.lotId = _data["lotId"];
+            this.lastUpdate = _data["lastUpdate"];
+        }
+    }
+
+    static fromJS(data: any): LotState {
+        data = typeof data === 'object' ? data : {};
+        let result = new LotState();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["lotId"] = this.lotId;
+        data["lastUpdate"] = this.lastUpdate;
+        return data;
+    }
+}
+
+export interface ILotState {
+    lotId?: number | undefined;
+    lastUpdate?: string | undefined;
 }
 
 export abstract class ProblemDetails implements IProblemDetails {
