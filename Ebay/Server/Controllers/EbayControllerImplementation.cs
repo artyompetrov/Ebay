@@ -86,9 +86,22 @@ public class EbayControllerImplementation : IEbayController
     {
         var idsToSelect = lotIds.ToHashSet();
         var result = await _applicationContext.Lots.Where(x => idsToSelect.Contains(x.Id))
-            .Select(x => new { x.Id, x.UpdateDate }).ToListAsync(cancellationToken);
+            .Select(x => new { x.Id, x.UpdateDate, x.IgnoreThatLot }).ToListAsync(cancellationToken);
 
         return result.Select(
-            x => new LotState(lastUpdate: x.UpdateDate.ToString("O"), lotId: x.Id)).ToList();
+            x => new LotState(ignoreThatLot: x.IgnoreThatLot, lastUpdate: x.UpdateDate.ToString("O"), lotId: x.Id)).ToList();
     }
+
+    public async Task<ICollection<ManualCondition>> GetManualConditionsListAsync(
+        CancellationToken cancellationToken) =>
+        new List<ManualCondition>
+        {
+            new(description: "NEW, Matched", id: "newAndMatched"),
+            new(description: "NEW, Tested", id: "newAndTested"),
+            new(description: "NEW", id: "newNotTested"),
+            new(description: "USED, Matched", id: "usedAndMatched"),
+            new(description: "USED, Tested", id: "usedAndTested"),
+            new(description: "USED", id: "usedAndNotTested"),
+            new(description: "NOT WORKING", id: "notWorking")
+        };
 }

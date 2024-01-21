@@ -359,7 +359,7 @@ function fillPurchaseHistory() {
 
 async function fillProduct(panel: HTMLDivElement, client: Client) {
     let productField = panel.querySelector('select#' + productFieldName);
-    let searchQuery = new URLSearchParams(document.referrer)?.get('_nkw')?.trim()?.toLowerCase();
+    let searchQuery = new URL(document.referrer).searchParams?.get('_nkw')?.trim()?.toLowerCase();
 
     let products = await client.getAllProducts()
     for (let i = 0; i < products.length; i++) {
@@ -496,7 +496,7 @@ async function authPage(oAuth2Client: OAuth2Client) {
 
 async function searchPage(client: Client) {
     //только на странице проданые лоты
-    if (new URLSearchParams(document.location.href)?.get('LH_Sold')?.trim() !== "1") return;
+    if (new URL(document.location.href).searchParams?.get('LH_Sold')?.trim() !== "1") return;
 
     let links = [...document.querySelector('ul.srp-results').querySelectorAll('li.s-item')]
         .map(function (x: HTMLElement) {

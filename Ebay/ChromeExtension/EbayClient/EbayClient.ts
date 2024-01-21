@@ -287,6 +287,51 @@ export class Client {
         }
         return Promise.resolve<LotState[]>(null as any);
     }
+
+    /**
+     * Отдает перечень возможных состояний продаваемого товара
+     * @return Ok
+     */
+    getManualConditionsList(): Promise<ManualCondition[]> {
+        let url_ = this.baseUrl + "/manual_conditions/";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetManualConditionsList(_response);
+        });
+    }
+
+    protected processGetManualConditionsList(response: Response): Promise<ManualCondition[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(ManualCondition.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ManualCondition[]>(null as any);
+    }
 }
 
 export class ProductWithoutId implements IProductWithoutId {
@@ -385,6 +430,8 @@ export class LotInfo implements ILotInfo {
     conditionDescription?: string | undefined;
     seller!: string;
     locatedIn!: string;
+    ignoreThatLot!: boolean;
+    manualConditionId!: string;
     purchaseHistory!: PurchaseInfo[];
 
     constructor(data?: ILotInfo) {
@@ -412,6 +459,8 @@ export class LotInfo implements ILotInfo {
             this.conditionDescription = _data["conditionDescription"];
             this.seller = _data["seller"];
             this.locatedIn = _data["locatedIn"];
+            this.ignoreThatLot = _data["ignoreThatLot"];
+            this.manualConditionId = _data["manualConditionId"];
             if (Array.isArray(_data["purchaseHistory"])) {
                 this.purchaseHistory = [] as any;
                 for (let item of _data["purchaseHistory"])
@@ -440,6 +489,8 @@ export class LotInfo implements ILotInfo {
         data["conditionDescription"] = this.conditionDescription;
         data["seller"] = this.seller;
         data["locatedIn"] = this.locatedIn;
+        data["ignoreThatLot"] = this.ignoreThatLot;
+        data["manualConditionId"] = this.manualConditionId;
         if (Array.isArray(this.purchaseHistory)) {
             data["purchaseHistory"] = [];
             for (let item of this.purchaseHistory)
@@ -461,6 +512,8 @@ export interface ILotInfo {
     conditionDescription?: string | undefined;
     seller: string;
     locatedIn: string;
+    ignoreThatLot: boolean;
+    manualConditionId: string;
     purchaseHistory: PurchaseInfo[];
 }
 
@@ -508,9 +561,50 @@ export interface IPurchaseInfo {
     date: string;
 }
 
+export class ManualCondition implements IManualCondition {
+    id!: string;
+    description!: string;
+
+    constructor(data?: IManualCondition) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.description = _data["description"];
+        }
+    }
+
+    static fromJS(data: any): ManualCondition {
+        data = typeof data === 'object' ? data : {};
+        let result = new ManualCondition();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["description"] = this.description;
+        return data;
+    }
+}
+
+export interface IManualCondition {
+    id: string;
+    description: string;
+}
+
 export class LotState implements ILotState {
-    lotId?: number | undefined;
-    lastUpdate?: string | undefined;
+    lotId!: number;
+    ignoreThatLot!: boolean;
+    lastUpdate!: string;
 
     constructor(data?: ILotState) {
         if (data) {
@@ -524,6 +618,7 @@ export class LotState implements ILotState {
     init(_data?: any) {
         if (_data) {
             this.lotId = _data["lotId"];
+            this.ignoreThatLot = _data["ignoreThatLot"];
             this.lastUpdate = _data["lastUpdate"];
         }
     }
@@ -538,14 +633,16 @@ export class LotState implements ILotState {
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         data["lotId"] = this.lotId;
+        data["ignoreThatLot"] = this.ignoreThatLot;
         data["lastUpdate"] = this.lastUpdate;
         return data;
     }
 }
 
 export interface ILotState {
-    lotId?: number | undefined;
-    lastUpdate?: string | undefined;
+    lotId: number;
+    ignoreThatLot: boolean;
+    lastUpdate: string;
 }
 
 export abstract class ProblemDetails implements IProblemDetails {

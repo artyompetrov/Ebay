@@ -32,6 +32,10 @@ public class Lot
     public string LocatedIn { get; set; } = null!;
     
     public DateTime UpdateDate { get; set; }
+    
+    public bool IgnoreThatLot { get; set; }
+
+    public string ManualCondition { get; set; } = null!;
 
     public List<Purchase> Purchases { get; set; } = null!;
 }

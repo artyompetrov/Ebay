@@ -78,6 +78,14 @@ namespace Ebay.Server.Controllers.Generated
 
         System.Threading.Tasks.Task<System.Collections.Generic.ICollection<LotState>> GetLotStatesAsync(System.Collections.Generic.IEnumerable<long> lotIds, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
+        /// <summary>
+        /// Отдает перечень возможных состояний продаваемого товара
+        /// </summary>
+
+        /// <returns>Ok</returns>
+
+        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ManualCondition>> GetManualConditionsListAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
@@ -158,6 +166,17 @@ namespace Ebay.Server.Controllers.Generated
             return _implementation.GetLotStatesAsync(lotIds, cancellationToken);
         }
 
+        /// <summary>
+        /// Отдает перечень возможных состояний продаваемого товара
+        /// </summary>
+        /// <returns>Ok</returns>
+        [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("manual_conditions/")]
+        public System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ManualCondition>> GetManualConditionsList(System.Threading.CancellationToken cancellationToken)
+        {
+
+            return _implementation.GetManualConditionsListAsync(cancellationToken);
+        }
+
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
@@ -219,7 +238,7 @@ namespace Ebay.Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public LotInfo(string @condition, string? @conditionDescription, string @description, string @locatedIn, long @lotId, string @name, int @pcs, double @price, System.Collections.Generic.List<PurchaseInfo> @purchaseHistory, string @seller, double @shipping, double @shippingAdditional)
+        public LotInfo(string @condition, string? @conditionDescription, string @description, bool @ignoreThatLot, string @locatedIn, long @lotId, string @manualConditionId, string @name, int @pcs, double @price, System.Collections.Generic.List<PurchaseInfo> @purchaseHistory, string @seller, double @shipping, double @shippingAdditional)
 
         {
 
@@ -244,6 +263,10 @@ namespace Ebay.Server.Controllers.Generated
             this.Seller = @seller;
 
             this.LocatedIn = @locatedIn;
+
+            this.IgnoreThatLot = @ignoreThatLot;
+
+            this.ManualConditionId = @manualConditionId;
 
             this.PurchaseHistory = @purchaseHistory;
 
@@ -290,6 +313,13 @@ namespace Ebay.Server.Controllers.Generated
         [System.ComponentModel.DataAnnotations.Required]
         public string LocatedIn { get; }
 
+        [Newtonsoft.Json.JsonProperty("ignoreThatLot", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public bool IgnoreThatLot { get; }
+
+        [Newtonsoft.Json.JsonProperty("manualConditionId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string ManualConditionId { get; }
+
         [Newtonsoft.Json.JsonProperty("purchaseHistory", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
         public System.Collections.Generic.List<PurchaseInfo> PurchaseHistory { get; }
@@ -327,24 +357,53 @@ namespace Ebay.Server.Controllers.Generated
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ManualCondition
+    {
+        [Newtonsoft.Json.JsonConstructor]
+
+        public ManualCondition(string @description, string @id)
+
+        {
+
+            this.Id = @id;
+
+            this.Description = @description;
+
+        }    [Newtonsoft.Json.JsonProperty("id", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Id { get; }
+
+        [Newtonsoft.Json.JsonProperty("description", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Description { get; }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class LotState
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public LotState(string? @lastUpdate, long? @lotId)
+        public LotState(bool @ignoreThatLot, string @lastUpdate, long @lotId)
 
         {
 
             this.LotId = @lotId;
 
+            this.IgnoreThatLot = @ignoreThatLot;
+
             this.LastUpdate = @lastUpdate;
 
-        }    [Newtonsoft.Json.JsonProperty("lotId", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public long? LotId { get; }
+        }    [Newtonsoft.Json.JsonProperty("lotId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public long LotId { get; }
 
-        [Newtonsoft.Json.JsonProperty("lastUpdate", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("ignoreThatLot", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public bool IgnoreThatLot { get; }
+
+        [Newtonsoft.Json.JsonProperty("lastUpdate", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         [System.ComponentModel.DataAnnotations.RegularExpression(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$")]
-        public string? LastUpdate { get; }
+        public string LastUpdate { get; }
 
     }
 
