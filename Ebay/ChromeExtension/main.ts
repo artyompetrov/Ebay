@@ -1,4 +1,11 @@
-import {ApiException, Client, LotInfo, PurchaseInfo} from "./EbayClient/EbayClient"
+import {
+    ApiException,
+    Client,
+    LotInfo,
+    LotInfoWithProductId,
+    PurchaseInfo
+} from "./EbayClient/EbayClient"
+
 import {generateCodeVerifier, OAuth2Client} from '@badgateway/oauth2-client';
 import {FetchWrapperCustom} from "./FetchWrapperCustom";
 
@@ -8,7 +15,6 @@ const productFieldName = "productId";
 const pcsFieldName = "pcs";
 
 const panelClass = "panel-div";
-const lastUpdateTime = "lastUpdate"
 const formId = "product-form-id"
 const errorElementId = "errorElement"
 const submitId = "submit"
@@ -127,12 +133,9 @@ function createPanel(bodyElement, client: Client) {
 
     // language=HTML
     form.innerHTML = `
-        <label for="${ignoreThatLotFieldName}">Забыть про этот лот</label>
+        <label for="${ignoreThatLotFieldName}">Игнорировать лот</label>
         <input id="${ignoreThatLotFieldName}" type="checkbox" name="${ignoreThatLotFieldName}"/>
         <br>
-        <br>
-        <label for="${lastUpdateTime}">Время актуализации</label>
-        <input id="${lastUpdateTime}" type="text" name="${lastUpdateTime}" readonly/>
         <br>
         <label for="${productFieldName}">Товар</label>
         <select name="${productFieldName}" id="${productFieldName}">
@@ -164,14 +167,25 @@ async function handleSubmit(event: SubmitEvent, client: Client) {
         event.preventDefault();
         let data = new FormData(<HTMLFormElement>event.target);
 
+        let ignoreThatLot = false;
+        
         data.forEach(function (value, key) {
-            lotInfo[key] = value;
+            
+            if (key === 'ignoreThatLot') {
+                ignoreThatLot = true
+            }else {
+                lotInfo[key] = value;
+            }
         });
+        
+        lotInfo['ignoreThatLot'] = ignoreThatLot;
 
         console.log(JSON.stringify(lotInfo))
 
 
         await client.upsertLotInfo(lotInfo, data.get('productId').toString())
+
+        await productPage(client)
     } catch (error) {
         showError(error)
     }
@@ -322,39 +336,24 @@ function fillLocatedIn() {
     lotInfo.locatedIn = (<HTMLElement>document.querySelector('div.d-shipping-minview')).innerText.match(/Located\sin:\s(.+)/)[1]
 }
 
-function fillDescription() {
+async function fillDescription() {
     let descriptionUrl = (<HTMLIFrameElement>document.querySelector('#desc_ifr')).src
-    fetchResource(descriptionUrl, {method: 'GET', credentials: 'include'})
-        .then((response) => {
-            response.text().then((text) => {
-                lotInfo.description = text
-            }).catch((err) => {
-                showError(err);
-            })
-        })
-        .catch((err) => {
-            showError(err)
-        })
+    let response = await fetchResource(descriptionUrl, {method: 'GET', credentials: 'include'})
+    lotInfo.description = await response.text()
 }
 
-function fillPurchaseHistory() {
+async function fillPurchaseHistory() {
     let itemId = location.pathname.match(/\/itm\/([0-9]+)/)[1];
     let purchaseHistoryUrl = `https://${location.hostname}/bin/purchaseHistory?item=${itemId}`;
-    fetchResource(purchaseHistoryUrl, {method: 'GET', credentials: 'include'})
-        .then((response) => {
-            (<Response>response).text().then((text) => {
-                lotInfo.purchaseHistory = parseSoldItemsPage(text)
-            }).catch((err) => {
-                showError(err);
-            })
-        })
-        .catch((err) => {
-            showError(err)
-        })
+    let response = await fetchResource(purchaseHistoryUrl, {method: 'GET', credentials: 'include'})
+    let text = await response.text()
+    lotInfo.purchaseHistory = parseSoldItemsPage(text)
 }
 
-async function fillProduct(panel: HTMLDivElement, client: Client) {
+async function fillProduct(panel: HTMLDivElement, client: Client, serverLotInfo: LotInfoWithProductId | undefined) {
     let productField = panel.querySelector('select#' + productFieldName);
+
+    let productId = serverLotInfo?.productId?.trim()?.toLowerCase()
     let searchQuery = new URL(document.referrer).searchParams?.get('_nkw')?.trim()?.toLowerCase();
 
     let products = await client.getAllProducts()
@@ -363,50 +362,75 @@ async function fillProduct(panel: HTMLDivElement, client: Client) {
         opt.value = products[i].id;
         opt.innerHTML = products[i].name;
 
-        if (searchQuery !== undefined && searchQuery === products[i].searchQuery.trim().toLowerCase()) {
-            opt.selected = true
+        if (productId !== undefined) {
+            if (productId === products[i].id.trim().toLowerCase()) {
+                opt.selected = true
+            }
+        } else if (searchQuery !== undefined) {
+            if (searchQuery === products[i].searchQuery.trim().toLowerCase()) {
+                opt.selected = true
+            }
         }
         productField.appendChild(opt);
     }
 }
 
-async function fillLastUpdateDate(panel: HTMLDivElement, client: Client) {
-    let currentLotInfo = await client.getLotStates([lotInfo.lotId])
-    let lastUpdateInput = <HTMLInputElement>panel.querySelector('input#' + lastUpdateTime);
-    if (currentLotInfo.length > 0) {
-        let lastUpdate = currentLotInfo[0].lastUpdate
-
-        let diffInDays = Math.ceil(Math.abs(new Date().getTime() - new Date(lastUpdate).getTime()) / (1000 * 60 * 60 * 24));
-        console.log("diff in days " + diffInDays)
-        if (diffInDays > rescanTimeDays) {
-            lastUpdateInput.style.cssText = `background-color: #df9191;`
-        } else {
-            lastUpdateInput.style.cssText = `background-color: none;`
-        }
-        lastUpdateInput.value = lastUpdate
-    } else {
-        lastUpdateInput.style.cssText = `background-color: #df9191;`
-    }
-}
-
-async function fillManualCondition(panel: HTMLDivElement, client: Client) {
+async function fillManualCondition(panel: HTMLDivElement, client: Client, serverLotInfo: LotInfoWithProductId | undefined) {
     let manualConditionField = panel.querySelector('select#' + manualConditionIdFieldName);
-    
+
+    let manualConditionId = serverLotInfo?.lotInfo?.manualConditionId?.trim()?.toLowerCase()
+
     let manualConditions = await client.getManualConditionsList()
     for (let i = 0; i < manualConditions.length; i++) {
         let opt = document.createElement('option');
         opt.value = manualConditions[i].id;
         opt.innerHTML = manualConditions[i].description;
+        
+        if (manualConditionId !== undefined) {
+            if (manualConditionId === manualConditions[i].id.trim().toLowerCase()) {
+                opt.selected = true
+            }
+        }
+        
         manualConditionField.appendChild(opt);
+    }
+}
+
+async function getServerLotInfo(client: Client): Promise<LotInfoWithProductId | undefined> {
+    try {
+        return await client.getLotInfo(lotInfo.lotId);
+    } catch (error) {
+        if (error instanceof ApiException) {
+            if ((<ApiException>error).response["type"] === 'NotFoundProblemDetailedInfo') {
+                return undefined;
+            } else throw error;
+        } else
+            throw error;
+    }
+}
+
+function fillPcs(panel: HTMLDivElement, serverLotInfo: LotInfoWithProductId | undefined) {
+    let pcsField = <HTMLInputElement>panel.querySelector('input#' + pcsFieldName);
+    
+    let serverPcs = serverLotInfo?.lotInfo?.pcs
+    if (serverPcs !== undefined) {
+        pcsField.value = serverPcs.toString()
+    }
+}
+
+function fillIgnoreThatLot(panel: HTMLDivElement, serverLotInfo: LotInfoWithProductId | undefined) {
+    let ignoreThatLotField = <HTMLInputElement>panel.querySelector('input#' + ignoreThatLotFieldName);
+
+    let serverPcs = serverLotInfo?.lotInfo?.ignoreThatLot
+    if (serverPcs !== undefined) {
+        ignoreThatLotField.checked = serverPcs
     }
 }
 
 async function getDataFromPage(client: Client) {
     let panel = <HTMLDivElement>document.querySelector('div.' + panelClass)
+
     fillId();
-    await fillLastUpdateDate(panel, client)
-    await fillProduct(panel, client);
-    await fillManualCondition(panel, client);
     fillPrice();
     fillShipping();
     fillName();
@@ -414,8 +438,13 @@ async function getDataFromPage(client: Client) {
     fillCondition();
     fillConditionDescription();
     fillLocatedIn();
-    fillDescription();
-    fillPurchaseHistory();
+    let serverLotInfo = await getServerLotInfo(client)
+    await fillProduct(panel, client, serverLotInfo);
+    await fillManualCondition(panel, client, serverLotInfo);
+    fillPcs(panel, serverLotInfo);
+    fillIgnoreThatLot(panel, serverLotInfo)
+    await fillDescription();
+    await fillPurchaseHistory();
 }
 
 
@@ -472,13 +501,18 @@ function getAuthorizeFetch(oAuth2Client: OAuth2Client): FetchWrapperCustom {
     })
 }
 
+function hideErrors() {
+    let errorDiv = document.querySelector('div.' + panelClass + ' #' + errorElementId)
+    errorDiv.innerHTML = ""
+}
+
 async function productPage(client: Client) {
     try {
         addHistoryButton();
         addPanel(client);
         await getDataFromPage(client);
-        //todo разрешать только если вообще нет ошибок
         enableSubmitButton()
+        hideErrors()
     } catch (error) {
         showError(error);
         throw error;
@@ -498,7 +532,9 @@ async function authPage(oAuth2Client: OAuth2Client) {
         );
 
         await chrome.storage.local.set({token_store: JSON.stringify(oauth2Token)})
-        document.location.href = (await chrome.storage.local.get(["return_to_page"])).return_to_page
+        let returnPage = (await chrome.storage.local.get(["return_to_page"])).return_to_page
+        console.log("returning to " + returnPage)
+        document.location.href = returnPage
     }
 }
 
@@ -522,15 +558,15 @@ async function searchPage(client: Client) {
     links.forEach(function (x) {
         if (knownLots.has(x.id)) {
             let lotState = knownLots.get(x.id)
-            let diffInDays = Math.ceil((x.soldDate.getTime() - new Date(lotState.lastUpdate).getTime()) / (1000 * 60 * 60 * 24));
-            console.log(diffInDays)
-            if (diffInDays > 0) {
-                x.link.style.cssText = `background-color: #e0e07f;`
+            if (!lotState.ignoreThatLot) {
+                let diffInDays = Math.ceil((x.soldDate.getTime() - new Date(lotState.lastUpdate).getTime()) / (1000 * 60 * 60 * 24));
+                console.log(diffInDays)
+                if (diffInDays > 0) {
+                    x.link.style.cssText = `background-color: #e0e07f;`
+                } else {
+                    x.link.style.cssText = `background-color: none;`
+                }
             }
-            else {
-                x.link.style.cssText = `background-color: none;`
-            }
-            
         } else {
             x.link.style.cssText = `background-color: lightpink;`
         }
@@ -565,7 +601,7 @@ export async function run() {
     } else {
         let currentPage = location.protocol + '//' + location.host + location.pathname
         await chrome.storage.local.set({return_to_page: currentPage})
-        
+
         let client = new Client(baseApiUrl, getAuthorizeFetch(oAuth2Client));
         if (currentPage.startsWith("https://www.ebay.com/itm/")) {
             await productPage(client);

@@ -102,7 +102,7 @@ export class Client {
             return response.text().then((_responseText) => {
             let result400: any = null;
             let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result400 = ValidationProblemDetails.fromJS(resultData400);
+            result400 = ValidationProblemDetailedInfo.fromJS(resultData400);
             return throwException("Error", status, _responseText, _headers, result400);
             });
         } else if (status !== 200 && status !== 204) {
@@ -150,7 +150,7 @@ export class Client {
             return response.text().then((_responseText) => {
             let result400: any = null;
             let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result400 = ValidationProblemDetails.fromJS(resultData400);
+            result400 = ValidationProblemDetailedInfo.fromJS(resultData400);
             return throwException("Error", status, _responseText, _headers, result400);
             });
         } else if (status !== 200 && status !== 204) {
@@ -237,6 +237,54 @@ export class Client {
             });
         }
         return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Получить информацию о лоте
+     * @return Ok
+     */
+    getLotInfo(lotId: number): Promise<LotInfoWithProductId> {
+        let url_ = this.baseUrl + "/lots/{lotId}/";
+        if (lotId === undefined || lotId === null)
+            throw new Error("The parameter 'lotId' must be defined.");
+        url_ = url_.replace("{lotId}", encodeURIComponent("" + lotId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetLotInfo(_response);
+        });
+    }
+
+    protected processGetLotInfo(response: Response): Promise<LotInfoWithProductId> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = LotInfoWithProductId.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = NotFoundProblemDetailedInfo.fromJS(resultData400);
+            return throwException("NotFound", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<LotInfoWithProductId>(null as any);
     }
 
     /**
@@ -416,6 +464,49 @@ export interface IProductWithId {
     id: string;
     name: string;
     searchQuery: string;
+}
+
+export class LotInfoWithProductId implements ILotInfoWithProductId {
+    productId!: string;
+    lotInfo!: LotInfo;
+
+    constructor(data?: ILotInfoWithProductId) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+        if (!data) {
+            this.lotInfo = new LotInfo();
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.productId = _data["productId"];
+            this.lotInfo = _data["lotInfo"] ? LotInfo.fromJS(_data["lotInfo"]) : new LotInfo();
+        }
+    }
+
+    static fromJS(data: any): LotInfoWithProductId {
+        data = typeof data === 'object' ? data : {};
+        let result = new LotInfoWithProductId();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["productId"] = this.productId;
+        data["lotInfo"] = this.lotInfo ? this.lotInfo.toJSON() : <any>undefined;
+        return data;
+    }
+}
+
+export interface ILotInfoWithProductId {
+    productId: string;
+    lotInfo: LotInfo;
 }
 
 export class LotInfo implements ILotInfo {
@@ -645,14 +736,14 @@ export interface ILotState {
     lastUpdate: string;
 }
 
-export abstract class ProblemDetails implements IProblemDetails {
+export abstract class ProblemDetailedInfo implements IProblemDetailedInfo {
     type?: string | undefined;
     title?: string | undefined;
     status?: number | undefined;
     detail?: string | undefined;
     instance?: string | undefined;
 
-    constructor(data?: IProblemDetails) {
+    constructor(data?: IProblemDetailedInfo) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -671,9 +762,9 @@ export abstract class ProblemDetails implements IProblemDetails {
         }
     }
 
-    static fromJS(data: any): ProblemDetails {
+    static fromJS(data: any): ProblemDetailedInfo {
         data = typeof data === 'object' ? data : {};
-        throw new Error("The abstract class 'ProblemDetails' cannot be instantiated.");
+        throw new Error("The abstract class 'ProblemDetailedInfo' cannot be instantiated.");
     }
 
     toJSON(data?: any) {
@@ -687,7 +778,7 @@ export abstract class ProblemDetails implements IProblemDetails {
     }
 }
 
-export interface IProblemDetails {
+export interface IProblemDetailedInfo {
     type?: string | undefined;
     title?: string | undefined;
     status?: number | undefined;
@@ -695,10 +786,10 @@ export interface IProblemDetails {
     instance?: string | undefined;
 }
 
-export class ValidationProblemDetails extends ProblemDetails implements IValidationProblemDetails {
+export class NotFoundProblemDetailedInfo extends ProblemDetailedInfo implements INotFoundProblemDetailedInfo {
     errors?: Errors | undefined;
 
-    constructor(data?: IValidationProblemDetails) {
+    constructor(data?: INotFoundProblemDetailedInfo) {
         super(data);
     }
 
@@ -709,9 +800,9 @@ export class ValidationProblemDetails extends ProblemDetails implements IValidat
         }
     }
 
-    static fromJS(data: any): ValidationProblemDetails {
+    static fromJS(data: any): NotFoundProblemDetailedInfo {
         data = typeof data === 'object' ? data : {};
-        let result = new ValidationProblemDetails();
+        let result = new NotFoundProblemDetailedInfo();
         result.init(data);
         return result;
     }
@@ -724,8 +815,41 @@ export class ValidationProblemDetails extends ProblemDetails implements IValidat
     }
 }
 
-export interface IValidationProblemDetails extends IProblemDetails {
+export interface INotFoundProblemDetailedInfo extends IProblemDetailedInfo {
     errors?: Errors | undefined;
+}
+
+export class ValidationProblemDetailedInfo extends ProblemDetailedInfo implements IValidationProblemDetailedInfo {
+    errors?: Errors2 | undefined;
+
+    constructor(data?: IValidationProblemDetailedInfo) {
+        super(data);
+    }
+
+    init(_data?: any) {
+        super.init(_data);
+        if (_data) {
+            this.errors = _data["errors"];
+        }
+    }
+
+    static fromJS(data: any): ValidationProblemDetailedInfo {
+        data = typeof data === 'object' ? data : {};
+        let result = new ValidationProblemDetailedInfo();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["errors"] = this.errors;
+        super.toJSON(data);
+        return data;
+    }
+}
+
+export interface IValidationProblemDetailedInfo extends IProblemDetailedInfo {
+    errors?: Errors2 | undefined;
 }
 
 export class Errors implements IErrors {
@@ -768,6 +892,50 @@ export class Errors implements IErrors {
 }
 
 export interface IErrors {
+
+    [key: string]: any;
+}
+
+export class Errors2 implements IErrors2 {
+
+    [key: string]: any;
+
+    constructor(data?: IErrors2) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+        }
+    }
+
+    static fromJS(data: any): Errors2 {
+        data = typeof data === 'object' ? data : {};
+        let result = new Errors2();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        return data;
+    }
+}
+
+export interface IErrors2 {
 
     [key: string]: any;
 }

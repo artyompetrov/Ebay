@@ -70,6 +70,15 @@ namespace Ebay.Server.Controllers.Generated
         System.Threading.Tasks.Task UpsertLotInfoAsync(LotInfo lotInfo, System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
         /// <summary>
+        /// Получить информацию о лоте
+        /// </summary>
+
+
+        /// <returns>Ok</returns>
+
+        System.Threading.Tasks.Task<LotInfoWithProductId> GetLotInfoAsync(long lotId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+
+        /// <summary>
         /// Получает информацию о учтенных лотах
         /// </summary>
 
@@ -156,6 +165,17 @@ namespace Ebay.Server.Controllers.Generated
         }
 
         /// <summary>
+        /// Получить информацию о лоте
+        /// </summary>
+        /// <returns>Ok</returns>
+        [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("lots/{lotId}/")]
+        public System.Threading.Tasks.Task<LotInfoWithProductId> GetLotInfo(long lotId, System.Threading.CancellationToken cancellationToken)
+        {
+
+            return _implementation.GetLotInfoAsync(lotId, cancellationToken);
+        }
+
+        /// <summary>
         /// Получает информацию о учтенных лотах
         /// </summary>
         /// <returns>Ok</returns>
@@ -230,6 +250,29 @@ namespace Ebay.Server.Controllers.Generated
         [Newtonsoft.Json.JsonProperty("SearchQuery", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
         public string SearchQuery { get; }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class LotInfoWithProductId
+    {
+        [Newtonsoft.Json.JsonConstructor]
+
+        public LotInfoWithProductId(LotInfo @lotInfo, System.Guid @productId)
+
+        {
+
+            this.ProductId = @productId;
+
+            this.LotInfo = @lotInfo;
+
+        }    [Newtonsoft.Json.JsonProperty("productId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public System.Guid ProductId { get; }
+
+        [Newtonsoft.Json.JsonProperty("lotInfo", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public LotInfo LotInfo { get; }
 
     }
 
@@ -318,6 +361,7 @@ namespace Ebay.Server.Controllers.Generated
 
         [Newtonsoft.Json.JsonProperty("manualConditionId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^[A-Za-z]+$")]
         public string ManualConditionId { get; }
 
         [Newtonsoft.Json.JsonProperty("purchaseHistory", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
@@ -408,11 +452,105 @@ namespace Ebay.Server.Controllers.Generated
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public abstract partial class ProblemDetailedInfo
+    {
+        [Newtonsoft.Json.JsonConstructor]
+
+        protected ProblemDetailedInfo(string? @detail, string? @instance, int? @status, string? @title, string? @type)
+
+        {
+
+            this.Type = @type;
+
+            this.Title = @title;
+
+            this.Status = @status;
+
+            this.Detail = @detail;
+
+            this.Instance = @instance;
+
+        }    [Newtonsoft.Json.JsonProperty("type", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string? Type { get; }
+
+        [Newtonsoft.Json.JsonProperty("title", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string? Title { get; }
+
+        [Newtonsoft.Json.JsonProperty("status", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public int? Status { get; }
+
+        [Newtonsoft.Json.JsonProperty("detail", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string? Detail { get; }
+
+        [Newtonsoft.Json.JsonProperty("instance", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string? Instance { get; }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class NotFoundProblemDetailedInfo : ProblemDetailedInfo
+    {
+        [Newtonsoft.Json.JsonConstructor]
+
+        public NotFoundProblemDetailedInfo(string? @detail, Errors? @errors, string? @instance, int? @status, string? @title, string? @type)
+
+            : base(detail, instance, status, title, type)
+
+        {
+
+            this.Errors = @errors;
+
+        }    [Newtonsoft.Json.JsonProperty("errors", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public Errors? Errors { get; }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ValidationProblemDetailedInfo : ProblemDetailedInfo
+    {
+        [Newtonsoft.Json.JsonConstructor]
+
+        public ValidationProblemDetailedInfo(string? @detail, Errors2? @errors, string? @instance, int? @status, string? @title, string? @type)
+
+            : base(detail, instance, status, title, type)
+
+        {
+
+            this.Errors = @errors;
+
+        }    [Newtonsoft.Json.JsonProperty("errors", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public Errors2? Errors { get; }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class Errors
     {
         [Newtonsoft.Json.JsonConstructor]
 
         public Errors()
+
+        {
+
+        }
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [Newtonsoft.Json.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class Errors2
+    {
+        [Newtonsoft.Json.JsonConstructor]
+
+        public Errors2()
 
         {
 

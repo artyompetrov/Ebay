@@ -18,7 +18,7 @@ public static class ModelExtensions
         SearchQuery = productWithId.SearchQuery
     };
 
-    public static IEnumerable<ValidationProblemParsed> Parse(this ValidationProblemDetails validationProblemDetails)
+    public static IEnumerable<ValidationProblemParsed> Parse(this ValidationProblemDetailedInfo validationProblemDetails)
     {
         foreach (var errorsAdditionalProperty in validationProblemDetails.Errors.AdditionalProperties)
         {
@@ -40,7 +40,7 @@ public static class ModelExtensions
     }
 
     public static void FillValidationMessageStore(
-        this ApiException<ValidationProblemDetails> errorException,
+        this ApiException<ValidationProblemDetailedInfo> errorException,
         ValidationMessageStore validationMessageStore,
         object model)
     {

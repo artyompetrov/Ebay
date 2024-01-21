@@ -11,10 +11,31 @@ public static class ModelsExtensions
         name: dbProduct.Name,
         searchQuery: dbProduct.SearchQuery);
 
-
     public static DbProduct ToDbProduct(this ProductWithoutId productWithoutId, Guid id) => new()
         { Id = id, Name = productWithoutId.Name, SearchQuery = productWithoutId.SearchQuery };
 
+    public static LotInfoWithProductId ToApiLot(this Lot lot) => new(
+        lotInfo: new(
+            condition: lot.Condition,
+            conditionDescription: lot.ConditionDescription,
+            description: lot.Description,
+            ignoreThatLot: lot.IgnoreThatLot,
+            locatedIn: lot.LocatedIn,
+            lotId: lot.Id,
+            manualConditionId: lot.ManualCondition,
+            name: lot.Name,
+            pcs: lot.Pcs,
+            price: lot.Price,
+            purchaseHistory: lot.Purchases.Select(x => x.ToApiPurchaseInfo()).ToList(),
+            seller: lot.Seller,
+            shipping: lot.Shipping,
+            shippingAdditional: lot.ShippingAdditional),
+        productId: lot.ProductId);
+
+    public static PurchaseInfo ToApiPurchaseInfo(this Purchase purchase) => new(
+        date: purchase.Date.ToString("O"),
+        price: purchase.Price,
+        quantity: purchase.Quantity);
 
     public static Lot ToDbLot(this LotInfo lotInfo, Guid productId, DateTime updateDate) =>
         new()

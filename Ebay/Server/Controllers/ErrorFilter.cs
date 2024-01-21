@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Ebay.Client.Clients.Generated;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 
@@ -20,6 +21,7 @@ public sealed class ErrorFilter : IAsyncActionFilter, IExceptionFilter
             var problemDetails = _problemDetailsFactory.CreateValidationProblemDetails(
                 httpContext: context.HttpContext,
                 modelStateDictionary: context.ModelState,
+                type: nameof(ValidationProblemDetailedInfo),
                 statusCode: 400);
 
             context.Result = new ObjectResult(problemDetails)
@@ -36,18 +38,31 @@ public sealed class ErrorFilter : IAsyncActionFilter, IExceptionFilter
     public void OnException(ExceptionContext context)
     {
         var exception = context.Exception;
-        var httpContext = context.HttpContext;
 
-        var problemDetails = _problemDetailsFactory.CreateProblemDetails(
-            httpContext: httpContext,
-            statusCode: 500,
-            title: exception.Message,
-            detail: exception.ToString());
-
-        context.Result = new ObjectResult(problemDetails)
+        if (exception is NonOkHttpAnswerException nonOkHttpAnswerException)
         {
-            StatusCode = problemDetails.Status
-        };
+            context.Result = new ObjectResult(nonOkHttpAnswerException.ProblemDetails)
+            {
+                StatusCode = nonOkHttpAnswerException.ProblemDetails.Status
+            };
+        }
+        else
+        {
+            var httpContext = context.HttpContext;
+
+            var problemDetails = _problemDetailsFactory.CreateProblemDetails(
+                httpContext: httpContext,
+                type: "UnhandledError",
+                statusCode: 500,
+                title: exception.Message,
+                detail: exception.ToString());
+
+            context.Result = new ObjectResult(problemDetails)
+            {
+                StatusCode = problemDetails.Status
+            };
+        }
+       
 
         context.ExceptionHandled = true;
     }

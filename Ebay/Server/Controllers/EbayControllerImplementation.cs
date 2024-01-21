@@ -1,11 +1,19 @@
 ﻿using System.Globalization;
 using System.Transactions;
+using Ebay.Client.Clients.Generated;
 using Ebay.Server.Controllers.Generated;
 using Ebay.Server.Data;
 using Ebay.Server.Data.Models;
 using Ebay.Server.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using DbProduct = Ebay.Server.Data.Models.Product;
+using LotInfo = Ebay.Server.Controllers.Generated.LotInfo;
+using LotInfoWithProductId = Ebay.Server.Controllers.Generated.LotInfoWithProductId;
+using LotState = Ebay.Server.Controllers.Generated.LotState;
+using ManualCondition = Ebay.Server.Controllers.Generated.ManualCondition;
+using NotFoundProblemDetailedInfo = Ebay.Server.Controllers.Generated.NotFoundProblemDetailedInfo;
+using ProductWithId = Ebay.Server.Controllers.Generated.ProductWithId;
+using ProductWithoutId = Ebay.Server.Controllers.Generated.ProductWithoutId;
 
 namespace Ebay.Server.Controllers;
 
@@ -58,6 +66,8 @@ public class EbayControllerImplementation : IEbayController
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 
+
+
     public async Task UpsertLotInfoAsync(
         LotInfo lotInfo,
         Guid productId,
@@ -65,8 +75,7 @@ public class EbayControllerImplementation : IEbayController
     {
         var dbLotInfo = lotInfo.ToDbLot(productId: productId, updateDate: DateTime.UtcNow);
 
-        var dbPurchaseHistory = lotInfo.PurchaseHistory
-            .Select(x => x.ToDbPurchase(lotId: lotInfo.LotId)).ToList();
+        
 
         using var transaction = new TransactionScope(
             scopeOption: TransactionScopeOption.Required,
@@ -75,9 +84,31 @@ public class EbayControllerImplementation : IEbayController
                 { IsolationLevel = IsolationLevel.ReadCommitted });
 
         await _applicationContext.Lots.Upsert(dbLotInfo).RunAsync(cancellationToken);
-        await _applicationContext.Purchases.UpsertRange(dbPurchaseHistory).RunAsync(cancellationToken);
+
+        if (!lotInfo.IgnoreThatLot)
+        {
+            var dbPurchaseHistory = lotInfo.PurchaseHistory
+                .Select(x => x.ToDbPurchase(lotId: lotInfo.LotId)).ToList();
+            await _applicationContext.Purchases.UpsertRange(dbPurchaseHistory).RunAsync(cancellationToken);
+        }
 
         transaction.Complete();
+    }
+
+    public async Task<LotInfoWithProductId> GetLotInfoAsync(
+        long lotId,
+        CancellationToken cancellationToken)
+    {
+        var dbLot = await _applicationContext.Lots.Include(x => x.Purchases).SingleOrDefaultAsync(
+            x => x.Id == lotId,
+            cancellationToken: cancellationToken);
+
+        if (dbLot == null)
+        {
+            throw NonOkHttpAnswerException.NotFound();
+        }
+
+        return dbLot.ToApiLot();
     }
 
     public async Task<ICollection<LotState>> GetLotStatesAsync(

@@ -38,7 +38,7 @@ paths:
         400:
           description: 'Error'
           schema:
-            $ref: '#/definitions/ValidationProblemDetails'
+            $ref: '#/definitions/ValidationProblemDetailedInfo'
   
   /products/{id}:
     parameters:
@@ -62,7 +62,7 @@ paths:
         400:
           description: 'Error'
           schema:
-            $ref: '#/definitions/ValidationProblemDetails'
+            $ref: '#/definitions/ValidationProblemDetailedInfo'
     delete:
       operationId: DeleteProduct
       summary: Delete product
@@ -90,6 +90,27 @@ paths:
         200:
           description: 'Ok'
 
+  /lots/{lotId}/:
+    parameters:
+      - name: lotId
+        in: path
+        required: true
+        type: integer
+        format: int64
+    get:
+      operationId: GetLotInfo
+      summary: Получить информацию о лоте
+      responses:
+        200:
+          description: 'Ok'
+          schema:
+            $ref: '#/definitions/LotInfoWithProductId'
+        400:
+          description: 'NotFound'
+          schema: 
+            $ref: '#/definitions/NotFoundProblemDetailedInfo'
+          
+  
   /lot_state_requests/:
     post:
       operationId: GetLotStates
@@ -103,19 +124,19 @@ paths:
             items:
               type: integer
               format: int64
-      responses: 
+      responses:
         200:
           description: 'Ok'
           schema:
             type: array
-            items: 
+            items:
               $ref: '#/definitions/LotState'
   
   /manual_conditions/:
     get:
       operationId: GetManualConditionsList
       summary: Отдает перечень возможных состояний продаваемого товара
-      responses: 
+      responses:
         200:
           description: 'Ok'
           schema:
@@ -156,7 +177,19 @@ definitions:
       - Id
       - Name
       - SearchQuery
-
+  
+  LotInfoWithProductId:
+    type: object
+    properties: 
+      productId:
+        type: string
+        format: guid
+      lotInfo:
+        $ref: '#/definitions/LotInfo'
+    required:
+      - productId
+      - lotInfo
+  
   LotInfo:
     type: object
     properties:
@@ -198,12 +231,12 @@ definitions:
       manualConditionId:
         type: string
         minLength: 1
+        pattern: ^[A-Za-z]+$
       purchaseHistory:
         type: array
         items:
           $ref: '#/definitions/PurchaseInfo'
     required:
-      - productId
       - lotId
       - name
       - pcs
@@ -237,7 +270,7 @@ definitions:
   
   ManualCondition:
     type: object
-    properties: 
+    properties:
       id:
         type: string
       description:
@@ -245,7 +278,7 @@ definitions:
     required:
       - id
       - description
-        
+  
   LotState:
     type: object
     properties:
@@ -263,7 +296,7 @@ definitions:
       - lastUpdate
 
 
-  ProblemDetails:
+  ProblemDetailedInfo:
     x-abstract: true
     properties:
       type:
@@ -277,10 +310,16 @@ definitions:
       instance:
         type: string
   
-  
-  ValidationProblemDetails:
+  NotFoundProblemDetailedInfo:
     allOf:
-      - $ref: '#/definitions/ProblemDetails'
+      - $ref: '#/definitions/ProblemDetailedInfo'
+    properties:
+      errors:
+        additionalProperties: { }
+  
+  ValidationProblemDetailedInfo:
+    allOf:
+      - $ref: '#/definitions/ProblemDetailedInfo'
     properties:
       errors:
         additionalProperties: { }

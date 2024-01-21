@@ -90,7 +90,7 @@
             await OnSuccess();
             _product = null;
         }
-        catch (ApiException<ValidationProblemDetails> validationError)
+        catch (ApiException<ValidationProblemDetailedInfo> validationError)
         {
             validationError.FillValidationMessageStore(validationMessageStore: _validationMessageStore,
                 model: _product ?? throw new NullReferenceException($"{nameof(_product)} expected to be not null"));
