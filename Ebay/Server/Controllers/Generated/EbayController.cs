@@ -67,7 +67,7 @@ namespace Ebay.Server.Controllers.Generated
 
         /// <returns>Ok</returns>
 
-        System.Threading.Tasks.Task UpsertLotInfoAsync(LotInfo lotInfo, System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+        System.Threading.Tasks.Task UpsertLotInfoAsync(LotInfo lotInfo, System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
     }
 
@@ -131,11 +131,11 @@ namespace Ebay.Server.Controllers.Generated
         /// Обновляет информацию о лоте
         /// </summary>
         /// <returns>Ok</returns>
-        [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("products/{id}/lots/")]
-        public System.Threading.Tasks.Task UpsertLotInfo([Microsoft.AspNetCore.Mvc.FromBody] LotInfo lotInfo, System.Guid id, System.Threading.CancellationToken cancellationToken)
+        [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("products/{productId}/lots/")]
+        public System.Threading.Tasks.Task UpsertLotInfo([Microsoft.AspNetCore.Mvc.FromBody] LotInfo lotInfo, System.Guid productId, System.Threading.CancellationToken cancellationToken)
         {
 
-            return _implementation.UpsertLotInfoAsync(lotInfo, id, cancellationToken);
+            return _implementation.UpsertLotInfoAsync(lotInfo, productId, cancellationToken);
         }
 
     }
@@ -199,11 +199,9 @@ namespace Ebay.Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public LotInfo(string @condition, string @conditionDescription, string @description, string @locatedIn, int @lotId, string @name, int @pcs, double @price, System.Guid @productId, System.Collections.Generic.List<PurchaseInfo> @purchaseHistory, string @seller, double @shipping, double @shippingAdditional)
+        public LotInfo(string @condition, string @conditionDescription, string @description, string @locatedIn, long @lotId, string @name, int @pcs, double @price, System.Collections.Generic.List<PurchaseInfo> @purchaseHistory, string @seller, double @shipping, double @shippingAdditional)
 
         {
-
-            this.ProductId = @productId;
 
             this.LotId = @lotId;
 
@@ -229,12 +227,8 @@ namespace Ebay.Server.Controllers.Generated
 
             this.PurchaseHistory = @purchaseHistory;
 
-        }    [Newtonsoft.Json.JsonProperty("productId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public System.Guid ProductId { get; }
-
-        [Newtonsoft.Json.JsonProperty("lotId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public int LotId { get; }
+        }    [Newtonsoft.Json.JsonProperty("lotId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public long LotId { get; }
 
         [Newtonsoft.Json.JsonProperty("name", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]

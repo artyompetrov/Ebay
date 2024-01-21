@@ -149,13 +149,13 @@ function createPanel(bodyElement, client: Client) {
             <input id="${pcsFieldName}" type="text" name="${pcsFieldName}"/>
             <br>
             <label for="${priceFieldName}">Price US$</label>
-            <input id="${priceFieldName}" type="text" name="${priceFieldName}"/>
+            <input id="${priceFieldName}" type="number" step="0.01" name="${priceFieldName}"/>
             <br>
             <label for="${shippingFieldName}">Shipping to Germany</label>
-            <input id="${shippingFieldName}" type="number" name="${shippingFieldName}"/>
+            <input id="${shippingFieldName}" type="number" step="0.01" name="${shippingFieldName}"/>
             <br>
             <label for="${shippingAdditionalFieldName}">Shipping each additional</label>
-            <input id="${shippingAdditionalFieldName}" type="number" name="${shippingAdditionalFieldName}"/>
+            <input id="${shippingAdditionalFieldName}" type="number" step="0.01" name="${shippingAdditionalFieldName}"/>
             <br>
             <label for="${conditionFieldName}">Condition</label>
             <input id="${conditionFieldName}" type="text" name="${conditionFieldName}"/>
@@ -197,14 +197,12 @@ async function handleSubmit(event: SubmitEvent, client: Client) {
     
     try {
         await client.upsertLotInfo(lotinfo, data.get('productId').toString())
-        
     }
     catch (error) {
         if (error instanceof ApiException) {
             let apiException = <ApiException>error
             console.log(apiException.status)
             console.log(apiException.response)
-            console.log(lotinfo.toJSON().toString())
             //todo тут 400
         }
         else throw error;

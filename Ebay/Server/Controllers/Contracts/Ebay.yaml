@@ -70,9 +70,9 @@ paths:
         200:
           description: 'Deleted'
   
-  /products/{id}/lots/:
+  /products/{productId}/lots/:
     parameters:
-      - name: id
+      - name: productId
         in: path
         required: true
         type: string
@@ -127,11 +127,9 @@ definitions:
   LotInfo:
     type: object
     properties:
-      productId:
-        type: string
-        format: guid
       lotId:
         type: integer
+        format: int64
       name:
         type: string
         minLength: 1

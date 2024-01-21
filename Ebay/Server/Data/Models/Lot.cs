@@ -2,7 +2,7 @@
 
 public class Lot
 {
-    public int Id { get; set; }
+    public long Id { get; set; }
 
     public Guid ProductId { get; set; }
     public Product Product { get; set; } = null!;

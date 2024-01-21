@@ -202,11 +202,11 @@ export class Client {
      * Обновляет информацию о лоте
      * @return Ok
      */
-    upsertLotInfo(lotInfo: LotInfo, id: string): Promise<void> {
-        let url_ = this.baseUrl + "/products/{id}/lots/";
-        if (id === undefined || id === null)
-            throw new Error("The parameter 'id' must be defined.");
-        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+    upsertLotInfo(lotInfo: LotInfo, productId: string): Promise<void> {
+        let url_ = this.baseUrl + "/products/{productId}/lots/";
+        if (productId === undefined || productId === null)
+            throw new Error("The parameter 'productId' must be defined.");
+        url_ = url_.replace("{productId}", encodeURIComponent("" + productId));
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(lotInfo);
@@ -325,7 +325,6 @@ export interface IProductWithId {
 }
 
 export class LotInfo implements ILotInfo {
-    productId!: string;
     lotId!: number;
     name!: string;
     pcs!: number;
@@ -353,7 +352,6 @@ export class LotInfo implements ILotInfo {
 
     init(_data?: any) {
         if (_data) {
-            this.productId = _data["productId"];
             this.lotId = _data["lotId"];
             this.name = _data["name"];
             this.pcs = _data["pcs"];
@@ -382,7 +380,6 @@ export class LotInfo implements ILotInfo {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["productId"] = this.productId;
         data["lotId"] = this.lotId;
         data["name"] = this.name;
         data["pcs"] = this.pcs;
@@ -404,7 +401,6 @@ export class LotInfo implements ILotInfo {
 }
 
 export interface ILotInfo {
-    productId: string;
     lotId: number;
     name: string;
     pcs: number;

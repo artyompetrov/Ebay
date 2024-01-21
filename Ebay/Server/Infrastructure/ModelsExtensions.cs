@@ -16,11 +16,11 @@ public static class ModelsExtensions
         { Id = id, Name = productWithoutId.Name, SearchQuery = productWithoutId.SearchQuery };
 
 
-    public static Lot ToDbLot(this LotInfo lotInfo) =>
+    public static Lot ToDbLot(this LotInfo lotInfo, Guid productId) =>
         new()
         {
+            ProductId = productId,
             Id = lotInfo.LotId,
-            ProductId = lotInfo.ProductId,
             Name = lotInfo.Name,
             Pcs = lotInfo.Pcs,
             Price = lotInfo.Price,
@@ -33,7 +33,7 @@ public static class ModelsExtensions
             LocatedIn = lotInfo.LocatedIn
         };
 
-    public static Purchase ToDbPurchase(this PurchaseInfo purchaseInfo, int lotId) =>
+    public static Purchase ToDbPurchase(this PurchaseInfo purchaseInfo, long lotId) =>
         new()
         {
             LotId = lotId,

@@ -59,10 +59,10 @@ public class EbayControllerImplementation : IEbayController
 
     public async Task UpsertLotInfoAsync(
         LotInfo lotInfo,
-        Guid id,
+        Guid productId,
         CancellationToken cancellationToken)
     {
-        var dbLotInfo = lotInfo.ToDbLot();
+        var dbLotInfo = lotInfo.ToDbLot(productId);
 
         var dbPurchaseHistory = lotInfo.PurchaseHistory
             .Select(x => x.ToDbPurchase(lotId: lotInfo.LotId)).ToList();
