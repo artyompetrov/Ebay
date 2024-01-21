@@ -16,7 +16,7 @@ public static class ModelsExtensions
         { Id = id, Name = productWithoutId.Name, SearchQuery = productWithoutId.SearchQuery };
 
 
-    public static Lot ToDbLot(this LotInfo lotInfo, Guid productId) =>
+    public static Lot ToDbLot(this LotInfo lotInfo, Guid productId, DateTime updateDate) =>
         new()
         {
             ProductId = productId,
@@ -30,7 +30,8 @@ public static class ModelsExtensions
             Condition = lotInfo.Condition,
             ConditionDescription = lotInfo.ConditionDescription,
             Seller = lotInfo.Seller,
-            LocatedIn = lotInfo.LocatedIn
+            LocatedIn = lotInfo.LocatedIn,
+            UpdateDate = updateDate
         };
 
     public static Purchase ToDbPurchase(this PurchaseInfo purchaseInfo, long lotId) =>

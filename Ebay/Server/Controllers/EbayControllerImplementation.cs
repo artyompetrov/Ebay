@@ -62,7 +62,7 @@ public class EbayControllerImplementation : IEbayController
         Guid productId,
         CancellationToken cancellationToken)
     {
-        var dbLotInfo = lotInfo.ToDbLot(productId);
+        var dbLotInfo = lotInfo.ToDbLot(productId: productId, updateDate: DateTime.UtcNow);
 
         var dbPurchaseHistory = lotInfo.PurchaseHistory
             .Select(x => x.ToDbPurchase(lotId: lotInfo.LotId)).ToList();

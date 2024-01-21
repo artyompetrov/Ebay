@@ -30,6 +30,8 @@ public class Lot
     public string Seller { get; set; } = null!;
 
     public string LocatedIn { get; set; } = null!;
+    
+    public DateTime UpdateDate { get; set; }
 
     public List<Purchase> Purchases { get; set; } = null!;
 }
