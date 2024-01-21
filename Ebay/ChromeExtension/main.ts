@@ -146,7 +146,7 @@ function createPanel(bodyElement, client: Client) {
             <input id="${nameFieldName}" type="text" name="${nameFieldName}" readonly/>
             <br>
             <label for="${pcsFieldName}">PCS</label>
-            <input id="${pcsFieldName}" type="text" name="${pcsFieldName}"/>
+            <input id="${pcsFieldName}" type="number" name="${pcsFieldName}"/>
             <br>
             <label for="${priceFieldName}">Price US$</label>
             <input id="${priceFieldName}" type="number" step="0.01" name="${priceFieldName}"/>
