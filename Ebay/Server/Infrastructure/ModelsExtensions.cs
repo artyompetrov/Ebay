@@ -26,14 +26,14 @@ public static class ModelsExtensions
             name: lot.Name,
             pcs: lot.Pcs,
             price: lot.Price,
-            purchaseHistory: lot.Purchases.Select(x => x.ToApiPurchaseInfo()).ToList(),
+            purchaseHistory: lot.Purchases.OrderByDescending(x => x.Date).Select(x => x.ToApiPurchaseInfo()).ToList(),
             seller: lot.Seller,
             shipping: lot.Shipping,
             shippingAdditional: lot.ShippingAdditional),
         productId: lot.ProductId);
 
     public static PurchaseInfo ToApiPurchaseInfo(this Purchase purchase) => new(
-        date: purchase.Date.ToString("O"),
+        date: purchase.Date.ToString(WellKnown.Formats.TimeFormat),
         price: purchase.Price,
         quantity: purchase.Quantity);
 

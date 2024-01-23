@@ -231,6 +231,13 @@ export class Client {
             return response.text().then((_responseText) => {
             return;
             });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetailedInfo.fromJS(resultData400);
+            return throwException("NotFound", status, _responseText, _headers, result400);
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
@@ -514,8 +521,8 @@ export class LotInfo implements ILotInfo {
     name!: string;
     pcs!: number;
     price!: number;
-    shipping!: number;
-    shippingAdditional!: number;
+    shipping?: number | undefined;
+    shippingAdditional?: number | undefined;
     description!: string;
     condition!: string;
     conditionDescription?: string | undefined;
@@ -596,8 +603,8 @@ export interface ILotInfo {
     name: string;
     pcs: number;
     price: number;
-    shipping: number;
-    shippingAdditional: number;
+    shipping?: number | undefined;
+    shippingAdditional?: number | undefined;
     description: string;
     condition: string;
     conditionDescription?: string | undefined;

@@ -2,8 +2,8 @@ import {
     ApiException,
     Client,
     LotInfo,
-    LotInfoWithProductId,
-    PurchaseInfo
+    LotInfoWithProductId, NotFoundProblemDetailedInfo,
+    PurchaseInfo, ValidationProblemDetailedInfo
 } from "./EbayClient/EbayClient"
 
 import {generateCodeVerifier, OAuth2Client} from '@badgateway/oauth2-client';
@@ -21,7 +21,7 @@ const submitId = "submit"
 const backendUrl = "https://localhost:7095/"
 const baseApiUrl = `${backendUrl}api/ebay/v1`;
 const authRedirectUrl = "https://www.ebay.com/"
-const rescanTimeDays = 60
+const notSetValue = "notSet"
 
 const lotInfo = new LotInfo();
 
@@ -51,7 +51,7 @@ function extractPrice(price) {
         throw new Error('US $ price expected, but was')
     }
 
-    return matches[2].replace(',', '.')
+    return parseFloat(matches[2].replace(',', '.'))
 }
 
 function createHistoryButton() {
@@ -76,8 +76,8 @@ function createHistoryButton() {
     return historyButton;
 }
 
-function addHistoryButton() {
-    let productTitleContainer = document.querySelector('.vim[data-testid="x-item-title"]');
+async function addHistoryButton() {
+    let productTitleContainer = await sleepElementLoaded('.vim[data-testid="x-item-title"]');
     if (productTitleContainer) {
         let existingButton = productTitleContainer.querySelector('a.history-button');
         if (!existingButton) {
@@ -168,30 +168,35 @@ async function handleSubmit(event: SubmitEvent, client: Client) {
         let data = new FormData(<HTMLFormElement>event.target);
 
         let ignoreThatLot = false;
-        
+
         data.forEach(function (value, key) {
-            
+
             if (key === 'ignoreThatLot') {
                 ignoreThatLot = true
-            }else {
+            } else {
                 lotInfo[key] = value;
             }
         });
-        
-        lotInfo['ignoreThatLot'] = ignoreThatLot;
 
-        console.log(JSON.stringify(lotInfo))
+        lotInfo['ignoreThatLot'] = ignoreThatLot;
+        
+        if (ignoreThatLot) {
+            lotInfo.pcs = 1
+            lotInfo.manualConditionId = notSetValue
+        }
+
+        console.log("Sending to backend: " + JSON.stringify(lotInfo))
 
 
         await client.upsertLotInfo(lotInfo, data.get('productId').toString())
 
         await productPage(client)
     } catch (error) {
-        showError(error)
+        await showError(error)
     }
 }
 
-function fillSoldItemsResult(fixedPriceRows: HTMLTableRowElement[], result: PurchaseInfo[]) {
+function fillSoldItemsResult(fixedPriceRows: HTMLTableRowElement[], result: PurchaseInfoInner[]) {
     for (let fixedPriceRow of fixedPriceRows) {
         let columns = [...fixedPriceRow.querySelectorAll('td')]
             .map(function (item) {
@@ -206,21 +211,26 @@ function fillSoldItemsResult(fixedPriceRows: HTMLTableRowElement[], result: Purc
 
         if (price !== "Sold as a special offer" && price !== "Counter-offered" && price !== "Accepted") {
 
-            result.push(new PurchaseInfo({
-                date: parseDate(columns[3]),
-                quantity: parseInt(columns[2]),
-                price: extractPrice(price)
-            }))
+            result.push(new PurchaseInfoInner(parseInt(columns[2]), parseDate(columns[3]), extractPrice(price)))
         } else {
-            result.push(new PurchaseInfo({
-                date: parseDate(columns[3]),
-                quantity: parseInt(columns[2])
-            }))
+            result.push(new PurchaseInfoInner(parseInt(columns[2]), parseDate(columns[3])))
         }
     }
 }
 
-function parseDate(dateString) {
+class PurchaseInfoInner {
+    constructor(quantity: number, date: Date, price?: number | undefined) {
+        this.quantity = quantity
+        this.date = date
+        this.price = price
+    }
+
+    quantity: number;
+    price: number | undefined;
+    date: Date
+}
+
+function parseDate(dateString): Date {
     let matches = dateString.match(/(\d+\s[A-z]+\s\d+)\sat\s(\d+):(\d+):(\d+)(am|pm)\s([A-z]+)/)
 
     let date = new Date(Date.parse(matches[1] + ' 00:00:00.000Z'))
@@ -242,13 +252,13 @@ function parseDate(dateString) {
         throw new Error("unknown timezone " + matches[6])
     }
 
-    return date.toISOString()
+    return date
 }
 
-function parseSoldItemsPage(text): PurchaseInfo[] {
+function parseSoldItemsPage(text: string): PurchaseInfo[] {
     let doc = new DOMParser().parseFromString(text, "text/html")
 
-    let result = new Array<PurchaseInfo>();
+    let result = new Array<PurchaseInfoInner>();
     let fixedPriceBlock = doc.querySelector('div.fixed-price tbody')
     if (fixedPriceBlock !== null) {
         let fixedPriceRows = [...fixedPriceBlock.querySelectorAll('tr')]
@@ -261,30 +271,36 @@ function parseSoldItemsPage(text): PurchaseInfo[] {
         fillSoldItemsResult(offerRows, result);
     }
 
-    return result;
+    return result.sort(function (a, b) {
+        return b.date.getTime() - a.date.getTime();
+    }).map(function (x) {
+        return new PurchaseInfo({
+            date: x.date.toISOString(), quantity: x.quantity, price: x.price
+        })
+    });
 }
 
 function fillId() {
     lotInfo.lotId = parseInt(location.pathname.match(/\/itm\/([0-9]+)/)[1]);
 }
 
-function fillPrice() {
-    lotInfo.price = extractPrice((<HTMLElement>document.querySelector('div.x-price-primary span')).innerText)
+async function fillPrice() {
+    lotInfo.price = extractPrice((<HTMLElement>await sleepElementLoaded('div.x-price-primary span')).innerText)
 }
 
-function fillName() {
-    lotInfo.name = (<HTMLElement>document.querySelector('.vim h1')).innerText
+async function fillName() {
+    lotInfo.name = (<HTMLElement>await sleepElementLoaded('.vim h1')).innerText
 }
 
-function fillSeller() {
-    lotInfo.seller = (<HTMLElement>document.querySelector('div.x-sellercard-atf__info__about-seller a')).innerText.toLowerCase()
+async function fillSeller() {
+    lotInfo.seller = (<HTMLElement>await sleepElementLoaded('div.x-sellercard-atf__info__about-seller a')).innerText.toLowerCase()
 }
 
-function fillCondition() {
-    lotInfo.condition = (<HTMLElement>document.querySelector('div.x-item-condition-text span.ux-textspans')).innerText
+async function fillCondition() {
+    lotInfo.condition = (<HTMLElement>await sleepElementLoaded('div.x-item-condition-text span.ux-textspans')).innerText
 }
 
-function fillConditionDescription() {
+async function fillConditionDescription() {
     let conditionDescriptionElement = document.querySelector('div.x-item-condition-desc')
     if (conditionDescriptionElement != null) {
         lotInfo.conditionDescription = (<HTMLElement>conditionDescriptionElement).innerText
@@ -319,8 +335,15 @@ function fillShipping() {
             lotInfo.shipping = extractPrice(shippingValue)
 
             if (shippingMaxviewValues.hasOwnProperty('Each additional item')) {
-                lotInfo.shippingAdditional = extractPrice(shippingMaxviewValues['Each additional item'])
-
+                
+                let eachAdditional = shippingMaxviewValues['Each additional item']
+                
+                if (eachAdditional !== "Free") {
+                    lotInfo.shippingAdditional = extractPrice(eachAdditional)
+                }
+                else {
+                    lotInfo.shippingAdditional = 0;
+                }
             } else {
                 lotInfo.shippingAdditional = 0;
             }
@@ -329,15 +352,24 @@ function fillShipping() {
             lotInfo.shipping = 0;
             lotInfo.shippingAdditional = 0;
         }
+    } else {
+        lotInfo.shipping = undefined;
+        lotInfo.shippingAdditional = undefined;
     }
 }
 
-function fillLocatedIn() {
-    lotInfo.locatedIn = (<HTMLElement>document.querySelector('div.d-shipping-minview')).innerText.match(/Located\sin:\s(.+)/)[1]
+async function fillLocatedIn() {
+    let match = (<HTMLElement>await sleepElementLoaded('div.d-shipping-minview')).innerText.match(/Located\sin:\s(.+)/)
+    if (match !== null) {
+        lotInfo.locatedIn = match[1]
+    }
+    else {
+        lotInfo.locatedIn = "Unknown"
+    }
 }
 
 async function fillDescription() {
-    let descriptionUrl = (<HTMLIFrameElement>document.querySelector('#desc_ifr')).src
+    let descriptionUrl = (<HTMLIFrameElement>await sleepElementLoaded('#desc_ifr')).src
     let response = await fetchResource(descriptionUrl, {method: 'GET', credentials: 'include'})
     lotInfo.description = await response.text()
 }
@@ -385,13 +417,13 @@ async function fillManualCondition(panel: HTMLDivElement, client: Client, server
         let opt = document.createElement('option');
         opt.value = manualConditions[i].id;
         opt.innerHTML = manualConditions[i].description;
-        
+
         if (manualConditionId !== undefined) {
             if (manualConditionId === manualConditions[i].id.trim().toLowerCase()) {
                 opt.selected = true
             }
         }
-        
+
         manualConditionField.appendChild(opt);
     }
 }
@@ -400,18 +432,17 @@ async function getServerLotInfo(client: Client): Promise<LotInfoWithProductId | 
     try {
         return await client.getLotInfo(lotInfo.lotId);
     } catch (error) {
-        if (error instanceof ApiException) {
-            if ((<ApiException>error).response["type"] === 'NotFoundProblemDetailedInfo') {
-                return undefined;
-            } else throw error;
-        } else
-            throw error;
+        if (error instanceof NotFoundProblemDetailedInfo) {
+            return undefined;
+        }
+
+        throw error;
     }
 }
 
 function fillPcs(panel: HTMLDivElement, serverLotInfo: LotInfoWithProductId | undefined) {
     let pcsField = <HTMLInputElement>panel.querySelector('input#' + pcsFieldName);
-    
+
     let serverPcs = serverLotInfo?.lotInfo?.pcs
     if (serverPcs !== undefined) {
         pcsField.value = serverPcs.toString()
@@ -427,17 +458,46 @@ function fillIgnoreThatLot(panel: HTMLDivElement, serverLotInfo: LotInfoWithProd
     }
 }
 
+
+async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId) {
+    if (serverLotInfoWithProductId === undefined) return;
+    let serverLotInfoJson = serverLotInfoWithProductId.lotInfo.toJSON()
+    serverLotInfoJson["pcs"] = undefined
+    serverLotInfoJson["ignoreThatLot"] = undefined
+    serverLotInfoJson["manualConditionId"] = undefined
+    let lotInfoJson = lotInfo.toJSON()
+    lotInfoJson["pcs"] = undefined
+    lotInfoJson["ignoreThatLot"] = undefined
+    lotInfoJson["manualConditionId"] = undefined
+    if (serverLotInfoWithProductId.lotInfo.ignoreThatLot) {
+        serverLotInfoJson["purchaseHistory"] = undefined
+        lotInfoJson["purchaseHistory"] = undefined
+    }
+
+    let serverLotInfoJsonString = JSON.stringify(serverLotInfoJson)
+    let currentPageLotInfoJsonString = JSON.stringify(lotInfoJson)
+    let panel = <HTMLDivElement>await sleepElementLoaded('div.' + panelClass);
+    if (serverLotInfoJsonString === currentPageLotInfoJsonString) {
+        panel.style.cssText = `background-color: #ecffec;`
+    } else {
+        panel.style.cssText = `background-color: lightpink;`
+    }
+    
+    console.log("Received from server: " + serverLotInfoJsonString)
+    console.log("CurrentPage: " + currentPageLotInfoJsonString)
+}
+
 async function getDataFromPage(client: Client) {
-    let panel = <HTMLDivElement>document.querySelector('div.' + panelClass)
+    let panel = <HTMLDivElement>await sleepElementLoaded('div.' + panelClass)
 
     fillId();
-    fillPrice();
+    await fillPrice();
+    await fillName();
+    await fillSeller();
+    await fillCondition();
+    await fillConditionDescription();
+    await fillLocatedIn();
     fillShipping();
-    fillName();
-    fillSeller();
-    fillCondition();
-    fillConditionDescription();
-    fillLocatedIn();
     let serverLotInfo = await getServerLotInfo(client)
     await fillProduct(panel, client, serverLotInfo);
     await fillManualCondition(panel, client, serverLotInfo);
@@ -445,11 +505,12 @@ async function getDataFromPage(client: Client) {
     fillIgnoreThatLot(panel, serverLotInfo)
     await fillDescription();
     await fillPurchaseHistory();
+    await compareLotInfos(serverLotInfo);
 }
 
 
-function addPanel(client: Client) {
-    let bodyElement = document.querySelector('body');
+async function addPanel(client: Client) {
+    let bodyElement = await sleepElementLoaded('body');
     if (bodyElement) {
         let existingPanel = bodyElement.querySelector('div.' + panelClass);
         if (!existingPanel) {
@@ -458,15 +519,13 @@ function addPanel(client: Client) {
     }
 }
 
-function showError(error: Error) {
-    let errorDiv = document.querySelector('div.' + panelClass + ' #' + errorElementId)
+async function showError(error: Error) {
+    let errorDiv = await sleepElementLoaded('div.' + panelClass + ' #' + errorElementId)
     let span = document.createElement('span');
 
-    if (error instanceof ApiException) {
-        let apiException = <ApiException>error
-        console.log(apiException.status + " code received")
-        console.log(apiException.response)
-        span.innerHTML = apiException.status + " " + apiException.response;
+    if (error instanceof ValidationProblemDetailedInfo) {
+        let validationError = <ValidationProblemDetailedInfo>error
+        span.innerHTML = "Ошибка валидации: " + JSON.stringify(validationError.errors)
     } else {
         console.log(error.stack)
         span.innerHTML = error.stack;
@@ -475,17 +534,18 @@ function showError(error: Error) {
     errorDiv.appendChild(span)
 }
 
-function enableSubmitButton() {
-    (<HTMLButtonElement>document.querySelector('#' + submitId)).disabled = false
+async function enableSubmitButton() {
+    (<HTMLButtonElement>await sleepElementLoaded('#' + submitId)).disabled = false
 }
 
 function getAuthorizeFetch(oAuth2Client: OAuth2Client): FetchWrapperCustom {
     return new FetchWrapperCustom({
         client: oAuth2Client,
         getNewToken: async () => {
-            let codeVerifier = await generateCodeVerifier();
-            await chrome.storage.local.set({code_verifier: codeVerifier})
-            document.location = await oAuth2Client.authorizationCode.getAuthorizeUri({
+            await chrome.storage.local.set({return_to_page: document.location.href})
+            let codeVerifier = (await chrome.storage.local.get(["code_verifier"])).code_verifier;
+            
+            document.location.href = await oAuth2Client.authorizationCode.getAuthorizeUri({
                 redirectUri: authRedirectUrl,
                 codeVerifier,
                 scope: ['Ebay.ServerAPI']
@@ -501,25 +561,27 @@ function getAuthorizeFetch(oAuth2Client: OAuth2Client): FetchWrapperCustom {
     })
 }
 
-function hideErrors() {
-    let errorDiv = document.querySelector('div.' + panelClass + ' #' + errorElementId)
+async function hideErrors() {
+    let errorDiv = await sleepElementLoaded('div.' + panelClass + ' #' + errorElementId)
     errorDiv.innerHTML = ""
 }
 
 async function productPage(client: Client) {
+    console.log("productPage")
     try {
-        addHistoryButton();
-        addPanel(client);
+        await addHistoryButton();
+        await addPanel(client);
         await getDataFromPage(client);
-        enableSubmitButton()
-        hideErrors()
+        await enableSubmitButton()
+        await hideErrors()
     } catch (error) {
-        showError(error);
+        await showError(error);
         throw error;
     }
 }
 
 async function authPage(oAuth2Client: OAuth2Client) {
+    console.log("authPage")
     let url = new URL(document.location.href)
     if (url.searchParams.has("code")) {
         let codeVerifier = (await chrome.storage.local.get(["code_verifier"])).code_verifier;
@@ -533,44 +595,73 @@ async function authPage(oAuth2Client: OAuth2Client) {
 
         await chrome.storage.local.set({token_store: JSON.stringify(oauth2Token)})
         let returnPage = (await chrome.storage.local.get(["return_to_page"])).return_to_page
+        await chrome.storage.local.set({return_to_page: null})
         console.log("returning to " + returnPage)
         document.location.href = returnPage
     }
 }
 
+
 async function searchPage(client: Client) {
+    console.log("SearchPage")
     //только на странице проданые лоты
     if (new URL(document.location.href).searchParams?.get('LH_Sold')?.trim() !== "1") return;
 
-    let links = [...document.querySelector('ul.srp-results').querySelectorAll('li.s-item')]
+    let searchResults = await sleepElementLoaded('ul.srp-results')
+
+    let links = [...searchResults.querySelectorAll('li.s-item')]
         .map(function (x: HTMLElement) {
             let link = <HTMLAnchorElement>x.querySelector('a.s-item__link')
             let soldDate = new Date((<HTMLElement>x.querySelector('span.POSITIVE')).innerText.replace("Sold ", ""))
             return new LotLink(parseInt(link.href.match(/https:\/\/[^\/]+\/itm\/(\d+)/)[1]), link, soldDate);
         })
+    
+    let _ = updateStatusInfinite(client, links);
+}
 
-    let getLotStatesAnswer = await client.getLotStates(links.map(function (x) {
-        return x.id
-    }))
+async function updateStatusInfinite(client: Client, links: LotLink[]) {
+    let ids = links.map(function (x) {  return x.id  })
+    // noinspection InfiniteLoopJS
+    while (true) {
+        try {
+            console.log("UpdatingLotStates")
+            let getLotStatesAnswer = await client.getLotStates(ids)
 
-    let knownLots = new Map(getLotStatesAnswer.map(p => [p.lotId, p]));
+            let knownLots = new Map(getLotStatesAnswer.map(p => [p.lotId, p]));
 
-    links.forEach(function (x) {
-        if (knownLots.has(x.id)) {
-            let lotState = knownLots.get(x.id)
-            if (!lotState.ignoreThatLot) {
-                let diffInDays = Math.ceil((x.soldDate.getTime() - new Date(lotState.lastUpdate).getTime()) / (1000 * 60 * 60 * 24));
-                console.log(diffInDays)
-                if (diffInDays > 0) {
-                    x.link.style.cssText = `background-color: #e0e07f;`
+            links.forEach(function (x) {
+                
+                let color = x.color;
+                
+                if (knownLots.has(x.id)) {
+                    let lotState = knownLots.get(x.id)
+                    if (!lotState.ignoreThatLot) {
+                        let diffInDays = Math.ceil((x.soldDate.getTime() - new Date(lotState.lastUpdate).getTime()) / (1000 * 60 * 60 * 24));
+                        if (diffInDays > 0) {
+                            x.color = '#e0e07f'
+                        } else {
+                            x.color = 'lightgreen'
+                        }
+                        console.log(diffInDays)
+                    }
+                    else {
+                        x.color = 'lightgreen'
+                    }
                 } else {
-                    x.link.style.cssText = `background-color: none;`
+                    x.color = 'lightpink'
                 }
-            }
-        } else {
-            x.link.style.cssText = `background-color: lightpink;`
+                
+                if (x.color !== null && color !== x.color) {
+                    x.link.style.cssText = `background-color: ${x.color};`
+                }
+            })
+
+            await sleep(1000)
         }
-    })
+        catch (error) {
+            console.log(error.stack)
+        }
+    }
 }
 
 class LotLink {
@@ -578,14 +669,44 @@ class LotLink {
         this.id = id
         this.link = link
         this.soldDate = soldDate
+        this.color = null
     }
 
     id: number;
     link: HTMLAnchorElement;
     soldDate: Date
+    color: string | null
+}
+
+async function sleepElementLoaded(selector: string): Promise<Element> {
+    let retry = 0
+    while (true) {
+        retry++;
+        if (retry > 1000) throw new Error("unable to find element by selector " + selector)
+
+        let element = document.querySelector(selector)
+        if (element !== null) return element
+        await sleep(100);
+    }
+}
+
+function sleep(ms: number): Promise<number> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function saveCodeVerifier() {
+    let codeVerifier = (await chrome.storage.local.get(["code_verifier"]))?.code_verifier;
+
+    if (codeVerifier === null || codeVerifier === undefined) {
+        let codeVerifier = await generateCodeVerifier();
+        await chrome.storage.local.set({code_verifier: codeVerifier})
+    }
 }
 
 export async function run() {
+    await sleepElementLoaded('footer')
+    await saveCodeVerifier();
+    
     let oAuth2Client = new OAuth2Client({
         server: backendUrl,
         clientId: 'Ebay.ChromeExtension',
@@ -599,10 +720,8 @@ export async function run() {
     if (currentPage === authRedirectUrl) {
         await authPage(oAuth2Client);
     } else {
-        let currentPage = location.protocol + '//' + location.host + location.pathname
-        await chrome.storage.local.set({return_to_page: currentPage})
-
         let client = new Client(baseApiUrl, getAuthorizeFetch(oAuth2Client));
+        
         if (currentPage.startsWith("https://www.ebay.com/itm/")) {
             await productPage(client);
         } else if (currentPage.startsWith("https://www.ebay.com/sch/")) {

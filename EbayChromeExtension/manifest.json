@@ -51,7 +51,8 @@
         "https://*.ebay.ie/sch/*",
         "https://*.ebay.at/sch/*",
         "https://*.ebay.ch/sch/*"
-      ]
+      ],
+      "run_at": "document_start"
     }
   ],
   "permissions": [

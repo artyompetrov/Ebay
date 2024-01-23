@@ -105,7 +105,7 @@ public class EbayControllerImplementation : IEbayController
 
         if (dbLot == null)
         {
-            throw NonOkHttpAnswerException.NotFound();
+            throw NonOkHttpAnswerException.NotFound400();
         }
 
         return dbLot.ToApiLot();
@@ -120,7 +120,7 @@ public class EbayControllerImplementation : IEbayController
             .Select(x => new { x.Id, x.UpdateDate, x.IgnoreThatLot }).ToListAsync(cancellationToken);
 
         return result.Select(
-            x => new LotState(ignoreThatLot: x.IgnoreThatLot, lastUpdate: x.UpdateDate.ToString("O"), lotId: x.Id)).ToList();
+            x => new LotState(ignoreThatLot: x.IgnoreThatLot, lastUpdate: x.UpdateDate.ToString(WellKnown.Formats.TimeFormat), lotId: x.Id)).ToList();
     }
 
     public Task<ICollection<ManualCondition>> GetManualConditionsListAsync(

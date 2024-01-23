@@ -281,7 +281,7 @@ namespace Ebay.Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public LotInfo(string @condition, string? @conditionDescription, string @description, bool @ignoreThatLot, string @locatedIn, long @lotId, string @manualConditionId, string @name, int @pcs, double @price, System.Collections.Generic.List<PurchaseInfo> @purchaseHistory, string @seller, double @shipping, double @shippingAdditional)
+        public LotInfo(string @condition, string? @conditionDescription, string @description, bool @ignoreThatLot, string @locatedIn, long @lotId, string @manualConditionId, string @name, int @pcs, double @price, System.Collections.Generic.List<PurchaseInfo> @purchaseHistory, string @seller, double? @shipping, double? @shippingAdditional)
 
         {
 
@@ -328,13 +328,13 @@ namespace Ebay.Server.Controllers.Generated
         [System.ComponentModel.DataAnnotations.Range(0.01D, double.MaxValue)]
         public double Price { get; }
 
-        [Newtonsoft.Json.JsonProperty("shipping", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("shipping", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Range(0D, double.MaxValue)]
-        public double Shipping { get; }
+        public double? Shipping { get; }
 
-        [Newtonsoft.Json.JsonProperty("shippingAdditional", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("shippingAdditional", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Range(0D, double.MaxValue)]
-        public double ShippingAdditional { get; }
+        public double? ShippingAdditional { get; }
 
         [Newtonsoft.Json.JsonProperty("description", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]

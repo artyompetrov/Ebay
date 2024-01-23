@@ -89,6 +89,10 @@ paths:
       responses:
         200:
           description: 'Ok'
+        400:
+          description: 'NotFound'
+          schema:
+            $ref: '#/definitions/ValidationProblemDetailedInfo'
 
   /lots/{lotId}/:
     parameters:
@@ -241,8 +245,6 @@ definitions:
       - name
       - pcs
       - price
-      - shipping
-      - shippingAdditional
       - description
       - condition
       - seller

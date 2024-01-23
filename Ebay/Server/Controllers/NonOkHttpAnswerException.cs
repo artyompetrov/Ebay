@@ -13,5 +13,12 @@ public class NonOkHttpAnswerException : Exception
     }
 
 
-    public static NonOkHttpAnswerException NotFound() => new(new NotFoundProblemDetailedInfo(detail: null, instance: null, status: null, title: null, type: nameof(NotFoundProblemDetailedInfo), errors:null));
+    public static NonOkHttpAnswerException NotFound400() => new(
+        new NotFoundProblemDetailedInfo(
+            detail: null,
+            instance: null,
+            status: 400,
+            title: null,
+            type: nameof(NotFoundProblemDetailedInfo),
+            errors: null));
 }
