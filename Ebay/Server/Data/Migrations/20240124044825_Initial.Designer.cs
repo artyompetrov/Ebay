@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Ebay.Server.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240102085028_AddProduct")]
-    partial class AddProduct
+    [Migration("20240124044825_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -229,10 +229,69 @@ namespace Ebay.Server.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("Ebay.Server.Data.Models.Lot", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Condition")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ConditionDescription")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IgnoreThatLot")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("LocatedIn")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ManualCondition")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Pcs")
+                        .HasColumnType("integer");
+
+                    b.Property<double>("Price")
+                        .HasColumnType("double precision");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Seller")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<double?>("Shipping")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("ShippingAdditional")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime>("UpdateDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("Lots");
+                });
+
             modelBuilder.Entity("Ebay.Server.Data.Models.Product", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("ApplicationUserId")
@@ -251,6 +310,27 @@ namespace Ebay.Server.Data.Migrations
                     b.HasIndex("ApplicationUserId");
 
                     b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("Ebay.Server.Data.Models.Purchase", b =>
+                {
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("LotId")
+                        .HasColumnType("bigint");
+
+                    b.Property<double?>("Price")
+                        .HasColumnType("double precision");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Date");
+
+                    b.HasIndex("LotId");
+
+                    b.ToTable("Purchases");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -389,11 +469,33 @@ namespace Ebay.Server.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Ebay.Server.Data.Models.Lot", b =>
+                {
+                    b.HasOne("Ebay.Server.Data.Models.Product", "Product")
+                        .WithMany("Lots")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("Ebay.Server.Data.Models.Product", b =>
                 {
                     b.HasOne("Ebay.Server.Data.Models.ApplicationUser", null)
                         .WithMany("Products")
                         .HasForeignKey("ApplicationUserId");
+                });
+
+            modelBuilder.Entity("Ebay.Server.Data.Models.Purchase", b =>
+                {
+                    b.HasOne("Ebay.Server.Data.Models.Lot", "Lot")
+                        .WithMany("Purchases")
+                        .HasForeignKey("LotId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Lot");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -450,6 +552,16 @@ namespace Ebay.Server.Data.Migrations
             modelBuilder.Entity("Ebay.Server.Data.Models.ApplicationUser", b =>
                 {
                     b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("Ebay.Server.Data.Models.Lot", b =>
+                {
+                    b.Navigation("Purchases");
+                });
+
+            modelBuilder.Entity("Ebay.Server.Data.Models.Product", b =>
+                {
+                    b.Navigation("Lots");
                 });
 #pragma warning restore 612, 618
         }
