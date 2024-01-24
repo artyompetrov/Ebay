@@ -24,6 +24,7 @@ const authRedirectUrl = "https://www.ebay.com/"
 const notSetValue = "notSet"
 
 const lotInfo = new LotInfo();
+let _serverLotInfo: LotInfoWithProductId;
 
 // fetch через background script, по другому не работает
 function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response> {
@@ -179,9 +180,8 @@ async function handleSubmit(event: SubmitEvent, client: Client) {
         });
 
         lotInfo['ignoreThatLot'] = ignoreThatLot;
-        
+
         if (ignoreThatLot) {
-            lotInfo.pcs = 1
             lotInfo.manualConditionId = notSetValue
         }
 
@@ -309,7 +309,7 @@ async function fillConditionDescription() {
     }
 }
 
-function fillShipping() {
+async function fillShipping() {
     let shippingRatesAvailable = document.querySelector('div.ux-layout-section__textual-display--askSeller') === null
     if (shippingRatesAvailable) {
         let deliveryColumnsHeader = [...document.querySelector('div.d-shipping-maxview thead')
@@ -335,13 +335,12 @@ function fillShipping() {
             lotInfo.shipping = extractPrice(shippingValue)
 
             if (shippingMaxviewValues.hasOwnProperty('Each additional item')) {
-                
+
                 let eachAdditional = shippingMaxviewValues['Each additional item']
-                
+
                 if (eachAdditional !== "Free") {
                     lotInfo.shippingAdditional = extractPrice(eachAdditional)
-                }
-                else {
+                } else {
                     lotInfo.shippingAdditional = 0;
                 }
             } else {
@@ -362,8 +361,7 @@ async function fillLocatedIn() {
     let match = (<HTMLElement>await sleepElementLoaded('div.d-shipping-minview')).innerText.match(/Located\sin:\s(.+)/)
     if (match !== null) {
         lotInfo.locatedIn = match[1]
-    }
-    else {
+    } else {
         lotInfo.locatedIn = "Unknown"
     }
 }
@@ -430,7 +428,7 @@ async function fillManualCondition(panel: HTMLDivElement, client: Client, server
 
 async function getServerLotInfo(client: Client): Promise<LotInfoWithProductId | undefined> {
     try {
-        return await client.getLotInfo(lotInfo.lotId);
+        _serverLotInfo = await client.getLotInfo(lotInfo.lotId);
     } catch (error) {
         if (error instanceof NotFoundProblemDetailedInfo) {
             return undefined;
@@ -440,7 +438,7 @@ async function getServerLotInfo(client: Client): Promise<LotInfoWithProductId | 
     }
 }
 
-function fillPcs(panel: HTMLDivElement, serverLotInfo: LotInfoWithProductId | undefined) {
+async function fillPcs(panel: HTMLDivElement, serverLotInfo: LotInfoWithProductId | undefined) {
     let pcsField = <HTMLInputElement>panel.querySelector('input#' + pcsFieldName);
 
     let serverPcs = serverLotInfo?.lotInfo?.pcs
@@ -449,7 +447,7 @@ function fillPcs(panel: HTMLDivElement, serverLotInfo: LotInfoWithProductId | un
     }
 }
 
-function fillIgnoreThatLot(panel: HTMLDivElement, serverLotInfo: LotInfoWithProductId | undefined) {
+async function fillIgnoreThatLot(panel: HTMLDivElement, serverLotInfo: LotInfoWithProductId | undefined) {
     let ignoreThatLotField = <HTMLInputElement>panel.querySelector('input#' + ignoreThatLotFieldName);
 
     let serverPcs = serverLotInfo?.lotInfo?.ignoreThatLot
@@ -482,7 +480,7 @@ async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId)
     } else {
         panel.style.cssText = `background-color: lightpink;`
     }
-    
+
     console.log("Received from server: " + serverLotInfoJsonString)
     console.log("CurrentPage: " + currentPageLotInfoJsonString)
 }
@@ -491,21 +489,25 @@ async function getDataFromPage(client: Client) {
     let panel = <HTMLDivElement>await sleepElementLoaded('div.' + panelClass)
 
     fillId();
-    await fillPrice();
-    await fillName();
-    await fillSeller();
-    await fillCondition();
-    await fillConditionDescription();
-    await fillLocatedIn();
-    fillShipping();
-    let serverLotInfo = await getServerLotInfo(client)
-    await fillProduct(panel, client, serverLotInfo);
-    await fillManualCondition(panel, client, serverLotInfo);
-    fillPcs(panel, serverLotInfo);
-    fillIgnoreThatLot(panel, serverLotInfo)
-    await fillDescription();
-    await fillPurchaseHistory();
-    await compareLotInfos(serverLotInfo);
+    await Promise.all([
+        fillPrice(),
+        fillName(),
+        fillSeller(),
+        fillCondition(),
+        fillConditionDescription(),
+        fillLocatedIn(),
+        fillDescription(),
+        fillPurchaseHistory(),
+        getServerLotInfo(client)
+    ])
+    await Promise.all([
+        fillProduct(panel, client, _serverLotInfo),
+        fillManualCondition(panel, client, _serverLotInfo),
+        compareLotInfos(_serverLotInfo),
+        fillPcs(panel, _serverLotInfo),
+        fillIgnoreThatLot(panel, _serverLotInfo),
+        fillShipping(),
+    ]);
 }
 
 
@@ -542,9 +544,8 @@ function getAuthorizeFetch(oAuth2Client: OAuth2Client): FetchWrapperCustom {
     return new FetchWrapperCustom({
         client: oAuth2Client,
         getNewToken: async () => {
-            await chrome.storage.local.set({return_to_page: document.location.href})
             let codeVerifier = (await chrome.storage.local.get(["code_verifier"])).code_verifier;
-            
+
             document.location.href = await oAuth2Client.authorizationCode.getAuthorizeUri({
                 redirectUri: authRedirectUrl,
                 codeVerifier,
@@ -594,10 +595,8 @@ async function authPage(oAuth2Client: OAuth2Client) {
         );
 
         await chrome.storage.local.set({token_store: JSON.stringify(oauth2Token)})
-        let returnPage = (await chrome.storage.local.get(["return_to_page"])).return_to_page
-        await chrome.storage.local.set({return_to_page: null})
-        console.log("returning to " + returnPage)
-        document.location.href = returnPage
+
+        document.location.href = authRedirectUrl
     }
 }
 
@@ -615,12 +614,14 @@ async function searchPage(client: Client) {
             let soldDate = new Date((<HTMLElement>x.querySelector('span.POSITIVE')).innerText.replace("Sold ", ""))
             return new LotLink(parseInt(link.href.match(/https:\/\/[^\/]+\/itm\/(\d+)/)[1]), link, soldDate);
         })
-    
+
     let _ = updateStatusInfinite(client, links);
 }
 
 async function updateStatusInfinite(client: Client, links: LotLink[]) {
-    let ids = links.map(function (x) {  return x.id  })
+    let ids = links.map(function (x) {
+        return x.id
+    })
     // noinspection InfiniteLoopJS
     while (true) {
         try {
@@ -630,9 +631,9 @@ async function updateStatusInfinite(client: Client, links: LotLink[]) {
             let knownLots = new Map(getLotStatesAnswer.map(p => [p.lotId, p]));
 
             links.forEach(function (x) {
-                
+
                 let color = x.color;
-                
+
                 if (knownLots.has(x.id)) {
                     let lotState = knownLots.get(x.id)
                     if (!lotState.ignoreThatLot) {
@@ -643,22 +644,20 @@ async function updateStatusInfinite(client: Client, links: LotLink[]) {
                             x.color = 'lightgreen'
                         }
                         console.log(diffInDays)
-                    }
-                    else {
+                    } else {
                         x.color = 'lightgreen'
                     }
                 } else {
                     x.color = 'lightpink'
                 }
-                
+
                 if (x.color !== null && color !== x.color) {
                     x.link.style.cssText = `background-color: ${x.color};`
                 }
             })
 
             await sleep(1000)
-        }
-        catch (error) {
+        } catch (error) {
             console.log(error.stack)
         }
     }
@@ -706,7 +705,7 @@ async function saveCodeVerifier() {
 export async function run() {
     await sleepElementLoaded('footer')
     await saveCodeVerifier();
-    
+
     let oAuth2Client = new OAuth2Client({
         server: backendUrl,
         clientId: 'Ebay.ChromeExtension',
@@ -721,7 +720,7 @@ export async function run() {
         await authPage(oAuth2Client);
     } else {
         let client = new Client(baseApiUrl, getAuthorizeFetch(oAuth2Client));
-        
+
         if (currentPage.startsWith("https://www.ebay.com/itm/")) {
             await productPage(client);
         } else if (currentPage.startsWith("https://www.ebay.com/sch/")) {
