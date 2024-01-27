@@ -181,6 +181,7 @@ async function handleSubmit(event: SubmitEvent, client: Client) {
         lotInfo['ignoreThatLot'] = ignoreThatLot;
 
         if (ignoreThatLot) {
+            lotInfo.pcs = 1
             lotInfo.manualConditionId = notSetValue
         }
 
@@ -379,11 +380,18 @@ async function fillPurchaseHistory() {
     lotInfo.purchaseHistory = parseSoldItemsPage(text)
 }
 
+function getSearchQuery() : string | undefined {
+    if (document.referrer) {
+        return new URL(document.referrer).searchParams?.get('_nkw')?.trim()?.toLowerCase();
+    }
+    return undefined
+}
+
 async function fillProduct(panel: HTMLDivElement, client: Client, serverLotInfo: LotInfoWithProductId | undefined) {
     let productField = panel.querySelector('select#' + productFieldName);
 
     let productId = serverLotInfo?.productId?.trim()?.toLowerCase()
-    let searchQuery = new URL(document.referrer).searchParams?.get('_nkw')?.trim()?.toLowerCase();
+    let searchQuery = getSearchQuery();
 
     let products = await client.getAllProducts()
     for (let i = 0; i < products.length; i++) {
@@ -502,11 +510,12 @@ async function getDataFromPage(client: Client) {
     await Promise.all([
         fillProduct(panel, client, _serverLotInfo),
         fillManualCondition(panel, client, _serverLotInfo),
-        compareLotInfos(_serverLotInfo),
         fillPcs(panel, _serverLotInfo),
         fillIgnoreThatLot(panel, _serverLotInfo),
         fillShipping(),
     ]);
+    
+    await compareLotInfos(_serverLotInfo);
 }
 
 
