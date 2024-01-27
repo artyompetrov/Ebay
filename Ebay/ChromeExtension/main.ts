@@ -310,11 +310,14 @@ async function fillConditionDescription() {
 }
 
 async function fillShipping() {
-    let shippingRatesAvailable = document.querySelector('div.ux-layout-section__textual-display--askSeller') === null
+    let shippingDiv = await sleepElementLoaded('div.d-shipping-maxview')
+    let shippingRatesAvailable = shippingDiv.querySelector('div.ux-layout-section__textual-display--askSeller') === null
     if (shippingRatesAvailable) {
-        let deliveryColumnsHeader = [...document.querySelector('div.d-shipping-maxview thead')
+        let shippingTable = shippingDiv.querySelector('table.ux-table-section-with-hints--shippingTable')
+        
+        let deliveryColumnsHeader = [...shippingTable.querySelector('thead')
             .querySelectorAll('th')]
-        let deliveryColumnsValues = [...document.querySelector('div.d-shipping-maxview tbody')
+        let deliveryColumnsValues = [...shippingTable.querySelector('tbody')
             .querySelector('tr')
             .querySelectorAll('td')]
 
