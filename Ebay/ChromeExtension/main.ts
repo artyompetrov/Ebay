@@ -1,5 +1,4 @@
 import {
-    ApiException,
     Client,
     LotInfo,
     LotInfoWithProductId, NotFoundProblemDetailedInfo,
@@ -655,11 +654,10 @@ async function updateStatusInfinite(client: Client, links: LotLink[]) {
                     x.link.style.cssText = `background-color: ${x.color};`
                 }
             })
-
-            await sleep(1000)
         } catch (error) {
             console.log(error.stack)
         }
+        await sleep(1000)
     }
 }
 
