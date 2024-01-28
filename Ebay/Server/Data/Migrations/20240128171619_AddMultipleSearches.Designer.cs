@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Ebay.Server.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240128171235_AddMultipleSearches")]
+    [Migration("20240128171619_AddMultipleSearches")]
     partial class AddMultipleSearches
     {
         /// <inheritdoc />

@@ -11,6 +11,8 @@ namespace Ebay.Server.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+
+
             migrationBuilder.CreateTable(
                 name: "SearchQueries",
                 columns: table => new

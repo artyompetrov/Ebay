@@ -5,6 +5,7 @@ namespace Ebay.Server.Data.Models;
 
 public sealed class SearchQuery
 {
+
     public Guid Id { get; set; }
 
     public string Query { get; set; } = null!;
