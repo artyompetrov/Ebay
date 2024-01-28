@@ -37,7 +37,7 @@ namespace Ebay.Server.Data.Migrations
             
             migrationBuilder.Sql(
                 @"
-INSERT INTO public.""SearchQuery""(""Id"", ""Query"", ""ProductId"")
+INSERT INTO public.""SearchQueries""(""Id"", ""Query"", ""ProductId"")
 SELECT p.""Id"", p.""SearchQuery"", p.""Id"" FROM public.""Products"" p;
 "
             );
