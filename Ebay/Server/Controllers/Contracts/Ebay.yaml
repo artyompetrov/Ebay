@@ -186,11 +186,15 @@ definitions:
   SearchQuery:
     type: object
     properties: 
+      id:
+        type: string
+        format: guid
       query:
         type: string
         pattern: ^\w+(?:[ -]+\w+)*$
         minLength: 1
     required:
+      - id
       - query
   
   LotInfoWithProductId:

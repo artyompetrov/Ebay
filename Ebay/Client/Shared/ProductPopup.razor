@@ -17,14 +17,23 @@
                             <InputText id="name" @bind-Value="_product.Name" class="form-control"/>
                             <ValidationMessage For="@(() => _product.Name)"/>
                         </div>
+
+                        @{ var searchQueryNumber = 1; }
                         @foreach (var query in _product.SearchQueries)
                         {
                             <div class="form-group">
                                 <label for="searchQuery">Поисковый запрос</label>
                                 <InputText id="searchQuery" @bind-Value="@query.Query" class="form-control"/>
+                                @if (searchQueryNumber > 1)
+                                {
+                                    <button class="btn btn-primary btn-sm" @onclick="@(e => RemoveSearchQuery(query))">Удалить</button>
+                                }
                                 <ValidationMessage For="@(() => query)"/>
                             </div>
+                            searchQueryNumber++;
                         }
+                        <br>
+                        <button class="btn btn-primary btn-sm" @onclick="@(e => AddSearchQuery())">Добавить поисковый запрос</button>
                     </div>
                     <div class="modal-footer">
                         <button class="btn btn-primary" onclick="@OnSave" type="button">Сохранить</button>
@@ -53,7 +62,7 @@
     public void ShowCreate()
     {
         _actionType = ActionType.Create;
-        _product = new ProductWithoutId();
+        _product = new ProductWithoutId { SearchQueries = new List<SearchQuery> { new() {Id = Guid.NewGuid()} } };
         _editContext = new EditContext(_product);
         _validationMessageStore = new ValidationMessageStore(_editContext);
         StateHasChanged();
@@ -119,6 +128,18 @@
     {
         Create = 1,
         Edit
+    }
+
+    private void AddSearchQuery()
+    {
+        if (_product == null) throw new InvalidOperationException($"{nameof(_product)} expected to be not null");
+        _product.SearchQueries.Add(new SearchQuery());
+    }
+
+    private void RemoveSearchQuery(SearchQuery query)
+    {
+        if (_product == null) throw new InvalidOperationException($"{nameof(_product)} expected to be not null");
+        _product.SearchQueries.Remove(query);
     }
 
 }

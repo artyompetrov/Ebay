@@ -6,13 +6,13 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Ebay.Server.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class AddMultipleSearchQueries : Migration
+    public partial class AddMultipleSearches : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "SearchQuery",
+                name: "SearchQueries",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -21,9 +21,9 @@ namespace Ebay.Server.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SearchQuery", x => x.Id);
+                    table.PrimaryKey("PK_SearchQueries", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_SearchQuery_Products_ProductId",
+                        name: "FK_SearchQueries_Products_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Products",
                         principalColumn: "Id",
@@ -31,8 +31,8 @@ namespace Ebay.Server.Data.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_SearchQuery_ProductId",
-                table: "SearchQuery",
+                name: "IX_SearchQueries_ProductId",
+                table: "SearchQueries",
                 column: "ProductId");
             
             migrationBuilder.Sql(
@@ -51,7 +51,7 @@ SELECT p.""Id"", p.""SearchQuery"", p.""Id"" FROM public.""Products"" p;
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "SearchQuery");
+                name: "SearchQueries");
 
             migrationBuilder.AddColumn<string>(
                 name: "SearchQuery",

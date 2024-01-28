@@ -31,6 +31,7 @@ public class EbayControllerImplementation : IEbayController
     {
         var dbProducts = await _applicationContext.Products
             .OrderBy(x => x.Name).ThenBy(x => x.Id)
+            .Include(x => x.SearchQueries)
             .ToListAsync(cancellationToken);
 
         return dbProducts.Select(x => x.ToApiProduct()).ToList();
@@ -41,10 +42,25 @@ public class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken)
     {
         var newProductId = Guid.NewGuid();
+        
+        using var transaction = new TransactionScope(
+            scopeOption: TransactionScopeOption.Required,
+            asyncFlowOption: TransactionScopeAsyncFlowOption.Enabled,
+            transactionOptions: new TransactionOptions
+                { IsolationLevel = IsolationLevel.ReadCommitted });
+        
         await _applicationContext.Products.AddAsync(
             entity: product.ToDbProduct(newProductId),
             cancellationToken: cancellationToken);
+
+        await _applicationContext.SearchQueries.AddRangeAsync(
+            entities: product.SearchQueries.Select(x => x.ToDbSearchQuery(newProductId)),
+            cancellationToken: cancellationToken);
+        
         await _applicationContext.SaveChangesAsync(cancellationToken);
+        
+        transaction.Complete();
+        
         return newProductId;
     }
 
@@ -53,10 +69,19 @@ public class EbayControllerImplementation : IEbayController
         Guid id,
         CancellationToken cancellationToken)
     {
+        using var transaction = new TransactionScope(
+            scopeOption: TransactionScopeOption.Required,
+            asyncFlowOption: TransactionScopeAsyncFlowOption.Enabled,
+            transactionOptions: new TransactionOptions
+                { IsolationLevel = IsolationLevel.ReadCommitted });
+        
         var dbProduct = _applicationContext.Products.Attach(new DbProduct { Id = id });
         dbProduct.Entity.Name = product.Name;
-        dbProduct.Entity.SearchQueries = product.SearchQueries.Select(x => x.ToDbSearchQuery(productId:id)).ToList();
         await _applicationContext.SaveChangesAsync(cancellationToken);
+        
+        await _applicationContext.SearchQueries.UpsertRange(product.SearchQueries.Select(x=> x.ToDbSearchQuery(id))).RunAsync(cancellationToken);
+        
+        transaction.Complete();
     }
 
     public async Task DeleteProductAsync(Guid id, CancellationToken cancellationToken)

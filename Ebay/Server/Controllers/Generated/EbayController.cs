@@ -257,13 +257,19 @@ namespace Ebay.Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public SearchQuery(string @query)
+        public SearchQuery(System.Guid @id, string @query)
 
         {
 
+            this.Id = @id;
+
             this.Query = @query;
 
-        }    [Newtonsoft.Json.JsonProperty("query", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        }    [Newtonsoft.Json.JsonProperty("id", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public System.Guid Id { get; }
+
+        [Newtonsoft.Json.JsonProperty("query", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
         [System.ComponentModel.DataAnnotations.RegularExpression(@"^\w+(?:[ -]+\w+)*$")]
         public string Query { get; }

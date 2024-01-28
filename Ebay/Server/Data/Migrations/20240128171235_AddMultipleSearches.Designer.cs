@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Ebay.Server.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240128162150_AddMultipleSearchQueries")]
-    partial class AddMultipleSearchQueries
+    [Migration("20240128171235_AddMultipleSearches")]
+    partial class AddMultipleSearches
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -345,7 +345,7 @@ namespace Ebay.Server.Data.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("SearchQuery");
+                    b.ToTable("SearchQueries");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

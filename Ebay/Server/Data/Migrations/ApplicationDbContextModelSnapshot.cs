@@ -342,7 +342,7 @@ namespace Ebay.Server.Data.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("SearchQuery");
+                    b.ToTable("SearchQueries");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

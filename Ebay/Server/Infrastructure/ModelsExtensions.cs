@@ -13,18 +13,19 @@ public static class ModelsExtensions
         name: dbProduct.Name,
         searchQueries: dbProduct.SearchQueries.Select(x => x.ToApiSearchQuery()).ToList());
 
-    public static SearchQuery ToApiSearchQuery(this DbSearchQuery searchQuery) => new(searchQuery.Query);
+    public static SearchQuery ToApiSearchQuery(this DbSearchQuery searchQuery) => new(id: searchQuery.Id,query: searchQuery.Query);
 
     public static DbSearchQuery ToDbSearchQuery(this SearchQuery searchQuery, Guid productId) => new()
     {
+        Id = searchQuery.Id,
         Query = searchQuery.Query,
         ProductId = productId
     };
 
     public static DbProduct ToDbProduct(this ProductWithoutId productWithoutId, Guid productId) => new()
     {
-        Id = productId, Name = productWithoutId.Name,
-        SearchQueries = productWithoutId.SearchQueries.Select(x => x.ToDbSearchQuery(productId)).ToList()
+        Id = productId,
+        Name = productWithoutId.Name
     };
 
     public static LotInfoWithProductId ToApiLot(this Lot lot) => new(

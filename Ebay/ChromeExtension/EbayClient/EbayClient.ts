@@ -496,6 +496,7 @@ export interface IProductWithId {
 }
 
 export class SearchQuery implements ISearchQuery {
+    id!: string;
     query!: string;
 
     constructor(data?: ISearchQuery) {
@@ -509,6 +510,7 @@ export class SearchQuery implements ISearchQuery {
 
     init(_data?: any) {
         if (_data) {
+            this.id = _data["id"];
             this.query = _data["query"];
         }
     }
@@ -522,12 +524,14 @@ export class SearchQuery implements ISearchQuery {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
         data["query"] = this.query;
         return data;
     }
 }
 
 export interface ISearchQuery {
+    id: string;
     query: string;
 }
 

@@ -16,6 +16,8 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
 
     public DbSet<Product> Products { get; set; } = null!;
 
+    public DbSet<SearchQuery> SearchQueries { get; set; } = null!;
+
     public DbSet<Lot> Lots { get; set; } = null!;
     public DbSet<Purchase> Purchases { get; set; } = null!;
 }
