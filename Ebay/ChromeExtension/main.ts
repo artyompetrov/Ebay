@@ -18,6 +18,7 @@ const formId = "product-form-id"
 const errorElementId = "errorElement"
 const submitId = "submit"
 const backendUrl = "https://localhost:7095/"
+//const backendUrl = "https://178.208.65.100:17443/"
 const baseApiUrl = `${backendUrl}api/ebay/v1`;
 const authRedirectUrl = "https://www.ebay.com/"
 const notSetValue = "notSet"
@@ -54,38 +55,7 @@ function extractPrice(price) {
     return parseFloat(matches[2].replace(',', '.'))
 }
 
-function createHistoryButton() {
-    let itemId = location.pathname.match(/\/itm\/([0-9]+)/)[1];
-    let domain = location.hostname;
-    let historyButton = document.createElement('a');
-    historyButton.classList.add('history-button');
-    historyButton.textContent = 'HISTORY';
-    historyButton.href = `https://${domain}/bin/purchaseHistory?item=${itemId}`;
-    historyButton.style.cssText = `
-    cursor: pointer;
-    margin-left: 5px;
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 3px 6px;
-    text-decoration: none;
-    color: black;
-  `;
-    historyButton.target = '_blank';
 
-    return historyButton;
-}
-
-async function addHistoryButton() {
-    let productTitleContainer = await sleepElementLoaded('.vim[data-testid="x-item-title"]');
-    if (productTitleContainer) {
-        let existingButton = productTitleContainer.querySelector('a.history-button');
-        if (!existingButton) {
-            let historyButton = createHistoryButton();
-            productTitleContainer.appendChild(historyButton);
-        }
-    }
-}
 
 function createPanel(bodyElement, client: Client) {
     let styles = `
@@ -130,9 +100,15 @@ function createPanel(bodyElement, client: Client) {
 
     let form = document.createElement('form')
     form.id = formId
+    let itemId = location.pathname.match(/\/itm\/([0-9]+)/)[1];
+    let domain = location.hostname;
 
+    let historyButtonHref = `https://${domain}/bin/purchaseHistory?item=${itemId}`;
     // language=HTML
     form.innerHTML = `
+        <a href="${historyButtonHref}" target="_blank">История лота</a>
+        <br>
+        <br>
         <label for="${ignoreThatLotFieldName}">Игнорировать лот</label>
         <input id="${ignoreThatLotFieldName}" type="checkbox" name="${ignoreThatLotFieldName}"/>
         <br>
@@ -152,7 +128,8 @@ function createPanel(bodyElement, client: Client) {
         <br>
         <div style="color: red;" id="${errorElementId}"></div>
         <br>
-        <input id="${submitId}" type="submit" value="Save" disabled/>`;
+        <input id="${submitId}" type="submit" value="Save" disabled/>
+    `;
 
     form.addEventListener("submit", async function (event: SubmitEvent) {
         await handleSubmit(event, client)
@@ -565,6 +542,7 @@ function getAuthorizeFetch(oAuth2Client: OAuth2Client): FetchWrapperCustom {
             return null;
         },
         getStoredToken: async () => {
+            if (backendUrl !== (await chrome.storage.local.get(["backend_url"])).backend_url)  return null;
             let token = (await chrome.storage.local.get(["token_store"])).token_store;
             if (token) return JSON.parse(token);
             return null;
@@ -581,7 +559,6 @@ async function hideErrors() {
 async function productPage(client: Client) {
     console.log("productPage")
     try {
-        await addHistoryButton();
         await addPanel(client);
         await getDataFromPage(client);
         await enableSubmitButton()
@@ -604,7 +581,7 @@ async function authPage(oAuth2Client: OAuth2Client) {
                 codeVerifier
             }
         );
-
+        await chrome.storage.local.set({backend_url: backendUrl})
         await chrome.storage.local.set({token_store: JSON.stringify(oauth2Token)})
 
         document.location.href = authRedirectUrl

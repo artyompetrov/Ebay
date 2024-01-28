@@ -75,8 +75,6 @@ public class EbayControllerImplementation : IEbayController
     {
         var dbLotInfo = lotInfo.ToDbLot(productId: productId, updateDate: DateTime.UtcNow);
 
-        
-
         using var transaction = new TransactionScope(
             scopeOption: TransactionScopeOption.Required,
             asyncFlowOption: TransactionScopeAsyncFlowOption.Enabled,
