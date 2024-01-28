@@ -459,12 +459,14 @@ async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId)
     serverLotInfoJson["pcs"] = undefined
     serverLotInfoJson["ignoreThatLot"] = undefined
     serverLotInfoJson["manualConditionId"] = undefined
+    serverLotInfoJson["description"] = undefined
     let serverPurchaseHistory = serverLotInfoJson["purchaseHistory"]
     serverLotInfoJson["purchaseHistory"] = undefined
     let lotInfoJson = lotInfo.toJSON()
     lotInfoJson["pcs"] = undefined
     lotInfoJson["ignoreThatLot"] = undefined
     lotInfoJson["manualConditionId"] = undefined
+    lotInfoJson["description"] = undefined
     let lotInfoPurchaseHistory = lotInfoJson["purchaseHistory"];
     lotInfoJson["purchaseHistory"] = undefined
     
@@ -651,7 +653,6 @@ async function updateStatusInfinite(client: Client, links: LotLink[]) {
                         } else {
                             x.color = lightGreenColor
                         }
-                        console.log(diffInDays)
                     } else {
                         x.color = lightGreenColor
                     }
