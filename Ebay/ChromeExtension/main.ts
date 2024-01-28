@@ -390,9 +390,12 @@ async function fillProduct(panel: HTMLDivElement, client: Client, serverLotInfo:
                 opt.selected = true
             }
         } else if (searchQuery !== undefined) {
-            if (searchQuery === products[i].searchQuery.trim().toLowerCase()) {
-                opt.selected = true
-            }
+            products[i].searchQueries.forEach(function (x) {
+                if (searchQuery === x.query.trim().toLowerCase()) {
+                    opt.selected = true
+                }
+            })
+            
         }
         productField.appendChild(opt);
     }

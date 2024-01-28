@@ -52,7 +52,7 @@ public class EbayControllerImplementation : IEbayController
         await _applicationContext.Products.AddAsync(
             entity: product.ToDbProduct(newProductId),
             cancellationToken: cancellationToken);
-
+        
         await _applicationContext.SearchQueries.AddRangeAsync(
             entities: product.SearchQueries.Select(x => x.ToDbSearchQuery(newProductId)),
             cancellationToken: cancellationToken);
@@ -77,10 +77,15 @@ public class EbayControllerImplementation : IEbayController
         
         var dbProduct = _applicationContext.Products.Attach(new DbProduct { Id = id });
         dbProduct.Entity.Name = product.Name;
+        
+        _applicationContext.RemoveRange(_applicationContext.SearchQueries.Where(x=>x.ProductId == id));
+        
+        await _applicationContext.SearchQueries.AddRangeAsync(
+            entities: product.SearchQueries.Select(x => x.ToDbSearchQuery(id)),
+            cancellationToken: cancellationToken);
+        
         await _applicationContext.SaveChangesAsync(cancellationToken);
-        
-        await _applicationContext.SearchQueries.UpsertRange(product.SearchQueries.Select(x=> x.ToDbSearchQuery(id))).RunAsync(cancellationToken);
-        
+
         transaction.Complete();
     }
 

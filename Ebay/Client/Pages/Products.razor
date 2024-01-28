@@ -26,7 +26,7 @@
             <td>@product.Name</td>
             <td>@foreach (var query in product.SearchQueries)
                 {
-                    <a href="@GetSearchLink(query.Query)" target=”_blank”>@query.Query</a>
+                    <span><a href="@GetSearchLink(query.Query)" target=”_blank”>@query.Query</a>&#160;</span>
                 }
             </td>
             <td>

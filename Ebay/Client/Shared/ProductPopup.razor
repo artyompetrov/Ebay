@@ -22,13 +22,12 @@
                         @foreach (var query in _product.SearchQueries)
                         {
                             <div class="form-group">
-                                <label for="searchQuery">Поисковый запрос</label>
-                                <InputText id="searchQuery" @bind-Value="@query.Query" class="form-control"/>
+                                <label for="@(() => $"searchQuery_{searchQueryNumber}")">Поисковый запрос</label>
+                                <InputText id="@(() => $"searchQuery_{searchQueryNumber}")" @bind-Value="@query.Query" class="form-control"/>
                                 @if (searchQueryNumber > 1)
                                 {
                                     <button class="btn btn-primary btn-sm" @onclick="@(e => RemoveSearchQuery(query))">Удалить</button>
                                 }
-                                <ValidationMessage For="@(() => query)"/>
                             </div>
                             searchQueryNumber++;
                         }
@@ -62,7 +61,7 @@
     public void ShowCreate()
     {
         _actionType = ActionType.Create;
-        _product = new ProductWithoutId { SearchQueries = new List<SearchQuery> { new() {Id = Guid.NewGuid()} } };
+        _product = new ProductWithoutId { SearchQueries = new List<SearchQuery> { new() { Id = Guid.NewGuid() } } };
         _editContext = new EditContext(_product);
         _validationMessageStore = new ValidationMessageStore(_editContext);
         StateHasChanged();
@@ -133,7 +132,7 @@
     private void AddSearchQuery()
     {
         if (_product == null) throw new InvalidOperationException($"{nameof(_product)} expected to be not null");
-        _product.SearchQueries.Add(new SearchQuery());
+        _product.SearchQueries.Add(new SearchQuery() { Id = Guid.NewGuid() });
     }
 
     private void RemoveSearchQuery(SearchQuery query)
@@ -141,5 +140,5 @@
         if (_product == null) throw new InvalidOperationException($"{nameof(_product)} expected to be not null");
         _product.SearchQueries.Remove(query);
     }
-
+    
 }
