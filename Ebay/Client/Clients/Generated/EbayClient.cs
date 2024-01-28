@@ -870,10 +870,9 @@ namespace Ebay.Client.Clients.Generated
         [System.ComponentModel.DataAnnotations.RegularExpression(@"^\w+(?:[ -]+\w+)*$")]
         public string Name { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("SearchQuery", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("SearchQueries", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
-        [System.ComponentModel.DataAnnotations.RegularExpression(@"^\w+(?:[ -]+\w+)*$")]
-        public string SearchQuery { get; set; }
+        public System.Collections.Generic.ICollection<SearchQuery> SearchQueries { get; set; } = new System.Collections.ObjectModel.Collection<SearchQuery>();
 
     }
 
@@ -888,9 +887,19 @@ namespace Ebay.Client.Clients.Generated
         [System.ComponentModel.DataAnnotations.Required]
         public string Name { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("SearchQuery", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("SearchQueries", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
-        public string SearchQuery { get; set; }
+        public System.Collections.Generic.ICollection<SearchQuery> SearchQueries { get; set; } = new System.Collections.ObjectModel.Collection<SearchQuery>();
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class SearchQuery
+    {
+        [Newtonsoft.Json.JsonProperty("query", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^\w+(?:[ -]+\w+)*$")]
+        public string Query { get; set; }
 
     }
 

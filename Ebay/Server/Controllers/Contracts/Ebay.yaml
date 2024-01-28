@@ -156,13 +156,13 @@ definitions:
         type: string
         pattern: ^\w+(?:[ -]+\w+)*$
         minLength: 1
-      SearchQuery:
-        type: string
-        pattern: ^\w+(?:[ -]+\w+)*$
-        minLength: 1
+      SearchQueries:
+        type: array
+        items:
+          $ref: '#/definitions/SearchQuery'
     required:
       - Name
-      - SearchQuery
+      - SearchQueries
   
   ProductWithId:
     type: object
@@ -174,13 +174,24 @@ definitions:
       Name:
         type: string
         minLength: 1
-      SearchQuery:
-        type: string
-        minLength: 1
+      SearchQueries:
+        type: array
+        items:
+          $ref: '#/definitions/SearchQuery'
     required:
       - Id
       - Name
-      - SearchQuery
+      - SearchQueries
+  
+  SearchQuery:
+    type: object
+    properties: 
+      query:
+        type: string
+        pattern: ^\w+(?:[ -]+\w+)*$
+        minLength: 1
+    required:
+      - query
   
   LotInfoWithProductId:
     type: object

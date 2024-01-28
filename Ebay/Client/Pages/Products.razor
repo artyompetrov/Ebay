@@ -24,7 +24,11 @@
     {
         <tr>
             <td>@product.Name</td>
-            <td><a href="@GetSearchLink(product)" target=”_blank”>@product.SearchQuery</a></td>
+            <td>@foreach (var query in product.SearchQueries)
+                {
+                    <a href="@GetSearchLink(query.Query)" target=”_blank”>@query.Query</a>
+                }
+            </td>
             <td>
                 <button class="btn btn-primary btn-sm" @onclick="@(e => _productPopupComponent.ShowEdit(product))">Редактировать</button>
             </td>
@@ -65,7 +69,7 @@
         StateHasChanged();
     }
 
-    private string GetSearchLink(ProductWithId product) => $"https://www.ebay.com/sch/i.html?_nkw={product.SearchQuery}&LH_Sold=1";
+    private string GetSearchLink(string query) => $"https://www.ebay.com/sch/i.html?_nkw={query}&LH_Sold=1";
 
 
 }

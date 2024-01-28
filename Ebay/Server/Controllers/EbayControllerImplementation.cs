@@ -40,12 +40,12 @@ public class EbayControllerImplementation : IEbayController
         ProductWithoutId product,
         CancellationToken cancellationToken)
     {
-        var id = Guid.NewGuid();
+        var newProductId = Guid.NewGuid();
         await _applicationContext.Products.AddAsync(
-            entity: product.ToDbProduct(id),
+            entity: product.ToDbProduct(newProductId),
             cancellationToken: cancellationToken);
         await _applicationContext.SaveChangesAsync(cancellationToken);
-        return id;
+        return newProductId;
     }
 
     public async Task UpdateProductAsync(
@@ -55,7 +55,7 @@ public class EbayControllerImplementation : IEbayController
     {
         var dbProduct = _applicationContext.Products.Attach(new DbProduct { Id = id });
         dbProduct.Entity.Name = product.Name;
-        dbProduct.Entity.SearchQuery = product.SearchQuery;
+        dbProduct.Entity.SearchQueries = product.SearchQueries.Select(x => x.ToDbSearchQuery(productId:id)).ToList();
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 

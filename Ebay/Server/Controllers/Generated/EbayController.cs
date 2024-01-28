@@ -204,23 +204,22 @@ namespace Ebay.Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public ProductWithoutId(string @name, string @searchQuery)
+        public ProductWithoutId(string @name, System.Collections.Generic.List<SearchQuery> @searchQueries)
 
         {
 
             this.Name = @name;
 
-            this.SearchQuery = @searchQuery;
+            this.SearchQueries = @searchQueries;
 
         }    [Newtonsoft.Json.JsonProperty("Name", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
         [System.ComponentModel.DataAnnotations.RegularExpression(@"^\w+(?:[ -]+\w+)*$")]
         public string Name { get; }
 
-        [Newtonsoft.Json.JsonProperty("SearchQuery", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("SearchQueries", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
-        [System.ComponentModel.DataAnnotations.RegularExpression(@"^\w+(?:[ -]+\w+)*$")]
-        public string SearchQuery { get; }
+        public System.Collections.Generic.List<SearchQuery> SearchQueries { get; }
 
     }
 
@@ -229,7 +228,7 @@ namespace Ebay.Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public ProductWithId(System.Guid @id, string @name, string @searchQuery)
+        public ProductWithId(System.Guid @id, string @name, System.Collections.Generic.List<SearchQuery> @searchQueries)
 
         {
 
@@ -237,7 +236,7 @@ namespace Ebay.Server.Controllers.Generated
 
             this.Name = @name;
 
-            this.SearchQuery = @searchQuery;
+            this.SearchQueries = @searchQueries;
 
         }    [Newtonsoft.Json.JsonProperty("Id", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
@@ -247,9 +246,27 @@ namespace Ebay.Server.Controllers.Generated
         [System.ComponentModel.DataAnnotations.Required]
         public string Name { get; }
 
-        [Newtonsoft.Json.JsonProperty("SearchQuery", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("SearchQueries", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
-        public string SearchQuery { get; }
+        public System.Collections.Generic.List<SearchQuery> SearchQueries { get; }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class SearchQuery
+    {
+        [Newtonsoft.Json.JsonConstructor]
+
+        public SearchQuery(string @query)
+
+        {
+
+            this.Query = @query;
+
+        }    [Newtonsoft.Json.JsonProperty("query", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^\w+(?:[ -]+\w+)*$")]
+        public string Query { get; }
 
     }
 

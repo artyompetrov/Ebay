@@ -391,7 +391,7 @@ export class Client {
 
 export class ProductWithoutId implements IProductWithoutId {
     name!: string;
-    searchQuery!: string;
+    searchQueries!: SearchQuery[];
 
     constructor(data?: IProductWithoutId) {
         if (data) {
@@ -400,12 +400,19 @@ export class ProductWithoutId implements IProductWithoutId {
                     (<any>this)[property] = (<any>data)[property];
             }
         }
+        if (!data) {
+            this.searchQueries = [];
+        }
     }
 
     init(_data?: any) {
         if (_data) {
             this.name = _data["Name"];
-            this.searchQuery = _data["SearchQuery"];
+            if (Array.isArray(_data["SearchQueries"])) {
+                this.searchQueries = [] as any;
+                for (let item of _data["SearchQueries"])
+                    this.searchQueries!.push(SearchQuery.fromJS(item));
+            }
         }
     }
 
@@ -419,20 +426,24 @@ export class ProductWithoutId implements IProductWithoutId {
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         data["Name"] = this.name;
-        data["SearchQuery"] = this.searchQuery;
+        if (Array.isArray(this.searchQueries)) {
+            data["SearchQueries"] = [];
+            for (let item of this.searchQueries)
+                data["SearchQueries"].push(item.toJSON());
+        }
         return data;
     }
 }
 
 export interface IProductWithoutId {
     name: string;
-    searchQuery: string;
+    searchQueries: SearchQuery[];
 }
 
 export class ProductWithId implements IProductWithId {
     id!: string;
     name!: string;
-    searchQuery!: string;
+    searchQueries!: SearchQuery[];
 
     constructor(data?: IProductWithId) {
         if (data) {
@@ -441,13 +452,20 @@ export class ProductWithId implements IProductWithId {
                     (<any>this)[property] = (<any>data)[property];
             }
         }
+        if (!data) {
+            this.searchQueries = [];
+        }
     }
 
     init(_data?: any) {
         if (_data) {
             this.id = _data["Id"];
             this.name = _data["Name"];
-            this.searchQuery = _data["SearchQuery"];
+            if (Array.isArray(_data["SearchQueries"])) {
+                this.searchQueries = [] as any;
+                for (let item of _data["SearchQueries"])
+                    this.searchQueries!.push(SearchQuery.fromJS(item));
+            }
         }
     }
 
@@ -462,7 +480,11 @@ export class ProductWithId implements IProductWithId {
         data = typeof data === 'object' ? data : {};
         data["Id"] = this.id;
         data["Name"] = this.name;
-        data["SearchQuery"] = this.searchQuery;
+        if (Array.isArray(this.searchQueries)) {
+            data["SearchQueries"] = [];
+            for (let item of this.searchQueries)
+                data["SearchQueries"].push(item.toJSON());
+        }
         return data;
     }
 }
@@ -470,7 +492,43 @@ export class ProductWithId implements IProductWithId {
 export interface IProductWithId {
     id: string;
     name: string;
-    searchQuery: string;
+    searchQueries: SearchQuery[];
+}
+
+export class SearchQuery implements ISearchQuery {
+    query!: string;
+
+    constructor(data?: ISearchQuery) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.query = _data["query"];
+        }
+    }
+
+    static fromJS(data: any): SearchQuery {
+        data = typeof data === 'object' ? data : {};
+        let result = new SearchQuery();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["query"] = this.query;
+        return data;
+    }
+}
+
+export interface ISearchQuery {
+    query: string;
 }
 
 export class LotInfoWithProductId implements ILotInfoWithProductId {

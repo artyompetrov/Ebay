@@ -7,15 +7,15 @@ namespace Ebay.Client.Extensions;
 public static class ModelExtensions
 {
     public static ProductWithoutId Copy(this ProductWithoutId product) => new()
-        { Name = product.Name, SearchQuery = product.SearchQuery };
+        { Name = product.Name, SearchQueries = product.SearchQueries };
 
     public static ProductWithId Copy(this ProductWithId product) => new()
-        { Id = product.Id, Name = product.Name, SearchQuery = product.SearchQuery };
+        { Id = product.Id, Name = product.Name, SearchQueries = product.SearchQueries };
 
     public static ProductWithoutId ToProductWithoutId(this ProductWithId productWithId) => new()
     {
         Name = productWithId.Name,
-        SearchQuery = productWithId.SearchQuery
+        SearchQueries = productWithId.SearchQueries
     };
 
     public static IEnumerable<ValidationProblemParsed> Parse(this ValidationProblemDetailedInfo validationProblemDetails)

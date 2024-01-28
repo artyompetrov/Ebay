@@ -1,6 +1,8 @@
 ﻿using Ebay.Server.Controllers.Generated;
 using Ebay.Server.Data.Models;
 using DbProduct = Ebay.Server.Data.Models.Product;
+using DbSearchQuery = Ebay.Server.Data.Models.SearchQuery;
+using SearchQuery = Ebay.Server.Controllers.Generated.SearchQuery;
 
 namespace Ebay.Server.Infrastructure;
 
@@ -9,10 +11,21 @@ public static class ModelsExtensions
     public static ProductWithId ToApiProduct(this DbProduct dbProduct) => new(
         id: dbProduct.Id,
         name: dbProduct.Name,
-        searchQuery: dbProduct.SearchQuery);
+        searchQueries: dbProduct.SearchQueries.Select(x => x.ToApiSearchQuery()).ToList());
 
-    public static DbProduct ToDbProduct(this ProductWithoutId productWithoutId, Guid id) => new()
-        { Id = id, Name = productWithoutId.Name, SearchQuery = productWithoutId.SearchQuery };
+    public static SearchQuery ToApiSearchQuery(this DbSearchQuery searchQuery) => new(searchQuery.Query);
+
+    public static DbSearchQuery ToDbSearchQuery(this SearchQuery searchQuery, Guid productId) => new()
+    {
+        Query = searchQuery.Query,
+        ProductId = productId
+    };
+
+    public static DbProduct ToDbProduct(this ProductWithoutId productWithoutId, Guid productId) => new()
+    {
+        Id = productId, Name = productWithoutId.Name,
+        SearchQueries = productWithoutId.SearchQueries.Select(x => x.ToDbSearchQuery(productId)).ToList()
+    };
 
     public static LotInfoWithProductId ToApiLot(this Lot lot) => new(
         lotInfo: new(
