@@ -5,7 +5,7 @@ namespace Ebay.Server.Data.Models;
 
 public sealed class SearchQuery
 {
-
+    [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
     public Guid Id { get; set; }
 
     public string Query { get; set; } = null!;
