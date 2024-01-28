@@ -1,13 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace Ebay.Server.Data.Models;
 
+[PrimaryKey(nameof(LotId), nameof(Date))]
 public class Purchase
 {
-    [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
     public DateTime Date { get; set; }
-
+    
     public long LotId { get; set; }
     public Lot Lot { get; set; } = null!;
 

@@ -7,6 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		docker-compose.yaml = docker-compose.yaml
 		README.md = README.md
 		Dockerfile = Dockerfile
+		Directory.Packages.props = Directory.Packages.props
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "EbayChromeExtension", "EbayChromeExtension", "{5FBBDAFE-DAD8-4A80-BBB2-7E9F14C52B69}"
