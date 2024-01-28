@@ -17,11 +17,16 @@ const panelClass = "panel-div";
 const formId = "product-form-id"
 const errorElementId = "errorElement"
 const submitId = "submit"
-const backendUrl = "https://localhost:7095/"
-//const backendUrl = "https://178.208.65.100:17443/"
+//const backendUrl = "https://localhost:7095/"
+const backendUrl = "https://178.208.65.100:17443/"
 const baseApiUrl = `${backendUrl}api/ebay/v1`;
 const authRedirectUrl = "https://www.ebay.com/"
 const notSetValue = "notSet"
+const lightGreenColor = "#ecffec"
+const lightPinkColor = "lightpink"
+const lightYellowColor = "#e0e07f"
+
+
 
 const lotInfo = new LotInfo();
 let _serverLotInfo: LotInfoWithProductId;
@@ -106,8 +111,8 @@ function createPanel(bodyElement, client: Client) {
     let historyButtonHref = `https://${domain}/bin/purchaseHistory?item=${itemId}`;
     // language=HTML
     form.innerHTML = `
-        <a href="${historyButtonHref}" target="_blank">История лота</a> 
-        <br>Бэкенд: <a href="${backendUrl}" target="_blank">${backendUrl}</a>>
+        <a href="${historyButtonHref}" target="_blank">История продаж лота</a> 
+        <br>Бэкенд: <a href="${backendUrl}" target="_blank">${backendUrl}</a>
         <br>
         <br>
         <label for="${ignoreThatLotFieldName}">Игнорировать лот</label>
@@ -451,22 +456,33 @@ async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId)
     serverLotInfoJson["pcs"] = undefined
     serverLotInfoJson["ignoreThatLot"] = undefined
     serverLotInfoJson["manualConditionId"] = undefined
+    let serverPurchaseHistory = serverLotInfoJson["purchaseHistory"]
+    serverLotInfoJson["purchaseHistory"] = undefined
     let lotInfoJson = lotInfo.toJSON()
     lotInfoJson["pcs"] = undefined
     lotInfoJson["ignoreThatLot"] = undefined
     lotInfoJson["manualConditionId"] = undefined
-    if (serverLotInfoWithProductId.lotInfo.ignoreThatLot) {
-        serverLotInfoJson["purchaseHistory"] = undefined
-        lotInfoJson["purchaseHistory"] = undefined
-    }
-
+    let lotInfoPurchaseHistory = lotInfoJson["purchaseHistory"];
+    lotInfoJson["purchaseHistory"] = undefined
+    
     let serverLotInfoJsonString = JSON.stringify(serverLotInfoJson)
     let currentPageLotInfoJsonString = JSON.stringify(lotInfoJson)
+    let serverPurchaseHistoryJsonString = JSON.stringify(serverPurchaseHistory)
+    let lotInfoPurchaseHistoryJsonString = JSON.stringify(lotInfoPurchaseHistory)
+
     let panel = <HTMLDivElement>await sleepElementLoaded('div.' + panelClass);
     if (serverLotInfoJsonString === currentPageLotInfoJsonString) {
-        panel.style.cssText = `background-color: #ecffec;`
+        console.log(serverPurchaseHistoryJsonString)
+        console.log(lotInfoPurchaseHistoryJsonString)
+        if (_serverLotInfo.lotInfo.ignoreThatLot === true || serverPurchaseHistoryJsonString === lotInfoPurchaseHistoryJsonString) {
+            panel.style.cssText = `background-color: ${lightGreenColor};`
+        }
+        else
+        {
+            panel.style.cssText = `background-color: ${lightYellowColor};`
+        }
     } else {
-        panel.style.cssText = `background-color: lightpink;`
+        panel.style.cssText = `background-color: ${lightPinkColor};`
     }
 
     console.log("Received from server: " + serverLotInfoJsonString)
@@ -628,16 +644,16 @@ async function updateStatusInfinite(client: Client, links: LotLink[]) {
                     if (!lotState.ignoreThatLot) {
                         let diffInDays = Math.ceil((x.soldDate.getTime() - new Date(lotState.lastUpdate).getTime()) / (1000 * 60 * 60 * 24));
                         if (diffInDays > 0) {
-                            x.color = '#e0e07f'
+                            x.color = lightYellowColor
                         } else {
-                            x.color = 'lightgreen'
+                            x.color = lightGreenColor
                         }
                         console.log(diffInDays)
                     } else {
-                        x.color = 'lightgreen'
+                        x.color = lightGreenColor
                     }
                 } else {
-                    x.color = 'lightpink'
+                    x.color = lightPinkColor
                 }
 
                 if (x.color !== null && color !== x.color) {
