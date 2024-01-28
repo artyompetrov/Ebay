@@ -106,7 +106,8 @@ function createPanel(bodyElement, client: Client) {
     let historyButtonHref = `https://${domain}/bin/purchaseHistory?item=${itemId}`;
     // language=HTML
     form.innerHTML = `
-        <a href="${historyButtonHref}" target="_blank">История лота</a>
+        <a href="${historyButtonHref}" target="_blank">История лота</a> 
+        <br>Бэкенд: <a href="${backendUrl}" target="_blank">${backendUrl}</a>>
         <br>
         <br>
         <label for="${ignoreThatLotFieldName}">Игнорировать лот</label>
