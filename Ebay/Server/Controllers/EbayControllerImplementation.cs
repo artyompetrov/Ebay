@@ -96,8 +96,16 @@ public class EbayControllerImplementation : IEbayController
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 
-
-
+    public async Task MarkProductAsCheckedAsync(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var dbProduct = _applicationContext.Products.Attach(new DbProduct { Id = id });
+        dbProduct.Entity.LastCheckTime = DateTime.UtcNow;
+        
+        await _applicationContext.SaveChangesAsync(cancellationToken);
+    }
+    
     public async Task UpsertLotInfoAsync(
         LotInfo lotInfo,
         Guid productId,

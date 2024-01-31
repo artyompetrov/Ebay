@@ -11,9 +11,11 @@ public static class ModelsExtensions
     public static ProductWithId ToApiProduct(this DbProduct dbProduct) => new(
         id: dbProduct.Id,
         name: dbProduct.Name,
-        searchQueries: dbProduct.SearchQueries.Select(x => x.ToApiSearchQuery()).ToList());
+        searchQueries: dbProduct.SearchQueries.Select(x => x.ToApiSearchQuery()).ToList(),
+        lastCheckTime: dbProduct.LastCheckTime.ToString(WellKnown.Formats.TimeFormat));
 
-    public static SearchQuery ToApiSearchQuery(this DbSearchQuery searchQuery) => new(id: searchQuery.Id,query: searchQuery.Query);
+    public static SearchQuery ToApiSearchQuery(this DbSearchQuery searchQuery) =>
+        new(id: searchQuery.Id, query: searchQuery.Query);
 
     public static DbSearchQuery ToDbSearchQuery(this SearchQuery searchQuery, Guid productId) => new()
     {

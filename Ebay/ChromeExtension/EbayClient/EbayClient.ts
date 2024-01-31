@@ -199,6 +199,50 @@ export class Client {
     }
 
     /**
+     * MarkProductAsChecked
+     * @return Updated
+     */
+    markProductAsChecked(id: string): Promise<void> {
+        let url_ = this.baseUrl + "/products/{id}/mark_as_checked/";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processMarkProductAsChecked(_response);
+        });
+    }
+
+    protected processMarkProductAsChecked(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = NotFoundProblemDetailedInfo.fromJS(resultData400);
+            return throwException("NotFound", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
      * Обновляет информацию о лоте
      * @return Ok
      */
@@ -443,6 +487,7 @@ export interface IProductWithoutId {
 export class ProductWithId implements IProductWithId {
     id!: string;
     name!: string;
+    lastCheckTime?: string | undefined;
     searchQueries!: SearchQuery[];
 
     constructor(data?: IProductWithId) {
@@ -461,6 +506,7 @@ export class ProductWithId implements IProductWithId {
         if (_data) {
             this.id = _data["Id"];
             this.name = _data["Name"];
+            this.lastCheckTime = _data["LastCheckTime"];
             if (Array.isArray(_data["SearchQueries"])) {
                 this.searchQueries = [] as any;
                 for (let item of _data["SearchQueries"])
@@ -480,6 +526,7 @@ export class ProductWithId implements IProductWithId {
         data = typeof data === 'object' ? data : {};
         data["Id"] = this.id;
         data["Name"] = this.name;
+        data["LastCheckTime"] = this.lastCheckTime;
         if (Array.isArray(this.searchQueries)) {
             data["SearchQueries"] = [];
             for (let item of this.searchQueries)
@@ -492,6 +539,7 @@ export class ProductWithId implements IProductWithId {
 export interface IProductWithId {
     id: string;
     name: string;
+    lastCheckTime?: string | undefined;
     searchQueries: SearchQuery[];
 }
 

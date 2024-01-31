@@ -61,6 +61,15 @@ namespace Ebay.Server.Controllers.Generated
         System.Threading.Tasks.Task DeleteProductAsync(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
         /// <summary>
+        /// MarkProductAsChecked
+        /// </summary>
+
+
+        /// <returns>Updated</returns>
+
+        System.Threading.Tasks.Task MarkProductAsCheckedAsync(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+
+        /// <summary>
         /// Обновляет информацию о лоте
         /// </summary>
 
@@ -154,6 +163,17 @@ namespace Ebay.Server.Controllers.Generated
         }
 
         /// <summary>
+        /// MarkProductAsChecked
+        /// </summary>
+        /// <returns>Updated</returns>
+        [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("products/{id}/mark_as_checked/")]
+        public System.Threading.Tasks.Task MarkProductAsChecked(System.Guid id, System.Threading.CancellationToken cancellationToken)
+        {
+
+            return _implementation.MarkProductAsCheckedAsync(id, cancellationToken);
+        }
+
+        /// <summary>
         /// Обновляет информацию о лоте
         /// </summary>
         /// <returns>Ok</returns>
@@ -228,13 +248,15 @@ namespace Ebay.Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public ProductWithId(System.Guid @id, string @name, System.Collections.Generic.List<SearchQuery> @searchQueries)
+        public ProductWithId(System.Guid @id, string? @lastCheckTime, string @name, System.Collections.Generic.List<SearchQuery> @searchQueries)
 
         {
 
             this.Id = @id;
 
             this.Name = @name;
+
+            this.LastCheckTime = @lastCheckTime;
 
             this.SearchQueries = @searchQueries;
 
@@ -245,6 +267,11 @@ namespace Ebay.Server.Controllers.Generated
         [Newtonsoft.Json.JsonProperty("Name", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
         public string Name { get; }
+
+        [Newtonsoft.Json.JsonProperty("LastCheckTime", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.StringLength(int.MaxValue, MinimumLength = 1)]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$")]
+        public string? LastCheckTime { get; }
 
         [Newtonsoft.Json.JsonProperty("SearchQueries", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]

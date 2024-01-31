@@ -13,4 +13,6 @@ public sealed class Product
     public List<SearchQuery> SearchQueries { get; set; } = null!;
 
     public List<Lot> Lots { get; set; } = null!;
+
+    public DateTime LastCheckTime { get; set; }
 }
