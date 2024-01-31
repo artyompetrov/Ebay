@@ -1,16 +1,13 @@
 ﻿using Ebay.Client.Clients.Generated;
 using Microsoft.AspNetCore.Components.Forms;
 using Newtonsoft.Json.Linq;
+using ProductWithId = Ebay.Client.Clients.Generated.ProductWithId;
 
 namespace Ebay.Client.Extensions;
 
 public static class ModelExtensions
 {
-    public static ProductWithoutId Copy(this ProductWithoutId product) => new()
-        { Name = product.Name, SearchQueries = product.SearchQueries };
 
-    public static ProductWithId Copy(this ProductWithId product) => new()
-        { Id = product.Id, Name = product.Name, SearchQueries = product.SearchQueries };
 
     public static ProductWithoutId ToProductWithoutId(this ProductWithId productWithId) => new()
     {

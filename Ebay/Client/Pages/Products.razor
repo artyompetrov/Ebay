@@ -15,6 +15,7 @@
     <tr>
         <th>Название</th>
         <th>Поисковый запрос</th>
+        <th>Учтены все проданные лоты</th>
         <th>Редактировать</th>
         <th>Удалить</th>
     </tr>
@@ -27,6 +28,12 @@
             <td>@foreach (var query in product.SearchQueries)
                 {
                     <span><a href="@GetSearchLink(query.Query)" target=”_blank”>@query.Query</a>&#160;</span>
+                }
+            </td>
+            <td>
+                @if (product.IsRecheckRequired)
+                {
+                    <button class="btn btn-warning btn-sm" @onclick="@(e => MarkAsChecked(product))">Отметить</button>
                 }
             </td>
             <td>
@@ -71,5 +78,13 @@
 
     private string GetSearchLink(string query) => $"https://www.ebay.com/sch/i.html?_nkw={query}&LH_Sold=1";
 
+    private void MarkAsChecked(ProductWithId product)
+    {
+        _questionPopup.AskQuestion($"Вы действительно хотите отметить товар '{product.Name}' как учтенный?", async () =>
+        {
+            await EbayClient.MarkProductAsCheckedAsync(product.Id);
+            await LoadActualProductList();
+        });
+    }
 
 }
