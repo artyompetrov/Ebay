@@ -1,17 +1,14 @@
-﻿using System.Globalization;
-using System.Transactions;
-using Ebay.Client.Clients.Generated;
+﻿using System.Transactions;
 using Ebay.Server.Controllers.Generated;
 using Ebay.Server.Data;
-using Ebay.Server.Data.Models;
 using Ebay.Server.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using ClientErrorInfo = Ebay.Server.Controllers.Generated.ClientErrorInfo;
 using DbProduct = Ebay.Server.Data.Models.Product;
 using LotInfo = Ebay.Server.Controllers.Generated.LotInfo;
 using LotInfoWithProductId = Ebay.Server.Controllers.Generated.LotInfoWithProductId;
 using LotState = Ebay.Server.Controllers.Generated.LotState;
 using ManualCondition = Ebay.Server.Controllers.Generated.ManualCondition;
-using NotFoundProblemDetailedInfo = Ebay.Server.Controllers.Generated.NotFoundProblemDetailedInfo;
 using ProductWithId = Ebay.Server.Controllers.Generated.ProductWithId;
 using ProductWithoutId = Ebay.Server.Controllers.Generated.ProductWithoutId;
 
@@ -174,4 +171,11 @@ public class EbayControllerImplementation : IEbayController
             new(description: "USED", id: "usedAndNotTested"),
             new(description: "NOT WORKING", id: "notWorking")
         });
+
+
+    public async Task SaveErrorAsync(ClientErrorInfo error, CancellationToken cancellationToken)
+    {
+        _applicationContext.ClientErrors.Add(error.ToDbClientError());
+        await _applicationContext.SaveChangesAsync(cancellationToken);
+    }
 }

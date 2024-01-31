@@ -81,4 +81,10 @@ public static class ModelsExtensions
             Price = purchaseInfo.Price,
             Quantity = purchaseInfo.Quantity
         };
+
+    public static ClientError ToDbClientError(this ClientErrorInfo error) => new ClientError
+    {
+        Url = error.Url,
+        ErrorText = error.Error
+    };
 }

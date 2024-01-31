@@ -166,6 +166,20 @@ paths:
             items:
               $ref: '#/definitions/ManualCondition'
 
+  /error/:
+    post: 
+      operationId: SaveError
+      summary: Save Error
+      parameters:
+        - name: error
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ClientErrorInfo'
+      responses:
+        200:
+          description: 'Ok'
+
 definitions:
   ProductWithoutId:
     type: object
@@ -334,7 +348,16 @@ definitions:
       - ignoreThatLot
       - lastUpdate
 
-
+  ClientErrorInfo:
+    properties:
+      url:
+        type: string
+      error:
+        type: string
+    required:
+      - url
+      - error
+  
   ProblemDetailedInfo:
     x-abstract: true
     properties:

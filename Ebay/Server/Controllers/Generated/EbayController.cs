@@ -104,6 +104,15 @@ namespace Ebay.Server.Controllers.Generated
 
         System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ManualCondition>> GetManualConditionsListAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
+        /// <summary>
+        /// Save Error
+        /// </summary>
+
+
+        /// <returns>Ok</returns>
+
+        System.Threading.Tasks.Task SaveErrorAsync(ClientErrorInfo error, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
@@ -215,6 +224,17 @@ namespace Ebay.Server.Controllers.Generated
         {
 
             return _implementation.GetManualConditionsListAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Save Error
+        /// </summary>
+        /// <returns>Ok</returns>
+        [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("error/")]
+        public System.Threading.Tasks.Task SaveError([Microsoft.AspNetCore.Mvc.FromBody] ClientErrorInfo error, System.Threading.CancellationToken cancellationToken)
+        {
+
+            return _implementation.SaveErrorAsync(error, cancellationToken);
         }
 
     }
@@ -498,6 +518,29 @@ namespace Ebay.Server.Controllers.Generated
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         [System.ComponentModel.DataAnnotations.RegularExpression(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$")]
         public string LastUpdate { get; }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ClientErrorInfo
+    {
+        [Newtonsoft.Json.JsonConstructor]
+
+        public ClientErrorInfo(string @error, string @url)
+
+        {
+
+            this.Url = @url;
+
+            this.Error = @error;
+
+        }    [Newtonsoft.Json.JsonProperty("url", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Url { get; }
+
+        [Newtonsoft.Json.JsonProperty("error", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Error { get; }
 
     }
 

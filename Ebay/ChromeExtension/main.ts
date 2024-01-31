@@ -1,5 +1,5 @@
 import {
-    Client,
+    Client, ClientErrorInfo,
     LotInfo,
     LotInfoWithProductId, NotFoundProblemDetailedInfo,
     PurchaseInfo, ValidationProblemDetailedInfo
@@ -175,7 +175,7 @@ async function handleSubmit(event: SubmitEvent, client: Client) {
 
         await productPage(client)
     } catch (error) {
-        await showError(error)
+        await showAndSaveError(error, client)
     }
 }
 
@@ -541,7 +541,19 @@ async function addPanel(client: Client) {
     }
 }
 
-async function showError(error: Error) {
+async function saveErrorToBackend(error: Error, client: Client) {
+    let errorText = JSON.stringify(error)
+    try {
+        await client.saveError(new ClientErrorInfo({
+            error: JSON.stringify(error),
+            url: document.location.href
+        }))
+    } catch {
+        console.log("Unable to save error to backend " + errorText)
+    }
+}
+
+async function showAndSaveError(error: Error, client: Client) {
     let errorDiv = await sleepElementLoaded('div.' + panelClass + ' #' + errorElementId)
     let span = document.createElement('span');
 
@@ -549,11 +561,12 @@ async function showError(error: Error) {
         let validationError = <ValidationProblemDetailedInfo>error
         span.innerHTML = "Ошибка валидации: " + JSON.stringify(validationError.errors)
     } else {
-        console.log(error.stack)
         span.innerHTML = error.stack;
     }
 
     errorDiv.appendChild(span)
+    
+    await saveErrorToBackend(error, client);
 }
 
 async function enableSubmitButton() {
@@ -596,8 +609,7 @@ async function productPage(client: Client) {
         await enableSubmitButton()
         await hideErrors()
     } catch (error) {
-        await showError(error);
-        throw error;
+        await showAndSaveError(error, client);
     }
 }
 
@@ -675,7 +687,7 @@ async function updateStatusInfinite(client: Client, links: LotLink[]) {
                 }
             })
         } catch (error) {
-            console.log(error.stack)
+            await saveErrorToBackend(error, client)
         }
         await sleep(1000)
     }
@@ -742,30 +754,36 @@ async function saveCodeVerifier() {
 }
 
 export async function run() {
-    await sleepElementLoaded('footer')
-    await saveCodeVerifier();
+    
+   
+        await sleepElementLoaded('footer')
+        await saveCodeVerifier();
 
-    let oAuth2Client = new OAuth2Client({
-        server: backendUrl,
-        clientId: 'Ebay.ChromeExtension',
-        tokenEndpoint: '/connect/token',
-        authorizationEndpoint: '/connect/authorize',
-        fetch: fetchResource
-    });
+        let oAuth2Client = new OAuth2Client({
+            server: backendUrl,
+            clientId: 'Ebay.ChromeExtension',
+            tokenEndpoint: '/connect/token',
+            authorizationEndpoint: '/connect/authorize',
+            fetch: fetchResource
+        });
 
-    let currentPage = location.protocol + '//' + location.host + location.pathname
+        let currentPage = location.protocol + '//' + location.host + location.pathname
 
-    if (currentPage === authRedirectUrl) {
-        await authPage(oAuth2Client);
-    } else {
-        let client = new Client(baseApiUrl, getAuthorizeFetch(oAuth2Client));
-
-        if (currentPage.startsWith("https://www.ebay.com/itm/")) {
-            await productPage(client);
-        } else if (currentPage.startsWith("https://www.ebay.com/sch/")) {
-            await searchPage(client);
+        if (currentPage === authRedirectUrl) {
+            await authPage(oAuth2Client);
+        } else {
+            let client = new Client(baseApiUrl, getAuthorizeFetch(oAuth2Client));
+            try {
+                if (currentPage.startsWith("https://www.ebay.com/itm/")) {
+                    await productPage(client);
+                } else if (currentPage.startsWith("https://www.ebay.com/sch/")) {
+                    await searchPage(client);
+                }
+            } catch (error) {
+                await saveErrorToBackend(error, client)
+            }
         }
-    }
+    
 }
 
 

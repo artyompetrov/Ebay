@@ -431,6 +431,44 @@ export class Client {
         }
         return Promise.resolve<ManualCondition[]>(null as any);
     }
+
+    /**
+     * Save Error
+     * @return Ok
+     */
+    saveError(error: ClientErrorInfo): Promise<void> {
+        let url_ = this.baseUrl + "/error/";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(error);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSaveError(_response);
+        });
+    }
+
+    protected processSaveError(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
 }
 
 export class ProductWithoutId implements IProductWithoutId {
@@ -851,6 +889,46 @@ export interface ILotState {
     lotId: number;
     ignoreThatLot: boolean;
     lastUpdate: string;
+}
+
+export class ClientErrorInfo implements IClientErrorInfo {
+    url!: string;
+    error!: string;
+
+    constructor(data?: IClientErrorInfo) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.url = _data["url"];
+            this.error = _data["error"];
+        }
+    }
+
+    static fromJS(data: any): ClientErrorInfo {
+        data = typeof data === 'object' ? data : {};
+        let result = new ClientErrorInfo();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["url"] = this.url;
+        data["error"] = this.error;
+        return data;
+    }
+}
+
+export interface IClientErrorInfo {
+    url: string;
+    error: string;
 }
 
 export abstract class ProblemDetailedInfo implements IProblemDetailedInfo {
