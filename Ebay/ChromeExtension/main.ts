@@ -353,7 +353,17 @@ async function fillLocatedIn() {
 }
 
 async function fillDescription() {
-    let descriptionUrl = (<HTMLIFrameElement>await sleepElementLoaded('#desc_ifr')).src
+    let foundElement = await sleepElementLoadedAny( ['#desc_ifr', '#vi_snippetdesc_btn'])
+    
+    let descriptionUrl : string
+    if (foundElement instanceof HTMLIFrameElement) {
+        descriptionUrl = (<HTMLIFrameElement>foundElement).src
+    }
+    else if (foundElement instanceof HTMLAnchorElement) {
+        descriptionUrl = (<HTMLAnchorElement>foundElement).href
+    }
+    
+    console.log(descriptionUrl)
     let response = await fetchResource(descriptionUrl, {method: 'GET', credentials: 'include'})
     lotInfo.description = await response.text()
 }
@@ -696,6 +706,27 @@ async function sleepElementLoaded(selector: string): Promise<Element> {
         await sleep(100);
     }
 }
+
+async function sleepElementLoadedAny(selectors: string[]): Promise<Element> {
+    
+    let retry = 0
+    while (true) {
+        retry++;
+        if (retry > 1000) throw new Error("unable to find any element by selectors " + selectors.join(", "))
+
+        let foundElement: Element
+        selectors.forEach(function (x) {
+            let element = document.querySelector(x)
+            if (element != null ) {
+                foundElement = element
+            }
+        })
+        
+        if (foundElement !== null) return foundElement
+        await sleep(100);
+    }
+}
+
 
 function sleep(ms: number): Promise<number> {
     return new Promise(resolve => setTimeout(resolve, ms));
