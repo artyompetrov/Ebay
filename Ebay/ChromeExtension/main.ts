@@ -542,10 +542,10 @@ async function addPanel(client: Client) {
 }
 
 async function saveErrorToBackend(error: Error, client: Client) {
-    let errorText = JSON.stringify(error)
+    let errorText = JSON.stringify(error) + " " + error.stack
     try {
         await client.saveError(new ClientErrorInfo({
-            error: JSON.stringify(error),
+            error: errorText,
             url: document.location.href
         }))
     } catch {
@@ -711,7 +711,7 @@ async function sleepElementLoaded(selector: string): Promise<Element> {
     let retry = 0
     while (true) {
         retry++;
-        if (retry > 1000) throw new Error("unable to find element by selector " + selector)
+        if (retry > 200) throw new Error("unable to find element by selector " + selector)
 
         let element = document.querySelector(selector)
         if (element !== null) return element
