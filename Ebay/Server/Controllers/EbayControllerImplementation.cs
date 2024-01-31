@@ -108,6 +108,20 @@ public class EbayControllerImplementation : IEbayController
         Guid productId,
         CancellationToken cancellationToken)
     {
+        var validationErrors = new Dictionary<string, string[]>();
+        if (lotInfo.ShippingAdditional == null)
+        {
+            validationErrors.Add(nameof(lotInfo.ShippingAdditional), new [] {"Not set"});
+        }
+        if (lotInfo.Shipping == null)
+        {
+            validationErrors.Add(nameof(lotInfo.Shipping), new [] {"Not set"});
+        }
+        if (validationErrors.Count > 0)
+        {
+            throw NonOkHttpAnswerException.ValidationError400(validationErrors);
+        }
+
         var dbLotInfo = lotInfo.ToDbLot(productId: productId, updateDate: DateTime.UtcNow);
 
         using var transaction = new TransactionScope(

@@ -17,9 +17,9 @@ public class Lot
 
     public double Price { get; set; }
 
-    public double? Shipping { get; set; }
+    public double Shipping { get; set; }
 
-    public double? ShippingAdditional { get; set; }
+    public double ShippingAdditional { get; set; }
 
     public string Description { get; set; } = null!;
 

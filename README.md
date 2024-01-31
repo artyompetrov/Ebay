@@ -30,3 +30,5 @@ openssl pkcs12 -inkey key.pem -in cert.cert -export -out pfx.pfx
 https://www.ebay.com/itm/225590176801?hash=item348638ec21:g:T9sAAOSwKXVlAfv-&amdata=enc%3AAQAIAAAAwMjLzRXKU4dByOX9486ZvbEGBfgVB63UYLO%2Bhgs8iektXrO5zjaachBq25UfLAJ4wHXKtryyhmE0fbTjZKx5x0GNS99%2BZ1V%2F66SbsB%2F1%2BiKaLmi6wybDwG03PWw%2BsUi2bQXhZhOFvNLS6yny9z3AyAXp9fdTkWtQzTqyL0KD%2Fd%2BsKYoY9gG9Loxf1jBfYd4oFOnvYbKfxVG%2Ff28M0o0XIFbOszCLJMpz3jYkW1etpmNgDCNXAc0U515NewObK9fXhQ%3D%3D%7Ctkp%3ABk9SR67G1fSpYw
 
 добавить множество поисковых запросов
+
+todo поправить в базе 9999 shipping
