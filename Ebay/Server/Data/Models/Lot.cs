@@ -15,6 +15,8 @@ public class Lot
 
     public int Pcs { get; set; }
 
+    public string Currency { get; set; } = null!;
+
     public double Price { get; set; }
 
     public double Shipping { get; set; }

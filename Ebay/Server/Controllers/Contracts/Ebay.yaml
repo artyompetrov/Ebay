@@ -257,6 +257,9 @@ definitions:
       pcs:
         type: integer
         minimum: 1
+      currency:
+        type: string
+        minLength: 1
       price:
         type: number
         minimum: 0.01
@@ -295,6 +298,7 @@ definitions:
       - lotId
       - name
       - pcs
+      - currency
       - price
       - description
       - condition

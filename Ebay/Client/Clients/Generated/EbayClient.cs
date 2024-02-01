@@ -1109,6 +1109,10 @@ namespace Ebay.Client.Clients.Generated
         [System.ComponentModel.DataAnnotations.Range(1, int.MaxValue)]
         public int Pcs { get; set; }
 
+        [Newtonsoft.Json.JsonProperty("currency", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public string Currency { get; set; }
+
         [Newtonsoft.Json.JsonProperty("price", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Range(0.01D, double.MaxValue)]
         public double Price { get; set; }
