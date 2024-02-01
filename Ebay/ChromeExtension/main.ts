@@ -51,16 +51,22 @@ function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response>
 }
 
 
-function extractPrice(price) {
+function extractPrice(price: string): Price {
     let matches = price.match(/(\D+)(\d+(?:[,.]\d+)?)/)
-    if (matches[1] !== "US $") {
-        throw new Error('US $ price expected, but was')
-    }
 
-    return parseFloat(matches[2].replace(',', '.'))
+    return new Price(parseFloat(matches[2].replace(',', '.')), matches[1].trim())
 }
 
+class Price {
+    constructor(price: number, currency: string) {
 
+        this.currency = currency
+        this.price = price
+    }
+
+    currency: string;
+    price: number;
+}
 
 function createPanel(bodyElement, client: Client) {
     let styles = `
@@ -194,7 +200,11 @@ function fillSoldItemsResult(fixedPriceRows: HTMLTableRowElement[], result: Purc
 
         if (price !== "Sold as a special offer" && price !== "Counter-offered" && price !== "Accepted") {
 
-            result.push(new PurchaseInfoInner(parseInt(columns[2]), parseDate(columns[3]), extractPrice(price)))
+            let priceExtracted = extractPrice(price)
+            if (priceExtracted.currency !== lotInfo.currency) {
+                 throw new Error("currency doesn't match with lot currency")
+            }
+            result.push(new PurchaseInfoInner(parseInt(columns[2]), parseDate(columns[3]), priceExtracted))
         } else {
             result.push(new PurchaseInfoInner(parseInt(columns[2]), parseDate(columns[3])))
         }
@@ -202,14 +212,14 @@ function fillSoldItemsResult(fixedPriceRows: HTMLTableRowElement[], result: Purc
 }
 
 class PurchaseInfoInner {
-    constructor(quantity: number, date: Date, price?: number | undefined) {
+    constructor(quantity: number, date: Date, price?: Price | undefined) {
         this.quantity = quantity
         this.date = date
         this.price = price
     }
 
     quantity: number;
-    price: number | undefined;
+    price: Price | undefined;
     date: Date
 }
 
@@ -257,8 +267,9 @@ function parseSoldItemsPage(text: string): PurchaseInfo[] {
     return result.sort(function (a, b) {
         return b.date.getTime() - a.date.getTime();
     }).map(function (x) {
+        
         return new PurchaseInfo({
-            date: x.date.toISOString(), quantity: x.quantity, price: x.price
+            date: x.date.toISOString(), quantity: x.quantity, price: x.price?.price
         })
     });
 }
@@ -268,7 +279,9 @@ function fillId() {
 }
 
 async function fillPrice() {
-    lotInfo.price = extractPrice((<HTMLElement>await sleepElementLoaded('div.x-price-primary span')).innerText)
+    let price = extractPrice((<HTMLElement>await sleepElementLoaded('div.x-price-primary span')).innerText)
+    lotInfo.price = price.price
+    lotInfo.currency = price.currency
 }
 
 async function fillName() {
@@ -318,14 +331,18 @@ async function fillShipping() {
         let shippingValue = shippingMaxviewValues['Shipping and handling']
 
         if (shippingValue !== 'Free shipping') {
-            lotInfo.shipping = extractPrice(shippingValue)
+            let shippingPrice = extractPrice(shippingValue)
+            if (shippingPrice.currency !== lotInfo.currency) throw new Error("Shipping currency mismatch with lot currency")
+            lotInfo.shipping = shippingPrice.price
 
             if (shippingMaxviewValues.hasOwnProperty('Each additional item')) {
 
                 let eachAdditional = shippingMaxviewValues['Each additional item']
 
                 if (eachAdditional !== "Free") {
-                    lotInfo.shippingAdditional = extractPrice(eachAdditional)
+                    let eachAdditionalPrice = extractPrice(eachAdditional)
+                    if (eachAdditionalPrice.currency !== lotInfo.currency) throw new Error("Each additional shipping currency mismatch with lot currency")
+                    lotInfo.shippingAdditional = eachAdditionalPrice.price
                 } else {
                     lotInfo.shippingAdditional = 0;
                 }
@@ -516,10 +533,10 @@ async function getDataFromPage(client: Client) {
         fillConditionDescription(),
         fillLocatedIn(),
         fillDescription(),
-        fillPurchaseHistory(),
         getServerLotInfo(client)
     ])
     await Promise.all([
+        fillPurchaseHistory(),
         fillProduct(panel, client, _serverLotInfo),
         fillManualCondition(panel, client, _serverLotInfo),
         fillPcs(panel, _serverLotInfo),
