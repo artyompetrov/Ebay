@@ -279,21 +279,21 @@ function fillId() {
 }
 
 async function fillPrice() {
-    let price = extractPrice((<HTMLElement>await sleepElementLoaded('div.x-price-primary span')).innerText)
+    let price = extractPrice((<HTMLElement>await sleepElementLoaded('div.x-price-primary span', document)).innerText)
     lotInfo.price = price.price
     lotInfo.currency = price.currency
 }
 
 async function fillName() {
-    lotInfo.name = (<HTMLElement>await sleepElementLoaded('.vim h1')).innerText
+    lotInfo.name = (<HTMLElement>await sleepElementLoaded('.vim h1', document)).innerText
 }
 
 async function fillSeller() {
-    lotInfo.seller = (<HTMLElement>await sleepElementLoaded('div.x-sellercard-atf__info__about-seller a')).innerText.toLowerCase()
+    lotInfo.seller = (<HTMLElement>await sleepElementLoaded('div.x-sellercard-atf__info__about-seller a', document)).innerText.toLowerCase()
 }
 
 async function fillCondition() {
-    lotInfo.condition = (<HTMLElement>await sleepElementLoaded('div.x-item-condition-text span.ux-textspans')).innerText
+    lotInfo.condition = (<HTMLElement>await sleepElementLoaded('div.x-item-condition-text span.ux-textspans', document)).innerText
 }
 
 async function fillConditionDescription() {
@@ -306,7 +306,7 @@ async function fillConditionDescription() {
 }
 
 async function fillShipping() {
-    let shippingDiv = await sleepElementLoaded('div.d-shipping-maxview')
+    let shippingDiv = await sleepElementLoaded('div.d-shipping-maxview', document)
     let shippingRatesAvailable = shippingDiv.querySelector('div.ux-layout-section__textual-display--askSeller') === null
     if (shippingRatesAvailable) {
         let shippingTable = shippingDiv.querySelector('table.ux-table-section-with-hints--shippingTable')
@@ -355,13 +355,52 @@ async function fillShipping() {
             lotInfo.shippingAdditional = 0;
         }
     } else {
-        lotInfo.shipping = undefined;
-        lotInfo.shippingAdditional = undefined;
+        await sleep(10000)
+        let shipButton = (<HTMLButtonElement>(await sleepElementLoaded('#gh-shipto-click button', document)));
+        shipButton.click();
+        
+        let chooseShippingCountryDialog = await sleepElementLoaded('#gh-shipto-click-modal', document);
+        
+        while (chooseShippingCountryDialog.checkVisibility() === false) {
+            await sleep(100)
+        }
+
+        (<HTMLButtonElement>(await sleepElementLoaded('button.menu-button__button', chooseShippingCountryDialog))).click();
+        
+        let itemsMenu = <HTMLDivElement>((await sleepElementLoaded('div.menu-button__items', chooseShippingCountryDialog)));
+
+        while (itemsMenu.checkVisibility() === false) {
+            await sleep(100)
+        }
+        
+        let country = 'United States'.toLowerCase();
+        getCountrySpanItem(country, itemsMenu).click()
+
+        while (shipButton.getAttribute("aria-label")?.toLowerCase()?.includes(country) !== true) {
+            await sleep(100)
+        }
+        
+        (<HTMLButtonElement>await sleepElementLoaded('button.shipto__close-btn', chooseShippingCountryDialog)).click()
+
+        //location.reload()
     }
 }
 
+function getCountrySpanItem(countryName :string, itemsMenu : HTMLDivElement) : HTMLSpanElement  {
+
+    let spans = itemsMenu.querySelectorAll('span.cn');
+
+    for (let i = 0; i < spans.length; ++i) {
+        if ( (<HTMLElement>spans[i]).innerText?.toLowerCase() === countryName) {
+            return <HTMLSpanElement>spans[i];
+        }
+    }
+    
+    throw new Error("Unable to find country in list " + countryName)
+}
+
 async function fillLocatedIn() {
-    let match = (<HTMLElement>await sleepElementLoaded('div.d-shipping-minview')).innerText.match(/Located\sin:\s(.+)/)
+    let match = (<HTMLElement>await sleepElementLoaded('div.d-shipping-minview', document)).innerText.match(/Located\sin:\s(.+)/)
     if (match !== null) {
         lotInfo.locatedIn = match[1]
     } else {
@@ -502,7 +541,7 @@ async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId)
     let serverPurchaseHistoryJsonString = JSON.stringify(serverPurchaseHistory)
     let lotInfoPurchaseHistoryJsonString = JSON.stringify(lotInfoPurchaseHistory)
 
-    let panel = <HTMLDivElement>await sleepElementLoaded('div.' + panelClass);
+    let panel = <HTMLDivElement>await sleepElementLoaded('div.' + panelClass, document);
     if (serverLotInfoJsonString === currentPageLotInfoJsonString) {
         console.log(serverPurchaseHistoryJsonString)
         console.log(lotInfoPurchaseHistoryJsonString)
@@ -522,7 +561,7 @@ async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId)
 }
 
 async function getDataFromPage(client: Client) {
-    let panel = <HTMLDivElement>await sleepElementLoaded('div.' + panelClass)
+    let panel = <HTMLDivElement>await sleepElementLoaded('div.' + panelClass, document)
 
     fillId();
     await Promise.all([
@@ -549,7 +588,7 @@ async function getDataFromPage(client: Client) {
 
 
 async function addPanel(client: Client) {
-    let bodyElement = await sleepElementLoaded('body');
+    let bodyElement = await sleepElementLoaded('body', document);
     if (bodyElement) {
         let existingPanel = bodyElement.querySelector('div.' + panelClass);
         if (!existingPanel) {
@@ -571,7 +610,7 @@ async function saveErrorToBackend(error: Error, client: Client) {
 }
 
 async function showAndSaveError(error: Error, client: Client) {
-    let errorDiv = await sleepElementLoaded('div.' + panelClass + ' #' + errorElementId)
+    let errorDiv = await sleepElementLoaded('div.' + panelClass + ' #' + errorElementId, document)
     let span = document.createElement('span');
 
     if (error instanceof ValidationProblemDetailedInfo) {
@@ -587,7 +626,7 @@ async function showAndSaveError(error: Error, client: Client) {
 }
 
 async function enableSubmitButton() {
-    (<HTMLButtonElement>await sleepElementLoaded('#' + submitId)).disabled = false
+    (<HTMLButtonElement>await sleepElementLoaded('#' + submitId, document)).disabled = false
 }
 
 function getAuthorizeFetch(oAuth2Client: OAuth2Client): FetchWrapperCustom {
@@ -614,7 +653,7 @@ function getAuthorizeFetch(oAuth2Client: OAuth2Client): FetchWrapperCustom {
 }
 
 async function hideErrors() {
-    let errorDiv = await sleepElementLoaded('div.' + panelClass + ' #' + errorElementId)
+    let errorDiv = await sleepElementLoaded('div.' + panelClass + ' #' + errorElementId, document)
     errorDiv.innerHTML = ""
 }
 
@@ -655,7 +694,7 @@ async function searchPage(client: Client) {
     //только на странице проданые лоты
     if (new URL(document.location.href).searchParams?.get('LH_Sold')?.trim() !== "1") return;
 
-    let searchResults = await sleepElementLoaded('ul.srp-results')
+    let searchResults = await sleepElementLoaded('ul.srp-results', document)
 
     let links = [...searchResults.querySelectorAll('li.s-item')]
         .map(function (x: HTMLElement) {
@@ -724,13 +763,13 @@ class LotLink {
     color: string | null
 }
 
-async function sleepElementLoaded(selector: string): Promise<Element> {
+async function sleepElementLoaded(selector: string, elementToSearchIn: Document | Element): Promise<Element> {
     let retry = 0
     while (true) {
         retry++;
         if (retry > 200) throw new Error("unable to find element by selector " + selector)
 
-        let element = document.querySelector(selector)
+        let element = elementToSearchIn.querySelector(selector)
         if (element !== null) return element
         await sleep(100);
     }
@@ -773,7 +812,7 @@ async function saveCodeVerifier() {
 export async function run() {
     
    
-        await sleepElementLoaded('footer')
+        await sleepElementLoaded('footer', document)
         await saveCodeVerifier();
 
         let oAuth2Client = new OAuth2Client({
