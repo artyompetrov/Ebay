@@ -314,6 +314,8 @@ function hasShippingToCountry(country: string, shipsTo: Set<string>, excludes: S
 }
 
 async function changeShippingCountry(currentCountryIndex: number, shippingDiv: Element, currentShippingCountry : string | null) {
+    if (currentCountryIndex >= supportedShippingCountries.length) throw new Error("currentCountryIndex Out of supported shipping countries range")
+    
     let shipsTo = getShipsTo(shippingDiv);
     let excludes = getExcludes(shippingDiv);
 
@@ -348,6 +350,7 @@ async function changeShippingCountry(currentCountryIndex: number, shippingDiv: E
 
         (<HTMLButtonElement>await sleepElementLoaded('button.shipto__close-btn', chooseShippingCountryDialog)).click()
     }
+    await sleep(1000)
     let url = new URL(document.location.href);
     url.searchParams.set(countryIndexParam, (nextCountryIndex).toString())
     document.location.href = url.toString()
@@ -389,6 +392,7 @@ async function fillShipping() {
         }
         let currentShippingCountry = shippingMaxviewValues['To'];
         if (currentShippingCountry !== currentCountry) {
+            console.log("changing shipping country because current country " + currentShippingCountry + " doesnt match with expected " + currentCountry)
             await changeShippingCountry(currentCountryIndex, shippingDiv, currentShippingCountry)
             return;
         }
@@ -422,7 +426,8 @@ async function fillShipping() {
         console.log('currentShippingCountry '+ currentShippingCountry)
         lotInfo.shippingCountry = currentShippingCountry
     } else {
-        await changeShippingCountry(currentCountryIndex, shippingDiv, null);
+        console.log("Changing because there is no shipping to current country")
+        await changeShippingCountry(currentCountryIndex + 1, shippingDiv, null);
         return;
     }
 }
@@ -580,6 +585,9 @@ async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId)
     serverLotInfoJson["ignoreThatLot"] = undefined
     serverLotInfoJson["manualConditionId"] = undefined
     serverLotInfoJson["description"] = undefined
+    serverLotInfoJson["shipping"] = undefined
+    serverLotInfoJson["shippingAdditional"] = undefined
+    serverLotInfoJson["shippingCountry"] = undefined
     let serverPurchaseHistory = serverLotInfoJson["purchaseHistory"]
     serverLotInfoJson["purchaseHistory"] = undefined
     let lotInfoJson = lotInfo.toJSON()
@@ -587,6 +595,9 @@ async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId)
     lotInfoJson["ignoreThatLot"] = undefined
     lotInfoJson["manualConditionId"] = undefined
     lotInfoJson["description"] = undefined
+    lotInfoJson["shipping"] = undefined
+    lotInfoJson["shippingAdditional"] = undefined
+    lotInfoJson["shippingCountry"] = undefined
     let lotInfoPurchaseHistory = lotInfoJson["purchaseHistory"];
     lotInfoJson["purchaseHistory"] = undefined
 
