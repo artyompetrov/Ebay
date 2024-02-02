@@ -870,21 +870,18 @@ function sleep(ms: number): Promise<number> {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function saveCodeVerifierAndReturnPage() {
+async function saveCodeVerifier() {
     let codeVerifier = (await chrome.storage.local.get(["code_verifier"]))?.code_verifier;
 
     if (codeVerifier === null || codeVerifier === undefined) {
         let codeVerifier = await generateCodeVerifier();
         await chrome.storage.local.set({code_verifier: codeVerifier})
     }
-
-
-    await chrome.storage.local.set({return_page: document.location.href})
 }
 
 export async function run() {
     await sleepElementLoaded('footer', document)
-    await saveCodeVerifierAndReturnPage();
+    await saveCodeVerifier();
 
     let oAuth2Client = new OAuth2Client({
         server: backendUrl,
@@ -899,6 +896,8 @@ export async function run() {
     if (currentPage === authRedirectUrl) {
         await authPage(oAuth2Client);
     } else {
+        await chrome.storage.local.set({return_page: document.location.href})
+        
         let client = new Client(baseApiUrl, getAuthorizeFetch(oAuth2Client));
         try {
             if (currentPage.startsWith("https://www.ebay.com/itm/")) {
