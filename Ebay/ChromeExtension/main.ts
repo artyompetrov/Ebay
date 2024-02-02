@@ -26,7 +26,8 @@ const lightGreenColor = "#ecffec"
 const lightPinkColor = "lightpink"
 const lightYellowColor = "#e0e07f"
 
-
+const supportedShippingCountries = ['Germany', 'Italy', 'France', 'United Kingdom']
+const countryIndexParam = 'currentCountryIndex'
 
 const lotInfo = new LotInfo();
 let _serverLotInfo: LotInfoWithProductId;
@@ -117,7 +118,7 @@ function createPanel(bodyElement, client: Client) {
     let historyButtonHref = `https://${domain}/bin/purchaseHistory?item=${itemId}`;
     // language=HTML
     form.innerHTML = `
-        <a href="${historyButtonHref}" target="_blank">История продаж лота</a> 
+        <a href="${historyButtonHref}" target="_blank">История продаж лота</a>
         <br>Бэкенд: <a href="${backendUrl}" target="_blank">${backendUrl}</a>
         <br>
         <br>
@@ -202,7 +203,7 @@ function fillSoldItemsResult(fixedPriceRows: HTMLTableRowElement[], result: Purc
 
             let priceExtracted = extractPrice(price)
             if (priceExtracted.currency !== lotInfo.currency) {
-                 throw new Error("currency doesn't match with lot currency")
+                throw new Error("currency doesn't match with lot currency")
             }
             result.push(new PurchaseInfoInner(parseInt(columns[2]), parseDate(columns[3]), priceExtracted))
         } else {
@@ -267,7 +268,7 @@ function parseSoldItemsPage(text: string): PurchaseInfo[] {
     return result.sort(function (a, b) {
         return b.date.getTime() - a.date.getTime();
     }).map(function (x) {
-        
+
         return new PurchaseInfo({
             date: x.date.toISOString(), quantity: x.quantity, price: x.price?.price
         })
@@ -305,12 +306,48 @@ async function fillConditionDescription() {
     }
 }
 
+
+async function changeShippingCountry(countryIndex: number) {
+    await sleep(1000)
+    let shipButton = (<HTMLButtonElement>(await sleepElementLoaded('#gh-shipto-click button', document)));
+    shipButton.click();
+
+    let chooseShippingCountryDialog = await sleepElementLoaded('#gh-shipto-click-modal', document);
+    await sleepUntil(() => chooseShippingCountryDialog.checkVisibility() === false);
+
+    (<HTMLButtonElement>(await sleepElementLoaded('button.menu-button__button', chooseShippingCountryDialog))).click();
+
+    let itemsMenu = <HTMLDivElement>((await sleepElementLoaded('div.menu-button__items', chooseShippingCountryDialog)));
+
+    await sleepUntil(() => itemsMenu.checkVisibility() === false);
+    let nextCountry = supportedShippingCountries[countryIndex]
+    getCountrySpanItem(nextCountry, itemsMenu).click()
+
+    await sleepUntil(() => shipButton.getAttribute("aria-label")?.includes(nextCountry) !== true);
+
+
+    (<HTMLButtonElement>await sleepElementLoaded('button.shipto__close-btn', chooseShippingCountryDialog)).click()
+
+    let url = new URL(document.location.href);
+    url.searchParams.set(countryIndexParam, (countryIndex).toString())
+    document.location.href = url.toString()
+}
+
 async function fillShipping() {
+
+    let url = new URL(document.location.href);
+    let currentCountryIndex = parseInt(url.searchParams.get(countryIndexParam) ?? "0")
+    let nextCountryIndex = currentCountryIndex + 1
+
+    if (nextCountryIndex >= supportedShippingCountries.length) throw new Error("Out of supported shipping countries range")
+    let currentCountry = supportedShippingCountries[currentCountryIndex]
+
+
     let shippingDiv = await sleepElementLoaded('div.d-shipping-maxview', document)
     let shippingRatesAvailable = shippingDiv.querySelector('div.ux-layout-section__textual-display--askSeller') === null
     if (shippingRatesAvailable) {
         let shippingTable = shippingDiv.querySelector('table.ux-table-section-with-hints--shippingTable')
-        
+
         let deliveryColumnsHeader = [...shippingTable.querySelector('thead')
             .querySelectorAll('th')]
         let deliveryColumnsValues = [...shippingTable.querySelector('tbody')
@@ -324,8 +361,9 @@ async function fillShipping() {
             shippingMaxviewValues[key] = deliveryColumnsValues[i].querySelector('span').innerText
         }
 
-        if (shippingMaxviewValues['To'] !== 'Germany') {
-            throw new Error('Shipping country must be Germany');
+        if (shippingMaxviewValues['To'] !== currentCountry) {
+            await changeShippingCountry(currentCountryIndex)
+            return;
         }
 
         let shippingValue = shippingMaxviewValues['Shipping and handling']
@@ -355,47 +393,33 @@ async function fillShipping() {
             lotInfo.shippingAdditional = 0;
         }
     } else {
-        await sleep(10000)
-        let shipButton = (<HTMLButtonElement>(await sleepElementLoaded('#gh-shipto-click button', document)));
-        shipButton.click();
-        
-        let chooseShippingCountryDialog = await sleepElementLoaded('#gh-shipto-click-modal', document);
-        
-        while (chooseShippingCountryDialog.checkVisibility() === false) {
-            await sleep(100)
-        }
-
-        (<HTMLButtonElement>(await sleepElementLoaded('button.menu-button__button', chooseShippingCountryDialog))).click();
-        
-        let itemsMenu = <HTMLDivElement>((await sleepElementLoaded('div.menu-button__items', chooseShippingCountryDialog)));
-
-        while (itemsMenu.checkVisibility() === false) {
-            await sleep(100)
-        }
-        
-        let country = 'United States'.toLowerCase();
-        getCountrySpanItem(country, itemsMenu).click()
-
-        while (shipButton.getAttribute("aria-label")?.toLowerCase()?.includes(country) !== true) {
-            await sleep(100)
-        }
-        
-        (<HTMLButtonElement>await sleepElementLoaded('button.shipto__close-btn', chooseShippingCountryDialog)).click()
-
-        //location.reload()
+        await changeShippingCountry(nextCountryIndex);
+        return;
     }
 }
 
-function getCountrySpanItem(countryName :string, itemsMenu : HTMLDivElement) : HTMLSpanElement  {
+
+async function sleepUntil(func: () => boolean, sleepMs: number = 100, maxAttempt: number = 100): Promise<void> {
+    let attempt = 0;
+    while (func()) {
+        attempt++;
+
+        if (attempt > maxAttempt) throw new Error("Attempt counts exceeded " + maxAttempt + " " + func.toString())
+
+        await sleep(sleepMs)
+    }
+}
+
+function getCountrySpanItem(countryName: string, itemsMenu: HTMLDivElement): HTMLSpanElement {
 
     let spans = itemsMenu.querySelectorAll('span.cn');
 
     for (let i = 0; i < spans.length; ++i) {
-        if ( (<HTMLElement>spans[i]).innerText?.toLowerCase() === countryName) {
+        if ((<HTMLElement>spans[i]).innerText === countryName) {
             return <HTMLSpanElement>spans[i];
         }
     }
-    
+
     throw new Error("Unable to find country in list " + countryName)
 }
 
@@ -409,16 +433,15 @@ async function fillLocatedIn() {
 }
 
 async function fillDescription() {
-    let foundElement = await sleepElementLoadedAny( ['#desc_ifr', '#vi_snippetdesc_btn'])
-    
-    let descriptionUrl : string
+    let foundElement = await sleepElementLoadedAny(['#desc_ifr', '#vi_snippetdesc_btn'])
+
+    let descriptionUrl: string
     if (foundElement instanceof HTMLIFrameElement) {
         descriptionUrl = (<HTMLIFrameElement>foundElement).src
-    }
-    else if (foundElement instanceof HTMLAnchorElement) {
+    } else if (foundElement instanceof HTMLAnchorElement) {
         descriptionUrl = (<HTMLAnchorElement>foundElement).href
     }
-    
+
     console.log(descriptionUrl)
     let response = await fetchResource(descriptionUrl, {method: 'GET', credentials: 'include'})
     lotInfo.description = await response.text()
@@ -432,7 +455,7 @@ async function fillPurchaseHistory() {
     lotInfo.purchaseHistory = parseSoldItemsPage(text)
 }
 
-function getSearchQuery() : string | undefined {
+function getSearchQuery(): string | undefined {
     if (document.referrer) {
         return new URL(document.referrer).searchParams?.get('_nkw')?.trim()?.toLowerCase();
     }
@@ -461,7 +484,7 @@ async function fillProduct(panel: HTMLDivElement, client: Client, serverLotInfo:
                     opt.selected = true
                 }
             })
-            
+
         }
         productField.appendChild(opt);
     }
@@ -535,7 +558,7 @@ async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId)
     lotInfoJson["description"] = undefined
     let lotInfoPurchaseHistory = lotInfoJson["purchaseHistory"];
     lotInfoJson["purchaseHistory"] = undefined
-    
+
     let serverLotInfoJsonString = JSON.stringify(serverLotInfoJson)
     let currentPageLotInfoJsonString = JSON.stringify(lotInfoJson)
     let serverPurchaseHistoryJsonString = JSON.stringify(serverPurchaseHistory)
@@ -547,9 +570,7 @@ async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId)
         console.log(lotInfoPurchaseHistoryJsonString)
         if (_serverLotInfo.lotInfo.ignoreThatLot === true || serverPurchaseHistoryJsonString === lotInfoPurchaseHistoryJsonString) {
             panel.style.cssText = `background-color: ${lightGreenColor};`
-        }
-        else
-        {
+        } else {
             panel.style.cssText = `background-color: ${lightYellowColor};`
         }
     } else {
@@ -582,7 +603,7 @@ async function getDataFromPage(client: Client) {
         fillIgnoreThatLot(panel, _serverLotInfo),
         fillShipping(),
     ]);
-    
+
     await compareLotInfos(_serverLotInfo);
 }
 
@@ -621,7 +642,7 @@ async function showAndSaveError(error: Error, client: Client) {
     }
 
     errorDiv.appendChild(span)
-    
+
     await saveErrorToBackend(error, client);
 }
 
@@ -643,7 +664,7 @@ function getAuthorizeFetch(oAuth2Client: OAuth2Client): FetchWrapperCustom {
             return null;
         },
         getStoredToken: async () => {
-            if (backendUrl !== (await chrome.storage.local.get(["backend_url"])).backend_url)  return null;
+            if (backendUrl !== (await chrome.storage.local.get(["backend_url"])).backend_url) return null;
             let token = (await chrome.storage.local.get(["token_store"])).token_store;
             if (token) return JSON.parse(token);
             return null;
@@ -685,13 +706,11 @@ async function authPage(oAuth2Client: OAuth2Client) {
         await chrome.storage.local.set({token_store: JSON.stringify(oauth2Token)})
 
         let returnPage = (await chrome.storage.local.get(["return_page"]))?.return_page;
-        
+
         if (returnPage !== null && returnPage !== undefined) {
-            document.location.href = returnPage
             await chrome.storage.local.set({return_page: null})
-        }
-        else
-        {
+            document.location.href = returnPage
+        } else {
             document.location.href = authRedirectUrl
         }
     }
@@ -785,7 +804,7 @@ async function sleepElementLoaded(selector: string, elementToSearchIn: Document 
 }
 
 async function sleepElementLoadedAny(selectors: string[]): Promise<Element> {
-    
+
     let retry = 0
     while (true) {
         retry++;
@@ -794,11 +813,11 @@ async function sleepElementLoadedAny(selectors: string[]): Promise<Element> {
         let foundElement: Element
         selectors.forEach(function (x) {
             let element = document.querySelector(x)
-            if (element != null ) {
+            if (element != null) {
                 foundElement = element
             }
         })
-        
+
         if (foundElement !== null) return foundElement
         await sleep(100);
     }
@@ -817,42 +836,39 @@ async function saveCodeVerifierAndReturnPage() {
         await chrome.storage.local.set({code_verifier: codeVerifier})
     }
 
-    let returnPage = (await chrome.storage.local.get(["return_page"]))?.return_page;
 
-    if (returnPage === null || returnPage === undefined) {
-        await chrome.storage.local.set({return_page: document.location.href})
-    }
+    await chrome.storage.local.set({return_page: document.location.href})
 }
 
 export async function run() {
-        await sleepElementLoaded('footer')
-        await saveCodeVerifierAndReturnPage();
+    await sleepElementLoaded('footer', document)
+    await saveCodeVerifierAndReturnPage();
 
-        let oAuth2Client = new OAuth2Client({
-            server: backendUrl,
-            clientId: 'Ebay.ChromeExtension',
-            tokenEndpoint: '/connect/token',
-            authorizationEndpoint: '/connect/authorize',
-            fetch: fetchResource
-        });
+    let oAuth2Client = new OAuth2Client({
+        server: backendUrl,
+        clientId: 'Ebay.ChromeExtension',
+        tokenEndpoint: '/connect/token',
+        authorizationEndpoint: '/connect/authorize',
+        fetch: fetchResource
+    });
 
-        let currentPage = location.protocol + '//' + location.host + location.pathname
+    let currentPage = location.protocol + '//' + location.host + location.pathname
 
-        if (currentPage === authRedirectUrl) {
-            await authPage(oAuth2Client);
-        } else {
-            let client = new Client(baseApiUrl, getAuthorizeFetch(oAuth2Client));
-            try {
-                if (currentPage.startsWith("https://www.ebay.com/itm/")) {
-                    await productPage(client);
-                } else if (currentPage.startsWith("https://www.ebay.com/sch/")) {
-                    await searchPage(client);
-                }
-            } catch (error) {
-                await saveErrorToBackend(error, client)
+    if (currentPage === authRedirectUrl) {
+        await authPage(oAuth2Client);
+    } else {
+        let client = new Client(baseApiUrl, getAuthorizeFetch(oAuth2Client));
+        try {
+            if (currentPage.startsWith("https://www.ebay.com/itm/")) {
+                await productPage(client);
+            } else if (currentPage.startsWith("https://www.ebay.com/sch/")) {
+                await searchPage(client);
             }
+        } catch (error) {
+            await saveErrorToBackend(error, client)
         }
-    
+    }
+
 }
 
 
