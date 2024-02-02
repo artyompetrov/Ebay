@@ -684,7 +684,16 @@ async function authPage(oAuth2Client: OAuth2Client) {
         await chrome.storage.local.set({backend_url: backendUrl})
         await chrome.storage.local.set({token_store: JSON.stringify(oauth2Token)})
 
-        document.location.href = authRedirectUrl
+        let returnPage = (await chrome.storage.local.get(["return_page"]))?.return_page;
+        
+        if (returnPage !== null && returnPage !== undefined) {
+            document.location.href = returnPage
+            await chrome.storage.local.set({return_page: null})
+        }
+        else
+        {
+            document.location.href = authRedirectUrl
+        }
     }
 }
 
@@ -800,20 +809,24 @@ function sleep(ms: number): Promise<number> {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function saveCodeVerifier() {
+async function saveCodeVerifierAndReturnPage() {
     let codeVerifier = (await chrome.storage.local.get(["code_verifier"]))?.code_verifier;
 
     if (codeVerifier === null || codeVerifier === undefined) {
         let codeVerifier = await generateCodeVerifier();
         await chrome.storage.local.set({code_verifier: codeVerifier})
     }
+
+    let returnPage = (await chrome.storage.local.get(["return_page"]))?.return_page;
+
+    if (returnPage === null || returnPage === undefined) {
+        await chrome.storage.local.set({return_page: document.location.href})
+    }
 }
 
 export async function run() {
-    
-   
-        await sleepElementLoaded('footer', document)
-        await saveCodeVerifier();
+        await sleepElementLoaded('footer')
+        await saveCodeVerifierAndReturnPage();
 
         let oAuth2Client = new OAuth2Client({
             server: backendUrl,
