@@ -26,7 +26,7 @@ const lightGreenColor = "#ecffec"
 const lightPinkColor = "lightpink"
 const lightYellowColor = "#e0e07f"
 
-const supportedShippingCountries = ['Germany', 'Italy', 'France', 'United Kingdom']
+const supportedShippingCountries = ['Germany', 'Italy', 'France', 'United Kingdom', 'United States']
 const countryIndexParam = 'currentCountryIndex'
 
 const lotInfo = new LotInfo();
@@ -307,43 +307,68 @@ async function fillConditionDescription() {
 }
 
 
-async function changeShippingCountry(countryIndex: number) {
-    await sleep(1000)
-    let shipButton = (<HTMLButtonElement>(await sleepElementLoaded('#gh-shipto-click button', document)));
-    shipButton.click();
+function hasShippingToCountry(nextCountry: string, shipsTo: Set<string>, excludes: Set<string>) {
+    return (shipsTo.has('Worldwide') || shipsTo.has(nextCountry)) && !excludes.has(nextCountry);
+}
 
-    let chooseShippingCountryDialog = await sleepElementLoaded('#gh-shipto-click-modal', document);
-    await sleepUntil(() => chooseShippingCountryDialog.checkVisibility() === false);
+async function changeShippingCountry(currentCountryIndex: number, shippingDiv: Element, currentShippingCountry : string | null) {
+    let shipsTo = getShipsTo(shippingDiv);
+    let excludes = getExcludes(shippingDiv);
 
-    (<HTMLButtonElement>(await sleepElementLoaded('button.menu-button__button', chooseShippingCountryDialog))).click();
+    let nextCountryIndex = currentCountryIndex
+    let nextCountry = supportedShippingCountries[nextCountryIndex]
+    
+    while (!hasShippingToCountry(nextCountry, shipsTo, excludes)) {
+        nextCountryIndex = nextCountryIndex + 1
+        if (nextCountryIndex >= supportedShippingCountries.length) throw new Error("Out of supported shipping countries range")
+        nextCountry = supportedShippingCountries[nextCountryIndex]
+    }
+    
+    if (currentShippingCountry !== nextCountry) {
 
-    let itemsMenu = <HTMLDivElement>((await sleepElementLoaded('div.menu-button__items', chooseShippingCountryDialog)));
+        await sleep(1000)
+        let shipButton = (<HTMLButtonElement>(await sleepElementLoaded('#gh-shipto-click button', document)));
+        shipButton.click();
 
-    await sleepUntil(() => itemsMenu.checkVisibility() === false);
-    let nextCountry = supportedShippingCountries[countryIndex]
-    getCountrySpanItem(nextCountry, itemsMenu).click()
+        let chooseShippingCountryDialog = await sleepElementLoaded('#gh-shipto-click-modal', document);
+        await sleepUntil(() => chooseShippingCountryDialog.checkVisibility() === false);
 
-    await sleepUntil(() => shipButton.getAttribute("aria-label")?.includes(nextCountry) !== true);
+        (<HTMLButtonElement>(await sleepElementLoaded('button.menu-button__button', chooseShippingCountryDialog))).click();
+
+        let itemsMenu = <HTMLDivElement>((await sleepElementLoaded('div.menu-button__items', chooseShippingCountryDialog)));
+
+        await sleepUntil(() => itemsMenu.checkVisibility() === false);
+
+        getCountrySpanItem(nextCountry, itemsMenu).click()
+
+        await sleepUntil(() => shipButton.getAttribute("aria-label")?.includes(nextCountry) !== true);
 
 
-    (<HTMLButtonElement>await sleepElementLoaded('button.shipto__close-btn', chooseShippingCountryDialog)).click()
-
+        (<HTMLButtonElement>await sleepElementLoaded('button.shipto__close-btn', chooseShippingCountryDialog)).click()
+    }
     let url = new URL(document.location.href);
-    url.searchParams.set(countryIndexParam, (countryIndex).toString())
+    url.searchParams.set(countryIndexParam, (nextCountryIndex).toString())
     document.location.href = url.toString()
+}
+
+function getShipsTo(shippingDiv: Element): Set<string> {
+    return new Set((<HTMLDivElement>shippingDiv.querySelector('div.ux-labels-values--shipsto')).innerText.replace("Ships to:", "")
+        .split(',').map(s => s.trim()));
+}
+
+function getExcludes(shippingDiv: Element): Set<string> {
+    return new Set((<HTMLDivElement>shippingDiv.querySelector('div.ux-labels-values--excludes')).innerText.replace("Excludes:", "")
+        .split(',').map(s => s.trim()));
 }
 
 async function fillShipping() {
 
     let url = new URL(document.location.href);
     let currentCountryIndex = parseInt(url.searchParams.get(countryIndexParam) ?? "0")
-    let nextCountryIndex = currentCountryIndex + 1
-
-    if (nextCountryIndex >= supportedShippingCountries.length) throw new Error("Out of supported shipping countries range")
     let currentCountry = supportedShippingCountries[currentCountryIndex]
 
+    let shippingDiv = await sleepElementLoaded('div.d-shipping-maxview', document);
 
-    let shippingDiv = await sleepElementLoaded('div.d-shipping-maxview', document)
     let shippingRatesAvailable = shippingDiv.querySelector('div.ux-layout-section__textual-display--askSeller') === null
     if (shippingRatesAvailable) {
         let shippingTable = shippingDiv.querySelector('table.ux-table-section-with-hints--shippingTable')
@@ -360,9 +385,9 @@ async function fillShipping() {
             let key = deliveryColumnsHeader[i].innerText
             shippingMaxviewValues[key] = deliveryColumnsValues[i].querySelector('span').innerText
         }
-
-        if (shippingMaxviewValues['To'] !== currentCountry) {
-            await changeShippingCountry(currentCountryIndex)
+        let currentShippingCountry = shippingMaxviewValues['To'];
+        if (currentShippingCountry!== currentCountry) {
+            await changeShippingCountry(currentCountryIndex, shippingDiv, currentShippingCountry)
             return;
         }
 
@@ -393,7 +418,7 @@ async function fillShipping() {
             lotInfo.shippingAdditional = 0;
         }
     } else {
-        await changeShippingCountry(nextCountryIndex);
+        await changeShippingCountry(currentCountryIndex, shippingDiv, null);
         return;
     }
 }
@@ -411,7 +436,9 @@ async function sleepUntil(func: () => boolean, sleepMs: number = 100, maxAttempt
 }
 
 function getCountrySpanItem(countryName: string, itemsMenu: HTMLDivElement): HTMLSpanElement {
-
+    
+    if (countryName === null || countryName === undefined) throw new Error("country name shouldn't be null or undefined")
+    
     let spans = itemsMenu.querySelectorAll('span.cn');
 
     for (let i = 0; i < spans.length; ++i) {
