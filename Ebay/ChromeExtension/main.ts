@@ -17,8 +17,8 @@ const panelClass = "panel-div";
 const formId = "product-form-id"
 const errorElementId = "errorElement"
 const submitId = "submit"
-const backendUrl = "https://localhost:7095/"
-//const backendUrl = "https://178.208.65.100:17443/"
+//const backendUrl = "https://localhost:7095/"
+const backendUrl = "https://178.208.65.100:17443/"
 const baseApiUrl = `${backendUrl}api/ebay/v1`;
 const authRedirectUrl = "https://www.ebay.com/"
 const notSetValue = "notSet"
@@ -336,17 +336,17 @@ async function changeShippingCountry(currentCountryIndex: number, shippingDiv: E
 
         let chooseShippingCountryDialog = await sleepElementLoaded('#gh-shipto-click-modal', document);
         await sleepUntil(() => chooseShippingCountryDialog.checkVisibility() === false);
-
+        await sleep(1000);
         (<HTMLButtonElement>(await sleepElementLoaded('button.menu-button__button', chooseShippingCountryDialog))).click();
 
         let itemsMenu = <HTMLDivElement>((await sleepElementLoaded('div.menu-button__items', chooseShippingCountryDialog)));
 
         await sleepUntil(() => itemsMenu.checkVisibility() === false);
-
+        await sleep(1000);
         getCountrySpanItem(nextCountry, itemsMenu).click()
 
         await sleepUntil(() => shipButton.getAttribute("aria-label")?.includes(nextCountry) !== true);
-
+        await sleep(1000);
 
         (<HTMLButtonElement>await sleepElementLoaded('button.shipto__close-btn', chooseShippingCountryDialog)).click()
     }
@@ -392,7 +392,7 @@ async function fillShipping() {
         }
         let currentShippingCountry = shippingMaxviewValues['To'];
         if (currentShippingCountry !== currentCountry) {
-            console.log("changing shipping country because current country " + currentShippingCountry + " doesnt match with expected " + currentCountry)
+            console.log("changing shipping country because current country " + currentShippingCountry + " doesn't match with expected " + currentCountry)
             await changeShippingCountry(currentCountryIndex, shippingDiv, currentShippingCountry)
             return;
         }
