@@ -152,6 +152,7 @@ function createPanel(bodyElement, client: Client) {
     });
 
     div.appendChild(form)
+    div.hidden = true;
     bodyElement.appendChild(div);
 }
 
@@ -171,10 +172,10 @@ async function handleSubmit(event: SubmitEvent, client: Client) {
             }
         });
 
-        if (lotInfo.shippingCountry === shippingInfoNotFound){
+        if (lotInfo.shippingCountry === shippingInfoNotFound) {
             ignoreThatLot = true;
         }
-        
+
         lotInfo['ignoreThatLot'] = ignoreThatLot;
 
         if (ignoreThatLot) {
@@ -318,44 +319,43 @@ function hasShippingToCountry(country: string, shipsTo: Set<string>, excludes: S
     return (shipsTo.has('Worldwide') || (shipsTo.has("Europe") && supportedEuropeCountries.has(country)) || shipsTo.has(country)) && !excludes.has(country);
 }
 
-async function changeShippingCountry(currentCountryIndex: number, shippingDiv: Element, currentShippingCountry : string | null) {
+async function changeShippingCountry(currentCountryIndex: number, shippingDiv: Element, currentShippingCountry: string | null) {
     if (currentCountryIndex >= supportedShippingCountries.length) throw new Error("currentCountryIndex Out of supported shipping countries range")
-    
+
     let shipsTo = getShipsTo(shippingDiv);
     let excludes = getExcludes(shippingDiv);
 
     let nextCountryIndex = currentCountryIndex
     let nextCountry = supportedShippingCountries[nextCountryIndex]
-    
+
     while (!hasShippingToCountry(nextCountry, shipsTo, excludes)) {
         nextCountryIndex = nextCountryIndex + 1
         if (nextCountryIndex >= supportedShippingCountries.length) throw new Error("Out of supported shipping countries range")
         nextCountry = supportedShippingCountries[nextCountryIndex]
     }
-    
-    if (currentShippingCountry !== nextCountry) {
 
-        await sleep(1000)
+    if (currentShippingCountry !== nextCountry) {
         let shipButton = (<HTMLButtonElement>(await sleepElementLoaded('#gh-shipto-click button', document)));
+        await sleep(1000)
         shipButton.click();
 
         let chooseShippingCountryDialog = await sleepElementLoaded('#gh-shipto-click-modal', document);
         await sleepUntil(() => chooseShippingCountryDialog.checkVisibility() === false);
-        await sleep(1000);
+        await sleep(500);
         (<HTMLButtonElement>(await sleepElementLoaded('button.menu-button__button', chooseShippingCountryDialog))).click();
 
         let itemsMenu = <HTMLDivElement>((await sleepElementLoaded('div.menu-button__items', chooseShippingCountryDialog)));
 
         await sleepUntil(() => itemsMenu.checkVisibility() === false);
-        await sleep(1000);
+        await sleep(500);
         getCountrySpanItem(nextCountry, itemsMenu).click()
 
         await sleepUntil(() => shipButton.getAttribute("aria-label")?.includes(nextCountry) !== true);
-        await sleep(1000);
+        await sleep(500);
 
         (<HTMLButtonElement>await sleepElementLoaded('button.shipto__close-btn', chooseShippingCountryDialog)).click()
     }
-    await sleep(1000)
+    await sleep(3000)
     let url = new URL(document.location.href);
     url.searchParams.set(countryIndexParam, (nextCountryIndex).toString())
     document.location.href = url.toString()
@@ -389,7 +389,7 @@ async function fillShipping() {
             lotInfo.shippingCountry = shippingInfoNotFound
             return
         }
-        
+
         let deliveryColumnsHeader = [...shippingTable.querySelector('thead')
             .querySelectorAll('th')]
         let deliveryColumnsValues = [...shippingTable.querySelector('tbody')
@@ -435,7 +435,7 @@ async function fillShipping() {
             lotInfo.shipping = 0;
             lotInfo.shippingAdditional = 0;
         }
-        console.log('currentShippingCountry '+ currentShippingCountry)
+        console.log('currentShippingCountry ' + currentShippingCountry)
         lotInfo.shippingCountry = currentShippingCountry
     } else {
         console.log("Changing because there is no shipping to current country")
@@ -457,9 +457,9 @@ async function sleepUntil(func: () => boolean, sleepMs: number = 100, maxAttempt
 }
 
 function getCountrySpanItem(countryName: string, itemsMenu: HTMLDivElement): HTMLSpanElement {
-    
+
     if (countryName === null || countryName === undefined) throw new Error("country name shouldn't be null or undefined")
-    
+
     let spans = itemsMenu.querySelectorAll('span.cn');
 
     for (let i = 0; i < spans.length; ++i) {
@@ -658,6 +658,9 @@ async function getDataFromPage(client: Client) {
         fillShipping(),
     ]);
 
+    console.log("show panel")
+    panel.hidden = false;
+
     await compareLotInfos(_serverLotInfo);
 }
 
@@ -685,16 +688,21 @@ async function saveErrorToBackend(error: Error, client: Client) {
 }
 
 async function showAndSaveError(error: Error, client: Client) {
+
+    let errorText: string
+    if (error instanceof ValidationProblemDetailedInfo) {
+        let validationError = <ValidationProblemDetailedInfo>error
+        errorText = JSON.stringify(validationError.errors)
+    } else {
+        errorText = error.stack;
+    }
+
+    console.log("ERROR " + errorText)
+    
     let errorDiv = await sleepElementLoaded('div.' + panelClass + ' #' + errorElementId, document)
     let span = document.createElement('span');
 
-    if (error instanceof ValidationProblemDetailedInfo) {
-        let validationError = <ValidationProblemDetailedInfo>error
-        span.innerHTML = "Ошибка валидации: " + JSON.stringify(validationError.errors)
-    } else {
-        span.innerHTML = error.stack;
-    }
-
+    span.innerHTML = errorText
     errorDiv.appendChild(span)
 
     await saveErrorToBackend(error, client);
@@ -909,7 +917,7 @@ export async function run() {
         await authPage(oAuth2Client);
     } else {
         await chrome.storage.local.set({return_page: document.location.href})
-        
+
         let client = new Client(baseApiUrl, getAuthorizeFetch(oAuth2Client));
         try {
             if (currentPage.startsWith("https://www.ebay.com/itm/")) {
