@@ -26,7 +26,9 @@ const lightGreenColor = "#ecffec"
 const lightPinkColor = "lightpink"
 const lightYellowColor = "#e0e07f"
 
+const supportedEuropeCountries = new Set(['Germany', 'Italy', 'France', 'United Kingdom'])
 const supportedShippingCountries = ['Germany', 'Italy', 'France', 'United Kingdom', 'United States']
+
 const countryIndexParam = 'currentCountryIndex'
 
 const lotInfo = new LotInfo();
@@ -307,8 +309,8 @@ async function fillConditionDescription() {
 }
 
 
-function hasShippingToCountry(nextCountry: string, shipsTo: Set<string>, excludes: Set<string>) {
-    return (shipsTo.has('Worldwide') || shipsTo.has(nextCountry)) && !excludes.has(nextCountry);
+function hasShippingToCountry(country: string, shipsTo: Set<string>, excludes: Set<string>) {
+    return (shipsTo.has('Worldwide') || (shipsTo.has("Europe") && supportedEuropeCountries.has(country)) || shipsTo.has(country)) && !excludes.has(country);
 }
 
 async function changeShippingCountry(currentCountryIndex: number, shippingDiv: Element, currentShippingCountry : string | null) {
@@ -386,7 +388,7 @@ async function fillShipping() {
             shippingMaxviewValues[key] = deliveryColumnsValues[i].querySelector('span').innerText
         }
         let currentShippingCountry = shippingMaxviewValues['To'];
-        if (currentShippingCountry!== currentCountry) {
+        if (currentShippingCountry !== currentCountry) {
             await changeShippingCountry(currentCountryIndex, shippingDiv, currentShippingCountry)
             return;
         }
@@ -417,6 +419,8 @@ async function fillShipping() {
             lotInfo.shipping = 0;
             lotInfo.shippingAdditional = 0;
         }
+        console.log('currentShippingCountry '+ currentShippingCountry)
+        lotInfo.shippingCountry = currentShippingCountry
     } else {
         await changeShippingCountry(currentCountryIndex, shippingDiv, null);
         return;

@@ -17,6 +17,8 @@ public class Lot
 
     public string Currency { get; set; } = null!;
 
+    public string ShippingCountry { get; set; } = null!;
+
     public double Price { get; set; }
 
     public double Shipping { get; set; }
@@ -32,9 +34,9 @@ public class Lot
     public string Seller { get; set; } = null!;
 
     public string LocatedIn { get; set; } = null!;
-    
+
     public DateTime UpdateDate { get; set; }
-    
+
     public bool IgnoreThatLot { get; set; }
 
     public string ManualCondition { get; set; } = null!;

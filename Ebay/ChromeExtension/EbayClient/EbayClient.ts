@@ -668,6 +668,7 @@ export class LotInfo implements ILotInfo {
     lotId!: number;
     name!: string;
     pcs!: number;
+    shippingCountry!: string;
     currency!: string;
     price!: number;
     shipping?: number | undefined;
@@ -698,6 +699,7 @@ export class LotInfo implements ILotInfo {
             this.lotId = _data["lotId"];
             this.name = _data["name"];
             this.pcs = _data["pcs"];
+            this.shippingCountry = _data["shippingCountry"];
             this.currency = _data["currency"];
             this.price = _data["price"];
             this.shipping = _data["shipping"];
@@ -729,6 +731,7 @@ export class LotInfo implements ILotInfo {
         data["lotId"] = this.lotId;
         data["name"] = this.name;
         data["pcs"] = this.pcs;
+        data["shippingCountry"] = this.shippingCountry;
         data["currency"] = this.currency;
         data["price"] = this.price;
         data["shipping"] = this.shipping;
@@ -753,6 +756,7 @@ export interface ILotInfo {
     lotId: number;
     name: string;
     pcs: number;
+    shippingCountry: string;
     currency: string;
     price: number;
     shipping?: number | undefined;
