@@ -30,6 +30,7 @@ const supportedEuropeCountries = new Set(['Germany', 'Italy', 'France', 'United 
 const supportedShippingCountries = ['Germany', 'Italy', 'France', 'United Kingdom', 'United States']
 
 const countryIndexParam = 'currentCountryIndex'
+const shippingInfoNotFound = "shippingInfoNotFound"
 
 const lotInfo = new LotInfo();
 let _serverLotInfo: LotInfoWithProductId;
@@ -170,6 +171,10 @@ async function handleSubmit(event: SubmitEvent, client: Client) {
             }
         });
 
+        if (lotInfo.shippingCountry === shippingInfoNotFound){
+            ignoreThatLot = true;
+        }
+        
         lotInfo['ignoreThatLot'] = ignoreThatLot;
 
         if (ignoreThatLot) {
@@ -205,7 +210,7 @@ function fillSoldItemsResult(fixedPriceRows: HTMLTableRowElement[], result: Purc
 
             let priceExtracted = extractPrice(price)
             if (priceExtracted.currency !== lotInfo.currency) {
-                throw new Error("currency doesn't match with lot currency")
+                throw new Error("currency doesn't match with lot currency lot currency " + lotInfo.currency + " extracted currency " + priceExtracted.currency)
             }
             result.push(new PurchaseInfoInner(parseInt(columns[2]), parseDate(columns[3]), priceExtracted))
         } else {
@@ -378,6 +383,13 @@ async function fillShipping() {
     if (shippingRatesAvailable) {
         let shippingTable = shippingDiv.querySelector('table.ux-table-section-with-hints--shippingTable')
 
+        if (shippingTable === null || shippingTable === undefined) {
+            lotInfo.shipping = 0;
+            lotInfo.shippingAdditional = 0;
+            lotInfo.shippingCountry = shippingInfoNotFound
+            return
+        }
+        
         let deliveryColumnsHeader = [...shippingTable.querySelector('thead')
             .querySelectorAll('th')]
         let deliveryColumnsValues = [...shippingTable.querySelector('tbody')
