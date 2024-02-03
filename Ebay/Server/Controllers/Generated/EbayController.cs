@@ -104,6 +104,11 @@ namespace Ebay.Server.Controllers.Generated
 
         System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ManualCondition>> GetManualConditionsListAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
+
+        /// <returns>Ok</returns>
+
+        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ShippingType>> GetShippingRatesAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+
         /// <summary>
         /// Save Error
         /// </summary>
@@ -224,6 +229,14 @@ namespace Ebay.Server.Controllers.Generated
         {
 
             return _implementation.GetManualConditionsListAsync(cancellationToken);
+        }
+
+        /// <returns>Ok</returns>
+        [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("shipping_rates/")]
+        public System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ShippingType>> GetShippingRates(System.Threading.CancellationToken cancellationToken)
+        {
+
+            return _implementation.GetShippingRatesAsync(cancellationToken);
         }
 
         /// <summary>
@@ -553,6 +566,86 @@ namespace Ebay.Server.Controllers.Generated
         [Newtonsoft.Json.JsonProperty("error", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         public string Error { get; }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ShippingType
+    {
+        [Newtonsoft.Json.JsonConstructor]
+
+        public ShippingType(string @currency, string @name, System.Collections.Generic.List<ShippingRates> @rates)
+
+        {
+
+            this.Name = @name;
+
+            this.Currency = @currency;
+
+            this.Rates = @rates;
+
+        }    [Newtonsoft.Json.JsonProperty("name", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public string Name { get; }
+
+        [Newtonsoft.Json.JsonProperty("currency", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public string Currency { get; }
+
+        [Newtonsoft.Json.JsonProperty("rates", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.List<ShippingRates> Rates { get; }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ShippingRates
+    {
+        [Newtonsoft.Json.JsonConstructor]
+
+        public ShippingRates(System.Collections.Generic.List<ShippingRate> @rates, System.Collections.Generic.List<string>? @specifiedCountries)
+
+        {
+
+            this.SpecifiedCountries = @specifiedCountries;
+
+            this.Rates = @rates;
+
+        }    [Newtonsoft.Json.JsonProperty("specifiedCountries", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public System.Collections.Generic.List<string>? SpecifiedCountries { get; }
+
+        [Newtonsoft.Json.JsonProperty("rates", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.List<ShippingRate> Rates { get; }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ShippingRate
+    {
+        [Newtonsoft.Json.JsonConstructor]
+
+        public ShippingRate(int @maxWeight, int @minWeight, int? @price)
+
+        {
+
+            this.MinWeight = @minWeight;
+
+            this.MaxWeight = @maxWeight;
+
+            this.Price = @price;
+
+        }    [Newtonsoft.Json.JsonProperty("minWeight", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Range(0, int.MaxValue)]
+        public int MinWeight { get; }
+
+        [Newtonsoft.Json.JsonProperty("maxWeight", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Range(0, int.MaxValue)]
+        public int MaxWeight { get; }
+
+        [Newtonsoft.Json.JsonProperty("price", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Range(0, int.MaxValue)]
+        public int? Price { get; }
 
     }
 

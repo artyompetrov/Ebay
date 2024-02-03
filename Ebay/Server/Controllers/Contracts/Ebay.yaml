@@ -166,6 +166,18 @@ paths:
             items:
               $ref: '#/definitions/ManualCondition'
 
+  /shipping_rates/:
+    get:
+      operationId: GetShippingRates
+      responses: 
+        200:
+          description: Ok
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ShippingType'
+            minLength: 1
+
   /error/:
     post: 
       operationId: SaveError
@@ -357,6 +369,7 @@ definitions:
       - lastUpdate
 
   ClientErrorInfo:
+    type: object
     properties:
       url:
         type: string
@@ -365,7 +378,59 @@ definitions:
     required:
       - url
       - error
+
+  ShippingType:
+    type: object
+    properties: 
+      name:
+        type: string
+        minLength: 1
+      currency:
+        type: string
+        minLength: 1
+      rates:
+        type: array
+        items:
+          $ref: '#/definitions/ShippingRates'
+        minLength: 1
+    required: 
+      - name
+      - rates
+      - currency
+
+  ShippingRates:
+    type: object
+    properties:
+      specifiedCountries:
+        type: array
+        items:
+          type: string
+          minLength: 1
+      rates:
+        type: array
+        items:
+          $ref: '#/definitions/ShippingRate'
+        minLength: 1
+    required:
+      - rates
   
+  ShippingRate:
+    type: object
+    properties: 
+      minWeight:
+        type: integer
+        minimum: 0
+      maxWeight:
+        type: integer
+        minimum: 0
+      price:
+        type: integer
+        minimum: 0
+    required:
+      - minWeight
+      - maxWeight
+
+      # далее ошибки
   ProblemDetailedInfo:
     x-abstract: true
     properties:

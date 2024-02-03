@@ -433,6 +433,50 @@ export class Client {
     }
 
     /**
+     * @return Ok
+     */
+    getShippingRates(): Promise<ShippingType[]> {
+        let url_ = this.baseUrl + "/shipping_rates/";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetShippingRates(_response);
+        });
+    }
+
+    protected processGetShippingRates(response: Response): Promise<ShippingType[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(ShippingType.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ShippingType[]>(null as any);
+    }
+
+    /**
      * Save Error
      * @return Ok
      */
@@ -937,6 +981,164 @@ export class ClientErrorInfo implements IClientErrorInfo {
 export interface IClientErrorInfo {
     url: string;
     error: string;
+}
+
+export class ShippingType implements IShippingType {
+    name!: string;
+    currency!: string;
+    rates!: ShippingRates[];
+
+    constructor(data?: IShippingType) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+        if (!data) {
+            this.rates = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.name = _data["name"];
+            this.currency = _data["currency"];
+            if (Array.isArray(_data["rates"])) {
+                this.rates = [] as any;
+                for (let item of _data["rates"])
+                    this.rates!.push(ShippingRates.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): ShippingType {
+        data = typeof data === 'object' ? data : {};
+        let result = new ShippingType();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["name"] = this.name;
+        data["currency"] = this.currency;
+        if (Array.isArray(this.rates)) {
+            data["rates"] = [];
+            for (let item of this.rates)
+                data["rates"].push(item.toJSON());
+        }
+        return data;
+    }
+}
+
+export interface IShippingType {
+    name: string;
+    currency: string;
+    rates: ShippingRates[];
+}
+
+export class ShippingRates implements IShippingRates {
+    specifiedCountries?: string[] | undefined;
+    rates!: ShippingRate[];
+
+    constructor(data?: IShippingRates) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+        if (!data) {
+            this.rates = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            if (Array.isArray(_data["specifiedCountries"])) {
+                this.specifiedCountries = [] as any;
+                for (let item of _data["specifiedCountries"])
+                    this.specifiedCountries!.push(item);
+            }
+            if (Array.isArray(_data["rates"])) {
+                this.rates = [] as any;
+                for (let item of _data["rates"])
+                    this.rates!.push(ShippingRate.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): ShippingRates {
+        data = typeof data === 'object' ? data : {};
+        let result = new ShippingRates();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (Array.isArray(this.specifiedCountries)) {
+            data["specifiedCountries"] = [];
+            for (let item of this.specifiedCountries)
+                data["specifiedCountries"].push(item);
+        }
+        if (Array.isArray(this.rates)) {
+            data["rates"] = [];
+            for (let item of this.rates)
+                data["rates"].push(item.toJSON());
+        }
+        return data;
+    }
+}
+
+export interface IShippingRates {
+    specifiedCountries?: string[] | undefined;
+    rates: ShippingRate[];
+}
+
+export class ShippingRate implements IShippingRate {
+    minWeight!: number;
+    maxWeight!: number;
+    price?: number | undefined;
+
+    constructor(data?: IShippingRate) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.minWeight = _data["minWeight"];
+            this.maxWeight = _data["maxWeight"];
+            this.price = _data["price"];
+        }
+    }
+
+    static fromJS(data: any): ShippingRate {
+        data = typeof data === 'object' ? data : {};
+        let result = new ShippingRate();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["minWeight"] = this.minWeight;
+        data["maxWeight"] = this.maxWeight;
+        data["price"] = this.price;
+        return data;
+    }
+}
+
+export interface IShippingRate {
+    minWeight: number;
+    maxWeight: number;
+    price?: number | undefined;
 }
 
 export abstract class ProblemDetailedInfo implements IProblemDetailedInfo {

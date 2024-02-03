@@ -6,4 +6,9 @@ public static class WellKnown
     {
         public static string TimeFormat = "yyyy-MM-ddTHH:mm:ss.fffZ";
     }
+    
+    public static class Currencies
+    {
+        public static string KZT = "KZT";
+    }
 }

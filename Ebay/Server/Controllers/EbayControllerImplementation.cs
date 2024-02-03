@@ -186,6 +186,60 @@ public class EbayControllerImplementation : IEbayController
             new(description: "NOT WORKING", id: "notWorking")
         });
 
+    public async Task<ICollection<ShippingType>> GetShippingRatesAsync(
+        CancellationToken cancellationToken)
+    {
+        return new List<ShippingType>
+        {
+            
+            new(
+                name: "Мелкий пакет авиа",
+                currency: WellKnown.Currencies.KZT,
+                rates: new List<ShippingRates>
+                {
+                    new(
+                        rates: new List<ShippingRate>
+                        {
+                            new(minWeight: 0, maxWeight: 500, price: 5_100),
+                            new(minWeight: 501, maxWeight: 1000, price: 8_700),
+                            new(minWeight: 1001, maxWeight: 2000, price: 15_900),
+                        },
+                        specifiedCountries: null)
+                }),
+            new(
+                name: "Посылка авиа",
+                currency: WellKnown.Currencies.KZT,
+                rates: new List<ShippingRates>
+                {
+                    new(
+                        rates: new List<ShippingRate>
+                        {
+                            new(minWeight: 0, maxWeight: 2000, price: 9_900),
+                            new(minWeight: 2001, maxWeight: 3000, price: 13_250),
+                            new(minWeight: 3001, maxWeight: 4000, price: 16_560),
+                            new(minWeight: 4001, maxWeight: 5000, price: 20_010),
+                            new(minWeight: 5001, maxWeight: 6000, price: 23_230),
+                        },
+                        specifiedCountries: new List<string>()
+                        {
+                            "Germany", "Italy", "France", "United Kingdom",
+                        }),
+                    new(
+                        rates: new List<ShippingRate>
+                        {
+                            new(minWeight: 0, maxWeight: 2000, price: 9_780),
+                            new(minWeight: 2001, maxWeight: 3000, price: 14_950),
+                            new(minWeight: 3001, maxWeight: 4000, price: 18_630),
+                            new(minWeight: 4001, maxWeight: 5000, price: 22_430),
+                            new(minWeight: 5001, maxWeight: 6000, price: 26_680),
+                        },
+                        specifiedCountries: new List<string>
+                        {
+                            "United States",
+                        })
+                }),
+        };
+    }
 
     public async Task SaveErrorAsync(ClientErrorInfo error, CancellationToken cancellationToken)
     {
