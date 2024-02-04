@@ -241,6 +241,17 @@ public class EbayControllerImplementation : IEbayController
         };
     }
 
+    public async Task<ICollection<Currency>> GetCurrenciesAsync(
+        CancellationToken cancellationToken)
+    {
+        return new List<Currency>()
+        {
+            new (name: "US $", rate: 1.0),
+            new (name: "RUB", rate: 90),
+            new (name: "KZT", rate: 450)
+        };
+    }
+
     public async Task SaveErrorAsync(ClientErrorInfo error, CancellationToken cancellationToken)
     {
         _applicationContext.ClientErrors.Add(error.ToDbClientError());

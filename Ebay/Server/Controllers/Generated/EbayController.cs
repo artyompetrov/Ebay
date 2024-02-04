@@ -109,6 +109,11 @@ namespace Ebay.Server.Controllers.Generated
 
         System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ShippingType>> GetShippingRatesAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
+
+        /// <returns>Ok</returns>
+
+        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<Currency>> GetCurrenciesAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+
         /// <summary>
         /// Save Error
         /// </summary>
@@ -237,6 +242,14 @@ namespace Ebay.Server.Controllers.Generated
         {
 
             return _implementation.GetShippingRatesAsync(cancellationToken);
+        }
+
+        /// <returns>Ok</returns>
+        [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("currencies/")]
+        public System.Threading.Tasks.Task<System.Collections.Generic.ICollection<Currency>> GetCurrencies(System.Threading.CancellationToken cancellationToken)
+        {
+
+            return _implementation.GetCurrenciesAsync(cancellationToken);
         }
 
         /// <summary>
@@ -646,6 +659,33 @@ namespace Ebay.Server.Controllers.Generated
         [Newtonsoft.Json.JsonProperty("price", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Range(0, int.MaxValue)]
         public int? Price { get; }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class Currency
+    {
+        [Newtonsoft.Json.JsonConstructor]
+
+        public Currency(string @name, double @rate)
+
+        {
+
+            this.Name = @name;
+
+            this.Rate = @rate;
+
+        }    [Newtonsoft.Json.JsonProperty("name", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [System.ComponentModel.DataAnnotations.StringLength(int.MaxValue)]
+        public string Name { get; }
+
+        /// <summary>
+        /// По отношению к доллару
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("rate", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Range(0D, double.MaxValue)]
+        public double Rate { get; }
 
     }
 

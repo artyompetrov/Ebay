@@ -52,10 +52,10 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadActualProductList();
+        await LoadActualShippingList();
     }
 
-    private async Task LoadActualProductList()
+    private async Task LoadActualShippingList()
     {
         _shippingRates = await EbayClient.GetShippingRatesAsync();
         StateHasChanged();

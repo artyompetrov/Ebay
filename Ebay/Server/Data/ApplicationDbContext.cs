@@ -20,6 +20,8 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
 
     public DbSet<Lot> Lots { get; set; } = null!;
     public DbSet<Purchase> Purchases { get; set; } = null!;
-    
+
     public DbSet<ClientError> ClientErrors { get; set; } = null!;
+
+    public DbSet<Currency> Currencies { get; set; } = null!;
 }

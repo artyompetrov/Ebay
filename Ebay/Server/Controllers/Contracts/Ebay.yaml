@@ -129,9 +129,9 @@ paths:
             $ref: '#/definitions/LotInfoWithProductId'
         400:
           description: 'NotFound'
-          schema: 
+          schema:
             $ref: '#/definitions/NotFoundProblemDetailedInfo'
-          
+  
   
   /lot_state_requests/:
     post:
@@ -169,7 +169,7 @@ paths:
   /shipping_rates/:
     get:
       operationId: GetShippingRates
-      responses: 
+      responses:
         200:
           description: Ok
           schema:
@@ -178,8 +178,21 @@ paths:
               $ref: '#/definitions/ShippingType'
             minLength: 1
 
+  /currencies/:
+    get:
+      operationId: GetCurrencies
+      responses:
+        200:
+          description: Ok
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Currency'
+            minLength: 1
+
+
   /error/:
-    post: 
+    post:
       operationId: SaveError
       summary: Save Error
       parameters:
@@ -233,7 +246,7 @@ definitions:
   
   SearchQuery:
     type: object
-    properties: 
+    properties:
       id:
         type: string
         format: guid
@@ -247,7 +260,7 @@ definitions:
   
   LotInfoWithProductId:
     type: object
-    properties: 
+    properties:
       productId:
         type: string
         format: guid
@@ -381,7 +394,7 @@ definitions:
 
   ShippingType:
     type: object
-    properties: 
+    properties:
       name:
         type: string
         minLength: 1
@@ -393,7 +406,7 @@ definitions:
         items:
           $ref: '#/definitions/ShippingRates'
         minLength: 1
-    required: 
+    required:
       - name
       - rates
       - currency
@@ -416,7 +429,7 @@ definitions:
   
   ShippingRate:
     type: object
-    properties: 
+    properties:
       minWeight:
         type: integer
         minimum: 0
@@ -429,6 +442,20 @@ definitions:
     required:
       - minWeight
       - maxWeight
+
+  Currency:
+    type: object
+    properties:
+      name:
+        type: string
+        minLength: 0
+      rate:
+        description: По отношению к доллару
+        type: number
+        minimum: 0
+    required:
+      - name
+      - rate
 
       # далее ошибки
   ProblemDetailedInfo:
