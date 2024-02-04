@@ -446,15 +446,18 @@ definitions:
   Currency:
     type: object
     properties:
-      name:
+      ebayName:
+        type: string
+        minLength: 0
+      rusName:
         type: string
         minLength: 0
       rate:
-        description: По отношению к доллару
         type: number
         minimum: 0
     required:
-      - name
+      - ebayName
+      - rusName
       - rate
 
       # далее ошибки

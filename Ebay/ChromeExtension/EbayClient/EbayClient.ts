@@ -1186,8 +1186,8 @@ export interface IShippingRate {
 }
 
 export class Currency implements ICurrency {
-    name!: string;
-    /** По отношению к доллару */
+    ebayName!: string;
+    rusName!: string;
     rate!: number;
 
     constructor(data?: ICurrency) {
@@ -1201,7 +1201,8 @@ export class Currency implements ICurrency {
 
     init(_data?: any) {
         if (_data) {
-            this.name = _data["name"];
+            this.ebayName = _data["ebayName"];
+            this.rusName = _data["rusName"];
             this.rate = _data["rate"];
         }
     }
@@ -1215,15 +1216,16 @@ export class Currency implements ICurrency {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["name"] = this.name;
+        data["ebayName"] = this.ebayName;
+        data["rusName"] = this.rusName;
         data["rate"] = this.rate;
         return data;
     }
 }
 
 export interface ICurrency {
-    name: string;
-    /** По отношению к доллару */
+    ebayName: string;
+    rusName: string;
     rate: number;
 }
 

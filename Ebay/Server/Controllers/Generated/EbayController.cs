@@ -667,22 +667,26 @@ namespace Ebay.Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public Currency(string @name, double @rate)
+        public Currency(string @ebayName, double @rate, string @rusName)
 
         {
 
-            this.Name = @name;
+            this.EbayName = @ebayName;
+
+            this.RusName = @rusName;
 
             this.Rate = @rate;
 
-        }    [Newtonsoft.Json.JsonProperty("name", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        }    [Newtonsoft.Json.JsonProperty("ebayName", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         [System.ComponentModel.DataAnnotations.StringLength(int.MaxValue)]
-        public string Name { get; }
+        public string EbayName { get; }
 
-        /// <summary>
-        /// По отношению к доллару
-        /// </summary>
+        [Newtonsoft.Json.JsonProperty("rusName", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [System.ComponentModel.DataAnnotations.StringLength(int.MaxValue)]
+        public string RusName { get; }
+
         [Newtonsoft.Json.JsonProperty("rate", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Range(0D, double.MaxValue)]
         public double Rate { get; }

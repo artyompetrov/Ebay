@@ -13,6 +13,7 @@
     <thead>
     <tr>
         <th>Валюта</th>
+        <th>Название</th>
         <th>Курс к доллару</th>
     </tr>
     </thead>
@@ -20,7 +21,8 @@
     @foreach (var currency in _currencies)
     {
         <tr>
-            <td>@currency.Name</td>
+            <td>@currency.EbayName</td>
+            <td>@currency.RusName</td>
             <td>@currency.Rate</td>
         </tr>
     }

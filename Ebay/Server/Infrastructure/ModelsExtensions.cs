@@ -2,6 +2,8 @@
 using Ebay.Server.Data.Models;
 using DbProduct = Ebay.Server.Data.Models.Product;
 using DbSearchQuery = Ebay.Server.Data.Models.SearchQuery;
+using DbCurrency = Ebay.Server.Data.Models.Currency;
+using ApiCurrency = Ebay.Server.Controllers.Generated.Currency;
 using SearchQuery = Ebay.Server.Controllers.Generated.SearchQuery;
 
 namespace Ebay.Server.Infrastructure;
@@ -91,4 +93,9 @@ public static class ModelsExtensions
         Url = error.Url,
         ErrorText = error.Error
     };
+
+    public static ApiCurrency ToApiCurrency(this DbCurrency currency) => new(
+        ebayName: currency.CurrencyEbayName,
+        rusName: currency.CurrencyRusName,
+        rate: currency.CurrencyRate);
 }

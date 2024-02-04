@@ -1,4 +1,5 @@
-﻿using System.Transactions;
+﻿using System.Security.Cryptography.Xml;
+using System.Transactions;
 using Ebay.Server.Controllers.Generated;
 using Ebay.Server.Data;
 using Ebay.Server.Infrastructure;
@@ -244,12 +245,7 @@ public class EbayControllerImplementation : IEbayController
     public async Task<ICollection<Currency>> GetCurrenciesAsync(
         CancellationToken cancellationToken)
     {
-        return new List<Currency>()
-        {
-            new (name: "US $", rate: 1.0),
-            new (name: "RUB", rate: 90),
-            new (name: "KZT", rate: 450)
-        };
+        return (await _applicationContext.Currencies.ToListAsync(cancellationToken)).Select(x => x.ToApiCurrency()).ToList();
     }
 
     public async Task SaveErrorAsync(ClientErrorInfo error, CancellationToken cancellationToken)
