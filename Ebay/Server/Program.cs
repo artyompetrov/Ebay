@@ -3,6 +3,7 @@ using Ebay.Server.Controllers;
 using Ebay.Server.Controllers.Generated;
 using Ebay.Server.Data;
 using Ebay.Server.Data.Models;
+using Ebay.Server.HostedServices;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,6 +33,7 @@ builder.Services.AddLogging(options =>
         // c.UseUtcTimestamp = true;
     });
 });
+builder.Services.AddHostedService<CurrencyRateHostedService>();
 
 var app = builder.Build();
 

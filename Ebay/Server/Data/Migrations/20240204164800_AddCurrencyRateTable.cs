@@ -32,7 +32,7 @@ namespace Ebay.Server.Data.Migrations
             migrationBuilder.InsertData(
                 "Currencies",
                 new[] { "CurrencyEbayName", "CurrencyRusName", "CurrencyApiName", "CurrencyRate" },
-                new object[] { "GBP", "Британский фунт", "KZT", 0.79 });
+                new object[] { "GBP", "Британский фунт", "GBP", 0.79 });
             
             migrationBuilder.InsertData(
                 "Currencies",
