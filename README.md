@@ -21,9 +21,9 @@ openssl x509 -req -days 9999 -in csr.pem -signkey key.pem -out cert.cert -extens
 openssl pkcs12 -inkey key.pem -in cert.cert -export -out pfx.pfx
 #в последней команде ввести пароль qwerty123
 
+Статистика по курсам валют тут
+https://openexchangerates.org/account
+
 # todo:
 todo поправить в базе 9999 shipping
 
-Добавить обновление валют:
-https://openexchangerates.org/account/app-ids/?yep=app_id_deactivated
-https://docs.openexchangerates.org/reference/latest-json
