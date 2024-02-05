@@ -17,7 +17,7 @@ public static class WellKnown
     {
         public static string BaseCurrency = "USD";
         public static TimeSpan UpdateTime  = TimeSpan.FromHours(12);
-        public static TimeSpan ErrorDelay  = TimeSpan.FromSeconds(5);
+        public static TimeSpan ErrorDelay  = TimeSpan.FromMinutes(5);
         public static string AppId = "2d0b695db0cb4dbab40a85a91a88bd24";
     }
 }
