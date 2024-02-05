@@ -1189,6 +1189,7 @@ export class Currency implements ICurrency {
     ebayName!: string;
     rusName!: string;
     rate!: number;
+    lastUpdate!: string;
 
     constructor(data?: ICurrency) {
         if (data) {
@@ -1204,6 +1205,7 @@ export class Currency implements ICurrency {
             this.ebayName = _data["ebayName"];
             this.rusName = _data["rusName"];
             this.rate = _data["rate"];
+            this.lastUpdate = _data["lastUpdate"];
         }
     }
 
@@ -1219,6 +1221,7 @@ export class Currency implements ICurrency {
         data["ebayName"] = this.ebayName;
         data["rusName"] = this.rusName;
         data["rate"] = this.rate;
+        data["lastUpdate"] = this.lastUpdate;
         return data;
     }
 }
@@ -1227,6 +1230,7 @@ export interface ICurrency {
     ebayName: string;
     rusName: string;
     rate: number;
+    lastUpdate: string;
 }
 
 export abstract class ProblemDetailedInfo implements IProblemDetailedInfo {

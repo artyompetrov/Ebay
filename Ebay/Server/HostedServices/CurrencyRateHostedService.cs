@@ -125,6 +125,7 @@ public class CurrencyRateHostedService : IHostedService, IDisposable
 
         var currencyByApiName = currencies.ToDictionary(x => x.CurrencyApiName);
 
+        var currentTime = DateTime.UtcNow;
         foreach (var (apiCurrencyName, value) in response.Rates)
         {
             var currency = currencyByApiName[apiCurrencyName];
@@ -132,6 +133,7 @@ public class CurrencyRateHostedService : IHostedService, IDisposable
             var dbProduct =
                 dbContext.Currencies.Attach(new Currency() { CurrencyEbayName = currency.CurrencyEbayName });
             dbProduct.Entity.CurrencyRate = decimal.ToDouble(value);
+            dbProduct.Entity.LastUpdate = currentTime;
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);

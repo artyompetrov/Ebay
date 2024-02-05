@@ -97,5 +97,6 @@ public static class ModelsExtensions
     public static ApiCurrency ToApiCurrency(this DbCurrency currency) => new(
         ebayName: currency.CurrencyEbayName,
         rusName: currency.CurrencyRusName,
-        rate: currency.CurrencyRate);
+        rate: currency.CurrencyRate,
+        lastUpdate: currency.LastUpdate.ToString(WellKnown.Formats.TimeFormat));
 }

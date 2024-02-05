@@ -15,6 +15,7 @@
         <th>Валюта</th>
         <th>Название</th>
         <th>Курс к доллару</th>
+        <th>Последнее обновление</th>
     </tr>
     </thead>
     <tbody>
@@ -24,6 +25,7 @@
             <td>@currency.EbayName</td>
             <td>@currency.RusName</td>
             <td>@currency.Rate</td>
+            <td>@DateTime.Parse(currency.LastUpdate).ToString("yyyy-MM-dd")</td>
         </tr>
     }
     </tbody>
