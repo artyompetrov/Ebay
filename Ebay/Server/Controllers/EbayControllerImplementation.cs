@@ -245,7 +245,7 @@ public class EbayControllerImplementation : IEbayController
     public async Task<ICollection<Currency>> GetCurrenciesAsync(
         CancellationToken cancellationToken)
     {
-        return (await _applicationContext.Currencies.ToListAsync(cancellationToken)).Select(x => x.ToApiCurrency()).ToList();
+        return (await _applicationContext.Currencies.OrderBy(x => x.CurrencyEbayName).ToListAsync(cancellationToken)).Select(x => x.ToApiCurrency()).ToList();
     }
 
     public async Task SaveErrorAsync(ClientErrorInfo error, CancellationToken cancellationToken)
