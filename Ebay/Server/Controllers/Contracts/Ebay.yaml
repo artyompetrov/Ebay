@@ -63,6 +63,17 @@ paths:
           description: 'Error'
           schema:
             $ref: '#/definitions/ValidationProblemDetailedInfo'
+    get:
+      operationId: GetProduct
+      responses: 
+        200:
+          description: Ok
+          schema:
+            $ref: '#/definitions/ProductWithId'
+        400:
+          description: 'Error'
+          schema:
+            $ref: '#/definitions/NotFoundProblemDetailedInfo' 
     delete:
       operationId: DeleteProduct
       summary: Delete product
@@ -95,6 +106,19 @@ paths:
         required: true
         type: string
         format: guid
+    get:
+      operationId: GetLots
+      responses: 
+        200:
+          description: Ok
+          schema:
+            type: array
+            items:
+               $ref: '#/definitions/LotInfoWithProductId'
+        400:
+          description: 'NotFound'
+          schema:
+            $ref: '#/definitions/NotFoundProblemDetailedInfo'
     post:
       operationId: UpsertLotInfo
       summary: Обновляет информацию о лоте

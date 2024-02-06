@@ -107,6 +107,8 @@ public class CurrencyRateHostedService : IHostedService, IDisposable
 
     private async Task RefreshCurrencyRates(CancellationToken cancellationToken)
     {
+        //todo зарегистрировать второй токен для дебаг режима
+#if !DEBUG
         _logger.LogInformation("Refreshing currency rates");
         using var scope = _serviceScopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -138,5 +140,6 @@ public class CurrencyRateHostedService : IHostedService, IDisposable
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
+#endif
     }
 }

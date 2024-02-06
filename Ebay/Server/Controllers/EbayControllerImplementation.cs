@@ -40,25 +40,25 @@ public class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken)
     {
         var newProductId = Guid.NewGuid();
-        
+
         using var transaction = new TransactionScope(
             scopeOption: TransactionScopeOption.Required,
             asyncFlowOption: TransactionScopeAsyncFlowOption.Enabled,
             transactionOptions: new TransactionOptions
                 { IsolationLevel = IsolationLevel.ReadCommitted });
-        
+
         await _applicationContext.Products.AddAsync(
             entity: product.ToDbProduct(newProductId),
             cancellationToken: cancellationToken);
-        
+
         await _applicationContext.SearchQueries.AddRangeAsync(
             entities: product.SearchQueries.Select(x => x.ToDbSearchQuery(newProductId)),
             cancellationToken: cancellationToken);
-        
+
         await _applicationContext.SaveChangesAsync(cancellationToken);
-        
+
         transaction.Complete();
-        
+
         return newProductId;
     }
 
@@ -72,19 +72,34 @@ public class EbayControllerImplementation : IEbayController
             asyncFlowOption: TransactionScopeAsyncFlowOption.Enabled,
             transactionOptions: new TransactionOptions
                 { IsolationLevel = IsolationLevel.ReadCommitted });
-        
+
         var dbProduct = _applicationContext.Products.Attach(new DbProduct { Id = id });
         dbProduct.Entity.Name = product.Name;
-        
-        _applicationContext.RemoveRange(_applicationContext.SearchQueries.Where(x=>x.ProductId == id));
-        
+
+        _applicationContext.RemoveRange(_applicationContext.SearchQueries.Where(x => x.ProductId == id));
+
         await _applicationContext.SearchQueries.AddRangeAsync(
             entities: product.SearchQueries.Select(x => x.ToDbSearchQuery(id)),
             cancellationToken: cancellationToken);
-        
+
         await _applicationContext.SaveChangesAsync(cancellationToken);
 
         transaction.Complete();
+    }
+
+    public async Task<ProductWithId> GetProductAsync(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var product = await _applicationContext.Products.Include(x => x.SearchQueries)
+            .SingleOrDefaultAsync(x => x.Id == id, cancellationToken: cancellationToken);
+
+        if (product == null)
+        {
+            throw NonOkHttpAnswerException.NotFound400();
+        }
+
+        return product.ToApiProduct();
     }
 
     public async Task DeleteProductAsync(Guid id, CancellationToken cancellationToken)
@@ -100,9 +115,23 @@ public class EbayControllerImplementation : IEbayController
     {
         var dbProduct = _applicationContext.Products.Attach(new DbProduct { Id = id });
         dbProduct.Entity.LastCheckTime = DateTime.UtcNow;
-        
+
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task<ICollection<LotInfoWithProductId>> GetLotsAsync(Guid productId, CancellationToken cancellationToken)
+    {
+        var product = await _applicationContext.Products.Include(x => x.Lots).ThenInclude(x => x.Purchases)
+            .SingleOrDefaultAsync(x => x.Id == productId, cancellationToken: cancellationToken);
+
+        if (product == null)
+        {
+            throw NonOkHttpAnswerException.NotFound400();
+        }
+
+        return product.Lots.Select(x => x.ToApiLot()).ToList();
+    }
+
     
     public async Task UpsertLotInfoAsync(
         LotInfo lotInfo,
@@ -112,12 +141,14 @@ public class EbayControllerImplementation : IEbayController
         var validationErrors = new Dictionary<string, string[]>();
         if (lotInfo.ShippingAdditional == null)
         {
-            validationErrors.Add(nameof(lotInfo.ShippingAdditional), new [] {"Not set"});
+            validationErrors.Add(nameof(lotInfo.ShippingAdditional), new[] { "Not set" });
         }
+
         if (lotInfo.Shipping == null)
         {
-            validationErrors.Add(nameof(lotInfo.Shipping), new [] {"Not set"});
+            validationErrors.Add(nameof(lotInfo.Shipping), new[] { "Not set" });
         }
+
         if (validationErrors.Count > 0)
         {
             throw NonOkHttpAnswerException.ValidationError400(validationErrors);
@@ -168,31 +199,34 @@ public class EbayControllerImplementation : IEbayController
             .Select(x => new { x.Id, x.UpdateDate, x.IgnoreThatLot }).ToListAsync(cancellationToken);
 
         return result.Select(
-            x => new LotState(ignoreThatLot: x.IgnoreThatLot, lastUpdate: x.UpdateDate.ToString(WellKnown.Formats.TimeFormat), lotId: x.Id)).ToList();
+            x => new LotState(
+                ignoreThatLot: x.IgnoreThatLot,
+                lastUpdate: x.UpdateDate.ToString(WellKnown.Formats.TimeFormat),
+                lotId: x.Id)).ToList();
     }
 
     public Task<ICollection<ManualCondition>> GetManualConditionsListAsync(
         CancellationToken cancellationToken) =>
-        Task.FromResult<ICollection<ManualCondition>>(new List<ManualCondition>
-        {
-            new(description: "NEW, Matched", id: "newAndMatched"),
-            new(description: "NEW, Tested", id: "newAndTested"),
-            new(description: "NEW", id: "newNotTested"),
-            new(description: "DISMANTLED, Matched", id: "dismantledAndMatched"),
-            new(description: "DISMANTLED, Tested", id: "dismantledAndTested"),
-            new(description: "DISMANTLED", id: "dismantledNotTested"),
-            new(description: "USED, Matched", id: "usedAndMatched"),
-            new(description: "USED, Tested", id: "usedAndTested"),
-            new(description: "USED", id: "usedAndNotTested"),
-            new(description: "NOT WORKING", id: "notWorking")
-        });
+        Task.FromResult<ICollection<ManualCondition>>(
+            new List<ManualCondition>
+            {
+                new(description: "NEW, Matched", id: "newAndMatched"),
+                new(description: "NEW, Tested", id: "newAndTested"),
+                new(description: "NEW", id: "newNotTested"),
+                new(description: "DISMANTLED, Matched", id: "dismantledAndMatched"),
+                new(description: "DISMANTLED, Tested", id: "dismantledAndTested"),
+                new(description: "DISMANTLED", id: "dismantledNotTested"),
+                new(description: "USED, Matched", id: "usedAndMatched"),
+                new(description: "USED, Tested", id: "usedAndTested"),
+                new(description: "USED", id: "usedAndNotTested"),
+                new(description: "NOT WORKING", id: "notWorking")
+            });
 
     public async Task<ICollection<ShippingType>> GetShippingRatesAsync(
         CancellationToken cancellationToken)
     {
         return new List<ShippingType>
         {
-            
             new(
                 name: "Мелкий пакет авиа",
                 currency: WellKnown.Currencies.KZT,
@@ -245,7 +279,8 @@ public class EbayControllerImplementation : IEbayController
     public async Task<ICollection<Currency>> GetCurrenciesAsync(
         CancellationToken cancellationToken)
     {
-        return (await _applicationContext.Currencies.OrderBy(x => x.CurrencyEbayName).ToListAsync(cancellationToken)).Select(x => x.ToApiCurrency()).ToList();
+        return (await _applicationContext.Currencies.OrderBy(x => x.CurrencyEbayName).ToListAsync(cancellationToken))
+            .Select(x => x.ToApiCurrency()).ToList();
     }
 
     public async Task SaveErrorAsync(ClientErrorInfo error, CancellationToken cancellationToken)

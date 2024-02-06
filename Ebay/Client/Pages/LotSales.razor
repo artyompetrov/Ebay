@@ -1,0 +1,43 @@
+﻿@page "/LotSales/{ProductId:guid}"
+@using Ebay.Client.Clients.Generated
+@using Microsoft.AspNetCore.Authorization
+@using Newtonsoft.Json.Linq
+@attribute [Authorize]
+@inject EbayClient EbayClient
+
+<PageTitle>Продажи товара @_product?.Name</PageTitle>
+
+<h2>Продажи товара @_product?.Name</h2>
+
+@if (_lots != null)
+{
+    <p>@T(_lots)</p>
+}
+
+@code {
+    private ProductWithId? _product = null;
+    private ICollection<LotInfoWithProductId>? _lots = null!;
+
+    [Parameter]
+    public Guid ProductId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadActualProductList();
+    }
+
+    private async Task LoadActualProductList()
+    {
+        _product = await EbayClient.GetProductAsync(ProductId);
+        _lots = await EbayClient.GetLotsAsync(ProductId);
+        StateHasChanged();
+    }
+
+    private string T(ICollection<LotInfoWithProductId>  lots)
+    {
+
+        return JToken.FromObject(lots).ToString();
+    }
+
+}
+

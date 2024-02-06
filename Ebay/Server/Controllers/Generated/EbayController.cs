@@ -51,6 +51,11 @@ namespace Ebay.Server.Controllers.Generated
 
         System.Threading.Tasks.Task UpdateProductAsync(ProductWithoutId product, System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
+
+        /// <returns>Ok</returns>
+
+        System.Threading.Tasks.Task<ProductWithId> GetProductAsync(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+
         /// <summary>
         /// Delete product
         /// </summary>
@@ -68,6 +73,11 @@ namespace Ebay.Server.Controllers.Generated
         /// <returns>Updated</returns>
 
         System.Threading.Tasks.Task MarkProductAsCheckedAsync(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+
+
+        /// <returns>Ok</returns>
+
+        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<LotInfoWithProductId>> GetLotsAsync(System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
         /// <summary>
         /// Обновляет информацию о лоте
@@ -170,6 +180,14 @@ namespace Ebay.Server.Controllers.Generated
             return _implementation.UpdateProductAsync(product, id, cancellationToken);
         }
 
+        /// <returns>Ok</returns>
+        [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("products/{id}")]
+        public System.Threading.Tasks.Task<ProductWithId> GetProduct(System.Guid id, System.Threading.CancellationToken cancellationToken)
+        {
+
+            return _implementation.GetProductAsync(id, cancellationToken);
+        }
+
         /// <summary>
         /// Delete product
         /// </summary>
@@ -190,6 +208,14 @@ namespace Ebay.Server.Controllers.Generated
         {
 
             return _implementation.MarkProductAsCheckedAsync(id, cancellationToken);
+        }
+
+        /// <returns>Ok</returns>
+        [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("products/{productId}/lots/")]
+        public System.Threading.Tasks.Task<System.Collections.Generic.ICollection<LotInfoWithProductId>> GetLots(System.Guid productId, System.Threading.CancellationToken cancellationToken)
+        {
+
+            return _implementation.GetLotsAsync(productId, cancellationToken);
         }
 
         /// <summary>

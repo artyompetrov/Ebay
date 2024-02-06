@@ -23,6 +23,7 @@
             <th>Название <button class="btn btn-primary btn-sm" @onclick="@(() => _productPopupComponent.ShowCreate())">Добавить</button></th>
             <th>Поисковый запрос</th>
             <th>Учтены все проданные лоты</th>
+            <th>История продаж</th>
             <th>Редактировать</th>
             <th>Удалить</th>
         </tr>
@@ -45,6 +46,7 @@
                     <button class="btn btn-warning btn-sm" @onclick="@(e => MarkAsChecked(product))">Отметить</button>
                 }
             </td>
+            <td><NavLink class="nav-link" href="@($"LotSales/{product.Id}")">Продажи @product.Name</NavLink></td>
             <td>
                 <button class="btn btn-primary btn-sm" @onclick="@(e => _productPopupComponent.ShowEdit(product))">Редактировать</button>
             </td>
