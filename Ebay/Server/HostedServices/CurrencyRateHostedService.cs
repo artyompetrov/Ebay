@@ -107,6 +107,7 @@ public class CurrencyRateHostedService : IHostedService, IDisposable
 
     private async Task RefreshCurrencyRates(CancellationToken cancellationToken)
     {
+        _logger.LogInformation("Refreshing currency rates");
         using var scope = _serviceScopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
