@@ -25,14 +25,16 @@ builder.Services.AddAuthentication().AddIdentityServerJwt();
 builder.Services.AddControllersWithViews(option => { option.Filters.Add<ErrorFilter>(); })
     .AddNewtonsoftJson();
 builder.Services.AddRazorPages();
-builder.Services.AddLogging(options =>
-{
-    options.AddSimpleConsole(c =>
+builder.Services.AddLogging(
+    options =>
     {
-        c.TimestampFormat = "[yyyy-MM-dd HH:mm:ss] ";
-        // c.UseUtcTimestamp = true;
+        options.AddSimpleConsole(
+            c =>
+            {
+                c.TimestampFormat = "[yyyy-MM-dd HH:mm:ss] ";
+                c.UseUtcTimestamp = true;
+            });
     });
-});
 builder.Services.AddHostedService<CurrencyRateHostedService>();
 
 var app = builder.Build();
