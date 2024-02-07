@@ -11,12 +11,38 @@
 
 @if (_lots != null)
 {
-    <p>@T(_lots)</p>
+    <table id="productTable" class="table">
+        <thead>
+        <tr>
+            <th>Название</th>
+            <th>Шт.</th>
+            <th>Цена</th>
+            <th>Доставка</th>
+            <th>Доставка (доп)</th>
+            <th>Валюта</th>
+            <th>Продаж лота</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var lot in _lots)
+        {
+            <tr>
+                <td><a href="@GetLinkToLot(lot)">@lot.Name</a></td>
+                <td>@lot.Pcs</td>
+                <td>@lot.Price</td>
+                <td>@lot.Shipping</td>
+                <td>@lot.ShippingAdditional</td>
+                <td>@lot.Currency</td>
+                <td>@lot.PurchaseHistory.Count</td>
+            </tr>
+        }
+        </tbody>
+    </table>
 }
 
 @code {
-    private ProductWithId? _product = null;
-    private ICollection<LotInfoWithProductId>? _lots = null!;
+    private ProductWithId? _product;
+    private ICollection<LotInfoShort>? _lots;
 
     [Parameter]
     public Guid ProductId { get; set; }
@@ -33,11 +59,8 @@
         StateHasChanged();
     }
 
-    private string T(ICollection<LotInfoWithProductId>  lots)
-    {
+    private string GetLinkToLot(LotInfoShort lot) => $"https://www.ebay.com/itm/{lot.LotId}";
 
-        return JToken.FromObject(lots).ToString();
-    }
+
 
 }
-

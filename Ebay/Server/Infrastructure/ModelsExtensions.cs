@@ -52,6 +52,22 @@ public static class ModelsExtensions
             shippingAdditional: lot.ShippingAdditional),
         productId: lot.ProductId);
 
+    public static LotInfoShort ToApiLotInfoShort(this Lot lot) =>  new(
+            condition: lot.Condition,
+            conditionDescription: lot.ConditionDescription,
+            locatedIn: lot.LocatedIn,
+            lotId: lot.Id,
+            manualConditionId: lot.ManualCondition,
+            name: lot.Name,
+            shippingCountry: lot.ShippingCountry,
+            pcs: lot.Pcs,
+            currency: lot.Currency,
+            price: lot.Price,
+            purchaseHistory: lot.Purchases.OrderByDescending(x => x.Date).Select(x => x.ToApiPurchaseInfo()).ToList(),
+            seller: lot.Seller,
+            shipping: lot.Shipping,
+            shippingAdditional: lot.ShippingAdditional);
+    
     public static PurchaseInfo ToApiPurchaseInfo(this Purchase purchase) => new(
         date: purchase.Date.ToString(WellKnown.Formats.TimeFormat),
         price: purchase.Price,

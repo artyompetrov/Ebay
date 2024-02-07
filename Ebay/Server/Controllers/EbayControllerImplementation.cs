@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using ClientErrorInfo = Ebay.Server.Controllers.Generated.ClientErrorInfo;
 using DbProduct = Ebay.Server.Data.Models.Product;
 using LotInfo = Ebay.Server.Controllers.Generated.LotInfo;
+using LotInfoShort = Ebay.Server.Controllers.Generated.LotInfoShort;
 using LotInfoWithProductId = Ebay.Server.Controllers.Generated.LotInfoWithProductId;
 using LotState = Ebay.Server.Controllers.Generated.LotState;
 using ManualCondition = Ebay.Server.Controllers.Generated.ManualCondition;
@@ -119,9 +120,9 @@ public class EbayControllerImplementation : IEbayController
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<ICollection<LotInfoWithProductId>> GetLotsAsync(Guid productId, CancellationToken cancellationToken)
+    public async Task<ICollection<LotInfoShort>> GetLotsAsync(Guid productId, CancellationToken cancellationToken)
     {
-        var product = await _applicationContext.Products.Include(x => x.Lots).ThenInclude(x => x.Purchases)
+        var product = await _applicationContext.Products.Include(x => x.Lots.Where(y => !y.IgnoreThatLot)).ThenInclude(x => x.Purchases)
             .SingleOrDefaultAsync(x => x.Id == productId, cancellationToken: cancellationToken);
 
         if (product == null)
@@ -129,7 +130,7 @@ public class EbayControllerImplementation : IEbayController
             throw NonOkHttpAnswerException.NotFound400();
         }
 
-        return product.Lots.Select(x => x.ToApiLot()).ToList();
+        return product.Lots.Select(x => x.ToApiLotInfoShort()).ToList();
     }
 
     

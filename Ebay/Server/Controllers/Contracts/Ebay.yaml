@@ -114,7 +114,7 @@ paths:
           schema:
             type: array
             items:
-               $ref: '#/definitions/LotInfoWithProductId'
+               $ref: '#/definitions/LotInfoShort'
         400:
           description: 'NotFound'
           schema:
@@ -360,6 +360,67 @@ definitions:
       - ignoreThatLot
       - manualConditionId
       - purchaseHistory
+
+  LotInfoShort:
+    type: object
+    properties:
+      lotId:
+        type: integer
+        format: int64
+      name:
+        type: string
+        minLength: 1
+      pcs:
+        type: integer
+        minimum: 1
+      shippingCountry:
+        type: string
+        minLength: 1
+      currency:
+        type: string
+        minLength: 1
+      price:
+        type: number
+        minimum: 0.01
+      shipping:
+        type: number
+        minimum: 0
+      shippingAdditional:
+        type: number
+        minimum: 0
+      condition:
+        type: string
+        minLength: 1
+      conditionDescription:
+        type: string
+        minLength: 1
+      seller:
+        type: string
+        minLength: 1
+      locatedIn:
+        type: string
+        minLength: 1
+      manualConditionId:
+        type: string
+        minLength: 1
+        pattern: ^[A-Za-z]+$
+      purchaseHistory:
+        type: array
+        items:
+          $ref: '#/definitions/PurchaseInfo'
+    required:
+      - lotId
+      - name
+      - pcs
+      - shippingCountry
+      - currency
+      - price
+      - condition
+      - seller
+      - locatedIn
+      - manualConditionId
+      - purchaseHistory
+
 
   PurchaseInfo:
     type: object

@@ -77,7 +77,7 @@ namespace Ebay.Server.Controllers.Generated
 
         /// <returns>Ok</returns>
 
-        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<LotInfoWithProductId>> GetLotsAsync(System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<LotInfoShort>> GetLotsAsync(System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
         /// <summary>
         /// Обновляет информацию о лоте
@@ -212,7 +212,7 @@ namespace Ebay.Server.Controllers.Generated
 
         /// <returns>Ok</returns>
         [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("products/{productId}/lots/")]
-        public System.Threading.Tasks.Task<System.Collections.Generic.ICollection<LotInfoWithProductId>> GetLots(System.Guid productId, System.Threading.CancellationToken cancellationToken)
+        public System.Threading.Tasks.Task<System.Collections.Generic.ICollection<LotInfoShort>> GetLots(System.Guid productId, System.Threading.CancellationToken cancellationToken)
         {
 
             return _implementation.GetLotsAsync(productId, cancellationToken);
@@ -492,6 +492,101 @@ namespace Ebay.Server.Controllers.Generated
 
         [Newtonsoft.Json.JsonProperty("ignoreThatLot", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public bool IgnoreThatLot { get; }
+
+        [Newtonsoft.Json.JsonProperty("manualConditionId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^[A-Za-z]+$")]
+        public string ManualConditionId { get; }
+
+        [Newtonsoft.Json.JsonProperty("purchaseHistory", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.List<PurchaseInfo> PurchaseHistory { get; }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class LotInfoShort
+    {
+        [Newtonsoft.Json.JsonConstructor]
+
+        public LotInfoShort(string @condition, string? @conditionDescription, string @currency, string @locatedIn, long @lotId, string @manualConditionId, string @name, int @pcs, double @price, System.Collections.Generic.List<PurchaseInfo> @purchaseHistory, string @seller, double? @shipping, double? @shippingAdditional, string @shippingCountry)
+
+        {
+
+            this.LotId = @lotId;
+
+            this.Name = @name;
+
+            this.Pcs = @pcs;
+
+            this.ShippingCountry = @shippingCountry;
+
+            this.Currency = @currency;
+
+            this.Price = @price;
+
+            this.Shipping = @shipping;
+
+            this.ShippingAdditional = @shippingAdditional;
+
+            this.Condition = @condition;
+
+            this.ConditionDescription = @conditionDescription;
+
+            this.Seller = @seller;
+
+            this.LocatedIn = @locatedIn;
+
+            this.ManualConditionId = @manualConditionId;
+
+            this.PurchaseHistory = @purchaseHistory;
+
+        }    [Newtonsoft.Json.JsonProperty("lotId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public long LotId { get; }
+
+        [Newtonsoft.Json.JsonProperty("name", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public string Name { get; }
+
+        [Newtonsoft.Json.JsonProperty("pcs", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Range(1, int.MaxValue)]
+        public int Pcs { get; }
+
+        [Newtonsoft.Json.JsonProperty("shippingCountry", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public string ShippingCountry { get; }
+
+        [Newtonsoft.Json.JsonProperty("currency", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public string Currency { get; }
+
+        [Newtonsoft.Json.JsonProperty("price", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Range(0.01D, double.MaxValue)]
+        public double Price { get; }
+
+        [Newtonsoft.Json.JsonProperty("shipping", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Range(0D, double.MaxValue)]
+        public double? Shipping { get; }
+
+        [Newtonsoft.Json.JsonProperty("shippingAdditional", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Range(0D, double.MaxValue)]
+        public double? ShippingAdditional { get; }
+
+        [Newtonsoft.Json.JsonProperty("condition", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public string Condition { get; }
+
+        [Newtonsoft.Json.JsonProperty("conditionDescription", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.StringLength(int.MaxValue, MinimumLength = 1)]
+        public string? ConditionDescription { get; }
+
+        [Newtonsoft.Json.JsonProperty("seller", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public string Seller { get; }
+
+        [Newtonsoft.Json.JsonProperty("locatedIn", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public string LocatedIn { get; }
 
         [Newtonsoft.Json.JsonProperty("manualConditionId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]

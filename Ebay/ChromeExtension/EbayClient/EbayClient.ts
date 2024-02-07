@@ -292,7 +292,7 @@ export class Client {
     /**
      * @return Ok
      */
-    getLots(productId: string): Promise<LotInfoWithProductId[]> {
+    getLots(productId: string): Promise<LotInfoShort[]> {
         let url_ = this.baseUrl + "/products/{productId}/lots/";
         if (productId === undefined || productId === null)
             throw new Error("The parameter 'productId' must be defined.");
@@ -311,7 +311,7 @@ export class Client {
         });
     }
 
-    protected processGetLots(response: Response): Promise<LotInfoWithProductId[]> {
+    protected processGetLots(response: Response): Promise<LotInfoShort[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -321,7 +321,7 @@ export class Client {
             if (Array.isArray(resultData200)) {
                 result200 = [] as any;
                 for (let item of resultData200)
-                    result200!.push(LotInfoWithProductId.fromJS(item));
+                    result200!.push(LotInfoShort.fromJS(item));
             }
             else {
                 result200 = <any>null;
@@ -340,7 +340,7 @@ export class Client {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<LotInfoWithProductId[]>(null as any);
+        return Promise.resolve<LotInfoShort[]>(null as any);
     }
 
     /**
@@ -956,6 +956,105 @@ export interface ILotInfo {
     seller: string;
     locatedIn: string;
     ignoreThatLot: boolean;
+    manualConditionId: string;
+    purchaseHistory: PurchaseInfo[];
+}
+
+export class LotInfoShort implements ILotInfoShort {
+    lotId!: number;
+    name!: string;
+    pcs!: number;
+    shippingCountry!: string;
+    currency!: string;
+    price!: number;
+    shipping?: number | undefined;
+    shippingAdditional?: number | undefined;
+    condition!: string;
+    conditionDescription?: string | undefined;
+    seller!: string;
+    locatedIn!: string;
+    manualConditionId!: string;
+    purchaseHistory!: PurchaseInfo[];
+
+    constructor(data?: ILotInfoShort) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+        if (!data) {
+            this.purchaseHistory = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.lotId = _data["lotId"];
+            this.name = _data["name"];
+            this.pcs = _data["pcs"];
+            this.shippingCountry = _data["shippingCountry"];
+            this.currency = _data["currency"];
+            this.price = _data["price"];
+            this.shipping = _data["shipping"];
+            this.shippingAdditional = _data["shippingAdditional"];
+            this.condition = _data["condition"];
+            this.conditionDescription = _data["conditionDescription"];
+            this.seller = _data["seller"];
+            this.locatedIn = _data["locatedIn"];
+            this.manualConditionId = _data["manualConditionId"];
+            if (Array.isArray(_data["purchaseHistory"])) {
+                this.purchaseHistory = [] as any;
+                for (let item of _data["purchaseHistory"])
+                    this.purchaseHistory!.push(PurchaseInfo.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): LotInfoShort {
+        data = typeof data === 'object' ? data : {};
+        let result = new LotInfoShort();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["lotId"] = this.lotId;
+        data["name"] = this.name;
+        data["pcs"] = this.pcs;
+        data["shippingCountry"] = this.shippingCountry;
+        data["currency"] = this.currency;
+        data["price"] = this.price;
+        data["shipping"] = this.shipping;
+        data["shippingAdditional"] = this.shippingAdditional;
+        data["condition"] = this.condition;
+        data["conditionDescription"] = this.conditionDescription;
+        data["seller"] = this.seller;
+        data["locatedIn"] = this.locatedIn;
+        data["manualConditionId"] = this.manualConditionId;
+        if (Array.isArray(this.purchaseHistory)) {
+            data["purchaseHistory"] = [];
+            for (let item of this.purchaseHistory)
+                data["purchaseHistory"].push(item.toJSON());
+        }
+        return data;
+    }
+}
+
+export interface ILotInfoShort {
+    lotId: number;
+    name: string;
+    pcs: number;
+    shippingCountry: string;
+    currency: string;
+    price: number;
+    shipping?: number | undefined;
+    shippingAdditional?: number | undefined;
+    condition: string;
+    conditionDescription?: string | undefined;
+    seller: string;
+    locatedIn: string;
     manualConditionId: string;
     purchaseHistory: PurchaseInfo[];
 }
