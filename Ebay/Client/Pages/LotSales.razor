@@ -27,7 +27,7 @@
         @foreach (var lot in _lots)
         {
             <tr>
-                <td><a href="@GetLinkToLot(lot)">@lot.Name</a></td>
+                <td><a href="@GetLinkToLot(lot)" target="_blank">@lot.Name</a></td>
                 <td>@lot.Pcs</td>
                 <td>@lot.Price</td>
                 <td>@lot.Shipping</td>
