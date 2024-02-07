@@ -30,10 +30,15 @@ const supportedEuropeCountries = new Set(['Germany', 'Italy', 'France', 'United 
 const supportedShippingCountries = ['Germany', 'Italy', 'France', 'United Kingdom', 'United States']
 
 const countryIndexParam = 'currentCountryIndex'
+const searchQueryParam = 'searchQuery'
 const shippingInfoNotFound = "shippingInfoNotFound"
+
+const ignoreThatLotDiv = "ignoreThatLotDiv"
+const unsupportedLotDiv = "unsupportedLotDiv"
 
 const lotInfo = new LotInfo();
 let _serverLotInfo: LotInfoWithProductId;
+let _unsupportedLot = false;
 
 // fetch через background script, по другому не работает
 function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response> {
@@ -125,10 +130,12 @@ function createPanel(bodyElement, client: Client) {
         <br>Бэкенд: <a href="${backendUrl}" target="_blank">${backendUrl}</a>
         <br>
         <br>
-        <label for="${ignoreThatLotFieldName}">Игнорировать лот</label>
-        <input id="${ignoreThatLotFieldName}" type="checkbox" name="${ignoreThatLotFieldName}"/>
-        <br>
-        <br>
+        <div id="${ignoreThatLotDiv}">
+            <label for="${ignoreThatLotFieldName}">Игнорировать лот</label>
+            <input id="${ignoreThatLotFieldName}" type="checkbox" name="${ignoreThatLotFieldName}"/>
+            <br>
+            <br>
+        </div>
         <label for="${productFieldName}">Товар</label>
         <select name="${productFieldName}" id="${productFieldName}">
             <option value="">Выберите товар</option>
@@ -142,6 +149,9 @@ function createPanel(bodyElement, client: Client) {
             <option value="">Выберите Состояние</option>
         </select>
         <br>
+        <div id="${unsupportedLotDiv}" hidden="hidden">Лот не поддерживается, при нажатии сохранить будет добавлен в
+            игнор
+        </div>
         <div style="color: red;" id="${errorElementId}"></div>
         <br>
         <input id="${submitId}" type="submit" value="Save" disabled/>
@@ -172,15 +182,19 @@ async function handleSubmit(event: SubmitEvent, client: Client) {
             }
         });
 
-        if (lotInfo.shippingCountry === shippingInfoNotFound) {
+        if (_unsupportedLot) {
             ignoreThatLot = true;
         }
 
         lotInfo['ignoreThatLot'] = ignoreThatLot;
 
         if (ignoreThatLot) {
-            lotInfo.pcs = 1
-            lotInfo.manualConditionId = notSetValue
+            if (!lotInfo.pcs) {
+                lotInfo.pcs = 1
+            }
+            if (!lotInfo.manualConditionId) {
+                lotInfo.manualConditionId = notSetValue
+            }
         }
 
         console.log("Sending to backend: " + JSON.stringify(lotInfo))
@@ -358,6 +372,12 @@ async function changeShippingCountry(currentCountryIndex: number, shippingDiv: E
     await sleep(3000)
     let url = new URL(document.location.href);
     url.searchParams.set(countryIndexParam, (nextCountryIndex).toString())
+
+    let searchQuery = getSearchQuery();
+    if (searchQuery) {
+        url.searchParams.set(searchQueryParam, searchQuery)
+    }
+    
     document.location.href = url.toString()
 }
 
@@ -369,6 +389,13 @@ function getShipsTo(shippingDiv: Element): Set<string> {
 function getExcludes(shippingDiv: Element): Set<string> {
     return new Set((<HTMLDivElement>shippingDiv.querySelector('div.ux-labels-values--excludes')).innerText.replace("Excludes:", "")
         .split(',').map(s => s.trim()));
+}
+
+async function showLotIsNotSupported() {
+    (<HTMLDivElement>(await sleepElementLoaded('div#' + ignoreThatLotDiv, document))).hidden = true;
+    (<HTMLDivElement>(await sleepElementLoaded('div#' + unsupportedLotDiv, document))).hidden = false;
+
+    _unsupportedLot = true;
 }
 
 async function fillShipping() {
@@ -386,7 +413,8 @@ async function fillShipping() {
         if (shippingTable === null || shippingTable === undefined) {
             lotInfo.shipping = 0;
             lotInfo.shippingAdditional = 0;
-            lotInfo.shippingCountry = shippingInfoNotFound
+            lotInfo.shippingCountry = shippingInfoNotFound;
+            await showLotIsNotSupported();
             return
         }
 
@@ -496,18 +524,21 @@ async function fillDescription() {
 }
 
 async function fillPurchaseHistory() {
-    let itemId = location.pathname.match(/\/itm\/([0-9]+)/)[1];
-    let purchaseHistoryUrl = `https://${location.hostname}/bin/purchaseHistory?item=${itemId}`;
-    let response = await fetchResource(purchaseHistoryUrl, {method: 'GET', credentials: 'include'})
-    let text = await response.text()
-    lotInfo.purchaseHistory = parseSoldItemsPage(text)
+    if (!_unsupportedLot) {
+        let itemId = location.pathname.match(/\/itm\/([0-9]+)/)[1];
+        let purchaseHistoryUrl = `https://${location.hostname}/bin/purchaseHistory?item=${itemId}`;
+        let response = await fetchResource(purchaseHistoryUrl, {method: 'GET', credentials: 'include'})
+        let text = await response.text()
+        lotInfo.purchaseHistory = parseSoldItemsPage(text)
+    }
 }
 
 function getSearchQuery(): string | undefined {
     if (document.referrer) {
         return new URL(document.referrer).searchParams?.get('_nkw')?.trim()?.toLowerCase();
     }
-    return undefined
+
+    return new URL(document.location.href).searchParams?.get(searchQueryParam)?.trim()?.toLowerCase();
 }
 
 async function fillProduct(panel: HTMLDivElement, client: Client, serverLotInfo: LotInfoWithProductId | undefined) {
@@ -635,6 +666,16 @@ async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId)
     console.log("CurrentPage: " + currentPageLotInfoJsonString)
 }
 
+
+async function checkIfTypedLot() {
+    let mainContentDiv = await sleepElementLoaded('div#mainContent', document)
+    
+    if ( mainContentDiv.querySelector('div.x-msku__box-cont')) {
+        
+        await showLotIsNotSupported()
+    }
+}
+
 async function getDataFromPage(client: Client) {
     let panel = <HTMLDivElement>await sleepElementLoaded('div.' + panelClass, document)
 
@@ -647,6 +688,7 @@ async function getDataFromPage(client: Client) {
         fillConditionDescription(),
         fillLocatedIn(),
         fillDescription(),
+        checkIfTypedLot(),
         getServerLotInfo(client)
     ])
     await Promise.all([
