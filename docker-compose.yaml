@@ -28,11 +28,12 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Password=qwerty123
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/privkeywithpassword.pfx
       - ASPNETCORE_IdentityServer__Key__Type=File
-      - ASPNETCORE_IdentityServer__Key__FilePath=/https/privkeywithpassword.pfx
+      - ASPNETCORE_IdentityServer__Key__FilePath=/certs/pfx.pfx
       - ASPNETCORE_IdentityServer__Key__Password=qwerty123
       - ASPNETCORE_ConnectionStrings__DefaultConnection=User ID=ebay;Password=marine-4buckskin-drainage8;Server=ebay_postgres;Port=5432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=30;Enlist=true;
     volumes:
       - /etc/letsencrypt/live/naks42.ru/:/https/:ro
+      - ./certs/:/certs/:ro
     networks:
       - ebay_internal_network
 

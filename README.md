@@ -19,12 +19,12 @@ subjectAltName = IP:178.208.65.100
 openssl genrsa -out key.pem
 openssl req -new -key key.pem -out csr.pem -config ssl.conf
 openssl x509 -req -days 9999 -in csr.pem -signkey key.pem -out cert.cert -extensions req_ext -extfile ssl.conf
-openssl pkcs12 -inkey key.pem -in cert.cert -export -out privkeywithpassword.pfx
+openssl pkcs12 -inkey key.pem -in cert.cert -export -out pfx.pfx
 #в последней команде ввести пароль qwerty123
 
 или становить сертификат от letsencrypt:
 Сгенерировать сертификат с паролем:
-openssl pkcs12 -inkey privkey.pem -in cert.pem -export -out privkeywithpassword.pfx
+openssl pkcs12 -inkey privkey.pem -in fullchain.pem -export -out privkeywithpassword.pfx
 #в последней команде ввести пароль qwerty123
 
 Статистика по курсам валют тут
