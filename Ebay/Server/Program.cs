@@ -6,6 +6,9 @@ using Ebay.Server.Data.Models;
 using Ebay.Server.HostedServices;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Logging;
+
+IdentityModelEventSource.ShowPII = true;
 
 var builder = WebApplication.CreateBuilder(args);
 
