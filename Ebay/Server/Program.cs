@@ -1,4 +1,4 @@
-using Duende.IdentityServer.EntityFramework.Entities;
+using Duende.IdentityServer.Models;
 using Ebay.Server.Controllers;
 using Ebay.Server.Controllers.Generated;
 using Ebay.Server.Data;
@@ -7,6 +7,8 @@ using Ebay.Server.HostedServices;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
+using Client = Duende.IdentityServer.Models.Client;
+using Secret = Duende.IdentityServer.Models.Secret;
 
 IdentityModelEventSource.ShowPII = true;
 
@@ -21,7 +23,21 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.R
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
 builder.Services.AddIdentityServer()
-    .AddApiAuthorization<ApplicationUser, ApplicationDbContext>();
+    .AddApiAuthorization<ApplicationUser, ApplicationDbContext>()
+    .AddInMemoryClients(new List<Client>
+    {
+        new()
+        {
+            ClientId = "Ebay.PythonClient",
+            ClientSecrets = new List<Secret>() { new("78195A38-796A-4EE0-8F2E-8F4EB3FECF34".Sha256())},
+            AllowedGrantTypes = GrantTypes.ClientCredentials,
+            AllowedScopes =
+            {
+                "Ebay.ServerAPI"
+            }
+        }
+    });
+
 
 builder.Services.AddAuthentication().AddIdentityServerJwt();
 
