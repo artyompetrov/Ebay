@@ -377,7 +377,7 @@ async function changeShippingCountry(currentCountryIndex: number, shippingDiv: E
     if (searchQuery) {
         url.searchParams.set(searchQueryParam, searchQuery)
     }
-    
+
     document.location.href = url.toString()
 }
 
@@ -631,7 +631,6 @@ async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId)
     serverLotInfoJson["shipping"] = undefined
     serverLotInfoJson["shippingAdditional"] = undefined
     serverLotInfoJson["shippingCountry"] = undefined
-    let serverPurchaseHistory = serverLotInfoJson["purchaseHistory"]
     serverLotInfoJson["purchaseHistory"] = undefined
     let lotInfoJson = lotInfo.toJSON()
     lotInfoJson["pcs"] = undefined
@@ -641,19 +640,19 @@ async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId)
     lotInfoJson["shipping"] = undefined
     lotInfoJson["shippingAdditional"] = undefined
     lotInfoJson["shippingCountry"] = undefined
-    let lotInfoPurchaseHistory = lotInfoJson["purchaseHistory"];
     lotInfoJson["purchaseHistory"] = undefined
 
     let serverLotInfoJsonString = JSON.stringify(serverLotInfoJson)
     let currentPageLotInfoJsonString = JSON.stringify(lotInfoJson)
-    let serverPurchaseHistoryJsonString = JSON.stringify(serverPurchaseHistory)
-    let lotInfoPurchaseHistoryJsonString = JSON.stringify(lotInfoPurchaseHistory)
 
     let panel = <HTMLDivElement>await sleepElementLoaded('div.' + panelClass, document);
     if (serverLotInfoJsonString === currentPageLotInfoJsonString) {
-        console.log(serverPurchaseHistoryJsonString)
-        console.log(lotInfoPurchaseHistoryJsonString)
-        if (_serverLotInfo.lotInfo.ignoreThatLot === true || serverPurchaseHistoryJsonString === lotInfoPurchaseHistoryJsonString) {
+
+        let serverMaxDate = getMax(serverLotInfoWithProductId.lotInfo.purchaseHistory.map(x => new Date(x.date).getTime()))
+        let ebayMaxDate = getMax(lotInfo.purchaseHistory.map(x => {
+            return new Date(x.date).getTime();
+        }))
+        if (_serverLotInfo.lotInfo.ignoreThatLot === true || serverMaxDate === ebayMaxDate) {
             panel.style.cssText = `background-color: ${lightGreenColor};`
         } else {
             panel.style.cssText = `background-color: ${lightYellowColor};`
@@ -667,11 +666,21 @@ async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId)
 }
 
 
+function getMax(array: number[]) {
+    let largest = 0;
+    for (let i = 0; i < array.length; i++) {
+        if (array[i] > largest) {
+            largest = array[i];
+        }
+    }
+    return largest;
+}
+
 async function checkIfTypedLot() {
     let mainContentDiv = await sleepElementLoaded('div#mainContent', document)
-    
-    if ( mainContentDiv.querySelector('div.x-msku__box-cont')) {
-        
+
+    if (mainContentDiv.querySelector('div.x-msku__box-cont')) {
+
         await showLotIsNotSupported()
     }
 }
@@ -740,7 +749,7 @@ async function showAndSaveError(error: Error, client: Client) {
     }
 
     console.log("ERROR " + errorText)
-    
+
     let errorDiv = await sleepElementLoaded('div.' + panelClass + ' #' + errorElementId, document)
     let span = document.createElement('span');
 
