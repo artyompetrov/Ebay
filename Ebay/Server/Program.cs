@@ -22,22 +22,21 @@ builder.Services.AddScoped<IEbayController, EbayControllerImplementation>();
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
-builder.Services.AddIdentityServer()
-    .AddApiAuthorization<ApplicationUser, ApplicationDbContext>()
-    .AddInMemoryClients(new List<Client>
-    {
-        new()
+builder.Services.AddIdentityServer().AddInMemoryClients(
+        new List<Client>
         {
-            ClientId = "Ebay.PythonClient",
-            ClientSecrets = new List<Secret>() { new("78195A38-796A-4EE0-8F2E-8F4EB3FECF34".Sha256())},
-            AllowedGrantTypes = GrantTypes.ClientCredentials,
-            AllowedScopes =
+            new()
             {
-                "Ebay.ServerAPI"
+                ClientId = "Ebay.PythonClient",
+                ClientSecrets = new List<Secret>() { new("78195A38-796A-4EE0-8F2E-8F4EB3FECF34".Sha256()) },
+                AllowedGrantTypes = GrantTypes.ClientCredentials,
+                AllowedScopes =
+                {
+                    "Ebay.ServerAPI"
+                }
             }
-        }
-    });
-
+        })
+    .AddApiAuthorization<ApplicationUser, ApplicationDbContext>();
 
 builder.Services.AddAuthentication().AddIdentityServerJwt();
 
