@@ -169,13 +169,6 @@ public class EbayControllerImplementation : IEbayController
         {
             var dbPurchaseHistory = lotInfo.PurchaseHistory
                 .Select(x => x.ToDbPurchase(lotId: lotInfo.LotId)).ToList();
-
-            var dates = dbPurchaseHistory.Select(x => x.Date).ToHashSet();
-
-            _applicationContext.RemoveRange(
-                _applicationContext.Purchases.Where(x => x.LotId == lotInfo.LotId && !dates.Contains(x.Date)));
-
-            await _applicationContext.SaveChangesAsync(cancellationToken);
             await _applicationContext.Purchases.UpsertRange(dbPurchaseHistory).RunAsync(cancellationToken);
         }
 
