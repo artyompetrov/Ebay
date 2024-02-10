@@ -361,10 +361,11 @@ async function changeShippingCountry(currentCountryIndex: number, shippingDiv: E
         let itemsMenu = <HTMLDivElement>((await sleepElementLoaded('div.menu-button__items', chooseShippingCountryDialog)));
 
         await sleepUntil(() => itemsMenu.checkVisibility() === false);
-        await sleep(500);
-        getCountrySpanItem(nextCountry, itemsMenu).click()
-
-        await sleepUntil(() => shipButton.getAttribute("aria-label")?.includes(nextCountry) !== true);
+        do {
+            await sleep(500);
+            getCountrySpanItem(nextCountry, itemsMenu).click()
+        }
+        while (shipButton.getAttribute("aria-label")?.includes(nextCountry) !== true)
         await sleep(500);
 
         (<HTMLButtonElement>await sleepElementLoaded('button.shipto__close-btn', chooseShippingCountryDialog)).click()
@@ -379,6 +380,8 @@ async function changeShippingCountry(currentCountryIndex: number, shippingDiv: E
     }
 
     document.location.href = url.toString()
+
+    await sleep(10000);
 }
 
 function getShipsTo(shippingDiv: Element): Set<string> {
@@ -628,18 +631,13 @@ async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId)
     serverLotInfoJson["ignoreThatLot"] = undefined
     serverLotInfoJson["manualConditionId"] = undefined
     serverLotInfoJson["description"] = undefined
-    serverLotInfoJson["shipping"] = undefined
-    serverLotInfoJson["shippingAdditional"] = undefined
-    serverLotInfoJson["shippingCountry"] = undefined
+
     serverLotInfoJson["purchaseHistory"] = undefined
     let lotInfoJson = lotInfo.toJSON()
     lotInfoJson["pcs"] = undefined
     lotInfoJson["ignoreThatLot"] = undefined
     lotInfoJson["manualConditionId"] = undefined
     lotInfoJson["description"] = undefined
-    lotInfoJson["shipping"] = undefined
-    lotInfoJson["shippingAdditional"] = undefined
-    lotInfoJson["shippingCountry"] = undefined
     lotInfoJson["purchaseHistory"] = undefined
 
     let serverLotInfoJsonString = JSON.stringify(serverLotInfoJson)
