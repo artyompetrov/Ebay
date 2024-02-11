@@ -16,7 +16,7 @@ const pcsFieldName = "pcs";
 const panelClass = "panel-div";
 const formId = "product-form-id"
 const errorElementId = "errorElement"
-const submitId = "submit"
+const submitId = "submitButton"
 //const backendUrl = "https://localhost:7095/"
 const backendUrl = "https://naks42.ru:17443/"
 const baseApiUrl = `${backendUrl}api/ebay/v1`;
@@ -26,8 +26,10 @@ const lightGreenColor = "#ecffec"
 const lightPinkColor = "lightpink"
 const lightYellowColor = "#e0e07f"
 
+const usaZipCode = "40202"
+
 const supportedEuropeCountries = new Set(['Germany', 'Italy', 'France', 'United Kingdom'])
-const supportedShippingCountries = ['Germany', 'Italy', 'France', 'United Kingdom', 'United States']
+const supportedShippingCountries = ['Germany', 'Italy', 'France', 'United Kingdom', 'United States', 'Australia']
 
 const countryIndexParam = 'currentCountryIndex'
 const searchQueryParam = 'searchQuery'
@@ -77,7 +79,13 @@ class Price {
     price: number;
 }
 
-function createPanel(bodyElement, client: Client) {
+async function createPanel(client: Client): Promise<HTMLDivElement> {
+    let bodyElement = await sleepElementLoaded('body', document);
+
+    let panel = bodyElement.querySelector('div.' + panelClass)
+
+    if (panel !== null && panel !== undefined) return <HTMLDivElement>panel;
+
     let styles = `
     .${panelClass} {
       text-align: left;
@@ -149,8 +157,7 @@ function createPanel(bodyElement, client: Client) {
             <option value="">Выберите Состояние</option>
         </select>
         <br>
-        <div id="${unsupportedLotDiv}" hidden="hidden">Лот не поддерживается, при нажатии сохранить будет добавлен в
-            игнор
+        <div id="${unsupportedLotDiv}" hidden="hidden">Лот не поддерживается, будет добавлен в игнор
         </div>
         <div style="color: red;" id="${errorElementId}"></div>
         <br>
@@ -164,6 +171,8 @@ function createPanel(bodyElement, client: Client) {
     div.appendChild(form)
     div.hidden = true;
     bodyElement.appendChild(div);
+
+    return div
 }
 
 async function handleSubmit(event: SubmitEvent, client: Client) {
@@ -403,6 +412,14 @@ async function showLotIsNotSupported() {
 
 async function fillShipping() {
 
+    let shippingFromCountry = lotInfo.locatedIn.split(',').pop().trim()
+    let indexOfShippingFromCountries = supportedShippingCountries.indexOf(shippingFromCountry)
+
+    if (indexOfShippingFromCountries >= 0) {
+        supportedShippingCountries[indexOfShippingFromCountries] = supportedShippingCountries[0]
+        supportedShippingCountries[0] = shippingFromCountry
+    }
+
     let url = new URL(document.location.href);
     let currentCountryIndex = parseInt(url.searchParams.get(countryIndexParam) ?? "0")
     let currentCountry = supportedShippingCountries[currentCountryIndex]
@@ -411,7 +428,22 @@ async function fillShipping() {
 
     let shippingRatesAvailable = shippingDiv.querySelector('div.ux-layout-section__textual-display--askSeller') === null
     if (shippingRatesAvailable) {
+
+        let zipCode = <HTMLInputElement>shippingDiv.querySelector('input#shZipCode')
         let shippingTable = shippingDiv.querySelector('table.ux-table-section-with-hints--shippingTable')
+        
+        
+        if (zipCode !== null && shippingTable === null && zipCode.value !== usaZipCode) {
+            zipCode.click()
+            zipCode.value = usaZipCode;
+            zipCode.dispatchEvent(new Event('input', {
+                bubbles: true,
+                cancelable: true
+            }));
+            (<HTMLButtonElement>shippingDiv.querySelector('div.ux-shipping-calculator__getRates button')).click()
+            
+            await sleep(10000)
+        }
 
         if (shippingTable === null || shippingTable === undefined) {
             lotInfo.shipping = 0;
@@ -650,7 +682,7 @@ async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId)
         let ebayMaxDate = getMax(lotInfo.purchaseHistory.map(x => {
             return new Date(x.date).getTime();
         }))
-        if (_serverLotInfo.lotInfo.ignoreThatLot === true || serverMaxDate === ebayMaxDate) {
+        if (_serverLotInfo.lotInfo.ignoreThatLot === true || ebayMaxDate === 0 || serverMaxDate === ebayMaxDate) {
             panel.style.cssText = `background-color: ${lightGreenColor};`
         } else {
             panel.style.cssText = `background-color: ${lightYellowColor};`
@@ -684,7 +716,6 @@ async function checkIfTypedLot() {
 }
 
 async function getDataFromPage(client: Client) {
-    let panel = <HTMLDivElement>await sleepElementLoaded('div.' + panelClass, document)
 
     fillId();
     await Promise.all([
@@ -698,6 +729,9 @@ async function getDataFromPage(client: Client) {
         checkIfTypedLot(),
         getServerLotInfo(client)
     ])
+
+    let panel = await createPanel(client);
+
     await Promise.all([
         fillPurchaseHistory(),
         fillProduct(panel, client, _serverLotInfo),
@@ -711,17 +745,6 @@ async function getDataFromPage(client: Client) {
     panel.hidden = false;
 
     await compareLotInfos(_serverLotInfo);
-}
-
-
-async function addPanel(client: Client) {
-    let bodyElement = await sleepElementLoaded('body', document);
-    if (bodyElement) {
-        let existingPanel = bodyElement.querySelector('div.' + panelClass);
-        if (!existingPanel) {
-            createPanel(bodyElement, client);
-        }
-    }
 }
 
 async function saveErrorToBackend(error: Error, client: Client) {
@@ -792,7 +815,6 @@ async function hideErrors() {
 async function productPage(client: Client) {
     console.log("productPage")
     try {
-        await addPanel(client);
         await getDataFromPage(client);
         await enableSubmitButton()
         await hideErrors()
