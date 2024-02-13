@@ -608,18 +608,21 @@ async function fillIgnoreThatLot(panel: HTMLDivElement, serverLotInfo: LotInfoWi
 
 async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId) {
     if (serverLotInfoWithProductId === undefined) return;
+    
     let serverLotInfoJson = serverLotInfoWithProductId.lotInfo.toJSON()
     serverLotInfoJson["pcs"] = undefined
     serverLotInfoJson["ignoreThatLot"] = undefined
     serverLotInfoJson["manualConditionId"] = undefined
     serverLotInfoJson["description"] = undefined
-
+    serverLotInfoJson["seller"] = undefined
     serverLotInfoJson["purchaseHistory"] = undefined
+    
     let lotInfoJson = lotInfo.toJSON()
     lotInfoJson["pcs"] = undefined
     lotInfoJson["ignoreThatLot"] = undefined
     lotInfoJson["manualConditionId"] = undefined
     lotInfoJson["description"] = undefined
+    lotInfoJson["seller"] = undefined
     lotInfoJson["purchaseHistory"] = undefined
 
     let serverLotInfoJsonString = JSON.stringify(serverLotInfoJson)
