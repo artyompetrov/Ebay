@@ -18,8 +18,8 @@ const panelClass = "panel-div";
 const formId = "product-form-id"
 const errorElementId = "errorElement"
 const submitId = "submitButton"
-const backendUrl = "https://localhost:7095/"
-//const backendUrl = "https://naks42.ru:17443/"
+//const backendUrl = "https://localhost:7095/"
+const backendUrl = "https://naks42.ru:17443/"
 const baseApiUrl = `${backendUrl}api/ebay/v1`;
 const authRedirectUrl = "https://www.ebay.com/"
 const notSetValue = "notSet"
@@ -407,7 +407,7 @@ async function fillShipping() {
     let text = await shippingInfoResponse.text()
 
     let shippingJson = JSON.parse(text)
-    console.log(text)
+    //console.log(text)
     let jsonPathTablePrefix = "$.states[?(@.eventName=='ux-app__d-shipping-max-view__refreshState')].state.model.SHIPPING_SECTION_MODULE.sections.shippingTable.table"
 
     let jsonPathHeaderPrefix = jsonPathTablePrefix + ".header.cells"
