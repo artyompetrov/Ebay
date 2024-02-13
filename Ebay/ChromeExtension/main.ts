@@ -5,6 +5,7 @@ import {
     PurchaseInfo, ValidationProblemDetailedInfo
 } from "./EbayClient/EbayClient"
 
+import jsonpath from "jsonpath";
 import {generateCodeVerifier, OAuth2Client} from '@badgateway/oauth2-client';
 import {FetchWrapperCustom} from "./FetchWrapperCustom";
 
@@ -17,8 +18,8 @@ const panelClass = "panel-div";
 const formId = "product-form-id"
 const errorElementId = "errorElement"
 const submitId = "submitButton"
-//const backendUrl = "https://localhost:7095/"
-const backendUrl = "https://naks42.ru:17443/"
+const backendUrl = "https://localhost:7095/"
+//const backendUrl = "https://naks42.ru:17443/"
 const baseApiUrl = `${backendUrl}api/ebay/v1`;
 const authRedirectUrl = "https://www.ebay.com/"
 const notSetValue = "notSet"
@@ -26,14 +27,24 @@ const lightGreenColor = "#ecffec"
 const lightPinkColor = "lightpink"
 const lightYellowColor = "#e0e07f"
 
-const usaZipCode = "40202"
 
 const supportedEuropeCountries = new Set(['Germany', 'Italy', 'France', 'United Kingdom'])
 const supportedShippingCountries = ['Germany', 'Italy', 'France', 'United Kingdom', 'United States', 'Australia']
+const supportedShippingCountriesDictionary = {
+    "Germany": "DEU",
+    "Italy": "ITA",
+    "France": "FRA",
+    "United Kingdom": "GBR",
+    "United States": "USA",
+    "Australia": "AUS"
+}
+const zipCodes = {
+    "United States": "40202"
+}
+
 
 const countryIndexParam = 'currentCountryIndex'
 const searchQueryParam = 'searchQuery'
-const shippingInfoNotFound = "shippingInfoNotFound"
 
 const ignoreThatLotDiv = "ignoreThatLotDiv"
 const unsupportedLotDiv = "unsupportedLotDiv"
@@ -342,57 +353,6 @@ function hasShippingToCountry(country: string, shipsTo: Set<string>, excludes: S
     return (shipsTo.has('Worldwide') || (shipsTo.has("Europe") && supportedEuropeCountries.has(country)) || shipsTo.has(country)) && !excludes.has(country);
 }
 
-async function changeShippingCountry(currentCountryIndex: number, shippingDiv: Element, currentShippingCountry: string | null) {
-    if (currentCountryIndex >= supportedShippingCountries.length) throw new Error("currentCountryIndex Out of supported shipping countries range")
-
-    let shipsTo = getShipsTo(shippingDiv);
-    let excludes = getExcludes(shippingDiv);
-
-    let nextCountryIndex = currentCountryIndex
-    let nextCountry = supportedShippingCountries[nextCountryIndex]
-
-    while (!hasShippingToCountry(nextCountry, shipsTo, excludes)) {
-        nextCountryIndex = nextCountryIndex + 1
-        if (nextCountryIndex >= supportedShippingCountries.length) throw new Error("Out of supported shipping countries range")
-        nextCountry = supportedShippingCountries[nextCountryIndex]
-    }
-
-    if (currentShippingCountry !== nextCountry) {
-        let shipButton = (<HTMLButtonElement>(await sleepElementLoaded('#gh-shipto-click button', document)));
-        await sleep(1000)
-        shipButton.click();
-
-        let chooseShippingCountryDialog = await sleepElementLoaded('#gh-shipto-click-modal', document);
-        await sleepUntil(() => chooseShippingCountryDialog.checkVisibility() === false);
-        await sleep(500);
-        (<HTMLButtonElement>(await sleepElementLoaded('button.menu-button__button', chooseShippingCountryDialog))).click();
-
-        let itemsMenu = <HTMLDivElement>((await sleepElementLoaded('div.menu-button__items', chooseShippingCountryDialog)));
-
-        await sleepUntil(() => itemsMenu.checkVisibility() === false);
-        do {
-            await sleep(500);
-            getCountrySpanItem(nextCountry, itemsMenu).click()
-        }
-        while (shipButton.getAttribute("aria-label")?.includes(nextCountry) !== true)
-        await sleep(500);
-
-        (<HTMLButtonElement>await sleepElementLoaded('button.shipto__close-btn', chooseShippingCountryDialog)).click()
-    }
-    await sleep(3000)
-    let url = new URL(document.location.href);
-    url.searchParams.set(countryIndexParam, (nextCountryIndex).toString())
-
-    let searchQuery = getSearchQuery();
-    if (searchQuery) {
-        url.searchParams.set(searchQueryParam, searchQuery)
-    }
-
-    document.location.href = url.toString()
-
-    await sleep(10000);
-}
-
 function getShipsTo(shippingDiv: Element): Set<string> {
     return new Set((<HTMLDivElement>shippingDiv.querySelector('div.ux-labels-values--shipsto')).innerText.replace("Ships to:", "")
         .split(',').map(s => s.trim()));
@@ -411,6 +371,9 @@ async function showLotIsNotSupported() {
 }
 
 async function fillShipping() {
+    let shippingDiv = await sleepElementLoaded('div.d-shipping-maxview', document);
+    let shipsTo = getShipsTo(shippingDiv);
+    let excludes = getExcludes(shippingDiv);
 
     let shippingFromCountry = lotInfo.locatedIn.split(',').pop().trim()
     let indexOfShippingFromCountries = supportedShippingCountries.indexOf(shippingFromCountry)
@@ -420,91 +383,78 @@ async function fillShipping() {
         supportedShippingCountries[0] = shippingFromCountry
     }
 
-    let url = new URL(document.location.href);
-    let currentCountryIndex = parseInt(url.searchParams.get(countryIndexParam) ?? "0")
-    let currentCountry = supportedShippingCountries[currentCountryIndex]
-
-    let shippingDiv = await sleepElementLoaded('div.d-shipping-maxview', document);
-
-    let shippingRatesAvailable = shippingDiv.querySelector('div.ux-layout-section__textual-display--askSeller') === null
-    if (shippingRatesAvailable) {
-
-        let zipCode = <HTMLInputElement>shippingDiv.querySelector('input#shZipCode')
-        let shippingTable = shippingDiv.querySelector('table.ux-table-section-with-hints--shippingTable')
-        
-        
-        if (zipCode !== null && shippingTable === null && zipCode.value !== usaZipCode) {
-            zipCode.click()
-            zipCode.value = usaZipCode;
-            zipCode.dispatchEvent(new Event('input', {
-                bubbles: true,
-                cancelable: true
-            }));
-            (<HTMLButtonElement>shippingDiv.querySelector('div.ux-shipping-calculator__getRates button')).click()
-            
-            await sleep(10000)
+    let shippingCountry: string | null
+    for (let i = 0; i < supportedShippingCountries.length; i++) {
+        let currentShippingCountry = supportedShippingCountries[i]
+        if (hasShippingToCountry(currentShippingCountry, shipsTo, excludes)) {
+            shippingCountry = currentShippingCountry
+            break;
         }
-
-        if (shippingTable === null || shippingTable === undefined) {
-            lotInfo.shipping = 0;
-            lotInfo.shippingAdditional = 0;
-            lotInfo.shippingCountry = shippingInfoNotFound;
-            await showLotIsNotSupported();
-            return
-        }
-
-        let deliveryColumnsHeader = [...shippingTable.querySelector('thead')
-            .querySelectorAll('th')]
-        let deliveryColumnsValues = [...shippingTable.querySelector('tbody')
-            .querySelector('tr')
-            .querySelectorAll('td')]
-
-        let shippingMaxviewValues = {};
-
-        for (let i = 0; i < 3; i++) {
-            let key = deliveryColumnsHeader[i].innerText
-            shippingMaxviewValues[key] = deliveryColumnsValues[i].querySelector('span').innerText
-        }
-        let currentShippingCountry = shippingMaxviewValues['To'];
-        if (currentShippingCountry !== currentCountry) {
-            console.log("changing shipping country because current country " + currentShippingCountry + " doesn't match with expected " + currentCountry)
-            await changeShippingCountry(currentCountryIndex, shippingDiv, currentShippingCountry)
-            return;
-        }
-
-        let shippingValue = shippingMaxviewValues['Shipping and handling']
-
-        if (shippingValue !== 'Free shipping') {
-            let shippingPrice = extractPrice(shippingValue)
-            if (shippingPrice.currency !== lotInfo.currency) throw new Error("Shipping currency mismatch with lot currency")
-            lotInfo.shipping = shippingPrice.price
-
-            if (shippingMaxviewValues.hasOwnProperty('Each additional item')) {
-
-                let eachAdditional = shippingMaxviewValues['Each additional item']
-
-                if (eachAdditional !== "Free") {
-                    let eachAdditionalPrice = extractPrice(eachAdditional)
-                    if (eachAdditionalPrice.currency !== lotInfo.currency) throw new Error("Each additional shipping currency mismatch with lot currency")
-                    lotInfo.shippingAdditional = eachAdditionalPrice.price
-                } else {
-                    lotInfo.shippingAdditional = 0;
-                }
-            } else {
-                lotInfo.shippingAdditional = 0;
-            }
-
-        } else {
-            lotInfo.shipping = 0;
-            lotInfo.shippingAdditional = 0;
-        }
-        console.log('currentShippingCountry ' + currentShippingCountry)
-        lotInfo.shippingCountry = currentShippingCountry
-    } else {
-        console.log("Changing because there is no shipping to current country")
-        await changeShippingCountry(currentCountryIndex + 1, shippingDiv, null);
-        return;
     }
+
+    if (shippingCountry === null) {
+        throw new Error("shippingCountry is null")
+    }
+
+    let countryCode = supportedShippingCountriesDictionary[shippingCountry]
+    let zipCode = zipCodes[shippingCountry] ?? ""
+
+    let shippingRatesUrl = "https://www.ebay.com/itemmodules/" + lotInfo.lotId +
+        "?module_groups=GET_RATES_MODULE_GROUP&co=0&isGetRates=1&rt=nc&quantity=1&shipToCountryCode=" + countryCode
+        + "&shippingZipCode=" + zipCode
+
+    let shippingInfoResponse = await fetchResource(shippingRatesUrl, {method: 'GET', credentials: "include"})
+    let text = await shippingInfoResponse.text()
+
+    let shippingJson = JSON.parse(text)
+    console.log(text)
+    let jsonPathTablePrefix = "$.states[?(@.eventName=='ux-app__d-shipping-max-view__refreshState')].state.model.SHIPPING_SECTION_MODULE.sections.shippingTable.table"
+
+    let jsonPathHeaderPrefix = jsonPathTablePrefix + ".header.cells"
+    let jsonPathCellsPrefix = jsonPathTablePrefix + ".rows[0].cells"
+
+
+    let headers = {}
+    for (let i = 0; i <= 3; i++) {
+        let jsonPathHeader = jsonPathHeaderPrefix + "[" + i + "].textSpans[0].text"
+        let headerName = jsonpath.query(shippingJson, jsonPathHeader)[0].toString()
+        headers[headerName] = i
+    }
+
+    let shippingJsonPath = jsonPathCellsPrefix + "[0].textSpans[0].text"
+
+    let shippingString = jsonpath.query(shippingJson, shippingJsonPath)[0].toString()
+    if (shippingString === "Free shipping") {
+        lotInfo.shipping = 0;
+    } else {
+        let shipping = extractPrice(shippingString)
+        if (shipping.currency !== lotInfo.currency) throw new Error("shipping and lot currency mismatch, lotCurrency " + lotInfo.currency + ", shippingCurrency " + shipping.currency)
+        lotInfo.shipping = shipping.price
+    }
+    
+    if (headers.hasOwnProperty("Each additional item")) {
+        let shippingAdditionalJsonPath = jsonPathCellsPrefix + "[1].textSpans[0].text"
+
+        let shippingAdditionalString = jsonpath.query(shippingJson, shippingAdditionalJsonPath)[0].toString()
+        if (shippingAdditionalString === "Free") {
+            lotInfo.shippingAdditional = 0;
+        } else {
+            let shippingAdditional = extractPrice(shippingAdditionalString)
+            if (shippingAdditional.currency !== lotInfo.currency)
+                throw new Error("shipping additional and lot currency mismatch, lotCurrency " + lotInfo.currency + ", shippingAdditionalCurrency " + shippingAdditional.currency)
+            lotInfo.shippingAdditional = shippingAdditional.price
+        }
+    }
+    else  {
+        lotInfo.shippingAdditional = 0;
+    }
+
+    let shippingToJsonPath = jsonPathCellsPrefix + "["+headers["To"]+"].textSpans[0].text"
+
+    let shippingTo = jsonpath.query(shippingJson, shippingToJsonPath)[0].toString()
+    if (shippingTo !== shippingCountry) throw new Error("Shipping country expected to be " + shippingCountry + " but was " + shippingTo)
+
+    lotInfo.shippingCountry = shippingCountry
 }
 
 
