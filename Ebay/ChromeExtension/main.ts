@@ -785,7 +785,11 @@ async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId)
 
         let serverMaxDate = getMax(serverLotInfoWithProductId.lotInfo.purchaseHistory.map(x => new Date(x.date).getTime()))
         let ebayMaxDate = getMax(lotInfo.purchaseHistory.map(x => {
-            return new Date(x.date).getTime();
+            if (x.price !== undefined)
+            {
+                return new Date(x.date).getTime();
+            }
+            else return 0;
         }))
         if (_serverLotInfo.lotInfo.ignoreThatLot === true || ebayMaxDate === 0 || serverMaxDate === ebayMaxDate) {
             panel.style.cssText = `background-color: ${lightGreenColor};`

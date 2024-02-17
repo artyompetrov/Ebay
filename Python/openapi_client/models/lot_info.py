@@ -41,14 +41,22 @@ class LotInfo(BaseModel):
     located_in: constr(strict=True, min_length=1) = Field(..., alias="locatedIn")
     ignore_that_lot: StrictBool = Field(..., alias="ignoreThatLot")
     manual_condition_id: constr(strict=True, min_length=1) = Field(..., alias="manualConditionId")
+    title_change_date: constr(strict=True, min_length=1) = Field(..., alias="titleChangeDate")
     purchase_history: conlist(PurchaseInfo) = Field(..., alias="purchaseHistory")
-    __properties = ["lotId", "name", "pcs", "shippingCountry", "currency", "price", "shipping", "shippingAdditional", "description", "condition", "conditionDescription", "seller", "locatedIn", "ignoreThatLot", "manualConditionId", "purchaseHistory"]
+    __properties = ["lotId", "name", "pcs", "shippingCountry", "currency", "price", "shipping", "shippingAdditional", "description", "condition", "conditionDescription", "seller", "locatedIn", "ignoreThatLot", "manualConditionId", "titleChangeDate", "purchaseHistory"]
 
     @validator('manual_condition_id')
     def manual_condition_id_validate_regular_expression(cls, value):
         """Validates the regular expression"""
         if not re.match(r"^[A-Za-z]+$", value):
             raise ValueError(r"must validate the regular expression /^[A-Za-z]+$/")
+        return value
+
+    @validator('title_change_date')
+    def title_change_date_validate_regular_expression(cls, value):
+        """Validates the regular expression"""
+        if not re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$", value):
+            raise ValueError(r"must validate the regular expression /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/")
         return value
 
     class Config:
@@ -109,6 +117,7 @@ class LotInfo(BaseModel):
             "located_in": obj.get("locatedIn"),
             "ignore_that_lot": obj.get("ignoreThatLot"),
             "manual_condition_id": obj.get("manualConditionId"),
+            "title_change_date": obj.get("titleChangeDate"),
             "purchase_history": [PurchaseInfo.from_dict(_item) for _item in obj.get("purchaseHistory")] if obj.get("purchaseHistory") is not None else None
         })
         return _obj

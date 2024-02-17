@@ -17,6 +17,7 @@ Name | Type | Description | Notes
 **seller** | **str** |  | 
 **located_in** | **str** |  | 
 **manual_condition_id** | **str** |  | 
+**title_change_date** | **str** |  | 
 **purchase_history** | [**List[PurchaseInfo]**](PurchaseInfo.md) |  | 
 
 ## Example

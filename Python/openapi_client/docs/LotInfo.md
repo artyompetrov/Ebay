@@ -19,6 +19,7 @@ Name | Type | Description | Notes
 **located_in** | **str** |  | 
 **ignore_that_lot** | **bool** |  | 
 **manual_condition_id** | **str** |  | 
+**title_change_date** | **str** |  | 
 **purchase_history** | [**List[PurchaseInfo]**](PurchaseInfo.md) |  | 
 
 ## Example
