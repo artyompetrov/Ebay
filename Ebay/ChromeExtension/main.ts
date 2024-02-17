@@ -26,8 +26,6 @@ const notSetValue = "notSet"
 const lightGreenColor = "#ecffec"
 const lightPinkColor = "lightpink"
 const lightYellowColor = "#e0e07f"
-
-
 const supportedEuropeCountries = new Set(['Germany', 'Italy', 'France', 'United Kingdom'])
 const supportedShippingCountries = ['Germany', 'Italy', 'France', 'United Kingdom', 'United States', 'Australia']
 const supportedShippingCountriesDictionary = {
@@ -39,11 +37,11 @@ const supportedShippingCountriesDictionary = {
     "Australia": "AUS"
 }
 const zipCodes = {
-    "United States": "40202"
+    "United States": "40202",
+    "Australia": "3000–3999"
 }
+const batchOpen = 5
 
-
-const countryIndexParam = 'currentCountryIndex'
 const searchQueryParam = 'searchQuery'
 
 const ignoreThatLotDiv = "ignoreThatLotDiv"
@@ -52,6 +50,7 @@ const unsupportedLotDiv = "unsupportedLotDiv"
 const lotInfo = new LotInfo();
 let _serverLotInfo: LotInfoWithProductId;
 let _unsupportedLot = false;
+let _knownLotsIds : number[] = []
 
 // fetch через background script, по другому не работает
 function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response> {
@@ -74,9 +73,15 @@ function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response>
 
 
 function extractPrice(price: string): Price {
-    let matches = price.match(/(\D+)(\d+(?:[,.]\d+)?)/)
-
-    return new Price(parseFloat(matches[2].replace(',', '.')), matches[1].trim())
+    let priceTrimmed = price.trim()
+    let matches = priceTrimmed.match(/^(\D+)(\d+(?:[,.]\d+)?)(\([^(]+|$)/)
+    if (matches) {
+        return new Price(parseFloat(matches[2].replace(',', '.')), matches[1].trim())
+    }
+    else {
+        let matches = priceTrimmed.match(/^(\d+(?:[,.]\d+)?)(\D+)(\([^(]+|$)/)
+        return new Price(parseFloat(matches[1].replace(',', '.')), matches[2].trim())
+    }
 }
 
 class Price {
@@ -181,6 +186,80 @@ async function createPanel(client: Client): Promise<HTMLDivElement> {
 
     div.appendChild(form)
     div.hidden = true;
+    bodyElement.appendChild(div);
+
+    return div
+}
+
+
+async function createOpenMultipleButton(): Promise<HTMLDivElement> {
+    let bodyElement = await sleepElementLoaded('body', document);
+
+    let panel = bodyElement.querySelector('div.' + panelClass)
+
+    if (panel !== null && panel !== undefined) return <HTMLDivElement>panel;
+
+    let styles = `
+    .${panelClass} {
+      text-align: left;
+      padding: 15px;
+      border: 3px solid #0000cc;
+      border-radius: 10px;
+      color: #0000cc;
+      position:fixed;
+      z-index:100;
+      left:1%;
+      bottom:5%;
+      background-color: white;
+    }
+    
+    .${panelClass} label {
+      font-weight: bold;
+      display: block;
+      width: 200px;
+      float: left;
+    }
+    
+    .${panelClass} input {
+      width: 200px;
+    }
+    
+    .${panelClass} select {
+      width: 200px;
+    }
+    
+    .${panelClass} label:after { content: ": " }
+`
+
+    let styleSheet = document.createElement("style")
+    styleSheet.innerText = styles
+    bodyElement.appendChild(styleSheet)
+
+    let div = document.createElement('div');
+    div.classList.add(panelClass);
+    
+    let form = document.createElement('form')
+    form.id = formId
+    
+    // language=HTML
+    form.innerHTML = `
+        <input id="${submitId}" type="submit" value="Окрыть ${batchOpen} лотов"/>
+    `;
+
+    form.addEventListener("submit", async function (event: SubmitEvent) {
+        event.preventDefault()
+        let lastWindow : WindowProxy;
+        for (let x of _knownLotsIds.slice(0, batchOpen)) {
+            let url = "https://www.ebay.com/itm/" + x;
+            lastWindow = window.open(url, '_blank');
+            
+            await sleep(50);
+        }
+        
+        lastWindow.focus()
+    });
+
+    div.appendChild(form)
     bodyElement.appendChild(div);
 
     return div
@@ -816,8 +895,10 @@ async function searchPage(client: Client) {
             let soldDate = new Date((<HTMLElement>x.querySelector('span.POSITIVE')).innerText.replace("Sold ", ""))
             return new LotLink(parseInt(link.href.match(/https:\/\/[^\/]+\/itm\/(\d+)/)[1]), link, soldDate);
         })
-
+    
     let _ = updateStatusInfinite(client, links);
+
+    await createOpenMultipleButton()
 }
 
 async function updateStatusInfinite(client: Client, links: LotLink[]) {
@@ -827,11 +908,15 @@ async function updateStatusInfinite(client: Client, links: LotLink[]) {
     // noinspection InfiniteLoopJS
     while (true) {
         try {
-            console.log("UpdatingLotStates")
+            //console.log("UpdatingLotStates")
             let getLotStatesAnswer = await client.getLotStates(ids)
 
+
+            
             let knownLots = new Map(getLotStatesAnswer.map(p => [p.lotId, p]));
 
+            let notKnownItems = []
+            
             links.forEach(function (x) {
 
                 let color = x.color;
@@ -842,6 +927,7 @@ async function updateStatusInfinite(client: Client, links: LotLink[]) {
                         let diffInDays = Math.ceil((x.soldDate.getTime() - new Date(lotState.lastUpdate).getTime()) / (1000 * 60 * 60 * 24));
                         if (diffInDays > 0) {
                             x.color = lightYellowColor
+                            notKnownItems.push(x.id);
                         } else {
                             x.color = lightGreenColor
                         }
@@ -850,12 +936,15 @@ async function updateStatusInfinite(client: Client, links: LotLink[]) {
                     }
                 } else {
                     x.color = lightPinkColor
+                    notKnownItems.push(x.id);
                 }
 
                 if (x.color !== null && color !== x.color) {
                     x.link.style.cssText = `background-color: ${x.color};`
                 }
             })
+            
+            _knownLotsIds = notKnownItems
         } catch (error) {
             await saveErrorToBackend(error, client)
         }
