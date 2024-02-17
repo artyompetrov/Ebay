@@ -26,15 +26,48 @@ const notSetValue = "notSet"
 const lightGreenColor = "#ecffec"
 const lightPinkColor = "lightpink"
 const lightYellowColor = "#e0e07f"
-const supportedEuropeCountries = new Set(['Germany', 'Italy', 'France', 'United Kingdom'])
-const supportedShippingCountries = ['Germany', 'Italy', 'France', 'United Kingdom', 'United States', 'Australia']
+const supportedEuropeCountries = new Set([
+    'Germany',
+    'Italy',
+    'France',
+    'United Kingdom',
+    'Bulgaria',
+    'Lithuania',
+    'Slovakia',
+    'Latvia',
+    'Romania',
+    'Estonia',
+    'Poland'
+])
+const supportedShippingCountries = [
+    'Germany',
+    'Italy',
+    'France',
+    'United Kingdom',
+    'Bulgaria',
+    'Lithuania',
+    'Slovakia',
+    'Latvia',
+    'Romania',
+    'Estonia',
+    'Poland',
+    'United States',
+    'Australia'
+]
 const supportedShippingCountriesDictionary = {
     "Germany": "DEU",
     "Italy": "ITA",
     "France": "FRA",
     "United Kingdom": "GBR",
     "United States": "USA",
-    "Australia": "AUS"
+    "Australia": "AUS",
+    'Bulgaria':"BGR",
+    'Lithuania':"LTU",
+    'Slovakia':"SVK",
+    'Latvia':"LVA",
+    'Romania':"ROU",
+    'Estonia':"EST",
+    'Poland':"POL",
 }
 const zipCodes = {
     "United States": "40202",
@@ -50,7 +83,7 @@ const unsupportedLotDiv = "unsupportedLotDiv"
 const lotInfo = new LotInfo();
 let _serverLotInfo: LotInfoWithProductId;
 let _unsupportedLot = false;
-let _knownLotsIds : number[] = []
+let _knownLotsIds: number[] = []
 
 // fetch через background script, по другому не работает
 function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response> {
@@ -74,12 +107,12 @@ function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response>
 
 function extractPrice(price: string): Price {
     let priceTrimmed = price.trim()
-    let matches = priceTrimmed.match(/^(\D+)(\d+(?:[,.]\d+)?)(\([^(]+|$)/)
+    console.log(priceTrimmed)
+    let matches = priceTrimmed.match(/^(\D+)(\d+(?:[,.]\d+)?\s*)([(\/].+|$)/)
     if (matches) {
         return new Price(parseFloat(matches[2].replace(',', '.')), matches[1].trim())
-    }
-    else {
-        let matches = priceTrimmed.match(/^(\d+(?:[,.]\d+)?)(\D+)(\([^(]+|$)/)
+    } else {
+        let matches = priceTrimmed.match(/^(\d+(?:[,.]\d+)?)(\D+)([(\/].+|$)/)
         return new Price(parseFloat(matches[1].replace(',', '.')), matches[2].trim())
     }
 }
@@ -237,10 +270,10 @@ async function createOpenMultipleButton(): Promise<HTMLDivElement> {
 
     let div = document.createElement('div');
     div.classList.add(panelClass);
-    
+
     let form = document.createElement('form')
     form.id = formId
-    
+
     // language=HTML
     form.innerHTML = `
         <input id="${submitId}" type="submit" value="Окрыть ${batchOpen} лотов"/>
@@ -248,14 +281,14 @@ async function createOpenMultipleButton(): Promise<HTMLDivElement> {
 
     form.addEventListener("submit", async function (event: SubmitEvent) {
         event.preventDefault()
-        let lastWindow : WindowProxy;
+        let lastWindow: WindowProxy;
         for (let x of _knownLotsIds.slice(0, batchOpen)) {
             let url = "https://www.ebay.com/itm/" + x;
             lastWindow = window.open(url, '_blank');
-            
+
             await sleep(50);
         }
-        
+
         lastWindow.focus()
     });
 
@@ -510,7 +543,7 @@ async function fillShipping() {
         if (shipping.currency !== lotInfo.currency) throw new Error("shipping and lot currency mismatch, lotCurrency " + lotInfo.currency + ", shippingCurrency " + shipping.currency)
         lotInfo.shipping = shipping.price
     }
-    
+
     if (headers.hasOwnProperty("Each additional item")) {
         let shippingAdditionalJsonPath = jsonPathCellsPrefix + "[1].textSpans[0].text"
 
@@ -523,12 +556,11 @@ async function fillShipping() {
                 throw new Error("shipping additional and lot currency mismatch, lotCurrency " + lotInfo.currency + ", shippingAdditionalCurrency " + shippingAdditional.currency)
             lotInfo.shippingAdditional = shippingAdditional.price
         }
-    }
-    else  {
+    } else {
         lotInfo.shippingAdditional = 0;
     }
 
-    let shippingToJsonPath = jsonPathCellsPrefix + "["+headers["To"]+"].textSpans[0].text"
+    let shippingToJsonPath = jsonPathCellsPrefix + "[" + headers["To"] + "].textSpans[0].text"
 
     let shippingTo = jsonpath.query(shippingJson, shippingToJsonPath)[0].toString()
     if (shippingTo !== shippingCountry) throw new Error("Shipping country expected to be " + shippingCountry + " but was " + shippingTo)
@@ -687,7 +719,7 @@ async function fillIgnoreThatLot(panel: HTMLDivElement, serverLotInfo: LotInfoWi
 
 async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId) {
     if (serverLotInfoWithProductId === undefined) return;
-    
+
     let serverLotInfoJson = serverLotInfoWithProductId.lotInfo.toJSON()
     serverLotInfoJson["pcs"] = undefined
     serverLotInfoJson["ignoreThatLot"] = undefined
@@ -695,7 +727,7 @@ async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId)
     serverLotInfoJson["description"] = undefined
     serverLotInfoJson["seller"] = undefined
     serverLotInfoJson["purchaseHistory"] = undefined
-    
+
     let lotInfoJson = lotInfo.toJSON()
     lotInfoJson["pcs"] = undefined
     lotInfoJson["ignoreThatLot"] = undefined
@@ -889,13 +921,16 @@ async function searchPage(client: Client) {
 
     let searchResults = await sleepElementLoaded('ul.srp-results', document)
 
-    let links = [...searchResults.querySelectorAll('li.s-item')]
-        .map(function (x: HTMLElement) {
-            let link = <HTMLAnchorElement>x.querySelector('a.s-item__link')
-            let soldDate = new Date((<HTMLElement>x.querySelector('span.POSITIVE')).innerText.replace("Sold ", ""))
-            return new LotLink(parseInt(link.href.match(/https:\/\/[^\/]+\/itm\/(\d+)/)[1]), link, soldDate);
-        })
-    
+    let links : LotLink[] = [];
+    for (let li of [...searchResults.querySelectorAll('li')]) {
+        if (li.classList.contains("srp-river-answer--REWRITE_START")) break
+        if (li.classList.contains("s-item")) {
+            let link = <HTMLAnchorElement>li.querySelector('a.s-item__link')
+            let soldDate = new Date((<HTMLElement>li.querySelector('span.POSITIVE')).innerText.replace("Sold ", ""))
+            links.push(new LotLink(parseInt(link.href.match(/https:\/\/[^\/]+\/itm\/(\d+)/)[1]), link, soldDate));
+        }
+    }
+
     let _ = updateStatusInfinite(client, links);
 
     await createOpenMultipleButton()
@@ -912,11 +947,10 @@ async function updateStatusInfinite(client: Client, links: LotLink[]) {
             let getLotStatesAnswer = await client.getLotStates(ids)
 
 
-            
             let knownLots = new Map(getLotStatesAnswer.map(p => [p.lotId, p]));
 
             let notKnownItems = []
-            
+
             links.forEach(function (x) {
 
                 let color = x.color;
@@ -943,7 +977,7 @@ async function updateStatusInfinite(client: Client, links: LotLink[]) {
                     x.link.style.cssText = `background-color: ${x.color};`
                 }
             })
-            
+
             _knownLotsIds = notKnownItems
         } catch (error) {
             await saveErrorToBackend(error, client)
