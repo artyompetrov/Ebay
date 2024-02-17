@@ -43,6 +43,11 @@ namespace Ebay.Server.Data.Migrations
                 "Currencies",
                 new[] { "CurrencyEbayName", "CurrencyRusName", "CurrencyApiName", "CurrencyRate" },
                 new object[] { "KZT", "Тенге", "KZT", 452.193564 });
+            
+            migrationBuilder.InsertData(
+                "Currencies",
+                new[] { "CurrencyEbayName", "CurrencyRusName", "CurrencyApiName", "CurrencyRate" },
+                new object[] { "PLN", "Польский злотый", "PLN", 4.03 });
         }
 
         /// <inheritdoc />
