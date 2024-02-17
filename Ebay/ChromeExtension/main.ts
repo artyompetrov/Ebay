@@ -328,6 +328,10 @@ async function handleSubmit(event: SubmitEvent, client: Client) {
             if (!lotInfo.manualConditionId) {
                 lotInfo.manualConditionId = notSetValue
             }
+
+            if (!lotInfo.titleChangeDate) {
+                lotInfo.titleChangeDate = new Date(0).toISOString()
+            }
         }
 
         console.log("Sending to backend: " + JSON.stringify(lotInfo))
@@ -829,6 +833,9 @@ async function checkIfTypedLot() {
 async function getDataFromPage(client: Client) {
 
     fillId();
+    await getServerLotInfo(client)
+    let panel = await createPanel(client);
+    
     await Promise.all([
         fillPrice(),
         fillName(),
@@ -838,10 +845,7 @@ async function getDataFromPage(client: Client) {
         fillLocatedIn(),
         fillDescription(),
         checkIfTypedLot(),
-        getServerLotInfo(client)
     ])
-
-    let panel = await createPanel(client);
 
     await Promise.all([
         fillPurchaseHistory(),
