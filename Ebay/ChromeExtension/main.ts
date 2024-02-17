@@ -18,8 +18,8 @@ const panelClass = "panel-div";
 const formId = "product-form-id"
 const errorElementId = "errorElement"
 const submitId = "submitButton"
-const backendUrl = "https://localhost:7095/"
-//const backendUrl = "https://naks42.ru:17443/"
+//const backendUrl = "https://localhost:7095/"
+const backendUrl = "https://naks42.ru:17443/"
 const baseApiUrl = `${backendUrl}api/ebay/v1`;
 const authRedirectUrl = "https://www.ebay.com/"
 const notSetValue = "notSet"
@@ -180,9 +180,11 @@ async function createPanel(client: Client): Promise<HTMLDivElement> {
     let domain = location.hostname;
 
     let historyButtonHref = `https://${domain}/bin/purchaseHistory?item=${itemId}`;
+    let revisionsButtonHref = `https://${domain}/rvh/${itemId}`;
     // language=HTML
     form.innerHTML = `
         <a href="${historyButtonHref}" target="_blank">История продаж лота</a>
+        <br><a href="${revisionsButtonHref}" target="_blank">История изменений</a>
         <br>Бэкенд: <a href="${backendUrl}" target="_blank">${backendUrl}</a>
         <br>
         <br>
