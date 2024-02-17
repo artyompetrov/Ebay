@@ -9,7 +9,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: ebay
-      POSTGRES_PASSWORD: marine-4buckskin-drainage8
+      POSTGRES_PASSWORD: catnip0-spoil4-untrimmed
       POSTGRES_INITDB_ARGS: --locale='en_US.UTF8'
       CFG_TIMEZONE: 'Europe/Moscow'
     volumes:
@@ -30,7 +30,7 @@ services:
       - ASPNETCORE_IdentityServer__Key__Type=File
       - ASPNETCORE_IdentityServer__Key__FilePath=/certs/pfx.pfx
       - ASPNETCORE_IdentityServer__Key__Password=qwerty123
-      - ASPNETCORE_ConnectionStrings__DefaultConnection=User ID=ebay;Password=marine-4buckskin-drainage8;Server=ebay_postgres;Port=5432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=30;Enlist=true;
+      - ASPNETCORE_ConnectionStrings__DefaultConnection=User ID=ebay;Password=catnip0-spoil4-untrimmed;Server=ebay_postgres;Port=5432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=30;Enlist=true;
     volumes:
       - /etc/letsencrypt/live/naks42.ru/:/https/:ro
       - ./certs/:/certs/:ro

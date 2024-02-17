@@ -30,7 +30,7 @@ builder.Services.AddIdentityServer()
                 new Client
                 {
                     ClientId = "Ebay.Python",
-                    ClientSecrets = new List<Secret>() { new("78195A38-796A-4EE0-8F2E-8F4EB3FECF34".Sha256()) },
+                    ClientSecrets = new List<Secret>() { new("ac4ab670-ae20-451a-ab4a-3a20275e807d".Sha256()) },
                     AllowedGrantTypes = GrantTypes.ClientCredentials,
                     AllowedScopes =
                     {
