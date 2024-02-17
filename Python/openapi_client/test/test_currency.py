@@ -15,7 +15,7 @@
 import unittest
 import datetime
 
-from openapi_client.models.currency import Currency
+from openapi_client.models.currency import Currency  # noqa: E501
 
 class TestCurrency(unittest.TestCase):
     """Currency unit test stubs"""
@@ -33,7 +33,7 @@ class TestCurrency(unittest.TestCase):
             optional params are included """
         # uncomment below to create an instance of `Currency`
         """
-        model = Currency()
+        model = Currency()  # noqa: E501
         if include_optional:
             return Currency(
                 ebay_name = '',

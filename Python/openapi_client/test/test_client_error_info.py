@@ -15,7 +15,7 @@
 import unittest
 import datetime
 
-from openapi_client.models.client_error_info import ClientErrorInfo
+from openapi_client.models.client_error_info import ClientErrorInfo  # noqa: E501
 
 class TestClientErrorInfo(unittest.TestCase):
     """ClientErrorInfo unit test stubs"""
@@ -33,7 +33,7 @@ class TestClientErrorInfo(unittest.TestCase):
             optional params are included """
         # uncomment below to create an instance of `ClientErrorInfo`
         """
-        model = ClientErrorInfo()
+        model = ClientErrorInfo()  # noqa: E501
         if include_optional:
             return ClientErrorInfo(
                 url = '',

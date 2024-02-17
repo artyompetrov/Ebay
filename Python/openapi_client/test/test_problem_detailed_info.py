@@ -15,7 +15,7 @@
 import unittest
 import datetime
 
-from openapi_client.models.problem_detailed_info import ProblemDetailedInfo
+from openapi_client.models.problem_detailed_info import ProblemDetailedInfo  # noqa: E501
 
 class TestProblemDetailedInfo(unittest.TestCase):
     """ProblemDetailedInfo unit test stubs"""
@@ -33,7 +33,7 @@ class TestProblemDetailedInfo(unittest.TestCase):
             optional params are included """
         # uncomment below to create an instance of `ProblemDetailedInfo`
         """
-        model = ProblemDetailedInfo()
+        model = ProblemDetailedInfo()  # noqa: E501
         if include_optional:
             return ProblemDetailedInfo(
                 type = '',

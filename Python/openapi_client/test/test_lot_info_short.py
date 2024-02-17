@@ -15,7 +15,7 @@
 import unittest
 import datetime
 
-from openapi_client.models.lot_info_short import LotInfoShort
+from openapi_client.models.lot_info_short import LotInfoShort  # noqa: E501
 
 class TestLotInfoShort(unittest.TestCase):
     """LotInfoShort unit test stubs"""
@@ -33,7 +33,7 @@ class TestLotInfoShort(unittest.TestCase):
             optional params are included """
         # uncomment below to create an instance of `LotInfoShort`
         """
-        model = LotInfoShort()
+        model = LotInfoShort()  # noqa: E501
         if include_optional:
             return LotInfoShort(
                 lot_id = 56,

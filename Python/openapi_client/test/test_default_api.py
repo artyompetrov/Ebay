@@ -14,14 +14,14 @@
 
 import unittest
 
-from openapi_client.api.default_api import DefaultApi
+from openapi_client.api.default_api import DefaultApi  # noqa: E501
 
 
 class TestDefaultApi(unittest.TestCase):
     """DefaultApi unit test stubs"""
 
     def setUp(self) -> None:
-        self.api = DefaultApi()
+        self.api = DefaultApi()  # noqa: E501
 
     def tearDown(self) -> None:
         pass
@@ -29,21 +29,21 @@ class TestDefaultApi(unittest.TestCase):
     def test_create_product(self) -> None:
         """Test case for create_product
 
-        Create product
+        Create product  # noqa: E501
         """
         pass
 
     def test_delete_product(self) -> None:
         """Test case for delete_product
 
-        Delete product
+        Delete product  # noqa: E501
         """
         pass
 
     def test_get_all_products(self) -> None:
         """Test case for get_all_products
 
-        List all products
+        List all products  # noqa: E501
         """
         pass
 
@@ -56,14 +56,14 @@ class TestDefaultApi(unittest.TestCase):
     def test_get_lot_info(self) -> None:
         """Test case for get_lot_info
 
-        Получить информацию о лоте
+        Получить информацию о лоте  # noqa: E501
         """
         pass
 
     def test_get_lot_states(self) -> None:
         """Test case for get_lot_states
 
-        Получает информацию о учтенных лотах
+        Получает информацию о учтенных лотах  # noqa: E501
         """
         pass
 
@@ -76,7 +76,7 @@ class TestDefaultApi(unittest.TestCase):
     def test_get_manual_conditions_list(self) -> None:
         """Test case for get_manual_conditions_list
 
-        Отдает перечень возможных состояний продаваемого товара
+        Отдает перечень возможных состояний продаваемого товара  # noqa: E501
         """
         pass
 
@@ -95,28 +95,28 @@ class TestDefaultApi(unittest.TestCase):
     def test_mark_product_as_checked(self) -> None:
         """Test case for mark_product_as_checked
 
-        MarkProductAsChecked
+        MarkProductAsChecked  # noqa: E501
         """
         pass
 
     def test_save_error(self) -> None:
         """Test case for save_error
 
-        Save Error
+        Save Error  # noqa: E501
         """
         pass
 
     def test_update_product(self) -> None:
         """Test case for update_product
 
-        Update product
+        Update product  # noqa: E501
         """
         pass
 
     def test_upsert_lot_info(self) -> None:
         """Test case for upsert_lot_info
 
-        Обновляет информацию о лоте
+        Обновляет информацию о лоте  # noqa: E501
         """
         pass
 

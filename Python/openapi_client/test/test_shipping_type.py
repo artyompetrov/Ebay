@@ -15,7 +15,7 @@
 import unittest
 import datetime
 
-from openapi_client.models.shipping_type import ShippingType
+from openapi_client.models.shipping_type import ShippingType  # noqa: E501
 
 class TestShippingType(unittest.TestCase):
     """ShippingType unit test stubs"""
@@ -33,7 +33,7 @@ class TestShippingType(unittest.TestCase):
             optional params are included """
         # uncomment below to create an instance of `ShippingType`
         """
-        model = ShippingType()
+        model = ShippingType()  # noqa: E501
         if include_optional:
             return ShippingType(
                 name = '0',

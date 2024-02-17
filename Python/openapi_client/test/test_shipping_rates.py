@@ -15,7 +15,7 @@
 import unittest
 import datetime
 
-from openapi_client.models.shipping_rates import ShippingRates
+from openapi_client.models.shipping_rates import ShippingRates  # noqa: E501
 
 class TestShippingRates(unittest.TestCase):
     """ShippingRates unit test stubs"""
@@ -33,7 +33,7 @@ class TestShippingRates(unittest.TestCase):
             optional params are included """
         # uncomment below to create an instance of `ShippingRates`
         """
-        model = ShippingRates()
+        model = ShippingRates()  # noqa: E501
         if include_optional:
             return ShippingRates(
                 specified_countries = [

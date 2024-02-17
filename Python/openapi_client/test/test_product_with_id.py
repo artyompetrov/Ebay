@@ -15,7 +15,7 @@
 import unittest
 import datetime
 
-from openapi_client.models.product_with_id import ProductWithId
+from openapi_client.models.product_with_id import ProductWithId  # noqa: E501
 
 class TestProductWithId(unittest.TestCase):
     """ProductWithId unit test stubs"""
@@ -33,7 +33,7 @@ class TestProductWithId(unittest.TestCase):
             optional params are included """
         # uncomment below to create an instance of `ProductWithId`
         """
-        model = ProductWithId()
+        model = ProductWithId()  # noqa: E501
         if include_optional:
             return ProductWithId(
                 id = '0',

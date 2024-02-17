@@ -15,7 +15,7 @@
 import unittest
 import datetime
 
-from openapi_client.models.lot_state import LotState
+from openapi_client.models.lot_state import LotState  # noqa: E501
 
 class TestLotState(unittest.TestCase):
     """LotState unit test stubs"""
@@ -33,7 +33,7 @@ class TestLotState(unittest.TestCase):
             optional params are included """
         # uncomment below to create an instance of `LotState`
         """
-        model = LotState()
+        model = LotState()  # noqa: E501
         if include_optional:
             return LotState(
                 lot_id = 56,

@@ -15,7 +15,7 @@
 import unittest
 import datetime
 
-from openapi_client.models.purchase_info import PurchaseInfo
+from openapi_client.models.purchase_info import PurchaseInfo  # noqa: E501
 
 class TestPurchaseInfo(unittest.TestCase):
     """PurchaseInfo unit test stubs"""
@@ -33,7 +33,7 @@ class TestPurchaseInfo(unittest.TestCase):
             optional params are included """
         # uncomment below to create an instance of `PurchaseInfo`
         """
-        model = PurchaseInfo()
+        model = PurchaseInfo()  # noqa: E501
         if include_optional:
             return PurchaseInfo(
                 price = 0.01,

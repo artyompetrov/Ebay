@@ -15,7 +15,7 @@
 import unittest
 import datetime
 
-from openapi_client.models.search_query import SearchQuery
+from openapi_client.models.search_query import SearchQuery  # noqa: E501
 
 class TestSearchQuery(unittest.TestCase):
     """SearchQuery unit test stubs"""
@@ -33,7 +33,7 @@ class TestSearchQuery(unittest.TestCase):
             optional params are included """
         # uncomment below to create an instance of `SearchQuery`
         """
-        model = SearchQuery()
+        model = SearchQuery()  # noqa: E501
         if include_optional:
             return SearchQuery(
                 id = '',

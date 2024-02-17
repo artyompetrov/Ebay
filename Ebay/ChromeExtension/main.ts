@@ -184,7 +184,7 @@ async function createPanel(client: Client): Promise<HTMLDivElement> {
     // language=HTML
     form.innerHTML = `
         <a href="${historyButtonHref}" target="_blank">История продаж лота</a>
-        <br><a href="${revisionsButtonHref}" target="_blank">История изменений</a>
+        <br><a href="${revisionsButtonHref}" target="_blank">История изменений лота</a>
         <br>Бэкенд: <a href="${backendUrl}" target="_blank">${backendUrl}</a>
         <br>
         <br>

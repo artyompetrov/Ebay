@@ -15,7 +15,7 @@
 import unittest
 import datetime
 
-from openapi_client.models.manual_condition import ManualCondition
+from openapi_client.models.manual_condition import ManualCondition  # noqa: E501
 
 class TestManualCondition(unittest.TestCase):
     """ManualCondition unit test stubs"""
@@ -33,7 +33,7 @@ class TestManualCondition(unittest.TestCase):
             optional params are included """
         # uncomment below to create an instance of `ManualCondition`
         """
-        model = ManualCondition()
+        model = ManualCondition()  # noqa: E501
         if include_optional:
             return ManualCondition(
                 id = '',
