@@ -48,6 +48,7 @@ public static class ModelsExtensions
             price: lot.Price,
             purchaseHistory: lot.Purchases.OrderByDescending(x => x.Date).Select(x => x.ToApiPurchaseInfo()).ToList(),
             seller: lot.Seller,
+            titleChangeDate: lot.TitleChangeDate.ToString(WellKnown.Formats.TimeFormat),
             shipping: lot.Shipping,
             shippingAdditional: lot.ShippingAdditional),
         productId: lot.ProductId);
@@ -66,6 +67,7 @@ public static class ModelsExtensions
             purchaseHistory: lot.Purchases.OrderByDescending(x => x.Date).Select(x => x.ToApiPurchaseInfo()).ToList(),
             seller: lot.Seller,
             shipping: lot.Shipping,
+            titleChangeDate: lot.TitleChangeDate.ToString(WellKnown.Formats.TimeFormat),
             shippingAdditional: lot.ShippingAdditional);
     
     public static PurchaseInfo ToApiPurchaseInfo(this Purchase purchase) => new(

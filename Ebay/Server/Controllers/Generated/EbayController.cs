@@ -403,7 +403,7 @@ namespace Ebay.Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public LotInfo(string @condition, string? @conditionDescription, string @currency, string @description, bool @ignoreThatLot, string @locatedIn, long @lotId, string @manualConditionId, string @name, int @pcs, double @price, System.Collections.Generic.List<PurchaseInfo> @purchaseHistory, string @seller, double? @shipping, double? @shippingAdditional, string @shippingCountry)
+        public LotInfo(string @condition, string? @conditionDescription, string @currency, string @description, bool @ignoreThatLot, string @locatedIn, long @lotId, string @manualConditionId, string @name, int @pcs, double @price, System.Collections.Generic.List<PurchaseInfo> @purchaseHistory, string @seller, double? @shipping, double? @shippingAdditional, string @shippingCountry, string @titleChangeDate)
 
         {
 
@@ -436,6 +436,8 @@ namespace Ebay.Server.Controllers.Generated
             this.IgnoreThatLot = @ignoreThatLot;
 
             this.ManualConditionId = @manualConditionId;
+
+            this.TitleChangeDate = @titleChangeDate;
 
             this.PurchaseHistory = @purchaseHistory;
 
@@ -498,6 +500,11 @@ namespace Ebay.Server.Controllers.Generated
         [System.ComponentModel.DataAnnotations.RegularExpression(@"^[A-Za-z]+$")]
         public string ManualConditionId { get; }
 
+        [Newtonsoft.Json.JsonProperty("titleChangeDate", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$")]
+        public string TitleChangeDate { get; }
+
         [Newtonsoft.Json.JsonProperty("purchaseHistory", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
         public System.Collections.Generic.List<PurchaseInfo> PurchaseHistory { get; }
@@ -509,7 +516,7 @@ namespace Ebay.Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public LotInfoShort(string @condition, string? @conditionDescription, string @currency, string @locatedIn, long @lotId, string @manualConditionId, string @name, int @pcs, double @price, System.Collections.Generic.List<PurchaseInfo> @purchaseHistory, string @seller, double? @shipping, double? @shippingAdditional, string @shippingCountry)
+        public LotInfoShort(string @condition, string? @conditionDescription, string @currency, string @locatedIn, long @lotId, string @manualConditionId, string @name, int @pcs, double @price, System.Collections.Generic.List<PurchaseInfo> @purchaseHistory, string @seller, double? @shipping, double? @shippingAdditional, string @shippingCountry, string @titleChangeDate)
 
         {
 
@@ -538,6 +545,8 @@ namespace Ebay.Server.Controllers.Generated
             this.LocatedIn = @locatedIn;
 
             this.ManualConditionId = @manualConditionId;
+
+            this.TitleChangeDate = @titleChangeDate;
 
             this.PurchaseHistory = @purchaseHistory;
 
@@ -592,6 +601,11 @@ namespace Ebay.Server.Controllers.Generated
         [System.ComponentModel.DataAnnotations.Required]
         [System.ComponentModel.DataAnnotations.RegularExpression(@"^[A-Za-z]+$")]
         public string ManualConditionId { get; }
+
+        [Newtonsoft.Json.JsonProperty("titleChangeDate", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$")]
+        public string TitleChangeDate { get; }
 
         [Newtonsoft.Json.JsonProperty("purchaseHistory", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]

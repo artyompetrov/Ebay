@@ -38,6 +38,8 @@ public class Lot
 
     public string LocatedIn { get; set; } = null!;
 
+    public DateTime TitleChangeDate { get; set; }
+
     public DateTime UpdateDate { get; set; }
 
     public bool IgnoreThatLot { get; set; }

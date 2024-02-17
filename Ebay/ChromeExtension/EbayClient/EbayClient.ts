@@ -869,6 +869,7 @@ export class LotInfo implements ILotInfo {
     locatedIn!: string;
     ignoreThatLot!: boolean;
     manualConditionId!: string;
+    titleChangeDate!: string;
     purchaseHistory!: PurchaseInfo[];
 
     constructor(data?: ILotInfo) {
@@ -900,6 +901,7 @@ export class LotInfo implements ILotInfo {
             this.locatedIn = _data["locatedIn"];
             this.ignoreThatLot = _data["ignoreThatLot"];
             this.manualConditionId = _data["manualConditionId"];
+            this.titleChangeDate = _data["titleChangeDate"];
             if (Array.isArray(_data["purchaseHistory"])) {
                 this.purchaseHistory = [] as any;
                 for (let item of _data["purchaseHistory"])
@@ -932,6 +934,7 @@ export class LotInfo implements ILotInfo {
         data["locatedIn"] = this.locatedIn;
         data["ignoreThatLot"] = this.ignoreThatLot;
         data["manualConditionId"] = this.manualConditionId;
+        data["titleChangeDate"] = this.titleChangeDate;
         if (Array.isArray(this.purchaseHistory)) {
             data["purchaseHistory"] = [];
             for (let item of this.purchaseHistory)
@@ -957,6 +960,7 @@ export interface ILotInfo {
     locatedIn: string;
     ignoreThatLot: boolean;
     manualConditionId: string;
+    titleChangeDate: string;
     purchaseHistory: PurchaseInfo[];
 }
 
@@ -974,6 +978,7 @@ export class LotInfoShort implements ILotInfoShort {
     seller!: string;
     locatedIn!: string;
     manualConditionId!: string;
+    titleChangeDate!: string;
     purchaseHistory!: PurchaseInfo[];
 
     constructor(data?: ILotInfoShort) {
@@ -1003,6 +1008,7 @@ export class LotInfoShort implements ILotInfoShort {
             this.seller = _data["seller"];
             this.locatedIn = _data["locatedIn"];
             this.manualConditionId = _data["manualConditionId"];
+            this.titleChangeDate = _data["titleChangeDate"];
             if (Array.isArray(_data["purchaseHistory"])) {
                 this.purchaseHistory = [] as any;
                 for (let item of _data["purchaseHistory"])
@@ -1033,6 +1039,7 @@ export class LotInfoShort implements ILotInfoShort {
         data["seller"] = this.seller;
         data["locatedIn"] = this.locatedIn;
         data["manualConditionId"] = this.manualConditionId;
+        data["titleChangeDate"] = this.titleChangeDate;
         if (Array.isArray(this.purchaseHistory)) {
             data["purchaseHistory"] = [];
             for (let item of this.purchaseHistory)
@@ -1056,6 +1063,7 @@ export interface ILotInfoShort {
     seller: string;
     locatedIn: string;
     manualConditionId: string;
+    titleChangeDate: string;
     purchaseHistory: PurchaseInfo[];
 }
 

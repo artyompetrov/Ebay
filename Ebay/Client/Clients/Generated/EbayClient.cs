@@ -1481,6 +1481,11 @@ namespace Ebay.Client.Clients.Generated
         [System.ComponentModel.DataAnnotations.RegularExpression(@"^[A-Za-z]+$")]
         public string ManualConditionId { get; set; }
 
+        [Newtonsoft.Json.JsonProperty("titleChangeDate", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$")]
+        public string TitleChangeDate { get; set; }
+
         [Newtonsoft.Json.JsonProperty("purchaseHistory", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
         public System.Collections.Generic.ICollection<PurchaseInfo> PurchaseHistory { get; set; } = new System.Collections.ObjectModel.Collection<PurchaseInfo>();
@@ -1541,6 +1546,11 @@ namespace Ebay.Client.Clients.Generated
         [System.ComponentModel.DataAnnotations.Required]
         [System.ComponentModel.DataAnnotations.RegularExpression(@"^[A-Za-z]+$")]
         public string ManualConditionId { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("titleChangeDate", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$")]
+        public string TitleChangeDate { get; set; }
 
         [Newtonsoft.Json.JsonProperty("purchaseHistory", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]

@@ -61,13 +61,13 @@ const supportedShippingCountriesDictionary = {
     "United Kingdom": "GBR",
     "United States": "USA",
     "Australia": "AUS",
-    'Bulgaria':"BGR",
-    'Lithuania':"LTU",
-    'Slovakia':"SVK",
-    'Latvia':"LVA",
-    'Romania':"ROU",
-    'Estonia':"EST",
-    'Poland':"POL",
+    'Bulgaria': "BGR",
+    'Lithuania': "LTU",
+    'Slovakia': "SVK",
+    'Latvia': "LVA",
+    'Romania': "ROU",
+    'Estonia': "EST",
+    'Poland': "POL",
 }
 const zipCodes = {
     "United States": "40202",
@@ -107,7 +107,6 @@ function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response>
 
 function extractPrice(price: string): Price {
     let priceTrimmed = price.trim()
-    console.log(priceTrimmed)
     let matches = priceTrimmed.match(/^(\D+)(\d+(?:[,.]\d+)?\s*)([(\/].+|$)/)
     if (matches) {
         return new Price(parseFloat(matches[2].replace(',', '.')), matches[1].trim())
@@ -289,7 +288,7 @@ async function createOpenMultipleButton(): Promise<HTMLDivElement> {
             await sleep(50);
         }
 
-        lastWindow.focus()
+        lastWindow?.focus()
     });
 
     div.appendChild(form)
@@ -378,23 +377,30 @@ class PurchaseInfoInner {
     date: Date
 }
 
-function parseDate(dateString): Date {
+function parseDate(dateString:string): Date {
     let matches = dateString.match(/(\d+\s[A-z]+\s\d+)\sat\s(\d+):(\d+):(\d+)(am|pm)\s([A-z]+)/)
 
+    if (!matches) {
+         matches = dateString.match(/([A-z]+\s\d+,\s\d+)\s(\d+):(\d+):(\d+)\s(PM|AM)\s([A-z]+)/)
+    }
+    
+    if (!matches) throw new Error("Unable to parse time in " + dateString)
+    
     let date = new Date(Date.parse(matches[1] + ' 00:00:00.000Z'))
 
     date.setUTCHours(parseInt(matches[2]));
     date.setUTCMinutes(parseInt(matches[3]));
     date.setUTCSeconds(parseInt(matches[4]));
 
-    if (matches[5] === "pm" && date.getUTCHours() !== 12) {
+    if (matches[5].toLowerCase() === "pm" && date.getUTCHours() !== 12) {
         date.setHours(date.getHours() + 12);
     }
-    if (matches[5] === "am" && date.getUTCHours() === 12) {
+    
+    if (matches[5].toLowerCase() === "am" && date.getUTCHours() === 12) {
         date.setHours(date.getHours() - 12);
     }
 
-    if (matches[6] === "MSK") {
+    if (matches[6].toUpperCase() === "MSK") {
         date.setHours(date.getHours() - 3);
     } else {
         throw new Error("unknown timezone " + matches[6])
@@ -629,6 +635,39 @@ async function fillPurchaseHistory() {
     }
 }
 
+async function fillUpdateTitleDate() {
+    if (!_unsupportedLot) {
+        let itemId = location.pathname.match(/\/itm\/([0-9]+)/)[1];
+        let url = `https://${location.hostname}/rvh/${itemId}`;
+        console.log(url);
+        let response = await fetchResource(url, {method: 'GET', credentials: 'include'})
+        let text = await response.text()
+        lotInfo.titleChangeDate = parseRevisionSummary(text).toISOString()
+    }
+}
+
+function parseRevisionSummary(text: string): Date {
+    console.log("parseRevisionSummary")
+    let doc = new DOMParser().parseFromString(text, "text/html")
+
+    let div = doc.querySelector('div#vi-revision-history-layout-container')
+    let rows = [...div.querySelector('table').querySelectorAll('tr')]
+
+    for (let row of rows.reverse()) {
+        let columns = [...row.querySelectorAll('td')]
+        if (columns.length === 0) continue;
+        let changes = columns[2].innerText;
+        if (changes.includes('Title')) {
+            let date = columns[0].innerText
+            let time = columns[1].innerText
+            
+            return parseDate(date + " " + time)
+        }
+    }
+
+    return new Date(0)
+}
+
 function getSearchQuery(): string | undefined {
     if (document.referrer) {
         return new URL(document.referrer).searchParams?.get('_nkw')?.trim()?.toLowerCase();
@@ -798,6 +837,7 @@ async function getDataFromPage(client: Client) {
 
     await Promise.all([
         fillPurchaseHistory(),
+        fillUpdateTitleDate(),
         fillProduct(panel, client, _serverLotInfo),
         fillManualCondition(panel, client, _serverLotInfo),
         fillPcs(panel, _serverLotInfo),
@@ -921,7 +961,7 @@ async function searchPage(client: Client) {
 
     let searchResults = await sleepElementLoaded('ul.srp-results', document)
 
-    let links : LotLink[] = [];
+    let links: LotLink[] = [];
     for (let li of [...searchResults.querySelectorAll('li')]) {
         if (li.classList.contains("srp-river-answer--REWRITE_START")) break
         if (li.classList.contains("s-item")) {
