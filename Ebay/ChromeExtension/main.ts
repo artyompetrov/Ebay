@@ -652,18 +652,20 @@ function parseRevisionSummary(text: string): Date {
     console.log("parseRevisionSummary")
     let doc = new DOMParser().parseFromString(text, "text/html")
 
-    let div = doc.querySelector('div#vi-revision-history-layout-container')
-    let rows = [...div.querySelector('table').querySelectorAll('tr')]
+    let table = doc.querySelector('div#vi-revision-history-layout-container table')
+    if (table) {
+        let rows = [...table.querySelectorAll('tr')]
 
-    for (let row of rows.reverse()) {
-        let columns = [...row.querySelectorAll('td')]
-        if (columns.length === 0) continue;
-        let changes = columns[2].innerText;
-        if (changes.includes('Title')) {
-            let date = columns[0].innerText
-            let time = columns[1].innerText
-            
-            return parseDate(date + " " + time)
+        for (let row of rows.reverse()) {
+            let columns = [...row.querySelectorAll('td')]
+            if (columns.length === 0) continue;
+            let changes = columns[2].innerText;
+            if (changes.includes('Title')) {
+                let date = columns[0].innerText
+                let time = columns[1].innerText
+
+                return parseDate(date + " " + time)
+            }
         }
     }
 
