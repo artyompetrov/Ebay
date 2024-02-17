@@ -94,6 +94,7 @@ public static class ModelsExtensions
             LocatedIn = lotInfo.LocatedIn,
             ManualCondition = lotInfo.ManualConditionId,
             IgnoreThatLot = lotInfo.IgnoreThatLot,
+            TitleChangeDate = DateTime.Parse(lotInfo.TitleChangeDate).ToUniversalTime(),
             UpdateDate = updateDate
         };
 
