@@ -383,15 +383,15 @@ class PurchaseInfoInner {
     date: Date
 }
 
-function parseDate(dateString:string): Date {
+function parseDate(dateString: string): Date {
     let matches = dateString.match(/(\d+\s[A-z]+\s\d+)\sat\s(\d+):(\d+):(\d+)(am|pm)\s([A-z]+)/)
 
     if (!matches) {
-         matches = dateString.match(/([A-z]+\s\d+,\s\d+)\s(\d+):(\d+):(\d+)\s(PM|AM)\s([A-z]+)/)
+        matches = dateString.match(/([A-z]+\s\d+,\s\d+)\s(\d+):(\d+):(\d+)\s(PM|AM)\s([A-z]+)/)
     }
-    
+
     if (!matches) throw new Error("Unable to parse time in " + dateString)
-    
+
     let date = new Date(Date.parse(matches[1] + ' 00:00:00.000Z'))
 
     date.setUTCHours(parseInt(matches[2]));
@@ -401,7 +401,7 @@ function parseDate(dateString:string): Date {
     if (matches[5].toLowerCase() === "pm" && date.getUTCHours() !== 12) {
         date.setHours(date.getHours() + 12);
     }
-    
+
     if (matches[5].toLowerCase() === "am" && date.getUTCHours() === 12) {
         date.setHours(date.getHours() - 12);
     }
@@ -783,14 +783,15 @@ async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId)
 
     let panel = <HTMLDivElement>await sleepElementLoaded('div.' + panelClass, document);
     if (serverLotInfoJsonString === currentPageLotInfoJsonString) {
-
-        let serverMaxDate = getMax(serverLotInfoWithProductId.lotInfo.purchaseHistory.map(x => new Date(x.date).getTime()))
+        let serverMaxDate = getMax(serverLotInfoWithProductId.lotInfo.purchaseHistory.map(x => {
+            if (x.price !== undefined) {
+                return new Date(x.date).getTime()
+            } else return 0;
+        }))
         let ebayMaxDate = getMax(lotInfo.purchaseHistory.map(x => {
-            if (x.price !== undefined)
-            {
+            if (x.price !== undefined) {
                 return new Date(x.date).getTime();
-            }
-            else return 0;
+            } else return 0;
         }))
         if (_serverLotInfo.lotInfo.ignoreThatLot === true || ebayMaxDate === 0 || serverMaxDate === ebayMaxDate) {
             panel.style.cssText = `background-color: ${lightGreenColor};`
@@ -830,7 +831,7 @@ async function getDataFromPage(client: Client) {
     fillId();
     await getServerLotInfo(client)
     let panel = await createPanel(client);
-    
+
     await Promise.all([
         fillPrice(),
         fillName(),
