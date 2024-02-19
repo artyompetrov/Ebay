@@ -36,7 +36,7 @@
             <td>
                 @foreach (var query in product.SearchQueries)
                 {
-                    <span><a href="@GetSearchLink(query.Query, product.Id)" target=”_blank”>@query.Query</a>&#160;</span>
+                    <span><a href="@GetSearchLink(query.Query)" target=”_blank”>@query.Query</a>&#160;</span>
                 }
             </td>
             <td>
@@ -85,7 +85,7 @@
         StateHasChanged();
     }
 
-    private string GetSearchLink(string query, Guid productId) => $"https://www.ebay.com/sch/i.html?_nkw={query}&LH_Sold=1&ProductId={productId}";
+    private string GetSearchLink(string query) => $"https://www.ebay.com/sch/i.html?_nkw={query}&LH_Sold=1";
 
     private void MarkAsChecked(ProductWithId product)
     {

@@ -228,7 +228,7 @@ async function createPanel(client: Client): Promise<HTMLDivElement> {
 }
 
 
-async function createOpenMultipleButton(client: Client): Promise<HTMLDivElement> {
+async function createOpenMultipleButton(): Promise<HTMLDivElement> {
     let bodyElement = await sleepElementLoaded('body', document);
 
     let panel = bodyElement.querySelector('div.' + panelClass)
@@ -286,10 +286,6 @@ async function createOpenMultipleButton(client: Client): Promise<HTMLDivElement>
         event.preventDefault()
 
          if (_needActualizationLotsIds.length === 0) {
-             let productId = new URL(document.location.href).searchParams?.get('ProductId')?.trim()
-             if (productId) {
-                 await client.markProductAsChecked(productId)
-             }
              window.close()
          }
         
@@ -998,7 +994,7 @@ async function searchPage(client: Client) {
 
     let _ = updateStatusInfinite(client, links);
     
-    await createOpenMultipleButton(client)
+    await createOpenMultipleButton()
 }
 
 async function updateStatusInfinite(client: Client, links: LotLink[]) {
