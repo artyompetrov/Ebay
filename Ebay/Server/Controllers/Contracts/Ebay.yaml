@@ -235,7 +235,7 @@ definitions:
     properties:
       Name:
         type: string
-        pattern: ^\w+(?:[ -]+\w+)*$
+        pattern: ^\w+(?:[ -\/\\.,]+\w+)*$
         minLength: 1
       SearchQueries:
         type: array
@@ -276,7 +276,7 @@ definitions:
         format: guid
       query:
         type: string
-        pattern: ^\w+(?:[ -]+\w+)*$
+        pattern: ^\w+(?:[ -\/\\.,]+\w+)*$
         minLength: 1
     required:
       - id
