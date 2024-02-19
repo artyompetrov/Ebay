@@ -83,7 +83,7 @@ const unsupportedLotDiv = "unsupportedLotDiv"
 const lotInfo = new LotInfo();
 let _serverLotInfo: LotInfoWithProductId;
 let _unsupportedLot = false;
-let _needActualizationLotsIds: number[] = []
+let _needActualizationLotsIds: number[] = null
 
 let _serverAndEbayAreEqual = false;
 
@@ -284,13 +284,13 @@ async function createOpenMultipleButton(): Promise<HTMLDivElement> {
 
     form.addEventListener("submit", async function (event: SubmitEvent) {
         event.preventDefault()
+        if (_needActualizationLotsIds === null) return;
+        if (_needActualizationLotsIds.length === 0) {
+            window.close()
+        }
 
-         if (_needActualizationLotsIds.length === 0) {
-             window.close()
-         }
-        
         let lastWindow: WindowProxy;
-        
+
         for (let x of _needActualizationLotsIds.slice(0, batchOpen)) {
             let url = "https://www.ebay.com/itm/" + x;
             lastWindow = window.open(url, '_blank');
@@ -993,7 +993,7 @@ async function searchPage(client: Client) {
     }
 
     let _ = updateStatusInfinite(client, links);
-    
+
     await createOpenMultipleButton()
 }
 
