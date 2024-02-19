@@ -1361,7 +1361,7 @@ namespace Ebay.Client.Clients.Generated
     {
         [Newtonsoft.Json.JsonProperty("Name", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
-        [System.ComponentModel.DataAnnotations.RegularExpression(@"^\w+(?:[ -]+\w+)*$")]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^\w+(?:[ -\/\\.,]+\w+)*$")]
         public string Name { get; set; }
 
         [Newtonsoft.Json.JsonProperty("SearchQueries", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
@@ -1401,7 +1401,7 @@ namespace Ebay.Client.Clients.Generated
 
         [Newtonsoft.Json.JsonProperty("query", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
-        [System.ComponentModel.DataAnnotations.RegularExpression(@"^\w+(?:[ -]+\w+)*$")]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^\w+(?:[ -\/\\.,]+\w+)*$")]
         public string Query { get; set; }
 
     }
