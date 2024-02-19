@@ -83,7 +83,7 @@ const unsupportedLotDiv = "unsupportedLotDiv"
 const lotInfo = new LotInfo();
 let _serverLotInfo: LotInfoWithProductId;
 let _unsupportedLot = false;
-let _knownLotsIds: number[] = []
+let _needActualizationLotsIds: number[] = []
 
 let _serverAndEbayAreEqual = false;
 
@@ -228,7 +228,7 @@ async function createPanel(client: Client): Promise<HTMLDivElement> {
 }
 
 
-async function createOpenMultipleButton(): Promise<HTMLDivElement> {
+async function createOpenMultipleButton(client: Client): Promise<HTMLDivElement> {
     let bodyElement = await sleepElementLoaded('body', document);
 
     let panel = bodyElement.querySelector('div.' + panelClass)
@@ -284,8 +284,18 @@ async function createOpenMultipleButton(): Promise<HTMLDivElement> {
 
     form.addEventListener("submit", async function (event: SubmitEvent) {
         event.preventDefault()
+
+         if (_needActualizationLotsIds.length === 0) {
+             let productId = new URL(document.location.href).searchParams?.get('ProductId')?.trim()
+             if (productId) {
+                 await client.markProductAsChecked(productId)
+             }
+             window.close()
+         }
+        
         let lastWindow: WindowProxy;
-        for (let x of _knownLotsIds.slice(0, batchOpen)) {
+        
+        for (let x of _needActualizationLotsIds.slice(0, batchOpen)) {
             let url = "https://www.ebay.com/itm/" + x;
             lastWindow = window.open(url, '_blank');
 
@@ -987,8 +997,8 @@ async function searchPage(client: Client) {
     }
 
     let _ = updateStatusInfinite(client, links);
-
-    await createOpenMultipleButton()
+    
+    await createOpenMultipleButton(client)
 }
 
 async function updateStatusInfinite(client: Client, links: LotLink[]) {
@@ -1033,7 +1043,7 @@ async function updateStatusInfinite(client: Client, links: LotLink[]) {
                 }
             })
 
-            _knownLotsIds = notKnownItems
+            _needActualizationLotsIds = notKnownItems
         } catch (error) {
             await saveErrorToBackend(error, client)
         }
