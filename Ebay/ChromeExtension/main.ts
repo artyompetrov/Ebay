@@ -85,6 +85,8 @@ let _serverLotInfo: LotInfoWithProductId;
 let _unsupportedLot = false;
 let _knownLotsIds: number[] = []
 
+let _serverAndEbayAreEqual = false;
+
 // fetch через background script, по другому не работает
 function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response> {
     return new Promise((resolve, reject) => {
@@ -340,6 +342,10 @@ async function handleSubmit(event: SubmitEvent, client: Client) {
         await client.upsertLotInfo(lotInfo, data.get('productId').toString())
 
         await productPage(client)
+
+        if (_serverAndEbayAreEqual) {
+            window.close()
+        }
     } catch (error) {
         await showAndSaveError(error, client)
     }
@@ -795,6 +801,7 @@ async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId)
         }))
         if (_serverLotInfo.lotInfo.ignoreThatLot === true || ebayMaxDate === 0 || serverMaxDate === ebayMaxDate) {
             panel.style.cssText = `background-color: ${lightGreenColor};`
+            _serverAndEbayAreEqual = true;
         } else {
             panel.style.cssText = `background-color: ${lightYellowColor};`
         }
