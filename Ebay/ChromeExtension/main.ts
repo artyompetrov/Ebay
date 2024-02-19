@@ -608,12 +608,7 @@ function getCountrySpanItem(countryName: string, itemsMenu: HTMLDivElement): HTM
 }
 
 async function fillLocatedIn() {
-    let match = (<HTMLElement>await sleepElementLoaded('div.d-shipping-minview', document)).innerText.match(/Located\sin:\s(.+)/)
-    if (match !== null) {
-        lotInfo.locatedIn = match[1]
-    } else {
-        lotInfo.locatedIn = "Unknown"
-    }
+    lotInfo.locatedIn = (<HTMLElement>await sleepElementLoaded('div.ux-labels-values--itemLocation span.ux-textspans--BOLD', document)).innerText
 }
 
 async function fillDescription() {
