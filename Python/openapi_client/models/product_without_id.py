@@ -33,8 +33,8 @@ class ProductWithoutId(BaseModel):
     @validator('name')
     def name_validate_regular_expression(cls, value):
         """Validates the regular expression"""
-        if not re.match(r"^\w+(?:[ -]+\w+)*$", value):
-            raise ValueError(r"must validate the regular expression /^\w+(?:[ -]+\w+)*$/")
+        if not re.match(r"^\w+(?:[ -\/\\.,]+\w+)*$", value):
+            raise ValueError(r"must validate the regular expression /^\w+(?:[ -\/\\.,]+\w+)*$/")
         return value
 
     class Config:
