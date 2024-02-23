@@ -1,1 +1,0 @@
-docker run --rm -v %cd%:/local openapitools/openapi-generator-cli generate -i /local/Ebay.yaml -g python-pydantic-v1 -o /local/client --additional-properties=generateSourceCodeOnly=true
