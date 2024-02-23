@@ -24,8 +24,8 @@ jobs:
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
       - name: Build and Publish ebay_python_module
         run: |
-          docker build ./Python --tag ${{ env.REGISTRY }}/ebay_python_module
-          docker push ${{ env.REGISTRY }}/ebay_python_module
+          docker build ./Python --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}_python
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}_python
 
   deploy:
     needs: publish
