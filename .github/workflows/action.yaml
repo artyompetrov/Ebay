@@ -22,10 +22,10 @@ jobs:
         run: |
           docker build . --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-      - name: Build and Publish ebayPythonModule
+      - name: Build and Publish ebay_python_module
         run: |
           docker build ./Python --tag ${{ env.REGISTRY }}/ebay_python_module
-          docker push ${{ env.REGISTRY }}/ebayPythonModule
+          docker push ${{ env.REGISTRY }}/ebay_python_module
 
   deploy:
     needs: publish
