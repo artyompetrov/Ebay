@@ -6,8 +6,6 @@ COPY requirements.txt /app
 
 RUN pip install -r requirements.txt
 
-RUN ipython kernel install --name "python3" --user
-
 COPY . /app
 
 ENTRYPOINT ["python3"]

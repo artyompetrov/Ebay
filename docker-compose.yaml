@@ -37,6 +37,14 @@ services:
     networks:
       - ebay_internal_network
 
+  ebay_python:
+    container_name: ebay_python
+    image: ghcr.io/artyompetrov/ebay_python:latest
+    ports:
+      - "17444:8000"
+    networks:
+      - ebay_internal_network
+
 networks:
   ebay_internal_network:
     driver: bridge
