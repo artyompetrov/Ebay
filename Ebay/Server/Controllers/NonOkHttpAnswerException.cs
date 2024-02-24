@@ -30,4 +30,13 @@ public class NonOkHttpAnswerException : Exception
             title: null,
             type: nameof(NotFoundProblemDetailedInfo),
             errors: null));
+    
+    public static NonOkHttpAnswerException NotAvailable503() => new(
+        new NotFoundProblemDetailedInfo(
+            detail: null,
+            instance: null,
+            status: 503,
+            title: null,
+            type: "ServiceNotAvailable",
+            errors: null));
 }

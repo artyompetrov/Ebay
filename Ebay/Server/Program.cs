@@ -1,4 +1,5 @@
 using Duende.IdentityServer.Models;
+using Ebay.Server;
 using Ebay.Server.Controllers;
 using Ebay.Server.Controllers.Generated;
 using Ebay.Server.Data;
@@ -21,6 +22,10 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddScoped<IEbayController, EbayControllerImplementation>();
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
+
+builder.Services.AddHttpClient(
+    WellKnown.Python.ClientName,
+    client => client.BaseAddress = new Uri(WellKnown.Python.ContainerPath));
 
 builder.Services.AddIdentityServer()
     .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(
