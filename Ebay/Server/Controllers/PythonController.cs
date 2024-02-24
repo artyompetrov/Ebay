@@ -2,7 +2,6 @@
 
 namespace Ebay.Server.Controllers;
 
-[Authorize]
 public class PythonController : Microsoft.AspNetCore.Mvc.Controller
 {
     private readonly IHttpClientFactory _httpClientFactory;
