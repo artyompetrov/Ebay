@@ -33,3 +33,6 @@ https://openexchangerates.org/account
 # todo:
 todo поправить в базе 9999 shipping
 
+
+инструкция как удалить красную страницу
+https://chromium.googlesource.com/chromium/src/+/master/docs/security/lookalikes/lookalike-domains.md
