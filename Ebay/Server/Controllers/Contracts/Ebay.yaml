@@ -214,6 +214,15 @@ paths:
               $ref: '#/definitions/Currency'
             minLength: 1
 
+  /product_purchase_statistics/:
+    get:
+      operationId: GetStatistics
+      responses:
+        200:
+          description: Ok
+          schema:
+            type: string
+
 
   /error/:
     post:

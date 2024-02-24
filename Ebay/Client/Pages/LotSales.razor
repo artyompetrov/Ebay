@@ -38,11 +38,17 @@
         }
         </tbody>
     </table>
+
+    if (_statistics != null)
+    {
+        <div>@_statistics</div>
+    }
 }
 
 @code {
     private ProductWithId? _product;
     private ICollection<LotInfoShort>? _lots;
+    private string? _statistics;
 
     [Parameter]
     public Guid ProductId { get; set; }
@@ -56,6 +62,9 @@
     {
         _product = await EbayClient.GetProductAsync(ProductId);
         _lots = await EbayClient.GetLotsAsync(ProductId);
+
+        _statistics = await EbayClient.GetStatisticsAsync();
+        
         StateHasChanged();
     }
 
