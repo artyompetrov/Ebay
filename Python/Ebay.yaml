@@ -178,17 +178,16 @@ paths:
             items:
               $ref: '#/definitions/LotState'
   
-  /manual_conditions/:
+  /categories/:
     get:
-      operationId: GetManualConditionsList
-      summary: Отдает перечень возможных состояний продаваемого товара
+      operationId: GetCategories
       responses:
         200:
           description: 'Ok'
           schema:
             type: array
             items:
-              $ref: '#/definitions/ManualCondition'
+              $ref: '#/definitions/CategoryType'
 
   /shipping_rates/:
     get:
@@ -338,10 +337,10 @@ definitions:
         minLength: 1
       ignoreThatLot:
         type: boolean
-      manualConditionId:
-        type: string
-        minLength: 1
-        pattern: ^[A-Za-z]+$
+      categories:
+        type: array
+        items: 
+          $ref: '#/definitions/CategoryValue'
       titleChangeDate:
         type: string
         pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$
@@ -362,7 +361,7 @@ definitions:
       - seller
       - locatedIn
       - ignoreThatLot
-      - manualConditionId
+      - categories
       - purchaseHistory
       - titleChangeDate
 
@@ -405,10 +404,10 @@ definitions:
       locatedIn:
         type: string
         minLength: 1
-      manualConditionId:
-        type: string
-        minLength: 1
-        pattern: ^[A-Za-z]+$
+      categories:
+        type: array
+        items:
+          $ref: '#/definitions/CategoryValue'
       titleChangeDate:
         type: string
         pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$
@@ -427,7 +426,7 @@ definitions:
       - condition
       - seller
       - locatedIn
-      - manualConditionId
+      - categories
       - purchaseHistory
       - titleChangeDate
 
@@ -449,13 +448,47 @@ definitions:
       - quantity
       - date
   
-  ManualCondition:
+  CategoryValue:
+    type: object
+    properties: 
+      type:
+        type: string
+        minLength: 1
+        pattern: ^[A-Za-z_]+$
+      value:
+        type: string
+        minLength: 1
+        pattern: ^[A-Za-z_]+$
+    required:
+      - type
+      - value
+
+  CategoryType:
+    type: object
+    properties:
+      type:
+        type: string
+        minLength: 1
+        pattern: ^[A-Za-z_]+$
+      items:
+        type: array
+        items:
+          $ref: '#/definitions/CategoryItem'
+    required:
+      - type
+      - items
+  
+  CategoryItem:
     type: object
     properties:
       id:
         type: string
+        minLength: 1
+        pattern: ^[A-Za-z_]+$
       description:
         type: string
+        minLength: 1
+        pattern: ^[A-Za-z_]+$
     required:
       - id
       - description

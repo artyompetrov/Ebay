@@ -52,7 +52,11 @@ class TestLotInfoWithProductId(unittest.TestCase):
                     seller = '0', 
                     located_in = '0', 
                     ignore_that_lot = True, 
-                    manual_condition_id = 'E0', 
+                    categories = [
+                        openapi_client.models.category_value.CategoryValue(
+                            type = '_0', 
+                            value = '_0', )
+                        ], 
                     title_change_date = '0480-72-88T80:01:52.802Z0', 
                     purchase_history = [
                         openapi_client.models.purchase_info.PurchaseInfo(
@@ -79,7 +83,11 @@ class TestLotInfoWithProductId(unittest.TestCase):
                     seller = '0', 
                     located_in = '0', 
                     ignore_that_lot = True, 
-                    manual_condition_id = 'E0', 
+                    categories = [
+                        openapi_client.models.category_value.CategoryValue(
+                            type = '_0', 
+                            value = '_0', )
+                        ], 
                     title_change_date = '0480-72-88T80:01:52.802Z0', 
                     purchase_history = [
                         openapi_client.models.purchase_info.PurchaseInfo(

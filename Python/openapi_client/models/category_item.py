@@ -19,15 +19,29 @@ import json
 
 
 
-from pydantic import BaseModel, Field, StrictStr
+from pydantic import BaseModel, Field, constr, validator
 
-class ManualCondition(BaseModel):
+class CategoryItem(BaseModel):
     """
-    ManualCondition
+    CategoryItem
     """
-    id: StrictStr = Field(...)
-    description: StrictStr = Field(...)
+    id: constr(strict=True, min_length=1) = Field(...)
+    description: constr(strict=True, min_length=1) = Field(...)
     __properties = ["id", "description"]
+
+    @validator('id')
+    def id_validate_regular_expression(cls, value):
+        """Validates the regular expression"""
+        if not re.match(r"^[A-Za-z_]+$", value):
+            raise ValueError(r"must validate the regular expression /^[A-Za-z_]+$/")
+        return value
+
+    @validator('description')
+    def description_validate_regular_expression(cls, value):
+        """Validates the regular expression"""
+        if not re.match(r"^[A-Za-z_]+$", value):
+            raise ValueError(r"must validate the regular expression /^[A-Za-z_]+$/")
+        return value
 
     class Config:
         """Pydantic configuration"""
@@ -43,8 +57,8 @@ class ManualCondition(BaseModel):
         return json.dumps(self.to_dict())
 
     @classmethod
-    def from_json(cls, json_str: str) -> ManualCondition:
-        """Create an instance of ManualCondition from a JSON string"""
+    def from_json(cls, json_str: str) -> CategoryItem:
+        """Create an instance of CategoryItem from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self):
@@ -56,15 +70,15 @@ class ManualCondition(BaseModel):
         return _dict
 
     @classmethod
-    def from_dict(cls, obj: dict) -> ManualCondition:
-        """Create an instance of ManualCondition from a dict"""
+    def from_dict(cls, obj: dict) -> CategoryItem:
+        """Create an instance of CategoryItem from a dict"""
         if obj is None:
             return None
 
         if not isinstance(obj, dict):
-            return ManualCondition.parse_obj(obj)
+            return CategoryItem.parse_obj(obj)
 
-        _obj = ManualCondition.parse_obj({
+        _obj = CategoryItem.parse_obj({
             "id": obj.get("id"),
             "description": obj.get("description")
         })

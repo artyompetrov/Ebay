@@ -31,13 +31,15 @@ from openapi_client.exceptions import ApiAttributeError
 from openapi_client.exceptions import ApiException
 
 # import models into sdk package
+from openapi_client.models.category_item import CategoryItem
+from openapi_client.models.category_type import CategoryType
+from openapi_client.models.category_value import CategoryValue
 from openapi_client.models.client_error_info import ClientErrorInfo
 from openapi_client.models.currency import Currency
 from openapi_client.models.lot_info import LotInfo
 from openapi_client.models.lot_info_short import LotInfoShort
 from openapi_client.models.lot_info_with_product_id import LotInfoWithProductId
 from openapi_client.models.lot_state import LotState
-from openapi_client.models.manual_condition import ManualCondition
 from openapi_client.models.not_found_problem_detailed_info import NotFoundProblemDetailedInfo
 from openapi_client.models.problem_detailed_info import ProblemDetailedInfo
 from openapi_client.models.product_with_id import ProductWithId

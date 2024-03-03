@@ -7,11 +7,11 @@ Method | HTTP request | Description
 [**create_product**](DefaultApi.md#create_product) | **POST** /products | Create product
 [**delete_product**](DefaultApi.md#delete_product) | **DELETE** /products/{id} | Delete product
 [**get_all_products**](DefaultApi.md#get_all_products) | **GET** /products | List all products
+[**get_categories**](DefaultApi.md#get_categories) | **GET** /categories/ | 
 [**get_currencies**](DefaultApi.md#get_currencies) | **GET** /currencies/ | 
 [**get_lot_info**](DefaultApi.md#get_lot_info) | **GET** /lots/{lotId}/ | Получить информацию о лоте
 [**get_lot_states**](DefaultApi.md#get_lot_states) | **POST** /lot_state_requests/ | Получает информацию о учтенных лотах
 [**get_lots**](DefaultApi.md#get_lots) | **GET** /products/{productId}/lots/ | 
-[**get_manual_conditions_list**](DefaultApi.md#get_manual_conditions_list) | **GET** /manual_conditions/ | Отдает перечень возможных состояний продаваемого товара
 [**get_product**](DefaultApi.md#get_product) | **GET** /products/{id} | 
 [**get_shipping_rates**](DefaultApi.md#get_shipping_rates) | **GET** /shipping_rates/ | 
 [**mark_product_as_checked**](DefaultApi.md#mark_product_as_checked) | **POST** /products/{id}/mark_as_checked/ | MarkProductAsChecked
@@ -206,6 +206,66 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 **200** | OK |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **get_categories**
+> List[CategoryType] get_categories()
+
+
+
+### Example
+
+```python
+import time
+import os
+import openapi_client
+from openapi_client.models.category_type import CategoryType
+from openapi_client.rest import ApiException
+from pprint import pprint
+
+# Defining the host is optional and defaults to /api/ebay/v1
+# See configuration.py for a list of all supported configuration parameters.
+configuration = openapi_client.Configuration(
+    host = "/api/ebay/v1"
+)
+
+
+# Enter a context with an instance of the API client
+with openapi_client.ApiClient(configuration) as api_client:
+    # Create an instance of the API class
+    api_instance = openapi_client.DefaultApi(api_client)
+
+    try:
+        api_response = api_instance.get_categories()
+        print("The response of DefaultApi->get_categories:\n")
+        pprint(api_response)
+    except Exception as e:
+        print("Exception when calling DefaultApi->get_categories: %s\n" % e)
+```
+
+
+
+### Parameters
+This endpoint does not need any parameter.
+
+### Return type
+
+[**List[CategoryType]**](CategoryType.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+**200** | Ok |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -462,67 +522,6 @@ No authorization required
 |-------------|-------------|------------------|
 **200** | Ok |  -  |
 **400** | NotFound |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **get_manual_conditions_list**
-> List[ManualCondition] get_manual_conditions_list()
-
-Отдает перечень возможных состояний продаваемого товара
-
-### Example
-
-```python
-import time
-import os
-import openapi_client
-from openapi_client.models.manual_condition import ManualCondition
-from openapi_client.rest import ApiException
-from pprint import pprint
-
-# Defining the host is optional and defaults to /api/ebay/v1
-# See configuration.py for a list of all supported configuration parameters.
-configuration = openapi_client.Configuration(
-    host = "/api/ebay/v1"
-)
-
-
-# Enter a context with an instance of the API client
-with openapi_client.ApiClient(configuration) as api_client:
-    # Create an instance of the API class
-    api_instance = openapi_client.DefaultApi(api_client)
-
-    try:
-        # Отдает перечень возможных состояний продаваемого товара
-        api_response = api_instance.get_manual_conditions_list()
-        print("The response of DefaultApi->get_manual_conditions_list:\n")
-        pprint(api_response)
-    except Exception as e:
-        print("Exception when calling DefaultApi->get_manual_conditions_list: %s\n" % e)
-```
-
-
-
-### Parameters
-This endpoint does not need any parameter.
-
-### Return type
-
-[**List[ManualCondition]**](ManualCondition.md)
-
-### Authorization
-
-No authorization required
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-**200** | Ok |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

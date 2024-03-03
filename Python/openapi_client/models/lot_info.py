@@ -20,6 +20,7 @@ import json
 
 from typing import List, Optional, Union
 from pydantic import BaseModel, Field, StrictBool, StrictInt, confloat, conint, conlist, constr, validator
+from openapi_client.models.category_value import CategoryValue
 from openapi_client.models.purchase_info import PurchaseInfo
 
 class LotInfo(BaseModel):
@@ -40,17 +41,10 @@ class LotInfo(BaseModel):
     seller: constr(strict=True, min_length=1) = Field(...)
     located_in: constr(strict=True, min_length=1) = Field(..., alias="locatedIn")
     ignore_that_lot: StrictBool = Field(..., alias="ignoreThatLot")
-    manual_condition_id: constr(strict=True, min_length=1) = Field(..., alias="manualConditionId")
+    categories: conlist(CategoryValue) = Field(...)
     title_change_date: constr(strict=True, min_length=1) = Field(..., alias="titleChangeDate")
     purchase_history: conlist(PurchaseInfo) = Field(..., alias="purchaseHistory")
-    __properties = ["lotId", "name", "pcs", "shippingCountry", "currency", "price", "shipping", "shippingAdditional", "description", "condition", "conditionDescription", "seller", "locatedIn", "ignoreThatLot", "manualConditionId", "titleChangeDate", "purchaseHistory"]
-
-    @validator('manual_condition_id')
-    def manual_condition_id_validate_regular_expression(cls, value):
-        """Validates the regular expression"""
-        if not re.match(r"^[A-Za-z]+$", value):
-            raise ValueError(r"must validate the regular expression /^[A-Za-z]+$/")
-        return value
+    __properties = ["lotId", "name", "pcs", "shippingCountry", "currency", "price", "shipping", "shippingAdditional", "description", "condition", "conditionDescription", "seller", "locatedIn", "ignoreThatLot", "categories", "titleChangeDate", "purchaseHistory"]
 
     @validator('title_change_date')
     def title_change_date_validate_regular_expression(cls, value):
@@ -83,6 +77,13 @@ class LotInfo(BaseModel):
                           exclude={
                           },
                           exclude_none=True)
+        # override the default output from pydantic by calling `to_dict()` of each item in categories (list)
+        _items = []
+        if self.categories:
+            for _item in self.categories:
+                if _item:
+                    _items.append(_item.to_dict())
+            _dict['categories'] = _items
         # override the default output from pydantic by calling `to_dict()` of each item in purchase_history (list)
         _items = []
         if self.purchase_history:
@@ -116,7 +117,7 @@ class LotInfo(BaseModel):
             "seller": obj.get("seller"),
             "located_in": obj.get("locatedIn"),
             "ignore_that_lot": obj.get("ignoreThatLot"),
-            "manual_condition_id": obj.get("manualConditionId"),
+            "categories": [CategoryValue.from_dict(_item) for _item in obj.get("categories")] if obj.get("categories") is not None else None,
             "title_change_date": obj.get("titleChangeDate"),
             "purchase_history": [PurchaseInfo.from_dict(_item) for _item in obj.get("purchaseHistory")] if obj.get("purchaseHistory") is not None else None
         })

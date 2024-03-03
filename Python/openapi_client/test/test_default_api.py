@@ -47,6 +47,12 @@ class TestDefaultApi(unittest.TestCase):
         """
         pass
 
+    def test_get_categories(self) -> None:
+        """Test case for get_categories
+
+        """
+        pass
+
     def test_get_currencies(self) -> None:
         """Test case for get_currencies
 
@@ -70,13 +76,6 @@ class TestDefaultApi(unittest.TestCase):
     def test_get_lots(self) -> None:
         """Test case for get_lots
 
-        """
-        pass
-
-    def test_get_manual_conditions_list(self) -> None:
-        """Test case for get_manual_conditions_list
-
-        Отдает перечень возможных состояний продаваемого товара  # noqa: E501
         """
         pass
 

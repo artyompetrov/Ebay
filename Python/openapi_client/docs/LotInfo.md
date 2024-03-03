@@ -18,7 +18,7 @@ Name | Type | Description | Notes
 **seller** | **str** |  | 
 **located_in** | **str** |  | 
 **ignore_that_lot** | **bool** |  | 
-**manual_condition_id** | **str** |  | 
+**categories** | [**List[CategoryValue]**](CategoryValue.md) |  | 
 **title_change_date** | **str** |  | 
 **purchase_history** | [**List[PurchaseInfo]**](PurchaseInfo.md) |  | 
 

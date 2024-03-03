@@ -15,10 +15,10 @@
 import unittest
 import datetime
 
-from openapi_client.models.manual_condition import ManualCondition  # noqa: E501
+from openapi_client.models.category_item import CategoryItem  # noqa: E501
 
-class TestManualCondition(unittest.TestCase):
-    """ManualCondition unit test stubs"""
+class TestCategoryItem(unittest.TestCase):
+    """CategoryItem unit test stubs"""
 
     def setUp(self):
         pass
@@ -26,28 +26,28 @@ class TestManualCondition(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def make_instance(self, include_optional) -> ManualCondition:
-        """Test ManualCondition
+    def make_instance(self, include_optional) -> CategoryItem:
+        """Test CategoryItem
             include_option is a boolean, when False only required
             params are included, when True both required and
             optional params are included """
-        # uncomment below to create an instance of `ManualCondition`
+        # uncomment below to create an instance of `CategoryItem`
         """
-        model = ManualCondition()  # noqa: E501
+        model = CategoryItem()  # noqa: E501
         if include_optional:
-            return ManualCondition(
-                id = '',
-                description = ''
+            return CategoryItem(
+                id = '_0',
+                description = '_0'
             )
         else:
-            return ManualCondition(
-                id = '',
-                description = '',
+            return CategoryItem(
+                id = '_0',
+                description = '_0',
         )
         """
 
-    def testManualCondition(self):
-        """Test ManualCondition"""
+    def testCategoryItem(self):
+        """Test CategoryItem"""
         # inst_req_only = self.make_instance(include_optional=False)
         # inst_req_and_optional = self.make_instance(include_optional=True)
 

@@ -35,7 +35,7 @@ SET ""Categories"" = (case
 	when ""ManualCondition"" = 'usedAndTested' then hstore(array['condition','test_state'], array['used', 'tested']::text[])
 	when ""ManualCondition"" = 'usedAndNotTested' then hstore(array['condition','test_state'], array['used', 'notTested']::text[])
 	when ""ManualCondition"" = 'notWorking' then hstore(array['condition','test_state'], array['notWorking', 'notTested']::text[])
-	when ""ManualCondition"" = 'notSet' then hstore(array['condition','test_state'], array[null , null]::text[])
+	when ""ManualCondition"" = 'notSet' then hstore(array['condition','test_state'], array['new' , 'notTested']::text[])
 end)
 WHERE 1=1
 ");

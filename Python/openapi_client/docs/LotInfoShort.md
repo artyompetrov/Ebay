@@ -16,7 +16,7 @@ Name | Type | Description | Notes
 **condition_description** | **str** |  | [optional] 
 **seller** | **str** |  | 
 **located_in** | **str** |  | 
-**manual_condition_id** | **str** |  | 
+**categories** | [**List[CategoryValue]**](CategoryValue.md) |  | 
 **title_change_date** | **str** |  | 
 **purchase_history** | [**List[PurchaseInfo]**](PurchaseInfo.md) |  | 
 
