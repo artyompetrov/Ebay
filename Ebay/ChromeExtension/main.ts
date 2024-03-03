@@ -984,7 +984,7 @@ async function searchPage(client: Client) {
 
     let links: LotLink[] = [];
     for (let li of [...searchResults.querySelectorAll('li')]) {
-        if (li.classList.contains("srp-river-answer--REWRITE_START")) break
+        if (li.classList.contains("srp-river-answer--REWRITE_START") && li.innerText === "Results matching fewer words") break
         if (li.classList.contains("s-item")) {
             let link = <HTMLAnchorElement>li.querySelector('a.s-item__link')
             let soldDate = new Date((<HTMLElement>li.querySelector('span.POSITIVE')).innerText.replace("Sold ", ""))
