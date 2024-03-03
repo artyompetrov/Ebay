@@ -489,11 +489,10 @@ export class Client {
     }
 
     /**
-     * Отдает перечень возможных состояний продаваемого товара
      * @return Ok
      */
-    getManualConditionsList(): Promise<ManualCondition[]> {
-        let url_ = this.baseUrl + "/manual_conditions/";
+    getCategories(): Promise<CategoryType[]> {
+        let url_ = this.baseUrl + "/categories/";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -504,11 +503,11 @@ export class Client {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetManualConditionsList(_response);
+            return this.processGetCategories(_response);
         });
     }
 
-    protected processGetManualConditionsList(response: Response): Promise<ManualCondition[]> {
+    protected processGetCategories(response: Response): Promise<CategoryType[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -518,7 +517,7 @@ export class Client {
             if (Array.isArray(resultData200)) {
                 result200 = [] as any;
                 for (let item of resultData200)
-                    result200!.push(ManualCondition.fromJS(item));
+                    result200!.push(CategoryType.fromJS(item));
             }
             else {
                 result200 = <any>null;
@@ -530,7 +529,7 @@ export class Client {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<ManualCondition[]>(null as any);
+        return Promise.resolve<CategoryType[]>(null as any);
     }
 
     /**
@@ -906,7 +905,7 @@ export class LotInfo implements ILotInfo {
     seller!: string;
     locatedIn!: string;
     ignoreThatLot!: boolean;
-    manualConditionId!: string;
+    categories!: CategoryValue[];
     titleChangeDate!: string;
     purchaseHistory!: PurchaseInfo[];
 
@@ -918,6 +917,7 @@ export class LotInfo implements ILotInfo {
             }
         }
         if (!data) {
+            this.categories = [];
             this.purchaseHistory = [];
         }
     }
@@ -938,7 +938,11 @@ export class LotInfo implements ILotInfo {
             this.seller = _data["seller"];
             this.locatedIn = _data["locatedIn"];
             this.ignoreThatLot = _data["ignoreThatLot"];
-            this.manualConditionId = _data["manualConditionId"];
+            if (Array.isArray(_data["categories"])) {
+                this.categories = [] as any;
+                for (let item of _data["categories"])
+                    this.categories!.push(CategoryValue.fromJS(item));
+            }
             this.titleChangeDate = _data["titleChangeDate"];
             if (Array.isArray(_data["purchaseHistory"])) {
                 this.purchaseHistory = [] as any;
@@ -971,7 +975,11 @@ export class LotInfo implements ILotInfo {
         data["seller"] = this.seller;
         data["locatedIn"] = this.locatedIn;
         data["ignoreThatLot"] = this.ignoreThatLot;
-        data["manualConditionId"] = this.manualConditionId;
+        if (Array.isArray(this.categories)) {
+            data["categories"] = [];
+            for (let item of this.categories)
+                data["categories"].push(item.toJSON());
+        }
         data["titleChangeDate"] = this.titleChangeDate;
         if (Array.isArray(this.purchaseHistory)) {
             data["purchaseHistory"] = [];
@@ -997,7 +1005,7 @@ export interface ILotInfo {
     seller: string;
     locatedIn: string;
     ignoreThatLot: boolean;
-    manualConditionId: string;
+    categories: CategoryValue[];
     titleChangeDate: string;
     purchaseHistory: PurchaseInfo[];
 }
@@ -1015,7 +1023,7 @@ export class LotInfoShort implements ILotInfoShort {
     conditionDescription?: string | undefined;
     seller!: string;
     locatedIn!: string;
-    manualConditionId!: string;
+    categories!: CategoryValue[];
     titleChangeDate!: string;
     purchaseHistory!: PurchaseInfo[];
 
@@ -1027,6 +1035,7 @@ export class LotInfoShort implements ILotInfoShort {
             }
         }
         if (!data) {
+            this.categories = [];
             this.purchaseHistory = [];
         }
     }
@@ -1045,7 +1054,11 @@ export class LotInfoShort implements ILotInfoShort {
             this.conditionDescription = _data["conditionDescription"];
             this.seller = _data["seller"];
             this.locatedIn = _data["locatedIn"];
-            this.manualConditionId = _data["manualConditionId"];
+            if (Array.isArray(_data["categories"])) {
+                this.categories = [] as any;
+                for (let item of _data["categories"])
+                    this.categories!.push(CategoryValue.fromJS(item));
+            }
             this.titleChangeDate = _data["titleChangeDate"];
             if (Array.isArray(_data["purchaseHistory"])) {
                 this.purchaseHistory = [] as any;
@@ -1076,7 +1089,11 @@ export class LotInfoShort implements ILotInfoShort {
         data["conditionDescription"] = this.conditionDescription;
         data["seller"] = this.seller;
         data["locatedIn"] = this.locatedIn;
-        data["manualConditionId"] = this.manualConditionId;
+        if (Array.isArray(this.categories)) {
+            data["categories"] = [];
+            for (let item of this.categories)
+                data["categories"].push(item.toJSON());
+        }
         data["titleChangeDate"] = this.titleChangeDate;
         if (Array.isArray(this.purchaseHistory)) {
             data["purchaseHistory"] = [];
@@ -1100,7 +1117,7 @@ export interface ILotInfoShort {
     conditionDescription?: string | undefined;
     seller: string;
     locatedIn: string;
-    manualConditionId: string;
+    categories: CategoryValue[];
     titleChangeDate: string;
     purchaseHistory: PurchaseInfo[];
 }
@@ -1149,11 +1166,102 @@ export interface IPurchaseInfo {
     date: string;
 }
 
-export class ManualCondition implements IManualCondition {
+export class CategoryValue implements ICategoryValue {
+    type!: string;
+    value!: string;
+
+    constructor(data?: ICategoryValue) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.type = _data["type"];
+            this.value = _data["value"];
+        }
+    }
+
+    static fromJS(data: any): CategoryValue {
+        data = typeof data === 'object' ? data : {};
+        let result = new CategoryValue();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["type"] = this.type;
+        data["value"] = this.value;
+        return data;
+    }
+}
+
+export interface ICategoryValue {
+    type: string;
+    value: string;
+}
+
+export class CategoryType implements ICategoryType {
+    type!: string;
+    items!: CategoryItem[];
+
+    constructor(data?: ICategoryType) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+        if (!data) {
+            this.items = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.type = _data["type"];
+            if (Array.isArray(_data["items"])) {
+                this.items = [] as any;
+                for (let item of _data["items"])
+                    this.items!.push(CategoryItem.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): CategoryType {
+        data = typeof data === 'object' ? data : {};
+        let result = new CategoryType();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["type"] = this.type;
+        if (Array.isArray(this.items)) {
+            data["items"] = [];
+            for (let item of this.items)
+                data["items"].push(item.toJSON());
+        }
+        return data;
+    }
+}
+
+export interface ICategoryType {
+    type: string;
+    items: CategoryItem[];
+}
+
+export class CategoryItem implements ICategoryItem {
     id!: string;
     description!: string;
 
-    constructor(data?: IManualCondition) {
+    constructor(data?: ICategoryItem) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -1169,9 +1277,9 @@ export class ManualCondition implements IManualCondition {
         }
     }
 
-    static fromJS(data: any): ManualCondition {
+    static fromJS(data: any): CategoryItem {
         data = typeof data === 'object' ? data : {};
-        let result = new ManualCondition();
+        let result = new CategoryItem();
         result.init(data);
         return result;
     }
@@ -1184,7 +1292,7 @@ export class ManualCondition implements IManualCondition {
     }
 }
 
-export interface IManualCondition {
+export interface ICategoryItem {
     id: string;
     description: string;
 }

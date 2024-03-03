@@ -106,13 +106,10 @@ namespace Ebay.Server.Controllers.Generated
 
         System.Threading.Tasks.Task<System.Collections.Generic.ICollection<LotState>> GetLotStatesAsync(System.Collections.Generic.IEnumerable<long> lotIds, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
-        /// <summary>
-        /// Отдает перечень возможных состояний продаваемого товара
-        /// </summary>
 
         /// <returns>Ok</returns>
 
-        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ManualCondition>> GetManualConditionsListAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<CategoryType>> GetCategoriesAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
 
         /// <returns>Ok</returns>
@@ -256,15 +253,12 @@ namespace Ebay.Server.Controllers.Generated
             return _implementation.GetLotStatesAsync(lotIds, cancellationToken);
         }
 
-        /// <summary>
-        /// Отдает перечень возможных состояний продаваемого товара
-        /// </summary>
         /// <returns>Ok</returns>
-        [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("manual_conditions/")]
-        public System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ManualCondition>> GetManualConditionsList(System.Threading.CancellationToken cancellationToken)
+        [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("categories/")]
+        public System.Threading.Tasks.Task<System.Collections.Generic.ICollection<CategoryType>> GetCategories(System.Threading.CancellationToken cancellationToken)
         {
 
-            return _implementation.GetManualConditionsListAsync(cancellationToken);
+            return _implementation.GetCategoriesAsync(cancellationToken);
         }
 
         /// <returns>Ok</returns>
@@ -416,7 +410,7 @@ namespace Ebay.Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public LotInfo(string @condition, string? @conditionDescription, string @currency, string @description, bool @ignoreThatLot, string @locatedIn, long @lotId, string @manualConditionId, string @name, int @pcs, double @price, System.Collections.Generic.List<PurchaseInfo> @purchaseHistory, string @seller, double? @shipping, double? @shippingAdditional, string @shippingCountry, string @titleChangeDate)
+        public LotInfo(System.Collections.Generic.List<CategoryValue> @categories, string @condition, string? @conditionDescription, string @currency, string @description, bool @ignoreThatLot, string @locatedIn, long @lotId, string @name, int @pcs, double @price, System.Collections.Generic.List<PurchaseInfo> @purchaseHistory, string @seller, double? @shipping, double? @shippingAdditional, string @shippingCountry, string @titleChangeDate)
 
         {
 
@@ -448,7 +442,7 @@ namespace Ebay.Server.Controllers.Generated
 
             this.IgnoreThatLot = @ignoreThatLot;
 
-            this.ManualConditionId = @manualConditionId;
+            this.Categories = @categories;
 
             this.TitleChangeDate = @titleChangeDate;
 
@@ -508,10 +502,9 @@ namespace Ebay.Server.Controllers.Generated
         [Newtonsoft.Json.JsonProperty("ignoreThatLot", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public bool IgnoreThatLot { get; }
 
-        [Newtonsoft.Json.JsonProperty("manualConditionId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("categories", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
-        [System.ComponentModel.DataAnnotations.RegularExpression(@"^[A-Za-z]+$")]
-        public string ManualConditionId { get; }
+        public System.Collections.Generic.List<CategoryValue> Categories { get; }
 
         [Newtonsoft.Json.JsonProperty("titleChangeDate", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
@@ -529,7 +522,7 @@ namespace Ebay.Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public LotInfoShort(string @condition, string? @conditionDescription, string @currency, string @locatedIn, long @lotId, string @manualConditionId, string @name, int @pcs, double @price, System.Collections.Generic.List<PurchaseInfo> @purchaseHistory, string @seller, double? @shipping, double? @shippingAdditional, string @shippingCountry, string @titleChangeDate)
+        public LotInfoShort(System.Collections.Generic.List<CategoryValue> @categories, string @condition, string? @conditionDescription, string @currency, string @locatedIn, long @lotId, string @name, int @pcs, double @price, System.Collections.Generic.List<PurchaseInfo> @purchaseHistory, string @seller, double? @shipping, double? @shippingAdditional, string @shippingCountry, string @titleChangeDate)
 
         {
 
@@ -557,7 +550,7 @@ namespace Ebay.Server.Controllers.Generated
 
             this.LocatedIn = @locatedIn;
 
-            this.ManualConditionId = @manualConditionId;
+            this.Categories = @categories;
 
             this.TitleChangeDate = @titleChangeDate;
 
@@ -610,10 +603,9 @@ namespace Ebay.Server.Controllers.Generated
         [System.ComponentModel.DataAnnotations.Required]
         public string LocatedIn { get; }
 
-        [Newtonsoft.Json.JsonProperty("manualConditionId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("categories", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
-        [System.ComponentModel.DataAnnotations.RegularExpression(@"^[A-Za-z]+$")]
-        public string ManualConditionId { get; }
+        public System.Collections.Generic.List<CategoryValue> Categories { get; }
 
         [Newtonsoft.Json.JsonProperty("titleChangeDate", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
@@ -657,11 +649,60 @@ namespace Ebay.Server.Controllers.Generated
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class ManualCondition
+    public partial class CategoryValue
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public ManualCondition(string @description, string @id)
+        public CategoryValue(string @type, string @value)
+
+        {
+
+            this.Type = @type;
+
+            this.Value = @value;
+
+        }    [Newtonsoft.Json.JsonProperty("type", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^[A-Za-z_]+$")]
+        public string Type { get; }
+
+        [Newtonsoft.Json.JsonProperty("value", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^[A-Za-z_]+$")]
+        public string Value { get; }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class CategoryType
+    {
+        [Newtonsoft.Json.JsonConstructor]
+
+        public CategoryType(System.Collections.Generic.List<CategoryItem> @items, string @type)
+
+        {
+
+            this.Type = @type;
+
+            this.Items = @items;
+
+        }    [Newtonsoft.Json.JsonProperty("type", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^[A-Za-z_]+$")]
+        public string Type { get; }
+
+        [Newtonsoft.Json.JsonProperty("items", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.List<CategoryItem> Items { get; }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class CategoryItem
+    {
+        [Newtonsoft.Json.JsonConstructor]
+
+        public CategoryItem(string @description, string @id)
 
         {
 
@@ -670,11 +711,13 @@ namespace Ebay.Server.Controllers.Generated
             this.Description = @description;
 
         }    [Newtonsoft.Json.JsonProperty("id", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^[A-Za-z_]+$")]
         public string Id { get; }
 
         [Newtonsoft.Json.JsonProperty("description", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^[A-Za-z_]+$")]
         public string Description { get; }
 
     }

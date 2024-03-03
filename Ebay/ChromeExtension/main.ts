@@ -1,4 +1,5 @@
 import {
+    CategoryValue,
     Client, ClientErrorInfo,
     LotInfo,
     LotInfoWithProductId, NotFoundProblemDetailedInfo,
@@ -10,11 +11,11 @@ import {generateCodeVerifier, OAuth2Client} from '@badgateway/oauth2-client';
 import {FetchWrapperCustom} from "./FetchWrapperCustom";
 
 const ignoreThatLotFieldName = "ignoreThatLot";
-const manualConditionIdFieldName = "manualConditionId";
 const productFieldName = "productId";
 const pcsFieldName = "pcs";
-
+const categoryPrefix = 'category_'
 const panelClass = "panel-div";
+const panelInputClass = "panel-input-div";
 const formId = "product-form-id"
 const errorElementId = "errorElement"
 const submitId = "submitButton"
@@ -22,7 +23,6 @@ const submitId = "submitButton"
 const backendUrl = "https://naks42.ru:17443/"
 const baseApiUrl = `${backendUrl}api/ebay/v1`;
 const authRedirectUrl = "https://www.ebay.com/"
-const notSetValue = "notSet"
 const lightGreenColor = "#ecffec"
 const lightPinkColor = "lightpink"
 const lightYellowColor = "#e0e07f"
@@ -79,8 +79,9 @@ const searchQueryParam = 'searchQuery'
 
 const ignoreThatLotDiv = "ignoreThatLotDiv"
 const unsupportedLotDiv = "unsupportedLotDiv"
+const categoriesDiv = "categoriesDiv"
 
-const lotInfo = new LotInfo();
+const lotInfo = new LotInfo()
 let _serverLotInfo: LotInfoWithProductId;
 let _unsupportedLot = false;
 let _needActualizationLotsIds: number[] = null
@@ -150,22 +151,26 @@ async function createPanel(client: Client): Promise<HTMLDivElement> {
       background-color: white;
     }
     
-    .${panelClass} label {
+    .${panelInputClass} label {
       font-weight: bold;
       display: block;
-      width: 200px;
+      width: 140px;
       float: left;
     }
     
-    .${panelClass} input {
+    .${panelInputClass} input {
       width: 200px;
     }
     
-    .${panelClass} select {
+    .${panelInputClass} select {
       width: 200px;
     }
     
-    .${panelClass} label:after { content: ": " }
+    .${panelInputClass} label:after { content: ": " }
+    
+    #${categoriesDiv} label {
+        padding-right: 10px;
+    }
 `
 
     let styleSheet = document.createElement("style")
@@ -189,26 +194,24 @@ async function createPanel(client: Client): Promise<HTMLDivElement> {
         <br><a href="${revisionsButtonHref}" target="_blank">История изменений лота</a>
         <br>Бэкенд: <a href="${backendUrl}" target="_blank">${backendUrl}</a>
         <br>
-        <br>
-        <div id="${ignoreThatLotDiv}">
-            <label for="${ignoreThatLotFieldName}">Игнорировать лот</label>
-            <input id="${ignoreThatLotFieldName}" type="checkbox" name="${ignoreThatLotFieldName}"/>
+        <div class="${panelInputClass}">
+            <div id="${ignoreThatLotDiv}">
+                <label for="${ignoreThatLotFieldName}">Игнорировать лот</label>
+                <input id="${ignoreThatLotFieldName}" type="checkbox" name="${ignoreThatLotFieldName}"/>
+                <br>
+                <br>
+            </div>
+            <label for="${productFieldName}">Товар</label>
+            <select name="${productFieldName}" id="${productFieldName}">
+                <option value="">Выберите товар</option>
+            </select>
             <br>
-            <br>
+            <label for="${pcsFieldName}">PCS</label>
+            <input id="${pcsFieldName}" type="number" name="${pcsFieldName}"/>
         </div>
-        <label for="${productFieldName}">Товар</label>
-        <select name="${productFieldName}" id="${productFieldName}">
-            <option value="">Выберите товар</option>
-        </select>
         <br>
-        <label for="${pcsFieldName}">PCS</label>
-        <input id="${pcsFieldName}" type="number" name="${pcsFieldName}"/>
-        <br>
-        <label for="${manualConditionIdFieldName}">Состояние</label>
-        <select name="${manualConditionIdFieldName}" id="${manualConditionIdFieldName}">
-            <option value="">Выберите Состояние</option>
-        </select>
-        <br>
+        <div id="${categoriesDiv}">
+        </div>
         <div id="${unsupportedLotDiv}" hidden="hidden">Лот не поддерживается, будет добавлен в игнор
         </div>
         <div style="color: red;" id="${errorElementId}"></div>
@@ -248,23 +251,6 @@ async function createOpenMultipleButton(): Promise<HTMLDivElement> {
       bottom:5%;
       background-color: white;
     }
-    
-    .${panelClass} label {
-      font-weight: bold;
-      display: block;
-      width: 200px;
-      float: left;
-    }
-    
-    .${panelClass} input {
-      width: 200px;
-    }
-    
-    .${panelClass} select {
-      width: 200px;
-    }
-    
-    .${panelClass} label:after { content: ": " }
 `
 
     let styleSheet = document.createElement("style")
@@ -313,15 +299,20 @@ async function handleSubmit(event: SubmitEvent, client: Client) {
         let data = new FormData(<HTMLFormElement>event.target);
 
         let ignoreThatLot = false;
-
+        let categories = [];
         data.forEach(function (value, key) {
 
-            if (key === 'ignoreThatLot') {
+            if (key.startsWith(categoryPrefix)) {
+                let category = key.replace(categoryPrefix, "")
+                categories.push(new CategoryValue({type: category, value: value.toString()}))
+            } else if (key === 'ignoreThatLot') {
                 ignoreThatLot = true
             } else {
                 lotInfo[key] = value;
             }
         });
+
+        lotInfo.categories = categories;
 
         if (_unsupportedLot) {
             ignoreThatLot = true;
@@ -332,9 +323,6 @@ async function handleSubmit(event: SubmitEvent, client: Client) {
         if (ignoreThatLot) {
             if (!lotInfo.pcs) {
                 lotInfo.pcs = 1
-            }
-            if (!lotInfo.manualConditionId) {
-                lotInfo.manualConditionId = notSetValue
             }
 
             if (!lotInfo.titleChangeDate) {
@@ -592,33 +580,6 @@ async function fillShipping() {
     lotInfo.shippingCountry = shippingCountry
 }
 
-
-async function sleepUntil(func: () => boolean, sleepMs: number = 100, maxAttempt: number = 100): Promise<void> {
-    let attempt = 0;
-    while (func()) {
-        attempt++;
-
-        if (attempt > maxAttempt) throw new Error("Attempt counts exceeded " + maxAttempt + " " + func.toString())
-
-        await sleep(sleepMs)
-    }
-}
-
-function getCountrySpanItem(countryName: string, itemsMenu: HTMLDivElement): HTMLSpanElement {
-
-    if (countryName === null || countryName === undefined) throw new Error("country name shouldn't be null or undefined")
-
-    let spans = itemsMenu.querySelectorAll('span.cn');
-
-    for (let i = 0; i < spans.length; ++i) {
-        if ((<HTMLElement>spans[i]).innerText === countryName) {
-            return <HTMLSpanElement>spans[i];
-        }
-    }
-
-    throw new Error("Unable to find country in list " + countryName)
-}
-
 async function fillLocatedIn() {
     lotInfo.locatedIn = (<HTMLElement>await sleepElementLoaded('div.ux-labels-values--itemLocation span.ux-textspans--BOLD', document)).innerText
 }
@@ -720,23 +681,38 @@ async function fillProduct(panel: HTMLDivElement, client: Client, serverLotInfo:
 }
 
 async function fillManualCondition(panel: HTMLDivElement, client: Client, serverLotInfo: LotInfoWithProductId | undefined) {
-    let manualConditionField = panel.querySelector('select#' + manualConditionIdFieldName);
+    let categoriesField = panel.querySelector('div#' + categoriesDiv);
+    categoriesField.innerHTML = ""
 
-    let manualConditionId = serverLotInfo?.lotInfo?.manualConditionId?.trim()?.toLowerCase()
+    let serverCategories = serverLotInfo?.lotInfo?.categories?.reduce((dictionary, value) => {
+        dictionary[value.type] = value.value;
+        return dictionary;
+    }, {});
 
-    let manualConditions = await client.getManualConditionsList()
-    for (let i = 0; i < manualConditions.length; i++) {
-        let opt = document.createElement('option');
-        opt.value = manualConditions[i].id;
-        opt.innerHTML = manualConditions[i].description;
+    let categoryTypes = await client.getCategories()
 
-        if (manualConditionId !== undefined) {
-            if (manualConditionId === manualConditions[i].id.trim().toLowerCase()) {
-                opt.selected = true
+    for (let categoryType of categoryTypes) {
+        let categoryDiv = document.createElement("div")
+
+        let serverValue = serverCategories ? serverCategories[categoryType.type] : undefined
+        for (let categoryItem of categoryType.items) {
+            let input = <HTMLInputElement>document.createElement("input")
+            let inputId = 'radio_' + categoryType.type + '_' + categoryItem.id
+            input.type = 'radio'
+            input.id = inputId
+            input.name = categoryPrefix + categoryType.type
+            input.value = categoryItem.id
+            if (serverValue && serverValue === categoryItem.id) {
+                input.checked = true;
             }
+            let label = <HTMLLabelElement>document.createElement("label")
+            label.innerText = categoryItem.description
+            label.htmlFor = inputId
+            categoryDiv.appendChild(input)
+            categoryDiv.appendChild(label)
         }
 
-        manualConditionField.appendChild(opt);
+        categoriesField.appendChild(categoryDiv);
     }
 }
 
@@ -777,7 +753,7 @@ async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId)
     let serverLotInfoJson = serverLotInfoWithProductId.lotInfo.toJSON()
     serverLotInfoJson["pcs"] = undefined
     serverLotInfoJson["ignoreThatLot"] = undefined
-    serverLotInfoJson["manualConditionId"] = undefined
+    serverLotInfoJson["categories"] = undefined
     serverLotInfoJson["description"] = undefined
     serverLotInfoJson["seller"] = undefined
     serverLotInfoJson["purchaseHistory"] = undefined
@@ -785,7 +761,7 @@ async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId)
     let lotInfoJson = lotInfo.toJSON()
     lotInfoJson["pcs"] = undefined
     lotInfoJson["ignoreThatLot"] = undefined
-    lotInfoJson["manualConditionId"] = undefined
+    lotInfoJson["categories"] = undefined
     lotInfoJson["description"] = undefined
     lotInfoJson["seller"] = undefined
     lotInfoJson["purchaseHistory"] = undefined
@@ -840,7 +816,6 @@ async function checkIfTypedLot() {
 }
 
 async function getDataFromPage(client: Client) {
-
     fillId();
     await getServerLotInfo(client)
     let panel = await createPanel(client);
@@ -901,7 +876,7 @@ async function showAndSaveError(error: Error, client: Client) {
 
     span.innerHTML = errorText
     errorDiv.appendChild(span)
-
+    errorDiv.appendChild(document.createElement('br'))
     await saveErrorToBackend(error, client);
 }
 

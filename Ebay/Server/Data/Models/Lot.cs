@@ -44,7 +44,7 @@ public class Lot
 
     public bool IgnoreThatLot { get; set; }
 
-    public string ManualCondition { get; set; } = null!;
+    public Dictionary<string,string> Categories { get; set; } = null!;
 
     public List<Purchase> Purchases { get; set; } = null!;
 }

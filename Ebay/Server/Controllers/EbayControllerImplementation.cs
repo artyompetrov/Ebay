@@ -10,7 +10,6 @@ using LotInfo = Ebay.Server.Controllers.Generated.LotInfo;
 using LotInfoShort = Ebay.Server.Controllers.Generated.LotInfoShort;
 using LotInfoWithProductId = Ebay.Server.Controllers.Generated.LotInfoWithProductId;
 using LotState = Ebay.Server.Controllers.Generated.LotState;
-using ManualCondition = Ebay.Server.Controllers.Generated.ManualCondition;
 using ProductWithId = Ebay.Server.Controllers.Generated.ProductWithId;
 using ProductWithoutId = Ebay.Server.Controllers.Generated.ProductWithoutId;
 
@@ -124,7 +123,8 @@ public class EbayControllerImplementation : IEbayController
 
     public async Task<ICollection<LotInfoShort>> GetLotsAsync(Guid productId, CancellationToken cancellationToken)
     {
-        var product = await _applicationContext.Products.Include(x => x.Lots.Where(y => !y.IgnoreThatLot)).ThenInclude(x => x.Purchases)
+        var product = await _applicationContext.Products.Include(x => x.Lots.Where(y => !y.IgnoreThatLot))
+            .ThenInclude(x => x.Purchases)
             .SingleOrDefaultAsync(x => x.Id == productId, cancellationToken: cancellationToken);
 
         if (product == null)
@@ -135,7 +135,6 @@ public class EbayControllerImplementation : IEbayController
         return product.Lots.Select(x => x.ToApiLotInfoShort()).ToList();
     }
 
-    
     public async Task UpsertLotInfoAsync(
         LotInfo lotInfo,
         Guid productId,
@@ -150,6 +149,12 @@ public class EbayControllerImplementation : IEbayController
         if (lotInfo.Shipping == null)
         {
             validationErrors.Add(nameof(lotInfo.Shipping), new[] { "Not set" });
+        }
+
+        if (!lotInfo.IgnoreThatLot && !new HashSet<string> { "condition", "test_state" }.SequenceEqual(
+                lotInfo.Categories.Select(x => x.Type)))
+        {
+            validationErrors.Add(nameof(lotInfo.Categories), new[] { "Not all categories set" });
         }
 
         if (validationErrors.Count > 0)
@@ -208,22 +213,29 @@ public class EbayControllerImplementation : IEbayController
                 lotId: x.Id)).ToList();
     }
 
-    public Task<ICollection<ManualCondition>> GetManualConditionsListAsync(
+    public async Task<ICollection<CategoryType>> GetCategoriesAsync(
         CancellationToken cancellationToken) =>
-        Task.FromResult<ICollection<ManualCondition>>(
-            new List<ManualCondition>
-            {
-                new(description: "NEW, Matched", id: "newAndMatched"),
-                new(description: "NEW, Tested", id: "newAndTested"),
-                new(description: "NEW", id: "newNotTested"),
-                new(description: "DISMANTLED, Matched", id: "dismantledAndMatched"),
-                new(description: "DISMANTLED, Tested", id: "dismantledAndTested"),
-                new(description: "DISMANTLED", id: "dismantledNotTested"),
-                new(description: "USED, Matched", id: "usedAndMatched"),
-                new(description: "USED, Tested", id: "usedAndTested"),
-                new(description: "USED", id: "usedAndNotTested"),
-                new(description: "NOT WORKING", id: "notWorking")
-            });
+        new List<CategoryType>
+        {
+            new(
+                items: new List<CategoryItem>
+                {
+                    new("NEW", "new"),
+                    new("DISMANTLED", "dismantled"),
+                    new("USED", "used"),
+                    new("NOT WORKING", "notWorking")
+                },
+                type: "condition"),
+
+            new(
+                items: new List<CategoryItem>
+                {
+                    new("Not tested", "notTested"),
+                    new("Tested", "tested"),
+                    new("Mathced", "matched")
+                },
+                type: "test_state")
+        };
 
     public async Task<ICollection<ShippingType>> GetShippingRatesAsync(
         CancellationToken cancellationToken)
@@ -294,7 +306,6 @@ public class EbayControllerImplementation : IEbayController
         if (response.IsSuccessStatusCode)
         {
             return await response.Content.ReadAsStringAsync();
-
         }
 
         throw NonOkHttpAnswerException.NotAvailable503();
