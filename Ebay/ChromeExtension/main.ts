@@ -133,9 +133,12 @@ class Price {
 async function createPanel(client: Client): Promise<HTMLDivElement> {
     let bodyElement = await sleepElementLoaded('body', document);
 
-    let panel = bodyElement.querySelector('div.' + panelClass)
+    let panel = <HTMLDivElement>bodyElement.querySelector('div.' + panelClass)
 
-    if (panel !== null && panel !== undefined) return <HTMLDivElement>panel;
+    if (panel !== null && panel !== undefined) {
+        panel.style.cssText = `background-color: white;`
+        return panel;
+    }
 
     let styles = `
     .${panelClass} {
