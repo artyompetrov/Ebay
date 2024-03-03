@@ -12,7 +12,8 @@ public static class ModelExtensions
     public static ProductWithoutId ToProductWithoutId(this ProductWithId productWithId) => new()
     {
         Name = productWithId.Name,
-        SearchQueries = productWithId.SearchQueries
+        SearchQueries = productWithId.SearchQueries,
+        Weight = productWithId.Weight
     };
 
     public static IEnumerable<ValidationProblemParsed> Parse(this ValidationProblemDetailedInfo validationProblemDetails)

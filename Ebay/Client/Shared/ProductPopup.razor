@@ -14,8 +14,14 @@
                     <div class="modal-body">
                         <div class="form-group">
                             <label for="name">Название</label>
-                            <InputText id="name" @bind-Value="_product.Name" class="form-control"/>
+                            <InputText id="name" type="" @bind-Value="_product.Name" class="form-control"/>
                             <ValidationMessage For="@(() => _product.Name)"/>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="name">Вес (грамм)</label>
+                            <InputNumber id="name" @bind-Value="_product.Weight" class="form-control"/>
+                            <ValidationMessage For="@(() => _product.Weight)"/>
                         </div>
 
                         @{ var searchQueryNumber = 1; }
@@ -140,5 +146,5 @@
         if (_product == null) throw new InvalidOperationException($"{nameof(_product)} expected to be not null");
         _product.SearchQueries.Remove(query);
     }
-    
+
 }
