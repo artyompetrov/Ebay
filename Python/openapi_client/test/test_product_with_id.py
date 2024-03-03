@@ -39,6 +39,7 @@ class TestProductWithId(unittest.TestCase):
                 id = '0',
                 name = '0',
                 last_check_time = '0480-72-88T80:01:52.802Z0',
+                weight = 5,
                 search_queries = [
                     openapi_client.models.search_query.SearchQuery(
                         id = '', 
@@ -49,6 +50,7 @@ class TestProductWithId(unittest.TestCase):
             return ProductWithId(
                 id = '0',
                 name = '0',
+                weight = 5,
                 search_queries = [
                     openapi_client.models.search_query.SearchQuery(
                         id = '', 

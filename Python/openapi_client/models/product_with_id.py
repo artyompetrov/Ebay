@@ -19,7 +19,7 @@ import json
 
 
 from typing import List, Optional
-from pydantic import BaseModel, Field, conlist, constr, validator
+from pydantic import BaseModel, Field, conint, conlist, constr, validator
 from openapi_client.models.search_query import SearchQuery
 
 class ProductWithId(BaseModel):
@@ -29,8 +29,9 @@ class ProductWithId(BaseModel):
     id: constr(strict=True, min_length=1) = Field(..., alias="Id")
     name: constr(strict=True, min_length=1) = Field(..., alias="Name")
     last_check_time: Optional[constr(strict=True, min_length=1)] = Field(None, alias="LastCheckTime")
+    weight: conint(strict=True, ge=5) = Field(..., alias="Weight")
     search_queries: conlist(SearchQuery) = Field(..., alias="SearchQueries")
-    __properties = ["Id", "Name", "LastCheckTime", "SearchQueries"]
+    __properties = ["Id", "Name", "LastCheckTime", "Weight", "SearchQueries"]
 
     @validator('last_check_time')
     def last_check_time_validate_regular_expression(cls, value):
@@ -88,6 +89,7 @@ class ProductWithId(BaseModel):
             "id": obj.get("Id"),
             "name": obj.get("Name"),
             "last_check_time": obj.get("LastCheckTime"),
+            "weight": obj.get("Weight"),
             "search_queries": [SearchQuery.from_dict(_item) for _item in obj.get("SearchQueries")] if obj.get("SearchQueries") is not None else None
         })
         return _obj

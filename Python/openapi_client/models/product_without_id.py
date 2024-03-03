@@ -19,7 +19,7 @@ import json
 
 
 from typing import List
-from pydantic import BaseModel, Field, conlist, constr, validator
+from pydantic import BaseModel, Field, conint, conlist, constr, validator
 from openapi_client.models.search_query import SearchQuery
 
 class ProductWithoutId(BaseModel):
@@ -28,7 +28,8 @@ class ProductWithoutId(BaseModel):
     """
     name: constr(strict=True, min_length=1) = Field(..., alias="Name")
     search_queries: conlist(SearchQuery) = Field(..., alias="SearchQueries")
-    __properties = ["Name", "SearchQueries"]
+    weight: conint(strict=True, ge=5) = Field(..., alias="Weight")
+    __properties = ["Name", "SearchQueries", "Weight"]
 
     @validator('name')
     def name_validate_regular_expression(cls, value):
@@ -81,7 +82,8 @@ class ProductWithoutId(BaseModel):
 
         _obj = ProductWithoutId.parse_obj({
             "name": obj.get("Name"),
-            "search_queries": [SearchQuery.from_dict(_item) for _item in obj.get("SearchQueries")] if obj.get("SearchQueries") is not None else None
+            "search_queries": [SearchQuery.from_dict(_item) for _item in obj.get("SearchQueries")] if obj.get("SearchQueries") is not None else None,
+            "weight": obj.get("Weight")
         })
         return _obj
 

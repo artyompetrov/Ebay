@@ -67,7 +67,7 @@
     public void ShowCreate()
     {
         _actionType = ActionType.Create;
-        _product = new ProductWithoutId { SearchQueries = new List<SearchQuery> { new() { Id = Guid.NewGuid() } } };
+        _product = new ProductWithoutId { Weight = 30, SearchQueries = new List<SearchQuery> { new() { Id = Guid.NewGuid() } } };
         _editContext = new EditContext(_product);
         _validationMessageStore = new ValidationMessageStore(_editContext);
         StateHasChanged();

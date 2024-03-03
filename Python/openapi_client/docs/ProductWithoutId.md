@@ -6,6 +6,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **name** | **str** |  | 
 **search_queries** | [**List[SearchQuery]**](SearchQuery.md) |  | 
+**weight** | **int** |  | 
 
 ## Example
 

@@ -7,6 +7,7 @@ Name | Type | Description | Notes
 **id** | **str** |  | 
 **name** | **str** |  | 
 **last_check_time** | **str** |  | [optional] 
+**weight** | **int** |  | 
 **search_queries** | [**List[SearchQuery]**](SearchQuery.md) |  | 
 
 ## Example
