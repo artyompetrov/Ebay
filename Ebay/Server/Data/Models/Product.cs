@@ -15,4 +15,6 @@ public sealed class Product
     public List<Lot> Lots { get; set; } = null!;
 
     public DateTime LastCheckTime { get; set; }
+    
+    public int Weight { get; set; }
 }

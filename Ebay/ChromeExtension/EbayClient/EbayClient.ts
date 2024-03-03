@@ -662,6 +662,7 @@ export class Client {
 export class ProductWithoutId implements IProductWithoutId {
     name!: string;
     searchQueries!: SearchQuery[];
+    weight!: number;
 
     constructor(data?: IProductWithoutId) {
         if (data) {
@@ -683,6 +684,7 @@ export class ProductWithoutId implements IProductWithoutId {
                 for (let item of _data["SearchQueries"])
                     this.searchQueries!.push(SearchQuery.fromJS(item));
             }
+            this.weight = _data["Weight"];
         }
     }
 
@@ -701,6 +703,7 @@ export class ProductWithoutId implements IProductWithoutId {
             for (let item of this.searchQueries)
                 data["SearchQueries"].push(item.toJSON());
         }
+        data["Weight"] = this.weight;
         return data;
     }
 }
@@ -708,12 +711,14 @@ export class ProductWithoutId implements IProductWithoutId {
 export interface IProductWithoutId {
     name: string;
     searchQueries: SearchQuery[];
+    weight: number;
 }
 
 export class ProductWithId implements IProductWithId {
     id!: string;
     name!: string;
     lastCheckTime?: string | undefined;
+    weight!: number;
     searchQueries!: SearchQuery[];
 
     constructor(data?: IProductWithId) {
@@ -733,6 +738,7 @@ export class ProductWithId implements IProductWithId {
             this.id = _data["Id"];
             this.name = _data["Name"];
             this.lastCheckTime = _data["LastCheckTime"];
+            this.weight = _data["Weight"];
             if (Array.isArray(_data["SearchQueries"])) {
                 this.searchQueries = [] as any;
                 for (let item of _data["SearchQueries"])
@@ -753,6 +759,7 @@ export class ProductWithId implements IProductWithId {
         data["Id"] = this.id;
         data["Name"] = this.name;
         data["LastCheckTime"] = this.lastCheckTime;
+        data["Weight"] = this.weight;
         if (Array.isArray(this.searchQueries)) {
             data["SearchQueries"] = [];
             for (let item of this.searchQueries)
@@ -766,6 +773,7 @@ export interface IProductWithId {
     id: string;
     name: string;
     lastCheckTime?: string | undefined;
+    weight: number;
     searchQueries: SearchQuery[];
 }
 

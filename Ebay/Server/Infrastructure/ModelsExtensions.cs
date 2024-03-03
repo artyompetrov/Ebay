@@ -14,7 +14,8 @@ public static class ModelsExtensions
         id: dbProduct.Id,
         name: dbProduct.Name,
         searchQueries: dbProduct.SearchQueries.Select(x => x.ToApiSearchQuery()).ToList(),
-        lastCheckTime: dbProduct.LastCheckTime.ToString(WellKnown.Formats.TimeFormat));
+        lastCheckTime: dbProduct.LastCheckTime.ToString(WellKnown.Formats.TimeFormat),
+        weight: dbProduct.Weight);
 
     public static SearchQuery ToApiSearchQuery(this DbSearchQuery searchQuery) =>
         new(id: searchQuery.Id, query: searchQuery.Query);
@@ -29,7 +30,8 @@ public static class ModelsExtensions
     public static DbProduct ToDbProduct(this ProductWithoutId productWithoutId, Guid productId) => new()
     {
         Id = productId,
-        Name = productWithoutId.Name
+        Name = productWithoutId.Name,
+        Weight = productWithoutId.Weight
     };
 
     public static LotInfoWithProductId ToApiLot(this Lot lot) => new(

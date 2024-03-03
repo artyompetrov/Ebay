@@ -290,13 +290,15 @@ namespace Ebay.Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public ProductWithoutId(string @name, System.Collections.Generic.List<SearchQuery> @searchQueries)
+        public ProductWithoutId(string @name, System.Collections.Generic.List<SearchQuery> @searchQueries, int @weight)
 
         {
 
             this.Name = @name;
 
             this.SearchQueries = @searchQueries;
+
+            this.Weight = @weight;
 
         }    [Newtonsoft.Json.JsonProperty("Name", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
@@ -307,6 +309,10 @@ namespace Ebay.Server.Controllers.Generated
         [System.ComponentModel.DataAnnotations.Required]
         public System.Collections.Generic.List<SearchQuery> SearchQueries { get; }
 
+        [Newtonsoft.Json.JsonProperty("Weight", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Range(5, int.MaxValue)]
+        public int Weight { get; }
+
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
@@ -314,7 +320,7 @@ namespace Ebay.Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public ProductWithId(System.Guid @id, string? @lastCheckTime, string @name, System.Collections.Generic.List<SearchQuery> @searchQueries)
+        public ProductWithId(System.Guid @id, string? @lastCheckTime, string @name, System.Collections.Generic.List<SearchQuery> @searchQueries, int @weight)
 
         {
 
@@ -323,6 +329,8 @@ namespace Ebay.Server.Controllers.Generated
             this.Name = @name;
 
             this.LastCheckTime = @lastCheckTime;
+
+            this.Weight = @weight;
 
             this.SearchQueries = @searchQueries;
 
@@ -338,6 +346,10 @@ namespace Ebay.Server.Controllers.Generated
         [System.ComponentModel.DataAnnotations.StringLength(int.MaxValue, MinimumLength = 1)]
         [System.ComponentModel.DataAnnotations.RegularExpression(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$")]
         public string? LastCheckTime { get; }
+
+        [Newtonsoft.Json.JsonProperty("Weight", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Range(5, int.MaxValue)]
+        public int Weight { get; }
 
         [Newtonsoft.Json.JsonProperty("SearchQueries", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
