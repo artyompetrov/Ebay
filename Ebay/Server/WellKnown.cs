@@ -20,10 +20,4 @@ public static class WellKnown
         public static TimeSpan ErrorDelay  = TimeSpan.FromMinutes(5);
         public static string AppId = "2d0b695db0cb4dbab40a85a91a88bd24";
     }
-    
-    public static class Python
-    {
-        public static string ClientName = "Python.Client";
-        public static string ContainerPath = "http://ebay_python:8000";
-    }
 }

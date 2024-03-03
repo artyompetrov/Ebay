@@ -298,19 +298,6 @@ public class EbayControllerImplementation : IEbayController
             .Select(x => x.ToApiCurrency()).ToList();
     }
 
-    public async Task<string> GetStatisticsAsync(CancellationToken cancellationToken = default(CancellationToken))
-    {
-        var client = _httpClientFactory.CreateClient(WellKnown.Python.ClientName);
-
-        var response = await client.GetAsync("/");
-        if (response.IsSuccessStatusCode)
-        {
-            return await response.Content.ReadAsStringAsync();
-        }
-
-        throw NonOkHttpAnswerException.NotAvailable503();
-    }
-
     public async Task SaveErrorAsync(ClientErrorInfo error, CancellationToken cancellationToken)
     {
         _applicationContext.ClientErrors.Add(error.ToDbClientError());

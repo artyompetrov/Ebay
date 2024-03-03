@@ -121,11 +121,6 @@ namespace Ebay.Server.Controllers.Generated
 
         System.Threading.Tasks.Task<System.Collections.Generic.ICollection<Currency>> GetCurrenciesAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
-
-        /// <returns>Ok</returns>
-
-        System.Threading.Tasks.Task<string> GetStatisticsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
-
         /// <summary>
         /// Save Error
         /// </summary>
@@ -275,14 +270,6 @@ namespace Ebay.Server.Controllers.Generated
         {
 
             return _implementation.GetCurrenciesAsync(cancellationToken);
-        }
-
-        /// <returns>Ok</returns>
-        [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("product_purchase_statistics/")]
-        public System.Threading.Tasks.Task<string> GetStatistics(System.Threading.CancellationToken cancellationToken)
-        {
-
-            return _implementation.GetStatisticsAsync(cancellationToken);
         }
 
         /// <summary>
