@@ -110,13 +110,13 @@ function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response>
 
 function extractPrice(price: string): Price {
     let priceTrimmed = price.trim()
-    let matches = priceTrimmed.match(/^(\D+)(\d+(?:[,.]\d+)?\s*)([(\/].+|$)/)
+    let matches = priceTrimmed.match(/^(\D+)(\d+(?:[,]\d+)?(?:[.]\d+)?\s*)([(\/].+|$)/)
     if (matches) {
-        return new Price(parseFloat(matches[2].replace(',', '.')), matches[1].trim())
+        return new Price(parseFloat(matches[2].replace(',', '')), matches[1].trim())
     } else {
-        let matches = priceTrimmed.match(/^(\d+(?:[,.]\d+)?)(\D+)([(\/].+|$)/)
+        let matches = priceTrimmed.match(/^(\d+(?:[,]\d+)?(?:[.]\d+)?)(\D+)([(\/].+|$)/)
         if (matches) {
-            return new Price(parseFloat(matches[1].replace(',', '.')), matches[2].trim())
+            return new Price(parseFloat(matches[1].replace(',', '')), matches[2].trim())
         }
         throw new Error("unexpected price: '" + price +"'")
     }
