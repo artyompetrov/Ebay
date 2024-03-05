@@ -115,7 +115,10 @@ function extractPrice(price: string): Price {
         return new Price(parseFloat(matches[2].replace(',', '.')), matches[1].trim())
     } else {
         let matches = priceTrimmed.match(/^(\d+(?:[,.]\d+)?)(\D+)([(\/].+|$)/)
-        return new Price(parseFloat(matches[1].replace(',', '.')), matches[2].trim())
+        if (matches) {
+            return new Price(parseFloat(matches[1].replace(',', '.')), matches[2].trim())
+        }
+        throw new Error("unexpected price: '" + price +"'")
     }
 }
 
@@ -449,6 +452,7 @@ function fillId() {
 }
 
 async function fillPrice() {
+    console.log("fillprice")
     let price = extractPrice((<HTMLElement>await sleepElementLoaded('div.x-price-primary span', document)).innerText)
     lotInfo.price = price.price
     lotInfo.currency = price.currency
@@ -562,8 +566,8 @@ async function fillShipping() {
     if (headers.hasOwnProperty("Each additional item")) {
         let shippingAdditionalJsonPath = jsonPathCellsPrefix + "[1].textSpans[0].text"
 
-        let shippingAdditionalString = jsonpath.query(shippingJson, shippingAdditionalJsonPath)[0].toString()
-        if (shippingAdditionalString === "Free") {
+        let shippingAdditionalString = jsonpath.query(shippingJson, shippingAdditionalJsonPath)[0].toString().trim()
+        if (shippingAdditionalString === "Free" || shippingAdditionalString === "") {
             lotInfo.shippingAdditional = 0;
         } else {
             let shippingAdditional = extractPrice(shippingAdditionalString)
