@@ -213,9 +213,9 @@ public class EbayControllerImplementation : IEbayController
                 lotId: x.Id)).ToList();
     }
 
-    public async Task<ICollection<CategoryType>> GetCategoriesAsync(
+    public Task<ICollection<CategoryType>> GetCategoriesAsync(
         CancellationToken cancellationToken) =>
-        new List<CategoryType>
+        Task.FromResult<ICollection<CategoryType>>(new List<CategoryType>
         {
             new(
                 items: new List<CategoryItem>
@@ -235,12 +235,12 @@ public class EbayControllerImplementation : IEbayController
                     new("Mathced", "matched")
                 },
                 type: "test_state")
-        };
+        });
 
-    public async Task<ICollection<ShippingType>> GetShippingRatesAsync(
+    public Task<ICollection<ShippingType>> GetShippingRatesAsync(
         CancellationToken cancellationToken)
     {
-        return new List<ShippingType>
+        return Task.FromResult<ICollection<ShippingType>>(new List<ShippingType>
         {
             new(
                 name: "Мелкий пакет авиа",
@@ -288,7 +288,7 @@ public class EbayControllerImplementation : IEbayController
                             "United States",
                         })
                 }),
-        };
+        });
     }
 
     public async Task<ICollection<Currency>> GetCurrenciesAsync(

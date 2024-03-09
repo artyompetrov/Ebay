@@ -1,0 +1,6 @@
+<Project>
+    <PropertyGroup>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<WarningsNotAsErrors>CS0618<!-- obsolete --></WarningsNotAsErrors>
+    </PropertyGroup>
+</Project>
