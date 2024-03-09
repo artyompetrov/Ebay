@@ -105,8 +105,9 @@ public class CurrencyRateHostedService : IHostedService, IDisposable
         }
     }
 
-    private async Task RefreshCurrencyRates(CancellationToken cancellationToken)
+    private Task RefreshCurrencyRates(CancellationToken cancellationToken)
     {
+        return Task.CompletedTask;
         //todo зарегистрировать второй токен для дебаг режима
 #if !DEBUG
         _logger.LogInformation("Refreshing currency rates");
