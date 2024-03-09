@@ -1,8 +1,14 @@
 <Project>
     <PropertyGroup>
-		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<WarningsNotAsErrors></WarningsNotAsErrors>
+        <WarningsAsErrors>
+            IDE0072, <!-- switch expressions should be completed for all range of values -->
+            CS8625, <!-- null literals should be correct -->
+            CS8509 <!-- switch expressions should cover all trees -->
+        </WarningsAsErrors>
+        <NoWarn></NoWarn>
     </PropertyGroup>
 </Project>
