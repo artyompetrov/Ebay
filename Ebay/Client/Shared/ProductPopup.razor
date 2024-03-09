@@ -41,8 +41,8 @@
                         <button class="btn btn-primary btn-sm" @onclick="@(e => AddSearchQuery())">Добавить поисковый запрос</button>
                     </div>
                     <div class="modal-footer">
-                        <button class="btn btn-primary" onclick="@OnSave" type="button">Сохранить</button>
-                        <button type="button" class="btn btn-secondary" onclick="@OnCancel" data-dismiss="modal">Отмена</button>
+                        <button class="btn btn-primary" @onclick="@OnSave" type="button">Сохранить</button>
+                        <button type="button" class="btn btn-secondary" @onclick="@OnCancel" data-dismiss="modal">Отмена</button>
                     </div>
                 </EditForm>
             </div>
