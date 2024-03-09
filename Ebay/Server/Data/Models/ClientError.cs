@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Ebay.Server.Data.Models;
 
-public class ClientError
+internal class ClientError
 {
     [Key]
     public Guid Id { get; set; }

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Ebay.Server.Data.Models;
 
-public class Currency
+internal class Currency
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.None)]

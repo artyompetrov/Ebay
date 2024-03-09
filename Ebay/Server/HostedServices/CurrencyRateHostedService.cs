@@ -6,7 +6,7 @@ using OpenExchangeRates;
 
 namespace Ebay.Server.HostedServices;
 
-public class CurrencyRateHostedService : IHostedService, IDisposable
+internal class CurrencyRateHostedService : IHostedService, IDisposable
 {
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly ILogger<CurrencyRateHostedService> _logger;

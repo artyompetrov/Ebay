@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 
 namespace Ebay.Server.Data;
 
-public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
+internal class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
 {
     public ApplicationDbContext(
         DbContextOptions options,

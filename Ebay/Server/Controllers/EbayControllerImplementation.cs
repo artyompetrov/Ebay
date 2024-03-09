@@ -1,4 +1,3 @@
-using System.Security.Cryptography.Xml;
 using System.Transactions;
 using Ebay.Server.Controllers.Generated;
 using Ebay.Server.Data;
@@ -15,7 +14,7 @@ using ProductWithoutId = Ebay.Server.Controllers.Generated.ProductWithoutId;
 
 namespace Ebay.Server.Controllers;
 
-public class EbayControllerImplementation : IEbayController
+internal class EbayControllerImplementation : IEbayController
 {
     private readonly ApplicationDbContext _applicationContext;
     private readonly IHttpClientFactory _httpClientFactory;

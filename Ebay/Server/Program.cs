@@ -1,5 +1,4 @@
 using Duende.IdentityServer.Models;
-using Ebay.Server;
 using Ebay.Server.Controllers;
 using Ebay.Server.Controllers.Generated;
 using Ebay.Server.Data;

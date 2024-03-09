@@ -3,7 +3,7 @@ using Ebay.Server.Controllers.Generated;
 
 namespace Ebay.Server.Controllers;
 
-public class NonOkHttpAnswerException : Exception
+internal class NonOkHttpAnswerException : Exception
 {
     public ProblemDetailedInfo ProblemDetails { get; }
 

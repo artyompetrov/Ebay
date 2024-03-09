@@ -1,6 +1,6 @@
 namespace Ebay.Server;
 
-public static class WellKnown
+internal static class WellKnown
 {
     public static class Formats
     {

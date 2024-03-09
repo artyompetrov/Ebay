@@ -5,7 +5,7 @@ using ProductWithId = Ebay.Client.Clients.Generated.ProductWithId;
 
 namespace Ebay.Client.Extensions;
 
-public static class ModelExtensions
+internal static class ModelExtensions
 {
 
 

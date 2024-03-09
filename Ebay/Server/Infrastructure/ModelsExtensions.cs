@@ -8,7 +8,7 @@ using SearchQuery = Ebay.Server.Controllers.Generated.SearchQuery;
 
 namespace Ebay.Server.Infrastructure;
 
-public static class ModelsExtensions
+internal static class ModelsExtensions
 {
     public static ProductWithId ToApiProduct(this DbProduct dbProduct) => new(
         id: dbProduct.Id,

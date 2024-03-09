@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 namespace Ebay.Server.Controllers;
 
-public sealed class ErrorFilter : IAsyncActionFilter, IExceptionFilter
+internal sealed class ErrorFilter : IAsyncActionFilter, IExceptionFilter
 {
     private readonly ProblemDetailsFactory _problemDetailsFactory;
 

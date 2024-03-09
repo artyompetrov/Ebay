@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ebay.Server.Controllers;
-
+#pragma warning disable CS1591
 public class OidcConfigurationController : Controller
 {
     private readonly ILogger<OidcConfigurationController> _logger;
@@ -24,3 +24,4 @@ public class OidcConfigurationController : Controller
         return Ok(parameters);
     }
 }
+#pragma warning restore CS1591

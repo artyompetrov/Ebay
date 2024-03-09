@@ -60,10 +60,16 @@
     private EditContext _editContext = null!;
     private ValidationMessageStore _validationMessageStore = null!;
 
+    /// <summary>
+    /// Действие в случае успеха
+    /// </summary>
     [Parameter]
     [EditorRequired]
     public Func<Task> OnSuccess { get; set; } = null!;
 
+    /// <summary>
+    /// Показать окно создания
+    /// </summary>
     public void ShowCreate()
     {
         _actionType = ActionType.Create;
@@ -73,6 +79,9 @@
         StateHasChanged();
     }
 
+    /// <summary>
+    /// Показать окно редактирования
+    /// </summary>
     public void ShowEdit(ProductWithId product)
     {
         _actionType = ActionType.Edit;
@@ -129,7 +138,7 @@
             };
     }
 
-    public enum ActionType
+    internal enum ActionType
     {
         Create = 1,
         Edit

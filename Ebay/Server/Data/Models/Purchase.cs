@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Ebay.Server.Data.Models;
 
 [PrimaryKey(nameof(LotId), nameof(Date))]
-public class Purchase
+internal class Purchase
 {
     public DateTime Date { get; set; }
 

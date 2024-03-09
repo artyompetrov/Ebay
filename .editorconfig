@@ -53,6 +53,8 @@ resharper_indent_raw_literal_string = indent
 resharper_use_indent_from_vs = false
 resharper_wrap_chained_method_calls = chop_if_long
 
+dotnet_diagnostic.IDE0005.severity = warning
+
 [{*.http,*.rest}]
 indent_size = 0
 

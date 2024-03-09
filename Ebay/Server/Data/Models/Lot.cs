@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Ebay.Server.Data.Models;
 
-public class Lot
+internal class Lot
 {
     [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
     public long Id { get; set; }
