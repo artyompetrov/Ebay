@@ -1,4 +1,4 @@
-﻿using System.Security.Cryptography.Xml;
+using System.Security.Cryptography.Xml;
 using System.Transactions;
 using Ebay.Server.Controllers.Generated;
 using Ebay.Server.Data;
@@ -47,7 +47,7 @@ public class EbayControllerImplementation : IEbayController
             scopeOption: TransactionScopeOption.Required,
             asyncFlowOption: TransactionScopeAsyncFlowOption.Enabled,
             transactionOptions: new TransactionOptions
-                { IsolationLevel = IsolationLevel.ReadCommitted });
+            { IsolationLevel = IsolationLevel.ReadCommitted });
 
         await _applicationContext.Products.AddAsync(
             entity: product.ToDbProduct(newProductId),
@@ -73,7 +73,7 @@ public class EbayControllerImplementation : IEbayController
             scopeOption: TransactionScopeOption.Required,
             asyncFlowOption: TransactionScopeAsyncFlowOption.Enabled,
             transactionOptions: new TransactionOptions
-                { IsolationLevel = IsolationLevel.ReadCommitted });
+            { IsolationLevel = IsolationLevel.ReadCommitted });
 
         var dbProduct = _applicationContext.Products.Attach(new DbProduct { Id = id });
         dbProduct.Entity.Name = product.Name;
@@ -168,7 +168,7 @@ public class EbayControllerImplementation : IEbayController
             scopeOption: TransactionScopeOption.Required,
             asyncFlowOption: TransactionScopeAsyncFlowOption.Enabled,
             transactionOptions: new TransactionOptions
-                { IsolationLevel = IsolationLevel.ReadCommitted });
+            { IsolationLevel = IsolationLevel.ReadCommitted });
 
         await _applicationContext.Lots.Upsert(dbLotInfo).RunAsync(cancellationToken);
 

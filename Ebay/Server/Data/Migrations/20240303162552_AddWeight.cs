@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -16,7 +16,7 @@ namespace Ebay.Server.Data.Migrations
                 type: "integer",
                 nullable: false,
                 defaultValue: 30);
-            
+
             migrationBuilder.AlterColumn<int>(
                 name: "Weight",
                 table: "Products",

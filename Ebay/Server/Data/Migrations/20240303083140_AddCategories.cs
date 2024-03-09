@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -19,8 +19,8 @@ namespace Ebay.Server.Data.Migrations
                 table: "Lots",
                 type: "hstore",
                 nullable: true);
-            
-            
+
+
             migrationBuilder.Sql(
                 @"
 UPDATE public.""Lots""
@@ -39,11 +39,11 @@ SET ""Categories"" = (case
 end)
 WHERE 1=1
 ");
-            
+
             migrationBuilder.DropColumn(
                 name: "ManualCondition",
                 table: "Lots");
-            
+
             migrationBuilder.AlterColumn<Dictionary<string, string>>(
                 name: "Categories",
                 table: "Lots",

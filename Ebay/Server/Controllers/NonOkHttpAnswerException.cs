@@ -1,4 +1,4 @@
-﻿
+
 using Ebay.Server.Controllers.Generated;
 
 namespace Ebay.Server.Controllers;
@@ -19,8 +19,8 @@ public class NonOkHttpAnswerException : Exception
             status: 400,
             title: null,
             type: nameof(ValidationProblemDetailedInfo),
-            errors: new Errors2 { AdditionalProperties = errors.ToDictionary(x=> x.Key, x => (object)x.Value)}));
-    
+            errors: new Errors2 { AdditionalProperties = errors.ToDictionary(x => x.Key, x => (object)x.Value) }));
+
 
     public static NonOkHttpAnswerException NotFound400() => new(
         new NotFoundProblemDetailedInfo(
@@ -30,7 +30,7 @@ public class NonOkHttpAnswerException : Exception
             title: null,
             type: nameof(NotFoundProblemDetailedInfo),
             errors: null));
-    
+
     public static NonOkHttpAnswerException NotAvailable503() => new(
         new NotFoundProblemDetailedInfo(
             detail: null,

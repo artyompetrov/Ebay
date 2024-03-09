@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Ebay.Server.Data.Models;
@@ -15,6 +15,6 @@ public sealed class Product
     public List<Lot> Lots { get; set; } = null!;
 
     public DateTime LastCheckTime { get; set; }
-    
+
     public int Weight { get; set; }
 }

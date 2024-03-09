@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -34,14 +34,14 @@ namespace Ebay.Server.Data.Migrations
                 name: "IX_SearchQueries_ProductId",
                 table: "SearchQueries",
                 column: "ProductId");
-            
+
             migrationBuilder.Sql(
                 @"
 INSERT INTO public.""SearchQueries""(""Id"", ""Query"", ""ProductId"")
 SELECT p.""Id"", p.""SearchQuery"", p.""Id"" FROM public.""Products"" p;
 "
             );
-            
+
             migrationBuilder.DropColumn(
                 name: "SearchQuery",
                 table: "Products");

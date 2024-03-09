@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Ebay.Server.Controllers.Generated;
 
 [Authorize]
-public partial class EbayController 
+public partial class EbayController
 {
 }

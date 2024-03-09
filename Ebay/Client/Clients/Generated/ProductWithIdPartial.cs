@@ -1,4 +1,4 @@
-﻿namespace Ebay.Client.Clients.Generated;
+namespace Ebay.Client.Clients.Generated;
 
 public partial class ProductWithId
 {

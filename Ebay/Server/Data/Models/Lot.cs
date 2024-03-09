@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Ebay.Server.Data.Models;
@@ -44,7 +44,7 @@ public class Lot
 
     public bool IgnoreThatLot { get; set; }
 
-    public Dictionary<string,string> Categories { get; set; } = null!;
+    public Dictionary<string, string> Categories { get; set; } = null!;
 
     public List<Purchase> Purchases { get; set; } = null!;
 }

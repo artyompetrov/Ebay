@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -15,14 +15,14 @@ namespace Ebay.Server.Data.Migrations
                 table: "Lots",
                 type: "text",
                 nullable: true);
-            
+
             migrationBuilder.Sql(
                 @"
 UPDATE public.""Lots""
 SET ""ShippingCountry"" = 'Germany'
 WHERE 1=1
 ");
-            
+
             migrationBuilder.AlterColumn<string>(
                 name: "ShippingCountry",
                 table: "Lots",

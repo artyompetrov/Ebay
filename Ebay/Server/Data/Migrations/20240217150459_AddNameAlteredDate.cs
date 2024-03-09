@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -24,7 +24,7 @@ UPDATE public.""Lots""
 SET ""TitleChangeDate"" = TIMESTAMPTZ '1970-01-01 00:00:00Z'
 WHERE 1=1
 ");
-            
+
             migrationBuilder.AlterColumn<DateTime>(
                 name: "TitleChangeDate",
                 table: "Lots",

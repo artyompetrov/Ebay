@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace Ebay.Server.Data.Models;
 
@@ -6,7 +6,7 @@ namespace Ebay.Server.Data.Models;
 public class Purchase
 {
     public DateTime Date { get; set; }
-    
+
     public long LotId { get; set; }
     public Lot Lot { get; set; } = null!;
 

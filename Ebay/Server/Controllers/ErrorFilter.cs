@@ -1,4 +1,4 @@
-﻿using Ebay.Client.Clients.Generated;
+using Ebay.Client.Clients.Generated;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -62,7 +62,7 @@ public sealed class ErrorFilter : IAsyncActionFilter, IExceptionFilter
                 StatusCode = problemDetails.Status
             };
         }
-       
+
 
         context.ExceptionHandled = true;
     }

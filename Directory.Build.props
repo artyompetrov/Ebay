@@ -1,6 +1,7 @@
 <Project>
     <PropertyGroup>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 		<WarningsNotAsErrors>CS0618<!-- obsolete --></WarningsNotAsErrors>
     </PropertyGroup>
 </Project>

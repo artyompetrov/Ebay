@@ -1,4 +1,4 @@
-﻿using Ebay.Server.Controllers.Generated;
+using Ebay.Server.Controllers.Generated;
 using Ebay.Server.Data.Models;
 using DbProduct = Ebay.Server.Data.Models.Product;
 using DbSearchQuery = Ebay.Server.Data.Models.SearchQuery;
@@ -55,7 +55,7 @@ public static class ModelsExtensions
             shippingAdditional: lot.ShippingAdditional),
         productId: lot.ProductId);
 
-    public static LotInfoShort ToApiLotInfoShort(this Lot lot) =>  new(
+    public static LotInfoShort ToApiLotInfoShort(this Lot lot) => new(
             condition: lot.Condition,
             conditionDescription: lot.ConditionDescription,
             locatedIn: lot.LocatedIn,
@@ -71,7 +71,7 @@ public static class ModelsExtensions
             shipping: lot.Shipping,
             titleChangeDate: lot.TitleChangeDate.ToString(WellKnown.Formats.TimeFormat),
             shippingAdditional: lot.ShippingAdditional);
-    
+
     public static PurchaseInfo ToApiPurchaseInfo(this Purchase purchase) => new(
         date: purchase.Date.ToString(WellKnown.Formats.TimeFormat),
         price: purchase.Price,
@@ -94,7 +94,7 @@ public static class ModelsExtensions
             ConditionDescription = lotInfo.ConditionDescription,
             Seller = lotInfo.Seller,
             LocatedIn = lotInfo.LocatedIn,
-            Categories = lotInfo.Categories.ToDictionary(x=>x.Type, x=>x.Value),
+            Categories = lotInfo.Categories.ToDictionary(x => x.Type, x => x.Value),
             IgnoreThatLot = lotInfo.IgnoreThatLot,
             TitleChangeDate = DateTime.Parse(lotInfo.TitleChangeDate).ToUniversalTime(),
             UpdateDate = updateDate

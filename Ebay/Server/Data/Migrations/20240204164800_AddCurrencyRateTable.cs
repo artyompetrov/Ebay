@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -23,27 +23,27 @@ namespace Ebay.Server.Data.Migrations
                 {
                     table.PrimaryKey("PK_Currencies", x => x.CurrencyEbayName);
                 });
-            
+
             migrationBuilder.InsertData(
                 "Currencies",
                 new[] { "CurrencyEbayName", "CurrencyRusName", "CurrencyApiName", "CurrencyRate" },
                 new object[] { "US $", "Доллар США", "USD", 1.0 });
-            
+
             migrationBuilder.InsertData(
                 "Currencies",
                 new[] { "CurrencyEbayName", "CurrencyRusName", "CurrencyApiName", "CurrencyRate" },
                 new object[] { "GBP", "Британский фунт", "GBP", 0.79 });
-            
+
             migrationBuilder.InsertData(
                 "Currencies",
                 new[] { "CurrencyEbayName", "CurrencyRusName", "CurrencyApiName", "CurrencyRate" },
                 new object[] { "RUB", "Рубль", "RUB", 90.991811 });
-            
+
             migrationBuilder.InsertData(
                 "Currencies",
                 new[] { "CurrencyEbayName", "CurrencyRusName", "CurrencyApiName", "CurrencyRate" },
                 new object[] { "KZT", "Тенге", "KZT", 452.193564 });
-            
+
             migrationBuilder.InsertData(
                 "Currencies",
                 new[] { "CurrencyEbayName", "CurrencyRusName", "CurrencyApiName", "CurrencyRate" },

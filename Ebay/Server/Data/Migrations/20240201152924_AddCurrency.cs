@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -22,7 +22,7 @@ UPDATE public.""Lots""
 SET ""Currency"" = 'US $'
 WHERE 1=1
 ");
-            
+
             migrationBuilder.AlterColumn<string>(
                 name: "Currency",
                 table: "Lots",

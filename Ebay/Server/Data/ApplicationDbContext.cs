@@ -1,4 +1,4 @@
-﻿using Duende.IdentityServer.EntityFramework.Options;
+using Duende.IdentityServer.EntityFramework.Options;
 using Ebay.Server.Data.Models;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.EntityFrameworkCore;

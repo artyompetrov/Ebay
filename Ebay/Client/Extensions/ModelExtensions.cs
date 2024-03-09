@@ -1,4 +1,4 @@
-﻿using Ebay.Client.Clients.Generated;
+using Ebay.Client.Clients.Generated;
 using Microsoft.AspNetCore.Components.Forms;
 using Newtonsoft.Json.Linq;
 using ProductWithId = Ebay.Client.Clients.Generated.ProductWithId;
