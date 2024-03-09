@@ -15,4 +15,9 @@
         <PackageReference Include="coverlet.collector"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\..\Client\Ebay.Client.csproj" />
+      <ProjectReference Include="..\..\Server\Ebay.Server.csproj" />
+    </ItemGroup>
+
 </Project>

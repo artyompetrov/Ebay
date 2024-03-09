@@ -1,4 +1,5 @@
 using Duende.IdentityServer.Models;
+using Ebay.Server;
 using Ebay.Server.Controllers;
 using Ebay.Server.Controllers.Generated;
 using Ebay.Server.Data;
@@ -29,12 +30,12 @@ builder.Services.AddIdentityServer()
             options.Clients.Add(
                 new Client
                 {
-                    ClientId = "Ebay.Python",
-                    ClientSecrets = new List<Secret>() { new("ac4ab670-ae20-451a-ab4a-3a20275e807d".Sha256()) },
+                    ClientId = WellKnown.Authorization.ClientId,
+                    ClientSecrets = new List<Secret>() { new(WellKnown.Authorization.AuthToken.Sha256()) },
                     AllowedGrantTypes = GrantTypes.ClientCredentials,
                     AllowedScopes =
                     {
-                        "Ebay.ServerAPI"
+                        WellKnown.Authorization.Scope
                     }
                 });
         });

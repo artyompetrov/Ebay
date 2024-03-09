@@ -2,6 +2,13 @@ namespace Ebay.Server;
 
 internal static class WellKnown
 {
+    public static class Authorization
+    {
+        public static string ClientId = "Ebay.Python";//todo переименовать
+        public static string Scope = "Ebay.ServerAPI";
+        public static string AuthToken = "ac4ab670-ae20-451a-ab4a-3a20275e807d";
+    }
+    
     public static class Formats
     {
         public static string TimeFormat = "yyyy-MM-ddTHH:mm:ss.fffZ";
