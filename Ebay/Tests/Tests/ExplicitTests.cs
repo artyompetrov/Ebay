@@ -1,7 +1,8 @@
 namespace Tests;
-
-public class Tests
+[Explicit]
+public class ExplicitTests
 {
+
     [SetUp]
     public void Setup()
     {
