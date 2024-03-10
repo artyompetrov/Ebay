@@ -27,4 +27,11 @@ internal static class WellKnown
         public static TimeSpan ErrorDelay = TimeSpan.FromMinutes(5);
         public static string AppId = "2d0b695db0cb4dbab40a85a91a88bd24";
     }
+    
+    public static class Conditions
+    {
+        public static string New = "new";
+        public static string Used = "used";
+        public static string NotWorking = "notWorking";
+    }
 }

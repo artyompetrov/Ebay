@@ -226,10 +226,9 @@ internal class EbayControllerImplementation : IEbayController
             new(
                 items: new List<CategoryItem>
                 {
-                    new("NEW", "new"),
-                    new("DISMANTLED", "dismantled"),
-                    new("USED", "used"),
-                    new("NOT WORKING", "notWorking")
+                    new("NEW", WellKnown.Conditions.New),
+                    new("USED", WellKnown.Conditions.Used),
+                    new("NOT WORKING", WellKnown.Conditions.NotWorking)
                 },
                 type: "condition"),
 
