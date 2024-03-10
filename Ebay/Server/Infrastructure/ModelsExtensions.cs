@@ -15,7 +15,8 @@ internal static class ModelsExtensions
         name: dbProduct.Name,
         searchQueries: dbProduct.SearchQueries.Select(x => x.ToApiSearchQuery()).ToList(),
         lastCheckTime: dbProduct.LastCheckTime.ToString(WellKnown.Formats.TimeFormat),
-        weight: dbProduct.Weight);
+        weight: dbProduct.Weight
+    );
 
     public static SearchQuery ToApiSearchQuery(this DbSearchQuery searchQuery) =>
         new(id: searchQuery.Id, query: searchQuery.Query);
@@ -52,30 +53,34 @@ internal static class ModelsExtensions
             seller: lot.Seller,
             titleChangeDate: lot.TitleChangeDate.ToString(WellKnown.Formats.TimeFormat),
             shipping: lot.Shipping,
-            shippingAdditional: lot.ShippingAdditional),
-        productId: lot.ProductId);
+            shippingAdditional: lot.ShippingAdditional
+        ),
+        productId: lot.ProductId
+    );
 
     public static LotInfoShort ToApiLotInfoShort(this Lot lot) => new(
-            condition: lot.Condition,
-            conditionDescription: lot.ConditionDescription,
-            locatedIn: lot.LocatedIn,
-            lotId: lot.Id,
-            categories: lot.Categories.Select(x => new CategoryValue(x.Key, x.Value)).ToList(),
-            name: lot.Name,
-            shippingCountry: lot.ShippingCountry,
-            pcs: lot.Pcs,
-            currency: lot.CurrencyId,
-            price: lot.Price,
-            purchaseHistory: lot.Purchases.OrderByDescending(x => x.Date).Select(x => x.ToApiPurchaseInfo()).ToList(),
-            seller: lot.Seller,
-            shipping: lot.Shipping,
-            titleChangeDate: lot.TitleChangeDate.ToString(WellKnown.Formats.TimeFormat),
-            shippingAdditional: lot.ShippingAdditional);
+        condition: lot.Condition,
+        conditionDescription: lot.ConditionDescription,
+        locatedIn: lot.LocatedIn,
+        lotId: lot.Id,
+        categories: lot.Categories.Select(x => new CategoryValue(x.Key, x.Value)).ToList(),
+        name: lot.Name,
+        shippingCountry: lot.ShippingCountry,
+        pcs: lot.Pcs,
+        currency: lot.CurrencyId,
+        price: lot.Price,
+        purchaseHistory: lot.Purchases.OrderByDescending(x => x.Date).Select(x => x.ToApiPurchaseInfo()).ToList(),
+        seller: lot.Seller,
+        shipping: lot.Shipping,
+        titleChangeDate: lot.TitleChangeDate.ToString(WellKnown.Formats.TimeFormat),
+        shippingAdditional: lot.ShippingAdditional
+    );
 
     public static PurchaseInfo ToApiPurchaseInfo(this Purchase purchase) => new(
         date: purchase.Date.ToString(WellKnown.Formats.TimeFormat),
         price: purchase.Price,
-        quantity: purchase.Quantity);
+        quantity: purchase.Quantity
+    );
 
     public static Lot ToDbLot(this LotInfo lotInfo, Guid productId, DateTime updateDate) =>
         new()
@@ -119,5 +124,20 @@ internal static class ModelsExtensions
         ebayName: currency.CurrencyEbayName,
         rusName: currency.CurrencyRusName,
         rate: currency.CurrencyRate,
-        lastUpdate: currency.LastUpdate.ToString(WellKnown.Formats.TimeFormat));
+        lastUpdate: currency.LastUpdate.ToString(WellKnown.Formats.TimeFormat)
+    );
+
+
+    public static ICollection<LotDataExtractedItem> ToApiExtractedData(
+        this Dictionary<int, HashSet<ManualFieldsExtractor.ExtractionResult>> extractionResult
+    )
+    {
+        return extractionResult.OrderByDescending(x => x.Value.Count).Select(
+                x => new LotDataExtractedItem(
+                    x.Key,
+                    x.Value.Select(y => new ExtractorInfo(y.ExtractedFrom.ToString(), y.Extractor, y.Match)).ToList()
+                )
+            )
+            .ToList();
+    }
 }

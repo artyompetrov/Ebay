@@ -621,6 +621,55 @@ export class Client {
     }
 
     /**
+     * Извлекает информацию о лоте из названия и описания
+     * @return Ok
+     */
+    extractData(lotInfo: LotDataToExtract): Promise<LotDataExtractedItem[]> {
+        let url_ = this.baseUrl + "/extract_data/";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(lotInfo);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processExtractData(_response);
+        });
+    }
+
+    protected processExtractData(response: Response): Promise<LotDataExtractedItem[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(LotDataExtractedItem.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<LotDataExtractedItem[]>(null as any);
+    }
+
+    /**
      * Save Error
      * @return Ok
      */
@@ -1265,6 +1314,145 @@ export class CategoryItem implements ICategoryItem {
 export interface ICategoryItem {
     id: string;
     description: string;
+}
+
+export class LotDataToExtract implements ILotDataToExtract {
+    name!: string;
+    conditionDescription?: string | undefined;
+    description!: string;
+
+    constructor(data?: ILotDataToExtract) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.name = _data["name"];
+            this.conditionDescription = _data["conditionDescription"];
+            this.description = _data["description"];
+        }
+    }
+
+    static fromJS(data: any): LotDataToExtract {
+        data = typeof data === 'object' ? data : {};
+        let result = new LotDataToExtract();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["name"] = this.name;
+        data["conditionDescription"] = this.conditionDescription;
+        data["description"] = this.description;
+        return data;
+    }
+}
+
+export interface ILotDataToExtract {
+    name: string;
+    conditionDescription?: string | undefined;
+    description: string;
+}
+
+export class LotDataExtractedItem implements ILotDataExtractedItem {
+    count!: number;
+    extractorInfo!: ExtractorInfo[];
+
+    constructor(data?: ILotDataExtractedItem) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+        if (!data) {
+            this.extractorInfo = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.count = _data["count"];
+            if (Array.isArray(_data["extractorInfo"])) {
+                this.extractorInfo = [] as any;
+                for (let item of _data["extractorInfo"])
+                    this.extractorInfo!.push(ExtractorInfo.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): LotDataExtractedItem {
+        data = typeof data === 'object' ? data : {};
+        let result = new LotDataExtractedItem();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["count"] = this.count;
+        if (Array.isArray(this.extractorInfo)) {
+            data["extractorInfo"] = [];
+            for (let item of this.extractorInfo)
+                data["extractorInfo"].push(item.toJSON());
+        }
+        return data;
+    }
+}
+
+export interface ILotDataExtractedItem {
+    count: number;
+    extractorInfo: ExtractorInfo[];
+}
+
+export class ExtractorInfo implements IExtractorInfo {
+    extractedFrom!: string;
+    extractor!: string;
+    match!: string;
+
+    constructor(data?: IExtractorInfo) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.extractedFrom = _data["extractedFrom"];
+            this.extractor = _data["extractor"];
+            this.match = _data["match"];
+        }
+    }
+
+    static fromJS(data: any): ExtractorInfo {
+        data = typeof data === 'object' ? data : {};
+        let result = new ExtractorInfo();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["extractedFrom"] = this.extractedFrom;
+        data["extractor"] = this.extractor;
+        data["match"] = this.match;
+        return data;
+    }
+}
+
+export interface IExtractorInfo {
+    extractedFrom: string;
+    extractor: string;
+    match: string;
 }
 
 export class LotState implements ILotState {

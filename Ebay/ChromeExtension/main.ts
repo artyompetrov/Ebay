@@ -1,6 +1,6 @@
 import {
     CategoryValue,
-    Client, ClientErrorInfo,
+    Client, ClientErrorInfo, LotDataToExtract,
     LotInfo,
     LotInfoWithProductId, NotFoundProblemDetailedInfo,
     PurchaseInfo, ValidationProblemDetailedInfo
@@ -9,18 +9,20 @@ import {
 import jsonpath from "jsonpath";
 import {generateCodeVerifier, OAuth2Client} from '@badgateway/oauth2-client';
 import {FetchWrapperCustom} from "./FetchWrapperCustom";
+import {cli} from "webpack";
 
 const ignoreThatLotFieldName = "ignoreThatLot";
 const productFieldName = "productId";
 const pcsFieldName = "pcs";
+const autoPcsFieldName = "autoPcs";
 const categoryPrefix = 'category_'
 const panelClass = "panel-div";
 const panelInputClass = "panel-input-div";
 const formId = "product-form-id"
 const errorElementId = "errorElement"
 const submitId = "submitButton"
-//const backendUrl = "https://localhost:7095/"
-const backendUrl = "https://naks42.ru:17443/"
+const backendUrl = "https://localhost:7095/"
+//const backendUrl = "https://naks42.ru:17443/"
 const baseApiUrl = `${backendUrl}api/ebay/v1`;
 const authRedirectUrl = "https://www.ebay.com/"
 const lightGreenColor = "#ecffec"
@@ -118,7 +120,7 @@ function extractPrice(price: string): Price {
         if (matches) {
             return new Price(parseFloat(matches[1].replace(',', '')), matches[2].trim())
         }
-        throw new Error("unexpected price: '" + price +"'")
+        throw new Error("unexpected price: '" + price + "'")
     }
 }
 
@@ -214,6 +216,9 @@ async function createPanel(client: Client): Promise<HTMLDivElement> {
             <br>
             <label for="${pcsFieldName}">PCS</label>
             <input id="${pcsFieldName}" type="number" name="${pcsFieldName}"/>
+            <br>
+            <label for="${autoPcsFieldName}">Auto PCS</label>
+            <input id="${autoPcsFieldName}" type="text" name="${autoPcsFieldName}" readonly/>
         </div>
         <br>
         <div id="${categoriesDiv}">
@@ -822,6 +827,37 @@ async function checkIfTypedLot() {
     }
 }
 
+async function fillAutoPcs(panel: HTMLDivElement, client: Client) {
+    console.log("fillAutoPcs");
+    let autoPcsField = <HTMLInputElement>panel.querySelector('input#' + autoPcsFieldName);
+
+    let extractedData = await client.extractData(new LotDataToExtract({
+        name: lotInfo.name,
+        conditionDescription: lotInfo.conditionDescription,
+        description: lotInfo.description
+    }))
+
+    console.log(JSON.stringify(extractedData))
+    
+    if (extractedData.length > 0) {
+        
+        if (extractedData.length === 1) {
+            autoPcsField.style.backgroundColor = lightGreenColor;
+        }
+        else
+        {
+            autoPcsField.style.backgroundColor = lightYellowColor;
+        }
+
+        autoPcsField.value = extractedData[0].count.toString();
+    }
+    else {
+        autoPcsField.value = "1"
+        autoPcsField.style.backgroundColor = lightYellowColor;
+    }
+    console.log("fillAutoPcs finished")
+}
+
 async function getDataFromPage(client: Client) {
     fillId();
     await getServerLotInfo(client)
@@ -846,7 +882,9 @@ async function getDataFromPage(client: Client) {
         fillPcs(panel, _serverLotInfo),
         fillIgnoreThatLot(panel, _serverLotInfo),
         fillShipping(),
+        fillAutoPcs(panel, client)
     ]);
+
 
     console.log("show panel")
     panel.hidden = false;

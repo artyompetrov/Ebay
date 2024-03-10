@@ -83,7 +83,7 @@ public class ExplicitTests
 
                Assert.That(
                    isExtractedCorrectly,
-                   $"Не получилось извлечь количество, product: {product.Id}, lotId: {lotInfoShort.LotId}, " +
+                   $"product: {product.Id}, lotId: {lotInfoShort.LotId}, " +
                    $"seller: {lotInfoShort.Seller}, lotNumber: {lotNumber}, result: {Environment.NewLine}{ToStr(result)}"
                );
 

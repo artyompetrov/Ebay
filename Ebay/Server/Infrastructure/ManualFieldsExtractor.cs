@@ -5,17 +5,25 @@ namespace Ebay.Server.Infrastructure;
 
 internal static class ManualFieldsExtractor
 {
-    private static readonly string[] NewLines = new[] { "\r\n", "\r", "\n" };
+    private static readonly string[] NewLines = { "\r\n", "\r", "\n" };
+
+    private static readonly string[] ToRemove =
+    {
+        "196x year",
+        "197x year",
+        "198x year",
+        "199x year",
+        "3x MICA",
+        "than 9 pcs"
+    };
 
     private static readonly RegexOptions ro = RegexOptions.IgnoreCase;
-    
+
     private static readonly ExtractFrom All = ExtractFrom.Title | ExtractFrom.Description |
         ExtractFrom.ConditionDescription;
 
     private static readonly ExtractFrom TitleAndConditionDescription =
         ExtractFrom.Title | ExtractFrom.ConditionDescription;
-
-    private static readonly ExtractFrom Title = ExtractFrom.Title;
 
     /// <summary>
     /// Перечень экстракторов с приоритетами
@@ -47,6 +55,7 @@ internal static class ManualFieldsExtractor
         new Extractor(new Regex(@"\bx(\d{1,3})\s*piece", ro), null, 1, All),
         new Extractor(new Regex(@"^(\d{1,3})\s*(?:\*|x)", ro), null, 1, All),
         new Extractor(new Regex(@"^(\d{1,3})\s*pair", ro), null, 2, All),
+        new Extractor(new Regex(@"^(\d{1,3})\s", ro), null, 1, All),
         new Extractor(new Regex(@"\bprice\s+is\s+for\s+one\b", ro), 1, 1, All),
 
         new Extractor(new Regex(@"^one\b", ro), 1, 1, All),
@@ -65,7 +74,7 @@ internal static class ManualFieldsExtractor
     )
     {
         var result = new Dictionary<int, HashSet<ExtractionResult>>();
-        
+
         ExtractCountInternal(ExtractFrom.Title, title, result);
 
         if (conditionDescription != null)
@@ -78,7 +87,7 @@ internal static class ManualFieldsExtractor
         }
 
         var htmlText = HtmlUtilities.ConvertToPlainText(description);
-        
+
         ExtractCountInternal(
             ExtractFrom.Description,
             htmlText,
@@ -94,26 +103,28 @@ internal static class ManualFieldsExtractor
         Dictionary<int, HashSet<ExtractionResult>> result
     )
     {
-        
         var successfulExtractions = new HashSet<string>();
 
-        foreach (var dataSplitted in data.Split(
-                NewLines,
-                StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries
-            ).Take(4))
+        var splittedArray = data.Split(
+            NewLines,
+            StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries
+        );
+
+        foreach (var dataSplitted in splittedArray.Take(4).Concat(splittedArray.Reverse().Take(4)).Distinct())
         {
-            var dataReplaced = dataSplitted
-                .Replace("196x year", "", StringComparison.OrdinalIgnoreCase)
-                .Replace("197x year", "", StringComparison.OrdinalIgnoreCase)
-                .Replace("198x year", "", StringComparison.OrdinalIgnoreCase)
-                .Replace("199x year", "", StringComparison.OrdinalIgnoreCase)
-                .Replace("3x MICA", "", StringComparison.OrdinalIgnoreCase)
-                .Trim(); //todo вынести в спискок выше
+            var dataReplaced = dataSplitted;
+            foreach (var replace in ToRemove)
+            {
+                dataReplaced = dataSplitted
+                    .Replace(replace, "", StringComparison.OrdinalIgnoreCase);
+            }
+
+            dataReplaced = dataReplaced.Trim();
 
             foreach (var extractor in Extractors)
             {
                 if (!extractor.ExtractFrom.HasFlag(extractedFrom)) continue;
-                
+
                 var match = extractor.Regex.Match(dataReplaced);
                 if (match.Success)
                 {
@@ -121,7 +132,10 @@ internal static class ManualFieldsExtractor
 
                     if (extractor.Result == null)
                     {
-                        if (match.Groups.Count != 2) throw new InvalidOperationException($"Expected only 2 groups, {extractor.Regex} {dataReplaced}");
+                        if (match.Groups.Count != 2)
+                            throw new InvalidOperationException(
+                                $"Expected only 2 groups, {extractor.Regex} {dataReplaced}"
+                            );
 
                         result.AppendOrCreateNewCollection(
                             int.Parse(match.Groups[1].ToString()) * extractor.Multiplier,
@@ -131,13 +145,15 @@ internal static class ManualFieldsExtractor
                                 match.ToString()
                             )
                         );
-                        
-                        successfulExtractions.Add(match.ToString());
 
+                        successfulExtractions.Add(match.ToString());
                     }
                     else
                     {
-                        if (match.Groups.Count != 1) throw new InvalidOperationException($"Expected only 1 groups, {extractor.Regex} {dataReplaced}");
+                        if (match.Groups.Count != 1)
+                            throw new InvalidOperationException(
+                                $"Expected only 1 groups, {extractor.Regex} {dataReplaced}"
+                            );
 
                         result.AppendOrCreateNewCollection(
                             extractor.Result.Value * extractor.Multiplier,

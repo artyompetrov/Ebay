@@ -9,3 +9,4 @@ riderModule.iml
 /Ebay/Server/app.db
 *.lnk
 node_modules/
+*.DotSettings.user

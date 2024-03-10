@@ -122,6 +122,15 @@ namespace Ebay.Server.Controllers.Generated
         System.Threading.Tasks.Task<System.Collections.Generic.ICollection<Currency>> GetCurrenciesAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
         /// <summary>
+        /// Извлекает информацию о лоте из названия и описания
+        /// </summary>
+
+
+        /// <returns>Ok</returns>
+
+        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<LotDataExtractedItem>> ExtractDataAsync(LotDataToExtract lotInfo, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+
+        /// <summary>
         /// Save Error
         /// </summary>
 
@@ -270,6 +279,17 @@ namespace Ebay.Server.Controllers.Generated
         {
 
             return _implementation.GetCurrenciesAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Извлекает информацию о лоте из названия и описания
+        /// </summary>
+        /// <returns>Ok</returns>
+        [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("extract_data/")]
+        public System.Threading.Tasks.Task<System.Collections.Generic.ICollection<LotDataExtractedItem>> ExtractData([Microsoft.AspNetCore.Mvc.FromBody] LotDataToExtract lotInfo, System.Threading.CancellationToken cancellationToken)
+        {
+
+            return _implementation.ExtractDataAsync(lotInfo, cancellationToken);
         }
 
         /// <summary>
@@ -718,6 +738,86 @@ namespace Ebay.Server.Controllers.Generated
         [System.ComponentModel.DataAnnotations.Required]
         [System.ComponentModel.DataAnnotations.RegularExpression(@"^[A-Za-z_]+$")]
         public string Description { get; }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class LotDataToExtract
+    {
+        [Newtonsoft.Json.JsonConstructor]
+
+        public LotDataToExtract(string? @conditionDescription, string @description, string @name)
+
+        {
+
+            this.Name = @name;
+
+            this.ConditionDescription = @conditionDescription;
+
+            this.Description = @description;
+
+        }    [Newtonsoft.Json.JsonProperty("name", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public string Name { get; }
+
+        [Newtonsoft.Json.JsonProperty("conditionDescription", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.StringLength(int.MaxValue, MinimumLength = 1)]
+        public string? ConditionDescription { get; }
+
+        [Newtonsoft.Json.JsonProperty("description", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public string Description { get; }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class LotDataExtractedItem
+    {
+        [Newtonsoft.Json.JsonConstructor]
+
+        public LotDataExtractedItem(int @count, System.Collections.Generic.List<ExtractorInfo> @extractorInfo)
+
+        {
+
+            this.Count = @count;
+
+            this.ExtractorInfo = @extractorInfo;
+
+        }    [Newtonsoft.Json.JsonProperty("count", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public int Count { get; }
+
+        [Newtonsoft.Json.JsonProperty("extractorInfo", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.List<ExtractorInfo> ExtractorInfo { get; }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ExtractorInfo
+    {
+        [Newtonsoft.Json.JsonConstructor]
+
+        public ExtractorInfo(string @extractedFrom, string @extractor, string @match)
+
+        {
+
+            this.ExtractedFrom = @extractedFrom;
+
+            this.Extractor = @extractor;
+
+            this.Match = @match;
+
+        }    [Newtonsoft.Json.JsonProperty("extractedFrom", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public string ExtractedFrom { get; }
+
+        [Newtonsoft.Json.JsonProperty("extractor", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public string Extractor { get; }
+
+        [Newtonsoft.Json.JsonProperty("match", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public string Match { get; }
 
     }
 
