@@ -765,11 +765,13 @@ namespace Ebay.Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public LotDataToExtract(string? @conditionDescription, string @description, string @name)
+        public LotDataToExtract(string @condition, string? @conditionDescription, string @description, string @name)
 
         {
 
             this.Name = @name;
+
+            this.Condition = @condition;
 
             this.ConditionDescription = @conditionDescription;
 
@@ -778,6 +780,10 @@ namespace Ebay.Server.Controllers.Generated
         }    [Newtonsoft.Json.JsonProperty("name", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
         public string Name { get; }
+
+        [Newtonsoft.Json.JsonProperty("condition", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public string Condition { get; }
 
         [Newtonsoft.Json.JsonProperty("conditionDescription", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.StringLength(int.MaxValue, MinimumLength = 1)]

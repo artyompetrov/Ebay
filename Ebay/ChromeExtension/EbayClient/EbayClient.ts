@@ -1363,6 +1363,7 @@ export interface ICategoryItem {
 
 export class LotDataToExtract implements ILotDataToExtract {
     name!: string;
+    condition!: string;
     conditionDescription?: string | undefined;
     description!: string;
 
@@ -1378,6 +1379,7 @@ export class LotDataToExtract implements ILotDataToExtract {
     init(_data?: any) {
         if (_data) {
             this.name = _data["name"];
+            this.condition = _data["condition"];
             this.conditionDescription = _data["conditionDescription"];
             this.description = _data["description"];
         }
@@ -1393,6 +1395,7 @@ export class LotDataToExtract implements ILotDataToExtract {
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         data["name"] = this.name;
+        data["condition"] = this.condition;
         data["conditionDescription"] = this.conditionDescription;
         data["description"] = this.description;
         return data;
@@ -1401,6 +1404,7 @@ export class LotDataToExtract implements ILotDataToExtract {
 
 export interface ILotDataToExtract {
     name: string;
+    condition: string;
     conditionDescription?: string | undefined;
     description: string;
 }

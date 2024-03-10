@@ -847,6 +847,7 @@ async function fillAutoPcs(panel: HTMLDivElement, client: Client) {
     let extractedDataByFieldName = (await client.extractData(new LotDataToExtract({
         name: lotInfo.name,
         conditionDescription: lotInfo.conditionDescription,
+        condition: lotInfo.condition,
         description: lotInfo.description
     }))).reduce((dictionary, value) => {
         dictionary[value.fieldName] = value.extractedData;

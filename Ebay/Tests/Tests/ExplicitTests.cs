@@ -50,6 +50,7 @@ public class ExplicitTests
         var extractedFields = ManualFieldsExtractor.ExtractCount(new LotDataToExtract(
             conditionDescription: lotInfoFull.LotInfo.ConditionDescription,
             description: lotInfoFull.LotInfo.Description,
+            condition: lotInfoFull.LotInfo.Condition,
             name: lotInfoFull.LotInfo.Name));
 
         var result = extractedFields["pcs"];
@@ -72,6 +73,7 @@ public class ExplicitTests
         
         var extractedFields = ManualFieldsExtractor.ExtractCount(new LotDataToExtract(
             conditionDescription: lotInfoFull.LotInfo.ConditionDescription,
+            condition: lotInfoFull.LotInfo.Condition,
             description: lotInfoFull.LotInfo.Description,
             name: lotInfoFull.LotInfo.Name));
 
