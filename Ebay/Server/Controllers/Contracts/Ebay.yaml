@@ -157,6 +157,19 @@ paths:
             $ref: '#/definitions/NotFoundProblemDetailedInfo'
   
   
+  /lots/:
+    get:
+      operationId: GetLotIds
+      summary: Получить id всех лотов
+      responses:
+        200:
+          description: 'Ok'
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+  
   /lot_state_requests/:
     post:
       operationId: GetLotStates
@@ -365,7 +378,7 @@ definitions:
         type: boolean
       categories:
         type: array
-        items: 
+        items:
           $ref: '#/definitions/CategoryValue'
       titleChangeDate:
         type: string
@@ -476,7 +489,7 @@ definitions:
   
   CategoryValue:
     type: object
-    properties: 
+    properties:
       type:
         type: string
         minLength: 1
@@ -574,7 +587,7 @@ definitions:
         minLength: 1
       match:
         type: string
-        minLength: 1    
+        minLength: 1
     required:
       - extractedFrom
       - extractor

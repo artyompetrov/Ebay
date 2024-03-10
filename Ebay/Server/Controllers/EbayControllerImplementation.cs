@@ -18,12 +18,10 @@ namespace Ebay.Server.Controllers;
 internal class EbayControllerImplementation : IEbayController
 {
     private readonly ApplicationDbContext _applicationContext;
-    private readonly IHttpClientFactory _httpClientFactory;
 
-    public EbayControllerImplementation(ApplicationDbContext applicationContext, IHttpClientFactory httpClientFactory)
+    public EbayControllerImplementation(ApplicationDbContext applicationContext)
     {
         _applicationContext = applicationContext;
-        _httpClientFactory = httpClientFactory;
     }
 
     public async Task<ICollection<ProductWithId>> GetAllProductsAsync(CancellationToken cancellationToken)
@@ -196,6 +194,14 @@ internal class EbayControllerImplementation : IEbayController
         }
 
         return dbLot.ToApiLot();
+    }
+
+    public async Task<ICollection<long>> GetLotIdsAsync(CancellationToken cancellationToken)
+    {
+        var result = await _applicationContext.Lots.Where(x => x.IgnoreThatLot == false)
+            .Select(x => x.Id ).ToListAsync(cancellationToken);
+
+        return result;
     }
 
     public async Task<ICollection<LotState>> GetLotStatesAsync(

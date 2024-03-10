@@ -98,6 +98,14 @@ namespace Ebay.Server.Controllers.Generated
         System.Threading.Tasks.Task<LotInfoWithProductId> GetLotInfoAsync(long lotId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
         /// <summary>
+        /// Получить id всех лотов
+        /// </summary>
+
+        /// <returns>Ok</returns>
+
+        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<long>> GetLotIdsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+
+        /// <summary>
         /// Получает информацию о учтенных лотах
         /// </summary>
 
@@ -244,6 +252,17 @@ namespace Ebay.Server.Controllers.Generated
         {
 
             return _implementation.GetLotInfoAsync(lotId, cancellationToken);
+        }
+
+        /// <summary>
+        /// Получить id всех лотов
+        /// </summary>
+        /// <returns>Ok</returns>
+        [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("lots/")]
+        public System.Threading.Tasks.Task<System.Collections.Generic.ICollection<long>> GetLotIds(System.Threading.CancellationToken cancellationToken)
+        {
+
+            return _implementation.GetLotIdsAsync(cancellationToken);
         }
 
         /// <summary>

@@ -3,7 +3,11 @@ namespace Ebay.Server.Services;
 
 internal static class ManualFieldsExtractor
 {
-    private static readonly IExtractor[] Extractors = { new PcsExtractor() };
+    private static readonly IExtractor[] Extractors =
+    {
+        new PcsExtractor(),
+        new ConditionExtractor()
+    };
 
     public static Dictionary<string, Dictionary<string, HashSet<ExtractionResult>>> ExtractCount(
         LotDataToExtract lotDataToExtract

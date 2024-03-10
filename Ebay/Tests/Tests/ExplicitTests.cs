@@ -10,15 +10,9 @@ namespace Tests;
 [Explicit]
 public class ExplicitTests
 {
-    public EbayClient _client = null!;
-
-    [OneTimeSetUp]
-    public async Task Setup()
-    {
-        await CreateClient();
-    }
-
-    private async Task CreateClient()
+    private static readonly EbayClient Client = CreateClient();
+    
+    private static EbayClient CreateClient()
     {
         var server = "naks42.ru";
         var port = 17443;
@@ -27,7 +21,7 @@ public class ExplicitTests
         var url = $"{baseAddress}/connect/token";
         var httpClient = new HttpClient();
 
-        using var res = await httpClient.SendAsync(
+        using var res = httpClient.SendAsync(
             new HttpRequestMessage(HttpMethod.Post, url)
             {
                 Content = new FormUrlEncodedContent(
@@ -39,63 +33,61 @@ public class ExplicitTests
                     }
                 )
             }
-        );
+        ).GetAwaiter().GetResult();
 
-        var token = JToken.Parse(await res.Content.ReadAsStringAsync())["access_token"]!.ToString();
+        var token = JToken.Parse(res.Content.ReadAsStringAsync().GetAwaiter().GetResult())["access_token"]!.ToString();
 
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        _client = new EbayClient(httpClient) { BaseUrl = baseAddress + "/api/ebay/v1" };
+        return new EbayClient(httpClient) { BaseUrl = baseAddress + "/api/ebay/v1" };
     }
 
-    [Test]
-    public async Task Check_Extractor_Functions()
+    [TestCaseSource(nameof(GetLots))]
+    public async Task Check_Extractor_Functions(long lotId)
     {
-        //у этих продавцов встречаются лоты, что не получается распознать
-        var excludeSellers = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        var lotInfoFull = await Client.GetLotInfoAsync(lotId);
+        
+        var result = ManualFieldsExtractor.ExtractCount(new LotDataToExtract(
+            conditionDescription: lotInfoFull.LotInfo.ConditionDescription,
+            description: lotInfoFull.LotInfo.Description,
+            name: lotInfoFull.LotInfo.Name));
+
+        var pcsResult = result["pcs"];
+
+        var isExtractedCorrectly = (lotInfoFull.LotInfo.Pcs == 1 && pcsResult.Count == 0) || (result.Count >= 1 &&
+            int.Parse(
+                pcsResult.MaxBy(x => x.Value.Count).Key
+            ) == lotInfoFull.LotInfo.Pcs);
+
+        Assert.That(
+            condition: isExtractedCorrectly,
+            message: $"Result: {Environment.NewLine}{ToStr(pcsResult)}"
+        );
+    }
+ 
+
+    public static IEnumerable<TestCaseData> GetLots()
+    {
+        // список неподдерживаемых лотов
+        var excludedLots = new HashSet<long>
         {
-            "sarmat1968"
         };
 
-        var allProducts = await _client.GetAllProductsAsync();
-        var lotNumber = 0;
-        foreach (var product in allProducts)
+        var allLotIds = Client.GetLotIdsAsync().GetAwaiter().GetResult();
+        var lotNumber = 1;
+        foreach (var lotId in allLotIds)
         {
-            //if (product.Id != Guid.Parse("56037ebe-d27d-454c-88ae-669475c5e9f7")) continue;
+            if ( excludedLots.Contains(lotId)) continue;
 
-            var info = await _client.GetLotsAsync(product.Id);
-
-            foreach (var lotInfoShort in info)
+            yield return new TestCaseData(lotId)
             {
-                //if (lotInfoShort.LotId != 364647356108) continue;
+                TestName = $"{lotNumber} {lotId}"
+            };
 
-                if (excludeSellers.Contains(lotInfoShort.Seller)) continue;
-
-                var lotInfoFull = await _client.GetLotInfoAsync(lotInfoShort.LotId);
-
-                var result = ManualFieldsExtractor.ExtractCount(
-                    new LotDataToExtract(
-                        conditionDescription: lotInfoShort.ConditionDescription,
-                        description: lotInfoFull.LotInfo.Description,
-                        name: lotInfoShort.Name)
-                );
-
-                var pcsResult = result["pcs"];
-
-                var isExtractedCorrectly = (lotInfoShort.Pcs == 1 && pcsResult.Count == 0) || (result.Count >= 1 && int.Parse(
-                    pcsResult.MaxBy(x => x.Value.Count).Key) == lotInfoShort.Pcs);
-
-                Assert.That(
-                    condition: isExtractedCorrectly,
-                    message: $"product: {product.Id}, lotId: {lotInfoShort.LotId}, " +
-                    $"seller: {lotInfoShort.Seller}, lotNumber: {lotNumber}, result: {Environment.NewLine}{ToStr(pcsResult)}"
-                );
-
-                lotNumber++;
-            }
+            lotNumber++;
         }
     }
-
+    
     private static string ToStr(Dictionary<string, HashSet<ExtractionResult>> result)
     {
         return string.Join(
