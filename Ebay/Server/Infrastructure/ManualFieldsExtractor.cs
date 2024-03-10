@@ -55,7 +55,7 @@ internal static class ManualFieldsExtractor
         new Extractor(new Regex(@"\bx(\d{1,3})\s*piece", ro), null, 1, All),
         new Extractor(new Regex(@"^(\d{1,3})\s*(?:\*|x)", ro), null, 1, All),
         new Extractor(new Regex(@"^(\d{1,3})\s*pair", ro), null, 2, All),
-        new Extractor(new Regex(@"^(\d{1,3})\s", ro), null, 1, All),
+        new Extractor(new Regex(@"^[([]?(\d{1,3})[)\]]?\s", ro), null, 1, TitleAndConditionDescription),
         new Extractor(new Regex(@"\bprice\s+is\s+for\s+one\b", ro), 1, 1, All),
 
         new Extractor(new Regex(@"^one\b", ro), 1, 1, All),

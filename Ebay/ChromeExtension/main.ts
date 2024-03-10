@@ -170,6 +170,14 @@ async function createPanel(client: Client): Promise<HTMLDivElement> {
       width: 200px;
     }
     
+    #${pcsFieldName} {
+      width: 100px;
+    }
+    
+    #${autoPcsFieldName} {
+      width: 100px;
+    }
+    
     .${panelInputClass} select {
       width: 200px;
     }
@@ -216,8 +224,6 @@ async function createPanel(client: Client): Promise<HTMLDivElement> {
             <br>
             <label for="${pcsFieldName}">PCS</label>
             <input id="${pcsFieldName}" type="number" name="${pcsFieldName}"/>
-            <br>
-            <label for="${autoPcsFieldName}">Auto PCS</label>
             <input id="${autoPcsFieldName}" type="text" name="${autoPcsFieldName}" readonly/>
         </div>
         <br>
@@ -830,6 +836,7 @@ async function checkIfTypedLot() {
 async function fillAutoPcs(panel: HTMLDivElement, client: Client) {
     console.log("fillAutoPcs");
     let autoPcsField = <HTMLInputElement>panel.querySelector('input#' + autoPcsFieldName);
+    let pcsField = <HTMLInputElement>panel.querySelector('input#' + pcsFieldName);
 
     let extractedData = await client.extractData(new LotDataToExtract({
         name: lotInfo.name,
@@ -846,7 +853,12 @@ async function fillAutoPcs(panel: HTMLDivElement, client: Client) {
         }
         else
         {
-            autoPcsField.style.backgroundColor = lightYellowColor;
+            if (extractedData[0].extractorInfo.length > extractedData[1].extractorInfo.length) {
+                autoPcsField.style.backgroundColor = lightYellowColor;
+            }
+            else {
+                autoPcsField.style.backgroundColor = lightPinkColor;
+            }
         }
 
         autoPcsField.value = extractedData[0].count.toString();
@@ -855,6 +867,11 @@ async function fillAutoPcs(panel: HTMLDivElement, client: Client) {
         autoPcsField.value = "1"
         autoPcsField.style.backgroundColor = lightYellowColor;
     }
+    
+    if (!pcsField.value) {
+        pcsField.value = autoPcsField.value;
+    }
+    
     console.log("fillAutoPcs finished")
 }
 
@@ -882,9 +899,10 @@ async function getDataFromPage(client: Client) {
         fillPcs(panel, _serverLotInfo),
         fillIgnoreThatLot(panel, _serverLotInfo),
         fillShipping(),
-        fillAutoPcs(panel, client)
+        
     ]);
-
+    
+    await fillAutoPcs(panel, client)
 
     console.log("show panel")
     panel.hidden = false;
