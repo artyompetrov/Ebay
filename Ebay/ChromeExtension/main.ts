@@ -833,6 +833,12 @@ async function checkIfTypedLot() {
     }
 }
 
+function fillManualWithAutoValue(pcsField: HTMLInputElement, autoPcsField: HTMLInputElement) {
+    if (!pcsField.value) {
+        pcsField.value = autoPcsField.value;
+    }
+}
+
 async function fillAutoPcs(panel: HTMLDivElement, client: Client) {
     console.log("fillAutoPcs");
     let autoPcsField = <HTMLInputElement>panel.querySelector('input#' + autoPcsFieldName);
@@ -847,31 +853,34 @@ async function fillAutoPcs(panel: HTMLDivElement, client: Client) {
     console.log(JSON.stringify(extractedData))
     
     if (extractedData.length > 0) {
-        
+
+        autoPcsField.value = extractedData[0].count.toString();
+
         if (extractedData.length === 1) {
             autoPcsField.style.backgroundColor = lightGreenColor;
+
+            fillManualWithAutoValue(pcsField, autoPcsField);
         }
         else
         {
             if (extractedData[0].extractorInfo.length > extractedData[1].extractorInfo.length) {
                 autoPcsField.style.backgroundColor = lightYellowColor;
+
+                fillManualWithAutoValue(pcsField, autoPcsField);
             }
             else {
                 autoPcsField.style.backgroundColor = lightPinkColor;
             }
         }
 
-        autoPcsField.value = extractedData[0].count.toString();
     }
     else {
         autoPcsField.value = "1"
         autoPcsField.style.backgroundColor = lightYellowColor;
+
+        fillManualWithAutoValue(pcsField, autoPcsField);
     }
-    
-    if (!pcsField.value) {
-        pcsField.value = autoPcsField.value;
-    }
-    
+
     console.log("fillAutoPcs finished")
 }
 
