@@ -10,6 +10,8 @@ internal class ConditionExtractor : IExtractor
     {
         var result = new Dictionary<string, HashSet<ExtractionResult>>();
         
+       // var condition = lotDataToExtract.co
+        
         return result;
     }
 }

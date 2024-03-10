@@ -43,28 +43,48 @@ public class ExplicitTests
     }
 
     [TestCaseSource(nameof(GetLots))]
-    public async Task Check_Extractor_Functions(long lotId)
+    public async Task Check_Extractor_Function_Pcs(long lotId)
     {
         var lotInfoFull = await Client.GetLotInfoAsync(lotId);
         
-        var result = ManualFieldsExtractor.ExtractCount(new LotDataToExtract(
+        var extractedFields = ManualFieldsExtractor.ExtractCount(new LotDataToExtract(
             conditionDescription: lotInfoFull.LotInfo.ConditionDescription,
             description: lotInfoFull.LotInfo.Description,
             name: lotInfoFull.LotInfo.Name));
 
-        var pcsResult = result["pcs"];
+        var result = extractedFields["pcs"];
 
-        var isExtractedCorrectly = (lotInfoFull.LotInfo.Pcs == 1 && pcsResult.Count == 0) || (result.Count >= 1 &&
+        var isExtractedCorrectly = (lotInfoFull.LotInfo.Pcs == 1 && result.Count == 0) || (extractedFields.Count >= 1 &&
             int.Parse(
-                pcsResult.MaxBy(x => x.Value.Count).Key
+                result.MaxBy(x => x.Value.Count).Key
             ) == lotInfoFull.LotInfo.Pcs);
 
         Assert.That(
             condition: isExtractedCorrectly,
-            message: $"Result: {Environment.NewLine}{ToStr(pcsResult)}"
+            message: ToStr(result)
         );
     }
  
+    [TestCaseSource(nameof(GetLots))]
+    public async Task Check_Extractor_Function_Condition(long lotId)
+    {
+        var lotInfoFull = await Client.GetLotInfoAsync(lotId);
+        
+        var extractedFields = ManualFieldsExtractor.ExtractCount(new LotDataToExtract(
+            conditionDescription: lotInfoFull.LotInfo.ConditionDescription,
+            description: lotInfoFull.LotInfo.Description,
+            name: lotInfoFull.LotInfo.Name));
+
+        var result = extractedFields["condition"];
+
+        var isExtractedCorrectly = result.Keys.Count > 0;
+
+        Assert.That(
+            condition: isExtractedCorrectly,
+            message: ToStr(result)
+        );
+    }
+    
 
     public static IEnumerable<TestCaseData> GetLots()
     {
@@ -74,17 +94,15 @@ public class ExplicitTests
         };
 
         var allLotIds = Client.GetLotIdsAsync().GetAwaiter().GetResult();
-        var lotNumber = 1;
+
         foreach (var lotId in allLotIds)
         {
             if ( excludedLots.Contains(lotId)) continue;
 
             yield return new TestCaseData(lotId)
             {
-                TestName = $"{lotNumber} {lotId}"
+                TestName = $"{lotId}"
             };
-
-            lotNumber++;
         }
     }
     
