@@ -2,6 +2,7 @@ using System.Transactions;
 using Ebay.Server.Controllers.Generated;
 using Ebay.Server.Data;
 using Ebay.Server.Infrastructure;
+using Ebay.Server.Services;
 using Microsoft.EntityFrameworkCore;
 using ClientErrorInfo = Ebay.Server.Controllers.Generated.ClientErrorInfo;
 using DbProduct = Ebay.Server.Data.Models.Product;

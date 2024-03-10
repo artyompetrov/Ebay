@@ -1,7 +1,7 @@
 ﻿using System.Text.RegularExpressions;
+using Ebay.Server.Infrastructure;
 
-
-namespace Ebay.Server.Infrastructure;
+namespace Ebay.Server.Services;
 
 internal static class ManualFieldsExtractor
 {

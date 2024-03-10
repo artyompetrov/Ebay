@@ -1,5 +1,6 @@
 using Ebay.Server.Controllers.Generated;
 using Ebay.Server.Data.Models;
+using Ebay.Server.Services;
 using DbProduct = Ebay.Server.Data.Models.Product;
 using DbSearchQuery = Ebay.Server.Data.Models.SearchQuery;
 using DbCurrency = Ebay.Server.Data.Models.Currency;

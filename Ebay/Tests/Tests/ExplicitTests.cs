@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using Ebay.Server;
 using Ebay.Client.Clients.Generated;
 using Ebay.Server.Infrastructure;
+using Ebay.Server.Services;
 using Newtonsoft.Json.Linq;
 
 namespace Tests;
