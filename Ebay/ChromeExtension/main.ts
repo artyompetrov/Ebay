@@ -1,6 +1,6 @@
 import {
     CategoryValue,
-    Client, ClientErrorInfo, LotDataToExtract,
+    Client, ClientErrorInfo, LotDataExtractedItem, LotDataToExtract,
     LotInfo,
     LotInfoWithProductId, NotFoundProblemDetailedInfo,
     PurchaseInfo, ValidationProblemDetailedInfo
@@ -843,18 +843,23 @@ async function fillAutoPcs(panel: HTMLDivElement, client: Client) {
     console.log("fillAutoPcs");
     let autoPcsField = <HTMLInputElement>panel.querySelector('input#' + autoPcsFieldName);
     let pcsField = <HTMLInputElement>panel.querySelector('input#' + pcsFieldName);
-
-    let extractedData = await client.extractData(new LotDataToExtract({
+    
+    let extractedDataByFieldName = (await client.extractData(new LotDataToExtract({
         name: lotInfo.name,
         conditionDescription: lotInfo.conditionDescription,
         description: lotInfo.description
-    }))
+    }))).reduce((dictionary, value) => {
+        dictionary[value.fieldName] = value.extractedData;
+        return dictionary;
+    }, {});
 
+    let extractedData : LotDataExtractedItem[] = extractedDataByFieldName["pcs"];
+    
     console.log(JSON.stringify(extractedData))
     
     if (extractedData.length > 0) {
 
-        autoPcsField.value = extractedData[0].count.toString();
+        autoPcsField.value = extractedData[0].value;
 
         if (extractedData.length === 1) {
             autoPcsField.style.backgroundColor = lightGreenColor;

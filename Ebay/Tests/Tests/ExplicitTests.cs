@@ -75,9 +75,9 @@ public class ExplicitTests
 
                 var result = ManualFieldsExtractor.ExtractCount(
                     new LotDataToExtract(
-                        lotInfoShort.ConditionDescription,
-                        lotInfoFull.LotInfo.Description,
-                        lotInfoShort.Name)
+                        conditionDescription: lotInfoShort.ConditionDescription,
+                        description: lotInfoFull.LotInfo.Description,
+                        name: lotInfoShort.Name)
                 );
 
                 var pcsResult = result["pcs"];
@@ -86,8 +86,8 @@ public class ExplicitTests
                     pcsResult.MaxBy(x => x.Value.Count).Key) == lotInfoShort.Pcs);
 
                 Assert.That(
-                    isExtractedCorrectly,
-                    $"product: {product.Id}, lotId: {lotInfoShort.LotId}, " +
+                    condition: isExtractedCorrectly,
+                    message: $"product: {product.Id}, lotId: {lotInfoShort.LotId}, " +
                     $"seller: {lotInfoShort.Seller}, lotNumber: {lotNumber}, result: {Environment.NewLine}{ToStr(pcsResult)}"
                 );
 
@@ -96,7 +96,7 @@ public class ExplicitTests
         }
     }
 
-    private string ToStr(Dictionary<string, HashSet<ExtractionResult>> result)
+    private static string ToStr(Dictionary<string, HashSet<ExtractionResult>> result)
     {
         return string.Join(
             Environment.NewLine,
