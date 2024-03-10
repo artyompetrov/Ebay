@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 using Ebay.Server.Controllers.Generated;
 using Ebay.Server.Infrastructure;
 
@@ -7,7 +7,7 @@ namespace Ebay.Server.Services;
 internal class PcsExtractor : IExtractor
 {
     private static readonly string[] NewLines = { "\r\n", "\r", "\n" };
-    
+
     private static readonly ExtractFrom All = ExtractFrom.Title | ExtractFrom.Description |
         ExtractFrom.ConditionDescription;
 
@@ -95,7 +95,7 @@ internal class PcsExtractor : IExtractor
             extractionResult
         );
 
-        
+
         return extractionResult;
     }
 

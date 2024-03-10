@@ -1,4 +1,4 @@
-﻿using LotDataToExtract = Ebay.Server.Controllers.Generated.LotDataToExtract;
+using LotDataToExtract = Ebay.Server.Controllers.Generated.LotDataToExtract;
 
 namespace Ebay.Server.Services;
 

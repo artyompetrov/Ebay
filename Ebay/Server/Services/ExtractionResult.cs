@@ -1,4 +1,4 @@
-﻿namespace Ebay.Server.Services;
+namespace Ebay.Server.Services;
 
 internal record struct ExtractionResult(ExtractFrom ExtractedFrom, string Extractor, string Match)
 {

@@ -1,8 +1,6 @@
 using System.Net.Http.Headers;
 using Ebay.Server;
 using Ebay.Client.Clients.Generated;
-using Ebay.Server.Controllers.Generated;
-using Ebay.Server.Infrastructure;
 using Ebay.Server.Services;
 using Newtonsoft.Json.Linq;
 using LotDataToExtract = Ebay.Server.Controllers.Generated.LotDataToExtract;
@@ -59,43 +57,43 @@ public class ExplicitTests
             "sarmat1968"
         };
 
-       var allProducts = await _client.GetAllProductsAsync();
-       var lotNumber = 0;
-       foreach (var product in allProducts)
-       {
-           //if (product.Id != Guid.Parse("56037ebe-d27d-454c-88ae-669475c5e9f7")) continue;
-           
-           var info = await _client.GetLotsAsync(product.Id);
+        var allProducts = await _client.GetAllProductsAsync();
+        var lotNumber = 0;
+        foreach (var product in allProducts)
+        {
+            //if (product.Id != Guid.Parse("56037ebe-d27d-454c-88ae-669475c5e9f7")) continue;
 
-           foreach (var lotInfoShort in info)
-           {
-               //if (lotInfoShort.LotId != 364647356108) continue;
+            var info = await _client.GetLotsAsync(product.Id);
 
-               if (excludeSellers.Contains(lotInfoShort.Seller)) continue;
+            foreach (var lotInfoShort in info)
+            {
+                //if (lotInfoShort.LotId != 364647356108) continue;
 
-               var lotInfoFull = await _client.GetLotInfoAsync(lotInfoShort.LotId);
+                if (excludeSellers.Contains(lotInfoShort.Seller)) continue;
 
-               var result = ManualFieldsExtractor.ExtractCount(
-                   new LotDataToExtract(
-                       lotInfoShort.ConditionDescription,
-                       lotInfoFull.LotInfo.Description,
-                       lotInfoShort.Name)
-               );
+                var lotInfoFull = await _client.GetLotInfoAsync(lotInfoShort.LotId);
 
-               var pcsResult = result["pcs"];
-               
-               var isExtractedCorrectly = (lotInfoShort.Pcs == 1 && pcsResult.Count == 0) || (result.Count >= 1 && int.Parse(
-                   pcsResult.MaxBy(x => x.Value.Count).Key) == lotInfoShort.Pcs);
+                var result = ManualFieldsExtractor.ExtractCount(
+                    new LotDataToExtract(
+                        lotInfoShort.ConditionDescription,
+                        lotInfoFull.LotInfo.Description,
+                        lotInfoShort.Name)
+                );
 
-               Assert.That(
-                   isExtractedCorrectly,
-                   $"product: {product.Id}, lotId: {lotInfoShort.LotId}, " +
-                   $"seller: {lotInfoShort.Seller}, lotNumber: {lotNumber}, result: {Environment.NewLine}{ToStr(pcsResult)}"
-               );
+                var pcsResult = result["pcs"];
 
-               lotNumber++;
-           }
-       }
+                var isExtractedCorrectly = (lotInfoShort.Pcs == 1 && pcsResult.Count == 0) || (result.Count >= 1 && int.Parse(
+                    pcsResult.MaxBy(x => x.Value.Count).Key) == lotInfoShort.Pcs);
+
+                Assert.That(
+                    isExtractedCorrectly,
+                    $"product: {product.Id}, lotId: {lotInfoShort.LotId}, " +
+                    $"seller: {lotInfoShort.Seller}, lotNumber: {lotNumber}, result: {Environment.NewLine}{ToStr(pcsResult)}"
+                );
+
+                lotNumber++;
+            }
+        }
     }
 
     private string ToStr(Dictionary<string, HashSet<ExtractionResult>> result)

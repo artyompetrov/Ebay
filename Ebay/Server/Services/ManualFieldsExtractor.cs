@@ -1,4 +1,4 @@
-﻿using Ebay.Server.Controllers.Generated;
+using Ebay.Server.Controllers.Generated;
 namespace Ebay.Server.Services;
 
 internal static class ManualFieldsExtractor
