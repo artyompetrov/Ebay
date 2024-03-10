@@ -1171,7 +1171,7 @@ namespace Ebay.Client.Clients.Generated
         /// </summary>
         /// <returns>Ok</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<System.Collections.Generic.ICollection<LotDataExtractedItem>> ExtractDataAsync(LotDataToExtract lotInfo)
+        public virtual System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ExtractedFields>> ExtractDataAsync(LotDataToExtract lotInfo)
         {
             return ExtractDataAsync(lotInfo, System.Threading.CancellationToken.None);
         }
@@ -1182,7 +1182,7 @@ namespace Ebay.Client.Clients.Generated
         /// </summary>
         /// <returns>Ok</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<LotDataExtractedItem>> ExtractDataAsync(LotDataToExtract lotInfo, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ExtractedFields>> ExtractDataAsync(LotDataToExtract lotInfo, System.Threading.CancellationToken cancellationToken)
         {
             if (lotInfo == null)
                 throw new System.ArgumentNullException("lotInfo");
@@ -1226,7 +1226,7 @@ namespace Ebay.Client.Clients.Generated
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<LotDataExtractedItem>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<ExtractedFields>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -1725,10 +1725,24 @@ namespace Ebay.Client.Clients.Generated
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ExtractedFields
+    {
+        [Newtonsoft.Json.JsonProperty("fieldName", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public string FieldName { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("extractedData", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.ICollection<LotDataExtractedItem> ExtractedData { get; set; } = new System.Collections.ObjectModel.Collection<LotDataExtractedItem>();
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class LotDataExtractedItem
     {
-        [Newtonsoft.Json.JsonProperty("count", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public int Count { get; set; }
+        [Newtonsoft.Json.JsonProperty("value", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public string Value { get; set; }
 
         [Newtonsoft.Json.JsonProperty("extractorInfo", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]

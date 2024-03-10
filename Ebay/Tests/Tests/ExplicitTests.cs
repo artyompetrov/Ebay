@@ -1,9 +1,11 @@
 using System.Net.Http.Headers;
 using Ebay.Server;
 using Ebay.Client.Clients.Generated;
+using Ebay.Server.Controllers.Generated;
 using Ebay.Server.Infrastructure;
 using Ebay.Server.Services;
 using Newtonsoft.Json.Linq;
+using LotDataToExtract = Ebay.Server.Controllers.Generated.LotDataToExtract;
 
 namespace Tests;
 
@@ -74,18 +76,21 @@ public class ExplicitTests
                var lotInfoFull = await _client.GetLotInfoAsync(lotInfoShort.LotId);
 
                var result = ManualFieldsExtractor.ExtractCount(
-                   lotInfoShort.Name,
-                   lotInfoShort.ConditionDescription,
-                   lotInfoFull.LotInfo.Description
+                   new LotDataToExtract(
+                       lotInfoShort.ConditionDescription,
+                       lotInfoFull.LotInfo.Description,
+                       lotInfoShort.Name)
                );
 
-               var isExtractedCorrectly = (lotInfoShort.Pcs == 1 && result.Count == 0) || (result.Count >= 1 &&
-                   result.OrderByDescending(x => x.Value.Count).First().Key == lotInfoShort.Pcs);
+               var pcsResult = result["pcs"];
+               
+               var isExtractedCorrectly = (lotInfoShort.Pcs == 1 && pcsResult.Count == 0) || (result.Count >= 1 && int.Parse(
+                   pcsResult.MaxBy(x => x.Value.Count).Key) == lotInfoShort.Pcs);
 
                Assert.That(
                    isExtractedCorrectly,
                    $"product: {product.Id}, lotId: {lotInfoShort.LotId}, " +
-                   $"seller: {lotInfoShort.Seller}, lotNumber: {lotNumber}, result: {Environment.NewLine}{ToStr(result)}"
+                   $"seller: {lotInfoShort.Seller}, lotNumber: {lotNumber}, result: {Environment.NewLine}{ToStr(pcsResult)}"
                );
 
                lotNumber++;
@@ -93,7 +98,7 @@ public class ExplicitTests
        }
     }
 
-    private string ToStr(Dictionary<int, HashSet<ManualFieldsExtractor.ExtractionResult>> result)
+    private string ToStr(Dictionary<string, HashSet<ExtractionResult>> result)
     {
         return string.Join(
             Environment.NewLine,

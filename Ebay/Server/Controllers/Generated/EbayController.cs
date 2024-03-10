@@ -128,7 +128,7 @@ namespace Ebay.Server.Controllers.Generated
 
         /// <returns>Ok</returns>
 
-        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<LotDataExtractedItem>> ExtractDataAsync(LotDataToExtract lotInfo, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ExtractedFields>> ExtractDataAsync(LotDataToExtract lotInfo, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
         /// <summary>
         /// Save Error
@@ -286,7 +286,7 @@ namespace Ebay.Server.Controllers.Generated
         /// </summary>
         /// <returns>Ok</returns>
         [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("extract_data/")]
-        public System.Threading.Tasks.Task<System.Collections.Generic.ICollection<LotDataExtractedItem>> ExtractData([Microsoft.AspNetCore.Mvc.FromBody] LotDataToExtract lotInfo, System.Threading.CancellationToken cancellationToken)
+        public System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ExtractedFields>> ExtractData([Microsoft.AspNetCore.Mvc.FromBody] LotDataToExtract lotInfo, System.Threading.CancellationToken cancellationToken)
         {
 
             return _implementation.ExtractDataAsync(lotInfo, cancellationToken);
@@ -771,20 +771,44 @@ namespace Ebay.Server.Controllers.Generated
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ExtractedFields
+    {
+        [Newtonsoft.Json.JsonConstructor]
+
+        public ExtractedFields(System.Collections.Generic.List<LotDataExtractedItem> @extractedData, string @fieldName)
+
+        {
+
+            this.FieldName = @fieldName;
+
+            this.ExtractedData = @extractedData;
+
+        }    [Newtonsoft.Json.JsonProperty("fieldName", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public string FieldName { get; }
+
+        [Newtonsoft.Json.JsonProperty("extractedData", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.List<LotDataExtractedItem> ExtractedData { get; }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class LotDataExtractedItem
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public LotDataExtractedItem(int @count, System.Collections.Generic.List<ExtractorInfo> @extractorInfo)
+        public LotDataExtractedItem(System.Collections.Generic.List<ExtractorInfo> @extractorInfo, string @value)
 
         {
 
-            this.Count = @count;
+            this.Value = @value;
 
             this.ExtractorInfo = @extractorInfo;
 
-        }    [Newtonsoft.Json.JsonProperty("count", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public int Count { get; }
+        }    [Newtonsoft.Json.JsonProperty("value", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public string Value { get; }
 
         [Newtonsoft.Json.JsonProperty("extractorInfo", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]

@@ -298,11 +298,10 @@ internal class EbayControllerImplementation : IEbayController
             .Select(x => x.ToApiCurrency()).ToList();
     }
 
-    public Task<ICollection<LotDataExtractedItem>> ExtractDataAsync(LotDataToExtract lotInfo, CancellationToken cancellationToken)
+    public Task<ICollection<ExtractedFields>> ExtractDataAsync(LotDataToExtract lotInfo, CancellationToken cancellationToken)
     {
         return Task.FromResult(
-            ManualFieldsExtractor.ExtractCount(lotInfo.Name, lotInfo.ConditionDescription, lotInfo.Description)
-                .ToApiExtractedData()
+            ManualFieldsExtractor.ExtractCount(lotInfo).ToApiExtractedData()
         );
     }
 

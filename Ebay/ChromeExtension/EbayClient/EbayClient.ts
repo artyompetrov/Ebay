@@ -624,7 +624,7 @@ export class Client {
      * Извлекает информацию о лоте из названия и описания
      * @return Ok
      */
-    extractData(lotInfo: LotDataToExtract): Promise<LotDataExtractedItem[]> {
+    extractData(lotInfo: LotDataToExtract): Promise<ExtractedFields[]> {
         let url_ = this.baseUrl + "/extract_data/";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -644,7 +644,7 @@ export class Client {
         });
     }
 
-    protected processExtractData(response: Response): Promise<LotDataExtractedItem[]> {
+    protected processExtractData(response: Response): Promise<ExtractedFields[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -654,7 +654,7 @@ export class Client {
             if (Array.isArray(resultData200)) {
                 result200 = [] as any;
                 for (let item of resultData200)
-                    result200!.push(LotDataExtractedItem.fromJS(item));
+                    result200!.push(ExtractedFields.fromJS(item));
             }
             else {
                 result200 = <any>null;
@@ -666,7 +666,7 @@ export class Client {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<LotDataExtractedItem[]>(null as any);
+        return Promise.resolve<ExtractedFields[]>(null as any);
     }
 
     /**
@@ -1360,8 +1360,59 @@ export interface ILotDataToExtract {
     description: string;
 }
 
+export class ExtractedFields implements IExtractedFields {
+    fieldName!: string;
+    extractedData!: LotDataExtractedItem[];
+
+    constructor(data?: IExtractedFields) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+        if (!data) {
+            this.extractedData = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.fieldName = _data["fieldName"];
+            if (Array.isArray(_data["extractedData"])) {
+                this.extractedData = [] as any;
+                for (let item of _data["extractedData"])
+                    this.extractedData!.push(LotDataExtractedItem.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): ExtractedFields {
+        data = typeof data === 'object' ? data : {};
+        let result = new ExtractedFields();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["fieldName"] = this.fieldName;
+        if (Array.isArray(this.extractedData)) {
+            data["extractedData"] = [];
+            for (let item of this.extractedData)
+                data["extractedData"].push(item.toJSON());
+        }
+        return data;
+    }
+}
+
+export interface IExtractedFields {
+    fieldName: string;
+    extractedData: LotDataExtractedItem[];
+}
+
 export class LotDataExtractedItem implements ILotDataExtractedItem {
-    count!: number;
+    value!: string;
     extractorInfo!: ExtractorInfo[];
 
     constructor(data?: ILotDataExtractedItem) {
@@ -1378,7 +1429,7 @@ export class LotDataExtractedItem implements ILotDataExtractedItem {
 
     init(_data?: any) {
         if (_data) {
-            this.count = _data["count"];
+            this.value = _data["value"];
             if (Array.isArray(_data["extractorInfo"])) {
                 this.extractorInfo = [] as any;
                 for (let item of _data["extractorInfo"])
@@ -1396,7 +1447,7 @@ export class LotDataExtractedItem implements ILotDataExtractedItem {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["count"] = this.count;
+        data["value"] = this.value;
         if (Array.isArray(this.extractorInfo)) {
             data["extractorInfo"] = [];
             for (let item of this.extractorInfo)
@@ -1407,7 +1458,7 @@ export class LotDataExtractedItem implements ILotDataExtractedItem {
 }
 
 export interface ILotDataExtractedItem {
-    count: number;
+    value: string;
     extractorInfo: ExtractorInfo[];
 }
 

@@ -129,16 +129,21 @@ internal static class ModelsExtensions
     );
 
 
-    public static ICollection<LotDataExtractedItem> ToApiExtractedData(
-        this Dictionary<int, HashSet<ManualFieldsExtractor.ExtractionResult>> extractionResult
+    public static ICollection<ExtractedFields> ToApiExtractedData(
+        this Dictionary<string, Dictionary<string, HashSet<ExtractionResult>>> extractionResult
     )
     {
-        return extractionResult.OrderByDescending(x => x.Value.Count).Select(
-                x => new LotDataExtractedItem(
-                    x.Key,
-                    x.Value.Select(y => new ExtractorInfo(y.ExtractedFrom.ToString(), y.Extractor, y.Match)).ToList()
+        return extractionResult.Select(z => new ExtractedFields(
+            extractedData: z.Value.OrderByDescending(x => x.Value.Count)
+                .Select(
+                    x => new LotDataExtractedItem(
+                        x.Value.Select(y => new ExtractorInfo(y.ExtractedFrom.ToString(), y.Extractor, y.Match))
+                            .ToList(),
+                        x.Key
+                    )
                 )
-            )
-            .ToList();
+                .ToList(),
+            z.Key
+        )).ToList();
     }
 }

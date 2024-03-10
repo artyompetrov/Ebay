@@ -1,5 +1,8 @@
 namespace Ebay.Client.Clients.Generated;
 
+/// <summary>
+/// Расширение сгенеренного класса
+/// </summary>
 public partial class ProductWithId
 {
     /// <summary>

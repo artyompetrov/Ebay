@@ -230,7 +230,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/LotDataExtractedItem'
+              $ref: '#/definitions/ExtractedFields'
 
   /error/:
     post:
@@ -535,17 +535,32 @@ definitions:
       - name
       - description
 
+  ExtractedFields:
+    type: object
+    properties:
+      fieldName:
+        type: string
+        minLength: 1
+      extractedData:
+        type: array
+        items:
+          $ref: '#/definitions/LotDataExtractedItem'
+    required:
+      - fieldName
+      - extractedData
+
   LotDataExtractedItem:
     type: object
     properties:
-      count:
-        type: integer
+      value:
+        type: string
+        minLength: 1
       extractorInfo:
         type: array
         items:
           $ref: '#/definitions/ExtractorInfo'
     required:
-      - count
+      - value
       - extractorInfo
   
   ExtractorInfo:
