@@ -33,8 +33,11 @@ internal class PcsExtractor : ExtractorBase, IExtractor
         new Extractor(new Regex(@"\bquad\s+match(?:ed)?\b", Ro), 4, 1, All),
         new Extractor(new Regex(@"\bmatch(?:ed)?\s+quad\b", Ro), 4, 1, All),
         new Extractor(new Regex(@"\bmatch(?:ed)?\s+quartet\b", Ro), 4, 1, All),
+        new Extractor(new Regex(@"\btwo\s+match(?:ed)?\s+octets\b", Ro), 16, 1, All),
+        new Extractor(new Regex(@"\bmatch(?:ed)?\s+octet\b", Ro), 8, 1, All),
         new Extractor(new Regex(@"\bmatch(?:ed)?\s+four\b", Ro), 4, 1, All),
         new Extractor(new Regex(@"\b(\d+)\s*pc\b", Ro), null, 1, All),
+        new Extractor(new Regex(@"\b(\d+)\s*units\b", Ro), null, 1, All),
         new Extractor(new Regex(@"(?:x|\b)(\d{1,3})\s*pcs\b", Ro), null, 1, All),
         new Extractor(new Regex(@"\bpcs\s*(\d{1,3})\b", Ro), null, 1, All),
         new Extractor(new Regex(@"(?:^|\s+)(\d{1,3})\s*x\b", Ro), null, 1, TitleAndConditionDescription),
@@ -57,7 +60,8 @@ internal class PcsExtractor : ExtractorBase, IExtractor
         new Extractor(new Regex(@"^pair\b", Ro), 2, 1, All),
         new Extractor(new Regex(@"^four\b", Ro), 4, 1, All),
         new Extractor(new Regex(@"\bquad\b", Ro), 4, 1, All),
-        new Extractor(new Regex(@"\bquartet\b", Ro), 4, 1, All)
+        new Extractor(new Regex(@"\bquartet\b", Ro), 4, 1, All),
+        new Extractor(new Regex(@"\boctet\b", Ro), 8, 1, All)
     };
 
     public Dictionary<string, HashSet<ExtractionResult>> Extract(LotDataToExtract lotDataToExtract)

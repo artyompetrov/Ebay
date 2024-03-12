@@ -44,9 +44,10 @@ public class ExplicitTests
         return new EbayClient(httpClient) { BaseUrl = baseAddress + "/api/ebay/v1" };
     }
 
-    private static readonly HashSet<string> ExcludedSellersPcs = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly HashSet<long> ExcludedLotIdsPcs = new()
     {
-        "sarmat1968"
+        115990989605,
+        134932685272
     };
 
     [TestCaseSource(nameof(GetLots))]
@@ -54,7 +55,7 @@ public class ExplicitTests
     {
         var lotInfoFull = await Client.GetLotInfoAsync(lotId);
 
-        if (ExcludedSellersPcs.Contains(lotInfoFull.LotInfo.Seller)) return;
+        if (ExcludedLotIdsPcs.Contains(lotId)) return;
 
         var extractedFields = ManualFieldsExtractor.ExtractCount(
             new LotDataToExtract(
@@ -74,7 +75,7 @@ public class ExplicitTests
 
         Assert.That(
             condition: isExtractedCorrectly,
-            message: ToStr(result)
+            message: $"{ToStr(result)}{Environment.NewLine}lotId: {lotId}{Environment.NewLine}seller:{lotInfoFull.LotInfo.Seller}"
         );
     }
 
@@ -123,7 +124,7 @@ public class ExplicitTests
             (results.Count == 1 && results[0].Key.Equals(manualCondition)) ||
                 (results.Count > 1 && results[0].Value.Count > results[1].Value.Count &&
                     results[0].Key.Equals(manualCondition)),
-            message: ToStr(result)
+            message: $"{ToStr(result)}{Environment.NewLine}lotId: {lotId}{Environment.NewLine}seller:{lotInfoFull.LotInfo.Seller}"
         );
     }
 
