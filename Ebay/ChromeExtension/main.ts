@@ -1,15 +1,19 @@
 import {
     CategoryValue,
-    Client, ClientErrorInfo, LotDataExtractedItem, LotDataToExtract,
+    Client,
+    ClientErrorInfo,
+    LotDataExtractedItem,
+    LotDataToExtract,
     LotInfo,
-    LotInfoWithProductId, NotFoundProblemDetailedInfo,
-    PurchaseInfo, ValidationProblemDetailedInfo
+    LotInfoWithProductId,
+    NotFoundProblemDetailedInfo,
+    PurchaseInfo,
+    ValidationProblemDetailedInfo
 } from "./EbayClient/EbayClient"
 
 import jsonpath from "jsonpath";
 import {generateCodeVerifier, OAuth2Client} from '@badgateway/oauth2-client';
 import {FetchWrapperCustom} from "./FetchWrapperCustom";
-import {cli} from "webpack";
 
 const ignoreThatLotFieldName = "ignoreThatLot";
 const productFieldName = "productId";
@@ -698,9 +702,9 @@ async function fillProduct(panel: HTMLDivElement, client: Client, serverLotInfo:
     }
 }
 
-async function fillManualCondition(panel: HTMLDivElement, client: Client, serverLotInfo: LotInfoWithProductId | undefined) {
-    let categoriesField = panel.querySelector('div#' + categoriesDiv);
-    categoriesField.innerHTML = ""
+async function fillManualCondition(panel: HTMLDivElement, client: Client, serverLotInfo: LotInfoWithProductId | undefined, extractedDataByFieldName : {}) {
+    let categoriesDivElement = panel.querySelector('div#' + categoriesDiv);
+    categoriesDivElement.innerHTML = ""
 
     let serverCategories = serverLotInfo?.lotInfo?.categories?.reduce((dictionary, value) => {
         dictionary[value.type] = value.value;
@@ -709,28 +713,59 @@ async function fillManualCondition(panel: HTMLDivElement, client: Client, server
 
     let categoryTypes = await client.getCategories()
 
+    
     for (let categoryType of categoryTypes) {
         let categoryDiv = document.createElement("div")
 
+        let extractedData: LotDataExtractedItem[] = extractedDataByFieldName[categoryType.type];
+        
+        let extractedDataCounts = extractedData?.reduce((dictionary, value) => {
+            dictionary[value.value] = value.extractorInfo.length;
+            return dictionary;
+        }, {});
+        
         let serverValue = serverCategories ? serverCategories[categoryType.type] : undefined
+        
+        let minMatchesCount = 0
+        let inputToCheck : HTMLInputElement = undefined
         for (let categoryItem of categoryType.items) {
+            let isInExtracted = extractedDataCounts && categoryItem.id in extractedDataCounts
+            
             let input = <HTMLInputElement>document.createElement("input")
+            let label = <HTMLLabelElement>document.createElement("label")
             let inputId = 'radio_' + categoryType.type + '_' + categoryItem.id
             input.type = 'radio'
             input.id = inputId
             input.name = categoryPrefix + categoryType.type
             input.value = categoryItem.id
             if (serverValue && serverValue === categoryItem.id) {
-                input.checked = true;
+                inputToCheck = input
             }
-            let label = <HTMLLabelElement>document.createElement("label")
+            
+            if (isInExtracted) {
+                label.style.color = "red"
+                
+                if (!serverValue) {
+                    let currentCount = extractedDataCounts[categoryItem.id]
+                    if (currentCount > minMatchesCount) {
+                        inputToCheck = input
+                        minMatchesCount = currentCount
+                    }
+                }
+            }
+            
             label.innerText = categoryItem.description
             label.htmlFor = inputId
+            
             categoryDiv.appendChild(input)
             categoryDiv.appendChild(label)
         }
+        
+        if (inputToCheck) {
+            inputToCheck.checked = true;
+        }
 
-        categoriesField.appendChild(categoryDiv);
+        categoriesDivElement.appendChild(categoryDiv);
     }
 }
 
@@ -746,12 +781,45 @@ async function getServerLotInfo(client: Client): Promise<LotInfoWithProductId | 
     }
 }
 
-async function fillPcs(panel: HTMLDivElement, serverLotInfo: LotInfoWithProductId | undefined) {
+async function fillPcs(panel: HTMLDivElement, serverLotInfo: LotInfoWithProductId | undefined, extractedDataByFieldName: {}) {
     let pcsField = <HTMLInputElement>panel.querySelector('input#' + pcsFieldName);
+    let autoPcsField = <HTMLInputElement>panel.querySelector('input#' + autoPcsFieldName);
+    
+    let fillManualWithAutoValue = false
+    let extractedData: LotDataExtractedItem[] = extractedDataByFieldName["pcs"];
+    console.log(JSON.stringify(extractedData))
+
+    if (extractedData.length > 0) {
+
+        autoPcsField.value = extractedData[0].value;
+
+        if (extractedData.length === 1) {
+            autoPcsField.style.backgroundColor = lightGreenColor;
+
+            fillManualWithAutoValue = true
+        } else {
+            if (extractedData[0].extractorInfo.length > extractedData[1].extractorInfo.length) {
+                autoPcsField.style.backgroundColor = lightYellowColor;
+
+                fillManualWithAutoValue = true
+            } else {
+                autoPcsField.style.backgroundColor = lightPinkColor;
+            }
+        }
+
+    } else {
+        autoPcsField.value = "1"
+        autoPcsField.style.backgroundColor = lightYellowColor;
+
+        fillManualWithAutoValue = true
+    }
 
     let serverPcs = serverLotInfo?.lotInfo?.pcs
     if (serverPcs !== undefined) {
         pcsField.value = serverPcs.toString()
+    }
+    else if (fillManualWithAutoValue) {
+        pcsField.value = autoPcsField.value
     }
 }
 
@@ -833,18 +901,9 @@ async function checkIfTypedLot() {
     }
 }
 
-function fillManualWithAutoValue(pcsField: HTMLInputElement, autoPcsField: HTMLInputElement) {
-    if (!pcsField.value) {
-        pcsField.value = autoPcsField.value;
-    }
-}
 
-async function fillAutoPcs(panel: HTMLDivElement, client: Client) {
-    console.log("fillAutoPcs");
-    let autoPcsField = <HTMLInputElement>panel.querySelector('input#' + autoPcsFieldName);
-    let pcsField = <HTMLInputElement>panel.querySelector('input#' + pcsFieldName);
-    
-    let extractedDataByFieldName = (await client.extractData(new LotDataToExtract({
+async function fillManualFieldsAuto(panel: HTMLDivElement, client: Client) : Promise<{}> {
+    return (await client.extractData(new LotDataToExtract({
         name: lotInfo.name,
         conditionDescription: lotInfo.conditionDescription,
         condition: lotInfo.condition,
@@ -852,42 +911,7 @@ async function fillAutoPcs(panel: HTMLDivElement, client: Client) {
     }))).reduce((dictionary, value) => {
         dictionary[value.fieldName] = value.extractedData;
         return dictionary;
-    }, {});
-
-    let extractedData : LotDataExtractedItem[] = extractedDataByFieldName["pcs"];
-    
-    console.log(JSON.stringify(extractedData))
-    
-    if (extractedData.length > 0) {
-
-        autoPcsField.value = extractedData[0].value;
-
-        if (extractedData.length === 1) {
-            autoPcsField.style.backgroundColor = lightGreenColor;
-
-            fillManualWithAutoValue(pcsField, autoPcsField);
-        }
-        else
-        {
-            if (extractedData[0].extractorInfo.length > extractedData[1].extractorInfo.length) {
-                autoPcsField.style.backgroundColor = lightYellowColor;
-
-                fillManualWithAutoValue(pcsField, autoPcsField);
-            }
-            else {
-                autoPcsField.style.backgroundColor = lightPinkColor;
-            }
-        }
-
-    }
-    else {
-        autoPcsField.value = "1"
-        autoPcsField.style.backgroundColor = lightYellowColor;
-
-        fillManualWithAutoValue(pcsField, autoPcsField);
-    }
-
-    console.log("fillAutoPcs finished")
+    }, {})
 }
 
 async function getDataFromPage(client: Client) {
@@ -906,18 +930,18 @@ async function getDataFromPage(client: Client) {
         checkIfTypedLot(),
     ])
 
+    let extractedDataByFieldName = await fillManualFieldsAuto(panel, client);
+    
     await Promise.all([
         fillPurchaseHistory(),
         fillUpdateTitleDate(),
         fillProduct(panel, client, _serverLotInfo),
-        fillManualCondition(panel, client, _serverLotInfo),
-        fillPcs(panel, _serverLotInfo),
+        fillManualCondition(panel, client, _serverLotInfo, extractedDataByFieldName),
+        fillPcs(panel, _serverLotInfo, extractedDataByFieldName),
         fillIgnoreThatLot(panel, _serverLotInfo),
-        fillShipping(),
-        
+        fillShipping()
     ]);
-    
-    await fillAutoPcs(panel, client)
+
 
     console.log("show panel")
     panel.hidden = false;

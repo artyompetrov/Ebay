@@ -82,7 +82,6 @@ public class ExplicitTests
     private static readonly HashSet<long> ExcludedLotIdsCondition = new()
     {
         115600325335,
-        144516705375,
         155061500445,
         155190093237,
         155628872803,
