@@ -79,22 +79,23 @@ public class ExplicitTests
         );
     }
 
-    private static readonly HashSet<string> ExcludedSellersCondition = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly HashSet<long> ExcludedLotIdsCondition = new()
     {
-        "nikolay zhuk",
-        "radio components",
-        "brand mix-11",
-        "soundlander",
-        "electronic parts choice",
-        "nati 99 electronics",
-        "sovietrecords",
-        "romaldas",
-        "paveshkabur-0",
-        "vintelec777",
-        "radiostartubes",
-        "radio tubes ukraine",
-        "vaidas vintage store",
-        "gra_and_afch_2",
+        115600325335,
+        144516705375,
+        155061500445,
+        155190093237,
+        155628872803,
+        162171498944,
+        166490092743,
+        256363775925,
+        254582883069,
+        256256173901,
+        314895518427,
+        364637278865,
+        364644537967,
+        364675778206,
+        386676163668
     };
 
     [TestCaseSource(nameof(GetLots))]
@@ -102,7 +103,7 @@ public class ExplicitTests
     {
         var lotInfoFull = await Client.GetLotInfoAsync(lotId);
 
-        if (ExcludedSellersCondition.Contains(lotInfoFull.LotInfo.Seller)) return;
+        if (ExcludedLotIdsCondition.Contains(lotId)) return;
 
         var extractedFields = ManualFieldsExtractor.ExtractCount(
             new LotDataToExtract(
