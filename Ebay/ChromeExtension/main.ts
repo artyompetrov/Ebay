@@ -204,6 +204,11 @@ async function createPanel(client: Client): Promise<HTMLDivElement> {
     #${categoriesDiv} label {
         padding-right: 10px;
     }
+    
+    #${submitId} {
+        width: 350px;
+        height: 30px;
+    }
 `
 
     let styleSheet = document.createElement("style")
@@ -249,7 +254,6 @@ async function createPanel(client: Client): Promise<HTMLDivElement> {
         <div id="${unsupportedLotDiv}" hidden="hidden">Лот не поддерживается, будет добавлен в игнор
         </div>
         <div style="color: red;" id="${errorElementId}"></div>
-        <br>
         <input id="${submitId}" type="submit" value="Save" disabled/>
     `;
 
