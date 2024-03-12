@@ -744,6 +744,7 @@ async function fillManualCondition(panel: HTMLDivElement, client: Client, server
         
         let minMatchesCount = 0
         let inputToCheck : HTMLInputElement = undefined
+        
         for (let categoryItem of categoryType.items) {
             let isInExtracted = extractedDataCounts && categoryItem.id in extractedDataCounts
             
@@ -759,7 +760,7 @@ async function fillManualCondition(panel: HTMLDivElement, client: Client, server
             }
             
             if (isInExtracted) {
-                label.style.color = "red"
+                label.style.color = "green"
                 
                 if (!serverValue) {
                     let currentCount = extractedDataCounts[categoryItem.id]
@@ -775,6 +776,10 @@ async function fillManualCondition(panel: HTMLDivElement, client: Client, server
             
             categoryDiv.appendChild(input)
             categoryDiv.appendChild(label)
+            
+            if (!inputToCheck && extractedDataCounts) {
+                inputToCheck = input
+            }
         }
         
         if (inputToCheck) {
