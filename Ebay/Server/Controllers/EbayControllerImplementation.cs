@@ -306,7 +306,7 @@ internal class EbayControllerImplementation : IEbayController
     public Task<ICollection<ExtractedFields>> ExtractDataAsync(LotDataToExtract lotInfo, CancellationToken cancellationToken)
     {
         return Task.FromResult(
-            ManualFieldsExtractor.ExtractCount(lotInfo).ToApiExtractedData()
+            ManualFieldsExtractor.ExtractManualData(lotInfo).ToApiExtractedData()
         );
     }
 

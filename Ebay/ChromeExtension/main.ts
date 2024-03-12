@@ -32,6 +32,19 @@ const authRedirectUrl = "https://www.ebay.com/"
 const lightGreenColor = "#ecffec"
 const lightPinkColor = "lightpink"
 const lightYellowColor = "#e0e07f"
+
+const supportedEuCountries = new Set([
+    'Germany',
+    'Italy',
+    'France',
+    'Bulgaria',
+    'Lithuania',
+    'Slovakia',
+    'Latvia',
+    'Romania',
+    'Estonia',
+    'Poland'
+])
 const supportedEuropeCountries = new Set([
     'Germany',
     'Italy',
@@ -496,7 +509,10 @@ async function fillConditionDescription() {
 
 
 function hasShippingToCountry(country: string, shipsTo: Set<string>, excludes: Set<string>) {
-    return (shipsTo.has('Worldwide') || (shipsTo.has("Europe") && supportedEuropeCountries.has(country)) || shipsTo.has(country)) && !excludes.has(country);
+    return (shipsTo.has('Worldwide')
+        || (shipsTo.has("Europe") && supportedEuropeCountries.has(country))
+        || (shipsTo.has("European Union") && supportedEuCountries.has(country))
+        || shipsTo.has(country)) && !excludes.has(country);
 }
 
 function getShipsTo(shippingDiv: Element): Set<string> {

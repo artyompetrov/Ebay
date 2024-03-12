@@ -9,7 +9,7 @@ internal static class ManualFieldsExtractor
         new ConditionExtractor()
     };
 
-    public static Dictionary<string, Dictionary<string, HashSet<ExtractionResult>>> ExtractCount(
+    public static Dictionary<string, Dictionary<string, HashSet<ExtractionResult>>> ExtractManualData(
         LotDataToExtract lotDataToExtract
     )
     {

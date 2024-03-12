@@ -52,8 +52,10 @@ internal class PcsExtractor : ExtractorBase, IExtractor
         new Extractor(new Regex(@"^(\d{1,3})\s*(?:\*|x)", Ro), null, 1, All),
         new Extractor(new Regex(@"^(\d{1,3})\s*pair", Ro), null, 2, All),
         new Extractor(new Regex(@"^[([]?(\d{1,3})[)\]]?\s", Ro), null, 1, TitleAndConditionDescription),
+        new Extractor(new Regex(@"\bprice\s+is\s+for\s+one\bpair\b", Ro), 2, 1, All),
         new Extractor(new Regex(@"\bprice\s+is\s+for\s+one\b", Ro), 1, 1, All),
-
+        
+        new Extractor(new Regex(@"^one\s+pair\b", Ro), 2, 1, All),
         new Extractor(new Regex(@"^one\b", Ro), 1, 1, All),
         new Extractor(new Regex(@"^two\b", Ro), 2, 1, All),
         new Extractor(new Regex(@"^pair\b", Ro), 2, 1, All),

@@ -57,7 +57,7 @@ public class ExplicitTests
 
         if (ExcludedLotIdsPcs.Contains(lotId)) return;
 
-        var extractedFields = ManualFieldsExtractor.ExtractCount(
+        var extractedFields = ManualFieldsExtractor.ExtractManualData(
             new LotDataToExtract(
                 conditionDescription: lotInfoFull.LotInfo.ConditionDescription,
                 description: lotInfoFull.LotInfo.Description,
@@ -104,7 +104,7 @@ public class ExplicitTests
 
         if (ExcludedLotIdsCondition.Contains(lotId)) return;
 
-        var extractedFields = ManualFieldsExtractor.ExtractCount(
+        var extractedFields = ManualFieldsExtractor.ExtractManualData(
             new LotDataToExtract(
                 conditionDescription: lotInfoFull.LotInfo.ConditionDescription,
                 condition: lotInfoFull.LotInfo.Condition,
