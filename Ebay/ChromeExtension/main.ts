@@ -1,6 +1,6 @@
 import {
     CategoryValue,
-    Client,
+    EbayToolBackendClient,
     ClientErrorInfo,
     LotDataExtractedItem,
     LotDataToExtract,
@@ -9,7 +9,9 @@ import {
     NotFoundProblemDetailedInfo,
     PurchaseInfo,
     ValidationProblemDetailedInfo
-} from "./EbayClient/EbayClient"
+} from "./EbayClient/EbayToolBackendClient"
+
+import {EbayClient} from "./EbayClient/EbayClient"
 
 import jsonpath from "jsonpath";
 import {generateCodeVerifier, OAuth2Client} from '@badgateway/oauth2-client';
@@ -25,13 +27,17 @@ const panelInputClass = "panel-input-div";
 const formId = "product-form-id"
 const errorElementId = "errorElement"
 const submitId = "submitButton"
-//const backendUrl = "https://localhost:7095/"
-const backendUrl = "https://naks42.ru:17443/"
+const backendUrl = "https://localhost:7095/"
+//const backendUrl = "https://naks42.ru:17443/"
 const baseApiUrl = `${backendUrl}api/ebay/v1`;
-const authRedirectUrl = "https://www.ebay.com/"
+const redirectUrl = "https://www.ebay.com/"
+const ebayRedirectUriCode = "Artem_Petrov-ArtemPet-tubesS-dsrgu"
+const ebayApiScope = "https://api.ebay.com/oauth/api_scope"
+const backendApiScope = 'Ebay.ServerAPI'
 const lightGreenColor = "#ecffec"
 const lightPinkColor = "lightpink"
 const lightYellowColor = "#e0e07f"
+
 
 const supportedEuCountries = new Set([
     'Germany',
@@ -109,6 +115,7 @@ let _serverAndEbayAreEqual = false;
 
 // fetch через background script, по другому не работает
 function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response> {
+   //console.log(JSON.stringify(input) + " " + JSON.stringify(init))
     return new Promise((resolve, reject) => {
         chrome.runtime.sendMessage({input, init}, messageResponse => {
             const [response, error] = messageResponse;
@@ -124,6 +131,12 @@ function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response>
             }
         });
     });
+}
+
+function fetchResourceAuthorized(input: RequestInfo, init: RequestInit): Promise<Response> {
+    let token = "v^1.1#i^1#I^3#p^1#r^0#f^0#t^H4sIAAAAAAAAAOVYf2wTVRxvuw5Y2FDEgJkg5Qb8Adz1Xe/661ybdOvmasbWrRWBCPh6fbeeu94d914pBTHLiCQ4IuIvFjE4wJjoH6IJ+oe/EkhATMSQEIlGMlExTEn4Q6MGTIx37RjdJICsiUtskzbv+77v+z6fz/t+33t3oG9azbIdbTv+qLNPdwz1gT6H3c7OBDXTqpfPqnLUV9tAmYN9qG9xn7O/aqQRw6yiC90I65qKkWtzVlGxUDSGqJyhChrEMhZUmEVYIKKQiKxsFzwMEHRDI5qoKZQrFg1RvD8Ag8G0PwUgQEEuYFrVazGTWoiCfl/aB3yedNAT4H08MPsxzqGYiglUSYjyAA9PA45m+STrFzhW4D2Ml/OupVyrkIFlTTVdGECFi3CF4lijDOvNoUKMkUHMIFQ4FmlNdEZi0ZaOZKO7LFZ4VIcEgSSHx7eatTRyrYJKDt18Glz0FhI5UUQYU+5waYbxQYXINTB3AL8otYhECKSgxALRnzK/FZGyVTOykNwch2WR07RUdBWQSmRSuJWiphqpJ5BIRlsdZohY1GX9deWgIksyMkJUS1NkTSQep8IRg6BsHBGa5FIIJxCk491R2selvNCLfDzNsz7JAzjf6ESlaKMyT5ipWVPTsiUadnVopAmZqNFEbTxl2phOnWqnEZGIhajcLzimIVhrLWppFXMko1rrirKmEK5i89YrMDaaEENO5QgaizCxoyiRWTa6LqepiZ3FXBxNn804RGUI0QW3O5/PM3mO0YwetwcA1r16ZXtCzKAspExfq9ZL/vKtB9BykYqIzJFYFkhBN7FsNnPVBKD2UGE+4POx/lHdx8MKT7T+w1DG2T2+IipVIcgvSiJAgRTH+USIApWokPBokrotHCgFC3QWGr2I6AoUES2aeZbLIkNOC5xX8nABCdFpX1Ci+aAk0Slv2kezEkIAoVRKDAb+T4Vyu6meQKKBSEVyvWJ5ruabY2pbNJhMNIONTektnZnWXvhodIs/2dOecGe6+Djkga7k2rtaQrdbDTck36zIpjJJc/5KCGDVeuVEaNMwQelJ0UuImo7imiKLham1wJyRjkODFBJIUUzDpEhGdD1Wmb26YvT+5TZxZ7wrd0b9R+fTDVlhK2WnFitrPDYDQF1mrBOIEbWs26p1DZrXD8u8oYh6Urxl8+Y6pVibJEts5XTpyskU6TJ4k8gYCGs5w7xtM53WDSyp9SLVPM+IoSkKMlaxk67nbDZHYEpBU62wK5DgMpxihy3rZwHP+b3AMyleYvEo3TDVtqRKbMXOh+7wWu0e/5AfthU/bL/9GOi3f+Kw20EjWMI2gEXTqh5xVtXWY5kgRoYSg+Ue1Xx2NRDTiwo6lA3HHNsvB19qa65v6Xx52dZk4fS+T221Ze8YhtaB+8beMtRUsTPLXjmA+dd7qtm75tV5eMCxPOs3fzxrQcP1Xic713lv83r/s4cP2c6lHtjaVfVadce3L9RfAXVjTnZ7tc3Zb7ctip8/GTnXe3qBd31j/6noPT/O2vf9SKfj8W3v74wbi947/3QrGari3l3azpxcOn/30IdP9Q8vOcAO/OpdM9zl/Kbxyv6vFz9oW1ojiraflaGrv+3qOi6vWbF9+1cvXn4enLm6IH74owNnT0lvzBje++oPi6PSCseFuoszDv55JM91n3HMHhkcuKg07Wn4AC/vmH71i2pubu07Z2cxIcfGt7cdPi27P2878OS6S45Xdtnn2QeOifMb6BW/599aWHui7rOPfTuHZ1/Y3xd7blDcPmdk5dm/Fu5Z0LLjxIkjp3pWP/PY8TcH7z7605ebroSPVl/auBp+l+nIJAdf3yrb1+uNM/Ysu3/voYPdAw9fLq3l39YslSD9EQAA"
+    init.headers["Authorization"] = `Bearer ${token}`
+    return fetchResource(input, init)
 }
 
 
@@ -152,7 +165,7 @@ class Price {
     price: number;
 }
 
-async function createPanel(client: Client): Promise<HTMLDivElement> {
+async function createPanel(backendClient: EbayToolBackendClient, ebayClient: EbayClient): Promise<HTMLDivElement> {
     let bodyElement = await sleepElementLoaded('body', document);
 
     let panel = <HTMLDivElement>bodyElement.querySelector('div.' + panelClass)
@@ -259,7 +272,7 @@ async function createPanel(client: Client): Promise<HTMLDivElement> {
     `;
 
     form.addEventListener("submit", async function (event: SubmitEvent) {
-        await handleSubmit(event, client)
+        await handleSubmit(event, backendClient, ebayClient)
     });
 
     div.appendChild(form)
@@ -332,7 +345,7 @@ async function createOpenMultipleButton(): Promise<HTMLDivElement> {
     return div
 }
 
-async function handleSubmit(event: SubmitEvent, client: Client) {
+async function handleSubmit(event: SubmitEvent, backendClient: EbayToolBackendClient, ebayClient: EbayClient) {
     try {
         event.preventDefault();
         let data = new FormData(<HTMLFormElement>event.target);
@@ -372,15 +385,15 @@ async function handleSubmit(event: SubmitEvent, client: Client) {
         console.log("Sending to backend: " + JSON.stringify(lotInfo))
 
 
-        await client.upsertLotInfo(lotInfo, data.get('productId').toString())
+        await backendClient.upsertLotInfo(lotInfo, data.get('productId').toString())
 
-        await productPage(client)
+        await productPage(backendClient, ebayClient)
 
         if (_serverAndEbayAreEqual) {
             window.close()
         }
     } catch (error) {
-        await showAndSaveError(error, client)
+        await showAndSaveError(error, backendClient)
     }
 }
 
@@ -695,7 +708,7 @@ function getSearchQuery(): string | undefined {
     return new URL(document.location.href).searchParams?.get(searchQueryParam)?.trim()?.toLowerCase();
 }
 
-async function fillProduct(panel: HTMLDivElement, client: Client, serverLotInfo: LotInfoWithProductId | undefined) {
+async function fillProduct(panel: HTMLDivElement, client: EbayToolBackendClient, serverLotInfo: LotInfoWithProductId | undefined) {
     let productField = panel.querySelector('select#' + productFieldName);
 
     let productId = serverLotInfo?.productId?.trim()?.toLowerCase()
@@ -723,7 +736,7 @@ async function fillProduct(panel: HTMLDivElement, client: Client, serverLotInfo:
     }
 }
 
-async function fillManualCondition(panel: HTMLDivElement, client: Client, serverLotInfo: LotInfoWithProductId | undefined, extractedDataByFieldName : {}) {
+async function fillManualCondition(panel: HTMLDivElement, client: EbayToolBackendClient, serverLotInfo: LotInfoWithProductId | undefined, extractedDataByFieldName: {}) {
     let categoriesDivElement = panel.querySelector('div#' + categoriesDiv);
     categoriesDivElement.innerHTML = ""
 
@@ -734,25 +747,25 @@ async function fillManualCondition(panel: HTMLDivElement, client: Client, server
 
     let categoryTypes = await client.getCategories()
 
-    
+
     for (let categoryType of categoryTypes) {
         let categoryDiv = document.createElement("div")
 
         let extractedData: LotDataExtractedItem[] = extractedDataByFieldName[categoryType.type];
-        
+
         let extractedDataCounts = extractedData?.reduce((dictionary, value) => {
             dictionary[value.value] = value.extractorInfo.length;
             return dictionary;
         }, {});
-        
+
         let serverValue = serverCategories ? serverCategories[categoryType.type] : undefined
-        
+
         let minMatchesCount = 0
-        let inputToCheck : HTMLInputElement = undefined
-        
+        let inputToCheck: HTMLInputElement = undefined
+
         for (let categoryItem of categoryType.items) {
             let isInExtracted = extractedDataCounts && categoryItem.id in extractedDataCounts
-            
+
             let input = <HTMLInputElement>document.createElement("input")
             let label = <HTMLLabelElement>document.createElement("label")
             let inputId = 'radio_' + categoryType.type + '_' + categoryItem.id
@@ -763,10 +776,10 @@ async function fillManualCondition(panel: HTMLDivElement, client: Client, server
             if (serverValue && serverValue === categoryItem.id) {
                 inputToCheck = input
             }
-            
+
             if (isInExtracted) {
                 label.style.color = "green"
-                
+
                 if (!serverValue) {
                     let currentCount = extractedDataCounts[categoryItem.id]
                     if (currentCount > minMatchesCount) {
@@ -775,18 +788,18 @@ async function fillManualCondition(panel: HTMLDivElement, client: Client, server
                     }
                 }
             }
-            
+
             label.innerText = categoryItem.description
             label.htmlFor = inputId
-            
+
             categoryDiv.appendChild(input)
             categoryDiv.appendChild(label)
-            
+
             if (!inputToCheck && extractedDataCounts) {
                 inputToCheck = input
             }
         }
-        
+
         if (inputToCheck) {
             inputToCheck.checked = true;
         }
@@ -795,7 +808,7 @@ async function fillManualCondition(panel: HTMLDivElement, client: Client, server
     }
 }
 
-async function getServerLotInfo(client: Client): Promise<LotInfoWithProductId | undefined> {
+async function getServerLotInfo(client: EbayToolBackendClient): Promise<LotInfoWithProductId | undefined> {
     try {
         _serverLotInfo = await client.getLotInfo(lotInfo.lotId);
     } catch (error) {
@@ -810,7 +823,7 @@ async function getServerLotInfo(client: Client): Promise<LotInfoWithProductId | 
 async function fillPcs(panel: HTMLDivElement, serverLotInfo: LotInfoWithProductId | undefined, extractedDataByFieldName: {}) {
     let pcsField = <HTMLInputElement>panel.querySelector('input#' + pcsFieldName);
     let autoPcsField = <HTMLInputElement>panel.querySelector('input#' + autoPcsFieldName);
-    
+
     let fillManualWithAutoValue = false
     let extractedData: LotDataExtractedItem[] = extractedDataByFieldName["pcs"];
     console.log(JSON.stringify(extractedData))
@@ -843,8 +856,7 @@ async function fillPcs(panel: HTMLDivElement, serverLotInfo: LotInfoWithProductI
     let serverPcs = serverLotInfo?.lotInfo?.pcs
     if (serverPcs !== undefined) {
         pcsField.value = serverPcs.toString()
-    }
-    else if (fillManualWithAutoValue) {
+    } else if (fillManualWithAutoValue) {
         pcsField.value = autoPcsField.value
     }
 }
@@ -928,7 +940,7 @@ async function checkIfTypedLot() {
 }
 
 
-async function fillManualFieldsAuto(panel: HTMLDivElement, client: Client) : Promise<{}> {
+async function fillManualFieldsAuto(panel: HTMLDivElement, client: EbayToolBackendClient): Promise<{}> {
     return (await client.extractData(new LotDataToExtract({
         name: lotInfo.name,
         conditionDescription: lotInfo.conditionDescription,
@@ -940,10 +952,26 @@ async function fillManualFieldsAuto(panel: HTMLDivElement, client: Client) : Pro
     }, {})
 }
 
-async function getDataFromPage(client: Client) {
+async function getDataFromPage(backendClient: EbayToolBackendClient, ebayClient: EbayClient) {
     fillId();
-    await getServerLotInfo(client)
-    let panel = await createPanel(client);
+
+    try {
+        let x = await ebayClient.getItemByLegacyId(undefined,
+            lotInfo.lotId.toString(),
+            undefined,
+            undefined,
+            'affiliateCampaignId=<ePNCampaignId>,affiliateReferenceId=<referenceId>',
+            "EBAY_US")
+        
+        ebayClient.search()
+        console.log(JSON.stringify(x))
+
+    } catch (error) {
+        console.log(JSON.stringify(error))
+    }
+
+    await getServerLotInfo(backendClient)
+    let panel = await createPanel(backendClient, ebayClient);
 
     await Promise.all([
         fillPrice(),
@@ -956,13 +984,13 @@ async function getDataFromPage(client: Client) {
         checkIfTypedLot(),
     ])
 
-    let extractedDataByFieldName = await fillManualFieldsAuto(panel, client);
-    
+    let extractedDataByFieldName = await fillManualFieldsAuto(panel, backendClient);
+
     await Promise.all([
         fillPurchaseHistory(),
         fillUpdateTitleDate(),
-        fillProduct(panel, client, _serverLotInfo),
-        fillManualCondition(panel, client, _serverLotInfo, extractedDataByFieldName),
+        fillProduct(panel, backendClient, _serverLotInfo),
+        fillManualCondition(panel, backendClient, _serverLotInfo, extractedDataByFieldName),
         fillPcs(panel, _serverLotInfo, extractedDataByFieldName),
         fillIgnoreThatLot(panel, _serverLotInfo),
         fillShipping()
@@ -975,7 +1003,7 @@ async function getDataFromPage(client: Client) {
     await compareLotInfos(_serverLotInfo);
 }
 
-async function saveErrorToBackend(error: Error, client: Client) {
+async function saveErrorToBackend(error: Error, client: EbayToolBackendClient) {
     let errorText = JSON.stringify(error) + " " + error.stack
     try {
         await client.saveError(new ClientErrorInfo({
@@ -987,7 +1015,7 @@ async function saveErrorToBackend(error: Error, client: Client) {
     }
 }
 
-async function showAndSaveError(error: Error, client: Client) {
+async function showAndSaveError(error: Error, client: EbayToolBackendClient) {
 
     let errorText: string
     if (error instanceof ValidationProblemDetailedInfo) {
@@ -1012,22 +1040,21 @@ async function enableSubmitButton() {
     (<HTMLButtonElement>await sleepElementLoaded('#' + submitId, document)).disabled = false
 }
 
-function getAuthorizeFetch(oAuth2Client: OAuth2Client): FetchWrapperCustom {
+function getAuthorizeFetch(oAuth2Client: OAuth2Client, scope: string, tokenStore: string, redirectUri: string): FetchWrapperCustom {
     return new FetchWrapperCustom({
         client: oAuth2Client,
         getNewToken: async () => {
             let codeVerifier = (await chrome.storage.local.get(["code_verifier"])).code_verifier;
-
             document.location.href = await oAuth2Client.authorizationCode.getAuthorizeUri({
-                redirectUri: authRedirectUrl,
+                redirectUri: redirectUri,
                 codeVerifier,
-                scope: ['Ebay.ServerAPI']
+                scope: [scope]
             });
             return null;
         },
         getStoredToken: async () => {
             if (backendUrl !== (await chrome.storage.local.get(["backend_url"])).backend_url) return null;
-            let token = (await chrome.storage.local.get(["token_store"])).token_store;
+            let token = (await chrome.storage.local.get(tokenStore))[tokenStore];
             if (token) return JSON.parse(token);
             return null;
         },
@@ -1040,31 +1067,42 @@ async function hideErrors() {
     errorDiv.innerHTML = ""
 }
 
-async function productPage(client: Client) {
+async function productPage(backendClient: EbayToolBackendClient, ebayClient:EbayClient) {
     console.log("productPage")
     try {
-        await getDataFromPage(client);
+        await getDataFromPage(backendClient, ebayClient);
         await enableSubmitButton()
         await hideErrors()
     } catch (error) {
-        await showAndSaveError(error, client);
+        await showAndSaveError(error, backendClient);
     }
 }
 
-async function authPage(oAuth2Client: OAuth2Client) {
+async function authPage(backendOAuth2Client: OAuth2Client, ebayOAuth2Client: OAuth2Client) {
     console.log("authPage")
     let url = new URL(document.location.href)
     if (url.searchParams.has("code")) {
+
+        let isEbayAuth = url.searchParams.has("ebayAuth")
+
+        let oAuth2Client = isEbayAuth ? ebayOAuth2Client : backendOAuth2Client;
+
         let codeVerifier = (await chrome.storage.local.get(["code_verifier"])).code_verifier;
+        
+        let redirect = isEbayAuth ? ebayRedirectUriCode : redirectUrl;
         let oauth2Token = await oAuth2Client.authorizationCode.getTokenFromCodeRedirect(
             document.location.href,
             {
-                redirectUri: authRedirectUrl,
+                redirectUri: redirect,
                 codeVerifier
             }
         );
         await chrome.storage.local.set({backend_url: backendUrl})
-        await chrome.storage.local.set({token_store: JSON.stringify(oauth2Token)})
+        if (isEbayAuth) {
+            await chrome.storage.local.set({ebayTokenStore: JSON.stringify(oauth2Token)})
+        } else {
+            await chrome.storage.local.set({ebayToolTokenStore: JSON.stringify(oauth2Token)})
+        }
 
         let returnPage = (await chrome.storage.local.get(["return_page"]))?.return_page;
 
@@ -1072,13 +1110,13 @@ async function authPage(oAuth2Client: OAuth2Client) {
             await chrome.storage.local.set({return_page: null})
             document.location.href = returnPage
         } else {
-            document.location.href = authRedirectUrl
+            document.location.href = redirect
         }
     }
 }
 
 
-async function searchPage(client: Client) {
+async function searchPage(client: EbayToolBackendClient) {
     console.log("SearchPage")
     //только на странице проданые лоты
     if (new URL(document.location.href).searchParams?.get('LH_Sold')?.trim() !== "1") return;
@@ -1100,7 +1138,7 @@ async function searchPage(client: Client) {
     await createOpenMultipleButton()
 }
 
-async function updateStatusInfinite(client: Client, links: LotLink[]) {
+async function updateStatusInfinite(client: EbayToolBackendClient, links: LotLink[]) {
     let ids = links.map(function (x) {
         return x.id
     })
@@ -1214,7 +1252,16 @@ export async function run() {
     await sleepElementLoaded('footer', document)
     await saveCodeVerifier();
 
-    let oAuth2Client = new OAuth2Client({
+    let ebayOAuth2Client = new OAuth2Client({
+        server: "https://auth.ebay.com/",
+        clientId: 'ArtemPet-tubesSea-PRD-63b5a5e64-416f2036',
+        tokenEndpoint: 'https://api.ebay.com/identity/v1/oauth2/token',
+        authorizationEndpoint: '/oauth2/authorize',
+        clientSecret: "PRD-3b5a5e64bd92-2c90-41e9-bff8-e256",
+        fetch: fetchResource
+    });
+
+    let backendOAuth2Client = new OAuth2Client({
         server: backendUrl,
         clientId: 'Ebay.ChromeExtension',
         tokenEndpoint: '/connect/token',
@@ -1224,20 +1271,20 @@ export async function run() {
 
     let currentPage = location.protocol + '//' + location.host + location.pathname
 
-    if (currentPage === authRedirectUrl) {
-        await authPage(oAuth2Client);
+    if (currentPage === redirectUrl) {
+        await authPage(backendOAuth2Client, ebayOAuth2Client);
     } else {
         await chrome.storage.local.set({return_page: document.location.href})
-
-        let client = new Client(baseApiUrl, getAuthorizeFetch(oAuth2Client));
+        let ebayClient = new EbayClient("https://api.ebay.com/buy/browse/v1", getAuthorizeFetch(ebayOAuth2Client, ebayApiScope, "ebayTokenStore", ebayRedirectUriCode));
+        let backendClient = new EbayToolBackendClient(baseApiUrl, getAuthorizeFetch(backendOAuth2Client, backendApiScope, "ebayToolTokenStore", redirectUrl));
         try {
             if (currentPage.startsWith("https://www.ebay.com/itm/")) {
-                await productPage(client);
+                await productPage(backendClient, ebayClient);
             } else if (currentPage.startsWith("https://www.ebay.com/sch/")) {
-                await searchPage(client);
+                await searchPage(backendClient);
             }
         } catch (error) {
-            await saveErrorToBackend(error, client)
+            await saveErrorToBackend(error, backendClient)
         }
     }
 

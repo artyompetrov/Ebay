@@ -38,6 +38,7 @@
         "https://*.ebay.ch/itm/*",
         "https://*.ebay.ch/itm/*/*",
         "https://www.ebay.com/?code=*",
+        "https://www.ebay.com/?ebayAuth=true&code=*",
         "https://*.ebay.com/sch/*",
         "https://*.ebay.co.uk/sch/*",
         "https://*.ebay.com.au/sch/*",
@@ -64,6 +65,8 @@
     "https://vi.vipr.ebaydesc.com/*",
     "http://vi.vipr.ebaydesc.com/*",
     "https://178.208.65.100:17443/*",
+    "https://auth.ebay.com/*",
+    "https://api.ebay.com/*",
     "https://naks42.ru:17443/*",
     "https://localhost:7095/*"
   ],

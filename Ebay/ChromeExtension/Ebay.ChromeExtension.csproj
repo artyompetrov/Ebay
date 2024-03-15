@@ -13,7 +13,7 @@
     </ItemGroup>
 
     <Target Name="NSwag" BeforeTargets="BeforeBuild">
-        <Exec Command="$(NSwagExe_Net70) openapi2tsclient /input:../Server/Controllers/Contracts/Ebay.yaml /output:EbayClient/EbayClient.ts"/>
+        <Exec Command="$(NSwagExe_Net70) openapi2tsclient /input:../Server/Controllers/Contracts/Ebay.yaml /output:EbayClient/EbayToolBackendClient.ts /ClassName:EbayToolBackendClient"/>
     </Target>
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
         <Exec Command="npm run build" />
