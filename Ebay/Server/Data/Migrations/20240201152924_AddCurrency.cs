@@ -19,7 +19,7 @@ namespace Ebay.Server.Data.Migrations
             migrationBuilder.Sql(
                 @"
 UPDATE public.""Lots""
-SET ""Currency"" = 'US $'
+SET ""Currency"" = 'USD'
 WHERE 1=1
 ");
 

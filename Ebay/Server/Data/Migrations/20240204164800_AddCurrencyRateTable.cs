@@ -27,7 +27,7 @@ namespace Ebay.Server.Data.Migrations
             migrationBuilder.InsertData(
                 "Currencies",
                 new[] { "CurrencyEbayName", "CurrencyRusName", "CurrencyApiName", "CurrencyRate" },
-                new object[] { "US $", "Доллар США", "USD", 1.0 });
+                new object[] { "USD", "Доллар США", "USD", 1.0 });
 
             migrationBuilder.InsertData(
                 "Currencies",

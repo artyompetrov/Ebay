@@ -10,10 +10,7 @@ import {
     PurchaseInfo,
     ValidationProblemDetailedInfo
 } from "./EbayClient/EbayToolBackendClient"
-
-import {EbayClient} from "./EbayClient/EbayClient"
-
-import jsonpath from "jsonpath";
+import {EbayClient, Item} from "./EbayClient/EbayClient"
 import {generateCodeVerifier, OAuth2Client} from '@badgateway/oauth2-client';
 import {FetchWrapperCustom} from "./FetchWrapperCustom";
 
@@ -37,85 +34,50 @@ const backendApiScope = 'Ebay.ServerAPI'
 const lightGreenColor = "#ecffec"
 const lightPinkColor = "lightpink"
 const lightYellowColor = "#e0e07f"
-
-
-const supportedEuCountries = new Set([
-    'Germany',
-    'Italy',
-    'France',
-    'Bulgaria',
-    'Lithuania',
-    'Slovakia',
-    'Latvia',
-    'Romania',
-    'Estonia',
-    'Poland'
-])
-const supportedEuropeCountries = new Set([
-    'Germany',
-    'Italy',
-    'France',
-    'United Kingdom',
-    'Bulgaria',
-    'Lithuania',
-    'Slovakia',
-    'Latvia',
-    'Romania',
-    'Estonia',
-    'Poland'
-])
-const supportedShippingCountries = [
-    'Germany',
-    'Italy',
-    'France',
-    'United Kingdom',
-    'Bulgaria',
-    'Lithuania',
-    'Slovakia',
-    'Latvia',
-    'Romania',
-    'Estonia',
-    'Poland',
-    'United States',
-    'Australia'
-]
-const supportedShippingCountriesDictionary = {
-    "Germany": "DEU",
-    "Italy": "ITA",
-    "France": "FRA",
-    "United Kingdom": "GBR",
-    "United States": "USA",
-    "Australia": "AUS",
-    'Bulgaria': "BGR",
-    'Lithuania': "LTU",
-    'Slovakia': "SVK",
-    'Latvia': "LVA",
-    'Romania': "ROU",
-    'Estonia': "EST",
-    'Poland': "POL",
-}
-const zipCodes = {
-    "United States": "40202",
-    "Australia": "3000–3999"
-}
+const marketplaceId = "EBAY_US"
 const batchOpen = 5
-
 const searchQueryParam = 'searchQuery'
-
 const ignoreThatLotDiv = "ignoreThatLotDiv"
 const unsupportedLotDiv = "unsupportedLotDiv"
 const categoriesDiv = "categoriesDiv"
-
 const lotInfo = new LotInfo()
 let _serverLotInfo: LotInfoWithProductId;
 let _unsupportedLot = false;
 let _needActualizationLotsIds: number[] = null
-
 let _serverAndEbayAreEqual = false;
+
+class ShippingParameters {
+    constructor(regions: string[], zip: string | null) {
+        this.regions = regions
+        this.zip = zip
+    }
+
+    regions: string[];
+    zip: string | null
+}
+
+const supportedShippingCountries = new Map<string, ShippingParameters>();
+supportedShippingCountries.set('DE', new ShippingParameters(['EUROPE', 'EUROPEAN_UNION'], null))
+supportedShippingCountries.set('IT', new ShippingParameters(['EUROPE', 'EUROPEAN_UNION'], null))
+supportedShippingCountries.set('FR', new ShippingParameters(['EUROPE', 'EUROPEAN_UNION'], null))
+supportedShippingCountries.set('GB', new ShippingParameters(['EUROPE'], null))
+supportedShippingCountries.set('BG', new ShippingParameters(['EUROPE', 'EUROPEAN_UNION'], null))
+supportedShippingCountries.set('LT', new ShippingParameters(['EUROPE', 'EUROPEAN_UNION'], null))
+supportedShippingCountries.set('SK', new ShippingParameters(['EUROPE', 'EUROPEAN_UNION'], null))
+supportedShippingCountries.set('LV', new ShippingParameters(['EUROPE', 'EUROPEAN_UNION'], null))
+supportedShippingCountries.set('RO', new ShippingParameters(['EUROPE', 'EUROPEAN_UNION'], null))
+supportedShippingCountries.set('EE', new ShippingParameters(['EUROPE', 'EUROPEAN_UNION'], null))
+supportedShippingCountries.set('PL', new ShippingParameters(['EUROPE', 'EUROPEAN_UNION'], null))
+supportedShippingCountries.set('US', new ShippingParameters([], "40202"))
+supportedShippingCountries.set('AU', new ShippingParameters([], "3000–3999"))
+
+const currencyMap = new Map<string, string>()
+currencyMap.set("USD", "US $")
+currencyMap.set("AUD", "AU $")
 
 // fetch через background script, по другому не работает
 function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response> {
-   //console.log(JSON.stringify(input) + " " + JSON.stringify(init))
+    console.log(JSON.stringify(input) + " " + JSON.stringify(init))
     return new Promise((resolve, reject) => {
         chrome.runtime.sendMessage({input, init}, messageResponse => {
             const [response, error] = messageResponse;
@@ -133,12 +95,9 @@ function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response>
     });
 }
 
-function fetchResourceAuthorized(input: RequestInfo, init: RequestInit): Promise<Response> {
-    let token = "v^1.1#i^1#I^3#p^1#r^0#f^0#t^H4sIAAAAAAAAAOVYf2wTVRxvuw5Y2FDEgJkg5Qb8Adz1Xe/661ybdOvmasbWrRWBCPh6fbeeu94d914pBTHLiCQ4IuIvFjE4wJjoH6IJ+oe/EkhATMSQEIlGMlExTEn4Q6MGTIx37RjdJICsiUtskzbv+77v+z6fz/t+33t3oG9azbIdbTv+qLNPdwz1gT6H3c7OBDXTqpfPqnLUV9tAmYN9qG9xn7O/aqQRw6yiC90I65qKkWtzVlGxUDSGqJyhChrEMhZUmEVYIKKQiKxsFzwMEHRDI5qoKZQrFg1RvD8Ag8G0PwUgQEEuYFrVazGTWoiCfl/aB3yedNAT4H08MPsxzqGYiglUSYjyAA9PA45m+STrFzhW4D2Ml/OupVyrkIFlTTVdGECFi3CF4lijDOvNoUKMkUHMIFQ4FmlNdEZi0ZaOZKO7LFZ4VIcEgSSHx7eatTRyrYJKDt18Glz0FhI5UUQYU+5waYbxQYXINTB3AL8otYhECKSgxALRnzK/FZGyVTOykNwch2WR07RUdBWQSmRSuJWiphqpJ5BIRlsdZohY1GX9deWgIksyMkJUS1NkTSQep8IRg6BsHBGa5FIIJxCk491R2selvNCLfDzNsz7JAzjf6ESlaKMyT5ipWVPTsiUadnVopAmZqNFEbTxl2phOnWqnEZGIhajcLzimIVhrLWppFXMko1rrirKmEK5i89YrMDaaEENO5QgaizCxoyiRWTa6LqepiZ3FXBxNn804RGUI0QW3O5/PM3mO0YwetwcA1r16ZXtCzKAspExfq9ZL/vKtB9BykYqIzJFYFkhBN7FsNnPVBKD2UGE+4POx/lHdx8MKT7T+w1DG2T2+IipVIcgvSiJAgRTH+USIApWokPBokrotHCgFC3QWGr2I6AoUES2aeZbLIkNOC5xX8nABCdFpX1Ci+aAk0Slv2kezEkIAoVRKDAb+T4Vyu6meQKKBSEVyvWJ5ruabY2pbNJhMNIONTektnZnWXvhodIs/2dOecGe6+Djkga7k2rtaQrdbDTck36zIpjJJc/5KCGDVeuVEaNMwQelJ0UuImo7imiKLham1wJyRjkODFBJIUUzDpEhGdD1Wmb26YvT+5TZxZ7wrd0b9R+fTDVlhK2WnFitrPDYDQF1mrBOIEbWs26p1DZrXD8u8oYh6Urxl8+Y6pVibJEts5XTpyskU6TJ4k8gYCGs5w7xtM53WDSyp9SLVPM+IoSkKMlaxk67nbDZHYEpBU62wK5DgMpxihy3rZwHP+b3AMyleYvEo3TDVtqRKbMXOh+7wWu0e/5AfthU/bL/9GOi3f+Kw20EjWMI2gEXTqh5xVtXWY5kgRoYSg+Ue1Xx2NRDTiwo6lA3HHNsvB19qa65v6Xx52dZk4fS+T221Ze8YhtaB+8beMtRUsTPLXjmA+dd7qtm75tV5eMCxPOs3fzxrQcP1Xic713lv83r/s4cP2c6lHtjaVfVadce3L9RfAXVjTnZ7tc3Zb7ctip8/GTnXe3qBd31j/6noPT/O2vf9SKfj8W3v74wbi947/3QrGari3l3azpxcOn/30IdP9Q8vOcAO/OpdM9zl/Kbxyv6vFz9oW1ojiraflaGrv+3qOi6vWbF9+1cvXn4enLm6IH74owNnT0lvzBje++oPi6PSCseFuoszDv55JM91n3HMHhkcuKg07Wn4AC/vmH71i2pubu07Z2cxIcfGt7cdPi27P2878OS6S45Xdtnn2QeOifMb6BW/599aWHui7rOPfTuHZ1/Y3xd7blDcPmdk5dm/Fu5Z0LLjxIkjp3pWP/PY8TcH7z7605ebroSPVl/auBp+l+nIJAdf3yrb1+uNM/Ysu3/voYPdAw9fLq3l39YslSD9EQAA"
-    init.headers["Authorization"] = `Bearer ${token}`
-    return fetchResource(input, init)
+function sleep(ms: number): Promise<number> {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
-
 
 function extractPrice(price: string): Price {
     let priceTrimmed = price.trim()
@@ -163,6 +122,18 @@ class Price {
 
     currency: string;
     price: number;
+}
+
+async function sleepElementLoaded(selector: string, elementToSearchIn: Document | Element): Promise<Element> {
+    let retry = 0
+    while (true) {
+        retry++;
+        if (retry > 200) throw new Error("unable to find element by selector " + selector)
+
+        let element = elementToSearchIn.querySelector(selector)
+        if (element !== null) return element
+        await sleep(100);
+    }
 }
 
 async function createPanel(backendClient: EbayToolBackendClient, ebayClient: EbayClient): Promise<HTMLDivElement> {
@@ -268,7 +239,7 @@ async function createPanel(backendClient: EbayToolBackendClient, ebayClient: Eba
         </div>
         <div style="color: red;" id="${errorElementId}"></div>
         <br>
-        <input id="${submitId}" type="submit" value="Save" disabled/>
+        <input id="${submitId}" type="submit" value="Save"/>
     `;
 
     form.addEventListener("submit", async function (event: SubmitEvent) {
@@ -281,7 +252,6 @@ async function createPanel(backendClient: EbayToolBackendClient, ebayClient: Eba
 
     return div
 }
-
 
 async function createOpenMultipleButton(): Promise<HTMLDivElement> {
     let bodyElement = await sleepElementLoaded('body', document);
@@ -413,8 +383,12 @@ function fillSoldItemsResult(fixedPriceRows: HTMLTableRowElement[], result: Purc
         if (price !== "Sold as a special offer" && price !== "Counter-offered" && price !== "Accepted") {
 
             let priceExtracted = extractPrice(price)
-            if (priceExtracted.currency !== lotInfo.currency) {
-                throw new Error("currency doesn't match with lot currency lot currency " + lotInfo.currency + " extracted currency " + priceExtracted.currency)
+
+            let lotInfoCurrency = currencyMap.has(lotInfo.currency) ? currencyMap.get(lotInfo.currency) : lotInfo.currency
+            
+            if(priceExtracted.currency !== lotInfoCurrency)
+            {
+                throw new Error("currency doesn't match with lot currency lot currency " + lotInfoCurrency + " extracted currency " + priceExtracted.currency)
             }
             result.push(new PurchaseInfoInner(parseInt(columns[2]), parseDate(columns[3]), priceExtracted))
         } else {
@@ -493,54 +467,28 @@ function parseSoldItemsPage(text: string): PurchaseInfo[] {
     });
 }
 
-function fillId() {
-    lotInfo.lotId = parseInt(location.pathname.match(/\/itm\/([0-9]+)/)[1]);
-}
-
-async function fillPrice() {
-    console.log("fillprice")
-    let price = extractPrice((<HTMLElement>await sleepElementLoaded('div.x-price-primary span', document)).innerText)
-    lotInfo.price = price.price
-    lotInfo.currency = price.currency
-}
-
-async function fillName() {
-    lotInfo.name = (<HTMLElement>await sleepElementLoaded('.vim h1', document)).innerText
-}
-
-async function fillSeller() {
-    lotInfo.seller = (<HTMLElement>await sleepElementLoaded('div.x-sellercard-atf__info__about-seller a', document)).innerText.toLowerCase()
-}
-
-async function fillCondition() {
-    lotInfo.condition = (<HTMLElement>await sleepElementLoaded('div.x-item-condition-text span.ux-textspans', document)).innerText
-}
-
-async function fillConditionDescription() {
-    let conditionDescriptionElement = document.querySelector('div.x-item-condition-desc')
-    if (conditionDescriptionElement != null) {
-        lotInfo.conditionDescription = (<HTMLElement>conditionDescriptionElement).innerText
-            .replace('“', '')
-            .replace('”', '')
-    }
-}
-
 
 function hasShippingToCountry(country: string, shipsTo: Set<string>, excludes: Set<string>) {
-    return (shipsTo.has('Worldwide')
-        || (shipsTo.has("Europe") && supportedEuropeCountries.has(country))
-        || (shipsTo.has("European Union") && supportedEuCountries.has(country))
-        || shipsTo.has(country)) && !excludes.has(country);
-}
 
-function getShipsTo(shippingDiv: Element): Set<string> {
-    return new Set((<HTMLDivElement>shippingDiv.querySelector('div.ux-labels-values--shipsto')).innerText.replace("Ships to:", "")
-        .split(',').map(s => s.trim()));
-}
+    let countryParams = supportedShippingCountries.get(country);
 
-function getExcludes(shippingDiv: Element): Set<string> {
-    return new Set((<HTMLDivElement>shippingDiv.querySelector('div.ux-labels-values--excludes')).innerText.replace("Excludes:", "")
-        .split(',').map(s => s.trim()));
+    let shipsToRegionFound = false
+    for (let region of countryParams.regions) {
+        if (shipsTo.has(region)) {
+            shipsToRegionFound = true
+            break;
+        }
+    }
+
+    let excludesRegionFound = false
+    for (let region of countryParams.regions) {
+        if (excludes.has(region)) {
+            excludesRegionFound = true
+            break;
+        }
+    }
+
+    return (shipsTo.has('WORLDWIDE') || shipsToRegionFound || shipsTo.has(country)) && !excludesRegionFound && !excludes.has(country);
 }
 
 async function showLotIsNotSupported() {
@@ -550,110 +498,6 @@ async function showLotIsNotSupported() {
     _unsupportedLot = true;
 }
 
-async function fillShipping() {
-    let shippingDiv = await sleepElementLoaded('div.d-shipping-maxview', document);
-    let shipsTo = getShipsTo(shippingDiv);
-    let excludes = getExcludes(shippingDiv);
-
-    let shippingFromCountry = lotInfo.locatedIn.split(',').pop().trim()
-    let indexOfShippingFromCountries = supportedShippingCountries.indexOf(shippingFromCountry)
-
-    if (indexOfShippingFromCountries >= 0) {
-        supportedShippingCountries[indexOfShippingFromCountries] = supportedShippingCountries[0]
-        supportedShippingCountries[0] = shippingFromCountry
-    }
-
-    let shippingCountry: string | null
-    for (let i = 0; i < supportedShippingCountries.length; i++) {
-        let currentShippingCountry = supportedShippingCountries[i]
-        if (hasShippingToCountry(currentShippingCountry, shipsTo, excludes)) {
-            shippingCountry = currentShippingCountry
-            break;
-        }
-    }
-
-    if (shippingCountry === null) {
-        throw new Error("shippingCountry is null")
-    }
-
-    let countryCode = supportedShippingCountriesDictionary[shippingCountry]
-    let zipCode = zipCodes[shippingCountry] ?? ""
-
-    let shippingRatesUrl = "https://www.ebay.com/itemmodules/" + lotInfo.lotId +
-        "?module_groups=GET_RATES_MODULE_GROUP&co=0&isGetRates=1&rt=nc&quantity=1&shipToCountryCode=" + countryCode
-        + "&shippingZipCode=" + zipCode
-
-    let shippingInfoResponse = await fetchResource(shippingRatesUrl, {method: 'GET', credentials: "include"})
-    let text = await shippingInfoResponse.text()
-
-    let shippingJson = JSON.parse(text)
-    //console.log(text)
-    let jsonPathTablePrefix = "$.states[?(@.eventName=='ux-app__d-shipping-max-view__refreshState')].state.model.SHIPPING_SECTION_MODULE.sections.shippingTable.table"
-
-    let jsonPathHeaderPrefix = jsonPathTablePrefix + ".header.cells"
-    let jsonPathCellsPrefix = jsonPathTablePrefix + ".rows[0].cells"
-
-
-    let headers = {}
-    for (let i = 0; i <= 3; i++) {
-        let jsonPathHeader = jsonPathHeaderPrefix + "[" + i + "].textSpans[0].text"
-        let headerName = jsonpath.query(shippingJson, jsonPathHeader)[0].toString()
-        headers[headerName] = i
-    }
-
-    let shippingJsonPath = jsonPathCellsPrefix + "[0].textSpans[0].text"
-
-    let shippingString = jsonpath.query(shippingJson, shippingJsonPath)[0].toString()
-    if (shippingString === "Free shipping") {
-        lotInfo.shipping = 0;
-    } else {
-        let shipping = extractPrice(shippingString)
-        if (shipping.currency !== lotInfo.currency) throw new Error("shipping and lot currency mismatch, lotCurrency " + lotInfo.currency + ", shippingCurrency " + shipping.currency)
-        lotInfo.shipping = shipping.price
-    }
-
-    if (headers.hasOwnProperty("Each additional item")) {
-        let shippingAdditionalJsonPath = jsonPathCellsPrefix + "[1].textSpans[0].text"
-
-        let shippingAdditionalString = jsonpath.query(shippingJson, shippingAdditionalJsonPath)[0].toString().trim()
-        if (shippingAdditionalString === "Free" || shippingAdditionalString === "") {
-            lotInfo.shippingAdditional = 0;
-        } else {
-            let shippingAdditional = extractPrice(shippingAdditionalString)
-            if (shippingAdditional.currency !== lotInfo.currency)
-                throw new Error("shipping additional and lot currency mismatch, lotCurrency " + lotInfo.currency + ", shippingAdditionalCurrency " + shippingAdditional.currency)
-            lotInfo.shippingAdditional = shippingAdditional.price
-        }
-    } else {
-        lotInfo.shippingAdditional = 0;
-    }
-
-    let shippingToJsonPath = jsonPathCellsPrefix + "[" + headers["To"] + "].textSpans[0].text"
-
-    let shippingTo = jsonpath.query(shippingJson, shippingToJsonPath)[0].toString()
-    if (shippingTo !== shippingCountry) throw new Error("Shipping country expected to be " + shippingCountry + " but was " + shippingTo)
-
-    lotInfo.shippingCountry = shippingCountry
-}
-
-async function fillLocatedIn() {
-    lotInfo.locatedIn = (<HTMLElement>await sleepElementLoaded('div.ux-labels-values--itemLocation span.ux-textspans--BOLD', document)).innerText
-}
-
-async function fillDescription() {
-    let foundElement = await sleepElementLoadedAny(['#desc_ifr', '#vi_snippetdesc_btn'])
-
-    let descriptionUrl: string
-    if (foundElement instanceof HTMLIFrameElement) {
-        descriptionUrl = (<HTMLIFrameElement>foundElement).src
-    } else if (foundElement instanceof HTMLAnchorElement) {
-        descriptionUrl = (<HTMLAnchorElement>foundElement).href
-    }
-
-    console.log(descriptionUrl)
-    let response = await fetchResource(descriptionUrl, {method: 'GET', credentials: 'include'})
-    lotInfo.description = await response.text()
-}
 
 async function fillPurchaseHistory() {
     if (!_unsupportedLot) {
@@ -952,38 +796,98 @@ async function fillManualFieldsAuto(panel: HTMLDivElement, client: EbayToolBacke
     }, {})
 }
 
-async function getDataFromPage(backendClient: EbayToolBackendClient, ebayClient: EbayClient) {
-    fillId();
+function getShippingCountry(ebayItem: Item) {
+    let shipsTo = ebayItem.shipToLocations.regionIncluded.reduce((set, value) => {
+        set.add(value.regionId)
+        return set
+    }, new Set<string>());
+    let excludes = ebayItem.shipToLocations.regionExcluded.reduce((set, value) => {
+        set.add(value.regionId)
+        return set
+    }, new Set<string>());
 
-    try {
-        let x = await ebayClient.getItemByLegacyId(undefined,
-            lotInfo.lotId.toString(),
-            undefined,
-            undefined,
-            'affiliateCampaignId=<ePNCampaignId>,affiliateReferenceId=<referenceId>',
-            "EBAY_US")
-        
-        ebayClient.search()
-        console.log(JSON.stringify(x))
+    let currentCountry = ebayItem.itemLocation.country
 
-    } catch (error) {
-        console.log(JSON.stringify(error))
+    let supportedShippingCountriesArray = Array.from(supportedShippingCountries.keys())
+    let position = -1
+    while (!supportedShippingCountries.has(currentCountry) || !hasShippingToCountry(currentCountry, shipsTo, excludes)) {
+        position++;
+        if (position >= supportedShippingCountriesArray.length) throw new Error("Position is greater than supportedShippingCountriesArray lenght");
+        currentCountry = supportedShippingCountriesArray[position]
     }
+    return currentCountry;
+}
 
+async function getEbayItem(ebayClient: EbayClient) {
+    let lotId = location.pathname.match(/\/itm\/([0-9]+)/)[1];
+
+    let ebayItem = await ebayClient.getItemByLegacyId(undefined,
+        lotId,
+        undefined,
+        undefined,
+        undefined,
+        marketplaceId);
+
+    let shippingCountry = getShippingCountry(ebayItem);
+    let zipCode = supportedShippingCountries.get(shippingCountry).zip ?? "<zip_code>"
+
+    ebayItem = await ebayClient.getItemByLegacyId(undefined,
+        lotId,
+        undefined,
+        undefined,
+        `contextualLocation=country=${shippingCountry},zip=${zipCode}`,
+        marketplaceId);
+
+
+    fillLotInfo(ebayItem, shippingCountry)
+
+    return ebayItem;
+}
+
+function fillShipping(ebayItem: Item, shippingCountry: string) {
+    let shippingOption = ebayItem.shippingOptions[0]
+    if (lotInfo.currency != shippingOption.shippingCost.currency) throw new Error("Shipping and lot currency mismatch")
+
+    lotInfo.shipping = parseFloat(shippingOption.shippingCost.value)
+    lotInfo.shippingAdditional = parseFloat(shippingOption.additionalShippingCostPerUnit.value)
+    lotInfo.shippingCountry = shippingCountry
+}
+
+function fillLotInfo(ebayItem: Item, shippingCountry: string) {
+    console.log(JSON.stringify(ebayItem))
+
+    lotInfo.lotId = parseInt(ebayItem.legacyItemId)
+
+    lotInfo.price = parseFloat(ebayItem.price.value)
+    lotInfo.currency = ebayItem.price.currency
+
+    lotInfo.name = ebayItem.title
+
+    lotInfo.seller = ebayItem.seller.username
+
+    lotInfo.condition = ebayItem.condition
+
+    lotInfo.conditionDescription = ebayItem.conditionDescription
+
+    lotInfo.description = ebayItem.description
+
+    lotInfo.locatedIn = ebayItem.itemLocation.country
+
+    fillShipping(ebayItem, shippingCountry);
+
+    //todo shortDescription categoryPath lotSize
+}
+
+async function getDataFromPage(backendClient: EbayToolBackendClient, ebayClient: EbayClient) {
+    await getEbayItem(ebayClient)
     await getServerLotInfo(backendClient)
-    let panel = await createPanel(backendClient, ebayClient);
 
+    //todo
     await Promise.all([
-        fillPrice(),
-        fillName(),
-        fillSeller(),
-        fillCondition(),
-        fillConditionDescription(),
-        fillLocatedIn(),
-        fillDescription(),
         checkIfTypedLot(),
     ])
 
+    let panel = await createPanel(backendClient, ebayClient);
     let extractedDataByFieldName = await fillManualFieldsAuto(panel, backendClient);
 
     await Promise.all([
@@ -993,11 +897,9 @@ async function getDataFromPage(backendClient: EbayToolBackendClient, ebayClient:
         fillManualCondition(panel, backendClient, _serverLotInfo, extractedDataByFieldName),
         fillPcs(panel, _serverLotInfo, extractedDataByFieldName),
         fillIgnoreThatLot(panel, _serverLotInfo),
-        fillShipping()
     ]);
 
 
-    console.log("show panel")
     panel.hidden = false;
 
     await compareLotInfos(_serverLotInfo);
@@ -1036,10 +938,6 @@ async function showAndSaveError(error: Error, client: EbayToolBackendClient) {
     await saveErrorToBackend(error, client);
 }
 
-async function enableSubmitButton() {
-    (<HTMLButtonElement>await sleepElementLoaded('#' + submitId, document)).disabled = false
-}
-
 function getAuthorizeFetch(oAuth2Client: OAuth2Client, scope: string, tokenStore: string, redirectUri: string): FetchWrapperCustom {
     return new FetchWrapperCustom({
         client: oAuth2Client,
@@ -1067,11 +965,10 @@ async function hideErrors() {
     errorDiv.innerHTML = ""
 }
 
-async function productPage(backendClient: EbayToolBackendClient, ebayClient:EbayClient) {
+async function productPage(backendClient: EbayToolBackendClient, ebayClient: EbayClient) {
     console.log("productPage")
     try {
         await getDataFromPage(backendClient, ebayClient);
-        await enableSubmitButton()
         await hideErrors()
     } catch (error) {
         await showAndSaveError(error, backendClient);
@@ -1088,7 +985,7 @@ async function authPage(backendOAuth2Client: OAuth2Client, ebayOAuth2Client: OAu
         let oAuth2Client = isEbayAuth ? ebayOAuth2Client : backendOAuth2Client;
 
         let codeVerifier = (await chrome.storage.local.get(["code_verifier"])).code_verifier;
-        
+
         let redirect = isEbayAuth ? ebayRedirectUriCode : redirectUrl;
         let oauth2Token = await oAuth2Client.authorizationCode.getTokenFromCodeRedirect(
             document.location.href,
@@ -1202,42 +1099,6 @@ class LotLink {
     color: string | null
 }
 
-async function sleepElementLoaded(selector: string, elementToSearchIn: Document | Element): Promise<Element> {
-    let retry = 0
-    while (true) {
-        retry++;
-        if (retry > 200) throw new Error("unable to find element by selector " + selector)
-
-        let element = elementToSearchIn.querySelector(selector)
-        if (element !== null) return element
-        await sleep(100);
-    }
-}
-
-async function sleepElementLoadedAny(selectors: string[]): Promise<Element> {
-
-    let retry = 0
-    while (true) {
-        retry++;
-        if (retry > 1000) throw new Error("unable to find any element by selectors " + selectors.join(", "))
-
-        let foundElement: Element
-        selectors.forEach(function (x) {
-            let element = document.querySelector(x)
-            if (element != null) {
-                foundElement = element
-            }
-        })
-
-        if (foundElement !== null) return foundElement
-        await sleep(100);
-    }
-}
-
-
-function sleep(ms: number): Promise<number> {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 async function saveCodeVerifier() {
     let codeVerifier = (await chrome.storage.local.get(["code_verifier"]))?.code_verifier;
