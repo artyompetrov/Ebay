@@ -54,7 +54,8 @@ internal static class ModelsExtensions
             seller: lot.Seller,
             titleChangeDate: lot.TitleChangeDate.ToString(WellKnown.Formats.TimeFormat),
             shipping: lot.Shipping,
-            shippingAdditional: lot.ShippingAdditional
+            shippingAdditional: lot.ShippingAdditional,
+            shortDescription: lot.ShortDescription
         ),
         productId: lot.ProductId
     );
@@ -74,7 +75,8 @@ internal static class ModelsExtensions
         seller: lot.Seller,
         shipping: lot.Shipping,
         titleChangeDate: lot.TitleChangeDate.ToString(WellKnown.Formats.TimeFormat),
-        shippingAdditional: lot.ShippingAdditional
+        shippingAdditional: lot.ShippingAdditional,
+        shortDescription: lot.ShortDescription
     );
 
     public static PurchaseInfo ToApiPurchaseInfo(this Purchase purchase) => new(
@@ -97,6 +99,7 @@ internal static class ModelsExtensions
             ShippingAdditional = lotInfo.ShippingAdditional!.Value,
             Description = lotInfo.Description,
             Condition = lotInfo.Condition,
+            ShortDescription = lotInfo.ShortDescription,
             ConditionDescription = lotInfo.ConditionDescription,
             Seller = lotInfo.Seller,
             LocatedIn = lotInfo.LocatedIn,

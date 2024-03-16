@@ -62,7 +62,8 @@ public class ExplicitTests
                 conditionDescription: lotInfoFull.LotInfo.ConditionDescription,
                 description: lotInfoFull.LotInfo.Description,
                 condition: lotInfoFull.LotInfo.Condition,
-                name: lotInfoFull.LotInfo.Name
+                name: lotInfoFull.LotInfo.Name,
+                shortDescription: lotInfoFull.LotInfo.ShortDescription
             )
         );
 
@@ -109,7 +110,8 @@ public class ExplicitTests
                 conditionDescription: lotInfoFull.LotInfo.ConditionDescription,
                 condition: lotInfoFull.LotInfo.Condition,
                 description: lotInfoFull.LotInfo.Description,
-                name: lotInfoFull.LotInfo.Name
+                name: lotInfoFull.LotInfo.Name,
+                shortDescription: lotInfoFull.LotInfo.ShortDescription
             )
         );
 

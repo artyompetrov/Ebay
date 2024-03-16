@@ -5,10 +5,10 @@ namespace Ebay.Server.Services;
 internal abstract class ExtractorBase
 {
     protected static readonly ExtractFrom All = ExtractFrom.Title | ExtractFrom.Description |
-        ExtractFrom.ConditionDescription | ExtractFrom.Condition;
+        ExtractFrom.ConditionDescription | ExtractFrom.Condition | ExtractFrom.ShortDescription;
 
-    protected static readonly ExtractFrom TitleAndConditionDescription =
-        ExtractFrom.Title | ExtractFrom.ConditionDescription;
+    protected static readonly ExtractFrom TitleAndShortAndConditionDescription =
+        ExtractFrom.Title | ExtractFrom.ConditionDescription | ExtractFrom.ShortDescription;
 
     private static readonly string[] NewLines = { "\r\n", "\r", "\n" };
     protected const RegexOptions Ro = RegexOptions.IgnoreCase;

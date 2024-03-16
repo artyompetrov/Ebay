@@ -51,7 +51,8 @@ internal class ConditionExtractor : ExtractorBase, IExtractor
         var conditionSplitted = Split(lotDataToExtract.Condition);
         var conditionDescriptionSplitted = lotDataToExtract.ConditionDescription != null ? Split(lotDataToExtract.ConditionDescription) : null;
         var descriptionTextSplitted = Split(lotDataToExtract.DescriptionText);
-        
+        var shortDescriptionTextSplitted = lotDataToExtract.ShortDescription != null ? Split(lotDataToExtract.ShortDescription) : null;
+
         var extractionResult = new Dictionary<string, HashSet<ExtractionResult>>();
 
         ExtractInternal(
@@ -80,6 +81,15 @@ internal class ConditionExtractor : ExtractorBase, IExtractor
             extractedFrom: ExtractFrom.Description,
             result: extractionResult
         );
+        
+        if (shortDescriptionTextSplitted != null)
+        {
+            ExtractInternal(
+                splittedArray: shortDescriptionTextSplitted,
+                extractedFrom: ExtractFrom.ShortDescription,
+                result: extractionResult
+            );
+        }
 
         return extractionResult;
     }

@@ -40,7 +40,7 @@ internal class PcsExtractor : ExtractorBase, IExtractor
         new Extractor(new Regex(@"\b(\d+)\s*units\b", Ro), null, 1, All),
         new Extractor(new Regex(@"(?:x|\b)(\d{1,3})\s*pcs\b", Ro), null, 1, All),
         new Extractor(new Regex(@"\bpcs\s*(\d{1,3})\b", Ro), null, 1, All),
-        new Extractor(new Regex(@"(?:^|\s+)(\d{1,3})\s*x\b", Ro), null, 1, TitleAndConditionDescription),
+        new Extractor(new Regex(@"(?:^|\s+)(\d{1,3})\s*x\b", Ro), null, 1, TitleAndShortAndConditionDescription),
         new Extractor(new Regex(@"\blot\s+x\s*(\d{1,3})", Ro), null, 1, All),
         new Extractor(new Regex(@"\blot\s*of\s*(\d{1,3})", Ro), null, 1, All),
         new Extractor(new Regex(@"\bpack\s*of\s*(\d{1,3})", Ro), null, 1, All),
@@ -51,7 +51,7 @@ internal class PcsExtractor : ExtractorBase, IExtractor
         new Extractor(new Regex(@"\bx(\d{1,3})\s*piece", Ro), null, 1, All),
         new Extractor(new Regex(@"^(\d{1,3})\s*(?:\*|x)", Ro), null, 1, All),
         new Extractor(new Regex(@"^(\d{1,3})\s*pair", Ro), null, 2, All),
-        new Extractor(new Regex(@"^[([]?(\d{1,3})[)\]]?\s", Ro), null, 1, TitleAndConditionDescription),
+        new Extractor(new Regex(@"^[([]?(\d{1,3})[)\]]?\s", Ro), null, 1, TitleAndShortAndConditionDescription),
         new Extractor(new Regex(@"\bprice\s+is\s+for\s+one\bpair\b", Ro), 2, 1, All),
         new Extractor(new Regex(@"\bprice\s+is\s+for\s+one\b", Ro), 1, 1, All),
         
@@ -71,6 +71,7 @@ internal class PcsExtractor : ExtractorBase, IExtractor
         var titleSplitted = Split(lotDataToExtract.Name);
         var conditionDescriptionSplitted = lotDataToExtract.ConditionDescription != null ? Split(lotDataToExtract.ConditionDescription) : null;
         var descriptionTextSplitted = Split(lotDataToExtract.DescriptionText);
+        var shortDescriptionTextSplitted = lotDataToExtract.ShortDescription != null ? Split(lotDataToExtract.ShortDescription) : null;
 
         var extractionResult = new Dictionary<string, HashSet<ExtractionResult>>();
         Extract(titleSplitted, ExtractFrom.Title, extractionResult);
@@ -89,7 +90,15 @@ internal class PcsExtractor : ExtractorBase, IExtractor
             ExtractFrom.Description,
             extractionResult
         );
-
+        
+        if (shortDescriptionTextSplitted != null)
+        {
+            Extract(
+                shortDescriptionTextSplitted,
+                ExtractFrom.ShortDescription,
+                extractionResult
+            );
+        }
 
         return extractionResult;
     }

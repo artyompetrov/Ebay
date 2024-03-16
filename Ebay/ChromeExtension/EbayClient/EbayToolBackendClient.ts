@@ -966,6 +966,7 @@ export class LotInfo implements ILotInfo {
     description!: string;
     condition!: string;
     conditionDescription?: string | undefined;
+    shortDescription?: string | undefined;
     seller!: string;
     locatedIn!: string;
     ignoreThatLot!: boolean;
@@ -999,6 +1000,7 @@ export class LotInfo implements ILotInfo {
             this.description = _data["description"];
             this.condition = _data["condition"];
             this.conditionDescription = _data["conditionDescription"];
+            this.shortDescription = _data["shortDescription"];
             this.seller = _data["seller"];
             this.locatedIn = _data["locatedIn"];
             this.ignoreThatLot = _data["ignoreThatLot"];
@@ -1036,6 +1038,7 @@ export class LotInfo implements ILotInfo {
         data["description"] = this.description;
         data["condition"] = this.condition;
         data["conditionDescription"] = this.conditionDescription;
+        data["shortDescription"] = this.shortDescription;
         data["seller"] = this.seller;
         data["locatedIn"] = this.locatedIn;
         data["ignoreThatLot"] = this.ignoreThatLot;
@@ -1066,6 +1069,7 @@ export interface ILotInfo {
     description: string;
     condition: string;
     conditionDescription?: string | undefined;
+    shortDescription?: string | undefined;
     seller: string;
     locatedIn: string;
     ignoreThatLot: boolean;
@@ -1085,6 +1089,7 @@ export class LotInfoShort implements ILotInfoShort {
     shippingAdditional?: number | undefined;
     condition!: string;
     conditionDescription?: string | undefined;
+    shortDescription?: string | undefined;
     seller!: string;
     locatedIn!: string;
     categories!: CategoryValue[];
@@ -1116,6 +1121,7 @@ export class LotInfoShort implements ILotInfoShort {
             this.shippingAdditional = _data["shippingAdditional"];
             this.condition = _data["condition"];
             this.conditionDescription = _data["conditionDescription"];
+            this.shortDescription = _data["shortDescription"];
             this.seller = _data["seller"];
             this.locatedIn = _data["locatedIn"];
             if (Array.isArray(_data["categories"])) {
@@ -1151,6 +1157,7 @@ export class LotInfoShort implements ILotInfoShort {
         data["shippingAdditional"] = this.shippingAdditional;
         data["condition"] = this.condition;
         data["conditionDescription"] = this.conditionDescription;
+        data["shortDescription"] = this.shortDescription;
         data["seller"] = this.seller;
         data["locatedIn"] = this.locatedIn;
         if (Array.isArray(this.categories)) {
@@ -1179,6 +1186,7 @@ export interface ILotInfoShort {
     shippingAdditional?: number | undefined;
     condition: string;
     conditionDescription?: string | undefined;
+    shortDescription?: string | undefined;
     seller: string;
     locatedIn: string;
     categories: CategoryValue[];
@@ -1366,6 +1374,7 @@ export class LotDataToExtract implements ILotDataToExtract {
     condition!: string;
     conditionDescription?: string | undefined;
     description!: string;
+    shortDescription?: string | undefined;
 
     constructor(data?: ILotDataToExtract) {
         if (data) {
@@ -1382,6 +1391,7 @@ export class LotDataToExtract implements ILotDataToExtract {
             this.condition = _data["condition"];
             this.conditionDescription = _data["conditionDescription"];
             this.description = _data["description"];
+            this.shortDescription = _data["shortDescription"];
         }
     }
 
@@ -1398,6 +1408,7 @@ export class LotDataToExtract implements ILotDataToExtract {
         data["condition"] = this.condition;
         data["conditionDescription"] = this.conditionDescription;
         data["description"] = this.description;
+        data["shortDescription"] = this.shortDescription;
         return data;
     }
 }
@@ -1407,6 +1418,7 @@ export interface ILotDataToExtract {
     condition: string;
     conditionDescription?: string | undefined;
     description: string;
+    shortDescription?: string | undefined;
 }
 
 export class ExtractedFields implements IExtractedFields {

@@ -368,6 +368,9 @@ definitions:
       conditionDescription:
         type: string
         minLength: 1
+      shortDescription:
+         type: string
+         minLength: 1
       seller:
         type: string
         minLength: 1
@@ -437,6 +440,9 @@ definitions:
       conditionDescription:
         type: string
         minLength: 1
+      shortDescription:
+         type: string
+         minLength: 1
       seller:
         type: string
         minLength: 1
@@ -545,6 +551,9 @@ definitions:
         type: string
         minLength: 1
       description:
+        type: string
+        minLength: 1
+      shortDescription:
         type: string
         minLength: 1
     required:

@@ -863,6 +863,8 @@ function fillLotInfo(ebayItem: Item, shippingCountry: string) {
     lotInfo.description = ebayItem.description
 
     lotInfo.locatedIn = ebayItem.itemLocation.country
+    
+    lotInfo.shortDescription = ebayItem.shortDescription
 
     fillShipping(ebayItem, shippingCountry);
 
