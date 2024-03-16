@@ -77,7 +77,7 @@ currencyMap.set("AUD", "AU $")
 
 // fetch через background script, по другому не работает
 function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response> {
-    //console.log(JSON.stringify(input) + " " + JSON.stringify(init))
+    console.log(JSON.stringify(input) + " " + JSON.stringify(init))
     return new Promise((resolve, reject) => {
         chrome.runtime.sendMessage({input, init}, messageResponse => {
             const [response, error] = messageResponse;
@@ -856,7 +856,7 @@ function fillLotInfo(ebayItem: Item, shippingCountry: string) {
 
     lotInfo.seller = ebayItem.seller.username
 
-    lotInfo.condition = ebayItem.condition
+    lotInfo.condition = ebayItem.condition ?? "--"
 
     lotInfo.conditionDescription = ebayItem.conditionDescription
 
@@ -911,7 +911,7 @@ async function showAndSaveError(error: Error, client: EbayToolBackendClient) {
         errorText = error.stack;
     }
 
-    console.log("ERROR " + errorText)
+    console.log("ERROR " + errorText + " " + JSON.stringify(error))
 
     let errorDiv = await sleepElementLoaded('div.' + panelClass + ' #' + errorElementId, document)
     let span = document.createElement('span');
