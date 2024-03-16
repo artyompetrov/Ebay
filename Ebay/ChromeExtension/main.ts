@@ -77,7 +77,7 @@ currencyMap.set("AUD", "AU $")
 
 // fetch через background script, по другому не работает
 function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response> {
-    console.log(JSON.stringify(input) + " " + JSON.stringify(init))
+    //console.log(JSON.stringify(input) + " " + JSON.stringify(init))
     return new Promise((resolve, reject) => {
         chrome.runtime.sendMessage({input, init}, messageResponse => {
             const [response, error] = messageResponse;
@@ -774,17 +774,8 @@ function getMax(array: number[]) {
     return largest;
 }
 
-async function checkIfTypedLot() {
-    let mainContentDiv = await sleepElementLoaded('div#mainContent', document)
 
-    if (mainContentDiv.querySelector('div.x-msku__box-cont')) {
-
-        await showLotIsNotSupported()
-    }
-}
-
-
-async function fillManualFieldsAuto(panel: HTMLDivElement, client: EbayToolBackendClient): Promise<{}> {
+async function fillManualFieldsAuto(client: EbayToolBackendClient): Promise<{}> {
     return (await client.extractData(new LotDataToExtract({
         name: lotInfo.name,
         conditionDescription: lotInfo.conditionDescription,
@@ -881,15 +872,9 @@ function fillLotInfo(ebayItem: Item, shippingCountry: string) {
 async function getDataFromPage(backendClient: EbayToolBackendClient, ebayClient: EbayClient) {
     await getEbayItem(ebayClient)
     await getServerLotInfo(backendClient)
-
-    //todo
-    await Promise.all([
-        checkIfTypedLot(),
-    ])
-
+    let extractedDataByFieldName = await fillManualFieldsAuto(backendClient);
     let panel = await createPanel(backendClient, ebayClient);
-    let extractedDataByFieldName = await fillManualFieldsAuto(panel, backendClient);
-
+    
     await Promise.all([
         fillPurchaseHistory(),
         fillUpdateTitleDate(),
@@ -898,7 +883,6 @@ async function getDataFromPage(backendClient: EbayToolBackendClient, ebayClient:
         fillPcs(panel, _serverLotInfo, extractedDataByFieldName),
         fillIgnoreThatLot(panel, _serverLotInfo),
     ]);
-
 
     panel.hidden = false;
 
