@@ -17,11 +17,11 @@ internal class ConditionExtractor : ExtractorBase, IExtractor
         new Extractor(new Regex(pattern: @"\bunused\b", options: Ro), WellKnown.Conditions.New, All),
         new Extractor(new Regex(pattern: @"\bused\b", options: Ro), WellKnown.Conditions.Used, All),
         new Extractor(new Regex(pattern: @"\bnib\b", options: Ro), WellKnown.Conditions.New, All),
-       // new Extractor(new Regex(pattern: @"\bnos\b", options: Ro), WellKnown.Conditions.New, All),
+       //todo new Extractor(new Regex(pattern: @"\bnos\b", options: Ro), WellKnown.Conditions.New, All),
         new Extractor(new Regex(pattern: @"\bnew\b", options: Ro), WellKnown.Conditions.New, All),
         new Extractor(new Regex(pattern: @"\bnot\s+working\b", options: Ro), WellKnown.Conditions.NotWorking, All),
         new Extractor(new Regex(pattern: @"\bfor\s+parts\b", options: Ro), WellKnown.Conditions.NotWorking, All),
-       // new Extractor(new Regex(pattern: @"\bopen\s+box\b", options: Ro), WellKnown.Conditions.New, All),
+       //todo new Extractor(new Regex(pattern: @"\bopen\s+box\b", options: Ro), WellKnown.Conditions.New, All),
     };
 
     private static readonly string[] ToRemove =

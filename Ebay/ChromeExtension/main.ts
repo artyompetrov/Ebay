@@ -868,7 +868,7 @@ function fillLotInfo(ebayItem: Item, shippingCountry: string) {
 
     fillShipping(ebayItem, shippingCountry);
 
-    //todo shortDescription categoryPath lotSize
+    //todo categoryPath lotSize
 }
 
 async function getDataFromPage(backendClient: EbayToolBackendClient, ebayClient: EbayClient) {
