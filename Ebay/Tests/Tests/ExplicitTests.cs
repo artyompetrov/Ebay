@@ -64,7 +64,7 @@ public class ExplicitTests
                 condition: lotInfoFull.LotInfo.Condition,
                 name: lotInfoFull.LotInfo.Name,
                 shortDescription: lotInfoFull.LotInfo.ShortDescription,
-                lotSize: null
+                lotSize: lotInfoFull.LotInfo.LotSize
             )
         );
 
@@ -116,7 +116,7 @@ public class ExplicitTests
                 description: lotInfoFull.LotInfo.Description,
                 name: lotInfoFull.LotInfo.Name,
                 shortDescription: lotInfoFull.LotInfo.ShortDescription,
-                lotSize: null
+                lotSize: lotInfoFull.LotInfo.LotSize
             )
         );
 
@@ -161,7 +161,7 @@ public class ExplicitTests
                 description: lotInfoFull.LotInfo.Description,
                 name: lotInfoFull.LotInfo.Name,
                 shortDescription: lotInfoFull.LotInfo.ShortDescription,
-                lotSize: null
+                lotSize: lotInfoFull.LotInfo.LotSize
             )
         );
 
