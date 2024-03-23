@@ -7,6 +7,7 @@ namespace Ebay.Server.Services;
 internal class ConditionExtractor : ExtractorBase, IExtractor
 {
     public string ExtractedDataName => "condition";
+    private static string Nos = "nos";
 
     private static readonly List<Extractor> Extractors = new()
     {
@@ -17,11 +18,11 @@ internal class ConditionExtractor : ExtractorBase, IExtractor
         new Extractor(new Regex(pattern: @"\bunused\b", options: Ro), WellKnown.Conditions.New, All),
         new Extractor(new Regex(pattern: @"\bused\b", options: Ro), WellKnown.Conditions.Used, All),
         new Extractor(new Regex(pattern: @"\bnib\b", options: Ro), WellKnown.Conditions.New, All),
-       //todo new Extractor(new Regex(pattern: @"\bnos\b", options: Ro), WellKnown.Conditions.New, All),
+        new Extractor(new Regex(pattern: @"\bnos\b", options: Ro), Nos, All),
         new Extractor(new Regex(pattern: @"\bnew\b", options: Ro), WellKnown.Conditions.New, All),
         new Extractor(new Regex(pattern: @"\bnot\s+working\b", options: Ro), WellKnown.Conditions.NotWorking, All),
         new Extractor(new Regex(pattern: @"\bfor\s+parts\b", options: Ro), WellKnown.Conditions.NotWorking, All),
-       //todo new Extractor(new Regex(pattern: @"\bopen\s+box\b", options: Ro), WellKnown.Conditions.New, All),
+        //todo new Extractor(new Regex(pattern: @"\bopen\s+box\b", options: Ro), WellKnown.Conditions.New, All),
     };
 
     private static readonly string[] ToRemove =
@@ -49,9 +50,12 @@ internal class ConditionExtractor : ExtractorBase, IExtractor
     {
         var titleSplitted = Split(lotDataToExtract.Name);
         var conditionSplitted = Split(lotDataToExtract.Condition);
-        var conditionDescriptionSplitted = lotDataToExtract.ConditionDescription != null ? Split(lotDataToExtract.ConditionDescription) : null;
+        var conditionDescriptionSplitted = lotDataToExtract.ConditionDescription != null
+            ? Split(lotDataToExtract.ConditionDescription)
+            : null;
         var descriptionTextSplitted = Split(lotDataToExtract.DescriptionText);
-        var shortDescriptionTextSplitted = lotDataToExtract.ShortDescription != null ? Split(lotDataToExtract.ShortDescription) : null;
+        var shortDescriptionTextSplitted =
+            lotDataToExtract.ShortDescription != null ? Split(lotDataToExtract.ShortDescription) : null;
 
         var extractionResult = new Dictionary<string, HashSet<ExtractionResult>>();
 
@@ -60,13 +64,13 @@ internal class ConditionExtractor : ExtractorBase, IExtractor
             extractedFrom: ExtractFrom.Title,
             result: extractionResult
         );
-        
+
         ExtractInternal(
             splittedArray: conditionSplitted,
             extractedFrom: ExtractFrom.Condition,
             result: extractionResult
         );
-        
+
         if (conditionDescriptionSplitted != null)
         {
             ExtractInternal(
@@ -75,13 +79,13 @@ internal class ConditionExtractor : ExtractorBase, IExtractor
                 result: extractionResult
             );
         }
-        
+
         ExtractInternal(
             splittedArray: descriptionTextSplitted,
             extractedFrom: ExtractFrom.Description,
             result: extractionResult
         );
-        
+
         if (shortDescriptionTextSplitted != null)
         {
             ExtractInternal(
@@ -91,7 +95,29 @@ internal class ConditionExtractor : ExtractorBase, IExtractor
             );
         }
 
+        ReplaceNosWithNew(extractionResult);
+
         return extractionResult;
+    }
+
+    private static void ReplaceNosWithNew(Dictionary<string, HashSet<ExtractionResult>> extractionResult)
+    {
+        if (extractionResult.ContainsKey(Nos))
+        {
+            if (extractionResult.ContainsKey(WellKnown.Conditions.Used))
+            {
+                extractionResult.Remove(Nos);
+            }
+            else
+            {
+                foreach (var result in extractionResult[Nos])
+                {
+                    extractionResult.AppendOrCreateNewCollection(WellKnown.Conditions.New, result);
+                }
+
+                extractionResult.Remove(Nos);
+            }
+        }
     }
 
     private static void ExtractInternal(
