@@ -355,7 +355,14 @@ async function handleSubmit(event: SubmitEvent, backendClient: EbayToolBackendCl
         console.log("Sending to backend: " + JSON.stringify(_lotInfo))
 
 
-        await backendClient.upsertLotInfo(_lotInfo, data.get('productId').toString())
+        let productId = data.get('productId').toString();
+        
+        if (!productId) {
+            // noinspection ExceptionCaughtLocallyJS
+            throw new Error("Product id not set");
+        }
+        
+        await backendClient.upsertLotInfo(_lotInfo, productId)
 
         await productPage(backendClient, ebayClient)
 
