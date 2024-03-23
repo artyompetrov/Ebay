@@ -95,8 +95,12 @@ export class FetchWrapperCustom {
 
         if (init.headers) {
             init.headers['Authorization'] = 'Bearer ' + accessToken
+            init.headers['X-EBAY-API-IAF-TOKEN'] = 'Bearer ' + accessToken
         } else {
-            init.headers = {Authorization: 'Bearer ' + accessToken}
+            init.headers = {
+                Authorization: 'Bearer ' + accessToken, 
+                'X-EBAY-API-IAF-TOKEN': 'Bearer ' + accessToken
+            }
         }
         try {
             return await this.options.fetch(input, init);
@@ -105,6 +109,7 @@ export class FetchWrapperCustom {
                 const newToken = await this.refreshToken();
 
                 init.headers['Authorization'] = 'Bearer ' + newToken
+                init.headers['X-EBAY-API-IAF-TOKEN'] = 'Bearer ' + newToken
                 return await this.options.fetch(input, init)
             } else {
                 throw error;
