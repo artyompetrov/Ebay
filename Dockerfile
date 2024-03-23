@@ -5,6 +5,8 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
+COPY ["Directory.Packages.props", "Directory.Packages.props"]
+COPY ["Ebay.sln", "Ebay.sln"]
 COPY ["Ebay/Server/Ebay.Server.csproj", "Ebay/Server/"]
 COPY ["Ebay/Client/Ebay.Client.csproj", "Ebay/Client/"]
 RUN dotnet restore "Ebay/Server/Ebay.Server.csproj"
