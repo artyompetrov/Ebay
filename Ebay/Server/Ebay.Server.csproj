@@ -4,7 +4,6 @@
         <UserSecretsId>Ebay.Server-9A4AB6A1-13E5-44E4-8252-FA741476F495</UserSecretsId>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
         <TargetFramework>net7.0</TargetFramework>
-        <PublishAot>true</PublishAot>
     </PropertyGroup>
 
     <ItemGroup>
