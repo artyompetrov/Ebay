@@ -811,7 +811,7 @@ function getShippingCountry(ebayItem: Item) {
 
 async function getEbayItem(ebayClient: EbayClient) {
     let lotId = location.pathname.match(/\/itm\/([0-9]+)/)[1];
-
+    
     let ebayItem = await ebayClient.getItemByLegacyId(undefined,
         lotId,
         undefined,
@@ -821,7 +821,8 @@ async function getEbayItem(ebayClient: EbayClient) {
 
     let shippingCountry = getShippingCountry(ebayItem);
     let zipCode = supportedShippingCountries.get(shippingCountry).zip ?? "<zip_code>"
-
+    
+    //todo перейти на https://developer.ebay.com/Devzone/shopping/docs/CallRef/GetShippingCosts.html
     ebayItem = await ebayClient.getItemByLegacyId(undefined,
         lotId,
         undefined,
