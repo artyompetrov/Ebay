@@ -40,11 +40,12 @@ const searchQueryParam = 'searchQuery'
 const ignoreThatLotDiv = "ignoreThatLotDiv"
 const unsupportedLotDiv = "unsupportedLotDiv"
 const categoriesDiv = "categoriesDiv"
-const lotInfo = new LotInfo()
+let _lotInfo = new LotInfo()
 let _serverLotInfo: LotInfoWithProductId;
 let _unsupportedLot = false;
 let _needActualizationLotsIds: number[] = null
 let _serverAndEbayAreEqual = false;
+let _panel: HTMLDivElement;
 
 class ShippingParameters {
     constructor(regions: string[], zip: string | null) {
@@ -101,11 +102,11 @@ function sleep(ms: number): Promise<number> {
 
 function extractPrice(price: string): Price {
     let priceTrimmed = price.trim()
-    let matches = priceTrimmed.match(/^(\D+)(\d+(?:[,]\d+)?(?:[.]\d+)?\s*)([(\/].+|$)/)
+    let matches = priceTrimmed.match(/^(\D+)(\d+(?:,\d+)?(?:[.]\d+)?\s*)([(\/].+|$)/)
     if (matches) {
         return new Price(parseFloat(matches[2].replace(',', '')), matches[1].trim())
     } else {
-        let matches = priceTrimmed.match(/^(\d+(?:[,]\d+)?(?:[.]\d+)?)(\D+)([(\/].+|$)/)
+        let matches = priceTrimmed.match(/^(\d+(?:,\d+)?(?:[.]\d+)?)(\D+)([(\/].+|$)/)
         if (matches) {
             return new Price(parseFloat(matches[1].replace(',', '')), matches[2].trim())
         }
@@ -239,7 +240,7 @@ async function createPanel(backendClient: EbayToolBackendClient, ebayClient: Eba
         </div>
         <div style="color: red;" id="${errorElementId}"></div>
         <br>
-        <input id="${submitId}" type="submit" value="Save"/>
+        <input id="${submitId}" type="submit" value="Save" disabled/>
     `;
 
     form.addEventListener("submit", async function (event: SubmitEvent) {
@@ -247,10 +248,9 @@ async function createPanel(backendClient: EbayToolBackendClient, ebayClient: Eba
     });
 
     div.appendChild(form)
-    div.hidden = true;
     bodyElement.appendChild(div);
 
-    return div
+    _panel = div;
 }
 
 async function createOpenMultipleButton(): Promise<HTMLDivElement> {
@@ -330,32 +330,32 @@ async function handleSubmit(event: SubmitEvent, backendClient: EbayToolBackendCl
             } else if (key === 'ignoreThatLot') {
                 ignoreThatLot = true
             } else {
-                lotInfo[key] = value;
+                _lotInfo[key] = value;
             }
         });
 
-        lotInfo.categories = categories;
+        _lotInfo.categories = categories;
 
         if (_unsupportedLot) {
             ignoreThatLot = true;
         }
 
-        lotInfo['ignoreThatLot'] = ignoreThatLot;
+        _lotInfo['ignoreThatLot'] = ignoreThatLot;
 
         if (ignoreThatLot) {
-            if (!lotInfo.pcs) {
-                lotInfo.pcs = 1
+            if (!_lotInfo.pcs) {
+                _lotInfo.pcs = 1
             }
 
-            if (!lotInfo.titleChangeDate) {
-                lotInfo.titleChangeDate = new Date(0).toISOString()
+            if (!_lotInfo.titleChangeDate) {
+                _lotInfo.titleChangeDate = new Date(0).toISOString()
             }
         }
 
-        console.log("Sending to backend: " + JSON.stringify(lotInfo))
+        console.log("Sending to backend: " + JSON.stringify(_lotInfo))
 
 
-        await backendClient.upsertLotInfo(lotInfo, data.get('productId').toString())
+        await backendClient.upsertLotInfo(_lotInfo, data.get('productId').toString())
 
         await productPage(backendClient, ebayClient)
 
@@ -384,10 +384,9 @@ function fillSoldItemsResult(fixedPriceRows: HTMLTableRowElement[], result: Purc
 
             let priceExtracted = extractPrice(price)
 
-            let lotInfoCurrency = currencyMap.has(lotInfo.currency) ? currencyMap.get(lotInfo.currency) : lotInfo.currency
-            
-            if(priceExtracted.currency !== lotInfoCurrency)
-            {
+            let lotInfoCurrency = currencyMap.has(_lotInfo.currency) ? currencyMap.get(_lotInfo.currency) : _lotInfo.currency
+
+            if (priceExtracted.currency !== lotInfoCurrency) {
                 throw new Error("currency doesn't match with lot currency lot currency " + lotInfoCurrency + " extracted currency " + priceExtracted.currency)
             }
             result.push(new PurchaseInfoInner(parseInt(columns[2]), parseDate(columns[3]), priceExtracted))
@@ -491,21 +490,13 @@ function hasShippingToCountry(country: string, shipsTo: Set<string>, excludes: S
     return (shipsTo.has('WORLDWIDE') || shipsToRegionFound || shipsTo.has(country)) && !excludesRegionFound && !excludes.has(country);
 }
 
-async function showLotIsNotSupported() {
-    (<HTMLDivElement>(await sleepElementLoaded('div#' + ignoreThatLotDiv, document))).hidden = true;
-    (<HTMLDivElement>(await sleepElementLoaded('div#' + unsupportedLotDiv, document))).hidden = false;
-
-    _unsupportedLot = true;
-}
-
-
 async function fillPurchaseHistory() {
     if (!_unsupportedLot) {
         let itemId = location.pathname.match(/\/itm\/([0-9]+)/)[1];
         let purchaseHistoryUrl = `https://${location.hostname}/bin/purchaseHistory?item=${itemId}`;
         let response = await fetchResource(purchaseHistoryUrl, {method: 'GET', credentials: 'include'})
         let text = await response.text()
-        lotInfo.purchaseHistory = parseSoldItemsPage(text)
+        _lotInfo.purchaseHistory = parseSoldItemsPage(text)
     }
 }
 
@@ -516,7 +507,7 @@ async function fillUpdateTitleDate() {
         console.log(url);
         let response = await fetchResource(url, {method: 'GET', credentials: 'include'})
         let text = await response.text()
-        lotInfo.titleChangeDate = parseRevisionSummary(text).toISOString()
+        _lotInfo.titleChangeDate = parseRevisionSummary(text).toISOString()
     }
 }
 
@@ -654,7 +645,7 @@ async function fillManualCondition(panel: HTMLDivElement, client: EbayToolBacken
 
 async function getServerLotInfo(client: EbayToolBackendClient): Promise<LotInfoWithProductId | undefined> {
     try {
-        _serverLotInfo = await client.getLotInfo(lotInfo.lotId);
+        _serverLotInfo = await client.getLotInfo(_lotInfo.lotId);
     } catch (error) {
         if (error instanceof NotFoundProblemDetailedInfo) {
             return undefined;
@@ -726,7 +717,7 @@ async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId)
     serverLotInfoJson["seller"] = undefined
     serverLotInfoJson["purchaseHistory"] = undefined
 
-    let lotInfoJson = lotInfo.toJSON()
+    let lotInfoJson = _lotInfo.toJSON()
     lotInfoJson["pcs"] = undefined
     lotInfoJson["ignoreThatLot"] = undefined
     lotInfoJson["categories"] = undefined
@@ -744,7 +735,7 @@ async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId)
                 return new Date(x.date).getTime()
             } else return 0;
         }))
-        let ebayMaxDate = getMax(lotInfo.purchaseHistory.map(x => {
+        let ebayMaxDate = getMax(_lotInfo.purchaseHistory.map(x => {
             if (x.price !== undefined) {
                 return new Date(x.date).getTime();
             } else return 0;
@@ -777,10 +768,10 @@ function getMax(array: number[]) {
 
 async function fillManualFieldsAuto(client: EbayToolBackendClient): Promise<{}> {
     return (await client.extractData(new LotDataToExtract({
-        name: lotInfo.name,
-        conditionDescription: lotInfo.conditionDescription,
-        condition: lotInfo.condition,
-        description: lotInfo.description
+        name: _lotInfo.name,
+        conditionDescription: _lotInfo.conditionDescription,
+        condition: _lotInfo.condition,
+        description: _lotInfo.description
     }))).reduce((dictionary, value) => {
         dictionary[value.fieldName] = value.extractedData;
         return dictionary;
@@ -831,62 +822,86 @@ async function getEbayItem(ebayClient: EbayClient) {
 
 
     fillLotInfo(ebayItem, shippingCountry)
-
-    return ebayItem;
 }
 
 function fillShipping(ebayItem: Item, shippingCountry: string) {
     let shippingOption = ebayItem.shippingOptions[0]
-    if (lotInfo.currency != shippingOption.shippingCost.currency) throw new Error("Shipping and lot currency mismatch")
 
-    lotInfo.shipping = parseFloat(shippingOption.shippingCost.value)
-    lotInfo.shippingAdditional = parseFloat(shippingOption.additionalShippingCostPerUnit.value)
-    lotInfo.shippingCountry = shippingCountry
+    let shippingCurrency : string;
+    let shippingValue : string;
+    let additionalShippingCostPerUnit : string;
+    if (shippingOption.shippingCost.convertedFromValue === undefined) {
+        shippingValue = shippingOption.shippingCost.value;
+        shippingCurrency = shippingOption.shippingCost.currency;
+        additionalShippingCostPerUnit = shippingOption.additionalShippingCostPerUnit.value
+    }
+    else {
+        shippingValue = shippingOption.shippingCost.convertedFromValue;
+        shippingCurrency = shippingOption.shippingCost.convertedFromCurrency;
+        additionalShippingCostPerUnit = shippingOption.additionalShippingCostPerUnit.convertedFromValue
+    }
+    
+    
+    if (_lotInfo.currency != shippingCurrency) throw new Error("Shipping and lot currency mismatch lot + " + _lotInfo.currency + " shipping " + shippingCurrency)
+
+    _lotInfo.shipping = parseFloat(shippingValue)
+    _lotInfo.shippingAdditional = parseFloat(additionalShippingCostPerUnit)
+    _lotInfo.shippingCountry = shippingCountry
 }
 
 function fillLotInfo(ebayItem: Item, shippingCountry: string) {
     console.log(JSON.stringify(ebayItem))
 
-    lotInfo.lotId = parseInt(ebayItem.legacyItemId)
+    _lotInfo.lotId = parseInt(ebayItem.legacyItemId)
 
-    lotInfo.price = parseFloat(ebayItem.price.value)
-    lotInfo.currency = ebayItem.price.currency
-
-    lotInfo.name = ebayItem.title
-
-    lotInfo.seller = ebayItem.seller.username
-
-    lotInfo.condition = ebayItem.condition ?? "--"
-
-    lotInfo.conditionDescription = ebayItem.conditionDescription
-
-    lotInfo.description = ebayItem.description
-
-    lotInfo.locatedIn = ebayItem.itemLocation.country
+    if (ebayItem.price.convertedFromValue === undefined) {
+        _lotInfo.price = parseFloat(ebayItem.price.value)
+        _lotInfo.currency = ebayItem.price.currency
+    }
+    else {
+        _lotInfo.price = parseFloat(ebayItem.price.convertedFromValue)
+        _lotInfo.currency = ebayItem.price.convertedFromCurrency
+    }
     
-    lotInfo.shortDescription = ebayItem.shortDescription
+
+    _lotInfo.name = ebayItem.title
+
+    _lotInfo.seller = ebayItem.seller.username
+
+    _lotInfo.condition = ebayItem.condition ?? "--"
+
+    _lotInfo.conditionDescription = ebayItem.conditionDescription
+
+    _lotInfo.description = ebayItem.description
+
+    _lotInfo.locatedIn = ebayItem.itemLocation.country
+
+    _lotInfo.shortDescription = ebayItem.shortDescription
 
     fillShipping(ebayItem, shippingCountry);
 
     //todo categoryPath lotSize
 }
 
+
 async function getDataFromPage(backendClient: EbayToolBackendClient, ebayClient: EbayClient) {
-    await getEbayItem(ebayClient)
-    await getServerLotInfo(backendClient)
+    await createPanel(backendClient, ebayClient)
+    
+    await Promise.all([
+        await getEbayItem(ebayClient),
+        await getServerLotInfo(backendClient),
+    ]);
+
     let extractedDataByFieldName = await fillManualFieldsAuto(backendClient);
-    let panel = await createPanel(backendClient, ebayClient);
     
     await Promise.all([
         fillPurchaseHistory(),
         fillUpdateTitleDate(),
-        fillProduct(panel, backendClient, _serverLotInfo),
-        fillManualCondition(panel, backendClient, _serverLotInfo, extractedDataByFieldName),
-        fillPcs(panel, _serverLotInfo, extractedDataByFieldName),
-        fillIgnoreThatLot(panel, _serverLotInfo),
+        fillProduct(_panel, backendClient, _serverLotInfo),
+        fillManualCondition(_panel, backendClient, _serverLotInfo, extractedDataByFieldName),
+        fillPcs(_panel, _serverLotInfo, extractedDataByFieldName),
+        fillIgnoreThatLot(_panel, _serverLotInfo),
     ]);
-
-    panel.hidden = false;
 
     await compareLotInfos(_serverLotInfo);
 }
@@ -946,7 +961,9 @@ function getAuthorizeFetch(oAuth2Client: OAuth2Client, scope: string, tokenStore
     })
 }
 
-async function hideErrors() {
+async function hideErrorsAndEnableSubmit() {
+    let submitButton = <HTMLInputElement>(await sleepElementLoaded('#' + submitId, document))
+    submitButton.disabled = false;
     let errorDiv = await sleepElementLoaded('div.' + panelClass + ' #' + errorElementId, document)
     errorDiv.innerHTML = ""
 }
@@ -955,7 +972,8 @@ async function productPage(backendClient: EbayToolBackendClient, ebayClient: Eba
     console.log("productPage")
     try {
         await getDataFromPage(backendClient, ebayClient);
-        await hideErrors()
+        
+        await hideErrorsAndEnableSubmit()
     } catch (error) {
         await showAndSaveError(error, backendClient);
     }
@@ -1016,6 +1034,7 @@ async function searchPage(client: EbayToolBackendClient) {
         }
     }
 
+    // noinspection JSUnusedLocalSymbols
     let _ = updateStatusInfinite(client, links);
 
     await createOpenMultipleButton()
