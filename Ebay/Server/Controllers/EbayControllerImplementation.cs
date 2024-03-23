@@ -235,9 +235,9 @@ internal class EbayControllerImplementation : IEbayController
             new(
                 items: new List<CategoryItem>
                 {
-                    new("Not tested", "notTested"),
-                    new("Tested", "tested"),
-                    new("Mathced", "matched")
+                    new("Not tested", WellKnown.States.NotTested),
+                    new("Tested", WellKnown.States.Tested),
+                    new("Mathced", WellKnown.States.Matched)
                 },
                 type: "test_state")
         });

@@ -103,7 +103,7 @@ internal class PcsExtractor : ExtractorBase, IExtractor
         return extractionResult;
     }
 
-    public void Extract(string[] splittedArray, ExtractFrom extractedFrom, Dictionary<string, HashSet<ExtractionResult>> result)
+    private static void Extract(string[] splittedArray, ExtractFrom extractedFrom, Dictionary<string, HashSet<ExtractionResult>> result)
     {
         var successfulExtractions = new HashSet<string>();
 

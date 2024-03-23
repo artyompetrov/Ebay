@@ -34,4 +34,11 @@ internal static class WellKnown
         public static string Used = "used";
         public static string NotWorking = "notWorking";
     }
+    
+    public static class States
+    {
+        public static string NotTested = "notTested";
+        public static string Tested = "tested";
+        public static string Matched = "matched";
+    }
 }

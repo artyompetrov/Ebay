@@ -6,7 +6,8 @@ internal static class ManualFieldsExtractor
     private static readonly IExtractor[] Extractors =
     {
         new PcsExtractor(),
-        new ConditionExtractor()
+        new ConditionExtractor(),
+        new TestStateExtractor()
     };
 
     public static Dictionary<string, Dictionary<string, HashSet<ExtractionResult>>> ExtractManualData(

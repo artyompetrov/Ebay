@@ -134,6 +134,50 @@ public class ExplicitTests
     }
 
 
+    private static readonly HashSet<long> ExcludedLotIdsState = new()
+    {
+        133475288040,
+        115507419319,
+        134725931500,
+        115993741586,
+        126212251918
+
+
+    };
+
+    [TestCaseSource(nameof(GetLots))]
+    public async Task Check_Extractor_Function_TestState(long lotId)
+    {
+        var lotInfoFull = await Client.GetLotInfoAsync(lotId);
+
+        if (ExcludedLotIdsState.Contains(lotId)) return;
+
+        var extractedFields = ManualFieldsExtractor.ExtractManualData(
+            new LotDataToExtract(
+                conditionDescription: lotInfoFull.LotInfo.ConditionDescription,
+                condition: lotInfoFull.LotInfo.Condition,
+                description: lotInfoFull.LotInfo.Description,
+                name: lotInfoFull.LotInfo.Name,
+                shortDescription: lotInfoFull.LotInfo.ShortDescription
+            )
+        );
+
+        var result = extractedFields["test_state"];
+
+        var results = result.OrderByDescending(x => x.Value.Count).ToList();
+        var manualCondition = lotInfoFull.LotInfo.Categories.Single(x => x.Type == "test_state").Value ??
+            throw new AssertionException("testState not found");
+
+        Assert.That(
+            condition: (results.Count == 0 && manualCondition == WellKnown.States.NotTested) ||
+            (results.Count == 1 && results[0].Key.Equals(manualCondition)) ||
+            (results.Count > 1 && results[0].Value.Count > results[1].Value.Count &&
+                results[0].Key.Equals(manualCondition)),
+            message: $"{ToStr(result)}{Environment.NewLine}lotId: {lotId}{Environment.NewLine}seller:{lotInfoFull.LotInfo.Seller}"
+        );
+    }
+    
+    
     public static IEnumerable<TestCaseData> GetLots()
     {
         var allLotIds = Client.GetLotIdsAsync().GetAwaiter().GetResult();
