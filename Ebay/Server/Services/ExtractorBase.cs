@@ -10,6 +10,9 @@ internal abstract class ExtractorBase
     protected static readonly ExtractFrom TitleAndShortAndConditionDescription =
         ExtractFrom.Title | ExtractFrom.ConditionDescription | ExtractFrom.ShortDescription;
 
+    protected static readonly ExtractFrom TitleAndConditionDescription =
+        ExtractFrom.Title | ExtractFrom.ConditionDescription;
+    
     private static readonly string[] NewLines = { "\r\n", "\r", "\n" };
     protected const RegexOptions Ro = RegexOptions.IgnoreCase;
 
