@@ -887,7 +887,7 @@ function fillLotInfo(ebayItem: Item, shippingCountry: string) {
 
     fillShipping(ebayItem, shippingCountry);
 
-    //todo categoryPath lotSize
+    //todo categoryPath
 }
 
 

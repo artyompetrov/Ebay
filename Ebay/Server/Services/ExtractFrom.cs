@@ -7,5 +7,6 @@ internal enum ExtractFrom
     ConditionDescription = 2,
     Description = 4,
     Condition = 8,
-    ShortDescription = 16
+    ShortDescription = 16,
+    LotSize = 32,
 }

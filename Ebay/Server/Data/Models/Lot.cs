@@ -15,6 +15,8 @@ internal class Lot
 
     public int Pcs { get; set; }
 
+    public int? LotSize { get; set; } = null;
+
     [ForeignKey("CurrencyEbayName")]
     public string CurrencyId { get; set; } = null!;
 

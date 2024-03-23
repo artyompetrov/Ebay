@@ -448,7 +448,7 @@ namespace Ebay.Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public LotInfo(System.Collections.Generic.List<CategoryValue> @categories, string @condition, string? @conditionDescription, string @currency, string @description, bool @ignoreThatLot, string @locatedIn, long @lotId, string @name, int @pcs, double @price, System.Collections.Generic.List<PurchaseInfo> @purchaseHistory, string @seller, double? @shipping, double? @shippingAdditional, string @shippingCountry, string? @shortDescription, string @titleChangeDate)
+        public LotInfo(System.Collections.Generic.List<CategoryValue> @categories, string @condition, string? @conditionDescription, string @currency, string @description, bool @ignoreThatLot, string @locatedIn, long @lotId, int? @lotSize, string @name, int @pcs, double @price, System.Collections.Generic.List<PurchaseInfo> @purchaseHistory, string @seller, double? @shipping, double? @shippingAdditional, string @shippingCountry, string? @shortDescription, string @titleChangeDate)
 
         {
 
@@ -457,6 +457,8 @@ namespace Ebay.Server.Controllers.Generated
             this.Name = @name;
 
             this.Pcs = @pcs;
+
+            this.LotSize = @lotSize;
 
             this.ShippingCountry = @shippingCountry;
 
@@ -498,6 +500,10 @@ namespace Ebay.Server.Controllers.Generated
         [Newtonsoft.Json.JsonProperty("pcs", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Range(1, int.MaxValue)]
         public int Pcs { get; }
+
+        [Newtonsoft.Json.JsonProperty("lotSize", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Range(1, int.MaxValue)]
+        public int? LotSize { get; }
 
         [Newtonsoft.Json.JsonProperty("shippingCountry", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
@@ -777,7 +783,7 @@ namespace Ebay.Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public LotDataToExtract(string @condition, string? @conditionDescription, string @description, string @name, string? @shortDescription)
+        public LotDataToExtract(string @condition, string? @conditionDescription, string @description, int? @lotSize, string @name, string? @shortDescription)
 
         {
 
@@ -790,6 +796,8 @@ namespace Ebay.Server.Controllers.Generated
             this.Description = @description;
 
             this.ShortDescription = @shortDescription;
+
+            this.LotSize = @lotSize;
 
         }    [Newtonsoft.Json.JsonProperty("name", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
@@ -810,6 +818,9 @@ namespace Ebay.Server.Controllers.Generated
         [Newtonsoft.Json.JsonProperty("shortDescription", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.StringLength(int.MaxValue, MinimumLength = 1)]
         public string? ShortDescription { get; }
+
+        [Newtonsoft.Json.JsonProperty("lotSize", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public int? LotSize { get; }
 
     }
 
