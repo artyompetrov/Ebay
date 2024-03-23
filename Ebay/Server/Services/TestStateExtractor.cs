@@ -11,7 +11,7 @@ internal class TestStateExtractor : ExtractorBase, IExtractor
     private static readonly List<Extractor> Extractors = new()
     {
         new Extractor(new Regex(pattern: @"\bmatched\b", options: Ro), WellKnown.States.Matched, All),
-        new Extractor(new Regex(pattern: @"\bselected\b", options: Ro), WellKnown.States.Matched, All),
+        new Extractor(new Regex(pattern: @"\bselected\b", options: Ro), WellKnown.States.Matched, TitleAndShortAndConditionDescription),
         new Extractor(new Regex(pattern: @"\btested\b", options: Ro), WellKnown.States.Tested, All),
         new Extractor(new Regex(pattern: @"\bL3-3\b", options: Ro), WellKnown.States.Tested, All),
         new Extractor(new Regex(pattern: @"\bL1-3\b", options: Ro), WellKnown.States.Tested, All),
