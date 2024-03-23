@@ -844,6 +844,10 @@ function fillShipping(shippingCostsXml: string) {
         if (_lotInfo.currency != shippingAdditionalCurrency) throw new Error("Shipping and lot currency mismatch lot + " + _lotInfo.currency + " shipping additional " + shippingAdditionalCurrency)
         _lotInfo.shippingAdditional = parseFloat(shippingAdditionalCostElement.innerHTML)
     }
+    else
+    {
+        _lotInfo.shippingAdditional = 0
+    }
 }
 
 function fillLotInfo(ebayItem: Item, shippingCountry: string, shippingCostXml: string) {
