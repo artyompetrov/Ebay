@@ -545,17 +545,24 @@ function parseRevisionSummary(text: string): Date {
 
 function getSearchQuery(): string | undefined {
     if (document.referrer) {
-        return new URL(document.referrer).searchParams?.get('_nkw')?.trim()?.toLowerCase();
+
+        let searchQuery = new URL(document.referrer).searchParams?.get('_nkw')?.trim()?.toLowerCase()
+        if (searchQuery) {
+            let currentUrl = new URL(document.location.href);
+            currentUrl.searchParams.set(searchQueryParam, searchQuery);
+            window.history.pushState({}, null, currentUrl.toString());
+        }
+        
+        return searchQuery;
     }
 
     return new URL(document.location.href).searchParams?.get(searchQueryParam)?.trim()?.toLowerCase();
 }
 
-async function fillProduct(panel: HTMLDivElement, client: EbayToolBackendClient, serverLotInfo: LotInfoWithProductId | undefined) {
+async function fillProduct(panel: HTMLDivElement, client: EbayToolBackendClient, serverLotInfo: LotInfoWithProductId | undefined, searchQuery: string) {
     let productField = panel.querySelector('select#' + productFieldName);
 
     let productId = serverLotInfo?.productId?.trim()?.toLowerCase()
-    let searchQuery = getSearchQuery();
 
     let products = await client.getAllProducts()
     for (let i = 0; i < products.length; i++) {
@@ -885,7 +892,7 @@ function fillLotInfo(ebayItem: Item, shippingCountry: string, shippingCostXml: s
 }
 
 
-async function getDataFromPage(backendClient: EbayToolBackendClient, ebayClient: EbayClient, ebayShoppingApiClient: EbayShoppingApiClient) {
+async function getDataFromPage(backendClient: EbayToolBackendClient, ebayClient: EbayClient, ebayShoppingApiClient: EbayShoppingApiClient, searchQuery: string) {
     await Promise.all([
         await getEbayItem(ebayClient, ebayShoppingApiClient),
         await getServerLotInfo(backendClient),
@@ -896,7 +903,7 @@ async function getDataFromPage(backendClient: EbayToolBackendClient, ebayClient:
     await Promise.all([
         fillPurchaseHistory(),
         fillUpdateTitleDate(),
-        fillProduct(_panel, backendClient, _serverLotInfo),
+        fillProduct(_panel, backendClient, _serverLotInfo, searchQuery),
         fillManualCondition(_panel, backendClient, _serverLotInfo, extractedDataByFieldName),
         fillPcs(_panel, _serverLotInfo, extractedDataByFieldName),
         fillIgnoreThatLot(_panel, _serverLotInfo),
@@ -969,9 +976,12 @@ async function hideErrorsAndEnableSubmit() {
 
 async function productPage(backendClient: EbayToolBackendClient, ebayClient: EbayClient, ebayShoppingApiClient: EbayShoppingApiClient) {
     console.log("productPage")
+
+    let searchQuery = getSearchQuery();
+    
     await createPanel(backendClient, ebayClient, ebayShoppingApiClient)
     try {
-        await getDataFromPage(backendClient, ebayClient, ebayShoppingApiClient);
+        await getDataFromPage(backendClient, ebayClient, ebayShoppingApiClient, searchQuery);
         await hideErrorsAndEnableSubmit()
     } catch (error) {
         await showAndSaveError(error, backendClient);
