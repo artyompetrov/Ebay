@@ -249,7 +249,7 @@ async function createPanel(backendClient: EbayToolBackendClient, ebayClient: Eba
 
     div.appendChild(form)
     bodyElement.appendChild(div);
-
+    div.hidden = true
     _panel = div;
 }
 
@@ -356,12 +356,12 @@ async function handleSubmit(event: SubmitEvent, backendClient: EbayToolBackendCl
 
 
         let productId = data.get('productId').toString();
-        
+
         if (!productId) {
             // noinspection ExceptionCaughtLocallyJS
             throw new Error("Product id not set");
         }
-        
+
         await backendClient.upsertLotInfo(_lotInfo, productId)
 
         await productPage(backendClient, ebayClient)
@@ -668,7 +668,6 @@ async function fillPcs(panel: HTMLDivElement, serverLotInfo: LotInfoWithProductI
 
     let fillManualWithAutoValue = false
     let extractedData: LotDataExtractedItem[] = extractedDataByFieldName["pcs"];
-    console.log(JSON.stringify(extractedData))
 
     if (extractedData.length > 0) {
 
@@ -774,7 +773,7 @@ function getMax(array: number[]) {
 
 
 async function fillManualFieldsAuto(client: EbayToolBackendClient): Promise<{}> {
-    return (await client.extractData(new LotDataToExtract({
+    let extractedData = (await client.extractData(new LotDataToExtract({
         name: _lotInfo.name,
         conditionDescription: _lotInfo.conditionDescription,
         condition: _lotInfo.condition,
@@ -783,6 +782,9 @@ async function fillManualFieldsAuto(client: EbayToolBackendClient): Promise<{}> 
         dictionary[value.fieldName] = value.extractedData;
         return dictionary;
     }, {})
+
+    console.log(JSON.stringify(extractedData))
+    return extractedData
 }
 
 function getShippingCountry(ebayItem: Item) {
@@ -834,21 +836,20 @@ async function getEbayItem(ebayClient: EbayClient) {
 function fillShipping(ebayItem: Item, shippingCountry: string) {
     let shippingOption = ebayItem.shippingOptions[0]
 
-    let shippingCurrency : string;
-    let shippingValue : string;
-    let additionalShippingCostPerUnit : string;
+    let shippingCurrency: string;
+    let shippingValue: string;
+    let additionalShippingCostPerUnit: string;
     if (shippingOption.shippingCost.convertedFromValue === undefined) {
         shippingValue = shippingOption.shippingCost.value;
         shippingCurrency = shippingOption.shippingCost.currency;
         additionalShippingCostPerUnit = shippingOption.additionalShippingCostPerUnit.value
-    }
-    else {
+    } else {
         shippingValue = shippingOption.shippingCost.convertedFromValue;
         shippingCurrency = shippingOption.shippingCost.convertedFromCurrency;
         additionalShippingCostPerUnit = shippingOption.additionalShippingCostPerUnit.convertedFromValue
     }
-    
-    
+
+
     if (_lotInfo.currency != shippingCurrency) throw new Error("Shipping and lot currency mismatch lot + " + _lotInfo.currency + " shipping " + shippingCurrency)
 
     _lotInfo.shipping = parseFloat(shippingValue)
@@ -864,12 +865,11 @@ function fillLotInfo(ebayItem: Item, shippingCountry: string) {
     if (ebayItem.price.convertedFromValue === undefined) {
         _lotInfo.price = parseFloat(ebayItem.price.value)
         _lotInfo.currency = ebayItem.price.currency
-    }
-    else {
+    } else {
         _lotInfo.price = parseFloat(ebayItem.price.convertedFromValue)
         _lotInfo.currency = ebayItem.price.convertedFromCurrency
     }
-    
+
 
     _lotInfo.name = ebayItem.title
 
@@ -892,15 +892,13 @@ function fillLotInfo(ebayItem: Item, shippingCountry: string) {
 
 
 async function getDataFromPage(backendClient: EbayToolBackendClient, ebayClient: EbayClient) {
-    await createPanel(backendClient, ebayClient)
-    
     await Promise.all([
         await getEbayItem(ebayClient),
         await getServerLotInfo(backendClient),
     ]);
 
     let extractedDataByFieldName = await fillManualFieldsAuto(backendClient);
-    
+
     await Promise.all([
         fillPurchaseHistory(),
         fillUpdateTitleDate(),
@@ -977,13 +975,14 @@ async function hideErrorsAndEnableSubmit() {
 
 async function productPage(backendClient: EbayToolBackendClient, ebayClient: EbayClient) {
     console.log("productPage")
+    await createPanel(backendClient, ebayClient)
     try {
         await getDataFromPage(backendClient, ebayClient);
-        
         await hideErrorsAndEnableSubmit()
     } catch (error) {
         await showAndSaveError(error, backendClient);
     }
+    _panel.hidden = false;
 }
 
 async function authPage(backendOAuth2Client: OAuth2Client, ebayOAuth2Client: OAuth2Client) {
