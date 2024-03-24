@@ -889,8 +889,9 @@ async function getDataFromPage(backendClient: EbayToolBackendClient, ebayClient:
 }
 
 async function saveErrorToBackend(error: Error, client: EbayToolBackendClient) {
-    let errorText = JSON.stringify(error) + " " + error.stack
+    let errorText = JSON.stringify(error) + " " + error?.stack
     try {
+        let errorText = JSON.stringify(error) + " " + error?.stack
         await client.saveError(new ClientErrorInfo({
             error: errorText,
             url: document.location.href
