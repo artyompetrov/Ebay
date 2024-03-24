@@ -88,6 +88,17 @@ namespace Ebay.Server.Controllers.Generated
 
         System.Threading.Tasks.Task UpsertLotInfoAsync(LotInfo lotInfo, System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
+
+        /// <returns>Ok</returns>
+
+        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<long>> GetIgnoredLotsAsync(System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+
+
+
+        /// <returns>Ok</returns>
+
+        System.Threading.Tasks.Task IgnoreLotsAsync(System.Collections.Generic.IEnumerable<long> ignoredLots, System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+
         /// <summary>
         /// Получить информацию о лоте
         /// </summary>
@@ -241,6 +252,22 @@ namespace Ebay.Server.Controllers.Generated
         {
 
             return _implementation.UpsertLotInfoAsync(lotInfo, productId, cancellationToken);
+        }
+
+        /// <returns>Ok</returns>
+        [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("products/{productId}/ignored_lots/")]
+        public System.Threading.Tasks.Task<System.Collections.Generic.ICollection<long>> GetIgnoredLots(System.Guid productId, System.Threading.CancellationToken cancellationToken)
+        {
+
+            return _implementation.GetIgnoredLotsAsync(productId, cancellationToken);
+        }
+
+        /// <returns>Ok</returns>
+        [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("products/{productId}/ignored_lots/")]
+        public System.Threading.Tasks.Task IgnoreLots([Microsoft.AspNetCore.Mvc.FromBody] System.Collections.Generic.IEnumerable<long> ignoredLots, System.Guid productId, System.Threading.CancellationToken cancellationToken)
+        {
+
+            return _implementation.IgnoreLotsAsync(ignoredLots, productId, cancellationToken);
         }
 
         /// <summary>
@@ -448,7 +475,7 @@ namespace Ebay.Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public LotInfo(System.Collections.Generic.List<CategoryValue> @categories, string @condition, string? @conditionDescription, string @currency, string @description, bool @ignoreThatLot, string @locatedIn, long @lotId, int? @lotSize, string @name, int @pcs, double @price, System.Collections.Generic.List<PurchaseInfo> @purchaseHistory, string @seller, double? @shipping, double? @shippingAdditional, string @shippingCountry, string? @shortDescription, string @titleChangeDate)
+        public LotInfo(System.Collections.Generic.List<CategoryValue> @categories, string @condition, string? @conditionDescription, string @currency, string @description, string @locatedIn, long @lotId, int? @lotSize, string @name, int @pcs, double @price, System.Collections.Generic.List<PurchaseInfo> @purchaseHistory, string @seller, double? @shipping, double? @shippingAdditional, string @shippingCountry, string? @shortDescription, string @titleChangeDate)
 
         {
 
@@ -481,8 +508,6 @@ namespace Ebay.Server.Controllers.Generated
             this.Seller = @seller;
 
             this.LocatedIn = @locatedIn;
-
-            this.IgnoreThatLot = @ignoreThatLot;
 
             this.Categories = @categories;
 
@@ -548,9 +573,6 @@ namespace Ebay.Server.Controllers.Generated
         [Newtonsoft.Json.JsonProperty("locatedIn", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
         public string LocatedIn { get; }
-
-        [Newtonsoft.Json.JsonProperty("ignoreThatLot", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public bool IgnoreThatLot { get; }
 
         [Newtonsoft.Json.JsonProperty("categories", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
@@ -904,21 +926,16 @@ namespace Ebay.Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public LotState(bool @ignoreThatLot, string @lastUpdate, long @lotId)
+        public LotState(string @lastUpdate, long @lotId)
 
         {
 
             this.LotId = @lotId;
 
-            this.IgnoreThatLot = @ignoreThatLot;
-
             this.LastUpdate = @lastUpdate;
 
         }    [Newtonsoft.Json.JsonProperty("lotId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public long LotId { get; }
-
-        [Newtonsoft.Json.JsonProperty("ignoreThatLot", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public bool IgnoreThatLot { get; }
 
         [Newtonsoft.Json.JsonProperty("lastUpdate", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]

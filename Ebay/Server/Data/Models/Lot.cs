@@ -46,8 +46,6 @@ internal class Lot
 
     public DateTime UpdateDate { get; set; }
 
-    public bool IgnoreThatLot { get; set; }
-
     public Dictionary<string, string> Categories { get; set; } = null!;
 
     public List<Purchase> Purchases { get; set; } = null!;

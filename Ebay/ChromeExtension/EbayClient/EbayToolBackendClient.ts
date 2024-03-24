@@ -392,6 +392,107 @@ export class EbayToolBackendClient {
     }
 
     /**
+     * @return Ok
+     */
+    getIgnoredLots(productId: string): Promise<number[]> {
+        let url_ = this.baseUrl + "/products/{productId}/ignored_lots/";
+        if (productId === undefined || productId === null)
+            throw new Error("The parameter 'productId' must be defined.");
+        url_ = url_.replace("{productId}", encodeURIComponent("" + productId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetIgnoredLots(_response);
+        });
+    }
+
+    protected processGetIgnoredLots(response: Response): Promise<number[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(item);
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = NotFoundProblemDetailedInfo.fromJS(resultData400);
+            return throwException("NotFound", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<number[]>(null as any);
+    }
+
+    /**
+     * @return Ok
+     */
+    ignoreLots(ignoredLots: number[], productId: string): Promise<void> {
+        let url_ = this.baseUrl + "/products/{productId}/ignored_lots/";
+        if (productId === undefined || productId === null)
+            throw new Error("The parameter 'productId' must be defined.");
+        url_ = url_.replace("{productId}", encodeURIComponent("" + productId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(ignoredLots);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processIgnoreLots(_response);
+        });
+    }
+
+    protected processIgnoreLots(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = NotFoundProblemDetailedInfo.fromJS(resultData400);
+            return throwException("NotFound", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
      * Получить информацию о лоте
      * @return Ok
      */
@@ -970,7 +1071,6 @@ export class LotInfo implements ILotInfo {
     shortDescription?: string | undefined;
     seller!: string;
     locatedIn!: string;
-    ignoreThatLot!: boolean;
     categories!: CategoryValue[];
     titleChangeDate!: string;
     purchaseHistory!: PurchaseInfo[];
@@ -1005,7 +1105,6 @@ export class LotInfo implements ILotInfo {
             this.shortDescription = _data["shortDescription"];
             this.seller = _data["seller"];
             this.locatedIn = _data["locatedIn"];
-            this.ignoreThatLot = _data["ignoreThatLot"];
             if (Array.isArray(_data["categories"])) {
                 this.categories = [] as any;
                 for (let item of _data["categories"])
@@ -1044,7 +1143,6 @@ export class LotInfo implements ILotInfo {
         data["shortDescription"] = this.shortDescription;
         data["seller"] = this.seller;
         data["locatedIn"] = this.locatedIn;
-        data["ignoreThatLot"] = this.ignoreThatLot;
         if (Array.isArray(this.categories)) {
             data["categories"] = [];
             for (let item of this.categories)
@@ -1076,7 +1174,6 @@ export interface ILotInfo {
     shortDescription?: string | undefined;
     seller: string;
     locatedIn: string;
-    ignoreThatLot: boolean;
     categories: CategoryValue[];
     titleChangeDate: string;
     purchaseHistory: PurchaseInfo[];
@@ -1577,7 +1674,6 @@ export interface IExtractorInfo {
 
 export class LotState implements ILotState {
     lotId!: number;
-    ignoreThatLot!: boolean;
     lastUpdate!: string;
 
     constructor(data?: ILotState) {
@@ -1592,7 +1688,6 @@ export class LotState implements ILotState {
     init(_data?: any) {
         if (_data) {
             this.lotId = _data["lotId"];
-            this.ignoreThatLot = _data["ignoreThatLot"];
             this.lastUpdate = _data["lastUpdate"];
         }
     }
@@ -1607,7 +1702,6 @@ export class LotState implements ILotState {
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         data["lotId"] = this.lotId;
-        data["ignoreThatLot"] = this.ignoreThatLot;
         data["lastUpdate"] = this.lastUpdate;
         return data;
     }
@@ -1615,7 +1709,6 @@ export class LotState implements ILotState {
 
 export interface ILotState {
     lotId: number;
-    ignoreThatLot: boolean;
     lastUpdate: string;
 }
 

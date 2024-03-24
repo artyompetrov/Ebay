@@ -41,7 +41,6 @@ internal static class ModelsExtensions
             condition: lot.Condition,
             conditionDescription: lot.ConditionDescription,
             description: lot.Description,
-            ignoreThatLot: lot.IgnoreThatLot,
             locatedIn: lot.LocatedIn,
             lotId: lot.Id,
             categories: lot.Categories.Select(x => new CategoryValue(x.Key, x.Value)).ToList(),
@@ -105,7 +104,6 @@ internal static class ModelsExtensions
             Seller = lotInfo.Seller,
             LocatedIn = lotInfo.LocatedIn,
             Categories = lotInfo.Categories.ToDictionary(x => x.Type, x => x.Value),
-            IgnoreThatLot = lotInfo.IgnoreThatLot,
             TitleChangeDate = DateTime.Parse(lotInfo.TitleChangeDate).ToUniversalTime(),
             UpdateDate = updateDate,
             LotSize = lotInfo.LotSize
