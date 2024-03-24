@@ -30,6 +30,7 @@ internal class EbayControllerImplementation : IEbayController
 
     {
         var dbProducts = await _applicationContext.Products
+            .AsNoTracking()
             .OrderBy(x => x.Name)
             .ThenBy(x => x.Id)
             .Include(x => x.SearchQueries)
@@ -102,7 +103,9 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken
     )
     {
-        var product = await _applicationContext.Products.Include(x => x.SearchQueries)
+        var product = await _applicationContext.Products
+            .AsNoTracking()
+            .Include(x => x.SearchQueries)
             .SingleOrDefaultAsync(x => x.Id == id, cancellationToken: cancellationToken);
 
         if (product == null)
@@ -133,7 +136,9 @@ internal class EbayControllerImplementation : IEbayController
 
     public async Task<ICollection<LotInfoShort>> GetLotsAsync(Guid productId, CancellationToken cancellationToken)
     {
-        var product = await _applicationContext.Products.Include(x => x.Lots)
+        var product = await _applicationContext.Products
+            .AsNoTracking()
+            .Include(x => x.Lots)
             .ThenInclude(x => x.Purchases)
             .SingleOrDefaultAsync(x => x.Id == productId, cancellationToken: cancellationToken);
 
@@ -201,7 +206,9 @@ internal class EbayControllerImplementation : IEbayController
 
     public async Task<ICollection<long>> GetIgnoredLotsAsync(Guid productId, CancellationToken cancellationToken)
     {
-        var ignoredLots = await _applicationContext.IgnoredLots.Where(x => x.ProductId == productId)
+        var ignoredLots = await _applicationContext.IgnoredLots
+            .AsNoTracking()
+            .Where(x => x.ProductId == productId)
             .Select(x => x.LotId)
             .ToListAsync(cancellationToken);
 
@@ -220,7 +227,7 @@ internal class EbayControllerImplementation : IEbayController
             transactionOptions: new TransactionOptions
                 { IsolationLevel = IsolationLevel.Serializable }
         );
-        
+
         var lotIds = ignoredLots.ToList();
 
         var alreadySaved = await _applicationContext.Lots
@@ -232,7 +239,7 @@ internal class EbayControllerImplementation : IEbayController
                 .UpsertRange(lotIds.Select(x => new IgnoredLot { ProductId = productId, LotId = x }))
                 .RunAsync(cancellationToken);
         }
-        
+
         transaction.Complete();
     }
 
@@ -242,7 +249,9 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken
     )
     {
-        var dbLot = await _applicationContext.Lots.Include(x => x.Purchases)
+        var dbLot = await _applicationContext.Lots
+            .AsNoTracking()
+            .Include(x => x.Purchases)
             .SingleOrDefaultAsync(
                 x => x.Id == lotId,
                 cancellationToken: cancellationToken
@@ -259,6 +268,7 @@ internal class EbayControllerImplementation : IEbayController
     public async Task<ICollection<long>> GetLotIdsAsync(CancellationToken cancellationToken)
     {
         var result = await _applicationContext.Lots
+            .AsNoTracking()
             .Select(x => x.Id)
             .ToListAsync(cancellationToken);
 
@@ -271,7 +281,9 @@ internal class EbayControllerImplementation : IEbayController
     )
     {
         var idsToSelect = lotIds.ToHashSet();
-        var result = await _applicationContext.Lots.Where(x => idsToSelect.Contains(x.Id))
+        var result = await _applicationContext.Lots
+            .AsNoTracking()
+            .Where(x => idsToSelect.Contains(x.Id))
             .Select(x => new { x.Id, x.UpdateDate })
             .ToListAsync(cancellationToken);
 
@@ -378,7 +390,10 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken
     )
     {
-        return (await _applicationContext.Currencies.OrderBy(x => x.CurrencyEbayName).ToListAsync(cancellationToken))
+        return (await _applicationContext.Currencies
+                .AsNoTracking()
+                .OrderBy(x => x.CurrencyEbayName)
+                .ToListAsync(cancellationToken))
             .Select(x => x.ToApiCurrency())
             .ToList();
     }
