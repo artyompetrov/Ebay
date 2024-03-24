@@ -16,7 +16,7 @@ import {FetchWrapperCustom} from "./FetchWrapperCustom";
 import {EbayShoppingApiClient} from "./EbayShoppingApiClient";
 
 const productFieldName = "productId";
-const ignoreThatLotButtonId = "ignoreThatLot"
+const ignoreThatLotId = "ignoreThatLot"
 const pcsFieldName = "pcs";
 const autoPcsFieldName = "autoPcs";
 const categoryPrefix = 'category_'
@@ -25,8 +25,8 @@ const panelInputClass = "panel-input-div";
 const formId = "product-form-id"
 const errorElementId = "errorElement"
 const submitId = "submitButton"
-const backendUrl = "https://localhost:7095/"
-//const backendUrl = "https://naks42.ru:17443/"
+//const backendUrl = "https://localhost:7095/"
+const backendUrl = "https://naks42.ru:17443/"
 const baseApiUrl = `${backendUrl}api/ebay/v1`;
 const redirectUrl = "https://www.ebay.com/"
 const ebayRedirectUriCode = "Artem_Petrov-ArtemPet-tubesS-dsrgu"
@@ -212,11 +212,11 @@ async function createPanel(backendClient: EbayToolBackendClient, ebayClient: Eba
      <a href="${historyButtonHref}" target="_blank">История продаж лота</a>
         <br><a href="${revisionsButtonHref}" target="_blank">История изменений лота</a>
         <br>Бэкенд: <a href="${backendUrl}" target="_blank">${backendUrl}</a>
-        <br>
+        <br><br>
     `
 
     let formIgnoreThatLot = document.createElement('form')
-    formIgnoreThatLot.innerHTML = `</br><button id="${ignoreThatLotButtonId}"></button></br></br>`
+    formIgnoreThatLot.id = ignoreThatLotId
     div.appendChild(formIgnoreThatLot)
 
     formIgnoreThatLot.addEventListener("submit", async function (event: SubmitEvent) {
@@ -227,7 +227,6 @@ async function createPanel(backendClient: EbayToolBackendClient, ebayClient: Eba
     form.id = formId
     // language=HTML
     form.innerHTML = `
-
         <div class="${panelInputClass}">
             <label for="${productFieldName}">Товар</label>
             <select name="${productFieldName}" id="${productFieldName}">
@@ -554,7 +553,7 @@ function getCurrentProductIdParam(): string | undefined {
 
 async function fillProduct(client: EbayToolBackendClient) {
     let productField = _panel.querySelector('select#' + productFieldName);
-    let ignoreThatLotButton = _panel.querySelector("button#" + ignoreThatLotButtonId)
+    let ignoreThatLot = _panel.querySelector("form#" + ignoreThatLotId)
     let productIdServer = _serverLotInfo?.productId?.trim()?.toLowerCase()
 
     let products = await client.getAllProducts()
@@ -566,12 +565,10 @@ async function fillProduct(client: EbayToolBackendClient) {
         if (productIdServer !== undefined) {
             if (productIdServer === products[i].id.trim().toLowerCase()) {
                 opt.selected = true
-
-                ignoreThatLotButton.innerHTML = "Игнорировать для '" + products[i].name + "'"
             }
         } else if (_currentProductId === products[i].id.trim().toLowerCase()) {
             opt.selected = true
-            ignoreThatLotButton.innerHTML = "Игнорировать для '" + products[i].name + "'"
+            ignoreThatLot.innerHTML = `<button>Игнорировать для ${products[i].name}</button><br><br>`
         }
 
         productField.appendChild(opt);
