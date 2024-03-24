@@ -16,6 +16,7 @@ import {FetchWrapperCustom} from "./FetchWrapperCustom";
 import {EbayShoppingApiClient} from "./EbayShoppingApiClient";
 
 const productFieldName = "productId";
+const ignoreThatLotButtonId = "ignoreThatLot"
 const pcsFieldName = "pcs";
 const autoPcsFieldName = "autoPcs";
 const categoryPrefix = 'category_'
@@ -215,7 +216,7 @@ async function createPanel(backendClient: EbayToolBackendClient, ebayClient: Eba
     `
 
     let formIgnoreThatLot = document.createElement('form')
-    formIgnoreThatLot.innerHTML = `<button>IgnoreThatLot</button>`
+    formIgnoreThatLot.innerHTML = `</br><button id="${ignoreThatLotButtonId}"></button></br></br>`
     div.appendChild(formIgnoreThatLot)
 
     formIgnoreThatLot.addEventListener("submit", async function (event: SubmitEvent) {
@@ -548,7 +549,7 @@ function getCurrentProductIdParam(): string | undefined {
 
 async function fillProduct(client: EbayToolBackendClient) {
     let productField = _panel.querySelector('select#' + productFieldName);
-
+    let ignoreThatLotButton = _panel.querySelector("button#" + ignoreThatLotButtonId)
     let productIdServer = _serverLotInfo?.productId?.trim()?.toLowerCase()
 
     let products = await client.getAllProducts()
@@ -560,9 +561,12 @@ async function fillProduct(client: EbayToolBackendClient) {
         if (productIdServer !== undefined) {
             if (productIdServer === products[i].id.trim().toLowerCase()) {
                 opt.selected = true
+
+                ignoreThatLotButton.innerHTML = "Игнорировать для '" + products[i].name + "'"
             }
         } else if (_currentProductId === products[i].id.trim().toLowerCase()) {
             opt.selected = true
+            ignoreThatLotButton.innerHTML = "Игнорировать для '" + products[i].name + "'"
         }
 
         productField.appendChild(opt);
@@ -698,7 +702,6 @@ async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId)
 
     let serverLotInfoJson = serverLotInfoWithProductId.lotInfo.toJSON()
     serverLotInfoJson["pcs"] = undefined
-    serverLotInfoJson["ignoreThatLot"] = undefined
     serverLotInfoJson["categories"] = undefined
     serverLotInfoJson["description"] = undefined
     serverLotInfoJson["shortDescription"] = undefined
@@ -707,7 +710,6 @@ async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId)
 
     let lotInfoJson = _lotInfo.toJSON()
     lotInfoJson["pcs"] = undefined
-    lotInfoJson["ignoreThatLot"] = undefined
     lotInfoJson["categories"] = undefined
     lotInfoJson["description"] = undefined
     lotInfoJson["shortDescription"] = undefined

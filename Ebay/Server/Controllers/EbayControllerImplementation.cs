@@ -214,9 +214,26 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken
     )
     {
-        await _applicationContext.IgnoredLots
-            .UpsertRange(ignoredLots.Select(x => new IgnoredLot { ProductId = productId, LotId = x }))
-            .RunAsync(cancellationToken);
+        using var transaction = new TransactionScope(
+            scopeOption: TransactionScopeOption.Required,
+            asyncFlowOption: TransactionScopeAsyncFlowOption.Enabled,
+            transactionOptions: new TransactionOptions
+                { IsolationLevel = IsolationLevel.Serializable }
+        );
+        
+        var lotIds = ignoredLots.ToList();
+
+        var alreadySaved = await _applicationContext.Lots
+            .AnyAsync(x => x.ProductId == productId && lotIds.Contains(x.Id), cancellationToken);
+
+        if (!alreadySaved)
+        {
+            await _applicationContext.IgnoredLots
+                .UpsertRange(lotIds.Select(x => new IgnoredLot { ProductId = productId, LotId = x }))
+                .RunAsync(cancellationToken);
+        }
+        
+        transaction.Complete();
     }
 
 
