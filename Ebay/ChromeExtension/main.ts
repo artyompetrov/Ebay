@@ -728,6 +728,7 @@ async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId)
     serverLotInfoJson["ignoreThatLot"] = undefined
     serverLotInfoJson["categories"] = undefined
     serverLotInfoJson["description"] = undefined
+    serverLotInfoJson["shortDescription"] = undefined
     serverLotInfoJson["seller"] = undefined
     serverLotInfoJson["purchaseHistory"] = undefined
 
@@ -736,6 +737,7 @@ async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId)
     lotInfoJson["ignoreThatLot"] = undefined
     lotInfoJson["categories"] = undefined
     lotInfoJson["description"] = undefined
+    lotInfoJson["shortDescription"] = undefined
     lotInfoJson["seller"] = undefined
     lotInfoJson["purchaseHistory"] = undefined
 
