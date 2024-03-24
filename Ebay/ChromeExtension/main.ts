@@ -285,6 +285,11 @@ async function createOpenMultipleButton(): Promise<HTMLDivElement> {
       bottom:5%;
       background-color: white;
     }
+    
+    #${submitId} {
+        width: 120px;
+        height: 30px;
+    }
 `
 
     let styleSheet = document.createElement("style")
