@@ -62,7 +62,7 @@ const supportedShippingCountries = new Map<string, ShippingParameters>();
 supportedShippingCountries.set('DE', new ShippingParameters(['EUROPE', 'EUROPEAN_UNION'], null))
 supportedShippingCountries.set('IT', new ShippingParameters(['EUROPE', 'EUROPEAN_UNION'], null))
 supportedShippingCountries.set('FR', new ShippingParameters(['EUROPE', 'EUROPEAN_UNION'], null))
-supportedShippingCountries.set('GB', new ShippingParameters(['EUROPE'], null))
+supportedShippingCountries.set('GB', new ShippingParameters(['EUROPE'], "SW1W 0NY"))
 supportedShippingCountries.set('BG', new ShippingParameters(['EUROPE', 'EUROPEAN_UNION'], null))
 supportedShippingCountries.set('LT', new ShippingParameters(['EUROPE', 'EUROPEAN_UNION'], null))
 supportedShippingCountries.set('SK', new ShippingParameters(['EUROPE', 'EUROPEAN_UNION'], null))
@@ -76,6 +76,7 @@ supportedShippingCountries.set('AU', new ShippingParameters([], "3000–3999"))
 const currencyMap = new Map<string, string>()
 currencyMap.set("USD", "US $")
 currencyMap.set("AUD", "AU $")
+currencyMap.set("CAD", "C $")
 
 // fetch через background script, по другому не работает
 function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response> {
@@ -820,6 +821,9 @@ function fillShipping(shippingCostsXml: string) {
     let doc = parser.parseFromString(shippingCostsXml, "application/xml");
 
     let shippingCostElement = doc.querySelector("ShippingDetails ShippingServiceCost")
+    if (!shippingCostElement) {
+        shippingCostElement = doc.querySelector("ListedShippingServiceCost")
+    }
     let shippingCurrency = shippingCostElement.getAttribute("currencyID")
     if (_lotInfo.currency != shippingCurrency) throw new Error("Shipping and lot currency mismatch lot + " + _lotInfo.currency + " shipping " + shippingCurrency)
     _lotInfo.shipping = parseFloat(shippingCostElement.innerHTML)
