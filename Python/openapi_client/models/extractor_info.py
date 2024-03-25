@@ -19,22 +19,16 @@ import json
 
 
 
-from pydantic import BaseModel, Field, StrictInt, constr, validator
+from pydantic import BaseModel, Field, constr
 
-class LotState(BaseModel):
+class ExtractorInfo(BaseModel):
     """
-    LotState
+    ExtractorInfo
     """
-    lot_id: StrictInt = Field(..., alias="lotId")
-    last_update: constr(strict=True) = Field(..., alias="lastUpdate")
-    __properties = ["lotId", "lastUpdate"]
-
-    @validator('last_update')
-    def last_update_validate_regular_expression(cls, value):
-        """Validates the regular expression"""
-        if not re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$", value):
-            raise ValueError(r"must validate the regular expression /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/")
-        return value
+    extracted_from: constr(strict=True, min_length=1) = Field(..., alias="extractedFrom")
+    extractor: constr(strict=True, min_length=1) = Field(...)
+    match: constr(strict=True, min_length=1) = Field(...)
+    __properties = ["extractedFrom", "extractor", "match"]
 
     class Config:
         """Pydantic configuration"""
@@ -50,8 +44,8 @@ class LotState(BaseModel):
         return json.dumps(self.to_dict())
 
     @classmethod
-    def from_json(cls, json_str: str) -> LotState:
-        """Create an instance of LotState from a JSON string"""
+    def from_json(cls, json_str: str) -> ExtractorInfo:
+        """Create an instance of ExtractorInfo from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self):
@@ -63,17 +57,18 @@ class LotState(BaseModel):
         return _dict
 
     @classmethod
-    def from_dict(cls, obj: dict) -> LotState:
-        """Create an instance of LotState from a dict"""
+    def from_dict(cls, obj: dict) -> ExtractorInfo:
+        """Create an instance of ExtractorInfo from a dict"""
         if obj is None:
             return None
 
         if not isinstance(obj, dict):
-            return LotState.parse_obj(obj)
+            return ExtractorInfo.parse_obj(obj)
 
-        _obj = LotState.parse_obj({
-            "lot_id": obj.get("lotId"),
-            "last_update": obj.get("lastUpdate")
+        _obj = ExtractorInfo.parse_obj({
+            "extracted_from": obj.get("extractedFrom"),
+            "extractor": obj.get("extractor"),
+            "match": obj.get("match")
         })
         return _obj
 

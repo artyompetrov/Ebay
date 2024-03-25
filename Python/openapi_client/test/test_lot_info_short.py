@@ -46,6 +46,7 @@ class TestLotInfoShort(unittest.TestCase):
                 shipping_additional = 0,
                 condition = '0',
                 condition_description = '0',
+                short_description = '0',
                 seller = '0',
                 located_in = '0',
                 categories = [

@@ -7,6 +7,7 @@ Name | Type | Description | Notes
 **lot_id** | **int** |  | 
 **name** | **str** |  | 
 **pcs** | **int** |  | 
+**lot_size** | **int** |  | [optional] 
 **shipping_country** | **str** |  | 
 **currency** | **str** |  | 
 **price** | **float** |  | 
@@ -15,9 +16,9 @@ Name | Type | Description | Notes
 **description** | **str** |  | 
 **condition** | **str** |  | 
 **condition_description** | **str** |  | [optional] 
+**short_description** | **str** |  | [optional] 
 **seller** | **str** |  | 
 **located_in** | **str** |  | 
-**ignore_that_lot** | **bool** |  | 
 **categories** | [**List[CategoryValue]**](CategoryValue.md) |  | 
 **title_change_date** | **str** |  | 
 **purchase_history** | [**List[PurchaseInfo]**](PurchaseInfo.md) |  | 

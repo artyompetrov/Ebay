@@ -19,7 +19,7 @@ import json
 
 
 from typing import List, Optional, Union
-from pydantic import BaseModel, Field, StrictBool, StrictInt, confloat, conint, conlist, constr, validator
+from pydantic import BaseModel, Field, StrictInt, confloat, conint, conlist, constr, validator
 from openapi_client.models.category_value import CategoryValue
 from openapi_client.models.purchase_info import PurchaseInfo
 
@@ -30,6 +30,7 @@ class LotInfo(BaseModel):
     lot_id: StrictInt = Field(..., alias="lotId")
     name: constr(strict=True, min_length=1) = Field(...)
     pcs: conint(strict=True, ge=1) = Field(...)
+    lot_size: Optional[conint(strict=True, ge=1)] = Field(None, alias="lotSize")
     shipping_country: constr(strict=True, min_length=1) = Field(..., alias="shippingCountry")
     currency: constr(strict=True, min_length=1) = Field(...)
     price: Union[confloat(ge=0.01, strict=True), conint(ge=1, strict=True)] = Field(...)
@@ -38,13 +39,13 @@ class LotInfo(BaseModel):
     description: constr(strict=True, min_length=1) = Field(...)
     condition: constr(strict=True, min_length=1) = Field(...)
     condition_description: Optional[constr(strict=True, min_length=1)] = Field(None, alias="conditionDescription")
+    short_description: Optional[constr(strict=True, min_length=1)] = Field(None, alias="shortDescription")
     seller: constr(strict=True, min_length=1) = Field(...)
     located_in: constr(strict=True, min_length=1) = Field(..., alias="locatedIn")
-    ignore_that_lot: StrictBool = Field(..., alias="ignoreThatLot")
     categories: conlist(CategoryValue) = Field(...)
     title_change_date: constr(strict=True, min_length=1) = Field(..., alias="titleChangeDate")
     purchase_history: conlist(PurchaseInfo) = Field(..., alias="purchaseHistory")
-    __properties = ["lotId", "name", "pcs", "shippingCountry", "currency", "price", "shipping", "shippingAdditional", "description", "condition", "conditionDescription", "seller", "locatedIn", "ignoreThatLot", "categories", "titleChangeDate", "purchaseHistory"]
+    __properties = ["lotId", "name", "pcs", "lotSize", "shippingCountry", "currency", "price", "shipping", "shippingAdditional", "description", "condition", "conditionDescription", "shortDescription", "seller", "locatedIn", "categories", "titleChangeDate", "purchaseHistory"]
 
     @validator('title_change_date')
     def title_change_date_validate_regular_expression(cls, value):
@@ -106,6 +107,7 @@ class LotInfo(BaseModel):
             "lot_id": obj.get("lotId"),
             "name": obj.get("name"),
             "pcs": obj.get("pcs"),
+            "lot_size": obj.get("lotSize"),
             "shipping_country": obj.get("shippingCountry"),
             "currency": obj.get("currency"),
             "price": obj.get("price"),
@@ -114,9 +116,9 @@ class LotInfo(BaseModel):
             "description": obj.get("description"),
             "condition": obj.get("condition"),
             "condition_description": obj.get("conditionDescription"),
+            "short_description": obj.get("shortDescription"),
             "seller": obj.get("seller"),
             "located_in": obj.get("locatedIn"),
-            "ignore_that_lot": obj.get("ignoreThatLot"),
             "categories": [CategoryValue.from_dict(_item) for _item in obj.get("categories")] if obj.get("categories") is not None else None,
             "title_change_date": obj.get("titleChangeDate"),
             "purchase_history": [PurchaseInfo.from_dict(_item) for _item in obj.get("purchaseHistory")] if obj.get("purchaseHistory") is not None else None

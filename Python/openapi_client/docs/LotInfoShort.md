@@ -14,6 +14,7 @@ Name | Type | Description | Notes
 **shipping_additional** | **float** |  | [optional] 
 **condition** | **str** |  | 
 **condition_description** | **str** |  | [optional] 
+**short_description** | **str** |  | [optional] 
 **seller** | **str** |  | 
 **located_in** | **str** |  | 
 **categories** | [**List[CategoryValue]**](CategoryValue.md) |  | 

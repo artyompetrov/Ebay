@@ -37,12 +37,13 @@ class LotInfoShort(BaseModel):
     shipping_additional: Optional[Union[confloat(ge=0, strict=True), conint(ge=0, strict=True)]] = Field(None, alias="shippingAdditional")
     condition: constr(strict=True, min_length=1) = Field(...)
     condition_description: Optional[constr(strict=True, min_length=1)] = Field(None, alias="conditionDescription")
+    short_description: Optional[constr(strict=True, min_length=1)] = Field(None, alias="shortDescription")
     seller: constr(strict=True, min_length=1) = Field(...)
     located_in: constr(strict=True, min_length=1) = Field(..., alias="locatedIn")
     categories: conlist(CategoryValue) = Field(...)
     title_change_date: constr(strict=True, min_length=1) = Field(..., alias="titleChangeDate")
     purchase_history: conlist(PurchaseInfo) = Field(..., alias="purchaseHistory")
-    __properties = ["lotId", "name", "pcs", "shippingCountry", "currency", "price", "shipping", "shippingAdditional", "condition", "conditionDescription", "seller", "locatedIn", "categories", "titleChangeDate", "purchaseHistory"]
+    __properties = ["lotId", "name", "pcs", "shippingCountry", "currency", "price", "shipping", "shippingAdditional", "condition", "conditionDescription", "shortDescription", "seller", "locatedIn", "categories", "titleChangeDate", "purchaseHistory"]
 
     @validator('title_change_date')
     def title_change_date_validate_regular_expression(cls, value):
@@ -111,6 +112,7 @@ class LotInfoShort(BaseModel):
             "shipping_additional": obj.get("shippingAdditional"),
             "condition": obj.get("condition"),
             "condition_description": obj.get("conditionDescription"),
+            "short_description": obj.get("shortDescription"),
             "seller": obj.get("seller"),
             "located_in": obj.get("locatedIn"),
             "categories": [CategoryValue.from_dict(_item) for _item in obj.get("categories")] if obj.get("categories") is not None else None,

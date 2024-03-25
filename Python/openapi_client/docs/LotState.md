@@ -5,7 +5,6 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **lot_id** | **int** |  | 
-**ignore_that_lot** | **bool** |  | 
 **last_update** | **str** |  | 
 
 ## Example

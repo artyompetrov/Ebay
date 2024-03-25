@@ -6,14 +6,18 @@ Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**create_product**](DefaultApi.md#create_product) | **POST** /products | Create product
 [**delete_product**](DefaultApi.md#delete_product) | **DELETE** /products/{id} | Delete product
+[**extract_data**](DefaultApi.md#extract_data) | **POST** /extract_data/ | Извлекает информацию о лоте из названия и описания
 [**get_all_products**](DefaultApi.md#get_all_products) | **GET** /products | List all products
 [**get_categories**](DefaultApi.md#get_categories) | **GET** /categories/ | 
 [**get_currencies**](DefaultApi.md#get_currencies) | **GET** /currencies/ | 
+[**get_ignored_lots**](DefaultApi.md#get_ignored_lots) | **GET** /products/{productId}/ignored_lots/ | 
+[**get_lot_ids**](DefaultApi.md#get_lot_ids) | **GET** /lots/ | Получить id всех лотов
 [**get_lot_info**](DefaultApi.md#get_lot_info) | **GET** /lots/{lotId}/ | Получить информацию о лоте
 [**get_lot_states**](DefaultApi.md#get_lot_states) | **POST** /lot_state_requests/ | Получает информацию о учтенных лотах
 [**get_lots**](DefaultApi.md#get_lots) | **GET** /products/{productId}/lots/ | 
 [**get_product**](DefaultApi.md#get_product) | **GET** /products/{id} | 
 [**get_shipping_rates**](DefaultApi.md#get_shipping_rates) | **GET** /shipping_rates/ | 
+[**ignore_lots**](DefaultApi.md#ignore_lots) | **POST** /products/{productId}/ignored_lots/ | 
 [**mark_product_as_checked**](DefaultApi.md#mark_product_as_checked) | **POST** /products/{id}/mark_as_checked/ | MarkProductAsChecked
 [**save_error**](DefaultApi.md#save_error) | **POST** /error/ | Save Error
 [**update_product**](DefaultApi.md#update_product) | **PUT** /products/{id} | Update product
@@ -145,6 +149,72 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 **200** | Deleted |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **extract_data**
+> List[ExtractedFields] extract_data(lot_info)
+
+Извлекает информацию о лоте из названия и описания
+
+### Example
+
+```python
+import time
+import os
+import openapi_client
+from openapi_client.models.extracted_fields import ExtractedFields
+from openapi_client.models.lot_data_to_extract import LotDataToExtract
+from openapi_client.rest import ApiException
+from pprint import pprint
+
+# Defining the host is optional and defaults to /api/ebay/v1
+# See configuration.py for a list of all supported configuration parameters.
+configuration = openapi_client.Configuration(
+    host = "/api/ebay/v1"
+)
+
+
+# Enter a context with an instance of the API client
+with openapi_client.ApiClient(configuration) as api_client:
+    # Create an instance of the API class
+    api_instance = openapi_client.DefaultApi(api_client)
+    lot_info = openapi_client.LotDataToExtract() # LotDataToExtract | 
+
+    try:
+        # Извлекает информацию о лоте из названия и описания
+        api_response = api_instance.extract_data(lot_info)
+        print("The response of DefaultApi->extract_data:\n")
+        pprint(api_response)
+    except Exception as e:
+        print("Exception when calling DefaultApi->extract_data: %s\n" % e)
+```
+
+
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **lot_info** | [**LotDataToExtract**](LotDataToExtract.md)|  | 
+
+### Return type
+
+[**List[ExtractedFields]**](ExtractedFields.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+**200** | Ok |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -312,6 +382,130 @@ This endpoint does not need any parameter.
 ### Return type
 
 [**List[Currency]**](Currency.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+**200** | Ok |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **get_ignored_lots**
+> List[int] get_ignored_lots(product_id)
+
+
+
+### Example
+
+```python
+import time
+import os
+import openapi_client
+from openapi_client.rest import ApiException
+from pprint import pprint
+
+# Defining the host is optional and defaults to /api/ebay/v1
+# See configuration.py for a list of all supported configuration parameters.
+configuration = openapi_client.Configuration(
+    host = "/api/ebay/v1"
+)
+
+
+# Enter a context with an instance of the API client
+with openapi_client.ApiClient(configuration) as api_client:
+    # Create an instance of the API class
+    api_instance = openapi_client.DefaultApi(api_client)
+    product_id = 'product_id_example' # str | 
+
+    try:
+        api_response = api_instance.get_ignored_lots(product_id)
+        print("The response of DefaultApi->get_ignored_lots:\n")
+        pprint(api_response)
+    except Exception as e:
+        print("Exception when calling DefaultApi->get_ignored_lots: %s\n" % e)
+```
+
+
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **product_id** | **str**|  | 
+
+### Return type
+
+**List[int]**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+**200** | Ok |  -  |
+**400** | NotFound |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **get_lot_ids**
+> List[int] get_lot_ids()
+
+Получить id всех лотов
+
+### Example
+
+```python
+import time
+import os
+import openapi_client
+from openapi_client.rest import ApiException
+from pprint import pprint
+
+# Defining the host is optional and defaults to /api/ebay/v1
+# See configuration.py for a list of all supported configuration parameters.
+configuration = openapi_client.Configuration(
+    host = "/api/ebay/v1"
+)
+
+
+# Enter a context with an instance of the API client
+with openapi_client.ApiClient(configuration) as api_client:
+    # Create an instance of the API class
+    api_instance = openapi_client.DefaultApi(api_client)
+
+    try:
+        # Получить id всех лотов
+        api_response = api_instance.get_lot_ids()
+        print("The response of DefaultApi->get_lot_ids:\n")
+        pprint(api_response)
+    except Exception as e:
+        print("Exception when calling DefaultApi->get_lot_ids: %s\n" % e)
+```
+
+
+
+### Parameters
+This endpoint does not need any parameter.
+
+### Return type
+
+**List[int]**
 
 ### Authorization
 
@@ -647,6 +841,70 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 **200** | Ok |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **ignore_lots**
+> ignore_lots(product_id, ignored_lots)
+
+
+
+### Example
+
+```python
+import time
+import os
+import openapi_client
+from openapi_client.rest import ApiException
+from pprint import pprint
+
+# Defining the host is optional and defaults to /api/ebay/v1
+# See configuration.py for a list of all supported configuration parameters.
+configuration = openapi_client.Configuration(
+    host = "/api/ebay/v1"
+)
+
+
+# Enter a context with an instance of the API client
+with openapi_client.ApiClient(configuration) as api_client:
+    # Create an instance of the API class
+    api_instance = openapi_client.DefaultApi(api_client)
+    product_id = 'product_id_example' # str | 
+    ignored_lots = [56] # List[int] | 
+
+    try:
+        api_instance.ignore_lots(product_id, ignored_lots)
+    except Exception as e:
+        print("Exception when calling DefaultApi->ignore_lots: %s\n" % e)
+```
+
+
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **product_id** | **str**|  | 
+ **ignored_lots** | [**List[int]**](int.md)|  | 
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+**200** | Ok |  -  |
+**400** | NotFound |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

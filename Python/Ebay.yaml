@@ -136,6 +136,46 @@ paths:
           schema:
             $ref: '#/definitions/ValidationProblemDetailedInfo'
 
+  /products/{productId}/ignored_lots/:
+    parameters:
+      - name: productId
+        in: path
+        required: true
+        type: string
+        format: guid
+    get:
+      operationId: GetIgnoredLots
+      responses:
+        200:
+          description: Ok
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        400:
+          description: 'NotFound'
+          schema:
+            $ref: '#/definitions/NotFoundProblemDetailedInfo'
+    post:
+      operationId: IgnoreLots
+      parameters:
+        - name: ignoredLots
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+      responses:
+        200:
+          description: Ok
+        400:
+          description: 'NotFound'
+          schema:
+            $ref: '#/definitions/NotFoundProblemDetailedInfo'
+
   /lots/{lotId}/:
     parameters:
       - name: lotId
@@ -156,6 +196,19 @@ paths:
           schema:
             $ref: '#/definitions/NotFoundProblemDetailedInfo'
   
+  
+  /lots/:
+    get:
+      operationId: GetLotIds
+      summary: Получить id всех лотов
+      responses:
+        200:
+          description: 'Ok'
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
   
   /lot_state_requests/:
     post:
@@ -213,6 +266,24 @@ paths:
               $ref: '#/definitions/Currency'
             minLength: 1
 
+
+  /extract_data/:
+    post:
+      operationId: ExtractData
+      summary: Извлекает информацию о лоте из названия и описания
+      parameters:
+        - name: lotInfo
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/LotDataToExtract'
+      responses:
+        200:
+          description: 'Ok'
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ExtractedFields'
 
   /error/:
     post:
@@ -313,6 +384,9 @@ definitions:
       pcs:
         type: integer
         minimum: 1
+      lotSize:
+        type: integer
+        minimum: 1
       shippingCountry:
         type: string
         minLength: 1
@@ -337,17 +411,18 @@ definitions:
       conditionDescription:
         type: string
         minLength: 1
+      shortDescription:
+         type: string
+         minLength: 1
       seller:
         type: string
         minLength: 1
       locatedIn:
         type: string
         minLength: 1
-      ignoreThatLot:
-        type: boolean
       categories:
         type: array
-        items: 
+        items:
           $ref: '#/definitions/CategoryValue'
       titleChangeDate:
         type: string
@@ -368,7 +443,6 @@ definitions:
       - condition
       - seller
       - locatedIn
-      - ignoreThatLot
       - categories
       - purchaseHistory
       - titleChangeDate
@@ -406,6 +480,9 @@ definitions:
       conditionDescription:
         type: string
         minLength: 1
+      shortDescription:
+         type: string
+         minLength: 1
       seller:
         type: string
         minLength: 1
@@ -458,7 +535,7 @@ definitions:
   
   CategoryValue:
     type: object
-    properties: 
+    properties:
       type:
         type: string
         minLength: 1
@@ -501,20 +578,88 @@ definitions:
       - id
       - description
   
+  LotDataToExtract:
+    type: object
+    properties:
+      name:
+        type: string
+        minLength: 1
+      condition:
+        type: string
+        minLength: 1
+
+      conditionDescription:
+        type: string
+        minLength: 1
+      description:
+        type: string
+        minLength: 1
+      shortDescription:
+        type: string
+        minLength: 1
+      lotSize:
+        type: integer
+    required:
+      - name
+      - condition
+      - description
+
+  ExtractedFields:
+    type: object
+    properties:
+      fieldName:
+        type: string
+        minLength: 1
+      extractedData:
+        type: array
+        items:
+          $ref: '#/definitions/LotDataExtractedItem'
+    required:
+      - fieldName
+      - extractedData
+
+  LotDataExtractedItem:
+    type: object
+    properties:
+      value:
+        type: string
+        minLength: 1
+      extractorInfo:
+        type: array
+        items:
+          $ref: '#/definitions/ExtractorInfo'
+    required:
+      - value
+      - extractorInfo
+  
+  ExtractorInfo:
+    type: object
+    properties:
+      extractedFrom:
+        type: string
+        minLength: 1
+      extractor:
+        type: string
+        minLength: 1
+      match:
+        type: string
+        minLength: 1
+    required:
+      - extractedFrom
+      - extractor
+      - match
+  
   LotState:
     type: object
     properties:
       lotId:
         type: integer
         format: int64
-      ignoreThatLot:
-        type: boolean
       lastUpdate:
         type: string
         pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$
     required:
       - lotId
-      - ignoreThatLot
       - lastUpdate
 
   ClientErrorInfo:

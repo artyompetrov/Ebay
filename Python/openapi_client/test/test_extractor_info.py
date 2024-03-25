@@ -15,10 +15,10 @@
 import unittest
 import datetime
 
-from openapi_client.models.lot_state import LotState  # noqa: E501
+from openapi_client.models.extractor_info import ExtractorInfo  # noqa: E501
 
-class TestLotState(unittest.TestCase):
-    """LotState unit test stubs"""
+class TestExtractorInfo(unittest.TestCase):
+    """ExtractorInfo unit test stubs"""
 
     def setUp(self):
         pass
@@ -26,28 +26,30 @@ class TestLotState(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def make_instance(self, include_optional) -> LotState:
-        """Test LotState
+    def make_instance(self, include_optional) -> ExtractorInfo:
+        """Test ExtractorInfo
             include_option is a boolean, when False only required
             params are included, when True both required and
             optional params are included """
-        # uncomment below to create an instance of `LotState`
+        # uncomment below to create an instance of `ExtractorInfo`
         """
-        model = LotState()  # noqa: E501
+        model = ExtractorInfo()  # noqa: E501
         if include_optional:
-            return LotState(
-                lot_id = 56,
-                last_update = '0480-72-88T80:01:52.802Z'
+            return ExtractorInfo(
+                extracted_from = '0',
+                extractor = '0',
+                match = '0'
             )
         else:
-            return LotState(
-                lot_id = 56,
-                last_update = '0480-72-88T80:01:52.802Z',
+            return ExtractorInfo(
+                extracted_from = '0',
+                extractor = '0',
+                match = '0',
         )
         """
 
-    def testLotState(self):
-        """Test LotState"""
+    def testExtractorInfo(self):
+        """Test ExtractorInfo"""
         # inst_req_only = self.make_instance(include_optional=False)
         # inst_req_and_optional = self.make_instance(include_optional=True)
 

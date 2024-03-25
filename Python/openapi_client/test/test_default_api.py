@@ -40,6 +40,13 @@ class TestDefaultApi(unittest.TestCase):
         """
         pass
 
+    def test_extract_data(self) -> None:
+        """Test case for extract_data
+
+        Извлекает информацию о лоте из названия и описания  # noqa: E501
+        """
+        pass
+
     def test_get_all_products(self) -> None:
         """Test case for get_all_products
 
@@ -56,6 +63,19 @@ class TestDefaultApi(unittest.TestCase):
     def test_get_currencies(self) -> None:
         """Test case for get_currencies
 
+        """
+        pass
+
+    def test_get_ignored_lots(self) -> None:
+        """Test case for get_ignored_lots
+
+        """
+        pass
+
+    def test_get_lot_ids(self) -> None:
+        """Test case for get_lot_ids
+
+        Получить id всех лотов  # noqa: E501
         """
         pass
 
@@ -87,6 +107,12 @@ class TestDefaultApi(unittest.TestCase):
 
     def test_get_shipping_rates(self) -> None:
         """Test case for get_shipping_rates
+
+        """
+        pass
+
+    def test_ignore_lots(self) -> None:
+        """Test case for ignore_lots
 
         """
         pass

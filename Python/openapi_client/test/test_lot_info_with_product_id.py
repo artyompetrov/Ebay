@@ -41,6 +41,7 @@ class TestLotInfoWithProductId(unittest.TestCase):
                     lot_id = 56, 
                     name = '0', 
                     pcs = 1, 
+                    lot_size = 1, 
                     shipping_country = '0', 
                     currency = '0', 
                     price = 0.01, 
@@ -49,9 +50,9 @@ class TestLotInfoWithProductId(unittest.TestCase):
                     description = '0', 
                     condition = '0', 
                     condition_description = '0', 
+                    short_description = '0', 
                     seller = '0', 
                     located_in = '0', 
-                    ignore_that_lot = True, 
                     categories = [
                         openapi_client.models.category_value.CategoryValue(
                             type = '_0', 
@@ -72,6 +73,7 @@ class TestLotInfoWithProductId(unittest.TestCase):
                     lot_id = 56, 
                     name = '0', 
                     pcs = 1, 
+                    lot_size = 1, 
                     shipping_country = '0', 
                     currency = '0', 
                     price = 0.01, 
@@ -80,9 +82,9 @@ class TestLotInfoWithProductId(unittest.TestCase):
                     description = '0', 
                     condition = '0', 
                     condition_description = '0', 
+                    short_description = '0', 
                     seller = '0', 
                     located_in = '0', 
-                    ignore_that_lot = True, 
                     categories = [
                         openapi_client.models.category_value.CategoryValue(
                             type = '_0', 

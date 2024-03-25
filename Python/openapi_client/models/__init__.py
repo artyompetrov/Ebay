@@ -19,6 +19,10 @@ from openapi_client.models.category_type import CategoryType
 from openapi_client.models.category_value import CategoryValue
 from openapi_client.models.client_error_info import ClientErrorInfo
 from openapi_client.models.currency import Currency
+from openapi_client.models.extracted_fields import ExtractedFields
+from openapi_client.models.extractor_info import ExtractorInfo
+from openapi_client.models.lot_data_extracted_item import LotDataExtractedItem
+from openapi_client.models.lot_data_to_extract import LotDataToExtract
 from openapi_client.models.lot_info import LotInfo
 from openapi_client.models.lot_info_short import LotInfoShort
 from openapi_client.models.lot_info_with_product_id import LotInfoWithProductId
