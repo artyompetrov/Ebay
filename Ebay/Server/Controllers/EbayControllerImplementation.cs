@@ -170,7 +170,7 @@ internal class EbayControllerImplementation : IEbayController
             validationErrors.Add(nameof(lotInfo.Shipping), new[] { "Not set" });
         }
 
-        if (!new HashSet<string> { "condition", "test_state" }.SequenceEqual(
+        if (!new HashSet<string> { WellKnown.Categories.Conditions.CategoryName, WellKnown.Categories.TestState.CategoryName }.SequenceEqual(
                 lotInfo.Categories.Select(x => x.Type)
             ))
         {
@@ -248,7 +248,7 @@ internal class EbayControllerImplementation : IEbayController
 
     public Task<string> GetLotStatisticAsync(Guid productId, CancellationToken cancellationToken = default(CancellationToken))
     {
-        return _statisticService.GenerateStatistics();
+        return _statisticService.GenerateStatistics(productId);
     }
 
 
@@ -313,9 +313,9 @@ internal class EbayControllerImplementation : IEbayController
                 new(
                     items: new List<CategoryItem>
                     {
-                        new("NEW", WellKnown.Conditions.New),
-                        new("USED", WellKnown.Conditions.Used),
-                        new("NOT WORKING", WellKnown.Conditions.NotWorking)
+                        new("NEW", WellKnown.Categories.Conditions.New),
+                        new("USED", WellKnown.Categories.Conditions.Used),
+                        new("NOT WORKING", WellKnown.Categories.Conditions.NotWorking)
                     },
                     type: "condition"
                 ),
@@ -323,9 +323,9 @@ internal class EbayControllerImplementation : IEbayController
                 new(
                     items: new List<CategoryItem>
                     {
-                        new("Not tested", WellKnown.States.NotTested),
-                        new("Tested", WellKnown.States.Tested),
-                        new("Mathced", WellKnown.States.Matched)
+                        new("Not tested", WellKnown.Categories.TestState.NotTested),
+                        new("Tested", WellKnown.Categories.TestState.Tested),
+                        new("Mathced", WellKnown.Categories.TestState.Matched)
                     },
                     type: "test_state"
                 )

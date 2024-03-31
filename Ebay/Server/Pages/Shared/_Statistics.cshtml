@@ -1,0 +1,11 @@
+﻿@model Ebay.Server.Pages.Shared._Statistics
+
+<div>Продано штук: @Model.TotalCount</div>
+<div>
+    @foreach (var (condition, value) in Model.ConditionDistribution)
+    {
+        <div>
+            @condition - @value
+        </div>
+    }
+</div>

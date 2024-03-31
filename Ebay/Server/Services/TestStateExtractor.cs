@@ -10,12 +10,12 @@ internal class TestStateExtractor : ExtractorBase, IExtractor
 
     private static readonly List<Extractor> Extractors = new()
     {
-        new Extractor(new Regex(pattern: @"\bmatched\b", options: Ro), WellKnown.States.Matched, All),
-        new Extractor(new Regex(pattern: @"\bselected\b", options: Ro), WellKnown.States.Matched, TitleAndShortAndConditionDescription),
-        new Extractor(new Regex(pattern: @"\btested\b", options: Ro), WellKnown.States.Tested, All),
-        new Extractor(new Regex(pattern: @"\bL3-3\b", options: Ro), WellKnown.States.Tested, All),
-        new Extractor(new Regex(pattern: @"\bL1-3\b", options: Ro), WellKnown.States.Tested, All),
-        new Extractor(new Regex(pattern: @"\btube\s*tester\b", options: Ro), WellKnown.States.Tested, All)
+        new Extractor(new Regex(pattern: @"\bmatched\b", options: Ro), WellKnown.Categories.TestState.Matched, All),
+        new Extractor(new Regex(pattern: @"\bselected\b", options: Ro), WellKnown.Categories.TestState.Matched, TitleAndShortAndConditionDescription),
+        new Extractor(new Regex(pattern: @"\btested\b", options: Ro), WellKnown.Categories.TestState.Tested, All),
+        new Extractor(new Regex(pattern: @"\bL3-3\b", options: Ro), WellKnown.Categories.TestState.Tested, All),
+        new Extractor(new Regex(pattern: @"\bL1-3\b", options: Ro), WellKnown.Categories.TestState.Tested, All),
+        new Extractor(new Regex(pattern: @"\btube\s*tester\b", options: Ro), WellKnown.Categories.TestState.Tested, All)
     };
 
     private static readonly string[] ToRemove =
@@ -69,10 +69,10 @@ internal class TestStateExtractor : ExtractorBase, IExtractor
             );
         }
 
-        if (extractionResult.ContainsKey(WellKnown.States.Matched))
+        if (extractionResult.ContainsKey(WellKnown.Categories.TestState.Matched))
         {
-            extractionResult.Remove(WellKnown.States.Tested);
-            extractionResult.Remove(WellKnown.States.NotTested);
+            extractionResult.Remove(WellKnown.Categories.TestState.Tested);
+            extractionResult.Remove(WellKnown.Categories.TestState.NotTested);
         }
         
         

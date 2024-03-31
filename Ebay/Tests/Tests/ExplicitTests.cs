@@ -127,7 +127,7 @@ public class ExplicitTests
             throw new AssertionException("manualCondition not found");
 
         Assert.That(
-            condition: (results.Count == 0 && manualCondition == WellKnown.Conditions.New) ||
+            condition: (results.Count == 0 && manualCondition == WellKnown.Categories.Conditions.New) ||
             (results.Count == 1 && results[0].Key.Equals(manualCondition)) ||
                 (results.Count > 1 && results[0].Value.Count > results[1].Value.Count &&
                     results[0].Key.Equals(manualCondition)),
@@ -172,7 +172,7 @@ public class ExplicitTests
             throw new AssertionException("testState not found");
 
         Assert.That(
-            condition: (results.Count == 0 && manualCondition == WellKnown.States.NotTested) ||
+            condition: (results.Count == 0 && manualCondition == WellKnown.Categories.TestState.NotTested) ||
             (results.Count == 1 && results[0].Key.Equals(manualCondition)) ||
             (results.Count > 1 && results[0].Value.Count > results[1].Value.Count &&
                 results[0].Key.Equals(manualCondition)),

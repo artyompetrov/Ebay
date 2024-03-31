@@ -11,17 +11,17 @@ internal class ConditionExtractor : ExtractorBase, IExtractor
 
     private static readonly List<Extractor> Extractors = new()
     {
-        new Extractor(new Regex(pattern: @"\bne[vw]er\s+used\b", options: Ro), WellKnown.Conditions.New, All),
-        new Extractor(new Regex(pattern: @"\bdismantl(?:ing|ed)\b", options: Ro), WellKnown.Conditions.Used, All),
-        new Extractor(new Regex(pattern: @"\blike\s+new\b", options: Ro), WellKnown.Conditions.Used, All),
-        new Extractor(new Regex(pattern: @"\bnever\s+been\s+used\b", options: Ro), WellKnown.Conditions.New, All),
-        new Extractor(new Regex(pattern: @"\bunused\b", options: Ro), WellKnown.Conditions.New, All),
-        new Extractor(new Regex(pattern: @"\bused\b", options: Ro), WellKnown.Conditions.Used, All),
-        new Extractor(new Regex(pattern: @"\bnib\b", options: Ro), WellKnown.Conditions.New, All),
+        new Extractor(new Regex(pattern: @"\bne[vw]er\s+used\b", options: Ro), WellKnown.Categories.Conditions.New, All),
+        new Extractor(new Regex(pattern: @"\bdismantl(?:ing|ed)\b", options: Ro), WellKnown.Categories.Conditions.Used, All),
+        new Extractor(new Regex(pattern: @"\blike\s+new\b", options: Ro), WellKnown.Categories.Conditions.Used, All),
+        new Extractor(new Regex(pattern: @"\bnever\s+been\s+used\b", options: Ro), WellKnown.Categories.Conditions.New, All),
+        new Extractor(new Regex(pattern: @"\bunused\b", options: Ro), WellKnown.Categories.Conditions.New, All),
+        new Extractor(new Regex(pattern: @"\bused\b", options: Ro), WellKnown.Categories.Conditions.Used, All),
+        new Extractor(new Regex(pattern: @"\bnib\b", options: Ro), WellKnown.Categories.Conditions.New, All),
         new Extractor(new Regex(pattern: @"\bnos\b", options: Ro), NosOrOpenBox, All),
-        new Extractor(new Regex(pattern: @"\bnew\b", options: Ro), WellKnown.Conditions.New, All),
-        new Extractor(new Regex(pattern: @"\bnot\s+working\b", options: Ro), WellKnown.Conditions.NotWorking, All),
-        new Extractor(new Regex(pattern: @"\bfor\s+parts\b", options: Ro), WellKnown.Conditions.NotWorking, All),
+        new Extractor(new Regex(pattern: @"\bnew\b", options: Ro), WellKnown.Categories.Conditions.New, All),
+        new Extractor(new Regex(pattern: @"\bnot\s+working\b", options: Ro), WellKnown.Categories.Conditions.NotWorking, All),
+        new Extractor(new Regex(pattern: @"\bfor\s+parts\b", options: Ro), WellKnown.Categories.Conditions.NotWorking, All),
         new Extractor(new Regex(pattern: @"\bopen\s+box\b", options: Ro), NosOrOpenBox, All),
     };
 
@@ -104,7 +104,7 @@ internal class ConditionExtractor : ExtractorBase, IExtractor
     {
         if (extractionResult.ContainsKey(NosOrOpenBox))
         {
-            if (extractionResult.ContainsKey(WellKnown.Conditions.Used))
+            if (extractionResult.ContainsKey(WellKnown.Categories.Conditions.Used))
             {
                 extractionResult.Remove(NosOrOpenBox);
             }
@@ -112,7 +112,7 @@ internal class ConditionExtractor : ExtractorBase, IExtractor
             {
                 foreach (var result in extractionResult[NosOrOpenBox])
                 {
-                    extractionResult.AppendOrCreateNewCollection(WellKnown.Conditions.New, result);
+                    extractionResult.AppendOrCreateNewCollection(WellKnown.Categories.Conditions.New, result);
                 }
 
                 extractionResult.Remove(NosOrOpenBox);

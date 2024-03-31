@@ -1,7 +1,6 @@
 ﻿@page "/LotSales/{ProductId:guid}"
 @using Ebay.Client.Clients.Generated
 @using Microsoft.AspNetCore.Authorization
-@using Newtonsoft.Json.Linq
 @attribute [Authorize]
 @inject EbayClient EbayClient
 
@@ -39,9 +38,11 @@
         </tbody>
     </table>
 }
+
+<h2>Статистика</h2>
 @if (_statistics != null)
 {
-    <div>@_statistics</div>
+    @((MarkupString)_statistics)
 }
 
 @code {
