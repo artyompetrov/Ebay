@@ -6,6 +6,7 @@ using Ebay.Server.Infrastructure;
 using Ebay.Server.Services;
 using Ebay.Server.Services.Statistics;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic.CompilerServices;
 using ClientErrorInfo = Ebay.Server.Controllers.Generated.ClientErrorInfo;
 using Currency = Ebay.Server.Controllers.Generated.Currency;
 using DbProduct = Ebay.Server.Data.Models.Product;
@@ -246,11 +247,10 @@ internal class EbayControllerImplementation : IEbayController
         transaction.Complete();
     }
 
-    public Task<string> GetLotStatisticAsync(Guid productId, CancellationToken cancellationToken = default(CancellationToken))
+    public async Task<Statistic> GetLotStatisticAsync(Guid productId, CancellationToken cancellationToken)
     {
         return _statisticService.GenerateStatistics(productId);
     }
-
 
     public async Task<LotInfoWithProductId> GetLotInfoAsync(
         long lotId,

@@ -5,6 +5,7 @@ using DbProduct = Ebay.Server.Data.Models.Product;
 using DbSearchQuery = Ebay.Server.Data.Models.SearchQuery;
 using DbCurrency = Ebay.Server.Data.Models.Currency;
 using ApiCurrency = Ebay.Server.Controllers.Generated.Currency;
+using Purchase = Ebay.Server.Data.Models.Purchase;
 using SearchQuery = Ebay.Server.Controllers.Generated.SearchQuery;
 
 namespace Ebay.Server.Infrastructure;

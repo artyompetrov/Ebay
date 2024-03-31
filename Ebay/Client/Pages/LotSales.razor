@@ -1,12 +1,19 @@
 ﻿@page "/LotSales/{ProductId:guid}"
 @using Ebay.Client.Clients.Generated
 @using Microsoft.AspNetCore.Authorization
+@using Plotly.Blazor
+@using Plotly.Blazor.Traces
+@using Histogram = Plotly.Blazor.Traces.Histogram
 @attribute [Authorize]
 @inject EbayClient EbayClient
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <PageTitle>Продажи товара @_product?.Name</PageTitle>
 
-<h2>Продажи товара @_product?.Name</h2>
+<h2>Статистика @_product?.Name</h2>
+@if (_statistics != null)
+{
+    <PlotlyChart @bind-Config="@_config" @bind-Layout="@_layout" @bind-Data="@_data"/>
+}
 
 @if (_lots != null)
 {
@@ -26,29 +33,32 @@
         @foreach (var lot in _lots)
         {
             <tr>
-                <td><a href="@GetLinkToLot(lot)" target="_blank">@lot.Name</a></td>
+                <td>
+                    <a href="@GetLinkToLot(lot)" target="_blank">@lot.Name</a>
+                </td>
                 <td>@lot.Pcs</td>
                 <td>@lot.Price</td>
                 <td>@lot.Shipping</td>
                 <td>@lot.ShippingAdditional</td>
                 <td>@lot.Currency</td>
-                <td>@lot.PurchaseHistory.Count</td>
+                <td>@lot.PurchaseHistory.Sum(x => x.Quantity)</td>
             </tr>
         }
         </tbody>
     </table>
 }
 
-<h2>Статистика</h2>
-@if (_statistics != null)
-{
-    @((MarkupString)_statistics)
-}
-
 @code {
     private ProductWithId? _product;
     private ICollection<LotInfoShort>? _lots;
-    private string? _statistics;
+    private Statistic? _statistics;
+
+
+    Config _config = new();
+    Layout _layout = new();
+    // Using of the interface IList is important for the event callback!
+    IList<ITrace> _data = null!;
+
 
     [Parameter]
     public Guid ProductId { get; set; }
@@ -63,9 +73,36 @@
         _product = await EbayClient.GetProductAsync(ProductId);
         _lots = await EbayClient.GetLotsAsync(ProductId);
         _statistics = await EbayClient.GetLotStatisticAsync(ProductId);
-
+        _data = new List<ITrace>();
+        
+        foreach (var grouping in ToEnumerable(_statistics.Purchases).GroupBy(x =>x.Condition))
+        {
+            _data.Add(new PointCloud
+            {
+                X = grouping.Select(x=>x.ProfitPerPcs).Cast<object>().ToList(),
+                Y = grouping.Select(x=>x.ItemsInPurchase).Cast<object>().ToList(),
+                Name = grouping.Key
+            });
+        }
+        
+        
         StateHasChanged();
     }
+
+    private IEnumerable<Purchase> ToEnumerable(Purchases purchases)
+    {
+        using var itemsInPurchase = purchases.ItemsInPurchase.GetEnumerator();
+        using var conditions = purchases.Conditions.GetEnumerator();
+        using var testStates = purchases.TestStates.GetEnumerator();
+        using var profitPerPcs = purchases.ProfitPerPcs.GetEnumerator();
+
+        while (itemsInPurchase.MoveNext() && conditions.MoveNext() && testStates.MoveNext() && profitPerPcs.MoveNext())
+        {
+            yield return new Purchase(Condition: conditions.Current!, TestState: testStates.Current!, ItemsInPurchase: itemsInPurchase.Current, ProfitPerPcs: profitPerPcs.Current);
+        }
+    }
+
+    private record struct Purchase(string Condition, string TestState, int ItemsInPurchase, double ProfitPerPcs);
 
     private string GetLinkToLot(LotInfoShort lot) => $"https://www.ebay.com/itm/{lot.LotId}";
 }

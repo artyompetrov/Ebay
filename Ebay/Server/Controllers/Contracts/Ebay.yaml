@@ -189,7 +189,7 @@ paths:
         200:
           description: Ok
           schema:
-            type: string
+            $ref: '#/definitions/Statistic'
         400:
           description: 'NotFound'
           schema:
@@ -763,6 +763,38 @@ definitions:
       - rusName
       - rate
       - lastUpdate
+
+  Statistic:
+    type: object
+    properties:
+      purchases:
+        $ref: '#/definitions/Purchases'
+    required:
+      - purchases
+
+  Purchases:
+    type: object
+    properties:
+      conditions:
+        type: array
+        items:
+          type: string
+      testStates:
+        type: array
+        items:
+          type: string
+      itemsInPurchase:
+        type: array
+        items:
+          type: integer
+      profitPerPcs:
+        type: array
+        items:
+          type: number
+    required:
+      - itemsInPurchase
+      - profitPerPcs
+
 
       # далее ошибки
   ProblemDetailedInfo:

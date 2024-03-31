@@ -25,7 +25,6 @@ builder.Services.AddScoped<IEbayController, EbayControllerImplementation>();
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
-builder.Services.AddScoped<RazorPartialToStringRenderer>();
 builder.Services.AddScoped<StatisticService>();
 
 builder.Services.AddIdentityServer()

@@ -495,7 +495,7 @@ export class EbayToolBackendClient {
     /**
      * @return Ok
      */
-    getLotStatistic(productId: string): Promise<string> {
+    getLotStatistic(productId: string): Promise<Statistic> {
         let url_ = this.baseUrl + "/products/{productId}/statistic/";
         if (productId === undefined || productId === null)
             throw new Error("The parameter 'productId' must be defined.");
@@ -514,15 +514,14 @@ export class EbayToolBackendClient {
         });
     }
 
-    protected processGetLotStatistic(response: Response): Promise<string> {
+    protected processGetLotStatistic(response: Response): Promise<Statistic> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-                result200 = resultData200 !== undefined ? resultData200 : <any>null;
-    
+            result200 = Statistic.fromJS(resultData200);
             return result200;
             });
         } else if (status === 400) {
@@ -537,7 +536,7 @@ export class EbayToolBackendClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<string>(null as any);
+        return Promise.resolve<Statistic>(null as any);
     }
 
     /**
@@ -2004,6 +2003,129 @@ export interface ICurrency {
     rusName: string;
     rate: number;
     lastUpdate: string;
+}
+
+export class Statistic implements IStatistic {
+    purchases!: Purchases;
+
+    constructor(data?: IStatistic) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+        if (!data) {
+            this.purchases = new Purchases();
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.purchases = _data["purchases"] ? Purchases.fromJS(_data["purchases"]) : new Purchases();
+        }
+    }
+
+    static fromJS(data: any): Statistic {
+        data = typeof data === 'object' ? data : {};
+        let result = new Statistic();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["purchases"] = this.purchases ? this.purchases.toJSON() : <any>undefined;
+        return data;
+    }
+}
+
+export interface IStatistic {
+    purchases: Purchases;
+}
+
+export class Purchases implements IPurchases {
+    conditions?: string[] | undefined;
+    testStates?: string[] | undefined;
+    itemsInPurchase!: number[];
+    profitPerPcs!: number[];
+
+    constructor(data?: IPurchases) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+        if (!data) {
+            this.itemsInPurchase = [];
+            this.profitPerPcs = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            if (Array.isArray(_data["conditions"])) {
+                this.conditions = [] as any;
+                for (let item of _data["conditions"])
+                    this.conditions!.push(item);
+            }
+            if (Array.isArray(_data["testStates"])) {
+                this.testStates = [] as any;
+                for (let item of _data["testStates"])
+                    this.testStates!.push(item);
+            }
+            if (Array.isArray(_data["itemsInPurchase"])) {
+                this.itemsInPurchase = [] as any;
+                for (let item of _data["itemsInPurchase"])
+                    this.itemsInPurchase!.push(item);
+            }
+            if (Array.isArray(_data["profitPerPcs"])) {
+                this.profitPerPcs = [] as any;
+                for (let item of _data["profitPerPcs"])
+                    this.profitPerPcs!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): Purchases {
+        data = typeof data === 'object' ? data : {};
+        let result = new Purchases();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (Array.isArray(this.conditions)) {
+            data["conditions"] = [];
+            for (let item of this.conditions)
+                data["conditions"].push(item);
+        }
+        if (Array.isArray(this.testStates)) {
+            data["testStates"] = [];
+            for (let item of this.testStates)
+                data["testStates"].push(item);
+        }
+        if (Array.isArray(this.itemsInPurchase)) {
+            data["itemsInPurchase"] = [];
+            for (let item of this.itemsInPurchase)
+                data["itemsInPurchase"].push(item);
+        }
+        if (Array.isArray(this.profitPerPcs)) {
+            data["profitPerPcs"] = [];
+            for (let item of this.profitPerPcs)
+                data["profitPerPcs"].push(item);
+        }
+        return data;
+    }
+}
+
+export interface IPurchases {
+    conditions?: string[] | undefined;
+    testStates?: string[] | undefined;
+    itemsInPurchase: number[];
+    profitPerPcs: number[];
 }
 
 export abstract class ProblemDetailedInfo implements IProblemDetailedInfo {

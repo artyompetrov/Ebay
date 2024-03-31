@@ -102,7 +102,7 @@ namespace Ebay.Server.Controllers.Generated
 
         /// <returns>Ok</returns>
 
-        System.Threading.Tasks.Task<string> GetLotStatisticAsync(System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+        System.Threading.Tasks.Task<Statistic> GetLotStatisticAsync(System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
         /// <summary>
         /// Получить информацию о лоте
@@ -277,7 +277,7 @@ namespace Ebay.Server.Controllers.Generated
 
         /// <returns>Ok</returns>
         [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("products/{productId}/statistic/")]
-        public System.Threading.Tasks.Task<string> GetLotStatistic(System.Guid productId, System.Threading.CancellationToken cancellationToken)
+        public System.Threading.Tasks.Task<Statistic> GetLotStatistic(System.Guid productId, System.Threading.CancellationToken cancellationToken)
         {
 
             return _implementation.GetLotStatisticAsync(productId, cancellationToken);
@@ -1095,6 +1095,56 @@ namespace Ebay.Server.Controllers.Generated
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         [System.ComponentModel.DataAnnotations.RegularExpression(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$")]
         public string LastUpdate { get; }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class Statistic
+    {
+        [Newtonsoft.Json.JsonConstructor]
+
+        public Statistic(Purchases @purchases)
+
+        {
+
+            this.Purchases = @purchases;
+
+        }    [Newtonsoft.Json.JsonProperty("purchases", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public Purchases Purchases { get; }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class Purchases
+    {
+        [Newtonsoft.Json.JsonConstructor]
+
+        public Purchases(System.Collections.Generic.List<string>? @conditions, System.Collections.Generic.List<int> @itemsInPurchase, System.Collections.Generic.List<double> @profitPerPcs, System.Collections.Generic.List<string>? @testStates)
+
+        {
+
+            this.Conditions = @conditions;
+
+            this.TestStates = @testStates;
+
+            this.ItemsInPurchase = @itemsInPurchase;
+
+            this.ProfitPerPcs = @profitPerPcs;
+
+        }    [Newtonsoft.Json.JsonProperty("conditions", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public System.Collections.Generic.List<string>? Conditions { get; }
+
+        [Newtonsoft.Json.JsonProperty("testStates", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public System.Collections.Generic.List<string>? TestStates { get; }
+
+        [Newtonsoft.Json.JsonProperty("itemsInPurchase", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.List<int> ItemsInPurchase { get; }
+
+        [Newtonsoft.Json.JsonProperty("profitPerPcs", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.List<double> ProfitPerPcs { get; }
 
     }
 
