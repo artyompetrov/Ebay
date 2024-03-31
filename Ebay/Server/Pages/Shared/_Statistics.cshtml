@@ -1,6 +1,8 @@
 ﻿@model Ebay.Server.Pages.Shared._Statistics
 
 <div>Продано штук: @Model.TotalCount</div>
+<div>@Html.Raw(Model.Graph)</div>
+
 <div>
     @foreach (var (condition, value) in Model.ConditionDistribution)
     {

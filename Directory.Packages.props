@@ -30,5 +30,6 @@
     <PackageVersion Include="NUnit3TestAdapter" Version="4.4.2" />
     <PackageVersion Include="NUnit.Analyzers" Version="3.6.1" />
     <PackageVersion Include="coverlet.collector" Version="3.2.0" />
+    <PackageVersion Include="Plotly.NET" Version="4.2.0" />
   </ItemGroup>
 </Project>
