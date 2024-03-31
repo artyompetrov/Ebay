@@ -5,6 +5,8 @@ using Ebay.Server.Controllers.Generated;
 using Ebay.Server.Data;
 using Ebay.Server.Data.Models;
 using Ebay.Server.HostedServices;
+using Ebay.Server.Infrastructure;
+using Ebay.Server.Services.Statistics;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
@@ -22,6 +24,9 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddScoped<IEbayController, EbayControllerImplementation>();
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
+
+builder.Services.AddScoped<RazorPartialToStringRenderer>();
+builder.Services.AddScoped<StatisticService>();
 
 builder.Services.AddIdentityServer()
     .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(

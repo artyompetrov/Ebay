@@ -176,6 +176,25 @@ paths:
           schema:
             $ref: '#/definitions/NotFoundProblemDetailedInfo'
 
+  /products/{productId}/statistic/:
+    parameters:
+      - name: productId
+        in: path
+        required: true
+        type: string
+        format: guid
+    get:
+      operationId: GetLotStatistic
+      responses:
+        200:
+          description: Ok
+          schema:
+            type: string
+        400:
+          description: 'NotFound'
+          schema:
+            $ref: '#/definitions/NotFoundProblemDetailedInfo'
+
   /lots/{lotId}/:
     parameters:
       - name: lotId

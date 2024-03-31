@@ -99,6 +99,11 @@ namespace Ebay.Server.Controllers.Generated
 
         System.Threading.Tasks.Task IgnoreLotsAsync(System.Collections.Generic.IEnumerable<long> ignoredLots, System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
+
+        /// <returns>Ok</returns>
+
+        System.Threading.Tasks.Task<string> GetLotStatisticAsync(System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+
         /// <summary>
         /// Получить информацию о лоте
         /// </summary>
@@ -268,6 +273,14 @@ namespace Ebay.Server.Controllers.Generated
         {
 
             return _implementation.IgnoreLotsAsync(ignoredLots, productId, cancellationToken);
+        }
+
+        /// <returns>Ok</returns>
+        [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("products/{productId}/statistic/")]
+        public System.Threading.Tasks.Task<string> GetLotStatistic(System.Guid productId, System.Threading.CancellationToken cancellationToken)
+        {
+
+            return _implementation.GetLotStatisticAsync(productId, cancellationToken);
         }
 
         /// <summary>
