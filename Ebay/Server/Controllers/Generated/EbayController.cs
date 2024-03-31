@@ -99,11 +99,6 @@ namespace Ebay.Server.Controllers.Generated
 
         System.Threading.Tasks.Task IgnoreLotsAsync(System.Collections.Generic.IEnumerable<long> ignoredLots, System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
-
-        /// <returns>Ok</returns>
-
-        System.Threading.Tasks.Task<Statistic> GetLotStatisticAsync(System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
-
         /// <summary>
         /// Получить информацию о лоте
         /// </summary>
@@ -273,14 +268,6 @@ namespace Ebay.Server.Controllers.Generated
         {
 
             return _implementation.IgnoreLotsAsync(ignoredLots, productId, cancellationToken);
-        }
-
-        /// <returns>Ok</returns>
-        [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("products/{productId}/statistic/")]
-        public System.Threading.Tasks.Task<Statistic> GetLotStatistic(System.Guid productId, System.Threading.CancellationToken cancellationToken)
-        {
-
-            return _implementation.GetLotStatisticAsync(productId, cancellationToken);
         }
 
         /// <summary>
@@ -1095,23 +1082,6 @@ namespace Ebay.Server.Controllers.Generated
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         [System.ComponentModel.DataAnnotations.RegularExpression(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$")]
         public string LastUpdate { get; }
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class Statistic
-    {
-        [Newtonsoft.Json.JsonConstructor]
-
-        public Statistic(Purchases @purchases)
-
-        {
-
-            this.Purchases = @purchases;
-
-        }    [Newtonsoft.Json.JsonProperty("purchases", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        [System.ComponentModel.DataAnnotations.Required]
-        public Purchases Purchases { get; }
 
     }
 

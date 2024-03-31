@@ -3,20 +3,16 @@
 @using Microsoft.AspNetCore.Authorization
 @using Plotly.Blazor
 @using Plotly.Blazor.Traces
-@using Histogram = Plotly.Blazor.Traces.Histogram
 @attribute [Authorize]
 @inject EbayClient EbayClient
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <PageTitle>Продажи товара @_product?.Name</PageTitle>
 
 <h2>Статистика @_product?.Name</h2>
-@if (_statistics != null)
-{
-    <PlotlyChart @bind-Config="@_config" @bind-Layout="@_layout" @bind-Data="@_data"/>
-}
 
 @if (_lots != null)
 {
+    <PlotlyChart @bind-Config="@_config" @bind-Layout="@_layout" @bind-Data="@_data"/>
+
     <table id="productTable" class="table">
         <thead>
         <tr>
@@ -51,12 +47,9 @@
 @code {
     private ProductWithId? _product;
     private ICollection<LotInfoShort>? _lots;
-    private Statistic? _statistics;
-
 
     Config _config = new();
     Layout _layout = new();
-    // Using of the interface IList is important for the event callback!
     IList<ITrace> _data = null!;
 
 
@@ -72,37 +65,66 @@
     {
         _product = await EbayClient.GetProductAsync(ProductId);
         _lots = await EbayClient.GetLotsAsync(ProductId);
-        _statistics = await EbayClient.GetLotStatisticAsync(ProductId);
+        var currencyRates = await EbayClient.GetCurrenciesAsync();
+
         _data = new List<ITrace>();
-        
-        foreach (var grouping in ToEnumerable(_statistics.Purchases).GroupBy(x =>x.Condition))
+        foreach (var grouping in GenerateStatistics(_lots, currencyRates).GroupBy(x => x.Condition))
         {
             _data.Add(new PointCloud
             {
-                X = grouping.Select(x=>x.ProfitPerPcs).Cast<object>().ToList(),
-                Y = grouping.Select(x=>x.ItemsInPurchase).Cast<object>().ToList(),
+                X = grouping.Select(x => x.ProfitPerPcs).Cast<object>().ToList(),
+                Y = grouping.Select(x => x.ItemsInPurchase).Cast<object>().ToList(),
                 Name = grouping.Key
             });
         }
-        
-        
+
         StateHasChanged();
     }
 
-    private IEnumerable<Purchase> ToEnumerable(Purchases purchases)
-    {
-        using var itemsInPurchase = purchases.ItemsInPurchase.GetEnumerator();
-        using var conditions = purchases.Conditions.GetEnumerator();
-        using var testStates = purchases.TestStates.GetEnumerator();
-        using var profitPerPcs = purchases.ProfitPerPcs.GetEnumerator();
 
-        while (itemsInPurchase.MoveNext() && conditions.MoveNext() && testStates.MoveNext() && profitPerPcs.MoveNext())
+    private static IEnumerable<Purchase> GenerateStatistics(ICollection<LotInfoShort> lots, ICollection<Currency> currencies)
+    {
+        // ReSharper disable IdentifierTypo
+        const double скидкаНаПродажиСНеизвестнойЦеной = 0.2;
+
+        const double коммисияEbayВПроцентах = 0.1325;
+        const double коммиссияEbayПостояннаяВеличина = 0.1325;
+        const double коммисияPayoneerВПроцентах = 0.05; //todo уточнить
+
+        var currencyRate = currencies.ToDictionary(x => x.EbayName, x => x.Rate);
+
+        foreach (var lot in lots)
         {
-            yield return new Purchase(Condition: conditions.Current!, TestState: testStates.Current!, ItemsInPurchase: itemsInPurchase.Current, ProfitPerPcs: profitPerPcs.Current);
+            var condition = lot.Categories.Single(x => x.Type == WellKnown.Categories.Conditions.CategoryName).Value;
+            var testState = lot.Categories.Single(x => x.Type == WellKnown.Categories.TestState.CategoryName).Value;
+
+            foreach (var purchase in lot.PurchaseHistory)
+            {
+                var количествоШтукВПродаже = lot.Pcs * purchase.Quantity;
+
+                var ценаЛотаВВалютеЛота = purchase.Price ?? lot.Price * (1.0 - скидкаНаПродажиСНеизвестнойЦеной);
+
+                var полнаяЦенаПродажиВВалютеЛота =
+                    ценаЛотаВВалютеЛота * purchase.Quantity + lot.Shipping!.Value +
+                        lot.ShippingAdditional!.Value * (purchase.Quantity - 1);
+
+                var полнаяЦенаПродажиВДолларах = полнаяЦенаПродажиВВалютеЛота * currencyRate[lot.Currency];
+
+                var выручкаСПродажиВДолларах = полнаяЦенаПродажиВДолларах -
+                    полнаяЦенаПродажиВДолларах * коммисияEbayВПроцентах - коммиссияEbayПостояннаяВеличина -
+                    полнаяЦенаПродажиВДолларах * коммисияPayoneerВПроцентах;
+               //todo нужно добавить сюда учет стоимости доставки
+
+                var выручкаСПродажиЗаШтуку = выручкаСПродажиВДолларах / количествоШтукВПродаже;
+
+                yield return new Purchase(condition, testState, количествоШтукВПродаже, выручкаСПродажиЗаШтуку);
+            }
         }
+        // ReSharper restore IdentifierTypo
     }
 
     private record struct Purchase(string Condition, string TestState, int ItemsInPurchase, double ProfitPerPcs);
+
 
     private string GetLinkToLot(LotInfoShort lot) => $"https://www.ebay.com/itm/{lot.LotId}";
 }
