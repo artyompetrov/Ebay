@@ -3,6 +3,9 @@
 @using Microsoft.AspNetCore.Authorization
 @using Plotly.Blazor
 @using Plotly.Blazor.Traces
+@using System.Text
+@using Plotly.Blazor.LayoutLib
+@using Plotly.Blazor.LayoutLib.ShapeLib
 @attribute [Authorize]
 @inject EbayClient EbayClient
 <PageTitle>Продажи товара @_product?.Name</PageTitle>
@@ -11,7 +14,11 @@
 
 @if (_lots != null)
 {
-    <PlotlyChart @bind-Config="@_config" @bind-Layout="@_layout" @bind-Data="@_data"/>
+    <div>Продано штук: @_totalCount</div>
+    <div>Средняя выручка с одной штуки: @_meanProfitPerPcs!.Value.ToString("#") @WellKnown.Currencies.TargetCurrency</div>
+
+
+    <PlotlyChart @bind-Config="@_config" @bind-Layout="@_layout" @bind-Data="@_data" style="height: 60vh; min-height: 350px"/>
 
     <table id="productTable" class="table">
         <thead>
@@ -37,7 +44,7 @@
                 <td>@lot.Shipping</td>
                 <td>@lot.ShippingAdditional</td>
                 <td>@lot.Currency</td>
-                <td>@lot.PurchaseHistory.Sum(x => x.Quantity)</td>
+                <td>@GetPurchaseHistorySummary(purchaseInfos: lot.PurchaseHistory, titleChangeDate: lot.TitleChangeDate)</td>
             </tr>
         }
         </tbody>
@@ -51,6 +58,8 @@
     Config _config = new();
     Layout _layout = new();
     IList<ITrace> _data = null!;
+    int? _totalCount = null;
+    double? _meanProfitPerPcs = null;
 
 
     [Parameter]
@@ -65,11 +74,23 @@
     {
         _product = await EbayClient.GetProductAsync(ProductId);
         _lots = await EbayClient.GetLotsAsync(ProductId);
+        foreach (var lotInfoShort in _lots)
+        {
+            lotInfoShort.SetIsRecentToPurchases();
+        }
+
         var currencyRates = await EbayClient.GetCurrenciesAsync();
 
         _data = new List<ITrace>();
-        foreach (var grouping in GenerateStatistics(_lots, currencyRates).GroupBy(x => x.Condition))
+
+
+        var totalCount = 0;
+        var totalProfit = 0.0;
+        foreach (var grouping in GenerateStatistics(lots: _lots, currencies: currencyRates).Where(x => x.IsRecent /*todo вынести в фильры*/).GroupBy(x => x.Condition))
         {
+            totalCount += grouping.Sum(x => x.ItemsInPurchase);
+            totalProfit += grouping.Sum(x => x.ProfitPerPcs * x.ItemsInPurchase);
+
             _data.Add(new PointCloud
             {
                 X = grouping.Select(x => x.ProfitPerPcs).Cast<object>().ToList(),
@@ -77,21 +98,58 @@
                 Name = grouping.Key
             });
         }
+        _totalCount = totalCount;
+        _meanProfitPerPcs = totalProfit / totalCount;
 
+        _layout.XAxis = new List<XAxis>()
+        {
+            new()
+            {
+                MinAllowed = 0
+            }
+        };
+
+        _layout.YAxis = new List<YAxis>()
+        {
+            new()
+            {
+                MinAllowed = 0
+            }
+        };
+        _layout.Shapes = new List<Shape>()
+        {
+            new()
+            {
+                Type = TypeEnum.Line,
+                X0 = _meanProfitPerPcs,
+                X1 = _meanProfitPerPcs,
+                XRef = "x",
+                YRef = "paper",
+                Y0 = 0,
+                Y1 = 1,
+                Line = new Line
+                {
+                    Width = 3,
+                    Color = "lightblue"
+                }
+            }
+        };
         StateHasChanged();
     }
 
 
     private static IEnumerable<Purchase> GenerateStatistics(ICollection<LotInfoShort> lots, ICollection<Currency> currencies)
     {
-        // ReSharper disable IdentifierTypo
+    // ReSharper disable IdentifierTypo
         const double скидкаНаПродажиСНеизвестнойЦеной = 0.2;
 
         const double коммисияEbayВПроцентах = 0.1325;
         const double коммиссияEbayПостояннаяВеличина = 0.1325;
         const double коммисияPayoneerВПроцентах = 0.05; //todo уточнить
 
-        var currencyRate = currencies.ToDictionary(x => x.EbayName, x => x.Rate);
+        var currencyRate = currencies.ToDictionary(keySelector: x => x.EbayName, elementSelector: x => x.Rate);
+
+        var курсЦелевойВалюты = currencyRate[WellKnown.Currencies.TargetCurrency];
 
         foreach (var lot in lots)
         {
@@ -108,23 +166,78 @@
                     ценаЛотаВВалютеЛота * purchase.Quantity + lot.Shipping!.Value +
                         lot.ShippingAdditional!.Value * (purchase.Quantity - 1);
 
-                var полнаяЦенаПродажиВДолларах = полнаяЦенаПродажиВВалютеЛота * currencyRate[lot.Currency];
+                var полнаяЦенаПродажиВДолларах = полнаяЦенаПродажиВВалютеЛота / currencyRate[lot.Currency];
 
                 var выручкаСПродажиВДолларах = полнаяЦенаПродажиВДолларах -
                     полнаяЦенаПродажиВДолларах * коммисияEbayВПроцентах - коммиссияEbayПостояннаяВеличина -
                     полнаяЦенаПродажиВДолларах * коммисияPayoneerВПроцентах;
-               //todo нужно добавить сюда учет стоимости доставки
+    //todo нужно добавить сюда учет стоимости доставки
 
                 var выручкаСПродажиЗаШтуку = выручкаСПродажиВДолларах / количествоШтукВПродаже;
 
-                yield return new Purchase(condition, testState, количествоШтукВПродаже, выручкаСПродажиЗаШтуку);
+                var выручкаСПрдажиЗаШтукуВЦелевойВалюте = выручкаСПродажиЗаШтуку * курсЦелевойВалюты;
+
+                yield return new Purchase(
+                    Condition: condition,
+                    TestState: testState,
+                    ItemsInPurchase: количествоШтукВПродаже,
+                    ProfitPerPcs: выручкаСПрдажиЗаШтукуВЦелевойВалюте,
+                    IsRecent: purchase.IsRecent);
             }
         }
-        // ReSharper restore IdentifierTypo
+    // ReSharper restore IdentifierTypo
     }
 
-    private record struct Purchase(string Condition, string TestState, int ItemsInPurchase, double ProfitPerPcs);
+    private record struct Purchase(string Condition, string TestState, int ItemsInPurchase, double ProfitPerPcs, bool IsRecent);
 
 
-    private string GetLinkToLot(LotInfoShort lot) => $"https://www.ebay.com/itm/{lot.LotId}";
+    private string GetLinkToLot(LotInfoShort lot) => $"https://www.ebay.com/itm/{lot.LotId}?tool_productId={ProductId}";
+
+    private static MarkupString GetPurchaseHistorySummary(ICollection<PurchaseInfo> purchaseInfos, string titleChangeDate)
+    {
+        var sb = new StringBuilder();
+        var isFirst = true;
+
+        foreach (var groupingByIsRecent in purchaseInfos.GroupBy(x => x.IsRecent).OrderByDescending(x => x.Key))
+        {
+            if (!groupingByIsRecent.Key)
+            {
+                sb.Append("<font color = 'gray'>");
+            }
+
+            foreach (var groupingByPrice in groupingByIsRecent.GroupBy(x => x.Price).OrderByDescending(x => x.Key))
+            {
+                if (isFirst)
+                {
+                    isFirst = false;
+                }
+                else
+                {
+                    sb.Append("<br>");
+                }
+
+                if (groupingByPrice.Key.HasValue)
+                {
+                    sb.Append(groupingByPrice.Key.Value);
+                }
+                else
+                {
+                    sb.Append("Неизвестно");
+                }
+
+                sb.Append(" - ");
+
+                sb.Append(groupingByPrice.Count());
+            }
+
+            if (!groupingByIsRecent.Key)
+            {
+                sb.Append("</font>");
+            }
+        }
+
+
+        return (MarkupString)sb.ToString();
+    }
+
 }
