@@ -109,6 +109,15 @@ namespace Ebay.Server.Controllers.Generated
         System.Threading.Tasks.Task<LotInfoWithProductId> GetLotInfoAsync(long lotId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
         /// <summary>
+        /// Удалить информацию о лоте
+        /// </summary>
+
+
+        /// <returns>Ok</returns>
+
+        System.Threading.Tasks.Task DeleteLotInfoAsync(long lotId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+
+        /// <summary>
         /// Получить id всех лотов
         /// </summary>
 
@@ -279,6 +288,17 @@ namespace Ebay.Server.Controllers.Generated
         {
 
             return _implementation.GetLotInfoAsync(lotId, cancellationToken);
+        }
+
+        /// <summary>
+        /// Удалить информацию о лоте
+        /// </summary>
+        /// <returns>Ok</returns>
+        [Microsoft.AspNetCore.Mvc.HttpDelete, Microsoft.AspNetCore.Mvc.Route("lots/{lotId}/")]
+        public System.Threading.Tasks.Task DeleteLotInfo(long lotId, System.Threading.CancellationToken cancellationToken)
+        {
+
+            return _implementation.DeleteLotInfoAsync(lotId, cancellationToken);
         }
 
         /// <summary>

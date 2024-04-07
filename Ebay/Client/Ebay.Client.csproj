@@ -21,6 +21,12 @@
         <TypeScriptCompile Remove="Clients\Generated\EbayClient.ts"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <Content Update="wwwroot\site.js">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+
     <Target Name="NSwag" BeforeTargets="BeforeBuild">
         <Exec Command="$(NSwagExe_Net70) openapi2csclient /input:../Server/Controllers/Contracts/Ebay.yaml /classname:EbayClient /namespace:Ebay.Client.Clients.Generated /output:Clients/Generated/EbayClient.cs /RequiredPropertiesMustBeDefined:false"/>
     </Target>

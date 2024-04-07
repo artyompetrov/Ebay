@@ -195,6 +195,16 @@ paths:
           description: 'NotFound'
           schema:
             $ref: '#/definitions/NotFoundProblemDetailedInfo'
+    delete:
+      operationId: DeleteLotInfo
+      summary: Удалить информацию о лоте
+      responses:
+        200:
+          description: 'Ok'
+        400:
+          description: 'NotFound'
+          schema:
+            $ref: '#/definitions/NotFoundProblemDetailedInfo'
   
   
   /lots/:

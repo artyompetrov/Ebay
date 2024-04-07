@@ -11,8 +11,20 @@
 @using Line = Plotly.Blazor.LayoutLib.ShapeLib.Line
 @attribute [Authorize]
 @inject EbayClient EbayClient
-@inject IJSRuntime JSRuntime
-@inject ILogger<LotSales> Logger
+@inject IJSRuntime JsRuntime
+
+<style>
+    #lotSalesTable th {
+      position: sticky;
+      top: 3.5rem;
+      background-color: white;
+      z-index: 100;
+    }
+    
+    #lotSalesTable td {
+      vertical-align: middle;
+    }
+</style>
 
 @if (_product != null && _lots != null)
 {
@@ -35,10 +47,11 @@
 
     <PlotlyChart @bind-Config="@_config" @bind-Layout="@_layout" @bind-Data="@_data" @ref="@_chart" ClickAction="ClickAction" AfterRender="SubscribeEvents" style="height: 60vh; min-height: 350px"/>
 
-    <table id="productTable" class="table">
+    <table id="lotSalesTable" class="table">
         <thead>
         <tr>
             <th>Название</th>
+            <th></th>
             <th>Шт.</th>
             <th>Цена</th>
             <th>Доставка</th>
@@ -54,6 +67,7 @@
                 <td>
                     <a id="@GetLotLinkId(lot.LotId)" href="@GetLinkToLot(lot)" target="_blank">@lot.Name</a>
                 </td>
+                <td><button class="btn btn-danger btn-sm oi oi-basket" @onclick="@(e => OnDeleteButtonClick(lot))"></button></td>
                 <td>@lot.Pcs</td>
                 <td>@lot.Price</td>
                 <td>@lot.Shipping</td>
@@ -66,13 +80,15 @@
     </table>
 }
 <ProductPopup @ref="_productPopupComponent" OnSuccess="LoadActualProductList"/>
+<QuestionPopup @ref="_questionPopup"/>
 
 @code {
     private PlotlyChart _chart = null!;
     private ProductPopup _productPopupComponent = null!;
     private ProductWithId? _product;
     private ICollection<LotInfoShort>? _lots;
-
+    private QuestionPopup _questionPopup = null!;
+    
     Config _config = null!;
     Layout _layout = null!;
     IList<ITrace> _data = null!;
@@ -90,7 +106,7 @@
         var lotId = (long)scatter.CustomData[point.PointIndex];
         var trLotId = GetLotLinkId(lotId);
 
-        await JSRuntime.InvokeAsync<bool>("SetFocusByElementId", trLotId);
+        await JsRuntime.InvokeAsync<bool>("SetFocusByElementId", trLotId);
     }
     
     public async void SubscribeEvents()
@@ -104,6 +120,15 @@
         await LoadActualProductList();
     }
 
+    private void OnDeleteButtonClick(LotInfoShort lot)
+    {
+        _questionPopup.AskQuestion($"Вы действительно хотите удалить лот '{lot.Name}'?", async () =>
+        {
+            await EbayClient.DeleteLotInfoAsync(lot.LotId);
+            await LoadActualProductList();
+        });
+    }
+    
     private async Task LoadActualProductList()
     {
         _product = await EbayClient.GetProductAsync(ProductId);
@@ -131,8 +156,7 @@
                 X = grouping.Select(x => x.ProfitPerPcs).Cast<object>().ToList(),
                 Y = grouping.Select(x => x.ItemsInPurchase).Cast<object>().ToList(),
                 Name = grouping.Key,
-                CustomData = grouping.Select(x => x.LotId).Cast<object>().ToList(),
-                //TextTemplate = $"<a href=\"https://www.ebay.com/itm/%{{customdata}}?tool_productId={ProductId}\"> </a>"
+                CustomData = grouping.Select(x => x.LotId).Cast<object>().ToList()
             });
         }
         _totalCount = totalCount;
@@ -241,7 +265,7 @@
 
     private string GetLinkToLot(LotInfoShort lot) => $"https://www.ebay.com/itm/{lot.LotId}?tool_productId={ProductId}";
     
-    private string GetLotLinkId(long lotId) => $"tr_lot_id_{lotId}";
+    private static string GetLotLinkId(long lotId) => $"tr_lot_id_{lotId}";
     
     private static MarkupString GetPurchaseHistorySummary(ICollection<PurchaseInfo> purchaseInfos, string titleChangeDate) //todo 
     {

@@ -266,6 +266,16 @@ internal class EbayControllerImplementation : IEbayController
         return dbLot.ToApiLot();
     }
 
+    public async Task DeleteLotInfoAsync(long lotId, CancellationToken cancellationToken)
+    {
+        var lot = new Lot { Id = lotId };
+        
+        _applicationContext.Lots.Attach(lot);
+        _applicationContext.Lots.Remove(lot);
+
+        await _applicationContext.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task<ICollection<long>> GetLotIdsAsync(CancellationToken cancellationToken)
     {
         var result = await _applicationContext.Lots
