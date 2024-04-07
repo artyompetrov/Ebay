@@ -313,7 +313,7 @@ definitions:
           $ref: '#/definitions/SearchQuery'
       Weight:
         type: integer
-        minimum: 5
+        minimum: 0
     required:
       - Name
       - SearchQueries
@@ -335,7 +335,7 @@ definitions:
         minLength: 1
       Weight:
         type: integer
-        minimum: 5
+        minimum: 0
       SearchQueries:
         type: array
         items:

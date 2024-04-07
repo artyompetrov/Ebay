@@ -376,7 +376,7 @@ namespace Ebay.Server.Controllers.Generated
         public System.Collections.Generic.List<SearchQuery> SearchQueries { get; }
 
         [Newtonsoft.Json.JsonProperty("Weight", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        [System.ComponentModel.DataAnnotations.Range(5, int.MaxValue)]
+        [System.ComponentModel.DataAnnotations.Range(0, int.MaxValue)]
         public int Weight { get; }
 
     }
@@ -414,7 +414,7 @@ namespace Ebay.Server.Controllers.Generated
         public string? LastCheckTime { get; }
 
         [Newtonsoft.Json.JsonProperty("Weight", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        [System.ComponentModel.DataAnnotations.Range(5, int.MaxValue)]
+        [System.ComponentModel.DataAnnotations.Range(0, int.MaxValue)]
         public int Weight { get; }
 
         [Newtonsoft.Json.JsonProperty("SearchQueries", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
