@@ -4,10 +4,15 @@
 @using Plotly.Blazor
 @using Plotly.Blazor.Traces
 @using System.Text
+@using Plotly.Blazor.Interop
 @using Plotly.Blazor.LayoutLib
 @using Plotly.Blazor.LayoutLib.ShapeLib
+@using Plotly.Blazor.Traces.ScatterLib
+@using Line = Plotly.Blazor.LayoutLib.ShapeLib.Line
 @attribute [Authorize]
 @inject EbayClient EbayClient
+@inject IJSRuntime JSRuntime
+@inject ILogger<LotSales> Logger
 
 @if (_product != null && _lots != null)
 {
@@ -28,7 +33,7 @@
     <div>Средняя выручка с одной штуки: @_meanProfitPerPcs!.Value.ToString("#") @WellKnown.Currencies.TargetCurrency</div>
 
 
-    <PlotlyChart @bind-Config="@_config" @bind-Layout="@_layout" @bind-Data="@_data" style="height: 60vh; min-height: 350px"/>
+    <PlotlyChart @bind-Config="@_config" @bind-Layout="@_layout" @bind-Data="@_data" @ref="@_chart" ClickAction="ClickAction" AfterRender="SubscribeEvents" style="height: 60vh; min-height: 350px"/>
 
     <table id="productTable" class="table">
         <thead>
@@ -47,7 +52,7 @@
         {
             <tr>
                 <td>
-                    <a href="@GetLinkToLot(lot)" target="_blank">@lot.Name</a>
+                    <a id="@GetLotLinkId(lot.LotId)" href="@GetLinkToLot(lot)" target="_blank">@lot.Name</a>
                 </td>
                 <td>@lot.Pcs</td>
                 <td>@lot.Price</td>
@@ -63,19 +68,36 @@
 <ProductPopup @ref="_productPopupComponent" OnSuccess="LoadActualProductList"/>
 
 @code {
+    private PlotlyChart _chart = null!;
     private ProductPopup _productPopupComponent = null!;
     private ProductWithId? _product;
     private ICollection<LotInfoShort>? _lots;
 
-    Config _config = new();
-    Layout _layout = new();
+    Config _config = null!;
+    Layout _layout = null!;
     IList<ITrace> _data = null!;
-    int? _totalCount = null;
-    double? _meanProfitPerPcs = null;
+    int? _totalCount;
+    double? _meanProfitPerPcs;
 
 
     [Parameter]
     public Guid ProductId { get; set; }
+
+    async void ClickAction(IEnumerable<EventDataPoint> eventData)
+    {
+        var point = eventData.First();
+        var scatter = (Scatter)_data[point.TraceIndex];
+        var lotId = (long)scatter.CustomData[point.PointIndex];
+        var trLotId = GetLotLinkId(lotId);
+
+        await JSRuntime.InvokeAsync<bool>("SetFocusByElementId", trLotId);
+    }
+    
+    public async void SubscribeEvents()
+    {
+        await _chart.SubscribeClickEvent();
+    }
+    
 
     protected override async Task OnInitializedAsync()
     {
@@ -103,46 +125,59 @@
             totalCount += grouping.Sum(x => x.ItemsInPurchase);
             totalProfit += grouping.Sum(x => x.ProfitPerPcs * x.ItemsInPurchase);
 
-            _data.Add(new PointCloud
+            _data.Add(new Scatter()
             {
+                Mode = ModeFlag.Markers | ModeFlag.Text,
                 X = grouping.Select(x => x.ProfitPerPcs).Cast<object>().ToList(),
                 Y = grouping.Select(x => x.ItemsInPurchase).Cast<object>().ToList(),
-                Name = grouping.Key
+                Name = grouping.Key,
+                CustomData = grouping.Select(x => x.LotId).Cast<object>().ToList(),
+                //TextTemplate = $"<a href=\"https://www.ebay.com/itm/%{{customdata}}?tool_productId={ProductId}\"> </a>"
             });
         }
         _totalCount = totalCount;
         _meanProfitPerPcs = totalProfit / totalCount;
 
-        _layout.XAxis = new List<XAxis>()
+        _config = new() { };
+        
+        _layout = new()
         {
-            new()
+            Title = new() { Text = $"Продажи {_product.Name}" },
+            Margin = new Margin() { R = 0, L = 0 },
+            XAxis = new List<XAxis>()
             {
-                MinAllowed = 0
-            }
-        };
-
-        _layout.YAxis = new List<YAxis>()
-        {
-            new()
-            {
-                MinAllowed = 0
-            }
-        };
-        _layout.Shapes = new List<Shape>()
-        {
-            new()
-            {
-                Type = TypeEnum.Line,
-                X0 = _meanProfitPerPcs,
-                X1 = _meanProfitPerPcs,
-                XRef = "x",
-                YRef = "paper",
-                Y0 = 0,
-                Y1 = 1,
-                Line = new Line
+                new()
                 {
-                    Width = 3,
-                    Color = "lightblue"
+                    MinAllowed = 0,
+                    Title = new() {Text = $"Цена за штуку ({WellKnown.Currencies.TargetCurrency})"} 
+                    
+                }
+            },
+
+            YAxis = new List<YAxis>()
+            {
+                new()
+                {
+                    MinAllowed = 0,
+                    Title = new () { Text = "Кол-во штук в продаже"} 
+                }
+            },
+            Shapes = new List<Shape>()
+            {
+                new()
+                {
+                    Type = TypeEnum.Line,
+                    X0 = _meanProfitPerPcs,
+                    X1 = _meanProfitPerPcs,
+                    XRef = "x",
+                    YRef = "paper",
+                    Y0 = 0,
+                    Y1 = 1,
+                    Line = new Line
+                    {
+                        Width = 3,
+                        Color = "lightblue"
+                    }
                 }
             }
         };
@@ -190,6 +225,7 @@
                 var выручкаСПрдажиЗаШтукуВЦелевойВалюте = выручкаСПродажиЗаШтуку * курсЦелевойВалюты;
 
                 yield return new Purchase(
+                    LotId: lot.LotId,
                     Condition: condition,
                     TestState: testState,
                     ItemsInPurchase: количествоШтукВПродаже,
@@ -200,12 +236,14 @@
     // ReSharper restore IdentifierTypo
     }
 
-    private record struct Purchase(string Condition, string TestState, int ItemsInPurchase, double ProfitPerPcs, bool IsRecent);
+    private record struct Purchase(long LotId, string Condition, string TestState, int ItemsInPurchase, double ProfitPerPcs, bool IsRecent);
 
 
     private string GetLinkToLot(LotInfoShort lot) => $"https://www.ebay.com/itm/{lot.LotId}?tool_productId={ProductId}";
-
-    private static MarkupString GetPurchaseHistorySummary(ICollection<PurchaseInfo> purchaseInfos, string titleChangeDate)
+    
+    private string GetLotLinkId(long lotId) => $"tr_lot_id_{lotId}";
+    
+    private static MarkupString GetPurchaseHistorySummary(ICollection<PurchaseInfo> purchaseInfos, string titleChangeDate) //todo 
     {
         var sb = new StringBuilder();
         var isFirst = true;
