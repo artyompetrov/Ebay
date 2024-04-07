@@ -2,6 +2,7 @@
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <ItemGroup>
@@ -22,7 +23,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Content Update="wwwroot\site.js">
+      <Content Update="wwwroot\js\interop.js">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
     </ItemGroup>

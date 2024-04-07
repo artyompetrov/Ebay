@@ -9,10 +9,11 @@
 @using Plotly.Blazor.LayoutLib.ShapeLib
 @using Plotly.Blazor.Traces.ScatterLib
 @using Line = Plotly.Blazor.LayoutLib.ShapeLib.Line
+@using System.Runtime.InteropServices.JavaScript
 @attribute [Authorize]
 @inject EbayClient EbayClient
-@inject IJSRuntime JsRuntime
 
+<script src="/site.js"></script>
 <style>
     #lotSalesTable th {
       position: sticky;
@@ -106,14 +107,15 @@
         var lotId = (long)scatter.CustomData[point.PointIndex];
         var trLotId = GetLotLinkId(lotId);
 
-        await JsRuntime.InvokeAsync<bool>("SetFocusByElementId", trLotId);
+        SiteJsInterop.SetFocusByElementId(trLotId);
+        await LoadActualProductList();
     }
     
     public async void SubscribeEvents()
     {
         await _chart.SubscribeClickEvent();
     }
-    
+
 
     protected override async Task OnInitializedAsync()
     {

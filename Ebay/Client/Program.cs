@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices.JavaScript;
 using Ebay.Client;
 using Ebay.Client.Clients.Generated;
 using Microsoft.AspNetCore.Components.Web;
@@ -18,5 +19,10 @@ builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().Cre
 builder.Services.AddScoped<EbayClient>();
 
 builder.Services.AddApiAuthorization();
+
+if (OperatingSystem.IsBrowser())
+{
+    await JSHost.ImportAsync("interop", "/js/interop.js");
+}
 
 await builder.Build().RunAsync();

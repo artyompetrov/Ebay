@@ -55,11 +55,11 @@
             </td>
             @if (product.Weight == 0)
             {
-                <td class="text-danger">Вес не задан</td>
+                <td class="text-danger">Не задан</td>
             }
             else
             {
-                <td></td>
+                <td>@product.Weight</td>
             }
             <td>
                 <button class="btn btn-primary btn-sm oi oi-pencil" @onclick="@(e => _productPopupComponent.ShowEdit(product))"></button>
