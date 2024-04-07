@@ -85,6 +85,7 @@ internal class EbayControllerImplementation : IEbayController
 
         var dbProduct = _applicationContext.Products.Attach(new DbProduct { Id = id });
         dbProduct.Entity.Name = product.Name;
+        dbProduct.Entity.Weight = product.Weight;
 
         _applicationContext.RemoveRange(_applicationContext.SearchQueries.Where(x => x.ProductId == id));
 

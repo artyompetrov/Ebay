@@ -7,32 +7,39 @@
 <PageTitle>Перечень товаров</PageTitle>
 
 <h2>Перечень товаров</h2>
-        
+
 <style>
     #productTable th {
       position: sticky;
       top: 3.5rem;
       background-color: white;
     }
+    
+    #productTable td {
+      vertical-align: middle;
+    }
 </style>
 
 
 <table id="productTable" class="table">
-        <thead>
-        <tr>
-            <th>Название <button class="btn btn-primary btn-sm" @onclick="@(() => _productPopupComponent.ShowCreate())">Добавить</button></th>
-            <th>Поисковый запрос</th>
-            <th>Учтены все проданные лоты</th>
-            <th>Редактировать</th>
-            <th>Удалить</th>
-        </tr>
-        </thead>
+    <thead>
+    <tr>
+        <th>Название <button class="btn btn-primary btn-sm" @onclick="@(() => _productPopupComponent.ShowCreate())">Добавить</button></th>
+        <th>Поисковый запрос</th>
+        <th>Учтены все проданные лоты</th>
+        <th></th>
+        <th>Редактировать</th>
+        <th>Удалить</th>
+    </tr>
+    </thead>
 
     <tbody>
     @foreach (var product in _products)
     {
         <tr>
-            <td><NavLink class="nav-link" href="@($"LotSales/{product.Id}")" target="_blank" >@product.Name</NavLink></td>
+            <td>
+                <NavLink href="@($"LotSales/{product.Id}")" target="_blank">@product.Name</NavLink>
+            </td>
             <td>
                 @foreach (var query in product.SearchQueries)
                 {
@@ -45,6 +52,14 @@
                     <button class="btn btn-warning btn-sm" @onclick="@(e => MarkAsChecked(product))">Отметить</button>
                 }
             </td>
+            @if (product.Weight == 0)
+            {
+                <td class="text-danger">Вес не задан</td>
+            }
+            else
+            {
+                <td></td>
+            }
             <td>
                 <button class="btn btn-primary btn-sm" @onclick="@(e => _productPopupComponent.ShowEdit(product))">Редактировать</button>
             </td>
