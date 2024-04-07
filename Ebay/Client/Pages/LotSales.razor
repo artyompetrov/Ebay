@@ -9,9 +9,9 @@
 @using Plotly.Blazor.LayoutLib.ShapeLib
 @using Plotly.Blazor.Traces.ScatterLib
 @using Line = Plotly.Blazor.LayoutLib.ShapeLib.Line
-@using System.Runtime.InteropServices.JavaScript
 @attribute [Authorize]
 @inject EbayClient EbayClient
+@inject ILogger<LotSales> Logger
 
 <script src="/site.js"></script>
 <style>
@@ -24,6 +24,10 @@
     
     #lotSalesTable td {
       vertical-align: middle;
+    }
+    
+    a:focus {
+        background-color: #dcdcdc;
     }
 </style>
 
@@ -43,7 +47,7 @@
     }
 
     <div>Продано штук: @_totalCount</div>
-    <div>Средняя выручка с одной штуки: @_meanProfitPerPcs!.Value.ToString("#") @WellKnown.Currencies.TargetCurrency</div>
+    <div>Средняя выручка с одной штуки: @_meanProfitPerPcs.ToString("#") @WellKnown.Currencies.TargetCurrency</div>
 
 
     <PlotlyChart @bind-Config="@_config" @bind-Layout="@_layout" @bind-Data="@_data" @ref="@_chart" ClickAction="ClickAction" AfterRender="SubscribeEvents" style="height: 60vh; min-height: 350px"/>
@@ -90,32 +94,31 @@
     private ICollection<LotInfoShort>? _lots;
     private QuestionPopup _questionPopup = null!;
     
-    Config _config = null!;
-    Layout _layout = null!;
-    IList<ITrace> _data = null!;
-    int? _totalCount;
-    double? _meanProfitPerPcs;
+    Config _config = new();
+    Layout _layout = new();
+    IList<ITrace> _data = new List<ITrace>();
+    int _totalCount;
+    double _meanProfitPerPcs;
 
 
     [Parameter]
     public Guid ProductId { get; set; }
 
-    async void ClickAction(IEnumerable<EventDataPoint> eventData)
+    private void ClickAction(IEnumerable<EventDataPoint> eventData)
     {
         var point = eventData.First();
         var scatter = (Scatter)_data[point.TraceIndex];
         var lotId = (long)scatter.CustomData[point.PointIndex];
         var trLotId = GetLotLinkId(lotId);
+        Logger.LogWarning(trLotId);
 
-        SiteJsInterop.SetFocusByElementId(trLotId);
-        await LoadActualProductList();
+        Interop.SetFocusByElementId(trLotId);
     }
     
-    public async void SubscribeEvents()
+    private async void SubscribeEvents()
     {
         await _chart.SubscribeClickEvent();
     }
-
 
     protected override async Task OnInitializedAsync()
     {
@@ -128,6 +131,8 @@
         {
             await EbayClient.DeleteLotInfoAsync(lot.LotId);
             await LoadActualProductList();
+            StateHasChanged();
+            await _chart.Update();
         });
     }
     
@@ -135,15 +140,18 @@
     {
         _product = await EbayClient.GetProductAsync(ProductId);
         _lots = await EbayClient.GetLotsAsync(ProductId);
+        
+        if (_lots.Count  == 0) return;
+        
         foreach (var lotInfoShort in _lots)
         {
             lotInfoShort.SetIsRecentToPurchases();
         }
 
+        
         var currencyRates = await EbayClient.GetCurrenciesAsync();
 
         _data = new List<ITrace>();
-
 
         var totalCount = 0;
         var totalProfit = 0.0;

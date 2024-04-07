@@ -4,8 +4,8 @@ using System.Runtime.Versioning;
 namespace Ebay.Client;
 
 [SupportedOSPlatform("browser")]
-public partial class SiteJsInterop
+public partial class Interop
 {
     [JSImport("SetFocusByElementId", "interop")]
-    internal static partial bool SetFocusByElementId(string elementId);
+    internal static partial void SetFocusByElementId(string elementId);
 }
