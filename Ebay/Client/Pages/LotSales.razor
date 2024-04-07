@@ -8,12 +8,22 @@
 @using Plotly.Blazor.LayoutLib.ShapeLib
 @attribute [Authorize]
 @inject EbayClient EbayClient
-<PageTitle>Продажи товара @_product?.Name</PageTitle>
 
-<h2>Статистика @_product?.Name</h2>
-
-@if (_lots != null)
+@if (_product != null && _lots != null)
 {
+    <PageTitle>Продажи товара @_product.Name</PageTitle>
+
+    <h2>Статистика @_product.Name</h2>
+
+    @if (_product.Weight == 0)
+    {
+        <div class="text-danger">Вес не задан, для правильного расчета нужно задать вес <a href="javascript:void(0)" class="link" @onclick="@(e => _productPopupComponent.ShowEdit(_product))">Указать вес</a></div>
+    }
+    else
+    {
+        <div>Вес: @_product?.Weight <a class="link" href="javascript:void(0)"  @onclick="@(e => _productPopupComponent.ShowEdit(_product!))">Изменить вес</a></div>
+    }
+
     <div>Продано штук: @_totalCount</div>
     <div>Средняя выручка с одной штуки: @_meanProfitPerPcs!.Value.ToString("#") @WellKnown.Currencies.TargetCurrency</div>
 
@@ -50,8 +60,10 @@
         </tbody>
     </table>
 }
+<ProductPopup @ref="_productPopupComponent" OnSuccess="LoadActualProductList"/>
 
 @code {
+    private ProductPopup _productPopupComponent = null!;
     private ProductWithId? _product;
     private ICollection<LotInfoShort>? _lots;
 
