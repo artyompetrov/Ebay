@@ -10,17 +10,20 @@ internal class WellKnown
     {
         public static class Conditions
         {
-            public static string CategoryName = "condition";
+            public const string CategoryName = "condition";
+            public const string New = "new";
+            public const string Used = "used";
+            public const string NotWorking = "notWorking";
         }
 
         public static class TestState
         {
-            public static string CategoryName = "test_state";
+            public const string CategoryName = "test_state";
         }
     }
 
     public static class Currencies
     {
-        public static string TargetCurrency = "RUB";
+        public const string TargetCurrency = "RUB";
     }
 }
