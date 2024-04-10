@@ -76,6 +76,8 @@
         <tr>
             <th>Название</th>
             <th></th>
+            <th>Состояние</th>
+            <th>Тест</th>
             <th>Шт.</th>
             <th>Цена</th>
             <th>Доставка</th>
@@ -94,6 +96,8 @@
                 <td>
                     <button class="btn btn-danger btn-sm oi oi-basket" @onclick="@(e => OnDeleteButtonClick(lot))"></button>
                 </td>
+                <td>@GetCondition(lot)</td>
+                <td>@GetTestState(lot)</td>
                 <td>@lot.Pcs</td>
                 <td>@lot.Price</td>
                 <td>@lot.Shipping</td>
@@ -255,7 +259,7 @@
             };
     }
 
-    private static string GetConditions(ParametersModel parametersModel)
+    private static string GetSelectedConditions(ParametersModel parametersModel)
     {
         var conditions = new HashSet<string>();
         if (parametersModel.New)
@@ -271,7 +275,7 @@
         return string.Join(",", conditions);
     }
 
-
+    
     private static IEnumerable<Purchase> GenerateStatistics(ICollection<LotInfoShort> lots, ICollection<Currency> currencies)
     {
     // ReSharper disable IdentifierTypo
@@ -287,8 +291,8 @@
 
         foreach (var lot in lots)
         {
-            var condition = lot.Categories.Single(x => x.Type == WellKnown.Categories.Conditions.CategoryName).Value!;
-            var testState = lot.Categories.Single(x => x.Type == WellKnown.Categories.TestState.CategoryName).Value!;
+            var condition = GetCondition(lot);
+            var testState = GetTestState(lot);
 
             foreach (var purchase in lot.PurchaseHistory)
             {
@@ -322,7 +326,17 @@
         }
     // ReSharper restore IdentifierTypo
     }
-
+    
+    private static string GetCondition(LotInfoShort lot)
+    {
+        return lot.Categories.Single(x => x.Type == WellKnown.Categories.Conditions.CategoryName).Value!;
+    }
+    
+    private static string GetTestState(LotInfoShort lot)
+    {
+        return lot.Categories.Single(x => x.Type == WellKnown.Categories.TestState.CategoryName).Value!;
+    }
+    
     private record struct Purchase(long LotId, string Condition, string TestState, int ItemsInPurchase, double ProfitPerPcs, bool IsRecent);
 
 
@@ -380,7 +394,7 @@
     private async Task<ICollection<LotInfoShort>> GetLots()
     {
         var lots = await EbayClient.GetLotsAsync(conditions:
-            GetConditions(_parametersModel),
+            GetSelectedConditions(_parametersModel),
             testStates: null,
             onlyRecentSales: _parametersModel.IsRecent,
             productId: ProductId);
