@@ -30,7 +30,7 @@
     }
 </style>
 
-@if (_product != null && _lots != null)
+@if (_lots != null && _product != null)
 {
     <PageTitle>Продажи товара @_product.Name</PageTitle>
 
@@ -38,19 +38,19 @@
 
     <EditForm EditContext="@_parametersModelEditContext"/>
     <div class="form-check form-check-inline">
-        <InputCheckbox class="form-check-input" id="new" @bind-Value="@_parametersModel.New" @oninput="@UpdatePage"/>
+        <InputCheckbox class="form-check-input" id="new" @bind-Value="@_parametersModel.New" @bind-Value:after="UpdatePage"/>
         <label class="form-check-label" for="new">Новые</label>
     </div>
     <div class="form-check form-check-inline">
-        <InputCheckbox class="form-check-input" id="used" @bind-Value="@_parametersModel.Used" @oninput="@UpdatePage"/>
+        <InputCheckbox class="form-check-input" id="used" @bind-Value="@_parametersModel.Used" @bind-Value:after="UpdatePage"/>
         <label class="form-check-label" for="used">БУ</label>
     </div>
     <div class="form-check form-check-inline">
-        <InputCheckbox class="form-check-input" id="subtractShippingCosts" @bind-Value="@_parametersModel.SubtractShippingCosts" @oninput="@UpdatePage"/>
+        <InputCheckbox class="form-check-input" id="subtractShippingCosts" @bind-Value="@_parametersModel.SubtractShippingCosts"  @bind-Value:after="UpdatePage"/>
         <label class="form-check-label" for="subtractShippingCosts">Вычесть стоимость доставки</label>
     </div>
     <div class="form-check form-check-inline">
-        <InputCheckbox class="form-check-input" id="isRecent" @bind-Value="@_parametersModel.IsRecent" @oninput="@UpdatePage"/>
+        <InputCheckbox class="form-check-input" id="isRecent" @bind-Value="@_parametersModel.IsRecent"  @bind-Value:after="UpdatePage"/>
         <label class="form-check-label" for="isRecent">Игнорировать продажи до изменения имени</label>
     </div>
 
@@ -68,7 +68,7 @@
     <div>Средняя выручка с одной штуки: @_meanProfitPerPcs.ToString("#") @WellKnown.Currencies.TargetCurrency</div>
 
 
-    <PlotlyChart @bind-Config="@_config" @bind-Layout="@_layout" @bind-Data="@_data" @ref="@_chart" ClickAction="ClickAction" AfterRender="SubscribeEvents" style="height: 60vh; min-height: 350px"/>
+    <PlotlyChart @bind-Config="@_config" @bind-Layout="@_layout" @bind-Data="@_data" @ref="@_chart" ClickAction="GraphClickAction" AfterRender="SubscribeEvents" style="height: 60vh; min-height: 350px"/>
 
 
     <table id="lotSalesTable" class="table">
@@ -99,14 +99,15 @@
                 <td>@lot.Shipping</td>
                 <td>@lot.ShippingAdditional</td>
                 <td>@lot.Currency</td>
-                <td>@GetPurchaseHistorySummary(purchaseInfos: lot.PurchaseHistory, titleChangeDate: lot.TitleChangeDate)</td>
+                <td>@GetPurchaseHistorySummary(purchaseInfos: lot.PurchaseHistory)</td>
             </tr>
         }
         </tbody>
     </table>
+
+    <ProductPopup @ref="_productPopupComponent" OnSuccess="UpdateData"/>
+    <QuestionPopup @ref="_questionPopup"/>
 }
-<ProductPopup @ref="_productPopupComponent" OnSuccess="UpdateData"/>
-<QuestionPopup @ref="_questionPopup"/>
 
 @code {
 
@@ -115,8 +116,8 @@
 
     private PlotlyChart _chart = null!;
     private ProductPopup _productPopupComponent = null!;
-    private ProductWithId _product = null!;
-    private ICollection<LotInfoShort> _lots = null!;
+    private ProductWithId? _product;
+    private ICollection<LotInfoShort>? _lots ;
     private QuestionPopup _questionPopup = null!;
 
     Config _config = new();
@@ -130,7 +131,7 @@
     [Parameter]
     public Guid ProductId { get; set; }
 
-    private void ClickAction(IEnumerable<EventDataPoint> eventData)
+    private void GraphClickAction(IEnumerable<EventDataPoint> eventData)
     {
         var point = eventData.First();
         var scatter = (Scatter)_data[point.TraceIndex];
@@ -149,22 +150,17 @@
     protected override async Task OnInitializedAsync()
     {
         _product = await EbayClient.GetProductAsync(ProductId);
-        _lots = await EbayClient.GetLotsAsync(ProductId);
         _currencyRates = await EbayClient.GetCurrenciesAsync();
         _parametersModelEditContext = new EditContext(_parametersModel);
-        foreach (var lotInfoShort in _lots)
-        {
-            lotInfoShort.SetIsRecentToPurchases();
-        }
-        
+
         await UpdateData();
     }
 
     private async Task UpdatePage()
     {
         await UpdateData();
-        await _chart.Update();
         StateHasChanged();
+        await _chart.Update();
     }
 
     private void OnDeleteButtonClick(LotInfoShort lot)
@@ -176,19 +172,19 @@
         });
     }
 
-    private Task UpdateData()
+    private async Task UpdateData()
     {
-        if (_lots.Count == 0) return Task.CompletedTask;
-
-        var statistics = GenerateStatistics(lots: _lots, currencies: _currencyRates);
-        statistics = FilterStatistics(statistics);
+        if (_product == null) throw new NullReferenceException(nameof(_product));
+        
+        _lots = await GetLots();
+        if (_lots.Count == 0) return;
 
         _data = new List<ITrace>();
 
         var totalCount = 0;
         var totalProfit = 0.0;
 
-        foreach (var grouping in statistics.GroupBy(x => x.Condition))
+        foreach (var grouping in GenerateStatistics(lots: _lots, currencies: _currencyRates).GroupBy(x => x.Condition))
         {
             totalCount += grouping.Sum(x => x.ItemsInPurchase);
             totalProfit += grouping.Sum(x => x.ProfitPerPcs * x.ItemsInPurchase);
@@ -247,7 +243,6 @@
                 }
             }
         };
-        return Task.CompletedTask;
     }
 
     private static string GetColor(string condition)
@@ -260,26 +255,20 @@
             };
     }
 
-    private IEnumerable<Purchase> FilterStatistics(IEnumerable<Purchase> statistics)
+    private static string GetConditions(ParametersModel parametersModel)
     {
-        if (_parametersModel.IsRecent)
-        {
-            statistics = statistics.Where(x => x.IsRecent);
-        }
-
         var conditions = new HashSet<string>();
-        if (_parametersModel.New)
+        if (parametersModel.New)
         {
             conditions.Add(WellKnown.Categories.Conditions.New);
         }
 
-        if (_parametersModel.Used)
+        if (parametersModel.Used)
         {
             conditions.Add(WellKnown.Categories.Conditions.Used);
         }
 
-        statistics = statistics.Where(x => conditions.Contains(x.Condition));
-        return statistics;
+        return string.Join(",", conditions);
     }
 
 
@@ -341,7 +330,7 @@
 
     private static string GetLotLinkId(long lotId) => $"tr_lot_id_{lotId}";
 
-    private static MarkupString GetPurchaseHistorySummary(ICollection<PurchaseInfo> purchaseInfos, string titleChangeDate) //todo 
+    private static MarkupString GetPurchaseHistorySummary(ICollection<PurchaseInfo> purchaseInfos)
     {
         var sb = new StringBuilder();
         var isFirst = true;
@@ -388,6 +377,20 @@
         return (MarkupString)sb.ToString();
     }
 
+    private async Task<ICollection<LotInfoShort>> GetLots()
+    {
+        var lots = await EbayClient.GetLotsAsync(conditions:
+            GetConditions(_parametersModel),
+            testStates: null,
+            onlyRecentSales: _parametersModel.IsRecent,
+            productId: ProductId);
+        foreach (var lotInfoShort in lots)
+        {
+            lotInfoShort.SetIsRecentToPurchases();
+        }
+        return lots;
+    }
+
     public class ParametersModel
     {
         public bool SubtractShippingCosts { get; set; } = true;
@@ -395,5 +398,4 @@
         public bool New { get; set; } = true;
         public bool Used { get; set; }
     }
-
 }
