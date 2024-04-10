@@ -200,7 +200,8 @@
                 X = grouping.Select(x => x.ProfitPerPcs).Cast<object>().ToList(),
                 Y = grouping.Select(x => x.ItemsInPurchase).Cast<object>().ToList(),
                 Name = grouping.Key,
-                CustomData = grouping.Select(x => x.LotId).Cast<object>().ToList()
+                CustomData = grouping.Select(x => x.LotId).Cast<object>().ToList(),
+                HoverTemplate = $"%{{x:.2f}} {WellKnown.Currencies.TargetCurrency}<br>%{{y}} шт"
             });
         }
         _totalCount = totalCount;
