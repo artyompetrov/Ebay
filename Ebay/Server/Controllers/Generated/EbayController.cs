@@ -1048,7 +1048,7 @@ namespace Ebay.Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public ShippingRate(int @maxWeight, int @minWeight, int? @price)
+        public ShippingRate(int @maxWeight, int @minWeight, int @price)
 
         {
 
@@ -1066,9 +1066,9 @@ namespace Ebay.Server.Controllers.Generated
         [System.ComponentModel.DataAnnotations.Range(0, int.MaxValue)]
         public int MaxWeight { get; }
 
-        [Newtonsoft.Json.JsonProperty("price", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("price", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Range(0, int.MaxValue)]
-        public int? Price { get; }
+        public int Price { get; }
 
     }
 

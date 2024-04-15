@@ -8,6 +8,7 @@
 @using Plotly.Blazor.LayoutLib
 @using Plotly.Blazor.LayoutLib.ShapeLib
 @using Plotly.Blazor.Traces.ScatterLib
+@using Ebay.Client.Extensions
 @using Line = Plotly.Blazor.LayoutLib.ShapeLib.Line
 @attribute [Authorize]
 @inject EbayClient EbayClient
@@ -46,11 +47,11 @@
         <label class="form-check-label" for="used">БУ</label>
     </div>
     <div class="form-check form-check-inline">
-        <InputCheckbox class="form-check-input" id="subtractShippingCosts" @bind-Value="@_parametersModel.SubtractShippingCosts"  @bind-Value:after="UpdatePage"/>
+        <InputCheckbox class="form-check-input" id="subtractShippingCosts" @bind-Value="@_parametersModel.SubtractShippingCosts" @bind-Value:after="UpdatePage"/>
         <label class="form-check-label" for="subtractShippingCosts">Вычесть стоимость доставки</label>
     </div>
     <div class="form-check form-check-inline">
-        <InputCheckbox class="form-check-input" id="isRecent" @bind-Value="@_parametersModel.IsRecent"  @bind-Value:after="UpdatePage"/>
+        <InputCheckbox class="form-check-input" id="isRecent" @bind-Value="@_parametersModel.IsRecent" @bind-Value:after="UpdatePage"/>
         <label class="form-check-label" for="isRecent">Игнорировать продажи до изменения имени</label>
     </div>
 
@@ -121,7 +122,7 @@
     private PlotlyChart _chart = null!;
     private ProductPopup _productPopupComponent = null!;
     private ProductWithId? _product;
-    private ICollection<LotInfoShort>? _lots ;
+    private ICollection<LotInfoShort>? _lots;
     private QuestionPopup _questionPopup = null!;
 
     Config _config = new();
@@ -129,8 +130,9 @@
     IList<ITrace> _data = new List<ITrace>();
     int _totalCount;
     double _meanProfitPerPcs;
-    ICollection<Currency> _currencyRates = null!;
-
+    private Dictionary<string, List<ShippingRateInner>> _shippingRates = null!;
+    private Dictionary<string, double> _currencyRates = null!;
+    private const string Worldwide = "Worldwide";
 
     [Parameter]
     public Guid ProductId { get; set; }
@@ -153,8 +155,15 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _product = await EbayClient.GetProductAsync(ProductId);
-        _currencyRates = await EbayClient.GetCurrenciesAsync();
+        var productTask = EbayClient.GetProductAsync(ProductId);
+        var getCurrenciesTask = GetCurrencies();
+        var getShippingRatesTask = EbayClient.GetShippingRatesAsync();
+        await Task.WhenAll(productTask, getCurrenciesTask, getShippingRatesTask);
+
+        _product = productTask.Result;
+        _currencyRates = getCurrenciesTask.Result;
+        _shippingRates = GetShippingRates(getShippingRatesTask.Result, getCurrenciesTask.Result);
+
         _parametersModelEditContext = new EditContext(_parametersModel);
 
         await UpdateData();
@@ -169,7 +178,7 @@
 
     private void OnDeleteButtonClick(LotInfoShort lot)
     {
-        _questionPopup.AskQuestion($"Вы действительно хотите удалить лот '{lot.Name}'?", async () =>
+        _questionPopup.AskQuestion(questionText: $"Вы действительно хотите удалить лот '{lot.Name}'?", onSubmit: async () =>
         {
             await EbayClient.DeleteLotInfoAsync(lot.LotId);
             await UpdatePage();
@@ -179,7 +188,7 @@
     private async Task UpdateData()
     {
         if (_product == null) throw new NullReferenceException(nameof(_product));
-        
+
         _lots = await GetLots();
         if (_lots.Count == 0) return;
 
@@ -188,7 +197,7 @@
         var totalCount = 0;
         var totalProfit = 0.0;
 
-        foreach (var grouping in GenerateStatistics(lots: _lots, currencies: _currencyRates).GroupBy(x => x.Condition))
+        foreach (var grouping in GenerateStatistics(lots: _lots).GroupBy(x => x.Condition))
         {
             totalCount += grouping.Sum(x => x.ItemsInPurchase);
             totalProfit += grouping.Sum(x => x.ProfitPerPcs * x.ItemsInPurchase);
@@ -217,7 +226,6 @@
             {
                 new()
                 {
-                    MinAllowed = 0,
                     Title = new() { Text = $"Цена за штуку ({WellKnown.Currencies.TargetCurrency})" }
                 }
             },
@@ -273,31 +281,35 @@
             conditions.Add(WellKnown.Categories.Conditions.Used);
         }
 
-        return string.Join(",", conditions);
+        return string.Join(separator: ",", values: conditions);
     }
 
-    
-    private static IEnumerable<Purchase> GenerateStatistics(ICollection<LotInfoShort> lots, ICollection<Currency> currencies)
+
+    private IEnumerable<Purchase> GenerateStatistics(ICollection<LotInfoShort> lots)
     {
+        if (_product == null) throw new NullReferenceException(nameof(_product));
+        
     // ReSharper disable IdentifierTypo
         const double скидкаНаПродажиСНеизвестнойЦеной = 0.2;
-
         const double коммисияEbayВПроцентах = 0.1325;
         const double коммиссияEbayПостояннаяВеличина = 0.1325;
         const double коммисияPayoneerВПроцентах = 0.05; //todo уточнить
-
-        var currencyRate = currencies.ToDictionary(keySelector: x => x.EbayName, elementSelector: x => x.Rate);
-
-        var курсЦелевойВалюты = currencyRate[WellKnown.Currencies.TargetCurrency];
+        const double множительДляУчетаВесаУпаковки = 1.5;
+        
+        var курсЦелевойВалюты = _currencyRates[WellKnown.Currencies.TargetCurrency];
 
         foreach (var lot in lots)
         {
             var condition = GetCondition(lot);
             var testState = GetTestState(lot);
-
+            
             foreach (var purchase in lot.PurchaseHistory)
             {
                 var количествоШтукВПродаже = lot.Pcs * purchase.Quantity;
+                
+                var ценаДоставкиВДоллларах = _parametersModel.SubtractShippingCosts ?  GetShippingPrice(
+                    shippingCountry: lot.ShippingCountry,
+                    weight: _product.Weight * количествоШтукВПродаже * множительДляУчетаВесаУпаковки) : 0.0;
 
                 var ценаЛотаВВалютеЛота = purchase.Price ?? lot.Price * (1.0 - скидкаНаПродажиСНеизвестнойЦеной);
 
@@ -305,16 +317,18 @@
                     ценаЛотаВВалютеЛота * purchase.Quantity + lot.Shipping!.Value +
                         lot.ShippingAdditional!.Value * (purchase.Quantity - 1);
 
-                var полнаяЦенаПродажиВДолларах = полнаяЦенаПродажиВВалютеЛота / currencyRate[lot.Currency];
+                var полнаяЦенаПродажиВДолларах = полнаяЦенаПродажиВВалютеЛота / _currencyRates[lot.Currency];
 
-                var выручкаСПродажиВДолларах = полнаяЦенаПродажиВДолларах -
-                    полнаяЦенаПродажиВДолларах * коммисияEbayВПроцентах - коммиссияEbayПостояннаяВеличина -
-                    полнаяЦенаПродажиВДолларах * коммисияPayoneerВПроцентах;
+                var выручкаСПродажиВДолларах = полнаяЦенаПродажиВДолларах 
+                    - полнаяЦенаПродажиВДолларах * коммисияEbayВПроцентах
+                    - коммиссияEbayПостояннаяВеличина
+                    - полнаяЦенаПродажиВДолларах * коммисияPayoneerВПроцентах
+                    - ценаДоставкиВДоллларах;
     //todo нужно добавить сюда учет стоимости доставки
 
-                var выручкаСПродажиЗаШтуку = выручкаСПродажиВДолларах / количествоШтукВПродаже;
+                var выручкаСПродажиЗаШтукуВДолларах = выручкаСПродажиВДолларах / количествоШтукВПродаже;
 
-                var выручкаСПрдажиЗаШтукуВЦелевойВалюте = выручкаСПродажиЗаШтуку * курсЦелевойВалюты;
+                var выручкаСПрдажиЗаШтукуВЦелевойВалюте = выручкаСПродажиЗаШтукуВДолларах * курсЦелевойВалюты;
 
                 yield return new Purchase(
                     LotId: lot.LotId,
@@ -327,17 +341,32 @@
         }
     // ReSharper restore IdentifierTypo
     }
-    
+
+    private double GetShippingPrice(string shippingCountry, double weight)
+    {
+        if (!_shippingRates.TryGetValue(shippingCountry, out var shippingRates))
+        {
+            throw new InvalidOperationException($"{shippingCountry} not found in shippingRates");
+        }
+
+        var prices = _shippingRates[Worldwide].Concat(shippingRates).ToList();
+
+        var pricesString = string.Join(", ", prices);
+        Logger.LogWarning($"Calculate shipping price for {shippingCountry}, and weight {weight}, prices: '{pricesString}'");
+        
+        return prices.Where(x => x.WeightFrom <= weight && weight <= x.WeightTo).Min(x => x.PriceDollar);
+    }
+
     private static string GetCondition(LotInfoShort lot)
     {
         return lot.Categories.Single(x => x.Type == WellKnown.Categories.Conditions.CategoryName).Value!;
     }
-    
+
     private static string GetTestState(LotInfoShort lot)
     {
         return lot.Categories.Single(x => x.Type == WellKnown.Categories.TestState.CategoryName).Value!;
     }
-    
+
     private record struct Purchase(long LotId, string Condition, string TestState, int ItemsInPurchase, double ProfitPerPcs, bool IsRecent);
 
 
@@ -392,6 +421,15 @@
         return (MarkupString)sb.ToString();
     }
 
+
+    public class ParametersModel
+    {
+        public bool SubtractShippingCosts { get; set; } = true;
+        public bool IsRecent { get; set; } = true;
+        public bool New { get; set; } = true;
+        public bool Used { get; set; }
+    }
+
     private async Task<ICollection<LotInfoShort>> GetLots()
     {
         var lots = await EbayClient.GetLotsAsync(conditions:
@@ -406,11 +444,56 @@
         return lots;
     }
 
-    public class ParametersModel
+    private async Task<Dictionary<string, double>> GetCurrencies()
     {
-        public bool SubtractShippingCosts { get; set; } = true;
-        public bool IsRecent { get; set; } = true;
-        public bool New { get; set; } = true;
-        public bool Used { get; set; }
+        var currencies = await EbayClient.GetCurrenciesAsync();
+        return currencies.ToDictionary(keySelector: x => x.EbayName, elementSelector: x => x.Rate);
     }
+
+    private static Dictionary<string, List<ShippingRateInner>> GetShippingRates(
+        ICollection<ShippingType> shippingRates, Dictionary<string, double> currencies)
+    {
+        var rates = new Dictionary<string, List<ShippingRateInner>>();
+        
+        foreach (var shippingRate in shippingRates)
+        {
+            foreach (var shippingRateRate in shippingRate.Rates)
+            {
+                if (shippingRateRate == null) throw new NullReferenceException(nameof(shippingRate));
+                
+                foreach (var rate in shippingRateRate.Rates)
+                {
+                    if (shippingRateRate.SpecifiedCountries == null)
+                    {
+                        rates.AppendOrCreateNewCollection(key: Worldwide, value: new ShippingRateInner(
+                            WeightFrom: rate.MinWeight,
+                            WeightTo: rate.MaxWeight,
+                            PriceDollar: rate.Price / currencies[shippingRate.Currency]));
+                    }
+                    else
+                    {
+                        foreach (var specifiedCountry in shippingRateRate.SpecifiedCountries)
+                        {
+                            if (rate == null!) throw new NullReferenceException(nameof(rate));
+
+                            rates.AppendOrCreateNewCollection(key: specifiedCountry, value: new ShippingRateInner(
+                                WeightFrom: rate.MinWeight,
+                                WeightTo: rate.MaxWeight,
+                                PriceDollar: rate.Price / currencies[shippingRate.Currency]));
+                        }
+                    }
+                }
+            }
+        }
+
+        return rates;
+    }
+
+    private record struct ShippingRateInner(int WeightFrom, int WeightTo, double PriceDollar)
+    {
+        public override string ToString()
+        {
+            return $"{WeightFrom}-{WeightTo} : {PriceDollar}";
+        }
+    };
 }

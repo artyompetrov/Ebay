@@ -2213,9 +2213,9 @@ namespace Ebay.Client.Clients.Generated
         [System.ComponentModel.DataAnnotations.Range(0, int.MaxValue)]
         public int MaxWeight { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("price", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("price", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Range(0, int.MaxValue)]
-        public int? Price { get; set; }
+        public int Price { get; set; }
 
     }
 

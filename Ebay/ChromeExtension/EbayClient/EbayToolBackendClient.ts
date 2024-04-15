@@ -1922,7 +1922,7 @@ export interface IShippingRates {
 export class ShippingRate implements IShippingRate {
     minWeight!: number;
     maxWeight!: number;
-    price?: number | undefined;
+    price!: number;
 
     constructor(data?: IShippingRate) {
         if (data) {
@@ -1960,7 +1960,7 @@ export class ShippingRate implements IShippingRate {
 export interface IShippingRate {
     minWeight: number;
     maxWeight: number;
-    price?: number | undefined;
+    price: number;
 }
 
 export class Currency implements ICurrency {

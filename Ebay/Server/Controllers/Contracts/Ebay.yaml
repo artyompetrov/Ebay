@@ -747,6 +747,7 @@ definitions:
     required:
       - minWeight
       - maxWeight
+      - price
 
   Currency:
     type: object
