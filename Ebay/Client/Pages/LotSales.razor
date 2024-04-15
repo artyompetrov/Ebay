@@ -58,7 +58,7 @@
     <br/>
     @if (_product.Weight == 0)
     {
-        <div class="text-danger">Вес не задан, для правильного расчета нужно задать вес <a href="javascript:void(0)" class="link" @onclick="@(e => _productPopupComponent.ShowEdit(_product))">Указать вес</a></div>
+        <h3 class="text-danger">Вес не задан, для правильного расчета нужно задать вес <a href="javascript:void(0)" class="link" @onclick="@(e => _productPopupComponent.ShowEdit(_product))">Указать вес</a></h3>
     }
     else
     {
@@ -324,7 +324,6 @@
                     - коммиссияEbayПостояннаяВеличина
                     - полнаяЦенаПродажиВДолларах * коммисияPayoneerВПроцентах
                     - ценаДоставкиВДоллларах;
-    //todo нужно добавить сюда учет стоимости доставки
 
                 var выручкаСПродажиЗаШтукуВДолларах = выручкаСПродажиВДолларах / количествоШтукВПродаже;
 
@@ -349,10 +348,10 @@
             throw new InvalidOperationException($"{shippingCountry} not found in shippingRates");
         }
 
-        var prices = _shippingRates[Worldwide].Concat(shippingRates).ToList();
+        var prices = _shippingRates[Worldwide].Concat(shippingRates);
 
-        var pricesString = string.Join(", ", prices);
-        Logger.LogWarning($"Calculate shipping price for {shippingCountry}, and weight {weight}, prices: '{pricesString}'");
+        //var pricesString = string.Join(", ", prices);
+        //Logger.LogWarning($"Calculate shipping price for {shippingCountry}, and weight {weight}, prices: '{pricesString}'");
         
         return prices.Where(x => x.WeightFrom <= weight && weight <= x.WeightTo).Min(x => x.PriceDollar);
     }
