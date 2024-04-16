@@ -173,8 +173,8 @@
     private async Task UpdatePage()
     {
         await UpdateData();
-        await _chart.Update();
         StateHasChanged();
+        await _chart.Update();
     }
 
     private void OnDeleteButtonClick(LotInfoShort lot)
@@ -198,18 +198,18 @@
         var totalCount = 0;
         var totalProfit = 0.0;
 
-        foreach (var grouping in GenerateStatistics(lots: _lots).GroupBy(x => x.Condition))
+        foreach (var grouping in GenerateStatistics(lots: _lots).GroupBy(x => (x.Condition,x.TestState)))
         {
             totalCount += grouping.Sum(x => x.ItemsInPurchase);
             totalProfit += grouping.Sum(x => x.ProfitPerPcs * x.ItemsInPurchase);
 
             _data.Add(new Scatter
             {
-                Marker = new Marker { Color = GetColor(grouping.Key) },
+                Marker = new Marker { Color = GetColor(grouping.Key.Condition, grouping.Key.TestState) },
                 Mode = ModeFlag.Markers | ModeFlag.Text,
                 X = grouping.Select(x => x.ProfitPerPcs).Cast<object>().ToList(),
                 Y = grouping.Select(x => x.ItemsInPurchase).Cast<object>().ToList(),
-                Name = grouping.Key,
+                Name = $"{grouping.Key.Condition}, {grouping.Key.TestState}" ,
                 CustomData = grouping.Select(x => x.LotId).Cast<object>().ToList(),
                 HoverTemplate = $"%{{x:.2f}} {WellKnown.Currencies.TargetCurrency}<br>%{{y}} шт"
             });
@@ -259,14 +259,26 @@
         };
     }
 
-    private static string GetColor(string condition)
+    private static string GetColor(string condition, string testState)
     {
         return condition switch
         {
-            WellKnown.Categories.Conditions.New => "green",
-            WellKnown.Categories.Conditions.Used => "blue",
-            _ => throw new ArgumentOutOfRangeException(nameof(condition))
-            };
+            WellKnown.Categories.Conditions.New => testState switch
+            {
+                WellKnown.Categories.TestState.NotTested => "#1D8348", //зеленый
+                WellKnown.Categories.TestState.Tested => "#B7950B",//желтый
+                WellKnown.Categories.TestState.Matched => "#B03A2E",//красный
+                _ => throw new ArgumentOutOfRangeException(nameof(testState))
+                },
+            WellKnown.Categories.Conditions.Used => testState switch
+            {
+                WellKnown.Categories.TestState.NotTested => "#616A6B",//серый
+                WellKnown.Categories.TestState.Tested => "#5499C7",//бледно-синий
+                WellKnown.Categories.TestState.Matched => "#21618C", //синий
+                _ => throw new ArgumentOutOfRangeException(nameof(testState))
+                },
+            WellKnown.Categories.Conditions.NotWorking => "#000000",
+            _ => throw new ArgumentOutOfRangeException(nameof(condition))};
     }
 
     private static string GetSelectedConditions(ParametersModel parametersModel)

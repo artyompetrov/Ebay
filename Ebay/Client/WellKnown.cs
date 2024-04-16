@@ -19,6 +19,10 @@ internal class WellKnown
         public static class TestState
         {
             public const string CategoryName = "test_state";
+            
+            public const string NotTested = "notTested";
+            public const string Tested = "tested";
+            public const string Matched = "matched";
         }
     }
 
