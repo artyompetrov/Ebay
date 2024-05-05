@@ -2,6 +2,6 @@
 
 cd ./git
 
-git pull
+git pull origin develop
 
 cp --verbose -R ./deploy/* ../
