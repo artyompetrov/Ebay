@@ -13,7 +13,7 @@
                 <EditForm EditContext="@_editContext" class="">
                     <div class="modal-body">
                         <div class="form-group">
-                            <label for="name">Название</label>
+                            <label for="name">Название товара</label>
                             <InputText id="name" type="" @bind-Value="_product.Name" class="form-control"/>
                             <ValidationMessage For="@(() => _product.Name)"/>
                         </div>
@@ -28,7 +28,7 @@
                         @foreach (var query in _product.SearchQueries)
                         {
                             <div class="form-group">
-                                <label for="@(() => $"searchQuery_{searchQueryNumber}")">Поисковый запрос</label>
+                                <label for="@(() => $"searchQuery_{searchQueryNumber}")">Поисковый запрос ebay</label>
                                 <InputText id="@(() => $"searchQuery_{searchQueryNumber}")" @bind-Value="@query.Query" class="form-control"/>
                                 @if (searchQueryNumber > 1)
                                 {
