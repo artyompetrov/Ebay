@@ -50,7 +50,9 @@ services:
       - odoo-web-data:/var/lib/odoo
       - ./odoo/config:/etc/odoo
       - ./odoo/addons:/mnt/extra-addons
-      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /etc/letsencrypt/live/naks42.ru:/etc/letsencrypt/live/naks42.ru:ro
+      - /etc/letsencrypt/archive/naks42.ru:/etc/letsencrypt/archive/naks42.ru:ro
+      - /etc/letsencrypt/options-ssl-apache.conf:/etc/letsencrypt/options-ssl-apache.conf:ro
     environment:
       - HOST=ebay_postgres
       - USER=ebay
