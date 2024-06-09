@@ -41,15 +41,16 @@ services:
 
   ebay_odoo:
     container_name: ebay_odoo
-    image: odoo:17.0
+    build: odoo/.
     depends_on:
       - ebay_postgres
     ports:
-      - "17444:8069"
+      - "18443:443"
     volumes:
       - odoo-web-data:/var/lib/odoo
       - ./odoo/config:/etc/odoo
       - ./odoo/addons:/mnt/extra-addons
+      - /etc/letsencrypt/:/etc/letsencrypt
     environment:
       - HOST=ebay_postgres
       - USER=ebay
