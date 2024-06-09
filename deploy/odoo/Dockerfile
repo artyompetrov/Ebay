@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y apache2 apache2-utils
 COPY apache/000-default.conf /etc/apache2/sites-available/000-default.conf
 
 # Включение модулей Apache
-RUN a2enmod proxy proxy_http ssl rewrite
+RUN a2enmod proxy proxy_http ssl rewrite proxy_ajp deflate headers proxy_balancer proxy_connect proxy_html
 
 # Включение конфигураций сайтов Apache
 RUN a2ensite 000-default
