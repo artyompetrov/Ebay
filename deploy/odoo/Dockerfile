@@ -17,6 +17,10 @@ RUN a2enmod proxy proxy_http ssl
 RUN a2ensite odoo
 RUN a2ensite 000-default
 
+# Создание необходимых директорий и установка прав доступа
+RUN mkdir -p /var/run/apache2 /var/lock/apache2
+RUN chown -R www-data:www-data /var/run/apache2 /var/lock/apache2
+
 USER odoo
 
 # Обеспечение запуска Apache и Odoo
