@@ -21,5 +21,4 @@ RUN a2ensite 000-default
 RUN mkdir -p /var/run/apache2 /var/lock/apache2 /var/log/apache2
 RUN chown -R www-data:www-data /var/run/apache2 /var/lock/apache2 /var/log/apache2
 
-# Обеспечение запуска Apache и Odoo
-CMD ["service apache2 start && odoo"]
+ENTRYPOINT service apache2 start && entrypoint.sh
