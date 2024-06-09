@@ -24,3 +24,5 @@ RUN chown -R www-data:www-data /var/run/apache2 /var/lock/apache2 /var/log/apach
 USER odoo
 
 ENTRYPOINT service apache2 start && /entrypoint.sh
+
+CMD ["odoo"]
