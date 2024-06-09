@@ -24,4 +24,5 @@ RUN chown -R www-data:www-data /var/run/apache2 /var/lock/apache2
 USER odoo
 
 # Обеспечение запуска Apache и Odoo
-CMD ["sh", "-c", "service apache2 start && odoo"]
+#CMD ["sh", "-c", "service apache2 start && odoo"]
+СMD ["sleep" "infinity"]
