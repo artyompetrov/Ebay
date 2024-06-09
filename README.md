@@ -27,6 +27,9 @@ openssl pkcs12 -inkey key.pem -in cert.cert -export -out pfx.pfx
 openssl pkcs12 -inkey privkey.pem -in fullchain.pem -export -out privkeywithpassword.pfx
 #в последней команде ввести пароль qwerty123
 
+# Проброс сертификата letsencrypt в портейнер
+docker run -d -p 8000:8000 -p 9443:9443 --name=portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /etc/letsencrypt/:/certs portainer/portainer-ce --sslcert /certs/live/naks42.ru/cert.pem --sslkey /certs/live/naks42.ru/privkey.pem
+
 Статистика по курсам валют тут
 https://openexchangerates.org/account
 
