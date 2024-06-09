@@ -56,7 +56,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "apache", "apache", "{5D985F62-C863-49A4-9959-6868CB882086}"
 	ProjectSection(SolutionItems) = preProject
 		deploy\odoo\apache\000-default.conf = deploy\odoo\apache\000-default.conf
-		deploy\odoo\apache\odoo.conf = deploy\odoo\apache\odoo.conf
 	EndProjectSection
 EndProject
 Global

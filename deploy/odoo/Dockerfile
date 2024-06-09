@@ -7,7 +7,6 @@ USER root
 RUN apt-get update && apt-get install -y apache2 apache2-utils
 
 # Копирование конфигурационных файлов Apache
-COPY apache/odoo.conf /etc/apache2/sites-available/odoo.conf
 COPY apache/000-default.conf /etc/apache2/sites-available/000-default.conf
 
 # Включение модулей Apache
