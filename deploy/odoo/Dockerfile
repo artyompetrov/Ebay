@@ -2,7 +2,6 @@
 FROM odoo:17.0
 
 USER root
-RUN chmod 777 /var/lib/apt/lists /var/lib/apt/lists/partial
 
 # Установка Apache
 RUN apt-get update && apt-get install -y apache2 apache2-utils
