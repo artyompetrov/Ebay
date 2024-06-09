@@ -11,7 +11,7 @@ COPY apache/odoo.conf /etc/apache2/sites-available/odoo.conf
 COPY apache/000-default.conf /etc/apache2/sites-available/000-default.conf
 
 # Включение модулей Apache
-RUN a2enmod proxy proxy_http ssl
+RUN a2enmod proxy proxy_http ssl rewrite
 
 # Включение конфигураций сайтов Apache
 RUN a2ensite odoo
