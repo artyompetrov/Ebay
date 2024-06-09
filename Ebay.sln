@@ -44,10 +44,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "deploy", "deploy", "{3A5E59
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "odoo", "odoo", "{1249BEF4-D85E-48BC-825A-3ABEBFF771E7}"
+	ProjectSection(SolutionItems) = preProject
+		deploy\odoo\Dockerfile = deploy\odoo\Dockerfile
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "config", "config", "{7E7EE764-0EA9-432C-B39E-E9642014C0F7}"
 	ProjectSection(SolutionItems) = preProject
 		deploy\odoo\config\odoo.conf = deploy\odoo\config\odoo.conf
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "apache", "apache", "{5D985F62-C863-49A4-9959-6868CB882086}"
+	ProjectSection(SolutionItems) = preProject
+		deploy\odoo\apache\000-default.conf = deploy\odoo\apache\000-default.conf
+		deploy\odoo\apache\odoo.conf = deploy\odoo\apache\odoo.conf
 	EndProjectSection
 EndProject
 Global
@@ -81,5 +90,6 @@ Global
 		{3A5E5994-48B0-42E6-8BFB-3657D65BBAD6} = {AFE141F9-4F20-4390-BDD1-1D2ED0928EFD}
 		{1249BEF4-D85E-48BC-825A-3ABEBFF771E7} = {3A5E5994-48B0-42E6-8BFB-3657D65BBAD6}
 		{7E7EE764-0EA9-432C-B39E-E9642014C0F7} = {1249BEF4-D85E-48BC-825A-3ABEBFF771E7}
+		{5D985F62-C863-49A4-9959-6868CB882086} = {1249BEF4-D85E-48BC-825A-3ABEBFF771E7}
 	EndGlobalSection
 EndGlobal
