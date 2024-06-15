@@ -52,9 +52,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "config", "config", "{7E7EE7
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "apache", "apache", "{5D985F62-C863-49A4-9959-6868CB882086}"
 	ProjectSection(SolutionItems) = preProject
-		deploy\apache\start-apache.sh = deploy\apache\start-apache.sh
 		deploy\apache\Dockerfile = deploy\apache\Dockerfile
-		deploy\apache\000-default.conf.template = deploy\apache\000-default.conf.template
+		deploy\apache\000-default.conf = deploy\apache\000-default.conf
 	EndProjectSection
 EndProject
 Global

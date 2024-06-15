@@ -51,7 +51,7 @@ services:
       - "443:443"
       - "80:80"
     volumes:
-      - ./apache/000-default.conf.template:/etc/apache2/sites-available/000-default.conf.template
+      - ./apache/000-default.conf:/etc/apache2/sites-available/000-default.conf
     environment:
       EBAY_HELPER_DOMAIN: ${EBAY_HELPER_DOMAIN}
     networks:

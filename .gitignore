@@ -10,3 +10,4 @@ riderModule.iml
 *.lnk
 node_modules/
 *.DotSettings.user
+/deploy/.env
