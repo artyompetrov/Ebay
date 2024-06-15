@@ -12,5 +12,6 @@ COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 # Сделать скрипт исполняемым
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
+USER odoo
 # Установить точку входа
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
