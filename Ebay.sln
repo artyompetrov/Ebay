@@ -59,6 +59,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "config", "config", "{3F4626
 		deploy\config\odoo\config\odoo.conf = deploy\config\odoo\config\odoo.conf
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "dockerfiles", "dockerfiles", "{22F6FEF8-25C0-42CC-9F48-1A3ACA56F56D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "odoo", "odoo", "{8D3002D6-0FA1-4D24-A38D-92B1F49673FA}"
+	ProjectSection(SolutionItems) = preProject
+		deploy\dockerfiles\odoo\Dockerfile = deploy\dockerfiles\odoo\Dockerfile
+		deploy\dockerfiles\odoo\entrypoint.sh = deploy\dockerfiles\odoo\entrypoint.sh
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -92,5 +100,7 @@ Global
 		{5D985F62-C863-49A4-9959-6868CB882086} = {336D8C5E-E20E-4FD3-B84A-5872CBD0E7E6}
 		{1249BEF4-D85E-48BC-825A-3ABEBFF771E7} = {336D8C5E-E20E-4FD3-B84A-5872CBD0E7E6}
 		{3F46262C-7599-4122-8178-B6D532DB1B04} = {1249BEF4-D85E-48BC-825A-3ABEBFF771E7}
+		{22F6FEF8-25C0-42CC-9F48-1A3ACA56F56D} = {3A5E5994-48B0-42E6-8BFB-3657D65BBAD6}
+		{8D3002D6-0FA1-4D24-A38D-92B1F49673FA} = {22F6FEF8-25C0-42CC-9F48-1A3ACA56F56D}
 	EndGlobalSection
 EndGlobal

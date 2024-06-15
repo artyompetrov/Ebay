@@ -8,8 +8,8 @@ services:
       - "15432:5432"
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ebay
-      POSTGRES_PASSWORD: catnip0-spoil4-untrimmed
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
       POSTGRES_INITDB_ARGS: --locale='en_US.UTF8'
       CFG_TIMEZONE: 'Europe/Moscow'
     volumes:
@@ -28,13 +28,13 @@ services:
       - ASPNETCORE_IdentityServer__Key__Type=File
       - ASPNETCORE_IdentityServer__Key__FilePath=/certs/pfx.pfx
       - ASPNETCORE_IdentityServer__Key__Password=qwerty123
-      - ASPNETCORE_ConnectionStrings__DefaultConnection=User ID=ebay;Password=catnip0-spoil4-untrimmed;Server=ebay_postgres;Port=5432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=30;Enlist=true;
+      - ASPNETCORE_ConnectionStrings__DefaultConnection=User ID=${PG_USER};Password=${PG_PASSWORD};Server=ebay_postgres;Port=5432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=30;Enlist=true;
     networks:
       - ebay_internal_network
 
   ebay_odoo:
     container_name: ebay_odoo
-    image: odoo:17.0
+    build: ./dockerfiles/odoo
     depends_on:
       - ebay_postgres
     volumes:
@@ -43,8 +43,8 @@ services:
       - ./config/odoo/addons:/mnt/extra-addons
     environment:
       - HOST=ebay_postgres
-      - USER=ebay
-      - PASSWORD=catnip0-spoil4-untrimmed
+      - USER=${PG_USER}
+      - PASSWORD=${PG_PASSWORD}
       - DATABASE=odoo
     networks:
       - ebay_internal_network
