@@ -39,23 +39,33 @@ services:
       - ebay_postgres
     volumes:
       - odoo-web-data:/var/lib/odoo
-      - ./odoo/config:/etc/odoo
-      - ./odoo/addons:/mnt/extra-addons
+      - ./config/odoo/config:/etc/odoo
+      - ./config/odoo/addons:/mnt/extra-addons
+    environment:
+      - HOST=ebay_postgres
+      - USER=ebay
+      - PASSWORD=catnip0-spoil4-untrimmed
+      - DATABASE=odoo
     networks:
       - ebay_internal_network
+    restart: unless-stopped
 
   ebay_apache:
     container_name: ebay_apache
-    build: ./apache
+    image: httpd:2.4
     ports:
       - "443:443"
       - "80:80"
     volumes:
-      - ./apache/000-default.conf:/etc/apache2/sites-available/000-default.conf
+      - ./config/apache/httpd.conf:/usr/local/apache2/conf/httpd.conf
+      - ${SSL_CERTIFICATE_FILE}:/certs/SSL_CERTIFICATE_FILE.pem
+      - ${SSL_CERTIFICATE_KEY_FILE}:/certs/SSL_CERTIFICATE_KEY_FILE.pem
+      - ./logs/apache:/usr/local/apache2/logs
     environment:
-      EBAY_HELPER_DOMAIN: ${EBAY_HELPER_DOMAIN}
+      - DOMAIN=${DOMAIN}
     networks:
       - ebay_internal_network
+    restart: unless-stopped
 
 networks:
   ebay_internal_network:
