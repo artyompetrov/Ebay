@@ -1,3 +1,5 @@
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -5,10 +7,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Ebay.Server.Data.Migrations
 {
-    internal partial class Initial : Migration
+    /// <inheritdoc />
+    public partial class Initial : Migration
     {
+        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AlterDatabase()
+                .Annotation("Npgsql:PostgresExtension:hstore", ",,");
+
             migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
@@ -46,6 +53,34 @@ namespace Ebay.Server.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ClientErrors",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Url = table.Column<string>(type: "text", nullable: false),
+                    ErrorText = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ClientErrors", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Currencies",
+                columns: table => new
+                {
+                    CurrencyEbayName = table.Column<string>(type: "text", nullable: false),
+                    CurrencyRusName = table.Column<string>(type: "text", nullable: false),
+                    CurrencyApiName = table.Column<string>(type: "text", nullable: false),
+                    CurrencyRate = table.Column<double>(type: "double precision", nullable: false),
+                    LastUpdate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Currencies", x => x.CurrencyEbayName);
                 });
 
             migrationBuilder.CreateTable(
@@ -217,7 +252,8 @@ namespace Ebay.Server.Data.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
-                    SearchQuery = table.Column<string>(type: "text", nullable: false),
+                    LastCheckTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Weight = table.Column<int>(type: "integer", nullable: false),
                     ApplicationUserId = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
@@ -231,6 +267,24 @@ namespace Ebay.Server.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "IgnoredLots",
+                columns: table => new
+                {
+                    ProductId = table.Column<Guid>(type: "uuid", nullable: false),
+                    LotId = table.Column<long>(type: "bigint", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_IgnoredLots", x => new { x.ProductId, x.LotId });
+                    table.ForeignKey(
+                        name: "FK_IgnoredLots_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Lots",
                 columns: table => new
                 {
@@ -238,23 +292,52 @@ namespace Ebay.Server.Data.Migrations
                     ProductId = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Pcs = table.Column<int>(type: "integer", nullable: false),
+                    LotSize = table.Column<int>(type: "integer", nullable: true),
+                    CurrencyId = table.Column<string>(type: "text", nullable: false),
+                    ShippingCountry = table.Column<string>(type: "text", nullable: false),
                     Price = table.Column<double>(type: "double precision", nullable: false),
-                    Shipping = table.Column<double>(type: "double precision", nullable: true),
-                    ShippingAdditional = table.Column<double>(type: "double precision", nullable: true),
+                    Shipping = table.Column<double>(type: "double precision", nullable: false),
+                    ShippingAdditional = table.Column<double>(type: "double precision", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
+                    ShortDescription = table.Column<string>(type: "text", nullable: true),
                     Condition = table.Column<string>(type: "text", nullable: false),
                     ConditionDescription = table.Column<string>(type: "text", nullable: true),
                     Seller = table.Column<string>(type: "text", nullable: false),
                     LocatedIn = table.Column<string>(type: "text", nullable: false),
+                    TitleChangeDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdateDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    IgnoreThatLot = table.Column<bool>(type: "boolean", nullable: false),
-                    ManualCondition = table.Column<string>(type: "text", nullable: false)
+                    Categories = table.Column<Dictionary<string, string>>(type: "hstore", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Lots", x => x.Id);
                     table.ForeignKey(
+                        name: "FK_Lots_Currencies_CurrencyId",
+                        column: x => x.CurrencyId,
+                        principalTable: "Currencies",
+                        principalColumn: "CurrencyEbayName",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
                         name: "FK_Lots_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SearchQueries",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Query = table.Column<string>(type: "text", nullable: false),
+                    ProductId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SearchQueries", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SearchQueries_Products_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Products",
                         principalColumn: "Id",
@@ -272,7 +355,7 @@ namespace Ebay.Server.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Purchases", x => x.Date);
+                    table.PrimaryKey("PK_Purchases", x => new { x.LotId, x.Date });
                     table.ForeignKey(
                         name: "FK_Purchases_Lots_LotId",
                         column: x => x.LotId,
@@ -335,6 +418,11 @@ namespace Ebay.Server.Data.Migrations
                 column: "Use");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Lots_CurrencyId",
+                table: "Lots",
+                column: "CurrencyId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Lots_ProductId",
                 table: "Lots",
                 column: "ProductId");
@@ -365,11 +453,12 @@ namespace Ebay.Server.Data.Migrations
                 column: "ApplicationUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Purchases_LotId",
-                table: "Purchases",
-                column: "LotId");
+                name: "IX_SearchQueries_ProductId",
+                table: "SearchQueries",
+                column: "ProductId");
         }
 
+        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
@@ -388,7 +477,13 @@ namespace Ebay.Server.Data.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "ClientErrors");
+
+            migrationBuilder.DropTable(
                 name: "DeviceCodes");
+
+            migrationBuilder.DropTable(
+                name: "IgnoredLots");
 
             migrationBuilder.DropTable(
                 name: "Keys");
@@ -400,10 +495,16 @@ namespace Ebay.Server.Data.Migrations
                 name: "Purchases");
 
             migrationBuilder.DropTable(
+                name: "SearchQueries");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "Lots");
+
+            migrationBuilder.DropTable(
+                name: "Currencies");
 
             migrationBuilder.DropTable(
                 name: "Products");
