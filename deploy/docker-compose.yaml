@@ -22,39 +22,38 @@ services:
     image: ghcr.io/artyompetrov/ebay:latest
     depends_on:
       - ebay_postgres
-    ports:
-      - "17443:5000"
     restart: unless-stopped
     environment:
-      - ASPNETCORE_URLS=https://+:5000
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=qwerty123
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/privkeywithpassword.pfx
+      - ASPNETCORE_URLS=http://+:5000
       - ASPNETCORE_IdentityServer__Key__Type=File
       - ASPNETCORE_IdentityServer__Key__FilePath=/certs/pfx.pfx
       - ASPNETCORE_IdentityServer__Key__Password=qwerty123
       - ASPNETCORE_ConnectionStrings__DefaultConnection=User ID=ebay;Password=catnip0-spoil4-untrimmed;Server=ebay_postgres;Port=5432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=30;Enlist=true;
-    volumes:
-      - /etc/letsencrypt/live/naks42.ru/:/https/:ro
-      - ./certs/:/certs/:ro
     networks:
       - ebay_internal_network
 
   ebay_odoo:
     container_name: ebay_odoo
-    build: odoo/.
+    image: odoo:17.0
     depends_on:
       - ebay_postgres
-    ports:
-      - "443:443"
-      - "80:80"
     volumes:
       - odoo-web-data:/var/lib/odoo
       - ./odoo/config:/etc/odoo
       - ./odoo/addons:/mnt/extra-addons
-      - /etc/letsencrypt/live/naks42.ru:/etc/letsencrypt/live/naks42.ru:ro
-      - /etc/letsencrypt/archive/naks42.ru:/etc/letsencrypt/archive/naks42.ru:ro
-      - /etc/letsencrypt/options-ssl-apache.conf:/etc/letsencrypt/options-ssl-apache.conf:ro
-      - /root/logs/odoo/apache/:/var/log/apache2/
+    networks:
+      - ebay_internal_network
+
+  ebay_apache:
+    container_name: ebay_apache
+    build: ./apache
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ./apache/000-default.conf.template:/etc/apache2/sites-available/000-default.conf.template
+    environment:
+      EBAY_HELPER_DOMAIN: ${EBAY_HELPER_DOMAIN}
     networks:
       - ebay_internal_network
 
