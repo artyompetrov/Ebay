@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <RootNamespace>ChromeExtension</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="NSwag.MSBuild">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <Target Name="NSwag" BeforeTargets="BeforeBuild">
+        <Exec Command="$(NSwagExe_Net70) openapi2tsclient /input:../Server/Controllers/Contracts/Ebay.yaml /output:EbayClient/EbayToolBackendClient.ts /ClassName:EbayToolBackendClient"/>
+    </Target>
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+        <Exec Command="npm run build" />
+    </Target>
+</Project>

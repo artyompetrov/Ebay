@@ -1,0 +1,42 @@
+﻿@if (_questionState != null)
+{
+    <div class="modal fade show" tabindex="-1" role="dialog" style="display: block;">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@_questionState.Value.QuestionText</h5>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="@OnSubmit">OK</button>
+                    <button type="button" class="btn btn-primary" onclick="@OnCancel" data-dismiss="modal">Отмена</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    private QuestionStateInternal? _questionState = null!;
+
+    public void AskQuestion(string questionText, Func<Task> onSubmit)
+    {
+        _questionState = new QuestionStateInternal(questionText, onSubmit);
+        StateHasChanged();
+    }
+
+    private void OnSubmit()
+    {
+        if (_questionState == null) throw new NullReferenceException(nameof(_questionState));
+        _questionState.Value.OnSubmit.Invoke();
+        _questionState = null;
+    }
+
+    private void OnCancel()
+    {
+        _questionState = null;
+    }
+
+    private record struct QuestionStateInternal(string QuestionText, Func<Task> OnSubmit);
+
+}

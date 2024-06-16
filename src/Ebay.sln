@@ -1,0 +1,69 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ebay.Server", "Ebay\Server\Ebay.Server.csproj", "{313F456D-150D-48BE-A999-02D44014D57E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ebay.Client", "Ebay\Client\Ebay.Client.csproj", "{53BBA863-3953-4946-AC44-A985C0ABD7DE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ebay.ChromeExtension", "Ebay\ChromeExtension\Ebay.ChromeExtension.csproj", "{3A5EE05B-4765-4C91-8312-CAD655E814A3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Ebay\Tests\Tests\Tests.csproj", "{32D70E53-E75F-4585-B006-5F787BD9BC84}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "deploy", "deploy", "{DE48F91A-1ED6-4C03-A8BA-8CACB01817FF}"
+	ProjectSection(SolutionItems) = preProject
+		..\deploy\docker-compose.yaml = ..\deploy\docker-compose.yaml
+		..\deploy\localhost.env = ..\deploy\localhost.env
+		..\deploy\server.env = ..\deploy\server.env
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution items", "{39B6DEF1-870F-450E-A3CE-07B067A3AC5C}"
+	ProjectSection(SolutionItems) = preProject
+		..\README.md = ..\README.md
+		..\.gitignore = ..\.gitignore
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "config", "config", "{CB16932F-1338-4CE4-AF92-79DD7BC8CFC9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "apache", "apache", "{C0A6BB2E-91E8-458B-9816-E664E4F1B364}"
+	ProjectSection(SolutionItems) = preProject
+		..\deploy\config\apache\httpd.conf = ..\deploy\config\apache\httpd.conf
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "dockerfiles", "dockerfiles", "{007101E1-3B06-4104-806A-77D0BC85DD10}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "odoo", "odoo", "{47F3CB0B-5483-45E4-BCA3-260B801D67E1}"
+	ProjectSection(SolutionItems) = preProject
+		..\deploy\dockerfiles\odoo\Dockerfile = ..\deploy\dockerfiles\odoo\Dockerfile
+		..\deploy\dockerfiles\odoo\entrypoint.sh = ..\deploy\dockerfiles\odoo\entrypoint.sh
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{313F456D-150D-48BE-A999-02D44014D57E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{313F456D-150D-48BE-A999-02D44014D57E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{313F456D-150D-48BE-A999-02D44014D57E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{313F456D-150D-48BE-A999-02D44014D57E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{53BBA863-3953-4946-AC44-A985C0ABD7DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{53BBA863-3953-4946-AC44-A985C0ABD7DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{53BBA863-3953-4946-AC44-A985C0ABD7DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{53BBA863-3953-4946-AC44-A985C0ABD7DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A5EE05B-4765-4C91-8312-CAD655E814A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A5EE05B-4765-4C91-8312-CAD655E814A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A5EE05B-4765-4C91-8312-CAD655E814A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A5EE05B-4765-4C91-8312-CAD655E814A3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32D70E53-E75F-4585-B006-5F787BD9BC84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32D70E53-E75F-4585-B006-5F787BD9BC84}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32D70E53-E75F-4585-B006-5F787BD9BC84}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32D70E53-E75F-4585-B006-5F787BD9BC84}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{DE48F91A-1ED6-4C03-A8BA-8CACB01817FF} = {39B6DEF1-870F-450E-A3CE-07B067A3AC5C}
+		{CB16932F-1338-4CE4-AF92-79DD7BC8CFC9} = {DE48F91A-1ED6-4C03-A8BA-8CACB01817FF}
+		{C0A6BB2E-91E8-458B-9816-E664E4F1B364} = {CB16932F-1338-4CE4-AF92-79DD7BC8CFC9}
+		{007101E1-3B06-4104-806A-77D0BC85DD10} = {DE48F91A-1ED6-4C03-A8BA-8CACB01817FF}
+		{47F3CB0B-5483-45E4-BCA3-260B801D67E1} = {007101E1-3B06-4104-806A-77D0BC85DD10}
+	EndGlobalSection
+EndGlobal

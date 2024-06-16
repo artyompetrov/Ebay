@@ -1,0 +1,115 @@
+﻿@page "/"
+@using Ebay.Client.Clients.Generated
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inject EbayClient EbayClient
+
+<PageTitle>Перечень товаров</PageTitle>
+
+<h2>Перечень товаров</h2>
+
+<style>
+    #productTable th {
+      position: sticky;
+      top: 3.5rem;
+      background-color: white;
+      z-index: 100;
+    }
+    
+    #productTable td {
+      vertical-align: middle;
+    }
+</style>
+
+
+<table id="productTable" class="table">
+    <thead>
+    <tr>
+        <th>Название <button class="btn btn-primary btn-sm" @onclick="@(() => _productPopupComponent.ShowCreate())">Добавить</button></th>
+        <th>Поисковый запрос</th>
+        <th>Учтены все проданные лоты</th>
+        <th>Вес</th>
+        <th></th>
+        <th></th>
+    </tr>
+    </thead>
+
+    <tbody>
+    @foreach (var product in _products)
+    {
+        <tr>
+            <td>
+                <NavLink href="@($"LotSales/{product.Id}")" target="_blank">@product.Name</NavLink>
+            </td>
+            <td>
+                @foreach (var query in product.SearchQueries)
+                {
+                    <span><a href="@GetSearchLink(query.Query, product.Id)" target=”_blank”>@query.Query</a>&#160;</span>
+                }
+            </td>
+            <td>
+                @if (product.IsRecheckRequired)
+                {
+                    <button class="btn btn-warning btn-sm" @onclick="@(e => MarkAsChecked(product))">Отметить</button>
+                }
+            </td>
+            @if (product.Weight == 0)
+            {
+                <td class="text-danger">Не задан</td>
+            }
+            else
+            {
+                <td>@product.Weight</td>
+            }
+            <td>
+                <button class="btn btn-primary btn-sm oi oi-pencil" @onclick="@(e => _productPopupComponent.ShowEdit(product))"></button>
+            </td>
+            <td>
+                <button class="btn btn-danger btn-sm oi oi-basket" @onclick="@(e => OnDeleteButtonClick(product))"></button>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<ProductPopup @ref="_productPopupComponent" OnSuccess="LoadActualProductList"/>
+<QuestionPopup @ref="_questionPopup"/>
+
+@code {
+    private ProductPopup _productPopupComponent = null!;
+    private QuestionPopup _questionPopup = null!;
+
+    private ICollection<ProductWithId> _products = new List<ProductWithId>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadActualProductList();
+    }
+
+    private void OnDeleteButtonClick(ProductWithId product)
+    {
+        _questionPopup.AskQuestion($"Вы действительно хотите удалить товар '{product.Name}'?", async () =>
+        {
+            await EbayClient.DeleteProductAsync(product.Id);
+            await LoadActualProductList();
+        });
+    }
+
+    private async Task LoadActualProductList()
+    {
+        _products = await EbayClient.GetAllProductsAsync();
+        StateHasChanged();
+    }
+
+    private string GetSearchLink(string query, Guid productId) => $"https://www.ebay.com/sch/i.html?_nkw={query}&LH_Sold=1&tool_productId={productId}";
+
+    private void MarkAsChecked(ProductWithId product)
+    {
+        _questionPopup.AskQuestion($"Вы действительно хотите отметить товар '{product.Name}' как учтенный?", async () =>
+        {
+            await EbayClient.MarkProductAsCheckedAsync(product.Id);
+            await LoadActualProductList();
+        });
+    }
+
+}

@@ -1,0 +1,48 @@
+﻿@page "/currencies"
+@using Ebay.Client.Clients.Generated
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inject EbayClient EbayClient
+
+<PageTitle>Курсы валют</PageTitle>
+
+<h2>Курсы валют</h2>
+
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Валюта</th>
+        <th>Название</th>
+        <th>Курс к доллару</th>
+        <th>Последнее обновление</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var currency in _currencies)
+    {
+        <tr>
+            <td>@currency.EbayName</td>
+            <td>@currency.RusName</td>
+            <td>@currency.Rate</td>
+            <td>@DateTime.Parse(currency.LastUpdate).ToString("yyyy-MM-dd")</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@code {
+    private ICollection<Currency> _currencies = new List<Currency>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadActualCurrenciesList();
+    }
+
+    private async Task LoadActualCurrenciesList()
+    {
+        _currencies = await EbayClient.GetCurrenciesAsync();
+        StateHasChanged();
+    }
+
+}

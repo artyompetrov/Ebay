@@ -1,0 +1,64 @@
+﻿@page "/shippingRates"
+@using Ebay.Client.Clients.Generated
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inject EbayClient EbayClient
+
+<PageTitle>Тарифы почты</PageTitle>
+
+<h2>Тарифы почты</h2>
+<h5>Актуальные тарифы тут: <a href="https://post.kz/rates/individual", target="_blank">Тарифы Казпочты</a>, должны соответсвовать данной таблице:</h5>
+@foreach (var shippingType in _shippingRates)
+{
+    <h3 class="bg-light text-center">@shippingType.Name</h3>
+    @foreach (var shippingRates in shippingType.Rates)
+    {
+        @if (shippingRates.SpecifiedCountries != null)
+        {
+            <h4>@string.Join(", ", shippingRates.SpecifiedCountries)</h4>
+        }
+        else
+        {
+            <h4>Worldwide</h4>
+        }
+        
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Вес от</th>
+                <th>Вес до</th>
+                <th>Стоимость</th>
+                <th>Валюта</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var shippingRate in shippingRates.Rates)
+            {
+                <tr>
+                    <td>@shippingRate.MinWeight</td>
+                    <td>@shippingRate.MaxWeight</td>
+                    <td>@shippingRate.Price</td>
+                    <td>@shippingType.Currency</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+}
+
+
+@code {
+    private ICollection<ShippingType> _shippingRates = new List<ShippingType>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadActualShippingList();
+    }
+
+    private async Task LoadActualShippingList()
+    {
+        _shippingRates = await EbayClient.GetShippingRatesAsync();
+        StateHasChanged();
+    }
+
+}
