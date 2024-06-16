@@ -24,11 +24,15 @@ services:
     depends_on:
       - ebay_postgres
     restart: unless-stopped
+    volumes:
+      - ${IDENTITY_SERVER_CERTIFICATE_FILE}:/certs/cert.pfx
     environment:
-      - ASPNETCORE_URLS=http://+:5000/ebay_helper
+      - ASPNETCORE_URLS=https://+:5000/
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=${IDENTITY_SERVER_CERTIFICATE_PASSWORD}
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/certs/cert.pfx
+      - ASPNETCORE_IdentityServer__Key__FilePath=/certs/cert.pfx
+      - ASPNETCORE_IdentityServer__Key__Password=${IDENTITY_SERVER_CERTIFICATE_PASSWORD}
       - ASPNETCORE_IdentityServer__Key__Type=File
-      - ASPNETCORE_IdentityServer__Key__FilePath=/certs/pfx.pfx
-      - ASPNETCORE_IdentityServer__Key__Password=qwerty123
       - ASPNETCORE_ConnectionStrings__DefaultConnection=User ID=${PG_USER};Password=${PG_PASSWORD};Server=ebay_postgres;Port=5432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=30;Enlist=true;
     networks:
       - ebay_internal_network
@@ -55,8 +59,8 @@ services:
     container_name: ebay_apache
     image: httpd:2.4
     ports:
-      - "443:443"
-      - "80:80"
+      - "10000:10000"
+      - "10001:10001"
     volumes:
       - ./config/apache/httpd.conf:/usr/local/apache2/conf/httpd.conf
       - ${SSL_CERTIFICATE_FILE}:/certs/SSL_CERTIFICATE_FILE.pem
