@@ -11,5 +11,5 @@ riderModule.iml
 node_modules/
 *.DotSettings.user
 
-/deploy/logs
+/deploy/mount
 /deploy/server.env
