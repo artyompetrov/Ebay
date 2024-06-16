@@ -27,19 +27,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "apache", "apache", "{C0A6BB
 		..\deploy\config\apache\httpd.conf = ..\deploy\config\apache\httpd.conf
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "dockerfiles", "dockerfiles", "{007101E1-3B06-4104-806A-77D0BC85DD10}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "odoo", "odoo", "{47F3CB0B-5483-45E4-BCA3-260B801D67E1}"
-	ProjectSection(SolutionItems) = preProject
-		..\deploy\dockerfiles\odoo\Dockerfile = ..\deploy\dockerfiles\odoo\Dockerfile
-		..\deploy\dockerfiles\odoo\entrypoint.sh = ..\deploy\dockerfiles\odoo\entrypoint.sh
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{354EA138-CAE8-41D5-9D59-DFECED1B3E17}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{50979447-5E9F-423A-BE77-D62E16AE440F}"
 	ProjectSection(SolutionItems) = preProject
 		..\.github\workflows\action.yaml = ..\.github\workflows\action.yaml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "odoo", "odoo", "{A9A72A81-238A-42E2-AF36-29E70F7F3277}"
+	ProjectSection(SolutionItems) = preProject
+		..\deploy\config\odoo\Dockerfile = ..\deploy\config\odoo\Dockerfile
+		..\deploy\config\odoo\entrypoint.sh = ..\deploy\config\odoo\entrypoint.sh
 	EndProjectSection
 EndProject
 Global
@@ -69,9 +67,8 @@ Global
 		{DE48F91A-1ED6-4C03-A8BA-8CACB01817FF} = {39B6DEF1-870F-450E-A3CE-07B067A3AC5C}
 		{CB16932F-1338-4CE4-AF92-79DD7BC8CFC9} = {DE48F91A-1ED6-4C03-A8BA-8CACB01817FF}
 		{C0A6BB2E-91E8-458B-9816-E664E4F1B364} = {CB16932F-1338-4CE4-AF92-79DD7BC8CFC9}
-		{007101E1-3B06-4104-806A-77D0BC85DD10} = {DE48F91A-1ED6-4C03-A8BA-8CACB01817FF}
-		{47F3CB0B-5483-45E4-BCA3-260B801D67E1} = {007101E1-3B06-4104-806A-77D0BC85DD10}
 		{354EA138-CAE8-41D5-9D59-DFECED1B3E17} = {39B6DEF1-870F-450E-A3CE-07B067A3AC5C}
 		{50979447-5E9F-423A-BE77-D62E16AE440F} = {354EA138-CAE8-41D5-9D59-DFECED1B3E17}
+		{A9A72A81-238A-42E2-AF36-29E70F7F3277} = {CB16932F-1338-4CE4-AF92-79DD7BC8CFC9}
 	EndGlobalSection
 EndGlobal

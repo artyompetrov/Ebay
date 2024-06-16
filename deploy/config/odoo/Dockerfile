@@ -10,8 +10,7 @@ ENV LC_ALL en_US.UTF-8
 COPY entrypoint.sh /entrypoint.sh
 
 # Сделать скрипт исполняемым
-RUN chmod 775 /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-USER odoo
 # Установить точку входа
 ENTRYPOINT ["/entrypoint.sh"]
