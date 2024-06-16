@@ -20,14 +20,14 @@ services:
   ebay_server:
     container_name: ebay_server
     image: ghcr.io/artyompetrov/ebay:latest
-    build: ../src/
+    #build: ../src/
     depends_on:
       - ebay_postgres
     restart: unless-stopped
     volumes:
       - ${IDENTITY_SERVER_CERTIFICATE_FILE}:/certs/cert.pfx
     environment:
-      - ASPNETCORE_URLS=https://+:5000/
+      - ASPNETCORE_URLS=https://+:10001/
       - ASPNETCORE_Kestrel__Certificates__Default__Password=${IDENTITY_SERVER_CERTIFICATE_PASSWORD}
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/certs/cert.pfx
       - ASPNETCORE_IdentityServer__Key__FilePath=/certs/cert.pfx

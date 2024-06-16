@@ -7,11 +7,11 @@ ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
 # Скопировать объединенный скрипт в контейнер
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY entrypoint.sh /entrypoint.sh
 
 # Сделать скрипт исполняемым
-RUN chmod +x /usr/local/bin/entrypoint.sh
+RUN chmod 775 /entrypoint.sh
 
 USER odoo
 # Установить точку входа
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
