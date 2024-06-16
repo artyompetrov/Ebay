@@ -28,7 +28,7 @@ public class ExplicitTests
                         new List<KeyValuePair<string, string>>
                         {
                             new("grant_type", "client_credentials"),
-                            new("client_id", WellKnown.Authorization.ClientId),
+                            new("client_id", WellKnown.Authorization.PythonClientId),
                             new("client_secret", WellKnown.Authorization.AuthToken),
                         }
                     )

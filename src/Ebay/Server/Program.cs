@@ -30,13 +30,26 @@ builder.Services.AddIdentityServer()
             options.Clients.Add(
                 new Client
                 {
-                    ClientId = WellKnown.Authorization.ClientId,
+                    ClientId = WellKnown.Authorization.PythonClientId,
                     ClientSecrets = new List<Secret>() { new(WellKnown.Authorization.AuthToken.Sha256()) },
                     AllowedGrantTypes = GrantTypes.ClientCredentials,
                     AllowedScopes =
                     {
                         WellKnown.Authorization.Scope
                     }
+                });
+            var domain = Environment.GetEnvironmentVariable("DOMAIN");
+            if (string.IsNullOrEmpty(domain)) throw new InvalidOperationException("DOMAIN variable is not set.");
+            options.Clients.Add(
+                new Client
+                {
+                    ClientId = WellKnown.Authorization.OdooClientId,
+                    ClientName = "Odoo",
+                    AllowedGrantTypes = GrantTypes.Implicit,
+                    RedirectUris = { $"http://{domain}/auth_oauth/signin" },
+                    PostLogoutRedirectUris = { $"http://{domain}/auth_oauth/signin" },
+                    AllowedScopes = { "Ebay.ServerAPI" },
+                    AllowAccessTokensViaBrowser = true
                 });
         });
 

@@ -3,7 +3,7 @@ WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS publish
 WORKDIR /src
 COPY ["Directory.Packages.props", "Directory.Packages.props"]
 COPY ["Ebay.sln", "Ebay.sln"]
@@ -12,9 +12,6 @@ COPY ["Ebay/Client/Ebay.Client.csproj", "Ebay/Client/"]
 RUN dotnet restore "Ebay/Server/Ebay.Server.csproj"
 COPY . .
 WORKDIR "/src/Ebay/Server"
-RUN dotnet build "Ebay.Server.csproj" -c Release -o /app/build
-
-FROM build AS publish
 RUN dotnet publish "Ebay.Server.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final

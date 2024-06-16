@@ -27,6 +27,7 @@ services:
     volumes:
       - ${IDENTITY_SERVER_CERTIFICATE_FILE}:/certs/cert.pfx
     environment:
+      - DOMAIN=${DOMAIN}
       - ASPNETCORE_URLS=https://+:10001/
       - ASPNETCORE_Kestrel__Certificates__Default__Password=${IDENTITY_SERVER_CERTIFICATE_PASSWORD}
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/certs/cert.pfx
