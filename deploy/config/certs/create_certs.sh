@@ -20,4 +20,4 @@ EOF
 
 # Создание самоподписанного сертификата
 openssl x509 -req -in localhost.csr -signkey localhost.key -out localhost.crt -days 36500 -extfile localhost.ext
-openssl pkcs12 -in localhost.crt -inkey localhost.key -export -out identity_server.pfx -passout pass:qwerty123
+openssl pkcs12 -in localhost.crt -inkey localhost.key -export -out localhost.pfx -passout pass:qwerty123
