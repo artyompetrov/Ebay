@@ -2,7 +2,7 @@
 
 cd ./git
 
-git pull origin develop
+git pull origin main
 
 cd ./deploy
 
