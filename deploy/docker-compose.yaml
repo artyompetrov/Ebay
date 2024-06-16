@@ -24,7 +24,7 @@ services:
       - ebay_postgres
     restart: unless-stopped
     volumes:
-      - ${NETCORE_CERTIFICATE}:/certs/cert.pfx
+      - ${NETCORE_CERTIFICATE}:/certs/cert.pfx:ro
     environment:
       - DOMAIN=${DOMAIN}
       - ASPNETCORE_URLS=https://+:10001/
@@ -39,13 +39,13 @@ services:
 
   ebay_odoo:
     container_name: ebay_odoo
-    build: ./dockerfiles/odoo
+    build: ./config/odoo
     depends_on:
       - ebay_postgres
     volumes:
-      - odoo-web-data:/var/lib/odoo
-      - ./config/odoo/config:/etc/odoo
-      - ./config/odoo/addons:/mnt/extra-addons
+      - ./config/odoo/config:/etc/odoo:ro
+      - ./config/odoo/addons:/mnt/extra-addons:ro
+      - ./mount/odoo/data/:/var/lib/odoo
     environment:
       - HOST=ebay_postgres
       - USER=${PG_USER}
@@ -63,9 +63,9 @@ services:
       - "443:443"
       - "10001:10001"
     volumes:
-      - ./config/apache/httpd.conf:/usr/local/apache2/conf/httpd.conf
-      - ${SSL_CERTIFICATE_DIR}:/certs/
-      - ./logs/apache:/usr/local/apache2/logs
+      - ./config/apache/httpd.conf:/usr/local/apache2/conf/httpd.conf:ro
+      - ${SSL_CERTIFICATE_DIR}:/certs/:ro
+      - ./mount/apache/logs/:/usr/local/apache2/logs
     environment:
       - DOMAIN=${DOMAIN}
       - SSL_CERTIFICATE_FILE=${SSL_CERTIFICATE_FILE}
@@ -80,4 +80,3 @@ networks:
 
 volumes:
   pgdata:
-  odoo-web-data:
