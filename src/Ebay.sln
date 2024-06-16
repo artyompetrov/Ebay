@@ -12,7 +12,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "deploy", "deploy", "{DE48F9
 	ProjectSection(SolutionItems) = preProject
 		..\deploy\docker-compose.yaml = ..\deploy\docker-compose.yaml
 		..\deploy\localhost.env = ..\deploy\localhost.env
-		..\deploy\server.env = ..\deploy\server.env
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution items", "{39B6DEF1-870F-450E-A3CE-07B067A3AC5C}"
