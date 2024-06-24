@@ -15,7 +15,7 @@ to_host = "localhost"
 backup_path_folder = "D:\YandexDisk\Backups\Ebay"
 
 pg_password = "catnip0-spoil4-untrimmed"
-odoo_master_password = "ymMobadeku1!"
+odoo_master_password = "4i5x-j7ub-ug2p"
 
 # далее бекап
 
