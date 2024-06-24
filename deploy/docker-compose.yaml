@@ -45,7 +45,7 @@ services:
     volumes:
       - ./config/odoo/config:/etc/odoo:ro
       - ./config/odoo/addons:/mnt/extra-addons:ro
-      - ./mount/odoo/data/:/var/lib/odoo
+      - odoo_data:/var/lib/odoo
     environment:
       - HOST=ebay_postgres
       - USER=${PG_USER}
@@ -80,3 +80,4 @@ networks:
 
 volumes:
   pgdata:
+  odoo_data:
