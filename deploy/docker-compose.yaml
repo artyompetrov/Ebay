@@ -39,7 +39,7 @@ services:
 
   ebay_odoo:
     container_name: ebay_odoo
-    build: ./config/odoo
+    image: odoo:17.0
     depends_on:
       - ebay_postgres
     volumes:

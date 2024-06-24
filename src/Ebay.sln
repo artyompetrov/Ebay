@@ -34,12 +34,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		..\.github\workflows\action.yaml = ..\.github\workflows\action.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "odoo", "odoo", "{A9A72A81-238A-42E2-AF36-29E70F7F3277}"
-	ProjectSection(SolutionItems) = preProject
-		..\deploy\config\odoo\Dockerfile = ..\deploy\config\odoo\Dockerfile
-		..\deploy\config\odoo\entrypoint.sh = ..\deploy\config\odoo\entrypoint.sh
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +63,5 @@ Global
 		{C0A6BB2E-91E8-458B-9816-E664E4F1B364} = {CB16932F-1338-4CE4-AF92-79DD7BC8CFC9}
 		{354EA138-CAE8-41D5-9D59-DFECED1B3E17} = {39B6DEF1-870F-450E-A3CE-07B067A3AC5C}
 		{50979447-5E9F-423A-BE77-D62E16AE440F} = {354EA138-CAE8-41D5-9D59-DFECED1B3E17}
-		{A9A72A81-238A-42E2-AF36-29E70F7F3277} = {CB16932F-1338-4CE4-AF92-79DD7BC8CFC9}
 	EndGlobalSection
 EndGlobal
