@@ -22,16 +22,23 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "config", "config", "{CB16932F-1338-4CE4-AF92-79DD7BC8CFC9}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "apache", "apache", "{C0A6BB2E-91E8-458B-9816-E664E4F1B364}"
-	ProjectSection(SolutionItems) = preProject
-		..\deploy\config\apache\httpd.conf = ..\deploy\config\apache\httpd.conf
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{354EA138-CAE8-41D5-9D59-DFECED1B3E17}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{50979447-5E9F-423A-BE77-D62E16AE440F}"
 	ProjectSection(SolutionItems) = preProject
 		..\.github\workflows\action.yaml = ..\.github\workflows\action.yaml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "odoo", "odoo", "{7ACFE57E-41B9-47BC-A94B-6BC4793BFDAD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "config", "config", "{641C128A-BE1A-4A63-941F-773230FFD873}"
+	ProjectSection(SolutionItems) = preProject
+		..\deploy\config\odoo\config\odoo.conf = ..\deploy\config\odoo\config\odoo.conf
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "nginx", "nginx", "{509E5EA2-EB90-43B4-9352-F796D98CB6A4}"
+	ProjectSection(SolutionItems) = preProject
+		..\deploy\config\nginx\default.conf.template = ..\deploy\config\nginx\default.conf.template
 	EndProjectSection
 EndProject
 Global
@@ -60,8 +67,10 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{DE48F91A-1ED6-4C03-A8BA-8CACB01817FF} = {39B6DEF1-870F-450E-A3CE-07B067A3AC5C}
 		{CB16932F-1338-4CE4-AF92-79DD7BC8CFC9} = {DE48F91A-1ED6-4C03-A8BA-8CACB01817FF}
-		{C0A6BB2E-91E8-458B-9816-E664E4F1B364} = {CB16932F-1338-4CE4-AF92-79DD7BC8CFC9}
 		{354EA138-CAE8-41D5-9D59-DFECED1B3E17} = {39B6DEF1-870F-450E-A3CE-07B067A3AC5C}
 		{50979447-5E9F-423A-BE77-D62E16AE440F} = {354EA138-CAE8-41D5-9D59-DFECED1B3E17}
+		{7ACFE57E-41B9-47BC-A94B-6BC4793BFDAD} = {CB16932F-1338-4CE4-AF92-79DD7BC8CFC9}
+		{641C128A-BE1A-4A63-941F-773230FFD873} = {7ACFE57E-41B9-47BC-A94B-6BC4793BFDAD}
+		{509E5EA2-EB90-43B4-9352-F796D98CB6A4} = {CB16932F-1338-4CE4-AF92-79DD7BC8CFC9}
 	EndGlobalSection
 EndGlobal

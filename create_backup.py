@@ -41,8 +41,7 @@ odoo_backup_params = {
 odoo_backup_response = requests.post(
     odoo_backup_url,
     data=urlencode(odoo_backup_params),
-    headers={"Content-Type": "application/x-www-form-urlencoded"},
-    verify=False
+    headers={"Content-Type": "application/x-www-form-urlencoded"}
 )
 
 if odoo_backup_response.status_code == 200:

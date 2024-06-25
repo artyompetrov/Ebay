@@ -17,9 +17,11 @@ services:
     networks:
       - ebay_internal_network
 
-  ebay_server:
-    container_name: ebay_server
+  ebay_helper:
+    container_name: ebay_helper
     image: ghcr.io/artyompetrov/ebay:latest
+    ports:
+      - "10001:10001"
     depends_on:
       - ebay_postgres
     restart: unless-stopped
@@ -55,21 +57,20 @@ services:
       - ebay_internal_network
     restart: unless-stopped
 
-  ebay_apache:
-    container_name: ebay_apache
-    image: httpd:2.4
+  ebay_nginx:
+    container_name: ebay_nginx
+    image: nginx:latest
     ports:
       - "80:80"
       - "443:443"
-      - "10001:10001"
     volumes:
-      - ./config/apache/httpd.conf:/usr/local/apache2/conf/httpd.conf:ro
+      - ./config/nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
       - ${SSL_CERTIFICATE_DIR}:/certs/:ro
-      - ./mount/apache/logs/:/usr/local/apache2/logs
+      - ./mount/nginx/logs/:/var/log/nginx/
     environment:
       - DOMAIN=${DOMAIN}
-      - SSL_CERTIFICATE_FILE=${SSL_CERTIFICATE_FILE}
-      - SSL_CERTIFICATE_KEY_FILE=${SSL_CERTIFICATE_KEY_FILE}
+      - SSL_CERTIFICATE_FILE=/certs/${SSL_CERTIFICATE_FILE}
+      - SSL_CERTIFICATE_KEY_FILE=/certs/${SSL_CERTIFICATE_KEY_FILE}
     networks:
       - ebay_internal_network
     restart: unless-stopped
