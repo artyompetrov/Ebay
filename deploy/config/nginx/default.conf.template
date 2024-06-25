@@ -96,5 +96,6 @@ server {
         proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header   X-Forwarded-Proto $scheme;
         proxy_set_header   X-Forwarded-Host $server_name:10001;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains";
     }
 }
