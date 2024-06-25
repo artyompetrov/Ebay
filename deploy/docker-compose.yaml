@@ -52,7 +52,6 @@ services:
       - HOST=ebay_postgres
       - USER=${PG_USER}
       - PASSWORD=${PG_PASSWORD}
-      - DATABASE=odoo
     networks:
       - ebay_internal_network
     restart: unless-stopped
