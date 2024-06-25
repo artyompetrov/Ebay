@@ -8,13 +8,13 @@ services:
       - "15432:5432"
     restart: unless-stopped
     environment:
-      POSTGRES_MULTIPLE_DATABASES: "odoo,ebay"
+      POSTGRES_MULTIPLE_USERS: "odoo,ebay"
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${PG_PASSWORD}
       POSTGRES_INITDB_ARGS: --locale='en_US.UTF8'
       CFG_TIMEZONE: 'Europe/Moscow'
     volumes:
-      - ./config/posgres/create-multiple-postgresql-databases.sh:/docker-entrypoint-initdb.d/create-multiple-postgresql-databases.sh
+      - ./config/postgres/create-multiple-users.sh:/docker-entrypoint-initdb.d/create-multiple-users.sh:ro
       - pgdata:/var/lib/postgresql/data
     networks:
       - ebay_internal_network
@@ -60,7 +60,7 @@ services:
 
   ebay_nginx:
     container_name: ebay_nginx
-    image: nginx:latest
+    image: nginx:1.27.0
     ports:
       - "80:80"
       - "443:443"

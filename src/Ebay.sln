@@ -41,6 +41,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "nginx", "nginx", "{509E5EA2
 		..\deploy\config\nginx\default.conf.template = ..\deploy\config\nginx\default.conf.template
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "postgres", "postgres", "{744217E2-5EBA-47E4-BBD3-2A3DDCFB621E}"
+	ProjectSection(SolutionItems) = preProject
+		..\deploy\config\postgres\create-multiple-users.sh = ..\deploy\config\postgres\create-multiple-users.sh
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -72,5 +77,6 @@ Global
 		{7ACFE57E-41B9-47BC-A94B-6BC4793BFDAD} = {CB16932F-1338-4CE4-AF92-79DD7BC8CFC9}
 		{641C128A-BE1A-4A63-941F-773230FFD873} = {7ACFE57E-41B9-47BC-A94B-6BC4793BFDAD}
 		{509E5EA2-EB90-43B4-9352-F796D98CB6A4} = {CB16932F-1338-4CE4-AF92-79DD7BC8CFC9}
+		{744217E2-5EBA-47E4-BBD3-2A3DDCFB621E} = {CB16932F-1338-4CE4-AF92-79DD7BC8CFC9}
 	EndGlobalSection
 EndGlobal
