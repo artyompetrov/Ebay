@@ -8,11 +8,13 @@ services:
       - "15432:5432"
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${PG_USER}
+      POSTGRES_MULTIPLE_DATABASES: "odoo,ebay"
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${PG_PASSWORD}
       POSTGRES_INITDB_ARGS: --locale='en_US.UTF8'
       CFG_TIMEZONE: 'Europe/Moscow'
     volumes:
+      - ./config/posgres/create-multiple-postgresql-databases.sh:/docker-entrypoint-initdb.d/create-multiple-postgresql-databases.sh
       - pgdata:/var/lib/postgresql/data
     networks:
       - ebay_internal_network
@@ -35,7 +37,7 @@ services:
       - ASPNETCORE_IdentityServer__Key__FilePath=/certs/cert.pfx
       - ASPNETCORE_IdentityServer__Key__Password=${NETCORE_CERTIFICATE_PASSWORD}
       - ASPNETCORE_IdentityServer__Key__Type=File
-      - ASPNETCORE_ConnectionStrings__DefaultConnection=User ID=${PG_USER};Password=${PG_PASSWORD};Server=ebay_postgres;Port=5432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=30;Enlist=true;
+      - ASPNETCORE_ConnectionStrings__DefaultConnection=User ID=ebay;Password=${PG_PASSWORD};Server=ebay_postgres;Port=5432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=30;Enlist=true;
     networks:
       - ebay_internal_network
 
@@ -50,7 +52,7 @@ services:
       - odoo_data:/var/lib/odoo
     environment:
       - HOST=ebay_postgres
-      - USER=${PG_USER}
+      - USER=odoo
       - PASSWORD=${PG_PASSWORD}
     networks:
       - ebay_internal_network

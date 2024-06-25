@@ -85,8 +85,8 @@ print("!!! starting containers")
 subprocess.run(["docker-compose", "-f", "./deploy/docker-compose.yaml", "--env-file", "./deploy/localhost.env", "up", "-d"])
 time.sleep(5)
 
-print("!!! stoping ebay_server")
-subprocess.run(["docker", "container", "stop", "ebay_server"])
+print("!!! stoping ebay_helper")
+subprocess.run(["docker", "container", "stop", "ebay_helper"])
 time.sleep(5)
 
 # Удаление локальных баз данных
@@ -159,7 +159,7 @@ else:
     print("Response:", odoo_restore_response.text)
     
 # Запуск контейнеров
-print("!!! starting ebay_server")
-subprocess.run(["docker", "container", "start", "ebay_server"])
+print("!!! starting ebay_helper")
+subprocess.run(["docker", "container", "start", "ebay_helper"])
 
 print("Backup files are in folder:", backup_path)
