@@ -15,7 +15,7 @@ public class ExplicitTests
     private static EbayClient CreateClient()
     {
         var server = "naks42.ru";
-        var port = 17443;
+        var port = 10001;
         var baseAddress = $"https://{server}:{port}";
 
         var url = $"{baseAddress}/connect/token";

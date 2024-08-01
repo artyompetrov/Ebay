@@ -64,10 +64,10 @@
   "host_permissions": [
     "https://vi.vipr.ebaydesc.com/*",
     "http://vi.vipr.ebaydesc.com/*",
-    "https://178.208.65.100:17443/*",
+    "https://178.208.65.100:10001/*",
     "https://auth.ebay.com/*",
     "https://api.ebay.com/*",
-    "https://naks42.ru:17443/*",
+    "https://naks42.ru:10001/*",
     "https://localhost:7095/*"
   ],
   "background": {
