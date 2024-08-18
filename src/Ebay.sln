@@ -18,6 +18,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		..\README.md = ..\README.md
 		..\.gitignore = ..\.gitignore
+		..\update.sh = ..\update.sh
+		..\create_backup.py = ..\create_backup.py
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "config", "config", "{CB16932F-1338-4CE4-AF92-79DD7BC8CFC9}"
