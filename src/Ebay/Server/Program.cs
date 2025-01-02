@@ -8,6 +8,7 @@ using Ebay.Server.HostedServices;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
+using Paramore.Brighter.Extensions.DependencyInjection;
 using Client = Duende.IdentityServer.Models.Client;
 using Secret = Duende.IdentityServer.Models.Secret;
 
@@ -58,6 +59,9 @@ builder.Services.AddLogging(
             });
     });
 builder.Services.AddHostedService<CurrencyRateHostedService>();
+
+builder.Services.AddBrighter()
+    .AutoFromAssemblies();
 
 var app = builder.Build();
 

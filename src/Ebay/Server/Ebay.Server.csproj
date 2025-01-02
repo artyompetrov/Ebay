@@ -3,7 +3,7 @@
     <PropertyGroup>
         <UserSecretsId>Ebay.Server-9A4AB6A1-13E5-44E4-8252-FA741476F495</UserSecretsId>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-        <TargetFramework>net7.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>
@@ -16,6 +16,8 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="OpenExchangeRates.NET" />
+        <PackageReference Include="Paramore.Brighter" />
+        <PackageReference Include="Paramore.Brighter.Extensions.DependencyInjection" />
     </ItemGroup>
 
     <ItemGroup>

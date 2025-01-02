@@ -10,7 +10,7 @@ from pathlib import Path
 from urllib.parse import urlencode
 
 # Конфигурационные переменные
-from_host = "naks42.ru"
+from_host = "tubes.com.ru"
 to_host = "localhost"
 backup_path_folder = "D:\YandexDisk\Backups\Ebay"
 
