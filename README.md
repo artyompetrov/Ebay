@@ -5,7 +5,7 @@ https://www.youtube.com/watch?v=f5AlQE0i5m0&ab_channel=Programonaut
 \deploy\config\localhost_debug_certs\create_certs.sh
 
 # Проброс сертификата letsencrypt в портейнер
-docker run -d -p 8000:8000 -p 9443:9443 --name=portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /etc/letsencrypt/:/certs portainer/portainer-ce --sslcert /certs/live/tubes.com.ru/cert.pem --sslkey /certs/live/naks42.ru/privkey.pem
+docker run -d -p 8000:8000 -p 9443:9443 --name=portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /etc/letsencrypt/:/certs portainer/portainer-ce --sslcert /certs/live/tubes.com.ru/cert.pem --sslkey /certs/live/tubes.com.ru/privkey.pem
 
 Статистика по курсам валют тут
 https://openexchangerates.org/account
