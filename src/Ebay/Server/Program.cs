@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
 using Paramore.Brighter.Extensions.DependencyInjection;
+using Paramore.Brighter.Outbox.PostgreSql;
+using Paramore.Brighter.PostgreSql;
 using Client = Duende.IdentityServer.Models.Client;
 using Secret = Duende.IdentityServer.Models.Secret;
 
@@ -60,7 +62,16 @@ builder.Services.AddLogging(
     });
 builder.Services.AddHostedService<CurrencyRateHostedService>();
 
+//todo доделать brighter
 builder.Services.AddBrighter()
+    .ConfigureJsonSerialisation((options) =>
+    {
+        options.PropertyNameCaseInsensitive = true;
+    })
+    .UsePostgreSqlOutbox(
+        configuration: new PostgreSqlOutboxConfiguration(connectionString),
+        connectionProvider: typeof(IPostgreSqlConnectionProvider),
+        serviceLifetime: ServiceLifetime.Singleton)
     .AutoFromAssemblies();
 
 var app = builder.Build();

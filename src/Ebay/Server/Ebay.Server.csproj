@@ -18,6 +18,7 @@
         <PackageReference Include="OpenExchangeRates.NET" />
         <PackageReference Include="Paramore.Brighter" />
         <PackageReference Include="Paramore.Brighter.Extensions.DependencyInjection" />
+        <PackageReference Include="Paramore.Brighter.Outbox.PostgreSql" />
     </ItemGroup>
 
     <ItemGroup>
