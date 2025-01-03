@@ -8,13 +8,11 @@ services:
       - "15432:5432"
     restart: unless-stopped
     environment:
-      POSTGRES_MULTIPLE_USERS: "ebay"
-      POSTGRES_USER: postgres
+      POSTGRES_USER: ebay
       POSTGRES_PASSWORD: ${PG_PASSWORD}
       POSTGRES_INITDB_ARGS: --locale='en_US.UTF8'
       CFG_TIMEZONE: 'Europe/Moscow'
     volumes:
-      - ./config/postgres/create-multiple-users.sh:/docker-entrypoint-initdb.d/create-multiple-users.sh:ro
       - pgdata:/var/lib/postgresql/data
     networks:
       - ebay_internal_network

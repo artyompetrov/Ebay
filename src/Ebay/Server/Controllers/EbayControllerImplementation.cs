@@ -5,6 +5,7 @@ using Ebay.Server.Data.Models;
 using Ebay.Server.Infrastructure;
 using Ebay.Server.Services;
 using Microsoft.EntityFrameworkCore;
+
 using ClientErrorInfo = Ebay.Server.Controllers.Generated.ClientErrorInfo;
 using Currency = Ebay.Server.Controllers.Generated.Currency;
 using DbProduct = Ebay.Server.Data.Models.Product;
@@ -20,6 +21,7 @@ namespace Ebay.Server.Controllers;
 internal class EbayControllerImplementation : IEbayController
 {
     private readonly ApplicationDbContext _applicationContext;
+
 
     public EbayControllerImplementation(ApplicationDbContext applicationContext)
     {

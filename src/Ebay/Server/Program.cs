@@ -8,9 +8,7 @@ using Ebay.Server.HostedServices;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
-using Paramore.Brighter.Extensions.DependencyInjection;
-using Paramore.Brighter.Outbox.PostgreSql;
-using Paramore.Brighter.PostgreSql;
+using Npgsql;
 using Client = Duende.IdentityServer.Models.Client;
 using Secret = Duende.IdentityServer.Models.Secret;
 
@@ -19,8 +17,10 @@ IdentityModelEventSource.ShowPII = true;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString));
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new NullReferenceException("Connection string cannot be null");
+var dataSource = NpgsqlDataSource.Create(connectionString);
+builder.Services.AddSingleton(dataSource);
+builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(dataSource));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddScoped<IEbayController, EbayControllerImplementation>();
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
@@ -41,8 +41,6 @@ builder.Services.AddIdentityServer()
                         WellKnown.Authorization.Scope
                     }
                 });
-            var domain = Environment.GetEnvironmentVariable("DOMAIN");
-            if (string.IsNullOrEmpty(domain)) throw new InvalidOperationException("DOMAIN variable is not set.");
         });
 
 builder.Services.AddAuthentication().AddIdentityServerJwt();
@@ -62,17 +60,6 @@ builder.Services.AddLogging(
     });
 builder.Services.AddHostedService<CurrencyRateHostedService>();
 
-//todo доделать brighter
-builder.Services.AddBrighter()
-    .ConfigureJsonSerialisation((options) =>
-    {
-        options.PropertyNameCaseInsensitive = true;
-    })
-    .UsePostgreSqlOutbox(
-        configuration: new PostgreSqlOutboxConfiguration(connectionString),
-        connectionProvider: typeof(IPostgreSqlConnectionProvider),
-        serviceLifetime: ServiceLifetime.Singleton)
-    .AutoFromAssemblies();
 
 var app = builder.Build();
 
