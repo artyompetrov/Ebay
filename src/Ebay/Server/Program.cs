@@ -8,7 +8,6 @@ using Ebay.Server.HostedServices;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
-using Npgsql;
 using Client = Duende.IdentityServer.Models.Client;
 using Secret = Duende.IdentityServer.Models.Secret;
 
@@ -18,9 +17,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new NullReferenceException("Connection string cannot be null");
-var dataSource = NpgsqlDataSource.Create(connectionString);
-builder.Services.AddSingleton(dataSource);
-builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(dataSource));
+builder.Services.AddNpgsqlDataSource(connectionString);
+builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql());
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddScoped<IEbayController, EbayControllerImplementation>();
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
