@@ -1,4 +1,6 @@
-﻿set -e
+﻿#!/usr/bin/env bash
+
+set -e
 
 echo "Creating certificate..."
 certbot certonly \
