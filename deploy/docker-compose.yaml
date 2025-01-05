@@ -58,6 +58,7 @@ services:
     image: portainer/portainer-ce
     restart: always
     volumes:
+      - portainer_data:/data
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - ebay_internal_network
@@ -68,3 +69,4 @@ networks:
 
 volumes:
   pgdata:
+  portainer_data:
