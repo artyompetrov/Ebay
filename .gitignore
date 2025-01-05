@@ -13,4 +13,3 @@ node_modules/
 
 /deploy/mount
 /deploy/server.env
-/src/Ebay/Server/wwwroot/ebay_extension.crx
