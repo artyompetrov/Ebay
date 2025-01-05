@@ -27,7 +27,7 @@ services:
       - ${NETCORE_CERTIFICATE}:/certs/cert.pfx:ro
     environment:
       - DOMAIN=${DOMAIN}
-      - ASPNETCORE_URLS=https://+:10001/
+      - ASPNETCORE_URLS=https://+:443/
       - ASPNETCORE_Kestrel__Certificates__Default__Password=${NETCORE_CERTIFICATE_PASSWORD}
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/certs/cert.pfx
       - ASPNETCORE_IdentityServer__Key__FilePath=/certs/cert.pfx
@@ -51,6 +51,15 @@ services:
     networks:
       - ebay_internal_network
     restart: unless-stopped
+
+  ebay_portainer:
+    container_name: ebay_portainer
+    image: portainer/portainer-ce
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - ebay_internal_network
 
 networks:
   ebay_internal_network:
