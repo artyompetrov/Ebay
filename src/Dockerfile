@@ -3,7 +3,7 @@ WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
-ARG BUILD_VERSION=0.0.0.0
+ARG BUILD_VERSION=0.0.0.1
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS publish
 WORKDIR /src
@@ -14,6 +14,7 @@ COPY ["Ebay/Client/Ebay.Client.csproj", "Ebay/Client/"]
 RUN dotnet restore "Ebay/Server/Ebay.Server.csproj"
 COPY . .
 WORKDIR "/src/Ebay/Server"
+
 RUN dotnet publish "Ebay.Server.csproj" -c Release -o /app/publish /p:UseAppHost=false /p:Version=$BUILD_VERSION
 
 FROM base AS final
