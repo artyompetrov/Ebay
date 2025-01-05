@@ -1,6 +1,6 @@
 FROM nginx:1.27.0-bookworm
 
-RUN apt update && apt install -y certbot
+RUN apt update && apt install -y certbot cron
 
 RUN mkdir -p /var/www/certbot
 RUN mkdir -p /var/log/cron
