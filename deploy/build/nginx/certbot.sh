@@ -8,7 +8,7 @@ PRIVKEY_FILE="${CERT_PATH}/privkey.pem"
 FULLCHAIN_FILE="${CERT_PATH}/fullchain.pem"
 
 # Проверяем, равна ли переменная SELF_SIGNED_CERTIFICATE "true"
-if [ "SELF_SIGNED_CERTIFICATE" = "true" ]; then
+if [ "$SELF_SIGNED_CERTIFICATE" = "true" ]; then
     echo "SELF_SIGNED_CERTIFICATE is set to 'true'. Generating self-signed certificate for ${DOMAIN}..."
     if [ -f "$PRIVKEY_FILE" ] && [ -f "$FULLCHAIN_FILE" ]; then
             echo "Certificates already exist at ${CERT_PATH}. Skipping generation."
