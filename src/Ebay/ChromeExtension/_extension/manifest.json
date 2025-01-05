@@ -1,7 +1,7 @@
 {
     "name":  "EbayChromeExtension",
     "description":  "EbayChromeExtension",
-    "version":  "1.0.2",
+    "version":  "1.0.3",
     "manifest_version":  3,
     "icons":  {
 
@@ -9,7 +9,7 @@
     "action":  {
 
                },
-    "update_url":  "https://tubessale.duckdns.org/chrome_extensions/ebay_extension.xml",
+    "update_url":  "https://tubessale.duckdns.org/chrome_extensions/EbayChromeExtension.xml",
     "content_scripts":  [
                             {
                                 "js":  [
