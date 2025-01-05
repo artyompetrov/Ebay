@@ -34,7 +34,7 @@ else
       --agree-tos \
       --no-eff-email
       
-      echo "Starting crond..."
-      crond
+      echo "Starting service cron..."
+      service cron start
 fi
 
