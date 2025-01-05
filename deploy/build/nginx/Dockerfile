@@ -10,5 +10,5 @@ COPY default.conf.template /etc/nginx/templates/default.conf.template
 COPY certbot-cron /etc/crontabs/root
 RUN chmod 0644 /etc/crontabs/root
 
-COPY cron.sh /docker-entrypoint.d/99-cron.sh
-RUN chmod +x /docker-entrypoint.d/99-cron.sh
+COPY certbot.sh /docker-entrypoint.d/99-certbot.sh
+RUN chmod +x /docker-entrypoint.d/00-certbot.sh

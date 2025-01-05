@@ -47,6 +47,7 @@ services:
       - ./mount/nginx/logs/:/var/log/nginx/
     environment:
       - DOMAIN=${DOMAIN}
+      - EMAIL=${EMAIL}
     networks:
       - ebay_internal_network
     restart: unless-stopped
