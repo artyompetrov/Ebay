@@ -38,7 +38,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Content Update="wwwroot\ebay_extension.crx">
+      <Content Update="wwwroot\chrome_extensions\*.crx">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
     </ItemGroup>
