@@ -3,6 +3,7 @@
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <RootNamespace>ChromeExtension</RootNamespace>
+        <Version>1.0.1</Version>
     </PropertyGroup>
 
     <ItemGroup>
@@ -14,6 +15,7 @@
 
     <Target Name="NSwag" BeforeTargets="BeforeBuild">
         <Exec Command="$(NSwagExe_Net80) openapi2tsclient /input:../Server/Controllers/Contracts/Ebay.yaml /output:EbayClient/EbayToolBackendClient.ts /ClassName:EbayToolBackendClient"/>
+        <Exec Command="powershell -Command &quot;$package = Get-Content package.json | ConvertFrom-Json; $package.version = '$(Version)'; $package | ConvertTo-Json -Depth 10 | Set-Content package.json&quot;" />
         <Exec Command="npm run build" />
         <Exec Command="crx3 _extension --keyPath=./key.pem --crxPath=./../Server/wwwroot/ebay_extension.crx" />
     </Target>
