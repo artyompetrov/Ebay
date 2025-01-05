@@ -39,19 +39,14 @@ services:
 
   ebay_nginx:
     container_name: ebay_nginx
-    image: nginx:1.27.0
+    build: ./build/nginx
     ports:
       - "80:80"
       - "443:443"
-      - "10001:10001"
     volumes:
-      - ./config/nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
-      - ${SSL_CERTIFICATE_DIR}:/certs/:ro
       - ./mount/nginx/logs/:/var/log/nginx/
     environment:
       - DOMAIN=${DOMAIN}
-      - SSL_CERTIFICATE_FILE=/certs/${SSL_CERTIFICATE_FILE}
-      - SSL_CERTIFICATE_KEY_FILE=/certs/${SSL_CERTIFICATE_KEY_FILE}
     networks:
       - ebay_internal_network
     restart: unless-stopped
