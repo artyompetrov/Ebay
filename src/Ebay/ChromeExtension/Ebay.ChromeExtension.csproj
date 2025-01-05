@@ -14,8 +14,8 @@
 
     <Target Name="NSwag" BeforeTargets="BeforeBuild">
         <Exec Command="$(NSwagExe_Net80) openapi2tsclient /input:../Server/Controllers/Contracts/Ebay.yaml /output:EbayClient/EbayToolBackendClient.ts /ClassName:EbayToolBackendClient"/>
-    </Target>
-    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
         <Exec Command="npm run build" />
+        <Exec Command="crx3 _extension --keyPath=./key.pem --crxPath=./../Server/wwwroot/ebay_extension.crx" />
     </Target>
+    
 </Project>

@@ -15,7 +15,7 @@ module.exports = {
         ],
     },
     output: {
-        path: path.resolve(__dirname, "../../EbayChromeExtension/build/"),
+        path: path.resolve(__dirname, "./_extension/build/"),
         filename: "ebay.js"
     },
     mode: 'development',
