@@ -64,10 +64,10 @@
   "host_permissions": [
     "https://vi.vipr.ebaydesc.com/*",
     "http://vi.vipr.ebaydesc.com/*",
-    "https://178.208.65.100:10001/*",
+    "https://178.208.65.100/*",
     "https://auth.ebay.com/*",
     "https://api.ebay.com/*",
-    "https://tubes.com.ru:10001/*",
+    "https://tubes.com.ru/*",
     "https://localhost:7095/*"
   ],
   "background": {
