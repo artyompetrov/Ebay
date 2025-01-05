@@ -46,6 +46,7 @@ services:
       - "9443:9443"
     volumes:
       - ./mount/nginx/logs/:/var/log/nginx/
+      - ./mount/nginx/certs/:/etc/letsencrypt/
     environment:
       - DOMAIN=${DOMAIN}
       - EMAIL=${EMAIL}
