@@ -59,7 +59,6 @@ services:
     image: portainer/portainer-ce
     restart: always
     command: >
-      --admin-username ${PORTAINER_USER}
       --admin-password '${PORTAINER_HASH}'
     volumes:
       - portainer_data:/data
