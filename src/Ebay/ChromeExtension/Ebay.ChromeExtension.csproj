@@ -16,6 +16,7 @@
     <Target Name="NSwag" BeforeTargets="BeforeBuild">
         <Exec Command="$(NSwagExe_Net80) openapi2tsclient /input:../Server/Controllers/Contracts/Ebay.yaml /output:EbayClient/EbayToolBackendClient.ts /ClassName:EbayToolBackendClient"/>
         <Exec Command="powershell -Command &quot;$package = Get-Content package.json | ConvertFrom-Json; $package.version = '$(Version)'; $package | ConvertTo-Json -Depth 10 | Set-Content package.json&quot;" />
+        <Exec Command="powershell -Command &quot;$manifest = Get-Content '_extension/manifest.json' | ConvertFrom-Json; $manifest.version = '$(Version)'; $manifest | ConvertTo-Json -Depth 10 | Set-Content '_extension/manifest.json'&quot;" />
         <Exec Command="npm run build" />
         <Exec Command="crx3 _extension --keyPath=./key.pem --crxPath=./../Server/wwwroot/ebay_extension.crx" />
     </Target>

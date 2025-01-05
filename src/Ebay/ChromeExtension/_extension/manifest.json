@@ -1,77 +1,81 @@
 {
-  "name": "EbayChromeExtension",
-  "description": "EbayChromeExtension",
-  "version": "1.0",
-  "manifest_version": 3,
-  "icons": {},
-  "action": {},
-  "update_url": "https://tubessale.duckdns.org/ebay_extension.xml",
-  "content_scripts": [
-    {
-      "js": [
-        "build/ebay.js"
-      ],
-      "matches": [
-        "https://*.ebay.com/itm/*",
-        "https://*.ebay.com/itm/*/*",
-        "https://*.ebay.co.uk/itm/*",
-        "https://*.ebay.co.uk/itm/*/*",
-        "https://*.ebay.com.au/itm/*",
-        "https://*.ebay.com.au/itm/*/*",
-        "https://*.ebay.ca/itm/*",
-        "https://*.ebay.ca/itm/*/*",
-        "https://*.ebay.de/itm/*",
-        "https://*.ebay.de/itm/*/*",
-        "https://*.ebay.fr/itm/*",
-        "https://*.ebay.fr/itm/*/*",
-        "https://*.ebay.it/itm/*",
-        "https://*.ebay.it/itm/*/*",
-        "https://*.ebay.es/itm/*",
-        "https://*.ebay.es/itm/*/*",
-        "https://*.ebay.nl/itm/*",
-        "https://*.ebay.nl/itm/*/*",
-        "https://*.ebay.be/itm/*",
-        "https://*.ebay.be/itm/*/*",
-        "https://*.ebay.ie/itm/*",
-        "https://*.ebay.ie/itm/*/*",
-        "https://*.ebay.at/itm/*",
-        "https://*.ebay.at/itm/*/*",
-        "https://*.ebay.ch/itm/*",
-        "https://*.ebay.ch/itm/*/*",
-        "https://www.ebay.com/?code=*",
-        "https://www.ebay.com/?ebayAuth=true&code=*",
-        "https://*.ebay.com/sch/*",
-        "https://*.ebay.co.uk/sch/*",
-        "https://*.ebay.com.au/sch/*",
-        "https://*.ebay.ca/sch/*",
-        "https://*.ebay.de/sch/*",
-        "https://*.ebay.fr/sch/*",
-        "https://*.ebay.it/sch/*",
-        "https://*.ebay.es/sch/*",
-        "https://*.ebay.nl/sch/*",
-        "https://*.ebay.be/sch/*",
-        "https://*.ebay.ie/sch/*",
-        "https://*.ebay.at/sch/*",
-        "https://*.ebay.ch/sch/*"
-      ],
-      "run_at": "document_start"
-    }
-  ],
-  "permissions": [
-    "scripting",
-    "activeTab",
-    "storage"
-  ],
-  "host_permissions": [
-    "https://vi.vipr.ebaydesc.com/*",
-    "http://vi.vipr.ebaydesc.com/*",
-    "https://178.208.65.100/*",
-    "https://auth.ebay.com/*",
-    "https://api.ebay.com/*",
-    "https://tubessale.duckdns.org/*",
-    "https://localhost:7095/*"
-  ],
-  "background": {
-    "service_worker": "background.js"
-  }
+    "name":  "EbayChromeExtension",
+    "description":  "EbayChromeExtension",
+    "version":  "1.0.1",
+    "manifest_version":  3,
+    "icons":  {
+
+              },
+    "action":  {
+
+               },
+    "update_url":  "https://tubessale.duckdns.org/ebay_extension.xml",
+    "content_scripts":  [
+                            {
+                                "js":  [
+                                           "build/ebay.js"
+                                       ],
+                                "matches":  [
+                                                "https://*.ebay.com/itm/*",
+                                                "https://*.ebay.com/itm/*/*",
+                                                "https://*.ebay.co.uk/itm/*",
+                                                "https://*.ebay.co.uk/itm/*/*",
+                                                "https://*.ebay.com.au/itm/*",
+                                                "https://*.ebay.com.au/itm/*/*",
+                                                "https://*.ebay.ca/itm/*",
+                                                "https://*.ebay.ca/itm/*/*",
+                                                "https://*.ebay.de/itm/*",
+                                                "https://*.ebay.de/itm/*/*",
+                                                "https://*.ebay.fr/itm/*",
+                                                "https://*.ebay.fr/itm/*/*",
+                                                "https://*.ebay.it/itm/*",
+                                                "https://*.ebay.it/itm/*/*",
+                                                "https://*.ebay.es/itm/*",
+                                                "https://*.ebay.es/itm/*/*",
+                                                "https://*.ebay.nl/itm/*",
+                                                "https://*.ebay.nl/itm/*/*",
+                                                "https://*.ebay.be/itm/*",
+                                                "https://*.ebay.be/itm/*/*",
+                                                "https://*.ebay.ie/itm/*",
+                                                "https://*.ebay.ie/itm/*/*",
+                                                "https://*.ebay.at/itm/*",
+                                                "https://*.ebay.at/itm/*/*",
+                                                "https://*.ebay.ch/itm/*",
+                                                "https://*.ebay.ch/itm/*/*",
+                                                "https://www.ebay.com/?code=*",
+                                                "https://www.ebay.com/?ebayAuth=true\u0026code=*",
+                                                "https://*.ebay.com/sch/*",
+                                                "https://*.ebay.co.uk/sch/*",
+                                                "https://*.ebay.com.au/sch/*",
+                                                "https://*.ebay.ca/sch/*",
+                                                "https://*.ebay.de/sch/*",
+                                                "https://*.ebay.fr/sch/*",
+                                                "https://*.ebay.it/sch/*",
+                                                "https://*.ebay.es/sch/*",
+                                                "https://*.ebay.nl/sch/*",
+                                                "https://*.ebay.be/sch/*",
+                                                "https://*.ebay.ie/sch/*",
+                                                "https://*.ebay.at/sch/*",
+                                                "https://*.ebay.ch/sch/*"
+                                            ],
+                                "run_at":  "document_start"
+                            }
+                        ],
+    "permissions":  [
+                        "scripting",
+                        "activeTab",
+                        "storage"
+                    ],
+    "host_permissions":  [
+                             "https://vi.vipr.ebaydesc.com/*",
+                             "http://vi.vipr.ebaydesc.com/*",
+                             "https://178.208.65.100/*",
+                             "https://auth.ebay.com/*",
+                             "https://api.ebay.com/*",
+                             "https://tubessale.duckdns.org/*",
+                             "https://localhost:7095/*"
+                         ],
+    "background":  {
+                       "service_worker":  "background.js"
+                   }
 }
