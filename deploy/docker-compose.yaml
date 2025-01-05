@@ -26,7 +26,7 @@ services:
     volumes:
       - ${NETCORE_CERTIFICATE}:/certs/cert.pfx:ro
     environment:
-      - DOMAIN=${DOMAIN}
+      - DOMAIN=${DUCKDNS_DOMAIN}.duckdns.org
       - ASPNETCORE_URLS=https://+:443/
       - ASPNETCORE_Kestrel__Certificates__Default__Password=${NETCORE_CERTIFICATE_PASSWORD}
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/certs/cert.pfx
@@ -48,7 +48,7 @@ services:
       - ./mount/nginx/logs/:/var/log/nginx/
       - ./mount/nginx/certs/:/etc/letsencrypt/
     environment:
-      - DOMAIN=${DOMAIN}
+      - DOMAIN=${DUCKDNS_DOMAIN}.duckdns.org
       - EMAIL=${EMAIL}
     networks:
       - ebay_internal_network
@@ -65,6 +65,14 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - ebay_internal_network
+
+  ebay_duckdns:
+    image: lscr.io/linuxserver/duckdns:latest
+    container_name: duckdns
+    environment:
+      - SUBDOMAINS=${DUCKDNS_DOMAIN}
+      - TOKEN=${DUCKDNS_TOKEN}
+    restart: unless-stopped
 
 networks:
   ebay_internal_network:
