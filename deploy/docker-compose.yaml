@@ -72,6 +72,12 @@ services:
       - SUBDOMAINS=${DUCKDNS_DOMAIN}
       - TOKEN=${DUCKDNS_TOKEN}
     restart: unless-stopped
+    entrypoint: >
+      sh -c "if [ \"$LOCAL_RUN\" = \"true\" ]; then
+                 echo 'Skipping ebay_duckdns because LOCAL_RUN=true';
+                 sleep infinity;
+               fi;
+               exec /init"
 
 networks:
   ebay_internal_network:
