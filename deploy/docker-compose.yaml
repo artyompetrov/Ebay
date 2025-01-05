@@ -47,7 +47,7 @@ services:
       - ./mount/nginx/certs/:/etc/letsencrypt/
     environment:
       - DOMAIN=${DUCKDNS_DOMAIN}.duckdns.org
-      - SELF_SIGNED=${SELF_SIGNED}
+      - SELF_SIGNED_CERTIFICATE=${LOCAL_RUN}
       - EMAIL=${EMAIL}
     networks:
       - ebay_internal_network
