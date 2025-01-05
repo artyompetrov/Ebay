@@ -52,7 +52,7 @@ internal class EbayControllerImplementation : IEbayController
             scopeOption: TransactionScopeOption.Required,
             asyncFlowOption: TransactionScopeAsyncFlowOption.Enabled,
             transactionOptions: new TransactionOptions
-                { IsolationLevel = IsolationLevel.ReadCommitted }
+            { IsolationLevel = IsolationLevel.ReadCommitted }
         );
 
         await _applicationContext.Products.AddAsync(
@@ -82,7 +82,7 @@ internal class EbayControllerImplementation : IEbayController
             scopeOption: TransactionScopeOption.Required,
             asyncFlowOption: TransactionScopeAsyncFlowOption.Enabled,
             transactionOptions: new TransactionOptions
-                { IsolationLevel = IsolationLevel.ReadCommitted }
+            { IsolationLevel = IsolationLevel.ReadCommitted }
         );
 
         var dbProduct = _applicationContext.Products.Attach(new DbProduct { Id = id });
@@ -226,7 +226,7 @@ internal class EbayControllerImplementation : IEbayController
             scopeOption: TransactionScopeOption.Required,
             asyncFlowOption: TransactionScopeAsyncFlowOption.Enabled,
             transactionOptions: new TransactionOptions
-                { IsolationLevel = IsolationLevel.ReadCommitted }
+            { IsolationLevel = IsolationLevel.ReadCommitted }
         );
 
         await _applicationContext.Lots.Upsert(dbLotInfo).RunAsync(cancellationToken);
@@ -266,7 +266,7 @@ internal class EbayControllerImplementation : IEbayController
             scopeOption: TransactionScopeOption.Required,
             asyncFlowOption: TransactionScopeAsyncFlowOption.Enabled,
             transactionOptions: new TransactionOptions
-                { IsolationLevel = IsolationLevel.Serializable }
+            { IsolationLevel = IsolationLevel.Serializable }
         );
 
         var lotIds = ignoredLots.ToList();
@@ -283,7 +283,7 @@ internal class EbayControllerImplementation : IEbayController
 
         transaction.Complete();
     }
-    
+
 
     public async Task<LotInfoWithProductId> GetLotInfoAsync(
         long lotId,
@@ -309,7 +309,7 @@ internal class EbayControllerImplementation : IEbayController
     public async Task DeleteLotInfoAsync(long lotId, CancellationToken cancellationToken)
     {
         var lot = new Lot { Id = lotId };
-        
+
         _applicationContext.Lots.Attach(lot);
         _applicationContext.Lots.Remove(lot);
 

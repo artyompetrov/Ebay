@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 
 namespace Ebay.Server.Services;
 
@@ -12,7 +12,7 @@ internal abstract class ExtractorBase
 
     protected static readonly ExtractFrom TitleAndConditionDescription =
         ExtractFrom.Title | ExtractFrom.ConditionDescription;
-    
+
     private static readonly string[] NewLines = { "\r\n", "\r", "\n" };
     protected const RegexOptions Ro = RegexOptions.IgnoreCase;
 

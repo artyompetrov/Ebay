@@ -36,7 +36,7 @@ internal static class DictionaryExtensions
         {
             return value;
         }
-        
+
         var newValue = createValue();
         dictionary.Add(
             key: key,
@@ -45,7 +45,7 @@ internal static class DictionaryExtensions
 
         return newValue;
     }
-    
+
     public static TValue GetOrAdd<TKey, TValue>(
         this IDictionary<TKey, TValue> dictionary,
         TKey key,
@@ -56,7 +56,7 @@ internal static class DictionaryExtensions
         {
             return value;
         }
-        
+
         dictionary.Add(
             key: key,
             value: newValue

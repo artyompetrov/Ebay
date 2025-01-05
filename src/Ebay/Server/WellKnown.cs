@@ -27,27 +27,27 @@ internal static class WellKnown
         public static TimeSpan ErrorDelay = TimeSpan.FromMinutes(5);
         public static string AppId = "2d0b695db0cb4dbab40a85a91a88bd24";
     }
-    
+
     public static class Categories
     {
         public static class Conditions
         {
             public static string CategoryName = "condition";
-            
+
             public static string New = "new";
             public static string Used = "used";
             public static string NotWorking = "notWorking";
         }
-    
+
         public static class TestState
         {
             public static string CategoryName = "test_state";
-            
+
             public static string NotTested = "notTested";
             public static string Tested = "tested";
             public static string Matched = "matched";
         }
     }
-    
+
 
 }

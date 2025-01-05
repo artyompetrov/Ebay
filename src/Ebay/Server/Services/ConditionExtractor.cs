@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 using Ebay.Server.Controllers.Generated;
 using Ebay.Server.Infrastructure;
 

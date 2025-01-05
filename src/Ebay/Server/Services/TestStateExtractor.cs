@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 using Ebay.Server.Controllers.Generated;
 using Ebay.Server.Infrastructure;
 
@@ -6,7 +6,7 @@ namespace Ebay.Server.Services;
 
 internal class TestStateExtractor : ExtractorBase, IExtractor
 {
-   public string ExtractedDataName => "test_state";
+    public string ExtractedDataName => "test_state";
 
     private static readonly List<Extractor> Extractors = new()
     {
@@ -20,7 +20,7 @@ internal class TestStateExtractor : ExtractorBase, IExtractor
 
     private static readonly string[] ToRemove =
     {
-       
+
     };
 
     public Dictionary<string, HashSet<ExtractionResult>> Extract(LotDataToExtract lotDataToExtract)
@@ -38,13 +38,13 @@ internal class TestStateExtractor : ExtractorBase, IExtractor
             extractedFrom: ExtractFrom.Title,
             result: extractionResult
         );
-        
+
         ExtractInternal(
             splittedArray: conditionSplitted,
             extractedFrom: ExtractFrom.Condition,
             result: extractionResult
         );
-        
+
         if (conditionDescriptionSplitted != null)
         {
             ExtractInternal(
@@ -53,13 +53,13 @@ internal class TestStateExtractor : ExtractorBase, IExtractor
                 result: extractionResult
             );
         }
-        
+
         ExtractInternal(
             splittedArray: descriptionTextSplitted,
             extractedFrom: ExtractFrom.Description,
             result: extractionResult
         );
-        
+
         if (shortDescriptionTextSplitted != null)
         {
             ExtractInternal(
@@ -74,8 +74,8 @@ internal class TestStateExtractor : ExtractorBase, IExtractor
             extractionResult.Remove(WellKnown.Categories.TestState.Tested);
             extractionResult.Remove(WellKnown.Categories.TestState.NotTested);
         }
-        
-        
+
+
         return extractionResult;
     }
 

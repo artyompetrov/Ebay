@@ -31,7 +31,7 @@ internal class Lot
     public double ShippingAdditional { get; set; }
 
     public string Description { get; set; } = null!;
-    
+
     public string? ShortDescription { get; set; }
 
     public string Condition { get; set; } = null!;

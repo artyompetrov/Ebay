@@ -179,8 +179,8 @@ public class ExplicitTests
             message: $"{ToStr(result)}{Environment.NewLine}lotId: {lotId}{Environment.NewLine}seller:{lotInfoFull.LotInfo.Seller}"
         );
     }
-    
-    
+
+
     public static IEnumerable<TestCaseData> GetLots()
     {
         var allLotIds = Client.GetLotIdsAsync().GetAwaiter().GetResult();

@@ -9,14 +9,14 @@ internal class PcsExtractor : ExtractorBase, IExtractor
     public string ExtractedDataName => "pcs";
 
     private static readonly string[] ToRemove =
-    {
+    [
         "196x year",
         "197x year",
         "198x year",
         "199x year",
         "3x MICA",
         "than 9 pcs"
-    };
+    ];
 
     /// <summary>
     /// Перечень экстракторов с приоритетами
@@ -54,7 +54,7 @@ internal class PcsExtractor : ExtractorBase, IExtractor
         new Extractor(new Regex(@"^[([]?(\d{1,3})[)\]]?\s", Ro), null, 1, TitleAndConditionDescription),
         new Extractor(new Regex(@"\bprice\s+is\s+for\s+one\s+pair\b", Ro), 2, 1, All),
         new Extractor(new Regex(@"\bprice\s+is\s+for\s+one\b", Ro), 1, 1, All),
-        
+
         new Extractor(new Regex(@"^one\s+pair\b", Ro), 2, 1, All),
         new Extractor(new Regex(@"^one\b", Ro), 1, 1, All),
         new Extractor(new Regex(@"^two\b", Ro), 2, 1, All),
@@ -99,7 +99,7 @@ internal class PcsExtractor : ExtractorBase, IExtractor
             ExtractFrom.Description,
             extractionResult
         );
-        
+
         if (shortDescriptionTextSplitted != null)
         {
             Extract(
