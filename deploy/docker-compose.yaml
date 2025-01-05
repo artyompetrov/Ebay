@@ -68,7 +68,7 @@ services:
 
   ebay_duckdns:
     image: lscr.io/linuxserver/duckdns:latest
-    container_name: duckdns
+    container_name: ebay_duckdns
     environment:
       - SUBDOMAINS=${DUCKDNS_DOMAIN}
       - TOKEN=${DUCKDNS_TOKEN}
