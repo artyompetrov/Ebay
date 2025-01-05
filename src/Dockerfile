@@ -14,7 +14,7 @@ COPY . .
 WORKDIR "/src/Ebay/Server"
 
 ARG BUILD_VERSION="0.0.0.1"
-RUN dotnet publish "Ebay.Server.csproj" -c Release -o /app/publish /p:UseAppHost=false /p:AssemblyVersion=$BUILD_VERSION /p:Version=$BUILD_VERSION
+RUN dotnet publish "Ebay.Server.csproj" -c Release -o /app/publish /p:UseAppHost=false /p:Version=$BUILD_VERSION
 
 FROM base AS final
 WORKDIR /app
