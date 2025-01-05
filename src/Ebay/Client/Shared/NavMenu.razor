@@ -2,7 +2,7 @@
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">Ebay @Assembly.GetExecutingAssembly().GetName().Version</a>
+        <a class="navbar-brand" href="">@("v" + Assembly.GetExecutingAssembly().GetName().Version)</a>
         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
