@@ -1,6 +1,6 @@
-FROM nginx:1.27.0-alpine
+FROM nginx:1.27.0-bookworm
 
-RUN apk add --no-cache certbot certbot-nginx curl bash
+RUN apt update && apt install -y certbot
 
 RUN mkdir -p /var/www/certbot
 RUN mkdir -p /var/log/cron

@@ -10,9 +10,9 @@ from pathlib import Path
 from urllib.parse import urlencode
 
 # Конфигурационные переменные
-from_host = "tubes.com.ru"
+from_host = "tubessale.duckdns.org"
 to_host = "localhost"
-backup_path_folder = "D:\YandexDisk\Backups\Ebay"
+backup_path_folder = r"D:\YandexDisk\Backups\Ebay"
 
 pg_password = "catnip0-spoil4-untrimmed"
 
