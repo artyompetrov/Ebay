@@ -1,9 +1,5 @@
 #!/bin/bash
 
-cd ./git
-
-git pull origin main
-
 cd ./deploy
 
 env $(cat server.env | xargs) docker compose pull
