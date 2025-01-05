@@ -9,7 +9,7 @@
     "action":  {
 
                },
-    "update_url":  "https://tubessale.duckdns.org/ebay_extension.xml",
+    "update_url":  "https://tubessale.duckdns.org/chrome_extensions/ebay_extension.xml",
     "content_scripts":  [
                             {
                                 "js":  [
