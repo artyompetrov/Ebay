@@ -1,5 +1,3 @@
-version: "3"
-
 services:
   ebay_postgres:
     container_name: ebay_postgres
@@ -49,6 +47,7 @@ services:
       - ./mount/nginx/certs/:/etc/letsencrypt/
     environment:
       - DOMAIN=${DUCKDNS_DOMAIN}.duckdns.org
+      - SELF_SIGNED=${SELF_SIGNED}
       - EMAIL=${EMAIL}
     networks:
       - ebay_internal_network
