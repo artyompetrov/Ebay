@@ -5,7 +5,6 @@
   "manifest_version": 3,
   "icons": {},
   "action": {},
-  "update_url": "https://tubessale.duckdns.org/ebay_extension.xml",
   "content_scripts": [
     {
       "js": [
@@ -68,7 +67,7 @@
     "https://178.208.65.100/*",
     "https://auth.ebay.com/*",
     "https://api.ebay.com/*",
-    "https://tubessale.duckdns.org/*",
+    "https://tubes.com.ru/*",
     "https://localhost:7095/*"
   ],
   "background": {
