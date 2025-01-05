@@ -1,10 +1,12 @@
 ﻿using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ebay.Server.Controllers;
 
 
 [ApiController]
+[AllowAnonymous]
 [Route("chrome_extensions")]
 public class ExtensionController : ControllerBase
 {
