@@ -7,6 +7,7 @@ certbot certonly \
   --standalone \
   -d $DOMAIN -d www.$DOMAIN \
   --email $EMAIL \
+  --non-interactive \
   --agree-tos \
   --no-eff-email
 

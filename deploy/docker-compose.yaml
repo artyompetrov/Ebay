@@ -58,6 +58,9 @@ services:
     container_name: ebay_portainer
     image: portainer/portainer-ce
     restart: always
+    command: >
+      --admin-username ${PORTAINER_USER}
+      --admin-password '${PORTAINER_HASH}'
     volumes:
       - portainer_data:/data
       - /var/run/docker.sock:/var/run/docker.sock
