@@ -1,10 +1,7 @@
 ﻿version: 2
 updates:
-  - &common
+  - package-ecosystem: "nuget"
+    directory: "/src"
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 5
-    
-  - <<: *common
-    package-ecosystem: "nuget"
-    directory: "/src"
