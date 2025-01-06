@@ -39,6 +39,7 @@ const lightYellowColor = "#e0e07f"
 const marketplaceId = "EBAY_US"
 const batchOpen = 10
 const categoriesDiv = "categoriesDiv"
+const ignoredLotDiv = "ignoredLotDiv"
 const currentProductIdParamName = "tool_productId"
 let lotNotSupported = false;
 let _lotInfo = new LotInfo()
@@ -242,6 +243,8 @@ async function createPanel(backendClient: EbayToolBackendClient, ebayClient: Eba
         </div>
         <br>
         <div id="${categoriesDiv}">
+        </div>
+        <div id="${ignoredLotDiv}" style="color: red;" hidden="hidden">Лот в игноре
         </div>
         <div style="color: red;" id="${errorElementId}"></div>
         <br>
@@ -498,9 +501,10 @@ function hasShippingToCountry(country: string, shipsTo: Set<string>, excludes: S
     return (shipsTo.has('WORLDWIDE') || shipsToRegionFound || shipsTo.has(country)) && !excludesRegionFound && !excludes.has(country);
 }
 
-async function fillIsIgnored() {
+async function showIsIgnored() {
     if (!_serverIsIgnored) return;
-
+    let ignoredLotDivElement = <HTMLDivElement>_panel.querySelector('div#' + ignoredLotDiv);
+    ignoredLotDivElement.hidden = false;
 }
 
 async function fillPurchaseHistory() {
@@ -956,7 +960,7 @@ async function getDataFromPage(backendClient: EbayToolBackendClient, ebayClient:
     let extractedDataByFieldName = await extractManualFieldsData(backendClient);
 
     await Promise.all([
-        fillIsIgnored(),
+        showIsIgnored(),
         fillPurchaseHistory(),
         fillUpdateTitleDate(),
         fillProduct(backendClient),
