@@ -757,14 +757,17 @@ async function compareLotInfos(serverLotInfoWithProductId: LotInfoWithProductId)
                 return new Date(x.date).getTime();
             } else return 0;
         }))
+        
         if (ebayMaxDate === 0 || serverMaxDate === ebayMaxDate) {
             panel.style.cssText = `background-color: ${lightGreenColor};`
             _serverAndEbayAreEqual = true;
         } else {
             panel.style.cssText = `background-color: ${lightYellowColor};`
+            console.log(`Update needed because last sale server ${serverMaxDate} and ebay last sale ${ebayMaxDate}`)
         }
     } else {
         panel.style.cssText = `background-color: ${lightPinkColor};`
+        console.log(`Update needed because server and ebay lot info differs`)
     }
 
     console.log("Received from server: " + serverLotInfoJsonString)
