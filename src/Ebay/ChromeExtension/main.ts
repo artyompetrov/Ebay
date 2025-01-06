@@ -37,10 +37,10 @@ const lightGreenColor = "#ecffec"
 const lightPinkColor = "lightpink"
 const lightYellowColor = "#e0e07f"
 const marketplaceId = "EBAY_US"
-const batchOpen = 5
-const unsupportedLotDiv = "unsupportedLotDiv"
+const batchOpen = 10
 const categoriesDiv = "categoriesDiv"
 const currentProductIdParamName = "tool_productId"
+let lotNotSupported = false;
 let _lotInfo = new LotInfo()
 let _serverLotInfo: LotInfoWithProductId;
 let _needActualizationLotsIds: number[] = null
@@ -235,13 +235,11 @@ async function createPanel(backendClient: EbayToolBackendClient, ebayClient: Eba
             </select>
             <br>
             <label for="${pcsFieldName}">PCS</label>
-            <input id="${pcsFieldName}" type="number" name="${pcsFieldName}"/>
-            <input id="${autoPcsFieldName}" type="text" name="${autoPcsFieldName}" readonly/>
+            <input id="${pcsFieldName}" type="number" name="${pcsFieldName}" title="Вручную введенное количество"/>
+            <input id="${autoPcsFieldName}" type="text" name="${autoPcsFieldName}" title="Автоматически определенное количество (желтый цвет - есть подозрение на неточность, зеленый все ОК)" readonly/>
         </div>
         <br>
         <div id="${categoriesDiv}">
-        </div>
-        <div id="${unsupportedLotDiv}" hidden="hidden">Лот не поддерживается, будет добавлен в игнор
         </div>
         <div style="color: red;" id="${errorElementId}"></div>
         <br>
@@ -260,6 +258,10 @@ async function createPanel(backendClient: EbayToolBackendClient, ebayClient: Eba
 
 async function handleIgnoreThatLotSubmit(event: SubmitEvent, backendClient: EbayToolBackendClient) {
     event.preventDefault();
+    await ignoreThatLot(backendClient)
+}
+
+async function ignoreThatLot(backendClient: EbayToolBackendClient) {
     console.log("Ignoring lot " + _lotInfo.lotId + " for product " + _currentProductId)
     await backendClient.ignoreLots([_lotInfo.lotId], _currentProductId)
     window.close()
@@ -618,6 +620,7 @@ async function fillManualCondition(client: EbayToolBackendClient, extractedDataB
 
             if (isInExtracted) {
                 label.style.color = "green"
+                label.title = "Зеленый цвет - автоматически определенная категория"
 
                 if (!serverValue) {
                     let currentCount = extractedDataCounts[categoryItem.id]
@@ -811,15 +814,27 @@ async function getEbayItem(ebayClient: EbayClient, ebayShoppingApiClient: EbaySh
     let zipCode = supportedShippingCountries.get(shippingCountry).zip ?? ""
     let shippingCostsXml = await ebayShoppingApiClient.getShippingCosts(lotId, shippingCountry, zipCode)
 
-    fillLotInfo(ebayItem, shippingCountry, shippingCostsXml)
+    await fillLotInfo(ebayItem, shippingCountry, shippingCostsXml)
 }
 
-function fillShipping(shippingCostsXml: string) {
+async function fillShipping(shippingCostsXml: string, shippingCountry: string)  {
     console.log(shippingCostsXml)
 
     let parser = new DOMParser();
     let doc = parser.parseFromString(shippingCostsXml, "application/xml");
 
+    let errorCode = doc.querySelector("GetShippingCostsResponse Errors ErrorCode")
+    
+    if (errorCode) {
+        // Item has no shipping option.
+        if (errorCode.innerHTML === '10.6') {
+            lotNotSupported = true;
+            console.log("Log not supported because Item has no shipping option");
+            return
+        }
+        throw Error("Unexpected error during shipping price extraction: " + shippingCostsXml)
+    }
+    
     let shippingCostElement = doc.querySelector("ShippingDetails ShippingServiceCost")
     if (!shippingCostElement) {
         shippingCostElement = doc.querySelector("ListedShippingServiceCost")
@@ -836,9 +851,11 @@ function fillShipping(shippingCostsXml: string) {
     } else {
         _lotInfo.shippingAdditional = 0
     }
+
+    _lotInfo.shippingCountry = shippingCountry
 }
 
-function fillLotInfo(ebayItem: Item, shippingCountry: string, shippingCostXml: string) {
+async function fillLotInfo(ebayItem: Item, shippingCountry: string, shippingCostXml: string) {
     console.log(JSON.stringify(ebayItem))
 
     _lotInfo.lotId = parseInt(ebayItem.legacyItemId)
@@ -865,9 +882,7 @@ function fillLotInfo(ebayItem: Item, shippingCountry: string, shippingCostXml: s
 
     _lotInfo.shortDescription = ebayItem.shortDescription
 
-    _lotInfo.shippingCountry = shippingCountry
-
-    fillShipping(shippingCostXml);
+    await fillShipping(shippingCostXml, shippingCountry);
 
     //todo categoryPath
 }
@@ -938,7 +953,12 @@ async function getDataFromPage(backendClient: EbayToolBackendClient, ebayClient:
         fillManualCondition(backendClient, extractedDataByFieldName),
         fillPcs(extractedDataByFieldName),
     ]);
-
+    
+    if (lotNotSupported) {
+        await ignoreThatLot(backendClient);
+        
+    }
+    
     await compareLotInfos(_serverLotInfo);
 }
 
