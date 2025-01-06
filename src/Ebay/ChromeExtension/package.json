@@ -5,7 +5,7 @@
                          "jsonpath":  "^1.1.1"
                      },
     "name":  "chromeextension",
-    "version":  "1.0.8",
+    "version":  "1.0.9",
     "main":  "main.js",
     "devDependencies":  {
                             "@types/jsonpath":  "^0.2.4",

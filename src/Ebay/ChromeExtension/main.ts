@@ -16,7 +16,7 @@ import {FetchWrapperCustom} from "./FetchWrapperCustom";
 import {EbayShoppingApiClient} from "./EbayShoppingApiClient";
 
 const productFieldName = "productId";
-const ignoreThatLotId = "ignoreThatLot"
+const ignoreThatLotFormId = "ignoreThatLot"
 const pcsFieldName = "pcs";
 const autoPcsFieldName = "autoPcs";
 const categoryPrefix = 'category_'
@@ -45,7 +45,6 @@ let lotNotSupported = false;
 let _lotInfo = new LotInfo()
 
 let _serverLotInfo: LotInfoWithProductId | undefined;
-let _serverIsIgnored: boolean | undefined;
 let _needActualizationLotsIds: number[] = null
 let _serverAndEbayAreEqual = false;
 let _panel: HTMLDivElement;
@@ -217,10 +216,11 @@ async function createPanel(backendClient: EbayToolBackendClient, ebayClient: Eba
         <br><a href="${revisionsButtonHref}" target="_blank">История изменений лота</a>
         <br>Бэкенд: <a href="${backendUrl}" target="_blank">${backendUrl}</a>
         <br><br>
+        <div id="${ignoredLotDiv}" style="color: red;" hidden="hidden">Лот в игноре</div>
     `
 
     let formIgnoreThatLot = document.createElement('form')
-    formIgnoreThatLot.id = ignoreThatLotId
+    formIgnoreThatLot.id = ignoreThatLotFormId
     div.appendChild(formIgnoreThatLot)
 
     formIgnoreThatLot.addEventListener("submit", async function (event: SubmitEvent) {
@@ -243,8 +243,6 @@ async function createPanel(backendClient: EbayToolBackendClient, ebayClient: Eba
         </div>
         <br>
         <div id="${categoriesDiv}">
-        </div>
-        <div id="${ignoredLotDiv}" style="color: red;" hidden="hidden">Лот в игноре
         </div>
         <div style="color: red;" id="${errorElementId}"></div>
         <br>
@@ -269,6 +267,7 @@ async function handleIgnoreThatLotSubmit(event: SubmitEvent, backendClient: Ebay
 async function ignoreThatLot(backendClient: EbayToolBackendClient) {
     console.log("Ignoring lot " + _lotInfo.lotId + " for product " + _currentProductId)
     await backendClient.ignoreLots([_lotInfo.lotId], _currentProductId)
+    showThatLotIsIgnored();
     window.close()
 }
 
@@ -501,10 +500,17 @@ function hasShippingToCountry(country: string, shipsTo: Set<string>, excludes: S
     return (shipsTo.has('WORLDWIDE') || shipsToRegionFound || shipsTo.has(country)) && !excludesRegionFound && !excludes.has(country);
 }
 
-async function showIsIgnored() {
-    if (!_serverIsIgnored) return;
+function showThatLotIsIgnored() {
     let ignoredLotDivElement = <HTMLDivElement>_panel.querySelector('div#' + ignoredLotDiv);
+    let ignoreThatLotFormElement = <HTMLDivElement>_panel.querySelector('form#' + ignoreThatLotFormId);
     ignoredLotDivElement.hidden = false;
+    ignoreThatLotFormElement.hidden = true;
+}
+
+async function fillIsIgnored(backendClient: EbayToolBackendClient) {
+    let isIgnored = await backendClient.getIsLotIgnoredForProduct(_currentProductId, _lotInfo.lotId);
+    if (!isIgnored) return
+    showThatLotIsIgnored();
 }
 
 async function fillPurchaseHistory() {
@@ -567,7 +573,7 @@ function getCurrentProductIdParam(): string | undefined {
 
 async function fillProduct(client: EbayToolBackendClient) {
     let productField = _panel.querySelector('select#' + productFieldName);
-    let ignoreThatLot = _panel.querySelector("form#" + ignoreThatLotId)
+    let ignoreThatLot = _panel.querySelector("form#" + ignoreThatLotFormId)
     let productIdServer = _serverLotInfo?.productId?.trim()?.toLowerCase()
 
     let products = await client.getAllProducts()
@@ -663,9 +669,8 @@ async function fillManualCondition(client: EbayToolBackendClient, extractedDataB
 
 async function getServerLotInfo(client: EbayToolBackendClient): Promise<void> {
     try {
-        let lotInfo = (await client.getLotInfo(_lotInfo.lotId));
-        _serverLotInfo = lotInfo.lotInfoWithProductId;
-        _serverIsIgnored = lotInfo.isIgnored;
+
+        _serverLotInfo = await client.getLotInfo(_lotInfo.lotId);
     } catch (error) {
         if (error instanceof NotFoundProblemDetailedInfo) {
             return;
@@ -960,7 +965,7 @@ async function getDataFromPage(backendClient: EbayToolBackendClient, ebayClient:
     let extractedDataByFieldName = await extractManualFieldsData(backendClient);
 
     await Promise.all([
-        showIsIgnored(),
+        fillIsIgnored(backendClient),
         fillPurchaseHistory(),
         fillUpdateTitleDate(),
         fillProduct(backendClient),

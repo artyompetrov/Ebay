@@ -284,14 +284,23 @@ internal class EbayControllerImplementation : IEbayController
         transaction.Complete();
     }
 
-
-    public async Task<LotInfoWithProductIdWithIgnoredInfo> GetLotInfoAsync(
+    public async Task<bool> GetIsLotIgnoredForProductAsync(
+        Guid productId,
         long lotId,
         CancellationToken cancellationToken
     )
     {
-        var isIgnored = await _applicationContext.IgnoredLots.AnyAsync(predicate: x => x.LotId == lotId, cancellationToken: cancellationToken);
-        
+        var dbLot = await _applicationContext.IgnoredLots.AnyAsync(x => x.LotId == lotId && x.ProductId == productId);
+
+        return dbLot;
+    }
+
+
+    public async Task<LotInfoWithProductId> GetLotInfoAsync(
+        long lotId,
+        CancellationToken cancellationToken
+    )
+    {
         var dbLot = await _applicationContext.Lots
             .AsNoTracking()
             .Include(x => x.Purchases)
@@ -300,12 +309,12 @@ internal class EbayControllerImplementation : IEbayController
                 cancellationToken: cancellationToken
             );
 
-        if (dbLot == null && isIgnored == false)
+        if (dbLot == null)
         {
             throw NonOkHttpAnswerException.NotFound400();
         }
 
-        return new LotInfoWithProductIdWithIgnoredInfo(isIgnored: isIgnored, lotInfoWithProductId: dbLot?.ToApiLot()) ;
+        return dbLot.ToApiLot();
     }
 
     public async Task DeleteLotInfoAsync(long lotId, CancellationToken cancellationToken)

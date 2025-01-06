@@ -106,6 +106,12 @@ namespace Ebay.Server.Controllers.Generated
 
         System.Threading.Tasks.Task IgnoreLotsAsync(System.Collections.Generic.IEnumerable<long> ignoredLots, System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
+
+
+        /// <returns>Ok</returns>
+
+        System.Threading.Tasks.Task<bool> GetIsLotIgnoredForProductAsync(System.Guid productId, long lotId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+
         /// <summary>
         /// Получить информацию о лоте
         /// </summary>
@@ -113,7 +119,7 @@ namespace Ebay.Server.Controllers.Generated
 
         /// <returns>Ok</returns>
 
-        System.Threading.Tasks.Task<LotInfoWithProductIdWithIgnoredInfo> GetLotInfoAsync(long lotId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+        System.Threading.Tasks.Task<LotInfoWithProductId> GetLotInfoAsync(long lotId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
         /// <summary>
         /// Удалить информацию о лоте
@@ -287,12 +293,20 @@ namespace Ebay.Server.Controllers.Generated
             return _implementation.IgnoreLotsAsync(ignoredLots, productId, cancellationToken);
         }
 
+        /// <returns>Ok</returns>
+        [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("products/{productId}/ignored_lots/{lotId}")]
+        public System.Threading.Tasks.Task<bool> GetIsLotIgnoredForProduct(System.Guid productId, long lotId, System.Threading.CancellationToken cancellationToken)
+        {
+
+            return _implementation.GetIsLotIgnoredForProductAsync(productId, lotId, cancellationToken);
+        }
+
         /// <summary>
         /// Получить информацию о лоте
         /// </summary>
         /// <returns>Ok</returns>
         [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("lots/{lotId}/")]
-        public System.Threading.Tasks.Task<LotInfoWithProductIdWithIgnoredInfo> GetLotInfo(long lotId, System.Threading.CancellationToken cancellationToken)
+        public System.Threading.Tasks.Task<LotInfoWithProductId> GetLotInfo(long lotId, System.Threading.CancellationToken cancellationToken)
         {
 
             return _implementation.GetLotInfoAsync(lotId, cancellationToken);
@@ -472,27 +486,6 @@ namespace Ebay.Server.Controllers.Generated
         [System.ComponentModel.DataAnnotations.Required]
         [System.ComponentModel.DataAnnotations.RegularExpression(@"^\w+(?:[ -\/\\.,]+\w+)*$")]
         public string Query { get; }
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class LotInfoWithProductIdWithIgnoredInfo
-    {
-        [Newtonsoft.Json.JsonConstructor]
-
-        public LotInfoWithProductIdWithIgnoredInfo(bool @isIgnored, LotInfoWithProductId? @lotInfoWithProductId)
-
-        {
-
-            this.IsIgnored = @isIgnored;
-
-            this.LotInfoWithProductId = @lotInfoWithProductId;
-
-        }    [Newtonsoft.Json.JsonProperty("isIgnored", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public bool IsIgnored { get; }
-
-        [Newtonsoft.Json.JsonProperty("lotInfoWithProductId", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public LotInfoWithProductId? LotInfoWithProductId { get; }
 
     }
 

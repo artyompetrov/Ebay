@@ -190,6 +190,31 @@ paths:
           schema:
             $ref: '#/definitions/NotFoundProblemDetailedInfo'
 
+  /products/{productId}/ignored_lots/{lotId}:
+    parameters:
+      - name: productId
+        in: path
+        required: true
+        type: string
+        format: guid
+      - name: lotId
+        in: path
+        required: true
+        type: integer
+        format: int64
+    get:
+      operationId: GetIsLotIgnoredForProduct
+      responses:
+        200:
+          description: Ok
+          schema:
+            type: boolean
+        400:
+          description: 'NotFound'
+          schema:
+            $ref: '#/definitions/NotFoundProblemDetailedInfo'
+
+
   /lots/{lotId}/:
     parameters:
       - name: lotId
@@ -204,7 +229,7 @@ paths:
         200:
           description: 'Ok'
           schema:
-            $ref: '#/definitions/LotInfoWithProductIdWithIgnoredInfo'
+            $ref: '#/definitions/LotInfoWithProductId'
         400:
           description: 'NotFound'
           schema:
@@ -383,16 +408,6 @@ definitions:
     required:
       - id
       - query
-  
-  LotInfoWithProductIdWithIgnoredInfo:
-    type: object
-    properties: 
-      isIgnored:
-        type: boolean
-      lotInfoWithProductId:
-        $ref: '#/definitions/LotInfoWithProductId'
-    required:
-      - isIgnored
   
   LotInfoWithProductId:
     type: object

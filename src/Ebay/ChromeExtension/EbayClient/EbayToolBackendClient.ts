@@ -502,10 +502,61 @@ export class EbayToolBackendClient {
     }
 
     /**
+     * @return Ok
+     */
+    getIsLotIgnoredForProduct(productId: string, lotId: number): Promise<boolean> {
+        let url_ = this.baseUrl + "/products/{productId}/ignored_lots/{lotId}";
+        if (productId === undefined || productId === null)
+            throw new Error("The parameter 'productId' must be defined.");
+        url_ = url_.replace("{productId}", encodeURIComponent("" + productId));
+        if (lotId === undefined || lotId === null)
+            throw new Error("The parameter 'lotId' must be defined.");
+        url_ = url_.replace("{lotId}", encodeURIComponent("" + lotId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetIsLotIgnoredForProduct(_response);
+        });
+    }
+
+    protected processGetIsLotIgnoredForProduct(response: Response): Promise<boolean> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = resultData200 !== undefined ? resultData200 : <any>null;
+    
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = NotFoundProblemDetailedInfo.fromJS(resultData400);
+            return throwException("NotFound", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<boolean>(null as any);
+    }
+
+    /**
      * Получить информацию о лоте
      * @return Ok
      */
-    getLotInfo(lotId: number): Promise<LotInfoWithProductIdWithIgnoredInfo> {
+    getLotInfo(lotId: number): Promise<LotInfoWithProductId> {
         let url_ = this.baseUrl + "/lots/{lotId}/";
         if (lotId === undefined || lotId === null)
             throw new Error("The parameter 'lotId' must be defined.");
@@ -524,14 +575,14 @@ export class EbayToolBackendClient {
         });
     }
 
-    protected processGetLotInfo(response: Response): Promise<LotInfoWithProductIdWithIgnoredInfo> {
+    protected processGetLotInfo(response: Response): Promise<LotInfoWithProductId> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = LotInfoWithProductIdWithIgnoredInfo.fromJS(resultData200);
+            result200 = LotInfoWithProductId.fromJS(resultData200);
             return result200;
             });
         } else if (status === 400) {
@@ -546,7 +597,7 @@ export class EbayToolBackendClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<LotInfoWithProductIdWithIgnoredInfo>(null as any);
+        return Promise.resolve<LotInfoWithProductId>(null as any);
     }
 
     /**
@@ -1063,46 +1114,6 @@ export class SearchQuery implements ISearchQuery {
 export interface ISearchQuery {
     id: string;
     query: string;
-}
-
-export class LotInfoWithProductIdWithIgnoredInfo implements ILotInfoWithProductIdWithIgnoredInfo {
-    isIgnored!: boolean;
-    lotInfoWithProductId?: LotInfoWithProductId | undefined;
-
-    constructor(data?: ILotInfoWithProductIdWithIgnoredInfo) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.isIgnored = _data["isIgnored"];
-            this.lotInfoWithProductId = _data["lotInfoWithProductId"] ? LotInfoWithProductId.fromJS(_data["lotInfoWithProductId"]) : <any>undefined;
-        }
-    }
-
-    static fromJS(data: any): LotInfoWithProductIdWithIgnoredInfo {
-        data = typeof data === 'object' ? data : {};
-        let result = new LotInfoWithProductIdWithIgnoredInfo();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["isIgnored"] = this.isIgnored;
-        data["lotInfoWithProductId"] = this.lotInfoWithProductId ? this.lotInfoWithProductId.toJSON() : <any>undefined;
-        return data;
-    }
-}
-
-export interface ILotInfoWithProductIdWithIgnoredInfo {
-    isIgnored: boolean;
-    lotInfoWithProductId?: LotInfoWithProductId | undefined;
 }
 
 export class LotInfoWithProductId implements ILotInfoWithProductId {
