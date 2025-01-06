@@ -42,7 +42,9 @@ const categoriesDiv = "categoriesDiv"
 const currentProductIdParamName = "tool_productId"
 let lotNotSupported = false;
 let _lotInfo = new LotInfo()
-let _serverLotInfo: LotInfoWithProductId;
+
+let _serverLotInfo: LotInfoWithProductId | undefined;
+let _serverIsIgnored: boolean | undefined;
 let _needActualizationLotsIds: number[] = null
 let _serverAndEbayAreEqual = false;
 let _panel: HTMLDivElement;
@@ -496,6 +498,11 @@ function hasShippingToCountry(country: string, shipsTo: Set<string>, excludes: S
     return (shipsTo.has('WORLDWIDE') || shipsToRegionFound || shipsTo.has(country)) && !excludesRegionFound && !excludes.has(country);
 }
 
+async function fillIsIgnored() {
+    if (!_serverIsIgnored) return;
+
+}
+
 async function fillPurchaseHistory() {
     let itemId = location.pathname.match(/\/itm\/([0-9]+)/)[1];
     let purchaseHistoryUrl = `https://${location.hostname}/bin/purchaseHistory?item=${itemId}`;
@@ -650,12 +657,14 @@ async function fillManualCondition(client: EbayToolBackendClient, extractedDataB
     }
 }
 
-async function getServerLotInfo(client: EbayToolBackendClient): Promise<LotInfoWithProductId | undefined> {
+async function getServerLotInfo(client: EbayToolBackendClient): Promise<void> {
     try {
-        _serverLotInfo = await client.getLotInfo(_lotInfo.lotId);
+        let lotInfo = (await client.getLotInfo(_lotInfo.lotId));
+        _serverLotInfo = lotInfo.lotInfoWithProductId;
+        _serverIsIgnored = lotInfo.isIgnored;
     } catch (error) {
         if (error instanceof NotFoundProblemDetailedInfo) {
-            return undefined;
+            return;
         }
 
         throw error;
@@ -763,7 +772,7 @@ function getMax(array: number[]) {
 }
 
 
-async function fillManualFieldsAuto(client: EbayToolBackendClient): Promise<{}> {
+async function extractManualFieldsData(client: EbayToolBackendClient): Promise<{}> {
     let extractedData = (await client.extractData(new LotDataToExtract({
         name: _lotInfo.name,
         conditionDescription: _lotInfo.conditionDescription,
@@ -944,9 +953,10 @@ async function getDataFromPage(backendClient: EbayToolBackendClient, ebayClient:
         await getServerLotInfo(backendClient),
     ]);
 
-    let extractedDataByFieldName = await fillManualFieldsAuto(backendClient);
+    let extractedDataByFieldName = await extractManualFieldsData(backendClient);
 
     await Promise.all([
+        fillIsIgnored(),
         fillPurchaseHistory(),
         fillUpdateTitleDate(),
         fillProduct(backendClient),
@@ -956,7 +966,6 @@ async function getDataFromPage(backendClient: EbayToolBackendClient, ebayClient:
     
     if (lotNotSupported) {
         await ignoreThatLot(backendClient);
-        
     }
     
     await compareLotInfos(_serverLotInfo);

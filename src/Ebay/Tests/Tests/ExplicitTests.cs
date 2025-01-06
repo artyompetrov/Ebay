@@ -56,28 +56,29 @@ public class ExplicitTests
         var lotInfoFull = await Client.GetLotInfoAsync(lotId);
 
         if (ExcludedLotIdsPcs.Contains(lotId)) return;
+        if (lotInfoFull.IsIgnored) return;
 
         var extractedFields = ManualFieldsExtractor.ExtractManualData(
             new LotDataToExtract(
-                conditionDescription: lotInfoFull.LotInfo.ConditionDescription,
-                description: lotInfoFull.LotInfo.Description,
-                condition: lotInfoFull.LotInfo.Condition,
-                name: lotInfoFull.LotInfo.Name,
-                shortDescription: lotInfoFull.LotInfo.ShortDescription,
-                lotSize: lotInfoFull.LotInfo.LotSize
+                conditionDescription: lotInfoFull.LotInfoWithProductId.LotInfo.ConditionDescription,
+                description: lotInfoFull.LotInfoWithProductId.LotInfo.Description,
+                condition: lotInfoFull.LotInfoWithProductId.LotInfo.Condition,
+                name: lotInfoFull.LotInfoWithProductId.LotInfo.Name,
+                shortDescription: lotInfoFull.LotInfoWithProductId.LotInfo.ShortDescription,
+                lotSize: lotInfoFull.LotInfoWithProductId.LotInfo.LotSize
             )
         );
 
         var result = extractedFields["pcs"];
 
-        var isExtractedCorrectly = (lotInfoFull.LotInfo.Pcs == 1 && result.Count == 0) || (extractedFields.Count >= 1 &&
+        var isExtractedCorrectly = (lotInfoFull.LotInfoWithProductId.LotInfo.Pcs == 1 && result.Count == 0) || (extractedFields.Count >= 1 &&
             int.Parse(
                 result.MaxBy(x => x.Value.Count).Key
-            ) == lotInfoFull.LotInfo.Pcs); //todo недостаточно точная проверка
+            ) == lotInfoFull.LotInfoWithProductId.LotInfo.Pcs); //todo недостаточно точная проверка
 
         Assert.That(
             condition: isExtractedCorrectly,
-            message: $"{ToStr(result)}{Environment.NewLine}lotId: {lotId}{Environment.NewLine}seller:{lotInfoFull.LotInfo.Seller}"
+            message: $"{ToStr(result)}{Environment.NewLine}lotId: {lotId}{Environment.NewLine}seller:{lotInfoFull.LotInfoWithProductId.LotInfo.Seller}"
         );
     }
 
@@ -108,22 +109,23 @@ public class ExplicitTests
         var lotInfoFull = await Client.GetLotInfoAsync(lotId);
 
         if (ExcludedLotIdsCondition.Contains(lotId)) return;
+        if (lotInfoFull.IsIgnored) return;
 
         var extractedFields = ManualFieldsExtractor.ExtractManualData(
             new LotDataToExtract(
-                conditionDescription: lotInfoFull.LotInfo.ConditionDescription,
-                condition: lotInfoFull.LotInfo.Condition,
-                description: lotInfoFull.LotInfo.Description,
-                name: lotInfoFull.LotInfo.Name,
-                shortDescription: lotInfoFull.LotInfo.ShortDescription,
-                lotSize: lotInfoFull.LotInfo.LotSize
+                conditionDescription: lotInfoFull.LotInfoWithProductId.LotInfo.ConditionDescription,
+                condition: lotInfoFull.LotInfoWithProductId.LotInfo.Condition,
+                description: lotInfoFull.LotInfoWithProductId.LotInfo.Description,
+                name: lotInfoFull.LotInfoWithProductId.LotInfo.Name,
+                shortDescription: lotInfoFull.LotInfoWithProductId.LotInfo.ShortDescription,
+                lotSize: lotInfoFull.LotInfoWithProductId.LotInfo.LotSize
             )
         );
 
         var result = extractedFields["condition"];
 
         var results = result.OrderByDescending(x => x.Value.Count).ToList();
-        var manualCondition = lotInfoFull.LotInfo.Categories.Single(x => x.Type == "condition").Value ??
+        var manualCondition = lotInfoFull.LotInfoWithProductId.LotInfo.Categories.Single(x => x.Type == "condition").Value ??
             throw new AssertionException("manualCondition not found");
 
         Assert.That(
@@ -131,7 +133,7 @@ public class ExplicitTests
             (results.Count == 1 && results[0].Key.Equals(manualCondition)) ||
                 (results.Count > 1 && results[0].Value.Count > results[1].Value.Count &&
                     results[0].Key.Equals(manualCondition)),
-            message: $"{ToStr(result)}{Environment.NewLine}lotId: {lotId}{Environment.NewLine}seller:{lotInfoFull.LotInfo.Seller}"
+            message: $"{ToStr(result)}{Environment.NewLine}lotId: {lotId}{Environment.NewLine}seller:{lotInfoFull.LotInfoWithProductId.LotInfo.Seller}"
         );
     }
 
@@ -153,22 +155,23 @@ public class ExplicitTests
         var lotInfoFull = await Client.GetLotInfoAsync(lotId);
 
         if (ExcludedLotIdsState.Contains(lotId)) return;
+        if (lotInfoFull.IsIgnored) return;
 
         var extractedFields = ManualFieldsExtractor.ExtractManualData(
             new LotDataToExtract(
-                conditionDescription: lotInfoFull.LotInfo.ConditionDescription,
-                condition: lotInfoFull.LotInfo.Condition,
-                description: lotInfoFull.LotInfo.Description,
-                name: lotInfoFull.LotInfo.Name,
-                shortDescription: lotInfoFull.LotInfo.ShortDescription,
-                lotSize: lotInfoFull.LotInfo.LotSize
+                conditionDescription: lotInfoFull.LotInfoWithProductId.LotInfo.ConditionDescription,
+                condition: lotInfoFull.LotInfoWithProductId.LotInfo.Condition,
+                description: lotInfoFull.LotInfoWithProductId.LotInfo.Description,
+                name: lotInfoFull.LotInfoWithProductId.LotInfo.Name,
+                shortDescription: lotInfoFull.LotInfoWithProductId.LotInfo.ShortDescription,
+                lotSize: lotInfoFull.LotInfoWithProductId.LotInfo.LotSize
             )
         );
 
         var result = extractedFields["test_state"];
 
         var results = result.OrderByDescending(x => x.Value.Count).ToList();
-        var manualCondition = lotInfoFull.LotInfo.Categories.Single(x => x.Type == "test_state").Value ??
+        var manualCondition = lotInfoFull.LotInfoWithProductId.LotInfo.Categories.Single(x => x.Type == "test_state").Value ??
             throw new AssertionException("testState not found");
 
         Assert.That(
@@ -176,7 +179,7 @@ public class ExplicitTests
             (results.Count == 1 && results[0].Key.Equals(manualCondition)) ||
             (results.Count > 1 && results[0].Value.Count > results[1].Value.Count &&
                 results[0].Key.Equals(manualCondition)),
-            message: $"{ToStr(result)}{Environment.NewLine}lotId: {lotId}{Environment.NewLine}seller:{lotInfoFull.LotInfo.Seller}"
+            message: $"{ToStr(result)}{Environment.NewLine}lotId: {lotId}{Environment.NewLine}seller:{lotInfoFull.LotInfoWithProductId.LotInfo.Seller}"
         );
     }
 

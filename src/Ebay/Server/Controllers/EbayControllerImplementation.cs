@@ -109,7 +109,7 @@ internal class EbayControllerImplementation : IEbayController
         var product = await _applicationContext.Products
             .AsNoTracking()
             .Include(x => x.SearchQueries)
-            .SingleOrDefaultAsync(x => x.Id == id, cancellationToken: cancellationToken);
+            .SingleOrDefaultAsync(predicate: x => x.Id == id, cancellationToken: cancellationToken);
 
         if (product == null)
         {
@@ -200,19 +200,19 @@ internal class EbayControllerImplementation : IEbayController
         var validationErrors = new Dictionary<string, string[]>();
         if (lotInfo.ShippingAdditional == null)
         {
-            validationErrors.Add(nameof(lotInfo.ShippingAdditional), new[] { "Not set" });
+            validationErrors.Add(key: nameof(lotInfo.ShippingAdditional), value: new[] { "Not set" });
         }
 
         if (lotInfo.Shipping == null)
         {
-            validationErrors.Add(nameof(lotInfo.Shipping), new[] { "Not set" });
+            validationErrors.Add(key: nameof(lotInfo.Shipping), value: new[] { "Not set" });
         }
 
         if (!new HashSet<string> { WellKnown.Categories.Conditions.CategoryName, WellKnown.Categories.TestState.CategoryName }.SequenceEqual(
                 lotInfo.Categories.Select(x => x.Type)
             ))
         {
-            validationErrors.Add(nameof(lotInfo.Categories), new[] { "Not all categories set" });
+            validationErrors.Add(key: nameof(lotInfo.Categories), value: new[] { "Not all categories set" });
         }
 
         if (validationErrors.Count > 0)
@@ -272,7 +272,7 @@ internal class EbayControllerImplementation : IEbayController
         var lotIds = ignoredLots.ToList();
 
         var alreadySaved = await _applicationContext.Lots
-            .AnyAsync(x => x.ProductId == productId && lotIds.Contains(x.Id), cancellationToken);
+            .AnyAsync(predicate: x => x.ProductId == productId && lotIds.Contains(x.Id), cancellationToken: cancellationToken);
 
         if (!alreadySaved)
         {
@@ -285,25 +285,27 @@ internal class EbayControllerImplementation : IEbayController
     }
 
 
-    public async Task<LotInfoWithProductId> GetLotInfoAsync(
+    public async Task<LotInfoWithProductIdWithIgnoredInfo> GetLotInfoAsync(
         long lotId,
         CancellationToken cancellationToken
     )
     {
+        var isIgnored = await _applicationContext.IgnoredLots.AnyAsync(predicate: x => x.LotId == lotId, cancellationToken: cancellationToken);
+        
         var dbLot = await _applicationContext.Lots
             .AsNoTracking()
             .Include(x => x.Purchases)
             .SingleOrDefaultAsync(
-                x => x.Id == lotId,
+                predicate: x => x.Id == lotId,
                 cancellationToken: cancellationToken
             );
 
-        if (dbLot == null)
+        if (dbLot == null && isIgnored == false)
         {
             throw NonOkHttpAnswerException.NotFound400();
         }
 
-        return dbLot.ToApiLot();
+        return new LotInfoWithProductIdWithIgnoredInfo(isIgnored: isIgnored, lotInfoWithProductId: dbLot?.ToApiLot()) ;
     }
 
     public async Task DeleteLotInfoAsync(long lotId, CancellationToken cancellationToken)
@@ -356,9 +358,9 @@ internal class EbayControllerImplementation : IEbayController
                 new(
                     items: new List<CategoryItem>
                     {
-                        new("NEW", WellKnown.Categories.Conditions.New),
-                        new("USED", WellKnown.Categories.Conditions.Used),
-                        new("NOT WORKING", WellKnown.Categories.Conditions.NotWorking)
+                        new(description: "NEW", id: WellKnown.Categories.Conditions.New),
+                        new(description: "USED", id: WellKnown.Categories.Conditions.Used),
+                        new(description: "NOT WORKING", id: WellKnown.Categories.Conditions.NotWorking)
                     },
                     type: "condition"
                 ),
@@ -366,9 +368,9 @@ internal class EbayControllerImplementation : IEbayController
                 new(
                     items: new List<CategoryItem>
                     {
-                        new("Not tested", WellKnown.Categories.TestState.NotTested),
-                        new("Tested", WellKnown.Categories.TestState.Tested),
-                        new("Mathced", WellKnown.Categories.TestState.Matched)
+                        new(description: "Not tested", id: WellKnown.Categories.TestState.NotTested),
+                        new(description: "Tested", id: WellKnown.Categories.TestState.Tested),
+                        new(description: "Mathced", id: WellKnown.Categories.TestState.Matched)
                     },
                     type: "test_state"
                 )

@@ -204,7 +204,7 @@ paths:
         200:
           description: 'Ok'
           schema:
-            $ref: '#/definitions/LotInfoWithProductId'
+            $ref: '#/definitions/LotInfoWithProductIdWithIgnoredInfo'
         400:
           description: 'NotFound'
           schema:
@@ -383,6 +383,16 @@ definitions:
     required:
       - id
       - query
+  
+  LotInfoWithProductIdWithIgnoredInfo:
+    type: object
+    properties: 
+      isIgnored:
+        type: boolean
+      lotInfoWithProductId:
+        $ref: '#/definitions/LotInfoWithProductId'
+    required:
+      - isIgnored
   
   LotInfoWithProductId:
     type: object

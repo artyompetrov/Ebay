@@ -1023,7 +1023,7 @@ namespace Ebay.Client.Clients.Generated
         /// </summary>
         /// <returns>Ok</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<LotInfoWithProductId> GetLotInfoAsync(long lotId)
+        public virtual System.Threading.Tasks.Task<LotInfoWithProductIdWithIgnoredInfo> GetLotInfoAsync(long lotId)
         {
             return GetLotInfoAsync(lotId, System.Threading.CancellationToken.None);
         }
@@ -1034,7 +1034,7 @@ namespace Ebay.Client.Clients.Generated
         /// </summary>
         /// <returns>Ok</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<LotInfoWithProductId> GetLotInfoAsync(long lotId, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<LotInfoWithProductIdWithIgnoredInfo> GetLotInfoAsync(long lotId, System.Threading.CancellationToken cancellationToken)
         {
             if (lotId == null)
                 throw new System.ArgumentNullException("lotId");
@@ -1080,7 +1080,7 @@ namespace Ebay.Client.Clients.Generated
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<LotInfoWithProductId>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<LotInfoWithProductIdWithIgnoredInfo>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -1962,6 +1962,17 @@ namespace Ebay.Client.Clients.Generated
         [System.ComponentModel.DataAnnotations.Required]
         [System.ComponentModel.DataAnnotations.RegularExpression(@"^\w+(?:[ -\/\\.,]+\w+)*$")]
         public string Query { get; set; }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class LotInfoWithProductIdWithIgnoredInfo
+    {
+        [Newtonsoft.Json.JsonProperty("isIgnored", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public bool IsIgnored { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("lotInfoWithProductId", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public LotInfoWithProductId LotInfoWithProductId { get; set; }
 
     }
 
