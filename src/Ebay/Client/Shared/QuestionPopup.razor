@@ -7,8 +7,8 @@
                     <h5 class="modal-title">@_questionState.Value.QuestionText</h5>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="OnSubmit">OK</button>
-                    <button type="button" class="btn btn-primary" onclick="OnCancel" data-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-secondary" @onclick="OnSubmit">OK</button>
+                    <button type="button" class="btn btn-primary" @onclick="OnCancel" data-dismiss="modal">Отмена</button>
                 </div>
             </div>
         </div>
@@ -25,11 +25,13 @@
         StateHasChanged();
     }
 
-    private void OnSubmit()
+    private Task OnSubmit()
     {
         if (_questionState == null) throw new NullReferenceException(nameof(_questionState));
         _questionState.Value.OnSubmit.Invoke();
         _questionState = null;
+
+        return Task.CompletedTask;
     }
 
     private void OnCancel()
