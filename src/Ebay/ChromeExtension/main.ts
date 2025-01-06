@@ -37,7 +37,7 @@ const lightGreenColor = "#ecffec"
 const lightPinkColor = "lightpink"
 const lightYellowColor = "#e0e07f"
 const marketplaceId = "EBAY_US"
-const batchOpen = 10
+const batchOpen = 5
 const categoriesDiv = "categoriesDiv"
 const ignoredLotDiv = "ignoredLotDiv"
 const currentProductIdParamName = "tool_productId"
@@ -206,6 +206,7 @@ async function createPanel(backendClient: EbayToolBackendClient, ebayClient: Eba
     bodyElement.appendChild(styleSheet)
 
     let div = document.createElement('div');
+    div.title = "Белый цвет - на сервере нет информации о лоте, желтый цвет - на сервере есть информация о лоте, но после последней актуализации были новые продажи, красный цвет - информация на сервере и в лоте не совпадает, требуется актуализация, зеленый цвет - информация на сервере актуальна."
     div.classList.add(panelClass);
     let itemId = location.pathname.match(/\/itm\/([0-9]+)/)[1];
     let domain = location.hostname;
@@ -702,6 +703,7 @@ async function fillPcs(extractedDataByFieldName: {}) {
                 fillManualWithAutoValue = false
             } else {
                 autoPcsField.style.backgroundColor = lightPinkColor;
+                fillManualWithAutoValue = false
             }
         }
 
