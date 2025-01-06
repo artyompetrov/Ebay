@@ -1159,7 +1159,7 @@ export async function run() {
     await sleepElementLoaded('footer', document)
     await saveCodeVerifier();
 
-    await checkForUpdates();
+    let _ = checkForUpdates();
 
     let ebayOAuth2Client = new OAuth2Client({
         server: "https://auth.ebay.com/",
