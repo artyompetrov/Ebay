@@ -699,7 +699,7 @@ async function fillPcs(extractedDataByFieldName: {}) {
             if (extractedData[0].extractorInfo.length > extractedData[1].extractorInfo.length) {
                 autoPcsField.style.backgroundColor = lightYellowColor;
 
-                fillManualWithAutoValue = true
+                fillManualWithAutoValue = false
             } else {
                 autoPcsField.style.backgroundColor = lightPinkColor;
             }
@@ -709,7 +709,7 @@ async function fillPcs(extractedDataByFieldName: {}) {
         autoPcsField.value = "1"
         autoPcsField.style.backgroundColor = lightYellowColor;
 
-        fillManualWithAutoValue = true
+        fillManualWithAutoValue = false
     }
 
     let serverPcs = _serverLotInfo?.lotInfo?.pcs
