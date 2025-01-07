@@ -1,7 +1,7 @@
 {
     "dependencies": {
-        "@badgateway/oauth2-client": "^2.4.2",
-        "@types/chrome": "^0.0.290",
+        "@badgateway/oauth2-client": "^2.2.4",
+        "@types/chrome": "^0.0.256",
         "jsonpath": "^1.1.1"
     },
     "name": "chromeextension",
