@@ -21,13 +21,10 @@ RUN node updateVersion.js $BUILD_VERSION
 RUN mkdir -p /app/publish/ && \
     npx crx3 _extension --keyPath=./key.pem --crxPath=/app/publish/mlebgdemjnpnfgcgbbncllpniiicffbm_${BUILD_VERSION}.crx
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
-
-FROM base AS final
-WORKDIR /app
 COPY --from=build_dotnet /app/publish .
 COPY --from=build_crome_extension /app/publish wwwroot/chrome_extensions
 ENTRYPOINT ["dotnet", "Server.dll"]
