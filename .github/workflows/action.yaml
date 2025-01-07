@@ -37,7 +37,7 @@ jobs:
 
       - name: Run .NET Tests
         working-directory: ./src/Ebay
-        run: dotnet test --no-build --verbosity normal
+        run: dotnet test --no-build --verbosity normal --configuration Release
 
       - name: Install Node.js Dependencies
         working-directory: ./src/ChromeExtension
