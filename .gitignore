@@ -11,5 +11,6 @@ riderModule.iml
 node_modules/
 *.DotSettings.user
 
-/deploy/mount
+/deploy/mount/
 /deploy/server.env
+/src/ChromeExtension/_extension/build/
