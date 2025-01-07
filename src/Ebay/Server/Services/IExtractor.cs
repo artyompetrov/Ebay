@@ -1,6 +1,6 @@
-using LotDataToExtract = Ebay.Server.Controllers.Generated.LotDataToExtract;
+using LotDataToExtract = Server.Controllers.Generated.LotDataToExtract;
 
-namespace Ebay.Server.Services;
+namespace Server.Services;
 
 internal interface IExtractor
 {

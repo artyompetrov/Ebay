@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace Ebay.Server.Services;
+namespace Server.Services;
 
 internal abstract class ExtractorBase
 {

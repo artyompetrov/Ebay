@@ -1,7 +1,7 @@
 
-using Ebay.Server.Controllers.Generated;
+using Server.Controllers.Generated;
 
-namespace Ebay.Server.Controllers;
+namespace Server.Controllers;
 
 internal class NonOkHttpAnswerException : Exception
 {

@@ -1,4 +1,4 @@
-namespace Ebay.Server.Infrastructure;
+namespace Server.Infrastructure;
 
 internal static class ExceptionExtensions
 {

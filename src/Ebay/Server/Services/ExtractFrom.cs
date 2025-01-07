@@ -1,4 +1,4 @@
-namespace Ebay.Server.Services;
+namespace Server.Services;
 
 [Flags]
 internal enum ExtractFrom

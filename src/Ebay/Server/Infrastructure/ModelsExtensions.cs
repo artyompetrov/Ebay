@@ -1,14 +1,14 @@
-using Ebay.Server.Controllers.Generated;
-using Ebay.Server.Data.Models;
-using Ebay.Server.Services;
-using DbProduct = Ebay.Server.Data.Models.Product;
-using DbSearchQuery = Ebay.Server.Data.Models.SearchQuery;
-using DbCurrency = Ebay.Server.Data.Models.Currency;
-using ApiCurrency = Ebay.Server.Controllers.Generated.Currency;
-using Purchase = Ebay.Server.Data.Models.Purchase;
-using SearchQuery = Ebay.Server.Controllers.Generated.SearchQuery;
+using Server.Controllers.Generated;
+using Server.Data.Models;
+using Server.Services;
+using DbProduct = Server.Data.Models.Product;
+using DbSearchQuery = Server.Data.Models.SearchQuery;
+using DbCurrency = Server.Data.Models.Currency;
+using ApiCurrency = Server.Controllers.Generated.Currency;
+using Purchase = Server.Data.Models.Purchase;
+using SearchQuery = Server.Controllers.Generated.SearchQuery;
 
-namespace Ebay.Server.Infrastructure;
+namespace Server.Infrastructure;
 
 internal static class ModelsExtensions
 {

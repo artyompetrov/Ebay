@@ -1,4 +1,4 @@
-namespace Ebay.Client.Extensions;
+namespace Client.Extensions;
 
 internal static class DictionaryExtensions
 {

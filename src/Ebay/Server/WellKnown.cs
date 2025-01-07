@@ -1,11 +1,11 @@
-namespace Ebay.Server;
+namespace Server;
 
 internal static class WellKnown
 {
     public static class Authorization
     {
         public static string PythonClientId = "Ebay.Python";//todo переименовать
-        public static string Scope = "Ebay.ServerAPI";
+        public static string Scope = "ServerAPI";
         public static string AuthToken = "ac4ab670-ae20-451a-ab4a-3a20275e807d";
     }
 

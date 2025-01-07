@@ -1,9 +1,9 @@
-using Ebay.Client.Clients.Generated;
+using Client.Clients.Generated;
 using Microsoft.AspNetCore.Components.Forms;
 using Newtonsoft.Json.Linq;
-using ProductWithId = Ebay.Client.Clients.Generated.ProductWithId;
+using ProductWithId = Client.Clients.Generated.ProductWithId;
 
-namespace Ebay.Client.Extensions;
+namespace Client.Extensions;
 
 internal static class ModelExtensions
 {

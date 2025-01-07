@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace Ebay.Server.Data.Models;
+namespace Server.Data.Models;
 
 [PrimaryKey(nameof(LotId), nameof(Date))]
 internal class Purchase

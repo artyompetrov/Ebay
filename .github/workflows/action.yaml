@@ -21,15 +21,28 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '8.0.x'
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+      
+      - name: Restore .NET Dependencies
+        run: dotnet restore ./src/Ebay
 
-      - name: Restore Dependencies
-        run: dotnet restore ./src
+      - name: Build .NET
+        run: dotnet build ./src/Ebay --no-restore --configuration Release
 
-      - name: Build
-        run: dotnet build ./src --no-restore --configuration Release
+      - name: Run .NET Tests
+        run: dotnet test ./src/Ebay --no-build --verbosity normal
 
-      - name: Run Tests
-        run: dotnet test ./src --no-build --verbosity normal
+      - name: Install Node.js Dependencies
+        working-directory: ./src/ChromeExtension
+        run: npm install
+
+      - name: Build Node.js Modules
+        working-directory: ./src/ChromeExtension
+        run: npm run build
 
   publish:
     name: Publish Docker Image

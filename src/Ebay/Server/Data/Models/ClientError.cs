@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Ebay.Server.Data.Models;
+namespace Server.Data.Models;
 
 internal class ClientError
 {

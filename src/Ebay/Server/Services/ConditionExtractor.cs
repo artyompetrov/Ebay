@@ -1,8 +1,8 @@
 using System.Text.RegularExpressions;
-using Ebay.Server.Controllers.Generated;
-using Ebay.Server.Infrastructure;
+using Server.Controllers.Generated;
+using Server.Infrastructure;
 
-namespace Ebay.Server.Services;
+namespace Server.Services;
 
 internal class ConditionExtractor : ExtractorBase, IExtractor
 {

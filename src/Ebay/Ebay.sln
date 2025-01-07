@@ -1,12 +1,10 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ebay.Server", "Ebay\Server\Ebay.Server.csproj", "{313F456D-150D-48BE-A999-02D44014D57E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "Server\Server.csproj", "{313F456D-150D-48BE-A999-02D44014D57E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ebay.Client", "Ebay\Client\Ebay.Client.csproj", "{53BBA863-3953-4946-AC44-A985C0ABD7DE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "Client\Client.csproj", "{53BBA863-3953-4946-AC44-A985C0ABD7DE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ebay.ChromeExtension", "Ebay\ChromeExtension\Ebay.ChromeExtension.csproj", "{3A5EE05B-4765-4C91-8312-CAD655E814A3}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Ebay\Tests\Tests\Tests.csproj", "{32D70E53-E75F-4585-B006-5F787BD9BC84}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{32D70E53-E75F-4585-B006-5F787BD9BC84}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -22,10 +20,6 @@ Global
 		{53BBA863-3953-4946-AC44-A985C0ABD7DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{53BBA863-3953-4946-AC44-A985C0ABD7DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{53BBA863-3953-4946-AC44-A985C0ABD7DE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3A5EE05B-4765-4C91-8312-CAD655E814A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3A5EE05B-4765-4C91-8312-CAD655E814A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3A5EE05B-4765-4C91-8312-CAD655E814A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3A5EE05B-4765-4C91-8312-CAD655E814A3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{32D70E53-E75F-4585-B006-5F787BD9BC84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{32D70E53-E75F-4585-B006-5F787BD9BC84}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{32D70E53-E75F-4585-B006-5F787BD9BC84}.Release|Any CPU.ActiveCfg = Release|Any CPU

@@ -1,10 +1,10 @@
-using Ebay.Server.Data;
-using Ebay.Server.Data.Models;
-using Ebay.Server.Infrastructure;
+using Server.Data;
+using Server.Data.Models;
+using Server.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using OpenExchangeRates;
 
-namespace Ebay.Server.HostedServices;
+namespace Server.HostedServices;
 
 internal class CurrencyRateHostedService : IHostedService, IDisposable
 {

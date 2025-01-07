@@ -1,5 +1,5 @@
 ﻿@page "/LotSales/{ProductId:guid}"
-@using Ebay.Client.Clients.Generated
+@using Client.Clients.Generated
 @using Microsoft.AspNetCore.Authorization
 @using Plotly.Blazor
 @using Plotly.Blazor.Traces
@@ -8,7 +8,7 @@
 @using Plotly.Blazor.LayoutLib
 @using Plotly.Blazor.LayoutLib.ShapeLib
 @using Plotly.Blazor.Traces.ScatterLib
-@using Ebay.Client.Extensions
+@using Client.Extensions
 @using Line = Plotly.Blazor.LayoutLib.ShapeLib.Line
 @attribute [Authorize]
 @inject EbayClient EbayClient

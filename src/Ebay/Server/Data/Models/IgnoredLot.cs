@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace Ebay.Server.Data.Models;
+namespace Server.Data.Models;
 
 [PrimaryKey(nameof(ProductId), nameof(LotId))]
 internal class IgnoredLot

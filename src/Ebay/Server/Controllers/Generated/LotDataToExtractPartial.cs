@@ -1,8 +1,8 @@
 
 
-using Ebay.Server.Infrastructure;
+using Server.Infrastructure;
 
-namespace Ebay.Server.Controllers.Generated;
+namespace Server.Controllers.Generated;
 
 /// <summary>
 /// Расширение сгенеренного класса

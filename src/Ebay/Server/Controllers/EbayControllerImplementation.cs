@@ -1,22 +1,22 @@
 using System.Transactions;
-using Ebay.Server.Controllers.Generated;
-using Ebay.Server.Data;
-using Ebay.Server.Data.Models;
-using Ebay.Server.Infrastructure;
-using Ebay.Server.Services;
+using Server.Controllers.Generated;
+using Server.Data;
+using Server.Data.Models;
+using Server.Infrastructure;
+using Server.Services;
 using Microsoft.EntityFrameworkCore;
 
-using ClientErrorInfo = Ebay.Server.Controllers.Generated.ClientErrorInfo;
-using Currency = Ebay.Server.Controllers.Generated.Currency;
-using DbProduct = Ebay.Server.Data.Models.Product;
-using LotInfo = Ebay.Server.Controllers.Generated.LotInfo;
-using LotInfoShort = Ebay.Server.Controllers.Generated.LotInfoShort;
-using LotInfoWithProductId = Ebay.Server.Controllers.Generated.LotInfoWithProductId;
-using LotState = Ebay.Server.Controllers.Generated.LotState;
-using ProductWithId = Ebay.Server.Controllers.Generated.ProductWithId;
-using ProductWithoutId = Ebay.Server.Controllers.Generated.ProductWithoutId;
+using ClientErrorInfo = Server.Controllers.Generated.ClientErrorInfo;
+using Currency = Server.Controllers.Generated.Currency;
+using DbProduct = Server.Data.Models.Product;
+using LotInfo = Server.Controllers.Generated.LotInfo;
+using LotInfoShort = Server.Controllers.Generated.LotInfoShort;
+using LotInfoWithProductId = Server.Controllers.Generated.LotInfoWithProductId;
+using LotState = Server.Controllers.Generated.LotState;
+using ProductWithId = Server.Controllers.Generated.ProductWithId;
+using ProductWithoutId = Server.Controllers.Generated.ProductWithoutId;
 
-namespace Ebay.Server.Controllers;
+namespace Server.Controllers;
 
 internal class EbayControllerImplementation : IEbayController
 {

@@ -1,4 +1,4 @@
-namespace Ebay.Client;
+namespace Client;
 
 internal class WellKnown
 {

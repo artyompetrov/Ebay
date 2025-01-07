@@ -1,9 +1,9 @@
 using System.Net.Http.Headers;
-using Ebay.Server;
-using Ebay.Client.Clients.Generated;
-using Ebay.Server.Services;
+using Server;
+using Client.Clients.Generated;
+using Server.Services;
 using Newtonsoft.Json.Linq;
-using LotDataToExtract = Ebay.Server.Controllers.Generated.LotDataToExtract;
+using LotDataToExtract = Server.Controllers.Generated.LotDataToExtract;
 
 namespace Tests;
 

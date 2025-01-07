@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Ebay.Server.Data.Models;
+namespace Server.Data.Models;
 
 internal sealed class Product
 {

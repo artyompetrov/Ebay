@@ -1,10 +1,10 @@
 using Duende.IdentityServer.EntityFramework.Options;
-using Ebay.Server.Data.Models;
+using Server.Data.Models;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
-namespace Ebay.Server.Data;
+namespace Server.Data;
 
 internal class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
 {

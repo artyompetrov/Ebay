@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Ebay.Server.Controllers;
+namespace Server.Controllers;
 #pragma warning disable CS1591
 public class OidcConfigurationController : Controller
 {

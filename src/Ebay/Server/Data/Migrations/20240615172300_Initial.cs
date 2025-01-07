@@ -3,7 +3,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Ebay.Server.Data.Migrations
+namespace Server.Data.Migrations
 {
     /// <inheritdoc />
     public partial class Initial : Migration

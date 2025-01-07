@@ -1,9 +1,9 @@
-using Ebay.Client.Clients.Generated;
+using Client.Clients.Generated;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 
-namespace Ebay.Server.Controllers;
+namespace Server.Controllers;
 
 internal sealed class ErrorFilter : IAsyncActionFilter, IExceptionFilter
 {

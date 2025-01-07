@@ -1,13 +1,12 @@
 using Duende.IdentityServer.Models;
-using Ebay.Server;
-using Ebay.Server.Controllers;
-using Ebay.Server.Controllers.Generated;
-using Ebay.Server.Data;
-using Ebay.Server.Data.Models;
-using Ebay.Server.HostedServices;
+using Server;
+using Server.Controllers;
+using Server.Controllers.Generated;
+using Server.Data;
+using Server.Data.Models;
+using Server.HostedServices;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Logging;
 using Client = Duende.IdentityServer.Models.Client;
 using Secret = Duende.IdentityServer.Models.Secret;
@@ -30,7 +29,7 @@ builder.Services.AddIdentityServer()
         options =>
         {
             options.Clients.Add(
-                new Client
+                new Duende.IdentityServer.Models.Client
                 {
                     ClientId = WellKnown.Authorization.PythonClientId,
                     ClientSecrets = new List<Secret>() { new(WellKnown.Authorization.AuthToken.Sha256()) },

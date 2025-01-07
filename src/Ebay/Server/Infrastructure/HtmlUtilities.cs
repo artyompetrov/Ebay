@@ -1,6 +1,6 @@
 using HtmlAgilityPack;
 
-namespace Ebay.Server.Infrastructure;
+namespace Server.Infrastructure;
 
 internal class HtmlUtilities
 {

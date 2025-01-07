@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Ebay.Server.Controllers;
+namespace Server.Controllers;
 
 
 [ApiController]

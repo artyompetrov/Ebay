@@ -1,4 +1,4 @@
-namespace Ebay.Client.Clients.Generated;
+namespace Client.Clients.Generated;
 
 public partial class LotInfoShort
 {

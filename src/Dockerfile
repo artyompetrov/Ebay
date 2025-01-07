@@ -1,22 +1,33 @@
-﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+﻿FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build_dotnet
+WORKDIR /src
+COPY "Ebay/Ebay.sln" "Ebay/"
+COPY "Ebay/Directory.Packages.props" "Ebay/"
+COPY "Ebay/Server/Server.csproj" "Ebay/Server/Server.csproj"
+COPY "Ebay/Client/Client.csproj" "Ebay/Client/Client.csproj"
+RUN dotnet restore "Ebay/Server/Server.csproj"
+COPY Ebay Ebay
+WORKDIR "/src/Ebay/Server"
+ARG BUILD_VERSION="0.0.0.1"
+RUN dotnet publish "Server.csproj" -c Release -o /app/publish /p:UseAppHost=false /p:Version=$BUILD_VERSION
+
+FROM node:18-alpine AS build_crome_extension
+WORKDIR /src
+COPY ChromeExtension .
+COPY --from=build_dotnet /src/ChromeExtension .
+RUN npm install
+RUN npm run build
+ARG BUILD_VERSION="0.0.0.1"
+RUN node updateVersion.js $BUILD_VERSION
+RUN mkdir -p /app/publish/ && \
+    npx crx3 _extension --keyPath=./key.pem --crxPath=/app/publish/mlebgdemjnpnfgcgbbncllpniiicffbm_${BUILD_VERSION}.crx
+
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS publish
-WORKDIR /src
-COPY ["Directory.Packages.props", "Directory.Packages.props"]
-COPY ["Ebay.sln", "Ebay.sln"]
-COPY ["Ebay/Server/Ebay.Server.csproj", "Ebay/Server/"]
-COPY ["Ebay/Client/Ebay.Client.csproj", "Ebay/Client/"]
-RUN dotnet restore "Ebay/Server/Ebay.Server.csproj"
-COPY . .
-WORKDIR "/src/Ebay/Server"
-
-ARG BUILD_VERSION="0.0.0.1"
-RUN dotnet publish "Ebay.Server.csproj" -c Release -o /app/publish /p:UseAppHost=false /p:Version=$BUILD_VERSION
-
 FROM base AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Ebay.Server.dll"]
+COPY --from=build_dotnet /app/publish .
+COPY --from=build_crome_extension /app/publish wwwroot/chrome_extensions
+ENTRYPOINT ["dotnet", "Server.dll"]
