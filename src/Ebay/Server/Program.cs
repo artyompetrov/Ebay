@@ -6,9 +6,9 @@ using Server.Data;
 using Server.Data.Models;
 using Server.HostedServices;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
-using Client = Duende.IdentityServer.Models.Client;
 using Secret = Duende.IdentityServer.Models.Secret;
 
 IdentityModelEventSource.ShowPII = true;
@@ -40,6 +40,12 @@ builder.Services.AddIdentityServer()
                     }
                 });
         });
+
+var keyStoragePath = Path.Combine("/app", "DataProtection-Keys");
+
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(keyStoragePath))
+    .SetApplicationName("EbayHelper");
 
 builder.Services.AddAuthentication().AddIdentityServerJwt();
 
