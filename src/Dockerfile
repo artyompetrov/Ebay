@@ -17,7 +17,7 @@ COPY --from=build_dotnet /src/ChromeExtension .
 RUN npm install
 RUN npm run build
 ARG BUILD_VERSION="0.0.0.1"
-RUN node updateVersion.js $BUILD_VERSION
+RUN node updateVersion.js 1.0.12
 RUN mkdir -p /app/publish/ && \
     npx crx3 _extension --keyPath=./key.pem --crxPath=/app/publish/mlebgdemjnpnfgcgbbncllpniiicffbm_${BUILD_VERSION}.crx
 
