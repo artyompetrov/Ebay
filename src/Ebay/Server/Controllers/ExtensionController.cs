@@ -37,7 +37,7 @@ public class ExtensionController : ControllerBase
 
         // Регулярное выражение для извлечения версии из имени файла
         var versionPattern = new Regex(
-            $@"^{Regex.Escape(extensionName)}_(\d+\.\d+\.\d+)\.crx$",
+            $@"^{Regex.Escape(extensionName)}_(\d+\.\d+\.\d+\.\d+)\.crx$",
             RegexOptions.IgnoreCase
         );
         var versionedFiles = crxFiles.Select(
