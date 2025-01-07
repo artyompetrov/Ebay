@@ -141,7 +141,7 @@
     {
         var point = eventData.First();
         var scatter = (Scatter)_data[point.TraceIndex];
-        var lotId = (long)scatter.CustomData[point.PointIndex];
+        var lotId = (long)scatter.CustomData[(int)point.PointIndex];
         var trLotId = GetLotLinkId(lotId);
         Logger.LogWarning(trLotId);
 
