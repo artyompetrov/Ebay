@@ -23,9 +23,11 @@ RUN mkdir -p /app/publish/ && \
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
-EXPOSE 80
-EXPOSE 443
 COPY --from=build_dotnet /app/publish .
 ARG BUILD_VERSION="0.0.0.1"
 COPY --from=build_crome_extension /app/publish/mlebgdemjnpnfgcgbbncllpniiicffbm_${BUILD_VERSION}.crx /app/wwwroot/chrome_extensions/
+
+VOLUME /app/DataProtection-Keys
+EXPOSE 80
+EXPOSE 443
 ENTRYPOINT ["dotnet", "Server.dll"]
