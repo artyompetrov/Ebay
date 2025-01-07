@@ -34,6 +34,6 @@
     <PackageVersion Include="Paramore.Brighter" Version="9.9.8" />
     <PackageVersion Include="Paramore.Brighter.Extensions.DependencyInjection" Version="9.9.8" />
     <PackageVersion Include="Paramore.Brighter.Outbox.PostgreSql" Version="9.9.8" />
-    <PackageVersion Include="Plotly.Blazor" Version="4.2.0" />
+    <PackageVersion Include="Plotly.Blazor" Version="5.4.0" />
   </ItemGroup>
 </Project>
