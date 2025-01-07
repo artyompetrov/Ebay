@@ -35,13 +35,6 @@
 
     <ItemGroup>
         <Folder Include="Data\Migrations\"/>
-        <Folder Include="wwwroot\chrome_extensions\" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Content Update="wwwroot\chrome_extensions\*.crx">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
     </ItemGroup>
 
     <Target Name="NSwag" BeforeTargets="Build">
