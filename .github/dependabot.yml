@@ -4,4 +4,3 @@ updates:
     directory: "/src"
     schedule:
       interval: "monthly"
-    open-pull-requests-limit: 5
