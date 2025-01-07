@@ -28,13 +28,16 @@ jobs:
           node-version: '18.x'
       
       - name: Restore .NET Dependencies
-        run: dotnet restore ./src/Ebay
+        working-directory: ./src/Ebay
+        run: dotnet restore 
 
       - name: Build .NET
-        run: dotnet build ./src/Ebay --no-restore --configuration Release
+        working-directory: ./src/Ebay
+        run: dotnet build --no-restore --configuration Release
 
       - name: Run .NET Tests
-        run: dotnet test ./src/Ebay --no-build --verbosity normal
+        working-directory: ./src/Ebay
+        run: dotnet test --no-build --verbosity normal
 
       - name: Install Node.js Dependencies
         working-directory: ./src/ChromeExtension
@@ -54,12 +57,12 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Login to GitHub Container Registry
-        run: echo ${{ secrets.PAT }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        run: echo ${{ secrets.PAT }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
 
       - name: Build and Push Docker Image
         run: |
           BUILD_VERSION=$(date +'%y%m.%d.%H.%M%S' | sed 's/\.0*/./g')
-          docker build ./src --build-arg BUILD_VERSION="$BUILD_VERSION" --tag ghcr.io/${{ env.IMAGE_NAME }}
+          docker build ./src --build-arg BUILD_VERSION="$BUILD_VERSION" --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
   deploy:
