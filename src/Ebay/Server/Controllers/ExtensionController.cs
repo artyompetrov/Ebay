@@ -15,6 +15,13 @@ public class ExtensionController : ControllerBase
         _env = env;
     }
     
+    
+    [HttpGet("/auth")]
+    public IActionResult BrowserExtensionAuthEndpoint()
+    {
+        return Ok();
+    }
+    
     [HttpGet("{extensionName}.xml")]
     public IActionResult Get(string extensionName)
     {

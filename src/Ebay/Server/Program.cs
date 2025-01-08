@@ -38,13 +38,15 @@ builder.Services.AddIdentityServer()
     .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(
         options =>
         {
+            var domain = Environment.GetEnvironmentVariable("DOMAIN") ?? "localhost";
+            
             var spaClient = ClientBuilder
                 .SPA(WellKnown.ChromeExtension.ClientId)
-                .WithRedirectUri($"chrome-extension://{WellKnown.ChromeExtension.Id}/auth.html")
+                .WithRedirectUri($"https://{domain}/chrome_extensions/auth")
                 .Build();
             spaClient.AllowedCorsOrigins = [
                 $"chrome-extension://{WellKnown.ChromeExtension.Id}",
-                "https://" + (Environment.GetEnvironmentVariable("DOMAIN") ?? "localhost")
+                "https://" + domain
             ];
             options.Clients.Add(spaClient);
 
