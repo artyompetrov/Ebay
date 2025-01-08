@@ -60,7 +60,7 @@ public class ExtensionController : ControllerBase
         return PhysicalFile(crxFilePath, "application/x-chrome-extension", $"{extensionName}_{version}.crx");
     }
 
-    [HttpGet("download/extension.zip")]
+    [HttpGet("download/{extensionName}_{version}.zip")]
     public IActionResult DownloadAsZip(string extensionName, string version)
     {
         var crxFilePath = GetCrxFilePath(extensionName, version);
@@ -79,7 +79,7 @@ public class ExtensionController : ControllerBase
         }
 
         memoryStream.Seek(0, SeekOrigin.Begin);
-        var zipFileName = "extension.zip";
+        var zipFileName = $"{extensionName}_{version}.zip";
         return File(memoryStream, "application/zip", zipFileName);
     }
 
