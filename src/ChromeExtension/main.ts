@@ -81,25 +81,45 @@ currencyMap.set("AUD", "AU $")
 currencyMap.set("CAD", "C $")
 
 // fetch через background script, по другому не работает
-function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response> {
-    console.log("Request " + JSON.stringify(input) + " " + JSON.stringify(init))
+async function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response> {
     return new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage({input, init}, messageResponse => {
-            const [response, error] = messageResponse;
-            if (response === null) {
+        chrome.runtime.sendMessage({ input, init }, async messageResponse => {
+            try {
+                const [response, error] = messageResponse;
+                let logEntry = "Request: " + JSON.stringify(input) + "\n " + JSON.stringify(init);
+                if (response === null) {
+                    logEntry += "\nNo response"
+                    console.log(logEntry);
+                    reject(error);
+                } else {
+                    logEntry += "\n\nResponse " + response.status + " " + response.statusText;
+                    
+                    let body: Blob | undefined;
+                    if (response.body) {
+                        body = new Blob([response.body]);
+                        
+                        try {
+                            const loggedBody = await new Response(body).text();
+                            logEntry += "\nResponse body:\n" + loggedBody;
+                        } catch (logError) {
+                            logEntry += "Failed to log response body: " + logError;
+                        }
+                    }
+                    
+                    console.log(logEntry);
+                    resolve(new Response(body, {
+                        status: response.status,
+                        statusText: response.statusText,
+                    }));
+                }
+            } catch (error) {
+                console.log("An error occurred while processing the response:", error);
                 reject(error);
-            } else {
-                // Use undefined on a 204 - No Content
-                const body = response.body ? new Blob([response.body]) : undefined;
-                console.log("Response " + JSON.stringify(input) + " " + response.status + " " + response.statusText)
-                resolve(new Response(body, {
-                    status: response.status,
-                    statusText: response.statusText,
-                }));
             }
         });
     });
 }
+
 
 function sleep(ms: number): Promise<number> {
     return new Promise(resolve => setTimeout(resolve, ms));
