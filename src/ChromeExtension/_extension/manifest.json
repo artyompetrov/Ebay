@@ -73,7 +73,7 @@
                              "https://178.208.65.100/*",
                              "https://auth.ebay.com/*",
                              "https://api.ebay.com/*",
-                             "https://tubessale.duckdns.org/*",
+                             "https://tubessale.ddns.net/*",
                              "https://localhost:7095/*"
                          ],
     "background":  {
