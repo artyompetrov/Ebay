@@ -23,7 +23,7 @@ services:
     restart: unless-stopped
     volumes:
       - ${NETCORE_CERTIFICATE}:/certs/cert.pfx:ro
-      - ebay_helper_keys:/app/DataProtection-Keys
+      - ebay_helper_keys:/app/DataProtection-Keys/
     environment:
       - DOMAIN=${DUCKDNS_DOMAIN}.duckdns.org
       - ASPNETCORE_HTTP_PORTS="80"
@@ -34,7 +34,7 @@ services:
       - ASPNETCORE_IdentityServer__Key__Password=${NETCORE_CERTIFICATE_PASSWORD}
       - ASPNETCORE_IdentityServer__Key__Type=File
       - ASPNETCORE_ConnectionStrings__DefaultConnection=User ID=ebay;Password=${PG_PASSWORD};Server=ebay_postgres;Port=5432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=30;Enlist=true;
-      - DATA_PROTECTION_KEYS_DIR='/app/DataProtection-Keys'
+      - DATA_PROTECTION_KEYS_DIR=/app/DataProtection-Keys/
     networks:
       - ebay_internal_network
 
