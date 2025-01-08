@@ -16,6 +16,7 @@
       ],
       "matches": [
         "https://tubessale.ddns.net/chrome_extensions/auth*",
+        "https://www.ebay.com/?ebayAuth=true*",
         "https://*.ebay.com/itm/*",
         "https://*.ebay.com/itm/*/*",
         "https://*.ebay.co.uk/itm/*",

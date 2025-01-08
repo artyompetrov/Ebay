@@ -28,6 +28,7 @@ const submitId = "submitButton"
 const backendUrl = `https://${chrome.runtime.getManifest().backend_domain}/`;
 const baseApiUrl = `${backendUrl}api/ebay/v1`;
 const extensionAuthRedirectUrl = `${backendUrl}chrome_extensions/auth`;
+const ebayAuthRedirectUrl = `https://www.ebay.com/`;
 //todo нужно как-то защитить данные авторизации на ebay
 const ebayRedirectUriCode = "Artem_Petrov-ArtemPet-tubesS-dsrgu"
 const ebayApiScope = "https://api.ebay.com/oauth/api_scope"
@@ -1100,39 +1101,30 @@ async function productPage(backendClient: EbayToolBackendClient, ebayClient: Eba
     _panel.hidden = false;
 }
 
-async function authPage(backendOAuth2Client: OAuth2Client, ebayOAuth2Client: OAuth2Client) {
-    console.log("authPage")
+async function extensionAuthPage(backendOAuth2Client: OAuth2Client) {
+    console.log("extensionAuthPage")
     let url = new URL(document.location.href)
     if (url.searchParams.has("code")) {
-
-        let isEbayAuth = url.searchParams.has("ebayAuth")
-
-        let oAuth2Client = isEbayAuth ? ebayOAuth2Client : backendOAuth2Client;
-
         let codeVerifier = (await chrome.storage.local.get(["code_verifier"])).code_verifier;
-
-        let redirect = isEbayAuth ? ebayRedirectUriCode : extensionAuthRedirectUrl;
-        let oauth2Token = await oAuth2Client.authorizationCode.getTokenFromCodeRedirect(
+        
+        let oauth2Token = await backendOAuth2Client.authorizationCode.getTokenFromCodeRedirect(
             document.location.href,
             {
-                redirectUri: redirect,
+                redirectUri: extensionAuthRedirectUrl,
                 codeVerifier
             }
         );
+        
         await chrome.storage.local.set({backend_url: backendUrl})
-        if (isEbayAuth) {
-            await chrome.storage.local.set({ebayTokenStore: JSON.stringify(oauth2Token)})
-        } else {
-            await chrome.storage.local.set({ebayToolTokenStore: JSON.stringify(oauth2Token)})
-        }
-
+        await chrome.storage.local.set({ebayToolTokenStore: JSON.stringify(oauth2Token)})
+        
         let returnPage = (await chrome.storage.local.get(["return_page"]))?.return_page;
 
         if (returnPage) {
             await chrome.storage.local.set({return_page: null})
             redirectWithoutReferer(returnPage);
         } else {
-            document.location.href = redirect
+            document.location.href = extensionAuthRedirectUrl
         }
     }
 }
@@ -1140,6 +1132,38 @@ async function authPage(backendOAuth2Client: OAuth2Client, ebayOAuth2Client: OAu
 function redirectWithoutReferer(url: string) {
     window.open(url, '_self', 'noopener,noreferrer');
 }
+
+async function ebayApiAuthPage(ebayOAuth2Client: OAuth2Client) {
+    console.log("ebayApiAuthPage")
+    let url = new URL(document.location.href)
+    if (url.searchParams.has("code")) {
+
+        let oAuth2Client = ebayOAuth2Client;
+
+        let codeVerifier = (await chrome.storage.local.get(["code_verifier"])).code_verifier;
+        
+        let oauth2Token = await oAuth2Client.authorizationCode.getTokenFromCodeRedirect(
+            document.location.href,
+            {
+                redirectUri: ebayRedirectUriCode,
+                codeVerifier
+            }
+        );
+        
+        await chrome.storage.local.set({ebayTokenStore: JSON.stringify(oauth2Token)})
+        
+        let returnPage = (await chrome.storage.local.get(["return_page"]))?.return_page;
+
+        if (returnPage) {
+            await chrome.storage.local.set({return_page: null})
+            document.location.href = returnPage;
+        } else {
+            document.location.href = ebayRedirectUriCode
+        }
+    }
+}
+
+
 
 async function searchPage(client: EbayToolBackendClient) {
     console.log("SearchPage")
@@ -1291,7 +1315,9 @@ export async function run() {
     let currentPage = location.protocol + '//' + location.host + location.pathname
 
     if (currentPage === extensionAuthRedirectUrl) {
-        await authPage(backendOAuth2Client, ebayOAuth2Client);
+        await extensionAuthPage(backendOAuth2Client);
+    } else if (currentPage === ebayAuthRedirectUrl) {
+        await ebayApiAuthPage(ebayOAuth2Client);
     } else {
         await ebayPages(ebayOAuth2Client, backendOAuth2Client, currentPage);
     }
