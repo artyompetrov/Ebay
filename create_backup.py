@@ -108,7 +108,17 @@ subprocess.run([
 ])
 time.sleep(5)
 
-    
+# Удаление локальных баз данных
+print("!!! dropping local databases")
+subprocess.run([
+    r"C:\Program Files\PostgreSQL\16\bin\psql.exe",
+    "--host", to_host,
+    "--port", "15432",
+    "--username", "ebay",
+    "--dbname", "postgres",
+    "--command", "TRUNCATE TABLE Keys; TRUNCATE TABLE PersistedGrants;"
+])
+time.sleep(5)
 # Запуск контейнеров
 print("!!! starting ebay_helper")
 subprocess.run(["docker", "container", "start", "ebay_helper"])
