@@ -9,8 +9,8 @@
     "action":  {
 
                },
-    "update_url":  "https://tubessale.duckdns.org/chrome_extensions/mlebgdemjnpnfgcgbbncllpniiicffbm.xml",
-    "backend_domain": "tubessale.duckdns.org",
+    "update_url":  "https://tubessale.ddns.net/chrome_extensions/mlebgdemjnpnfgcgbbncllpniiicffbm.xml",
+    "backend_domain": "tubessale.ddns.net",
     "content_scripts":  [
                             {
                                 "js":  [
