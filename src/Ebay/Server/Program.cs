@@ -39,12 +39,11 @@ builder.Services.AddIdentityServer()
         options =>
         {
             var spaClient = ClientBuilder
-                .SPA("Ebay.ChromeExtension")
-                .WithRedirectUri("https://www.ebay.com/")
-                .WithLogoutRedirectUri("https://www.ebay.com/logout")
+                .SPA(WellKnown.ChromeExtension.ClientId)
+                .WithRedirectUri($"chrome-extension://{WellKnown.ChromeExtension.Id}/auth.html")
                 .Build();
             spaClient.AllowedCorsOrigins = [
-                "chrome-extension://mlebgdemjnpnfgcgbbncllpniiicffbm",
+                $"chrome-extension://{WellKnown.ChromeExtension.Id}",
                 "https://" + (Environment.GetEnvironmentVariable("DOMAIN") ?? "localhost")
             ];
             options.Clients.Add(spaClient);

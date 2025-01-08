@@ -2,6 +2,13 @@ namespace Server;
 
 internal static class WellKnown
 {
+    public static class ChromeExtension
+    {
+        public static string Id = "mlebgdemjnpnfgcgbbncllpniiicffbm";
+        public static string ClientId = "Ebay.ChromeExtension";
+
+    }
+    
     public static class Authorization
     {
         public static string PythonClientId = "Ebay.Python";//todo переименовать
