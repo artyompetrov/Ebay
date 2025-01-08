@@ -16,10 +16,10 @@ public class ExtensionController : ControllerBase
     }
     
     
-    [HttpGet("/auth")]
+    [HttpGet("auth")]
     public IActionResult BrowserExtensionAuthEndpoint()
     {
-        return Ok();
+        return Ok("Chrome extension auth page");
     }
     
     [HttpGet("{extensionName}.xml")]

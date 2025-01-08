@@ -43,6 +43,7 @@ builder.Services.AddIdentityServer()
             var spaClient = ClientBuilder
                 .SPA(WellKnown.ChromeExtension.ClientId)
                 .WithRedirectUri($"https://{domain}/chrome_extensions/auth")
+                .WithLogoutRedirectUri($"https://{domain}/chrome_extensions/logout")
                 .Build();
             spaClient.AllowedCorsOrigins = [
                 $"chrome-extension://{WellKnown.ChromeExtension.Id}",
