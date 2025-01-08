@@ -1,4 +1,5 @@
 using Duende.IdentityServer.Models;
+using Duende.IdentityServer.Services;
 using Server;
 using Server.Controllers;
 using Server.Controllers.Generated;
@@ -42,6 +43,15 @@ builder.Services.AddIdentityServer()
             );
         }
     );
+
+// отключение Cors для авторизации
+builder.Services.AddSingleton<ICorsPolicyService>(container => {
+    var logger = container.GetRequiredService<ILogger<DefaultCorsPolicyService>>();
+    return new DefaultCorsPolicyService(logger)
+    {
+        AllowAll = true
+    };
+});
 
 var keyStoragePath = Environment.GetEnvironmentVariable("DATA_PROTECTION_KEYS_DIR") ??
     Path.Join(Path.GetTempPath(), "data_protection_keys_dir");
