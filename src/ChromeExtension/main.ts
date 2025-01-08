@@ -82,7 +82,7 @@ currencyMap.set("CAD", "C $")
 
 // fetch через background script, по другому не работает
 function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response> {
-    console.log(JSON.stringify(input) + " " + JSON.stringify(init))
+    console.log("Request " + JSON.stringify(input) + " " + JSON.stringify(init))
     return new Promise((resolve, reject) => {
         chrome.runtime.sendMessage({input, init}, messageResponse => {
             const [response, error] = messageResponse;
@@ -91,6 +91,7 @@ function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response>
             } else {
                 // Use undefined on a 204 - No Content
                 const body = response.body ? new Blob([response.body]) : undefined;
+                console.log("Response " + JSON.stringify(input) + " " + response.status + " " + response.statusText)
                 resolve(new Response(body, {
                     status: response.status,
                     statusText: response.statusText,
