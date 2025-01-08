@@ -1,5 +1,4 @@
 using Duende.IdentityServer.Models;
-using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Server;
 using Server.Controllers;
@@ -11,11 +10,20 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
+using Serilog;
 using Secret = Duende.IdentityServer.Models.Secret;
 
 IdentityModelEventSource.ShowPII = true;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Настройка Serilog
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new NullReferenceException("Connection string cannot be null");
@@ -36,10 +44,11 @@ builder.Services.AddIdentityServer()
                 .WithLogoutRedirectUri("https://www.ebay.com/logout")
                 .Build();
             spaClient.AllowedCorsOrigins = [
-                "chrome-extension://mlebgdemjnpnfgcgbbncllpniiicffbm"
+                "chrome-extension://mlebgdemjnpnfgcgbbncllpniiicffbm",
+                "https://tubessale.duckdns.org"
             ];
             options.Clients.Add(spaClient);
-            
+
             options.Clients.Add(
                 new Duende.IdentityServer.Models.Client
                 {
@@ -81,6 +90,8 @@ builder.Services.AddHostedService<CurrencyRateHostedService>();
 
 
 var app = builder.Build();
+
+app.UseSerilogRequestLogging();
 
 // Migrate DB
 using (var scope = app.Services.CreateScope())

@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,11 +12,11 @@ public class ExtensionController : ControllerBase
 {
     private readonly IWebHostEnvironment _env;
 
-    public ExtensionController( IWebHostEnvironment env)
+    public ExtensionController(IWebHostEnvironment env)
     {
         _env = env;
     }
-    
+
     [HttpGet("{extensionName}.xml")]
     public IActionResult Get(string extensionName)
     {
@@ -26,7 +26,7 @@ public class ExtensionController : ControllerBase
         {
             return StatusCode(500, "Extensions folder not found.");
         }
-        
+
         var pattern = $"{extensionName}_*.crx";
         var crxFiles = Directory.GetFiles(extensionsFolder, pattern);
 
@@ -73,7 +73,7 @@ public class ExtensionController : ControllerBase
         var latestVersion = latest.Version;
         var crxFileName = Path.GetFileName(latest.FilePath);
         var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.PathBase}";
-        
+
         var crxUrl = $"{baseUrl}/chrome_extensions/download/{crxFileName}";
 
         // Формируем XML
@@ -87,11 +87,11 @@ public class ExtensionController : ControllerBase
         Response.Headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
         Response.Headers.Append("Pragma", "no-cache");
         Response.Headers.Append("Expires", "0");
-        
+
         // Возвращаем XML с корректным MIME‑типом
         return Content(xmlContent, "application/xml");
     }
-    
+
     // GET api/download/{extensionName}/{version}
     [HttpGet("download/{extensionName}_{version}.crx")]
     public IActionResult Download(string extensionName, string version)
@@ -108,7 +108,7 @@ public class ExtensionController : ControllerBase
         {
             return StatusCode(500, "Slashes in extension name");
         }
-        
+
         var crxFileName = $"{extensionName}_{version}.crx";
         var crxFilePath = Path.Combine(extensionsFolder, crxFileName);
 
