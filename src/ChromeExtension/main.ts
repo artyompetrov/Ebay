@@ -50,6 +50,8 @@ let _serverAndEbayAreEqual = false;
 let _panel: HTMLDivElement;
 let _currentProductId: string
 
+let extendedLogging = false;
+
 class ShippingParameters {
     constructor(regions: string[], zip: string | null) {
         this.regions = regions
@@ -86,21 +88,28 @@ async function fetchResource(input: RequestInfo, init: RequestInit): Promise<Res
         chrome.runtime.sendMessage({ input, init }, async messageResponse => {
             try {
                 const [response, error] = messageResponse;
-                let logEntry = "Request: " + JSON.stringify(input) + "\n " + JSON.stringify(init);
+                let logEntry = "Request: " + JSON.stringify(input);
+                if (extendedLogging) {
+                    logEntry += "\n\nRequest body: \n" + JSON.stringify(init);
+                }
                 if (response === null) {
-                    logEntry += "\nNo response"
+                    logEntry += "\n\nNo response"
                     console.log(logEntry);
                     reject(error);
                 } else {
                     logEntry += "\n\nResponse " + response.status + " " + response.statusText;
+
+                    if (extendedLogging) {
+                        logEntry += "\n\nResponse headers:\n" + JSON.stringify(response.headers);
+                    }
+
+                    let body = new Blob([response.body]);
                     
-                    let body: Blob | undefined;
-                    if (response.body) {
-                        body = new Blob([response.body]);
-                        
+                    if (extendedLogging) {
+                        logEntry += "\n\nResponse body:\n";
                         try {
                             const loggedBody = await new Response(body).text();
-                            logEntry += "\nResponse body:\n" + loggedBody;
+                            logEntry += loggedBody;
                         } catch (logError) {
                             logEntry += "Failed to log response body: " + logError;
                         }
@@ -108,8 +117,9 @@ async function fetchResource(input: RequestInfo, init: RequestInit): Promise<Res
                     
                     console.log(logEntry);
                     resolve(new Response(body, {
+                        headers: new Headers(response.headers),
                         status: response.status,
-                        statusText: response.statusText,
+                        statusText: response.statusText
                     }));
                 }
             } catch (error) {
@@ -975,7 +985,15 @@ async function checkForUpdates(): Promise<void> {
     };
     
     if (isNewerVersion(currentVersion, remoteVersion)) {
-        alert(`Ebay Helper extension New version available: ${remoteVersion}`);
+        let alertMessage = `Ebay Helper extension New version available: ${remoteVersion}`
+        if (currentVersion === "0") {
+            // Локальный дебаг
+            console.log("Alerting " + alertMessage)
+        }
+        else {
+            alert(alertMessage);
+        }
+        return;
     }
     
     console.log("No updates available. Current version is up-to-date.");
