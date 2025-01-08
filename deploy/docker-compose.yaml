@@ -35,7 +35,6 @@ services:
       - ASPNETCORE_IdentityServer__Key__Type=File
       - ASPNETCORE_ConnectionStrings__DefaultConnection=User ID=ebay;Password=${PG_PASSWORD};Server=ebay_postgres;Port=5432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=30;Enlist=true;
       - DATA_PROTECTION_KEYS_DIR=/app/DataProtection-Keys/
-      - ASPNETCORE_ENVIRONMENT=Development
     networks:
       - ebay_internal_network
 
