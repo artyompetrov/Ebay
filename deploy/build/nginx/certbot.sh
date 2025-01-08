@@ -28,7 +28,7 @@ else
     echo "SELF_SIGNED_CERTIFICATE is not 'true'. Creating certificate via certbot..."
     certbot certonly \
       --standalone \
-      -d $DOMAIN
+      -d $DOMAIN \
       --email $EMAIL \
       --non-interactive \
       --agree-tos \
