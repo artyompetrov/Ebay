@@ -10,13 +10,13 @@ namespace Tests;
 [Explicit]
 public class ExplicitTests
 {
+    private const string Server = "tubessale.ddns.net";
     private static readonly EbayClient Client = CreateClient();
 
     private static EbayClient CreateClient()
     {
-        var server = "tubes.com.ru";
         var port = 10001;
-        var baseAddress = $"https://{server}:{port}";
+        var baseAddress = $"https://{Server}:{port}";
 
         var url = $"{baseAddress}/connect/token";
         var httpClient = new HttpClient();

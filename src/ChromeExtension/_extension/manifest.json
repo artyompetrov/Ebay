@@ -10,6 +10,7 @@
 
                },
     "update_url":  "https://tubessale.duckdns.org/chrome_extensions/mlebgdemjnpnfgcgbbncllpniiicffbm.xml",
+    "backend_domain": "tubessale.duckdns.org",
     "content_scripts":  [
                             {
                                 "js":  [

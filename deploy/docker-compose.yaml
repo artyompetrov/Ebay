@@ -25,7 +25,7 @@ services:
       - ${NETCORE_CERTIFICATE}:/certs/cert.pfx:ro
       - ebay_helper_keys:/app/DataProtection-Keys/
     environment:
-      - DOMAIN=${DUCKDNS_DOMAIN}.duckdns.org
+      - DOMAIN=${DOMAIN}
       - ASPNETCORE_HTTP_PORTS="80"
       - ASPNETCORE_HTTPS_PORTS="443"
       - ASPNETCORE_Kestrel__Certificates__Default__Password=${NETCORE_CERTIFICATE_PASSWORD}
@@ -49,7 +49,7 @@ services:
       - ./mount/nginx/logs/:/var/log/nginx/
       - ./mount/nginx/certs/:/etc/letsencrypt/
     environment:
-      - DOMAIN=${DUCKDNS_DOMAIN}.duckdns.org
+      - DOMAIN=${DOMAIN}
       - SELF_SIGNED_CERTIFICATE=${LOCAL_RUN}
       - EMAIL=${EMAIL}
     networks:
@@ -68,19 +68,14 @@ services:
     networks:
       - ebay_internal_network
 
-  ebay_duckdns:
-    image: lscr.io/linuxserver/duckdns:latest
+  ebay_noip:
+    image: ghcr.io/noipcom/noip-duc:latest
     container_name: ebay_duckdns
     environment:
-      - SUBDOMAINS=${DUCKDNS_DOMAIN}
-      - TOKEN=${DUCKDNS_TOKEN}
+      - NOIP_USERNAME=${NOIP_USERNAME}
+      - NOIP_PASSWORD=${NOIP_PASSWORD}
+      - NOIP_HOSTNAMES=all.ddnskey.com
     restart: unless-stopped
-    entrypoint: >
-      sh -c "if [ \"$LOCAL_RUN\" = \"true\" ]; then
-                 echo 'Skipping ebay_duckdns because LOCAL_RUN=true';
-                 sleep infinity;
-               fi;
-               exec /init"
 
 networks:
   ebay_internal_network:

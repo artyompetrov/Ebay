@@ -45,7 +45,7 @@ builder.Services.AddIdentityServer()
                 .Build();
             spaClient.AllowedCorsOrigins = [
                 "chrome-extension://mlebgdemjnpnfgcgbbncllpniiicffbm",
-                "https://tubessale.duckdns.org"
+                "https://" + (Environment.GetEnvironmentVariable("DOMAIN") ?? "localhost")
             ];
             options.Clients.Add(spaClient);
 
