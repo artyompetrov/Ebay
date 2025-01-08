@@ -92,7 +92,7 @@
         {
             <tr>
                 <td>
-                    <a id="@GetLotLinkId(lot.LotId)" href="@GetLinkToLot(lot)" target="_blank">@lot.Name</a>
+                    <a id="@GetLotLinkId(lot.LotId)" href="@GetLinkToLot(lot)" rel="noreferrer" target="_blank">@lot.Name</a>
                 </td>
                 <td>
                     <button class="btn btn-danger btn-sm oi oi-basket" @onclick="@(e => OnDeleteButtonClick(lot))"></button>

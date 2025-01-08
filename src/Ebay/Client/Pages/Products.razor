@@ -44,7 +44,7 @@
             <td>
                 @foreach (var query in product.SearchQueries)
                 {
-                    <span><a href="@GetSearchLink(query.Query, product.Id)" target=”_blank”>@query.Query</a>&#160;</span>
+                    <span><a href="@GetSearchLink(query.Query, product.Id)" rel="noreferrer" target=”_blank”>@query.Query</a>&#160;</span>
                 }
             </td>
             <td>
