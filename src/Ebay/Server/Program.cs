@@ -45,6 +45,7 @@ var keyStoragePath = Path.Combine("/app", "DataProtection-Keys");
 
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(keyStoragePath))
+    .ProtectKeysWithCertificate("thumbprint")
     .SetApplicationName("EbayHelper");
 
 builder.Services.AddAuthentication().AddIdentityServerJwt();
