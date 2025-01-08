@@ -25,7 +25,7 @@ services:
       - ${NETCORE_CERTIFICATE}:/certs/cert.pfx:ro
     environment:
       - DOMAIN=${DUCKDNS_DOMAIN}.duckdns.org
-      - ASPNETCORE_HTTP_PORTS=""
+      - ASPNETCORE_HTTP_PORTS="80"
       - ASPNETCORE_HTTPS_PORTS="443"
       - ASPNETCORE_Kestrel__Certificates__Default__Password=${NETCORE_CERTIFICATE_PASSWORD}
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/certs/cert.pfx
