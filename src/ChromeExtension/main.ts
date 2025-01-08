@@ -27,7 +27,7 @@ const errorElementId = "errorElement"
 const submitId = "submitButton"
 const backendUrl = `https://${chrome.runtime.getManifest().backend_domain}`;
 const baseApiUrl = `${backendUrl}api/ebay/v1`;
-const redirectUrl = "https://www.ebay.com/"
+const extensionAuthRedirectUrl = `https://${backendUrl}/chrome_extensions/auth`;
 const ebayRedirectUriCode = "Artem_Petrov-ArtemPet-tubesS-dsrgu"
 const ebayApiScope = "https://api.ebay.com/oauth/api_scope"
 const backendApiScope = 'ServerAPI'
@@ -1110,7 +1110,7 @@ async function authPage(backendOAuth2Client: OAuth2Client, ebayOAuth2Client: OAu
 
         let codeVerifier = (await chrome.storage.local.get(["code_verifier"])).code_verifier;
 
-        let redirect = isEbayAuth ? ebayRedirectUriCode : redirectUrl;
+        let redirect = isEbayAuth ? ebayRedirectUriCode : extensionAuthRedirectUrl;
         let oauth2Token = await oAuth2Client.authorizationCode.getTokenFromCodeRedirect(
             document.location.href,
             {
@@ -1261,7 +1261,7 @@ export async function run() {
 
     let currentPage = location.protocol + '//' + location.host + location.pathname
 
-    if (currentPage === redirectUrl) {
+    if (currentPage === extensionAuthRedirectUrl) {
         await authPage(backendOAuth2Client, ebayOAuth2Client);
     } else {
 
@@ -1276,7 +1276,7 @@ export async function run() {
 
         let ebayClient = new EbayClient("https://api.ebay.com/buy/browse/v1", authorizeFetch);
         let ebayShoppingApiClient = new EbayShoppingApiClient(authorizeFetch)
-        let backendClient = new EbayToolBackendClient(baseApiUrl, getAuthorizeFetch(backendOAuth2Client, backendApiScope, "ebayToolTokenStore", redirectUrl));
+        let backendClient = new EbayToolBackendClient(baseApiUrl, getAuthorizeFetch(backendOAuth2Client, backendApiScope, "ebayToolTokenStore", extensionAuthRedirectUrl));
         try {
             if (currentPage.startsWith("https://www.ebay.com/itm/")) {
                 await productPage(backendClient, ebayClient, ebayShoppingApiClient);
