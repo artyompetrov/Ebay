@@ -1,5 +1,6 @@
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Services;
+using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Server;
 using Server.Controllers;
 using Server.Controllers.Generated;
@@ -29,11 +30,21 @@ builder.Services.AddIdentityServer()
     .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(
         options =>
         {
+            var spaClient = ClientBuilder
+                .SPA("Ebay.ChromeExtension")
+                .WithRedirectUri("https://www.ebay.com/")
+                .WithLogoutRedirectUri("https://www.ebay.com/logout")
+                .Build();
+            spaClient.AllowedCorsOrigins = [
+                "chrome-extension://mlebgdemjnpnfgcgbbncllpniiicffbm"
+            ];
+            options.Clients.Add(spaClient);
+            
             options.Clients.Add(
                 new Duende.IdentityServer.Models.Client
                 {
                     ClientId = WellKnown.Authorization.PythonClientId,
-                    ClientSecrets = new List<Secret>() { new(WellKnown.Authorization.AuthToken.Sha256()) },
+                    ClientSecrets = new List<Secret> { new(WellKnown.Authorization.AuthToken.Sha256()) },
                     AllowedGrantTypes = GrantTypes.ClientCredentials,
                     AllowedScopes =
                     {
@@ -43,15 +54,6 @@ builder.Services.AddIdentityServer()
             );
         }
     );
-
-// отключение Cors для авторизации
-builder.Services.AddSingleton<ICorsPolicyService>(container => {
-    var logger = container.GetRequiredService<ILogger<DefaultCorsPolicyService>>();
-    return new DefaultCorsPolicyService(logger)
-    {
-        AllowAll = true
-    };
-});
 
 var keyStoragePath = Environment.GetEnvironmentVariable("DATA_PROTECTION_KEYS_DIR") ??
     Path.Join(Path.GetTempPath(), "data_protection_keys_dir");
