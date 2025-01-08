@@ -25,9 +25,9 @@ const panelInputClass = "panel-input-div";
 const formId = "product-form-id"
 const errorElementId = "errorElement"
 const submitId = "submitButton"
-const backendUrl = `https://${chrome.runtime.getManifest().backend_domain}`;
+const backendUrl = `https://${chrome.runtime.getManifest().backend_domain}/`;
 const baseApiUrl = `${backendUrl}api/ebay/v1`;
-const extensionAuthRedirectUrl = `${backendUrl}/chrome_extensions/auth`;
+const extensionAuthRedirectUrl = `${backendUrl}chrome_extensions/auth`;
 //todo нужно как-то защитить данные авторизации на ebay
 const ebayRedirectUriCode = "Artem_Petrov-ArtemPet-tubesS-dsrgu"
 const ebayApiScope = "https://api.ebay.com/oauth/api_scope"
@@ -50,7 +50,7 @@ let _serverAndEbayAreEqual = false;
 let _panel: HTMLDivElement;
 let _currentProductId: string
 
-let extendedLogging = false;
+let extendedLogging = true;
 
 class ShippingParameters {
     constructor(regions: string[], zip: string | null) {
@@ -1128,15 +1128,18 @@ async function authPage(backendOAuth2Client: OAuth2Client, ebayOAuth2Client: OAu
 
         let returnPage = (await chrome.storage.local.get(["return_page"]))?.return_page;
 
-        if (returnPage !== null && returnPage !== undefined) {
+        if (returnPage) {
             await chrome.storage.local.set({return_page: null})
-            document.location.href = returnPage
+            redirectWithoutReferer(returnPage);
         } else {
             document.location.href = redirect
         }
     }
 }
 
+function redirectWithoutReferer(url: string) {
+    window.open(url, '_self', 'noopener,noreferrer');
+}
 
 async function searchPage(client: EbayToolBackendClient) {
     console.log("SearchPage")
@@ -1237,8 +1240,33 @@ async function saveCodeVerifier() {
     }
 }
 
-export async function run() {
+async function ebayPages(ebayOAuth2Client: OAuth2Client, backendOAuth2Client: OAuth2Client, currentPage: string) {
     await sleepElementLoaded('footer', document)
+
+    _currentProductId = getCurrentProductIdParam();
+    if (!_currentProductId) {
+        console.log("productId not found")
+        return;
+    }
+
+    await chrome.storage.local.set({return_page: document.location.href})
+    let authorizeFetch = getAuthorizeFetch(ebayOAuth2Client, ebayApiScope, "ebayTokenStore", ebayRedirectUriCode)
+
+    let ebayClient = new EbayClient("https://api.ebay.com/buy/browse/v1", authorizeFetch);
+    let ebayShoppingApiClient = new EbayShoppingApiClient(authorizeFetch)
+    let backendClient = new EbayToolBackendClient(baseApiUrl, getAuthorizeFetch(backendOAuth2Client, backendApiScope, "ebayToolTokenStore", extensionAuthRedirectUrl));
+    try {
+        if (currentPage.startsWith("https://www.ebay.com/itm/")) {
+            await productPage(backendClient, ebayClient, ebayShoppingApiClient);
+        } else if (currentPage.startsWith("https://www.ebay.com/sch/")) {
+            await searchPage(backendClient);
+        }
+    } catch (error) {
+        await saveErrorToBackend(error, backendClient)
+    }
+}
+
+export async function run() {
     await saveCodeVerifier();
 
     let _ = checkForUpdates();
@@ -1265,30 +1293,8 @@ export async function run() {
     if (currentPage === extensionAuthRedirectUrl) {
         await authPage(backendOAuth2Client, ebayOAuth2Client);
     } else {
-
-        _currentProductId = getCurrentProductIdParam();
-        if (!_currentProductId) {
-            console.log("productId not found")
-            return;
-        }
-
-        await chrome.storage.local.set({return_page: document.location.href})
-        let authorizeFetch = getAuthorizeFetch(ebayOAuth2Client, ebayApiScope, "ebayTokenStore", ebayRedirectUriCode)
-
-        let ebayClient = new EbayClient("https://api.ebay.com/buy/browse/v1", authorizeFetch);
-        let ebayShoppingApiClient = new EbayShoppingApiClient(authorizeFetch)
-        let backendClient = new EbayToolBackendClient(baseApiUrl, getAuthorizeFetch(backendOAuth2Client, backendApiScope, "ebayToolTokenStore", extensionAuthRedirectUrl));
-        try {
-            if (currentPage.startsWith("https://www.ebay.com/itm/")) {
-                await productPage(backendClient, ebayClient, ebayShoppingApiClient);
-            } else if (currentPage.startsWith("https://www.ebay.com/sch/")) {
-                await searchPage(backendClient);
-            }
-        } catch (error) {
-            await saveErrorToBackend(error, backendClient)
-        }
+        await ebayPages(ebayOAuth2Client, backendOAuth2Client, currentPage);
     }
-
 }
 
 

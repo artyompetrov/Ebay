@@ -15,7 +15,7 @@
         "build/ebay.js"
       ],
       "matches": [
-        "https://tubessale.ddns.net/chrome_extensions/auth",
+        "https://tubessale.ddns.net/chrome_extensions/auth*",
         "https://*.ebay.com/itm/*",
         "https://*.ebay.com/itm/*/*",
         "https://*.ebay.co.uk/itm/*",
