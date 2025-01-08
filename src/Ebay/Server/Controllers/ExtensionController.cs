@@ -19,7 +19,18 @@ public class ExtensionController : ControllerBase
     [HttpGet("auth")]
     public IActionResult BrowserExtensionAuthEndpoint()
     {
-        return Ok("Chrome extension auth page");
+        var htmlContent = @"
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Chrome Extension Auth</title>
+        </head>
+        <body>
+            Chrome extension auth page
+        </body>
+        </html>";
+        
+        return Content(htmlContent, "text/html");
     }
     
     [HttpGet("{extensionName}.xml")]
