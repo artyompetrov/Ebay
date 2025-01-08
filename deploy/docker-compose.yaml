@@ -70,7 +70,7 @@ services:
 
   ebay_noip:
     image: ghcr.io/noipcom/noip-duc:latest
-    container_name: ebay_duckdns
+    container_name: ebay_noip
     environment:
       - NOIP_USERNAME=${NOIP_USERNAME}
       - NOIP_PASSWORD=${NOIP_PASSWORD}

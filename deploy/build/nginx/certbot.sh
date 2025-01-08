@@ -32,7 +32,8 @@ else
       --email $EMAIL \
       --non-interactive \
       --agree-tos \
-      --no-eff-email
+      --no-eff-email \
+      -v
       
       echo "Starting service cron..."
       service cron start
