@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 namespace Server.Controllers;
 
 [ApiController]
-[AllowAnonymous]
 [Route("chrome_extensions")]
 public class ExtensionController : ControllerBase
 {
@@ -16,6 +15,7 @@ public class ExtensionController : ControllerBase
         _env = env;
     }
 
+    [AllowAnonymous]
     [HttpGet("{extensionName}.xml")]
     public IActionResult Get(string extensionName)
     {
@@ -48,6 +48,7 @@ public class ExtensionController : ControllerBase
         return Content(xmlContent, "application/xml");
     }
 
+    [AllowAnonymous]
     [HttpGet("download/{extensionName}_{version}.crx")]
     public IActionResult Download(string extensionName, string version)
     {
@@ -67,7 +68,7 @@ public class ExtensionController : ControllerBase
 
         return NotFound($"CRX file '{extensionName}_{version}.crx' not found.");
     }
-
+    
     [HttpGet("download/{extensionName}.zip")]
     public IActionResult DownloadAsZip(string extensionName)
     {
