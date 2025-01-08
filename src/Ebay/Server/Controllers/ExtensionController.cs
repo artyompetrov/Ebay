@@ -120,4 +120,46 @@ public class ExtensionController : ControllerBase
         // Возвращаем файл с правильным MIME‑типом
         return PhysicalFile(crxFilePath, "application/x-chrome-extension", crxFileName);
     }
+    
+    [HttpGet("download/{extensionName}_{version}.zip")]
+    public IActionResult DownloadAsZip(string extensionName, string version)
+    {
+        // Путь к папке с CRX‑файлами
+        var extensionsFolder = Path.Combine(_env.WebRootPath, "chrome_extensions");
+
+        if (!Directory.Exists(extensionsFolder))
+        {
+            return StatusCode(500, "Extensions folder not found.");
+        }
+
+        if (extensionName.Contains('/') || extensionName.Contains('\\'))
+        {
+            return StatusCode(500, "Slashes in extension name");
+        }
+
+        var crxFileName = $"{extensionName}_{version}.crx";
+        var crxFilePath = Path.Combine(extensionsFolder, crxFileName);
+
+        if (!System.IO.File.Exists(crxFilePath))
+        {
+            return NotFound($"CRX file '{crxFileName}' not found.");
+        }
+
+        // Создаём архив на лету
+        using var memoryStream = new MemoryStream();
+        using (var archive = new System.IO.Compression.ZipArchive(memoryStream, System.IO.Compression.ZipArchiveMode.Create, true))
+        {
+            var zipEntry = archive.CreateEntry(crxFileName);
+            using var entryStream = zipEntry.Open();
+            using var fileStream = new FileStream(crxFilePath, FileMode.Open, FileAccess.Read);
+            fileStream.CopyTo(entryStream);
+        }
+
+        memoryStream.Seek(0, SeekOrigin.Begin);
+
+        // Возвращаем ZIP-файл
+        var zipFileName = $"{extensionName}_{version}.zip";
+        return File(memoryStream, "application/zip", zipFileName);
+    }
+
 }
