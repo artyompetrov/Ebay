@@ -82,7 +82,7 @@ public class ExtensionController : ControllerBase
             return NotFound($"CRX file '{extensionName}_*.crx' not found.");
         }
 
-        using var memoryStream = new MemoryStream();
+        var memoryStream = new MemoryStream();
         using (var archive = new System.IO.Compression.ZipArchive(memoryStream, System.IO.Compression.ZipArchiveMode.Create, true))
         {
             var zipEntry = archive.CreateEntry(Path.GetFileName(crxFilePath));
