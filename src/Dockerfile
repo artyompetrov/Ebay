@@ -28,7 +28,7 @@ ARG BUILD_VERSION="0.0.0.1"
 COPY --from=build_crome_extension /app/publish/mlebgdemjnpnfgcgbbncllpniiicffbm_${BUILD_VERSION}.crx /app/wwwroot/chrome_extensions/
 
 VOLUME /app/DataProtection-Keys
-ENV DATA_PROTECTION_KEYS_DIR = '/app/DataProtection-Keys'
+ENV DATA_PROTECTION_KEYS_DIR='/app/DataProtection-Keys'
 EXPOSE 80
 EXPOSE 443
 ENTRYPOINT ["dotnet", "Server.dll"]
