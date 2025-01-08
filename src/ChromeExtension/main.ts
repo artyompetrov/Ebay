@@ -28,6 +28,7 @@ const submitId = "submitButton"
 const backendUrl = `https://${chrome.runtime.getManifest().backend_domain}`;
 const baseApiUrl = `${backendUrl}api/ebay/v1`;
 const extensionAuthRedirectUrl = `${backendUrl}/chrome_extensions/auth`;
+//todo нужно как-то защитить данные авторизации на ebay
 const ebayRedirectUriCode = "Artem_Petrov-ArtemPet-tubesS-dsrgu"
 const ebayApiScope = "https://api.ebay.com/oauth/api_scope"
 const backendApiScope = 'ServerAPI'

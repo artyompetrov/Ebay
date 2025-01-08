@@ -85,7 +85,6 @@ public class ExtensionController : ControllerBase
         return NotFound($"CRX file '{extensionName}_{version}.crx' not found.");
     }
     
-    [Authorize]
     [HttpGet("download/{extensionName}.zip")]
     public IActionResult DownloadAsZip(string extensionName)
     {
