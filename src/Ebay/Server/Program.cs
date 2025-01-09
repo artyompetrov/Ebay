@@ -39,7 +39,7 @@ builder.Services.AddIdentityServer()
         options =>
         {
             var domain = Environment.GetEnvironmentVariable("DOMAIN") ?? "localhost";
-            
+
             var spaClient = ClientBuilder
                 .SPA(WellKnown.ChromeExtension.ClientId)
                 .WithRedirectUri($"https://{domain}/chrome_extensions/auth")

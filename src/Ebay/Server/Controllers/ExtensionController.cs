@@ -1,5 +1,4 @@
 using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Server.Controllers;
@@ -14,8 +13,8 @@ public class ExtensionController : ControllerBase
     {
         _env = env;
     }
-    
-    
+
+
     [HttpGet("auth")]
     public IActionResult BrowserExtensionAuthEndpoint()
     {
@@ -29,10 +28,10 @@ public class ExtensionController : ControllerBase
             Chrome extension auth page
         </body>
         </html>";
-        
+
         return Content(htmlContent, "text/html");
     }
-    
+
     [HttpGet("{extensionName}.xml")]
     public IActionResult Get(string extensionName)
     {
@@ -64,7 +63,7 @@ public class ExtensionController : ControllerBase
 
         return Content(xmlContent, "application/xml");
     }
-    
+
     [HttpGet("download/{extensionName}_{version}.crx")]
     public IActionResult Download(string extensionName, string version)
     {
@@ -84,7 +83,7 @@ public class ExtensionController : ControllerBase
 
         return NotFound($"CRX file '{extensionName}_{version}.crx' not found.");
     }
-    
+
     [HttpGet("download/{extensionName}.zip")]
     public IActionResult DownloadAsZip(string extensionName)
     {
@@ -93,7 +92,7 @@ public class ExtensionController : ControllerBase
             .OrderBy(x => x.Version)
             .FirstOrDefault()
             .FilePath;
-        
+
         if (crxFilePath == null)
         {
             return NotFound($"CRX file '{extensionName}_*.crx' not found.");
@@ -110,7 +109,7 @@ public class ExtensionController : ControllerBase
 
         memoryStream.Seek(0, SeekOrigin.Begin);
         var zipFileName = $"{extensionName}.zip";
-        
+
         Response.Headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
         Response.Headers.Append("Pragma", "no-cache");
         Response.Headers.Append("Expires", "0");

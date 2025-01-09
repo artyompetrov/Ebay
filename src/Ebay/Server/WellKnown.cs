@@ -8,7 +8,7 @@ internal static class WellKnown
         public static string ClientId = "Ebay.ChromeExtension";
 
     }
-    
+
     public static class Authorization
     {
         public static string PythonClientId = "Ebay.Python";//todo переименовать
