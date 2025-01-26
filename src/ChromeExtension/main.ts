@@ -50,7 +50,7 @@ let _needActualizationLotsIds: number[] = null
 let _serverAndEbayAreEqual = false;
 let _panel: HTMLDivElement;
 let _currentProductId: string
-
+let interestedInTopNItems = 20;
 let extendedLogging = true;
 
 const ebaySiteRegex: RegExp =  /(?:^|\.)ebay\.com$/i;
@@ -1195,7 +1195,7 @@ async function searchPage(client: EbayToolBackendClient) {
             links.push(new LotLink(parseInt(link.href.match(/https:\/\/[^\/]+\/itm\/(\d+)/)[1]), link, soldDate));
         }
     }
-
+    links = links.slice(0, interestedInTopNItems);
     // noinspection JSUnusedLocalSymbols
     let _ = updateStatusInfinite(client, links);
 
