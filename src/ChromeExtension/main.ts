@@ -8,12 +8,13 @@ import {
     LotInfoWithProductId,
     NotFoundProblemDetailedInfo,
     PurchaseInfo,
-    ValidationProblemDetailedInfo
+    ValidationProblemDetailedInfo, ProductWithoutId, SearchQuery
 } from "./EbayClient/EbayToolBackendClient"
 import {EbayClient, Item} from "./EbayClient/EbayClient"
 import {generateCodeVerifier, OAuth2Client} from '@badgateway/oauth2-client';
 import {FetchWrapperCustom} from "./FetchWrapperCustom";
 import {EbayShoppingApiClient} from "./EbayShoppingApiClient";
+import { v4 as uuidv4 } from 'uuid';
 
 const productFieldName = "productId";
 const ignoreThatLotFormId = "ignoreThatLot"
@@ -50,8 +51,27 @@ let _needActualizationLotsIds: number[] = null
 let _serverAndEbayAreEqual = false;
 let _panel: HTMLDivElement;
 let _currentProductId: string
-let interestedInTopNItems = 20;
+let interestedInTopNItems = 10;
 let extendedLogging = true;
+
+function transliterate(text: string): string {
+    const map: { [key: string]: string } = {
+        "а": "a", "б": "b", "в": "v", "г": "g", "д": "d", "е": "e", "ё": "yo",
+        "ж": "zh", "з": "z", "и": "i", "й": "y", "к": "k", "л": "l", "м": "m",
+        "н": "n", "о": "o", "п": "p", "р": "r", "с": "s", "т": "t", "у": "u",
+        "ф": "f", "х": "kh", "ц": "ts", "ч": "ch", "ш": "sh", "щ": "shch",
+        "ъ": "", "ы": "y", "ь": "", "э": "e", "ю": "yu", "я": "ya",
+        "А": "A", "Б": "B", "В": "V", "Г": "G", "Д": "D", "Е": "E", "Ё": "Yo",
+        "Ж": "Zh", "З": "Z", "И": "I", "Й": "Y", "К": "K", "Л": "L", "М": "M",
+        "Н": "N", "О": "O", "П": "P", "Р": "R", "С": "S", "Т": "T", "У": "U",
+        "Ф": "F", "Х": "Kh", "Ц": "Ts", "Ч": "Ch", "Ш": "Sh", "Щ": "Shch",
+        "Ъ": "", "Ы": "Y", "Ь": "", "Э": "E", "Ю": "Yu", "Я": "Ya",
+    };
+    return text
+        .split("")
+        .map((char) => map[char] || char) // Заменяем символы на основе таблицы
+        .join("");
+}
 
 const ebaySiteRegex: RegExp =  /(?:^|\.)ebay\.com$/i;
 const chipFindRegex: RegExp = /(?:^|\.)chipfind\.ru/i
@@ -95,6 +115,51 @@ const currencyMap = new Map<string, string>()
 currencyMap.set("USD", "US $")
 currencyMap.set("AUD", "AU $")
 currencyMap.set("CAD", "C $")
+
+interface CachedData<T> {
+    value: T;
+    expirationTime: number;
+}
+
+function removeFromCache(key: string){
+    chrome.storage.local.remove(key, () => {} );
+}
+
+function getCachedDataOrFallback<T>(
+    key: string,
+    fallbackLogic: () => Promise<T>,
+    ttlInSeconds: number
+): Promise<T | null> {
+    return new Promise((resolve, reject) => {
+        chrome.storage.local.get(key, async (result) => {
+            const data: CachedData<T> | undefined = result[key];
+
+            if (data && Date.now() <= data.expirationTime) {
+                // Если данные валидны
+                console.log(`${key} loaded from cache.`);
+                resolve(data.value);
+            } else {
+                // Данные отсутствуют или устарели
+                console.log(`${key} not in cache or expired. Fetching new data...`);
+                try {
+                    const newData = await fallbackLogic(); // Выполняем fallback логику
+                    const expirationTime = Date.now() + ttlInSeconds * 1000;
+
+                    // Сохраняем новые данные в кэш
+                    const cachedData: CachedData<T> = { value: newData, expirationTime };
+                    chrome.storage.local.set({ [key]: cachedData }, () => {
+                        console.log(`${key} cached for ${ttlInSeconds} seconds.`);
+                    });
+
+                    resolve(newData); // Возвращаем данные из fallback логики
+                } catch (error) {
+                    console.error(`Failed to fetch data for ${key}:`, error);
+                    reject(error);
+                }
+            }
+        });
+    });
+}
 
 // fetch через background script, по другому не работает
 async function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response> {
@@ -1114,8 +1179,10 @@ async function productPage(backendClient: EbayToolBackendClient, ebayClient: Eba
     _panel.hidden = false;
 }
 
-async function extensionAuthPage(backendOAuth2Client: OAuth2Client) {
+async function extensionAuthPage() {
     console.log("extensionAuthPage")
+    
+    let backendOAuth2Client = getBackendOAuth2Client();
     let url = new URL(document.location.href)
     if (url.searchParams.has("code")) {
         let codeVerifier = (await chrome.storage.local.get(["code_verifier"])).code_verifier;
@@ -1146,8 +1213,9 @@ function redirectWithoutReferer(url: string) {
     window.open(url, '_self', 'noopener,noreferrer');
 }
 
-async function ebayApiAuthPage(ebayOAuth2Client: OAuth2Client) {
+async function ebayApiAuthPage() {
     console.log("ebayApiAuthPage")
+    let ebayOAuth2Client: OAuth2Client = getEbayOAuth2Client();
     let url = new URL(document.location.href)
     if (url.searchParams.has("code")) {
 
@@ -1277,9 +1345,12 @@ async function saveCodeVerifier() {
     }
 }
 
-async function ebayPages(ebayOAuth2Client: OAuth2Client, backendOAuth2Client: OAuth2Client, currentPage: string) {
+async function ebayPages(currentPage: string) {
+    let ebayOAuth2Client: OAuth2Client = getEbayOAuth2Client();
+    let backendOAuth2Client: OAuth2Client = getBackendOAuth2Client();
+    
     await sleepElementLoaded('footer', document)
-
+    
     _currentProductId = getCurrentProductIdParam();
     if (!_currentProductId) {
         console.log("productId not found")
@@ -1304,32 +1375,29 @@ async function ebayPages(ebayOAuth2Client: OAuth2Client, backendOAuth2Client: OA
 }
 
 
-function highlightWords(words: Set<string>, showRedSquare: boolean, highlightClass: string = "highlight"): void {
+function highlightWords(words: string[], highlightClass: string = "highlight"): void {
     console.log("highlightWords")
 
-    const regex = new RegExp(`(?:^|\\s)(${Array.from(words).join("|")})(?:$|\\s)`, "gi");
+    const regex = new RegExp(`(?:^|\\s)(${words.join("|")})(?:$|\\s|-)`, "gi");
     
-    const highlightWord = (node: Text, showRedSquare: boolean): void => {
+    const highlightWord = (node: Text): void => {
         const parent = node.parentElement;
         if (!parent) return;
         
         const originalText = node.textContent;
         if (originalText && regex.test(originalText)) {
             parent.classList.add(highlightClass);
-            if (showRedSquare) {
-                node.textContent = "🟥" + node.textContent
-            }
         }
     };
 
-    const traverseNodes = (element: HTMLElement | null, showRedSquare: boolean): void => {
+    const traverseNodes = (element: HTMLElement | null): void => {
         if (!element) return;
         
         element.childNodes.forEach((node) => {
             if (node.nodeType === Node.TEXT_NODE) {
-                highlightWord(node as Text, showRedSquare);
+                highlightWord(node as Text);
             } else if (node.nodeType === Node.ELEMENT_NODE) {
-                traverseNodes(node as HTMLElement, showRedSquare);
+                traverseNodes(node as HTMLElement);
             }
         });
     };
@@ -1340,31 +1408,63 @@ function highlightWords(words: Set<string>, showRedSquare: boolean, highlightCla
         return;
     }
     
-    traverseNodes(body, showRedSquare);
+    traverseNodes(body);
 }
 
 async function processChipFind() {
-    const elements = document.querySelectorAll<HTMLAnchorElement>('.plus a');
+    let elements = document.querySelectorAll<HTMLAnchorElement>('.plus a');
 
     // Кликаем по каждому элементу
     for (const element of elements) {
         element.click();
         await sleep(300);
     }
+
+    let posts = document.querySelectorAll<HTMLTableCellElement>('table.post td.rr div');
+    
+    posts.forEach(function (post) {
+        let plus = post.querySelector<HTMLDivElement>('div.plus');
+        let contact = post.querySelector<HTMLDivElement>('div.contact');
+
+        let contactHtml = contact?.innerHTML ?? "";
+        plus?.remove();
+        contact?.remove()
+        post.innerHTML = '<pre>' + post.innerHTML.replace(/<br\s*\/?>/g, '</pre><pre>') + '</pre><br>' + contactHtml;
+    });
 }
 
-async function searchSitePages(backendOAuth2Client: OAuth2Client) {
+async function searchSitePages() {
     console.log("searchSitePages")
+    let backendOAuth2Client: OAuth2Client = getBackendOAuth2Client();
+    let backendClient = new EbayToolBackendClient(baseApiUrl, getAuthorizeFetch(backendOAuth2Client, backendApiScope, "ebayToolTokenStore", extensionAuthRedirectUrl));
+
+    chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+        if (message.action === "processText") {
+            console.log("Received message", message.text);
+            let productName = message.text.trim();
+            await backendClient.createProduct(new ProductWithoutId({
+                name: productName,
+                searchQueries: Array.of(new SearchQuery({id: uuidv4(), query: transliterate(productName)})),
+                weight: 0
+            }));
+            removeFromCache("knownItems");
+            console.log("Product created")
+        }
+    });
 
     document.addEventListener("DOMContentLoaded", async () => {
-        const wordsToHighlight = new Set(["2ППНТ", "РЕ19-43-21121-00УХЛ3", "10ж12с"]);
+        let wordsToHighlight = await getCachedDataOrFallback("knownItems", async () => {
+                let allProducts = await backendClient.getAllProducts();
+                return Array.from(allProducts.map(x => x.name));
+            },
+            60 * 60)
         let isChipFind = chipFindRegex.test(location.host);
         if (isChipFind) {
             await processChipFind();
         }
-        highlightWords(wordsToHighlight, isChipFind);
+        highlightWords(wordsToHighlight);
     });
-    
+
 
     const style = document.createElement("style");
     style.textContent = `
@@ -1380,6 +1480,28 @@ function matchesAnyRegex(regexSet: RegExp[], value: string): boolean {
     return regexSet.some((regex) => regex.test(value));
 }
 
+
+function getEbayOAuth2Client(): OAuth2Client {
+    return new OAuth2Client({
+        server: "https://auth.ebay.com/",
+        clientId: 'ArtemPet-tubesSea-PRD-63b5a5e64-416f2036',
+        tokenEndpoint: 'https://api.ebay.com/identity/v1/oauth2/token',
+        authorizationEndpoint: '/oauth2/authorize',
+        clientSecret: "PRD-3b5a5e64bd92-2c90-41e9-bff8-e256",
+        fetch: fetchResource
+    });
+}
+
+function getBackendOAuth2Client() : OAuth2Client {
+    return new OAuth2Client({
+        server: backendUrl,
+        clientId: 'Ebay.ChromeExtension',
+        tokenEndpoint: '/connect/token',
+        authorizationEndpoint: '/connect/authorize',
+        fetch: fetchResource
+    });
+}
+
 export async function run() {
   
     if (!matchesAnyRegex(workOnSites, location.host))
@@ -1391,34 +1513,17 @@ export async function run() {
 
     let _ = checkForUpdates();
 
-    let ebayOAuth2Client = new OAuth2Client({
-        server: "https://auth.ebay.com/",
-        clientId: 'ArtemPet-tubesSea-PRD-63b5a5e64-416f2036',
-        tokenEndpoint: 'https://api.ebay.com/identity/v1/oauth2/token',
-        authorizationEndpoint: '/oauth2/authorize',
-        clientSecret: "PRD-3b5a5e64bd92-2c90-41e9-bff8-e256",
-        fetch: fetchResource
-    });
-
-    let backendOAuth2Client = new OAuth2Client({
-        server: backendUrl,
-        clientId: 'Ebay.ChromeExtension',
-        tokenEndpoint: '/connect/token',
-        authorizationEndpoint: '/connect/authorize',
-        fetch: fetchResource
-    });
-
     let currentPage = location.protocol + '//' + location.host + location.pathname
 
     if (currentPage === extensionAuthRedirectUrl) {
-        await extensionAuthPage(backendOAuth2Client);
+        await extensionAuthPage();
     } else if (currentPage === ebayAuthRedirectUrl) {
-        await ebayApiAuthPage(ebayOAuth2Client);
+        await ebayApiAuthPage();
     } else if (ebaySiteRegex.test(location.host)) {
-        await ebayPages(ebayOAuth2Client, backendOAuth2Client, currentPage);
+        await ebayPages(currentPage);
     }
     else {
-        await searchSitePages(backendOAuth2Client);
+        await searchSitePages();
     }
 }
 

@@ -19,3 +19,17 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     });
     return true;
 });
+
+chrome.runtime.onInstalled.addListener(() => {
+    chrome.contextMenus.create({
+        id: "processText",
+        title: "Добавить товар",
+        contexts: ["selection"],
+    });
+});
+
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+    if (info.menuItemId === "processText" && info.selectionText) {
+        chrome.tabs.sendMessage(tab.id, { action: "processText", text: info.selectionText }, (response) => { });
+    }
+});

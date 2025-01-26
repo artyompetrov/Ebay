@@ -214,7 +214,6 @@ paths:
           schema:
             $ref: '#/definitions/NotFoundProblemDetailedInfo'
 
-
   /lots/{lotId}/:
     parameters:
       - name: lotId
