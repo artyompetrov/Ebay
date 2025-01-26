@@ -116,7 +116,15 @@ subprocess.run([
     "--port", "15432",
     "--username", "ebay",
     "--dbname", "postgres",
-    "--command", 'TRUNCATE TABLE "Keys"; TRUNCATE TABLE "PersistedGrants";'
+    "--command", 'TRUNCATE TABLE "Keys";'
+])
+subprocess.run([
+    r"C:\Program Files\PostgreSQL\16\bin\psql.exe",
+    "--host", to_host,
+    "--port", "15432",
+    "--username", "ebay",
+    "--dbname", "postgres",
+    "--command", 'TRUNCATE TABLE "PersistedGrants";'
 ])
 time.sleep(5)
 # Запуск контейнеров
