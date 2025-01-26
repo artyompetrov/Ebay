@@ -25,7 +25,7 @@ const panelInputClass = "panel-input-div";
 const formId = "product-form-id"
 const errorElementId = "errorElement"
 const submitId = "submitButton"
-const backendUrl = `https://${chrome.runtime.getManifest().backend_domain}/`;
+const backendUrl = `https://tubessale.ddns.net/`;
 const baseApiUrl = `${backendUrl}api/ebay/v1`;
 const extensionAuthRedirectUrl = `${backendUrl}chrome_extensions/auth`;
 const ebayAuthRedirectUrl = `https://www.ebay.com/`;
@@ -53,14 +53,27 @@ let _currentProductId: string
 
 let extendedLogging = true;
 
-class ShippingParameters {
-    constructor(regions: string[], zip: string | null) {
-        this.regions = regions
-        this.zip = zip
-    }
+const ebaySiteRegex: RegExp =  /(?:^|\.)ebay\.com$/i;
+const chipFindRegex: RegExp = /(?:^|\.)chipfind\.ru/i
+const searchOnSites: RegExp[] = [
+    /(?:^|\.)avito\.ru/i,
+    chipFindRegex
+]
 
-    regions: string[];
-    zip: string | null
+const workOnSites: RegExp[] = [
+    ...searchOnSites,
+    ebaySiteRegex,
+    /tubessale\.ddns\.net/i
+];
+
+class ShippingParameters {
+constructor(regions: string[], zip: string | null) {
+    this.regions = regions
+    this.zip = zip
+}
+
+regions: string[];
+zip: string | null
 }
 
 const supportedShippingCountries = new Map<string, ShippingParameters>();
@@ -1290,7 +1303,90 @@ async function ebayPages(ebayOAuth2Client: OAuth2Client, backendOAuth2Client: OA
     }
 }
 
+
+function highlightWords(words: Set<string>, showRedSquare: boolean, highlightClass: string = "highlight"): void {
+    console.log("highlightWords")
+
+    const regex = new RegExp(`(?:^|\\s)(${Array.from(words).join("|")})(?:$|\\s)`, "gi");
+    
+    const highlightWord = (node: Text, showRedSquare: boolean): void => {
+        const parent = node.parentElement;
+        if (!parent) return;
+        
+        const originalText = node.textContent;
+        if (originalText && regex.test(originalText)) {
+            parent.classList.add(highlightClass);
+            if (showRedSquare) {
+                node.textContent = "🟥" + node.textContent
+            }
+        }
+    };
+
+    const traverseNodes = (element: HTMLElement | null, showRedSquare: boolean): void => {
+        if (!element) return;
+        
+        element.childNodes.forEach((node) => {
+            if (node.nodeType === Node.TEXT_NODE) {
+                highlightWord(node as Text, showRedSquare);
+            } else if (node.nodeType === Node.ELEMENT_NODE) {
+                traverseNodes(node as HTMLElement, showRedSquare);
+            }
+        });
+    };
+    
+    const body = document.body;
+    if (!body) {
+        console.error("Document body is null. Unable to traverse DOM.");
+        return;
+    }
+    
+    traverseNodes(body, showRedSquare);
+}
+
+async function processChipFind() {
+    const elements = document.querySelectorAll<HTMLAnchorElement>('.plus a');
+
+    // Кликаем по каждому элементу
+    for (const element of elements) {
+        element.click();
+        await sleep(300);
+    }
+}
+
+async function searchSitePages(backendOAuth2Client: OAuth2Client) {
+    console.log("searchSitePages")
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        const wordsToHighlight = new Set(["2ППНТ", "РЕ19-43-21121-00УХЛ3", "10ж12с"]);
+        let isChipFind = chipFindRegex.test(location.host);
+        if (isChipFind) {
+            await processChipFind();
+        }
+        highlightWords(wordsToHighlight, isChipFind);
+    });
+    
+
+    const style = document.createElement("style");
+    style.textContent = `
+.highlight {
+    background-color: ${lightGreenColor};
+    font-weight: bold;
+}
+`;
+    document.head.appendChild(style);
+}
+
+function matchesAnyRegex(regexSet: RegExp[], value: string): boolean {
+    return regexSet.some((regex) => regex.test(value));
+}
+
 export async function run() {
+  
+    if (!matchesAnyRegex(workOnSites, location.host))
+        return;
+    
+    console.log("Ebay extension is active on this page");
+    
     await saveCodeVerifier();
 
     let _ = checkForUpdates();
@@ -1318,8 +1414,11 @@ export async function run() {
         await extensionAuthPage(backendOAuth2Client);
     } else if (currentPage === ebayAuthRedirectUrl) {
         await ebayApiAuthPage(ebayOAuth2Client);
-    } else {
+    } else if (ebaySiteRegex.test(location.host)) {
         await ebayPages(ebayOAuth2Client, backendOAuth2Client, currentPage);
+    }
+    else {
+        await searchSitePages(backendOAuth2Client);
     }
 }
 
