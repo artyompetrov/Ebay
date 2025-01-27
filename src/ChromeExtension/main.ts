@@ -1377,14 +1377,21 @@ async function ebayPages(currentPage: string) {
 
 function highlightWords(words: string[], highlightClass: string = "highlight"): void {
     console.log("highlightWords")
-
-    const regex = new RegExp(`(?:^|\\s)(${words.join("|")})(?:$|\\s|-)`, "gi");
+    let wordsReplaced = words.map(x => x
+        .replace('(', '\(')
+        .replace(')', '\)')
+        .replace('/', '\/')
+        .replace('.', ',')
+        .replace(',', '[,.]')
+    )
+    const regex = new RegExp(`(?:^|\\s)(${wordsReplaced.join("|")})(?:$|\\s|-|,|\.)`, "i");
+    console.log(regex);
     
-    const highlightWord = (node: Text): void => {
-        const parent = node.parentElement;
+     const highlightWord = (node: Text) => {
+        let parent = node.parentElement;
         if (!parent) return;
         
-        const originalText = node.textContent;
+        let originalText = node.textContent;
         if (originalText && regex.test(originalText)) {
             parent.classList.add(highlightClass);
         }
@@ -1392,14 +1399,16 @@ function highlightWords(words: string[], highlightClass: string = "highlight"): 
 
     const traverseNodes = (element: HTMLElement | null): void => {
         if (!element) return;
+        let children = Array.from(element.childNodes);
         
-        element.childNodes.forEach((node) => {
+        for (let i = 0; i < children.length; i++) {
+            const node = children[i];
             if (node.nodeType === Node.TEXT_NODE) {
                 highlightWord(node as Text);
             } else if (node.nodeType === Node.ELEMENT_NODE) {
                 traverseNodes(node as HTMLElement);
             }
-        });
+        }
     };
     
     const body = document.body;
@@ -1436,6 +1445,8 @@ async function processChipFind() {
 async function searchSitePages() {
     console.log("searchSitePages")
     let backendOAuth2Client: OAuth2Client = getBackendOAuth2Client();
+    await chrome.storage.local.set({return_page: document.location.href})
+    
     let backendClient = new EbayToolBackendClient(baseApiUrl, getAuthorizeFetch(backendOAuth2Client, backendApiScope, "ebayToolTokenStore", extensionAuthRedirectUrl));
 
     chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {

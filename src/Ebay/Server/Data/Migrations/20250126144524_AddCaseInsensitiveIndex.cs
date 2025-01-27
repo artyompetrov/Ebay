@@ -12,7 +12,7 @@ namespace Server.Data.Migrations
         {
             migrationBuilder.Sql(
 @"
-CREATE UNIQUE INDEX IX_Product_Name_CI
+CREATE UNIQUE INDEX IF NOT EXISTS IX_Product_Name_CI
 ON ""Products"" (LOWER(""Name""));
 ");
         }
