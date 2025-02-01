@@ -25,12 +25,12 @@
 <table id="productTable" class="table">
     <thead>
     <tr>
+        <th></th>
+        <th></th>
         <th>Название <button class="btn btn-primary btn-sm" @onclick="@(() => _productPopupComponent.ShowCreate())">Добавить</button></th>
         <th>Другие названия</th>
         <th>Запрос (eBay)</th>
-        <th>Учтены все проданные лоты</th>
         <th>Вес без упаковки</th>
-        <th></th>
         <th></th>
     </tr>
     </thead>
@@ -40,24 +40,27 @@
     {
         <tr>
             <td>
+                <button class="btn btn-primary btn-sm oi oi-pencil" @onclick="@(e => _productPopupComponent.ShowEdit(product))"></button>
+            </td>
+            <td>
+                @if (product.IsRecheckRequired)
+                {
+                <button class="btn btn-warning btn-sm oi oi-check" @onclick="@(e => MarkAsChecked(product))"></button>
+                }
+            </td>
+            <td>
                 <NavLink href="@($"LotSales/{product.Id}")" target="_blank">@product.Name</NavLink>
             </td>
             <td>
                 @foreach (var query in product.RuSearchQueries)
                 {
-                <span>@query.Query&#160;</span>
+                    <span>@query.Query&#160;</span>
                 }
             </td>
             <td>
                 @foreach (var query in product.SearchQueries)
                 {
                     <span><a href="@GetSearchLink(query.Query, product.Id)" rel="noreferrer" target=”_blank”>@query.Query</a>&#160;</span>
-                }
-            </td>
-            <td>
-                @if (product.IsRecheckRequired)
-                {
-                    <button class="btn btn-warning btn-sm" @onclick="@(e => MarkAsChecked(product))">Отметить</button>
                 }
             </td>
             @if (product.Weight == 0)
@@ -68,9 +71,6 @@
             {
                 <td>@product.Weight</td>
             }
-            <td>
-                <button class="btn btn-primary btn-sm oi oi-pencil" @onclick="@(e => _productPopupComponent.ShowEdit(product))"></button>
-            </td>
             <td>
                 <button class="btn btn-danger btn-sm oi oi-basket" @onclick="@(e => OnDeleteButtonClick(product))"></button>
             </td>

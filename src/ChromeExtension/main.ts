@@ -382,7 +382,7 @@ async function ignoreThatLot(backendClient: EbayToolBackendClient) {
     window.close()
 }
 
-async function createOpenMultipleButton(): Promise<HTMLDivElement> {
+async function createOpenMultipleButton(backendClient: EbayToolBackendClient): Promise<HTMLDivElement> {
     let bodyElement = await sleepElementLoaded('body', document);
 
     let panel = bodyElement.querySelector('div.' + panelClass)
@@ -428,6 +428,7 @@ async function createOpenMultipleButton(): Promise<HTMLDivElement> {
         event.preventDefault()
         if (_needActualizationLotsIds === null) return;
         if (_needActualizationLotsIds.length === 0) {
+            await backendClient.markProductAsChecked(_currentProductId)
             window.close()
         }
 
@@ -1267,7 +1268,7 @@ async function searchPage(client: EbayToolBackendClient) {
     // noinspection JSUnusedLocalSymbols
     let _ = updateStatusInfinite(client, links);
 
-    await createOpenMultipleButton()
+    await createOpenMultipleButton(client)
 }
 
 async function updateStatusInfinite(client: EbayToolBackendClient, links: LotLink[]) {
