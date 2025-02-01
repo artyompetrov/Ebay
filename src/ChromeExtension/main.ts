@@ -1422,7 +1422,7 @@ function highlightWords(words: string[], highlightClass: string = "highlight"): 
 
 async function processChipFind() {
     console.log("processChipFind")
-    if (location.pathname === "/market/search.htm") {
+    if (location.pathname === "/market/search.htm" || location.pathname === "/market/") {
 
         await sleepElementLoaded('div.pages', document)
         await sleepElementLoaded('.plus a', document)
@@ -1451,6 +1451,26 @@ async function processChipFind() {
 
 async function searchSitePages() {
     console.log("searchSitePages")
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        let backendClient = new EbayToolBackendClient(baseApiUrl, getAuthorizeFetch(backendOAuth2Client, backendApiScope, "ebayToolTokenStore", extensionAuthRedirectUrl));
+
+        let wordsToHighlight = await getCachedDataOrFallback("knownItems", async () => {
+                let allProducts = await backendClient.getAllProducts();
+                allProducts.map(x => x.name)
+                    .concat(allProducts.map(x=>x.ruSearchQueries.map(x=>x.query)).reduce((acc, val) => acc.concat(val), []))
+
+                return Array.from(allProducts.map(x => x.name)
+                    .concat(allProducts.map(x=>x.ruSearchQueries.map(x=>x.query)).reduce((acc, val) => acc.concat(val), [])));
+            },
+            60 * 60)
+        let isChipFind = chipFindRegex.test(location.host);
+        if (isChipFind) {
+            await processChipFind();
+        }
+        highlightWords(wordsToHighlight);
+    });
+    
     let backendOAuth2Client: OAuth2Client = getBackendOAuth2Client();
     await chrome.storage.local.set({return_page: document.location.href})
     
@@ -1471,24 +1491,7 @@ async function searchSitePages() {
         }
     });
 
-    document.addEventListener("DOMContentLoaded", async () => {
-        let wordsToHighlight = await getCachedDataOrFallback("knownItems", async () => {
-                let allProducts = await backendClient.getAllProducts();
-                allProducts.map(x => x.name)
-                    .concat(allProducts.map(x=>x.ruSearchQueries.map(x=>x.query)).reduce((acc, val) => acc.concat(val), []))
-            
-                return Array.from(allProducts.map(x => x.name)
-                    .concat(allProducts.map(x=>x.ruSearchQueries.map(x=>x.query)).reduce((acc, val) => acc.concat(val), [])));
-            },
-            60 * 60)
-        let isChipFind = chipFindRegex.test(location.host);
-        if (isChipFind) {
-            await processChipFind();
-        }
-        highlightWords(wordsToHighlight);
-    });
-
-
+    
     const style = document.createElement("style");
     style.textContent = `
 .highlight {
