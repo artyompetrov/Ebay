@@ -8,7 +8,7 @@ import {
     LotInfoWithProductId,
     NotFoundProblemDetailedInfo,
     PurchaseInfo,
-    ValidationProblemDetailedInfo, ProductWithoutId, SearchQuery
+    ValidationProblemDetailedInfo, ProductWithoutId, SearchQuery, RuSearchQuery
 } from "./EbayClient/EbayToolBackendClient"
 import {EbayClient, Item} from "./EbayClient/EbayClient"
 import {generateCodeVerifier, OAuth2Client} from '@badgateway/oauth2-client';
@@ -1456,6 +1456,7 @@ async function searchSitePages() {
             await backendClient.createProduct(new ProductWithoutId({
                 name: productName,
                 searchQueries: Array.of(new SearchQuery({id: uuidv4(), query: transliterate(productName)})),
+                ruSearchQueries: new RuSearchQuery[0],
                 weight: 0
             }));
             removeFromCache("knownItems");
