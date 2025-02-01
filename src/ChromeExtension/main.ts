@@ -1421,25 +1421,33 @@ function highlightWords(words: string[], highlightClass: string = "highlight"): 
 }
 
 async function processChipFind() {
-    let elements = document.querySelectorAll<HTMLAnchorElement>('.plus a');
+    console.log("processChipFind")
+    if (location.pathname === "/market/search.htm") {
 
-    // Кликаем по каждому элементу
-    for (const element of elements) {
-        element.click();
-        await sleep(300);
+        await sleepElementLoaded('div.pages', document)
+        await sleepElementLoaded('.plus a', document)
+
+
+        let elements = document.querySelectorAll<HTMLAnchorElement>('.plus a');
+        // Кликаем по каждому элементу
+        for (const element of elements) {
+            element.click();
+            console.log(element.textContent)
+            await sleep(300);
+        }
+
+        let posts = document.querySelectorAll<HTMLTableCellElement>('table.post td.rr div');
+
+        posts.forEach(function (post) {
+            let plus = post.querySelector<HTMLDivElement>('div.plus');
+            let contact = post.querySelector<HTMLDivElement>('div.contact');
+
+            let contactHtml = contact?.innerHTML ?? "";
+            plus?.remove();
+            contact?.remove()
+            post.innerHTML = '<pre>' + post.innerHTML.replace(/<br\s*\/?>/g, '</pre><pre>') + '</pre><br>' + contactHtml;
+        });
     }
-
-    let posts = document.querySelectorAll<HTMLTableCellElement>('table.post td.rr div');
-    
-    posts.forEach(function (post) {
-        let plus = post.querySelector<HTMLDivElement>('div.plus');
-        let contact = post.querySelector<HTMLDivElement>('div.contact');
-
-        let contactHtml = contact?.innerHTML ?? "";
-        plus?.remove();
-        contact?.remove()
-        post.innerHTML = '<pre>' + post.innerHTML.replace(/<br\s*\/?>/g, '</pre><pre>') + '</pre><br>' + contactHtml;
-    });
 }
 
 async function searchSitePages() {
@@ -1456,18 +1464,22 @@ async function searchSitePages() {
             await backendClient.createProduct(new ProductWithoutId({
                 name: productName,
                 searchQueries: Array.of(new SearchQuery({id: uuidv4(), query: transliterate(productName)})),
-                ruSearchQueries: new RuSearchQuery[0],
+                ruSearchQueries:  new Array<RuSearchQuery>(),
                 weight: 0
             }));
             removeFromCache("knownItems");
-            console.log("Product created")
+            showToast("Product created \"" + productName + "\"");
         }
     });
 
     document.addEventListener("DOMContentLoaded", async () => {
         let wordsToHighlight = await getCachedDataOrFallback("knownItems", async () => {
                 let allProducts = await backendClient.getAllProducts();
-                return Array.from(allProducts.map(x => x.name));
+                allProducts.map(x => x.name)
+                    .concat(allProducts.map(x=>x.ruSearchQueries.map(x=>x.query)).reduce((acc, val) => acc.concat(val), []))
+            
+                return Array.from(allProducts.map(x => x.name)
+                    .concat(allProducts.map(x=>x.ruSearchQueries.map(x=>x.query)).reduce((acc, val) => acc.concat(val), [])));
             },
             60 * 60)
         let isChipFind = chipFindRegex.test(location.host);
@@ -1512,6 +1524,29 @@ function getBackendOAuth2Client() : OAuth2Client {
         authorizationEndpoint: '/connect/authorize',
         fetch: fetchResource
     });
+}
+
+function showToast(message: string, duration = 3000) {
+    const toast = document.createElement("div");
+    toast.textContent = message;
+    toast.style.position = "fixed";
+    toast.style.bottom = "20px";
+    toast.style.right = "20px";
+    toast.style.padding = "10px 20px";
+    toast.style.background = "rgba(0, 0, 0, 0.8)";
+    toast.style.color = "white";
+    toast.style.borderRadius = "5px";
+    toast.style.boxShadow = "0px 0px 10px rgba(0, 0, 0, 0.3)";
+    toast.style.zIndex = "1000";
+    toast.style.opacity = "1";
+    toast.style.transition = "opacity 0.5s";
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.opacity = "0";
+        setTimeout(() => document.body.removeChild(toast), 500);
+    }, duration);
 }
 
 export async function run() {
