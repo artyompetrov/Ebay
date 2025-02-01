@@ -3,9 +3,11 @@ using Server.Data.Models;
 using Server.Services;
 using DbProduct = Server.Data.Models.Product;
 using DbSearchQuery = Server.Data.Models.SearchQuery;
+using DbRuSearchQuery = Server.Data.Models.RuSearchQuery;
 using DbCurrency = Server.Data.Models.Currency;
 using ApiCurrency = Server.Controllers.Generated.Currency;
 using Purchase = Server.Data.Models.Purchase;
+using RuSearchQuery = Server.Controllers.Generated.RuSearchQuery;
 using SearchQuery = Server.Controllers.Generated.SearchQuery;
 
 namespace Server.Infrastructure;
@@ -16,14 +18,25 @@ internal static class ModelsExtensions
         id: dbProduct.Id,
         name: dbProduct.Name,
         searchQueries: dbProduct.SearchQueries.Select(x => x.ToApiSearchQuery()).ToList(),
+        ruSearchQueries: dbProduct.RuSearchQueries.Select(x => x.ToApiRuSearchQuery()).ToList(),
         lastCheckTime: dbProduct.LastCheckTime.ToString(WellKnown.Formats.TimeFormat),
         weight: dbProduct.Weight
     );
 
     public static SearchQuery ToApiSearchQuery(this DbSearchQuery searchQuery) =>
         new(id: searchQuery.Id, query: searchQuery.Query);
+    
+    public static RuSearchQuery ToApiRuSearchQuery(this DbRuSearchQuery searchQuery) =>
+        new(id: searchQuery.Id, query: searchQuery.Query);
 
     public static DbSearchQuery ToDbSearchQuery(this SearchQuery searchQuery, Guid productId) => new()
+    {
+        Id = searchQuery.Id,
+        Query = searchQuery.Query,
+        ProductId = productId
+    };
+    
+    public static DbRuSearchQuery ToDbRuSearchQuery(this RuSearchQuery searchQuery, Guid productId) => new()
     {
         Id = searchQuery.Id,
         Query = searchQuery.Query,

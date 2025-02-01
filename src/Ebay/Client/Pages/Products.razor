@@ -26,7 +26,8 @@
     <thead>
     <tr>
         <th>Название <button class="btn btn-primary btn-sm" @onclick="@(() => _productPopupComponent.ShowCreate())">Добавить</button></th>
-        <th>Поисковый запрос</th>
+        <th>Другие названия</th>
+        <th>Запрос (eBay)</th>
         <th>Учтены все проданные лоты</th>
         <th>Вес без упаковки</th>
         <th></th>
@@ -40,6 +41,12 @@
         <tr>
             <td>
                 <NavLink href="@($"LotSales/{product.Id}")" target="_blank">@product.Name</NavLink>
+            </td>
+            <td>
+                @foreach (var query in product.RuSearchQueries)
+                {
+                <span>@query.Query&#160;</span>
+                }
             </td>
             <td>
                 @foreach (var query in product.SearchQueries)

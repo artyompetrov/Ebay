@@ -13,6 +13,7 @@ internal static class ModelExtensions
     {
         Name = productWithId.Name,
         SearchQueries = productWithId.SearchQueries,
+        RuSearchQueries = productWithId.RuSearchQueries,
         Weight = productWithId.Weight
     };
 

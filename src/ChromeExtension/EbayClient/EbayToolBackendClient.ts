@@ -961,6 +961,7 @@ export class EbayToolBackendClient {
 export class ProductWithoutId implements IProductWithoutId {
     name!: string;
     searchQueries!: SearchQuery[];
+    ruSearchQueries!: RuSearchQuery[];
     weight!: number;
 
     constructor(data?: IProductWithoutId) {
@@ -972,6 +973,7 @@ export class ProductWithoutId implements IProductWithoutId {
         }
         if (!data) {
             this.searchQueries = [];
+            this.ruSearchQueries = [];
         }
     }
 
@@ -982,6 +984,11 @@ export class ProductWithoutId implements IProductWithoutId {
                 this.searchQueries = [] as any;
                 for (let item of _data["SearchQueries"])
                     this.searchQueries!.push(SearchQuery.fromJS(item));
+            }
+            if (Array.isArray(_data["RuSearchQueries"])) {
+                this.ruSearchQueries = [] as any;
+                for (let item of _data["RuSearchQueries"])
+                    this.ruSearchQueries!.push(RuSearchQuery.fromJS(item));
             }
             this.weight = _data["Weight"];
         }
@@ -1002,6 +1009,11 @@ export class ProductWithoutId implements IProductWithoutId {
             for (let item of this.searchQueries)
                 data["SearchQueries"].push(item.toJSON());
         }
+        if (Array.isArray(this.ruSearchQueries)) {
+            data["RuSearchQueries"] = [];
+            for (let item of this.ruSearchQueries)
+                data["RuSearchQueries"].push(item.toJSON());
+        }
         data["Weight"] = this.weight;
         return data;
     }
@@ -1010,6 +1022,7 @@ export class ProductWithoutId implements IProductWithoutId {
 export interface IProductWithoutId {
     name: string;
     searchQueries: SearchQuery[];
+    ruSearchQueries: RuSearchQuery[];
     weight: number;
 }
 
@@ -1019,6 +1032,7 @@ export class ProductWithId implements IProductWithId {
     lastCheckTime?: string | undefined;
     weight!: number;
     searchQueries!: SearchQuery[];
+    ruSearchQueries!: RuSearchQuery[];
 
     constructor(data?: IProductWithId) {
         if (data) {
@@ -1029,6 +1043,7 @@ export class ProductWithId implements IProductWithId {
         }
         if (!data) {
             this.searchQueries = [];
+            this.ruSearchQueries = [];
         }
     }
 
@@ -1042,6 +1057,11 @@ export class ProductWithId implements IProductWithId {
                 this.searchQueries = [] as any;
                 for (let item of _data["SearchQueries"])
                     this.searchQueries!.push(SearchQuery.fromJS(item));
+            }
+            if (Array.isArray(_data["RuSearchQueries"])) {
+                this.ruSearchQueries = [] as any;
+                for (let item of _data["RuSearchQueries"])
+                    this.ruSearchQueries!.push(RuSearchQuery.fromJS(item));
             }
         }
     }
@@ -1064,6 +1084,11 @@ export class ProductWithId implements IProductWithId {
             for (let item of this.searchQueries)
                 data["SearchQueries"].push(item.toJSON());
         }
+        if (Array.isArray(this.ruSearchQueries)) {
+            data["RuSearchQueries"] = [];
+            for (let item of this.ruSearchQueries)
+                data["RuSearchQueries"].push(item.toJSON());
+        }
         return data;
     }
 }
@@ -1074,6 +1099,7 @@ export interface IProductWithId {
     lastCheckTime?: string | undefined;
     weight: number;
     searchQueries: SearchQuery[];
+    ruSearchQueries: RuSearchQuery[];
 }
 
 export class SearchQuery implements ISearchQuery {
@@ -1112,6 +1138,46 @@ export class SearchQuery implements ISearchQuery {
 }
 
 export interface ISearchQuery {
+    id: string;
+    query: string;
+}
+
+export class RuSearchQuery implements IRuSearchQuery {
+    id!: string;
+    query!: string;
+
+    constructor(data?: IRuSearchQuery) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.query = _data["query"];
+        }
+    }
+
+    static fromJS(data: any): RuSearchQuery {
+        data = typeof data === 'object' ? data : {};
+        let result = new RuSearchQuery();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["query"] = this.query;
+        return data;
+    }
+}
+
+export interface IRuSearchQuery {
     id: string;
     query: string;
 }

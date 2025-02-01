@@ -36,6 +36,7 @@ internal class EbayControllerImplementation : IEbayController
             .OrderBy(x => x.Name)
             .ThenBy(x => x.Id)
             .Include(x => x.SearchQueries)
+            .Include(x => x.RuSearchQueries)
             .ToListAsync(cancellationToken);
 
         return dbProducts.Select(x => x.ToApiProduct()).ToList();
@@ -65,6 +66,11 @@ internal class EbayControllerImplementation : IEbayController
             cancellationToken: cancellationToken
         );
 
+        await _applicationContext.RuSearchQueries.AddRangeAsync(
+            entities: product.RuSearchQueries.Select(x => x.ToDbRuSearchQuery(newProductId)),
+            cancellationToken: cancellationToken
+        );
+        
         await _applicationContext.SaveChangesAsync(cancellationToken);
 
         transaction.Complete();
@@ -90,9 +96,15 @@ internal class EbayControllerImplementation : IEbayController
         dbProduct.Entity.Weight = product.Weight;
 
         _applicationContext.RemoveRange(_applicationContext.SearchQueries.Where(x => x.ProductId == id));
+        _applicationContext.RemoveRange(_applicationContext.RuSearchQueries.Where(x => x.ProductId == id));
 
         await _applicationContext.SearchQueries.AddRangeAsync(
             entities: product.SearchQueries.Select(x => x.ToDbSearchQuery(id)),
+            cancellationToken: cancellationToken
+        );
+        
+        await _applicationContext.RuSearchQueries.AddRangeAsync(
+            entities: product.RuSearchQueries.Select(x => x.ToDbRuSearchQuery(id)),
             cancellationToken: cancellationToken
         );
 
@@ -109,6 +121,7 @@ internal class EbayControllerImplementation : IEbayController
         var product = await _applicationContext.Products
             .AsNoTracking()
             .Include(x => x.SearchQueries)
+            .Include(x => x.RuSearchQueries)
             .SingleOrDefaultAsync(predicate: x => x.Id == id, cancellationToken: cancellationToken);
 
         if (product == null)

@@ -18,6 +18,8 @@ internal class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
     public DbSet<Product> Products { get; set; } = null!;
 
     public DbSet<SearchQuery> SearchQueries { get; set; } = null!;
+    
+    public DbSet<RuSearchQuery> RuSearchQueries { get; set; } = null!;
 
     public DbSet<Lot> Lots { get; set; } = null!;
 

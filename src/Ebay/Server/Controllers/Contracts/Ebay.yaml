@@ -359,12 +359,17 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/SearchQuery'
+      RuSearchQueries:
+        type: array
+        items:
+          $ref: '#/definitions/RuSearchQuery'
       Weight:
         type: integer
         minimum: 0
     required:
       - Name
       - SearchQueries
+      - RuSearchQueries
       - Weight
   
   ProductWithId:
@@ -388,10 +393,15 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/SearchQuery'
+      RuSearchQueries:
+        type: array
+        items:
+          $ref: '#/definitions/RuSearchQuery'
     required:
       - Id
       - Name
       - SearchQueries
+      - RuSearchQueries
       - Weight
   
   SearchQuery:
@@ -407,7 +417,21 @@ definitions:
     required:
       - id
       - query
-  
+      
+  RuSearchQuery:
+    type: object
+    properties:
+      id:
+        type: string
+        format: guid
+      query:
+        type: string
+        pattern: ^\w+(?:[ -\/\\.,]+\w+)*$
+        minLength: 1
+    required:
+      - id
+      - query
+        
   LotInfoWithProductId:
     type: object
     properties:

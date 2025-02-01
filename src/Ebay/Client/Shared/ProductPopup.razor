@@ -23,7 +23,23 @@
                             <InputNumber id="weight" @bind-Value="_product.Weight" class="form-control"/>
                             <ValidationMessage For="@(() => _product.Weight)"/>
                         </div>
-
+                        <hr>
+                        @{ var ruSearchQueryNumber = 1; }
+                        @foreach (var query in _product.RuSearchQueries)
+                        {
+                        <div class="form-group">
+                            <label for="@(() => $"ruSearchQuery_{ruSearchQueryNumber}")">Дополнительное имя</label>
+                            <InputText id="@(() => $"ruSearchQuery_{ruSearchQueryNumber}")" @bind-Value="@query.Query" class="form-control"/>
+                            @if (ruSearchQueryNumber > 0)
+                            {
+                            <button class="btn btn-primary btn-sm" @onclick="@(e => RemoveRuSearchQuery(query))">Удалить</button>
+                            }
+                        </div>
+                        ruSearchQueryNumber++;
+                        }
+                        <br>
+                        <button class="btn btn-primary btn-sm" @onclick="@(e => AddRuSearchQuery())">Добавить дополнительное имя</button>
+                        <hr>
                         @{ var searchQueryNumber = 1; }
                         @foreach (var query in _product.SearchQueries)
                         {
@@ -38,7 +54,7 @@
                             searchQueryNumber++;
                         }
                         <br>
-                        <button class="btn btn-primary btn-sm" @onclick="@(e => AddSearchQuery())">Добавить поисковый запрос</button>
+                        <button class="btn btn-primary btn-sm" @onclick="@(e => AddSearchQuery())">Добавить поисковый запрос ebay</button>
                     </div>
                     <div class="modal-footer">
                         <button class="btn btn-primary" @onclick="@OnSave" type="button">Сохранить</button>
@@ -73,7 +89,7 @@
     public void ShowCreate()
     {
         _actionType = ActionType.Create;
-        _product = new ProductWithoutId { Weight = 0, SearchQueries = new List<SearchQuery> { new() { Id = Guid.NewGuid() } } };
+        _product = new ProductWithoutId { Weight = 0, SearchQueries = new List<SearchQuery> { new() { Id = Guid.NewGuid() } }, RuSearchQueries = new List<RuSearchQuery>() };
         _editContext = new EditContext(_product);
         _validationMessageStore = new ValidationMessageStore(_editContext);
         StateHasChanged();
@@ -144,12 +160,24 @@
         Edit
     }
 
+    private void AddRuSearchQuery()
+    {
+        if (_product == null) throw new InvalidOperationException($"{nameof(_product)} expected to be not null");
+        _product.RuSearchQueries.Add(new RuSearchQuery() { Id = Guid.NewGuid() });
+    }
+    
     private void AddSearchQuery()
     {
         if (_product == null) throw new InvalidOperationException($"{nameof(_product)} expected to be not null");
         _product.SearchQueries.Add(new SearchQuery() { Id = Guid.NewGuid() });
     }
 
+    private void RemoveRuSearchQuery(RuSearchQuery query)
+    {
+        if (_product == null) throw new InvalidOperationException($"{nameof(_product)} expected to be not null");
+        _product.RuSearchQueries.Remove(query);
+    }
+    
     private void RemoveSearchQuery(SearchQuery query)
     {
         if (_product == null) throw new InvalidOperationException($"{nameof(_product)} expected to be not null");

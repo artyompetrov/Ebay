@@ -398,13 +398,15 @@ namespace Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public ProductWithoutId(string @name, System.Collections.Generic.List<SearchQuery> @searchQueries, int @weight)
+        public ProductWithoutId(string @name, System.Collections.Generic.List<RuSearchQuery> @ruSearchQueries, System.Collections.Generic.List<SearchQuery> @searchQueries, int @weight)
 
         {
 
             this.Name = @name;
 
             this.SearchQueries = @searchQueries;
+
+            this.RuSearchQueries = @ruSearchQueries;
 
             this.Weight = @weight;
 
@@ -417,6 +419,10 @@ namespace Server.Controllers.Generated
         [System.ComponentModel.DataAnnotations.Required]
         public System.Collections.Generic.List<SearchQuery> SearchQueries { get; }
 
+        [Newtonsoft.Json.JsonProperty("RuSearchQueries", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.List<RuSearchQuery> RuSearchQueries { get; }
+
         [Newtonsoft.Json.JsonProperty("Weight", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Range(0, int.MaxValue)]
         public int Weight { get; }
@@ -428,7 +434,7 @@ namespace Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public ProductWithId(System.Guid @id, string? @lastCheckTime, string @name, System.Collections.Generic.List<SearchQuery> @searchQueries, int @weight)
+        public ProductWithId(System.Guid @id, string? @lastCheckTime, string @name, System.Collections.Generic.List<RuSearchQuery> @ruSearchQueries, System.Collections.Generic.List<SearchQuery> @searchQueries, int @weight)
 
         {
 
@@ -441,6 +447,8 @@ namespace Server.Controllers.Generated
             this.Weight = @weight;
 
             this.SearchQueries = @searchQueries;
+
+            this.RuSearchQueries = @ruSearchQueries;
 
         }    [Newtonsoft.Json.JsonProperty("Id", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
@@ -463,6 +471,10 @@ namespace Server.Controllers.Generated
         [System.ComponentModel.DataAnnotations.Required]
         public System.Collections.Generic.List<SearchQuery> SearchQueries { get; }
 
+        [Newtonsoft.Json.JsonProperty("RuSearchQueries", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.List<RuSearchQuery> RuSearchQueries { get; }
+
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))")]
@@ -471,6 +483,30 @@ namespace Server.Controllers.Generated
         [Newtonsoft.Json.JsonConstructor]
 
         public SearchQuery(System.Guid @id, string @query)
+
+        {
+
+            this.Id = @id;
+
+            this.Query = @query;
+
+        }    [Newtonsoft.Json.JsonProperty("id", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public System.Guid Id { get; }
+
+        [Newtonsoft.Json.JsonProperty("query", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^\w+(?:[ -\/\\.,]+\w+)*$")]
+        public string Query { get; }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class RuSearchQuery
+    {
+        [Newtonsoft.Json.JsonConstructor]
+
+        public RuSearchQuery(System.Guid @id, string @query)
 
         {
 
