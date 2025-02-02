@@ -75,8 +75,10 @@ function transliterate(text: string): string {
 
 const ebaySiteRegex: RegExp =  /(?:^|\.)ebay\.com$/i;
 const chipFindRegex: RegExp = /(?:^|\.)chipfind\.ru/i
+const avitoRegex: RegExp = /(?:^|\.)avito\.ru/i
+
 const searchOnSites: RegExp[] = [
-    /(?:^|\.)avito\.ru/i,
+    avitoRegex,
     chipFindRegex
 ]
 
@@ -1420,6 +1422,21 @@ function highlightWords(words: string[], highlightClass: string = "highlight"): 
     traverseNodes(body);
 }
 
+async function processAvito() {
+    console.log("processAvito");
+    let found = false;
+    do {
+        await sleep(300);
+        
+        let moreButton = [...document.querySelectorAll('a')].filter(a => a.innerText.includes("Читать полностью"))
+
+        if (moreButton.length > 0) {
+            moreButton[0].click();
+            found = true;
+        }
+    } while (!found);
+}
+
 async function processChipFind() {
     console.log("processChipFind")
     if (location.pathname === "/market/search.htm" || location.pathname === "/market/") {
@@ -1449,27 +1466,37 @@ async function processChipFind() {
     }
 }
 
+async function processSitePage() {
+    let backendOAuth2Client: OAuth2Client = getBackendOAuth2Client();
+    let backendClient = new EbayToolBackendClient(baseApiUrl, getAuthorizeFetch(backendOAuth2Client, backendApiScope, "ebayToolTokenStore", extensionAuthRedirectUrl));
+
+    let wordsToHighlight = await getCachedDataOrFallback("knownItems", async () => {
+            let allProducts = await backendClient.getAllProducts();
+            allProducts.map(x => x.name)
+                .concat(allProducts.map(x=>x.ruSearchQueries.map(x=>x.query)).reduce((acc, val) => acc.concat(val), []))
+
+            return Array.from(allProducts.map(x => x.name)
+                .concat(allProducts.map(x=>x.ruSearchQueries.map(x=>x.query)).reduce((acc, val) => acc.concat(val), [])));
+        },
+        60 * 60)
+
+    if (chipFindRegex.test(location.host)) {
+        await processChipFind();
+    }
+    else if (avitoRegex.test(location.host)) {
+       let _ = processAvito();
+    }
+    highlightWords(wordsToHighlight);
+}
+
 async function searchSitePages() {
     console.log("searchSitePages")
 
-    document.addEventListener("DOMContentLoaded", async () => {
-        let backendClient = new EbayToolBackendClient(baseApiUrl, getAuthorizeFetch(backendOAuth2Client, backendApiScope, "ebayToolTokenStore", extensionAuthRedirectUrl));
-
-        let wordsToHighlight = await getCachedDataOrFallback("knownItems", async () => {
-                let allProducts = await backendClient.getAllProducts();
-                allProducts.map(x => x.name)
-                    .concat(allProducts.map(x=>x.ruSearchQueries.map(x=>x.query)).reduce((acc, val) => acc.concat(val), []))
-
-                return Array.from(allProducts.map(x => x.name)
-                    .concat(allProducts.map(x=>x.ruSearchQueries.map(x=>x.query)).reduce((acc, val) => acc.concat(val), [])));
-            },
-            60 * 60)
-        let isChipFind = chipFindRegex.test(location.host);
-        if (isChipFind) {
-            await processChipFind();
-        }
-        highlightWords(wordsToHighlight);
-    });
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", processSitePage);
+    } else {
+        await processSitePage();
+    }
     
     let backendOAuth2Client: OAuth2Client = getBackendOAuth2Client();
     await chrome.storage.local.set({return_page: document.location.href})
