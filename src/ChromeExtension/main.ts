@@ -1379,14 +1379,27 @@ async function ebayPages(currentPage: string) {
 
 function highlightWords(words: string[], highlightClass: string = "highlight"): void {
     console.log("highlightWords")
-    let wordsReplaced = words.map(x => x
+    let wordsReplaced = words.map(x => x.toLowerCase()
         .replace('(', '\(')
         .replace(')', '\)')
         .replace('/', '\/')
         .replace('.', ',')
         .replace(',', '[,.]')
+        .replace('-', '[- ]?')
+        .replace(/[aа]/, '[aа]')
+        .replace(/[cс]/, '[cс]')
+        .replace(/[pр]/, '[pр]')
+        .replace(/[eе]/, '[eе]')
+        .replace(/[oо]/, '[oо]')
+        .replace(/[xх]/, '[xх]')
+        .replace(/[yу]/, '[yу]')
+        .replace(/[bв]/, '[bв]')
+        .replace(/[hн]/, '[hн]')
+        .replace(/[kк]/, '[kк]')
+        .replace(/[mм]/, '[mм]')
+        .replace(/[tт]/, '[tт]')
     )
-    const regex = new RegExp(`(?:^|\\s)(${wordsReplaced.join("|")})(?:$|\\s|-|,|\.)`, "i");
+    const regex = new RegExp(`(?:^|\\s|\.)(${wordsReplaced.join("|")})(?:$|\\s|-|,|\.)`, "i");
     console.log(regex);
     
      const highlightWord = (node: Text) => {
