@@ -130,25 +130,25 @@
     /// <param name="text">Входная строка</param>
     /// <param name="color">Цвет подсветки (например "red")</param>
     /// <returns>Готовый HTML (MarkupString) для Blazor</returns>
-    public static MarkupString HighlightMinorityLetters(string text, string color)
+    private static MarkupString HighlightMinorityLetters(string text, string color)
     {
         if (string.IsNullOrWhiteSpace(text))
             return new MarkupString(string.Empty);
 
         // 1. Подсчитываем кол-во русских и английских символов
-        int totalRussian = RussianLettersRegex
+        var totalRussian = RussianLettersRegex
             .Matches(text)
             .Sum(m => m.Length);
 
-        int totalEnglish = EnglishLettersRegex
+        var totalEnglish = EnglishLettersRegex
             .Matches(text)
             .Sum(m => m.Length);
 
         // 2. Если русских больше - подсвечиваем английские, иначе - русские
-        bool highlightEnglish = totalRussian > totalEnglish;
+        var highlightEnglish = totalRussian >= totalEnglish;
 
         // 3. Меняем «меньшинство» через Replace
-        string highlightedText = highlightEnglish
+        var highlightedText = highlightEnglish
             ? EnglishLettersRegex.Replace(text, match => 
                 $"<span style=\"color:{color};\">{match.Value}</span>")
             : RussianLettersRegex.Replace(text, match => 

@@ -1422,13 +1422,12 @@ function highlightWords(words: string[], highlightClass: string = "highlight"): 
     traverseNodes(body);
 }
 
-async function processAvito() {
-    console.log("processAvito");
+async function processAvitoBackground() {
+    console.log("processAvitoBackground");
     let found = false;
-    
     do {
         await sleep(300);
-        
+
         let moreButton = [...document.querySelectorAll('a')].filter(a => a.innerText.includes("Читать полностью"))
 
         if (moreButton.length > 0) {
@@ -1436,7 +1435,10 @@ async function processAvito() {
             found = true;
         }
     } while (!found);
+}
 
+async function processAvito() {
+    console.log("processAvito");
     let description = document.querySelectorAll<HTMLDivElement>('div[itemprop="description"]');
 
     description.forEach(function (post) {
@@ -1492,6 +1494,7 @@ async function processSitePage() {
     }
     else if (avitoRegex.test(location.host)) {
        await processAvito();
+       let _ = processAvitoBackground();
     }
     highlightWords(wordsToHighlight);
 }
