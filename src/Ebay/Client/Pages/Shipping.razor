@@ -15,7 +15,7 @@
     {
         @if (shippingRates.SpecifiedCountries != null)
         {
-            <h4>@string.Join(", ", shippingRates.SpecifiedCountries)</h4>
+            <h4>@string.Join(separator: ", ", values: shippingRates.SpecifiedCountries)</h4>
         }
         else
         {

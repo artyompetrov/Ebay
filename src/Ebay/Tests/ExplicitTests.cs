@@ -22,14 +22,14 @@ public class ExplicitTests
         var httpClient = new HttpClient();
 
         using var res = httpClient.SendAsync(
-                new HttpRequestMessage(HttpMethod.Post, url)
+                new HttpRequestMessage(method: HttpMethod.Post, requestUri: url)
                 {
                     Content = new FormUrlEncodedContent(
                         new List<KeyValuePair<string, string>>
                         {
-                            new("grant_type", "client_credentials"),
-                            new("client_id", WellKnown.Authorization.PythonClientId),
-                            new("client_secret", WellKnown.Authorization.AuthToken),
+                            new(key: "grant_type", value: "client_credentials"),
+                            new(key: "client_id", value: WellKnown.Authorization.PythonClientId),
+                            new(key: "client_secret", value: WellKnown.Authorization.AuthToken),
                         }
                     )
                 }
@@ -39,7 +39,7 @@ public class ExplicitTests
 
         var token = JToken.Parse(res.Content.ReadAsStringAsync().GetAwaiter().GetResult())["access_token"]!.ToString();
 
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme: "Bearer", parameter: token);
 
         return new EbayClient(httpClient) { BaseUrl = baseAddress + "/api/ebay/v1" };
     }
@@ -200,9 +200,9 @@ public class ExplicitTests
 
         return string.Join(
             separator: Environment.NewLine,
-            result.Select(
+            values: result.Select(
                 x =>
-                    $"Count {x.Key}, Values: {string.Join(Environment.NewLine + "\t\t\t\t", x.Value.Select(x => x.ToString()))}"
+                    $"Count {x.Key}, Values: {string.Join(separator: Environment.NewLine + "\t\t\t\t", values: x.Value.Select(x => x.ToString()))}"
             )
         );
     }

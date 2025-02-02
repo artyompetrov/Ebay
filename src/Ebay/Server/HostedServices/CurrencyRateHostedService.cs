@@ -36,7 +36,7 @@ internal class CurrencyRateHostedService : IHostedService, IDisposable
                 }
                 catch (Exception e) when (!e.IsIntendedOperationCanceledException(cts.Token))
                 {
-                    _logger.LogError(e, message: $"{nameof(RefreshCurrencyRatesForever)} finished with error");
+                    _logger.LogError(exception: e, message: $"{nameof(RefreshCurrencyRatesForever)} finished with error");
                 }
                 finally
                 {

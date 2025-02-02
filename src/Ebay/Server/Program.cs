@@ -67,7 +67,7 @@ builder.Services.AddIdentityServer()
     );
 
 var keyStoragePath = Environment.GetEnvironmentVariable("DATA_PROTECTION_KEYS_DIR") ??
-    Path.Join(Path.GetTempPath(), "data_protection_keys_dir");
+    Path.Join(path1: Path.GetTempPath(), path2: "data_protection_keys_dir");
 
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(keyStoragePath))

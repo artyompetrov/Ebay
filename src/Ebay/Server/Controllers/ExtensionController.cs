@@ -29,7 +29,7 @@ public class ExtensionController : ControllerBase
         </body>
         </html>";
 
-        return Content(htmlContent, "text/html");
+        return Content(content: htmlContent, contentType: "text/html");
     }
 
     [HttpGet("{extensionName}.xml")]
@@ -37,10 +37,10 @@ public class ExtensionController : ControllerBase
     {
         var extensionsFolder = GetExtensionsFolder();
 
-        var versionedFiles = GetVersionedFiles(extensionsFolder, extensionName).ToList();
+        var versionedFiles = GetVersionedFiles(folder: extensionsFolder, extensionName: extensionName).ToList();
         if (!versionedFiles.Any())
         {
-            return StatusCode(500, $"No properly versioned CRX files found for extension '{extensionName}'.");
+            return StatusCode(statusCode: 500, value: $"No properly versioned CRX files found for extension '{extensionName}'.");
         }
 
         var (filePath, latestVersion) = versionedFiles.MaxBy(x => x.Version);
@@ -57,20 +57,20 @@ public class ExtensionController : ControllerBase
   </app>
 </gupdate>";
 
-        Response.Headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
-        Response.Headers.Append("Pragma", "no-cache");
-        Response.Headers.Append("Expires", "0");
+        Response.Headers.Append(key: "Cache-Control", value: "no-cache, no-store, must-revalidate");
+        Response.Headers.Append(key: "Pragma", value: "no-cache");
+        Response.Headers.Append(key: "Expires", value: "0");
 
-        return Content(xmlContent, "application/xml");
+        return Content(content: xmlContent, contentType: "application/xml");
     }
 
     [HttpGet("download/{extensionName}_{version}.crx")]
     public IActionResult Download(string extensionName, string version)
     {
         var extensionsFolder = GetExtensionsFolder();
-        if (Version.TryParse(version, out var parsedVersion))
+        if (Version.TryParse(input: version, result: out var parsedVersion))
         {
-            var crxFilePath = GetVersionedFiles(extensionsFolder, extensionName)
+            var crxFilePath = GetVersionedFiles(folder: extensionsFolder, extensionName: extensionName)
                 .SingleOrDefault(x => x.Version == parsedVersion)
                 .FilePath;
             if (crxFilePath == null)
@@ -78,7 +78,7 @@ public class ExtensionController : ControllerBase
                 return NotFound($"CRX file '{extensionName}_{version}.crx' not found.");
             }
 
-            return PhysicalFile(crxFilePath, "application/x-chrome-extension", $"{extensionName}_{version}.crx");
+            return PhysicalFile(physicalPath: crxFilePath, contentType: "application/x-chrome-extension", fileDownloadName: $"{extensionName}_{version}.crx");
         }
 
         return NotFound($"CRX file '{extensionName}_{version}.crx' not found.");
@@ -88,7 +88,7 @@ public class ExtensionController : ControllerBase
     public IActionResult DownloadAsZip(string extensionName)
     {
         var extensionsFolder = GetExtensionsFolder();
-        var crxFilePath = GetVersionedFiles(extensionsFolder, extensionName)
+        var crxFilePath = GetVersionedFiles(folder: extensionsFolder, extensionName: extensionName)
             .OrderBy(x => x.Version)
             .FirstOrDefault()
             .FilePath;
@@ -99,27 +99,27 @@ public class ExtensionController : ControllerBase
         }
 
         var memoryStream = new MemoryStream();
-        using (var archive = new System.IO.Compression.ZipArchive(memoryStream, System.IO.Compression.ZipArchiveMode.Create, true))
+        using (var archive = new System.IO.Compression.ZipArchive(stream: memoryStream, mode: System.IO.Compression.ZipArchiveMode.Create, leaveOpen: true))
         {
             var zipEntry = archive.CreateEntry(Path.GetFileName(crxFilePath));
             using var entryStream = zipEntry.Open();
-            using var fileStream = new FileStream(crxFilePath, FileMode.Open, FileAccess.Read);
+            using var fileStream = new FileStream(path: crxFilePath, mode: FileMode.Open, access: FileAccess.Read);
             fileStream.CopyTo(entryStream);
         }
 
-        memoryStream.Seek(0, SeekOrigin.Begin);
+        memoryStream.Seek(offset: 0, loc: SeekOrigin.Begin);
         var zipFileName = $"{extensionName}.zip";
 
-        Response.Headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
-        Response.Headers.Append("Pragma", "no-cache");
-        Response.Headers.Append("Expires", "0");
+        Response.Headers.Append(key: "Cache-Control", value: "no-cache, no-store, must-revalidate");
+        Response.Headers.Append(key: "Pragma", value: "no-cache");
+        Response.Headers.Append(key: "Expires", value: "0");
 
-        return File(memoryStream, "application/zip", zipFileName);
+        return File(fileStream: memoryStream, contentType: "application/zip", fileDownloadName: zipFileName);
     }
 
     private string GetExtensionsFolder()
     {
-        var extensionsFolder = Path.Combine(_env.WebRootPath, "chrome_extensions");
+        var extensionsFolder = Path.Combine(path1: _env.WebRootPath, path2: "chrome_extensions");
         if (!Directory.Exists(extensionsFolder))
         {
             throw new Exception("Extensions folder not found.");
@@ -130,9 +130,9 @@ public class ExtensionController : ControllerBase
     private IEnumerable<(string FilePath, Version Version)> GetVersionedFiles(string folder, string extensionName)
     {
         var pattern = $"{extensionName}_*.crx";
-        var crxFiles = Directory.GetFiles(folder, pattern);
+        var crxFiles = Directory.GetFiles(path: folder, searchPattern: pattern);
 
-        var versionPattern = new Regex($@"^{Regex.Escape(extensionName)}_(\d+\.\d+\.\d+\.\d+)\.crx$", RegexOptions.IgnoreCase);
+        var versionPattern = new Regex(pattern: $@"^{Regex.Escape(extensionName)}_(\d+\.\d+\.\d+\.\d+)\.crx$", options: RegexOptions.IgnoreCase);
         return crxFiles
             .Select(file =>
             {

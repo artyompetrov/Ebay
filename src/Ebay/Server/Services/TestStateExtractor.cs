@@ -10,12 +10,12 @@ internal class TestStateExtractor : ExtractorBase, IExtractor
 
     private static readonly List<Extractor> Extractors = new()
     {
-        new Extractor(new Regex(pattern: @"\bmatched\b", options: Ro), WellKnown.Categories.TestState.Matched, All),
-        new Extractor(new Regex(pattern: @"\bselected\b", options: Ro), WellKnown.Categories.TestState.Matched, TitleAndShortAndConditionDescription),
-        new Extractor(new Regex(pattern: @"\btested\b", options: Ro), WellKnown.Categories.TestState.Tested, All),
-        new Extractor(new Regex(pattern: @"\bL3-3\b", options: Ro), WellKnown.Categories.TestState.Tested, All),
-        new Extractor(new Regex(pattern: @"\bL1-3\b", options: Ro), WellKnown.Categories.TestState.Tested, All),
-        new Extractor(new Regex(pattern: @"\btube\s*tester\b", options: Ro), WellKnown.Categories.TestState.Tested, All)
+        new Extractor(Regex: new Regex(pattern: @"\bmatched\b", options: Ro), Result: WellKnown.Categories.TestState.Matched, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bselected\b", options: Ro), Result: WellKnown.Categories.TestState.Matched, ExtractFrom: TitleAndShortAndConditionDescription),
+        new Extractor(Regex: new Regex(pattern: @"\btested\b", options: Ro), Result: WellKnown.Categories.TestState.Tested, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bL3-3\b", options: Ro), Result: WellKnown.Categories.TestState.Tested, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bL1-3\b", options: Ro), Result: WellKnown.Categories.TestState.Tested, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\btube\s*tester\b", options: Ro), Result: WellKnown.Categories.TestState.Tested, ExtractFrom: All)
     };
 
     private static readonly string[] ToRemove =

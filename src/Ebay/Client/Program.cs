@@ -9,7 +9,7 @@ builder.RootComponents.Add<Client.App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddHttpClient(
-        "ServerAPI",
+        name: "ServerAPI",
         client => client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress))
     .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
 
@@ -21,7 +21,7 @@ builder.Services.AddApiAuthorization();
 
 if (OperatingSystem.IsBrowser())
 {
-    await JSHost.ImportAsync("interop", "/js/interop.js");
+    await JSHost.ImportAsync(moduleName: "interop", moduleUrl: "/js/interop.js");
 }
 
 await builder.Build().RunAsync();

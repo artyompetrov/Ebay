@@ -1,6 +1,8 @@
 ﻿@page "/"
+@using System.Text.RegularExpressions
 @using Client.Clients.Generated
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Html
 @attribute [Authorize]
 @inject EbayClient EbayClient
 
@@ -49,18 +51,18 @@
                 }
             </td>
             <td>
-                <NavLink href="@($"LotSales/{product.Id}")" target="_blank">@product.Name</NavLink>
+                <NavLink href="@($"LotSales/{product.Id}")" target="_blank">@HighlightMinorityLetters(product.Name, "red")</NavLink>
             </td>
             <td>
                 @foreach (var query in product.RuSearchQueries)
                 {
-                    <span>@query.Query&#160;</span>
+                    <span>@HighlightMinorityLetters(query.Query, "red")&#160;</span>
                 }
             </td>
             <td>
                 @foreach (var query in product.SearchQueries)
                 {
-                    <span><a href="@GetSearchLink(query.Query, product.Id)" rel="noreferrer" target=”_blank”>@query.Query</a>&#160;</span>
+                    <span><a href="@GetSearchLink(query: query.Query, productId: product.Id)" rel="noreferrer" target=”_blank”>@HighlightMinorityLetters(query.Query, "red")</a>&#160;</span>
                 }
             </td>
             @if (product.Weight == 0)
@@ -95,7 +97,7 @@
 
     private void OnDeleteButtonClick(ProductWithId product)
     {
-        _questionPopup.AskQuestion($"Вы действительно хотите удалить товар '{product.Name}'?", async () =>
+        _questionPopup.AskQuestion(questionText: $"Вы действительно хотите удалить товар '{product.Name}'?", async () =>
         {
             await EbayClient.DeleteProductAsync(product.Id);
             await LoadActualProductList();
@@ -112,11 +114,47 @@
 
     private void MarkAsChecked(ProductWithId product)
     {
-        _questionPopup.AskQuestion($"Вы действительно хотите отметить товар '{product.Name}' как учтенный?", async () =>
+        _questionPopup.AskQuestion(questionText: $"Вы действительно хотите отметить товар '{product.Name}' как учтенный?", async () =>
         {
             await EbayClient.MarkProductAsCheckedAsync(product.Id);
             await LoadActualProductList();
         });
     }
 
+    private static readonly Regex RussianLettersRegex = new(@"\p{IsCyrillic}+", RegexOptions.Compiled);
+    private static readonly Regex EnglishLettersRegex = new(@"[A-Za-z]+", RegexOptions.Compiled);
+    
+    /// <summary>
+    /// Подсвечивает «меньшинство» (русские или английские буквы) в заданном тексте.
+    /// Если русских больше, подсвечивает английские, и наоборот.
+    /// </summary>
+    /// <param name="text">Входная строка</param>
+    /// <param name="color">Цвет подсветки (например "red")</param>
+    /// <returns>Готовый HTML (MarkupString) для Blazor</returns>
+    public static MarkupString HighlightMinorityLetters(string text, string color)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return new MarkupString(string.Empty);
+
+        // 1. Подсчитываем кол-во русских и английских символов
+        int totalRussian = RussianLettersRegex
+            .Matches(text)
+            .Sum(m => m.Length);
+
+        int totalEnglish = EnglishLettersRegex
+            .Matches(text)
+            .Sum(m => m.Length);
+
+        // 2. Если русских больше - подсвечиваем английские, иначе - русские
+        bool highlightEnglish = totalRussian > totalEnglish;
+
+        // 3. Меняем «меньшинство» через Replace
+        string highlightedText = highlightEnglish
+            ? EnglishLettersRegex.Replace(text, match => 
+                $"<span style=\"color:{color};\">{match.Value}</span>")
+            : RussianLettersRegex.Replace(text, match => 
+                $"<span style=\"color:{color};\">{match.Value}</span>");
+
+        return new MarkupString(highlightedText);
+    }
 }

@@ -6,6 +6,6 @@ namespace Client;
 [SupportedOSPlatform("browser")]
 public partial class Interop
 {
-    [JSImport("SetFocusByElementId", "interop")]
+    [JSImport(functionName: "SetFocusByElementId", moduleName: "interop")]
     internal static partial void SetFocusByElementId(string elementId);
 }

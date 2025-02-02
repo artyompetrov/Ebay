@@ -19,8 +19,8 @@ internal static class ManualFieldsExtractor
         foreach (var extractor in Extractors)
         {
             result.Add(
-                extractor.ExtractedDataName,
-                extractor.Extract(lotDataToExtract)
+                key: extractor.ExtractedDataName,
+                value: extractor.Extract(lotDataToExtract)
             );
         }
 

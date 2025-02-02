@@ -10,6 +10,6 @@ public class RobotsController : ControllerBase
     {
         const string content = "User-agent: *\nDisallow: /";
 
-        return Content(content, "text/plain");
+        return Content(content: content, contentType: "text/plain");
     }
 }

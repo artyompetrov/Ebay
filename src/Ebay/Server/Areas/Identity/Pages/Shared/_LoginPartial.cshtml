@@ -6,7 +6,7 @@
 
 @{
     var returnUrl = "/";
-    if (Context.Request.Query.TryGetValue("returnUrl", out var existingUrl))
+    if (Context.Request.Query.TryGetValue(key: "returnUrl", value: out var existingUrl))
     {
         returnUrl = existingUrl;
     }

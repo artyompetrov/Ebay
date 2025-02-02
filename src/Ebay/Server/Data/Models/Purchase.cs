@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Server.Data.Models;
 
-[PrimaryKey(nameof(LotId), nameof(Date))]
+[PrimaryKey(propertyName: nameof(LotId), nameof(Date))]
 internal class Purchase
 {
     public DateTime Date { get; set; }

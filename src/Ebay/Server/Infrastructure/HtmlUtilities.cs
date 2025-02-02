@@ -15,7 +15,7 @@ internal class HtmlUtilities
         doc.LoadHtml(html);
 
         StringWriter sw = new StringWriter();
-        ConvertTo(doc.DocumentNode, sw);
+        ConvertTo(node: doc.DocumentNode, outText: sw);
         sw.Flush();
         return sw.ToString();
     }
@@ -37,7 +37,7 @@ internal class HtmlUtilities
     {
         if (!String.IsNullOrEmpty(text) && text.Length > length)
         {
-            text = text.Substring(0, length - 4) + " ...";
+            text = text.Substring(startIndex: 0, length: length - 4) + " ...";
         }
 
         return text;
@@ -48,7 +48,7 @@ internal class HtmlUtilities
     {
         foreach (HtmlNode subnode in node.ChildNodes)
         {
-            ConvertTo(subnode, outText);
+            ConvertTo(node: subnode, outText: outText);
         }
     }
 
@@ -63,7 +63,7 @@ internal class HtmlUtilities
                 break;
 
             case HtmlNodeType.Document:
-                ConvertContentTo(node, outText);
+                ConvertContentTo(node: node, outText: outText);
                 break;
 
             case HtmlNodeType.Text:
@@ -104,7 +104,7 @@ internal class HtmlUtilities
 
                 if (node.HasChildNodes)
                 {
-                    ConvertContentTo(node, outText);
+                    ConvertContentTo(node: node, outText: outText);
                 }
 
                 break;

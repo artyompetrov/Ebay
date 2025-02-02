@@ -19,8 +19,8 @@ internal abstract class ExtractorBase
     protected static string[] Split(string data)
     {
         return data.Split(
-            NewLines,
-            StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries
+            separator: NewLines,
+            options: StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries
         );
     }
 

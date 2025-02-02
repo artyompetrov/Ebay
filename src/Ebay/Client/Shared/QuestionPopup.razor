@@ -21,7 +21,7 @@
 
     public void AskQuestion(string questionText, Func<Task> onSubmit)
     {
-        _questionState = new QuestionStateInternal(questionText, onSubmit);
+        _questionState = new QuestionStateInternal(QuestionText: questionText, OnSubmit: onSubmit);
         StateHasChanged();
     }
 

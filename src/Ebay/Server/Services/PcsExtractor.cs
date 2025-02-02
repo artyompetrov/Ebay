@@ -23,47 +23,47 @@ internal class PcsExtractor : ExtractorBase, IExtractor
     /// </summary>
     private static readonly List<Extractor> Extractors = new()
     {
-        new Extractor(new Regex(@"\b(\d{1,2})\s*x?-?\s*match(?:ed)?\s+pair\b", Ro), null, 2, All),
-        new Extractor(new Regex(@"\b(\d{1,2})\s*x?-?\s*match(?:ed)?\s+quad\b", Ro), null, 4, All),
-        new Extractor(new Regex(@"\b(\d{1,2})\s*quartets\b", Ro), null, 4, All),
-        new Extractor(new Regex(@"\bmatch(?:ed)?\s+pair\b", Ro), 2, 1, All),
-        new Extractor(new Regex(@"\bselected\s+pair\b", Ro), 2, 1, All),
-        new Extractor(new Regex(@"\bbalanced\s+quad\b", Ro), 4, 1, All),
-        new Extractor(new Regex(@"\bpair\s+match(?:ed)?\b", Ro), 2, 1, All),
-        new Extractor(new Regex(@"\bquad\s+match(?:ed)?\b", Ro), 4, 1, All),
-        new Extractor(new Regex(@"\bmatch(?:ed)?\s+quad\b", Ro), 4, 1, All),
-        new Extractor(new Regex(@"\bmatch(?:ed)?\s+quartet\b", Ro), 4, 1, All),
-        new Extractor(new Regex(@"\btwo\s+match(?:ed)?\s+octets\b", Ro), 16, 1, All),
-        new Extractor(new Regex(@"\bmatch(?:ed)?\s+octet\b", Ro), 8, 1, All),
-        new Extractor(new Regex(@"\bmatch(?:ed)?\s+four\b", Ro), 4, 1, All),
-        new Extractor(new Regex(@"\b(\d+)\s*pc\b", Ro), null, 1, All),
-        new Extractor(new Regex(@"\b(\d+)\s*units\b", Ro), null, 1, All),
-        new Extractor(new Regex(@"(?:x|\b)(\d{1,3})\s*pcs\b", Ro), null, 1, All),
-        new Extractor(new Regex(@"\bpcs\s*(\d{1,3})\b", Ro), null, 1, All),
-        new Extractor(new Regex(@"(?:^|\s+)(\d{1,3})\s*x\b", Ro), null, 1, TitleAndShortAndConditionDescription),
-        new Extractor(new Regex(@"\blot\s+x\s*(\d{1,3})", Ro), null, 1, All),
-        new Extractor(new Regex(@"\blot\s*of\s*(\d{1,3})", Ro), null, 1, All),
-        new Extractor(new Regex(@"\bpack\s*of\s*(\d{1,3})", Ro), null, 1, All),
-        new Extractor(new Regex(@"\bset\s*of\s*(\d{1,3})", Ro), null, 1, All),
-        new Extractor(new Regex(@"\bis\s*for\s*(\d{1,3})", Ro), null, 1, All),
-        new Extractor(new Regex(@"\bqty[ -=(](\d{1,3})", Ro), null, 1, All),
-        new Extractor(new Regex(@"\blot[-=](\d{1,3})", Ro), null, 1, All),
-        new Extractor(new Regex(@"\bx(\d{1,3})\s*piece", Ro), null, 1, All),
-        new Extractor(new Regex(@"^(\d{1,3})\s*(?:\*|x)", Ro), null, 1, All),
-        new Extractor(new Regex(@"\b(\d{1,3})\s*pair", Ro), null, 2, All),
-        new Extractor(new Regex(@"^[([]?(\d{1,3})[)\]]?\s", Ro), null, 1, TitleAndConditionDescription),
-        new Extractor(new Regex(@"\bprice\s+is\s+for\s+one\s+pair\b", Ro), 2, 1, All),
-        new Extractor(new Regex(@"\bprice\s+is\s+for\s+one\b", Ro), 1, 1, All),
+        new Extractor(Regex: new Regex(pattern: @"\b(\d{1,2})\s*x?-?\s*match(?:ed)?\s+pair\b", options: Ro), Result: null, Multiplier: 2, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\b(\d{1,2})\s*x?-?\s*match(?:ed)?\s+quad\b", options: Ro), Result: null, Multiplier: 4, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\b(\d{1,2})\s*quartets\b", options: Ro), Result: null, Multiplier: 4, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bmatch(?:ed)?\s+pair\b", options: Ro), Result: 2, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bselected\s+pair\b", options: Ro), Result: 2, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bbalanced\s+quad\b", options: Ro), Result: 4, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bpair\s+match(?:ed)?\b", options: Ro), Result: 2, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bquad\s+match(?:ed)?\b", options: Ro), Result: 4, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bmatch(?:ed)?\s+quad\b", options: Ro), Result: 4, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bmatch(?:ed)?\s+quartet\b", options: Ro), Result: 4, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\btwo\s+match(?:ed)?\s+octets\b", options: Ro), Result: 16, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bmatch(?:ed)?\s+octet\b", options: Ro), Result: 8, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bmatch(?:ed)?\s+four\b", options: Ro), Result: 4, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\b(\d+)\s*pc\b", options: Ro), Result: null, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\b(\d+)\s*units\b", options: Ro), Result: null, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"(?:x|\b)(\d{1,3})\s*pcs\b", options: Ro), Result: null, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bpcs\s*(\d{1,3})\b", options: Ro), Result: null, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"(?:^|\s+)(\d{1,3})\s*x\b", options: Ro), Result: null, Multiplier: 1, ExtractFrom: TitleAndShortAndConditionDescription),
+        new Extractor(Regex: new Regex(pattern: @"\blot\s+x\s*(\d{1,3})", options: Ro), Result: null, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\blot\s*of\s*(\d{1,3})", options: Ro), Result: null, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bpack\s*of\s*(\d{1,3})", options: Ro), Result: null, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bset\s*of\s*(\d{1,3})", options: Ro), Result: null, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bis\s*for\s*(\d{1,3})", options: Ro), Result: null, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bqty[ -=(](\d{1,3})", options: Ro), Result: null, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\blot[-=](\d{1,3})", options: Ro), Result: null, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bx(\d{1,3})\s*piece", options: Ro), Result: null, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"^(\d{1,3})\s*(?:\*|x)", options: Ro), Result: null, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\b(\d{1,3})\s*pair", options: Ro), Result: null, Multiplier: 2, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"^[([]?(\d{1,3})[)\]]?\s", options: Ro), Result: null, Multiplier: 1, ExtractFrom: TitleAndConditionDescription),
+        new Extractor(Regex: new Regex(pattern: @"\bprice\s+is\s+for\s+one\s+pair\b", options: Ro), Result: 2, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bprice\s+is\s+for\s+one\b", options: Ro), Result: 1, Multiplier: 1, ExtractFrom: All),
 
-        new Extractor(new Regex(@"^one\s+pair\b", Ro), 2, 1, All),
-        new Extractor(new Regex(@"^one\b", Ro), 1, 1, All),
-        new Extractor(new Regex(@"^two\b", Ro), 2, 1, All),
-        new Extractor(new Regex(@"^pair\b", Ro), 2, 1, All),
-        new Extractor(new Regex(@"^pair\b", Ro), 2, 1, All),
-        new Extractor(new Regex(@"^four\b", Ro), 4, 1, All),
-        new Extractor(new Regex(@"\bquad\b", Ro), 4, 1, All),
-        new Extractor(new Regex(@"\bquartet\b", Ro), 4, 1, All),
-        new Extractor(new Regex(@"\boctet\b", Ro), 8, 1, All)
+        new Extractor(Regex: new Regex(pattern: @"^one\s+pair\b", options: Ro), Result: 2, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"^one\b", options: Ro), Result: 1, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"^two\b", options: Ro), Result: 2, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"^pair\b", options: Ro), Result: 2, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"^pair\b", options: Ro), Result: 2, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"^four\b", options: Ro), Result: 4, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bquad\b", options: Ro), Result: 4, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bquartet\b", options: Ro), Result: 4, Multiplier: 1, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\boctet\b", options: Ro), Result: 8, Multiplier: 1, ExtractFrom: All)
     };
 
     public Dictionary<string, HashSet<ExtractionResult>> Extract(LotDataToExtract lotDataToExtract)
@@ -78,34 +78,34 @@ internal class PcsExtractor : ExtractorBase, IExtractor
         if (lotDataToExtract.LotSize != null)
         {
             extractionResult.AppendOrCreateNewCollection(
-                lotDataToExtract.LotSize.ToString()!,
-                new ExtractionResult(ExtractFrom.LotSize, "lotSize", lotDataToExtract.LotSize.ToString()!)
+                key: lotDataToExtract.LotSize.ToString()!,
+                value: new ExtractionResult(ExtractedFrom: ExtractFrom.LotSize, Extractor: "lotSize", Match: lotDataToExtract.LotSize.ToString()!)
             );
         }
 
-        Extract(titleSplitted, ExtractFrom.Title, extractionResult);
+        Extract(splittedArray: titleSplitted, extractedFrom: ExtractFrom.Title, result: extractionResult);
 
         if (conditionDescriptionSplitted != null)
         {
             Extract(
-                conditionDescriptionSplitted,
-                ExtractFrom.ConditionDescription,
-                extractionResult
+                splittedArray: conditionDescriptionSplitted,
+                extractedFrom: ExtractFrom.ConditionDescription,
+                result: extractionResult
             );
         }
 
         Extract(
-            descriptionTextSplitted,
-            ExtractFrom.Description,
-            extractionResult
+            splittedArray: descriptionTextSplitted,
+            extractedFrom: ExtractFrom.Description,
+            result: extractionResult
         );
 
         if (shortDescriptionTextSplitted != null)
         {
             Extract(
-                shortDescriptionTextSplitted,
-                ExtractFrom.ShortDescription,
-                extractionResult
+                splittedArray: shortDescriptionTextSplitted,
+                extractedFrom: ExtractFrom.ShortDescription,
+                result: extractionResult
             );
         }
 
@@ -122,7 +122,7 @@ internal class PcsExtractor : ExtractorBase, IExtractor
             foreach (var replace in ToRemove)
             {
                 dataReplaced = dataReplaced
-                    .Replace(replace, "", StringComparison.OrdinalIgnoreCase);
+                    .Replace(oldValue: replace, newValue: "", comparisonType: StringComparison.OrdinalIgnoreCase);
             }
 
             dataReplaced = dataReplaced.Trim();
@@ -134,7 +134,7 @@ internal class PcsExtractor : ExtractorBase, IExtractor
                 var match = extractor.Regex.Match(dataReplaced);
                 if (match.Success)
                 {
-                    if (CheckIfAlreadyExtractedThatMatch(successfulExtractions, extractor.Regex)) continue;
+                    if (CheckIfAlreadyExtractedThatMatch(successfulExtractions: successfulExtractions, regex: extractor.Regex)) continue;
 
                     if (extractor.Result == null)
                     {
@@ -145,10 +145,10 @@ internal class PcsExtractor : ExtractorBase, IExtractor
 
                         result.AppendOrCreateNewCollection(
                             key: (int.Parse(match.Groups[1].ToString()) * extractor.Multiplier).ToString(),
-                            new ExtractionResult(
-                                extractedFrom,
-                                extractor.Regex.ToString(),
-                                match.ToString()
+                            value: new ExtractionResult(
+                                ExtractedFrom: extractedFrom,
+                                Extractor: extractor.Regex.ToString(),
+                                Match: match.ToString()
                             )
                         );
 
@@ -163,10 +163,10 @@ internal class PcsExtractor : ExtractorBase, IExtractor
 
                         result.AppendOrCreateNewCollection(
                             key: (extractor.Result.Value * extractor.Multiplier).ToString(),
-                            new ExtractionResult(
-                                extractedFrom,
-                                extractor.Regex.ToString(),
-                                match.ToString()
+                            value: new ExtractionResult(
+                                ExtractedFrom: extractedFrom,
+                                Extractor: extractor.Regex.ToString(),
+                                Match: match.ToString()
                             )
                         );
                         successfulExtractions.Add(match.ToString());

@@ -162,7 +162,7 @@
 
         _product = productTask.Result;
         _currencyRates = getCurrenciesTask.Result;
-        _shippingRates = GetShippingRates(getShippingRatesTask.Result, getCurrenciesTask.Result);
+        _shippingRates = GetShippingRates(shippingRates: getShippingRatesTask.Result, currencies: getCurrenciesTask.Result);
 
         _parametersModelEditContext = new EditContext(_parametersModel);
 
@@ -205,7 +205,7 @@
 
             _data.Add(new Scatter
             {
-                Marker = new Marker { Color = GetColor(grouping.Key.Condition, grouping.Key.TestState) },
+                Marker = new Marker { Color = GetColor(condition: grouping.Key.Condition, testState: grouping.Key.TestState) },
                 Mode = ModeFlag.Markers | ModeFlag.Text,
                 X = grouping.Select(x => x.ProfitPerPcs).Cast<object>().ToList(),
                 Y = grouping.Select(x => x.ItemsInPurchase).Cast<object>().ToList(),
@@ -354,7 +354,7 @@
 
     private double GetShippingPrice(string shippingCountry, double weight)
     {
-        if (!_shippingRates.TryGetValue(shippingCountry, out var shippingRates))
+        if (!_shippingRates.TryGetValue(key: shippingCountry, value: out var shippingRates))
         {
             throw new InvalidOperationException($"{shippingCountry} not found in shippingRates");
         }

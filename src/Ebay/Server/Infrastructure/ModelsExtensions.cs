@@ -57,7 +57,7 @@ internal static class ModelsExtensions
             description: lot.Description,
             locatedIn: lot.LocatedIn,
             lotId: lot.Id,
-            categories: lot.Categories.Select(x => new CategoryValue(x.Key, x.Value)).ToList(),
+            categories: lot.Categories.Select(x => new CategoryValue(type: x.Key, value: x.Value)).ToList(),
             name: lot.Name,
             shippingCountry: lot.ShippingCountry,
             pcs: lot.Pcs,
@@ -79,7 +79,7 @@ internal static class ModelsExtensions
         conditionDescription: lot.ConditionDescription,
         locatedIn: lot.LocatedIn,
         lotId: lot.Id,
-        categories: lot.Categories.Select(x => new CategoryValue(x.Key, x.Value)).ToList(),
+        categories: lot.Categories.Select(x => new CategoryValue(type: x.Key, value: x.Value)).ToList(),
         name: lot.Name,
         shippingCountry: lot.ShippingCountry,
         pcs: lot.Pcs,
@@ -154,13 +154,13 @@ internal static class ModelsExtensions
             extractedData: z.Value.OrderByDescending(x => x.Value.Count)
                 .Select(
                     x => new LotDataExtractedItem(
-                        x.Value.Select(y => new ExtractorInfo(y.ExtractedFrom.ToString(), y.Extractor, y.Match))
+                        extractorInfo: x.Value.Select(y => new ExtractorInfo(extractedFrom: y.ExtractedFrom.ToString(), extractor: y.Extractor, match: y.Match))
                             .ToList(),
-                        x.Key
+                        value: x.Key
                     )
                 )
                 .ToList(),
-            z.Key
+            fieldName: z.Key
         )).ToList();
     }
 }
