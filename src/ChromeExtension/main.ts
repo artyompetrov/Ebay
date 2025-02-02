@@ -1253,21 +1253,26 @@ async function searchPage(client: EbayToolBackendClient) {
 
     //только на странице проданые лоты
     if (new URL(document.location.href).searchParams?.get('LH_Sold')?.trim() !== "1") return;
-
+    
+    
+    
     let searchResults = await sleepElementLoaded('ul.srp-results', document)
+    
+    if (!document.querySelector("div.srp-save-null-search")) { // что-то найдено
 
-    let links: LotLink[] = [];
-    for (let li of [...searchResults.querySelectorAll('li')]) {
-        if (li.classList.contains("srp-river-answer--REWRITE_START") && li.innerText === "Results matching fewer words") break
-        if (li.classList.contains("s-item")) {
-            let link = <HTMLAnchorElement>li.querySelector('a.s-item__link')
-            let soldDate = new Date((<HTMLElement>li.querySelector('span.POSITIVE')).innerText.replace("Sold ", ""))
-            links.push(new LotLink(parseInt(link.href.match(/https:\/\/[^\/]+\/itm\/(\d+)/)[1]), link, soldDate));
+        let links: LotLink[] = [];
+        for (let li of [...searchResults.querySelectorAll('li')]) {
+            if (li.classList.contains("srp-river-answer--REWRITE_START") && li.innerText === "Results matching fewer words") break
+            if (li.classList.contains("s-item")) {
+                let link = <HTMLAnchorElement>li.querySelector('a.s-item__link')
+                let soldDate = new Date((<HTMLElement>li.querySelector('span.POSITIVE')).innerText.replace("Sold ", ""))
+                links.push(new LotLink(parseInt(link.href.match(/https:\/\/[^\/]+\/itm\/(\d+)/)[1]), link, soldDate));
+            }
         }
+        links = links.slice(0, interestedInTopNItems);
+        // noinspection JSUnusedLocalSymbols
+        let _ = updateStatusInfinite(client, links);
     }
-    links = links.slice(0, interestedInTopNItems);
-    // noinspection JSUnusedLocalSymbols
-    let _ = updateStatusInfinite(client, links);
 
     await createOpenMultipleButton()
 }
