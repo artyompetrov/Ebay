@@ -565,7 +565,7 @@ function parseDate(dateString: string): Date {
 
 function parseSoldItemsPage(text: string): PurchaseInfo[] {
     let doc = new DOMParser().parseFromString(text, "text/html")
-
+    
     let result = new Array<PurchaseInfoInner>();
     let fixedPriceBlock = doc.querySelector('div.fixed-price tbody')
     if (fixedPriceBlock !== null) {
@@ -631,6 +631,9 @@ async function fillPurchaseHistory() {
     let purchaseHistoryUrl = `https://${location.hostname}/bin/purchaseHistory?item=${itemId}`;
     let response = await fetchResource(purchaseHistoryUrl, {method: 'GET', credentials: 'include'})
     let text = await response.text()
+    if (/pardon/i.test(text)) {
+        throw new Error("Browser check failed");
+    }
     _lotInfo.purchaseHistory = parseSoldItemsPage(text)
 }
 
@@ -640,6 +643,9 @@ async function fillUpdateTitleDate() {
     console.log(url);
     let response = await fetchResource(url, {method: 'GET', credentials: 'include'})
     let text = await response.text()
+    if (/pardon/i.test(text)) {
+        throw new Error("Browser check failed");
+    }
     _lotInfo.titleChangeDate = parseRevisionSummary(text).toISOString()
 }
 
