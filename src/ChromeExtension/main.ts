@@ -1379,27 +1379,29 @@ async function ebayPages(currentPage: string) {
 
 function highlightWords(words: string[], highlightClass: string = "highlight"): void {
     console.log("highlightWords")
+    //todo regex надо кешировать
     let wordsReplaced = words.map(x => x.toLowerCase()
         .replace('(', '\(')
         .replace(')', '\)')
         .replace('/', '\/')
         .replace('.', ',')
         .replace(',', '[,.]')
+        .replace(' ', '[ ]?')
         .replace('-', '[- ]?')
-        .replace(/[aа]/, '[aа]')
-        .replace(/[cс]/, '[cс]')
-        .replace(/[pр]/, '[pр]')
-        .replace(/[eе]/, '[eе]')
-        .replace(/[oо]/, '[oо]')
-        .replace(/[xх]/, '[xх]')
-        .replace(/[yу]/, '[yу]')
-        .replace(/[bв]/, '[bв]')
-        .replace(/[hн]/, '[hн]')
-        .replace(/[kк]/, '[kк]')
-        .replace(/[mм]/, '[mм]')
-        .replace(/[tт]/, '[tт]')
+        .replace(/[aа]/g, '[aа]')
+        .replace(/[cс]/g, '[cс]')
+        .replace(/[pр]/g, '[pр]')
+        .replace(/[eе]/g, '[eе]')
+        .replace(/[oо]/g, '[oо]')
+        .replace(/[xх]/g, '[xх]')
+        .replace(/[yу]/g, '[yу]')
+        .replace(/[bв]/g, '[bв]')
+        .replace(/[hн]/g, '[hн]')
+        .replace(/[kк]/g, '[kк]')
+        .replace(/[mм]/g, '[mм]')
+        .replace(/[tт]/g, '[tт]')
     )
-    const regex = new RegExp(`(?:^|\\s|\.)(${wordsReplaced.join("|")})(?:$|\\s|-|,|\.)`, "i");
+    const regex = new RegExp(`(?:^|\\s|\.)(${wordsReplaced.join("|")})(?:$|\\s|-|,|\.)`, "ig");
     console.log(regex);
     
      const highlightWord = (node: Text) => {
