@@ -1425,6 +1425,7 @@ function highlightWords(words: string[], highlightClass: string = "highlight"): 
 async function processAvito() {
     console.log("processAvito");
     let found = false;
+    
     do {
         await sleep(300);
         
@@ -1435,6 +1436,12 @@ async function processAvito() {
             found = true;
         }
     } while (!found);
+
+    let description = document.querySelectorAll<HTMLDivElement>('div[itemprop="description"]');
+
+    description.forEach(function (post) {
+        post.innerHTML = '<pre>' + post.innerHTML.replace(/<br\s*\/?>/g, '</pre><pre>') + '</pre><br>';
+    });
 }
 
 async function processChipFind() {
@@ -1484,7 +1491,7 @@ async function processSitePage() {
         await processChipFind();
     }
     else if (avitoRegex.test(location.host)) {
-       let _ = processAvito();
+       await processAvito();
     }
     highlightWords(wordsToHighlight);
 }
