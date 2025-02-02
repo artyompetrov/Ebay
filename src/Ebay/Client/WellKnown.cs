@@ -2,7 +2,7 @@ namespace Client;
 
 internal class WellKnown
 {
-    public const int RecheckTimeInDays = 90;
+    public const int RecheckTimeInDays = 180;
 
     public static class Categories
     {

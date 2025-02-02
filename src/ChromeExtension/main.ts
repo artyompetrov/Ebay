@@ -1269,7 +1269,6 @@ async function searchPage(client: EbayToolBackendClient) {
                 links.push(new LotLink(parseInt(link.href.match(/https:\/\/[^\/]+\/itm\/(\d+)/)[1]), link, soldDate));
             }
         }
-        links = links.slice(0, interestedInTopNItems);
         // noinspection JSUnusedLocalSymbols
         let _ = updateStatusInfinite(client, links);
     }
@@ -1291,7 +1290,8 @@ async function updateStatusInfinite(client: EbayToolBackendClient, links: LotLin
             let knownLots = new Map(getLotStatesAnswer.map(p => [p.lotId, p]));
 
             let notKnownItems = []
-
+            
+            let importantCount = 0;
             links.forEach(function (x) {
                 let color = x.color;
 
@@ -1306,17 +1306,20 @@ async function updateStatusInfinite(client: EbayToolBackendClient, links: LotLin
                         } else {
                             x.color = lightGreenColor
                         }
-
+                        importantCount++;
                     } else {
                         x.color = lightPinkColor
                         notKnownItems.push(x.id);
+                        importantCount++;
                     }
                 } else {
                     x.color = lightGrayColor
                 }
-
-                if (x.color !== null && color !== x.color) {
-                    x.link.style.cssText = `background-color: ${x.color};`
+                
+                if (importantCount <= interestedInTopNItems){
+                    if (x.color !== null && color !== x.color) {
+                        x.link.style.cssText = `background-color: ${x.color};`
+                    }
                 }
             })
 
