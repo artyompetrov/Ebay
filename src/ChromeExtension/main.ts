@@ -1294,12 +1294,10 @@ async function updateStatusInfinite(client: EbayToolBackendClient, links: LotLin
             let ignoredLots = new Set(await client.getIgnoredLots(_currentProductId))
 
             let knownLots = new Map(getLotStatesAnswer.map(p => [p.lotId, p]));
-
-            let notKnownItems = []
             
             let importantCount = 0;
             links.forEach(function (x) {
-                let color = x.color;
+                x.previousColor = x.color;
 
                 if (!ignoredLots.has(x.id)) {
                     if (knownLots.has(x.id)) {
@@ -1308,28 +1306,32 @@ async function updateStatusInfinite(client: EbayToolBackendClient, links: LotLin
                         let diffInDays = Math.ceil((x.soldDate.getTime() - new Date(lotState.lastUpdate).getTime()) / (1000 * 60 * 60 * 24));
                         if (diffInDays > 0) {
                             x.color = lightYellowColor
-                            notKnownItems.push(x.id);
                         } else {
                             x.color = lightGreenColor
                         }
                         importantCount++;
                     } else {
                         x.color = lightPinkColor
-                        notKnownItems.push(x.id);
                         importantCount++;
                     }
                 } else {
                     x.color = lightGrayColor
                 }
                 
-                if (importantCount <= interestedInTopNItems){
-                    if (x.color !== null && color !== x.color) {
-                        x.link.style.cssText = `background-color: ${x.color};`
-                    }
-                }
+                x.importantCount = importantCount;
             })
 
-            _needActualizationLotsIds = notKnownItems
+            let filteredLinks = links.filter(item => item.importantCount <= interestedInTopNItems);
+            
+            filteredLinks.forEach(x => {
+                if (x.color !== null && x.previousColor !== x.color) {
+                    x.link.style.cssText = `background-color: ${x.color};`
+                }
+            });
+            
+            _needActualizationLotsIds = filteredLinks
+                .filter(x => x.color === lightYellowColor || x.color === lightPinkColor )
+                .map(x=>x.id)
         } catch (error) {
             await saveErrorToBackend(error, client)
         }
@@ -1348,6 +1350,8 @@ class LotLink {
     id: number;
     link: HTMLAnchorElement;
     soldDate: Date
+    importantCount: number | null
+    previousColor: string | null
     color: string | null
 }
 
