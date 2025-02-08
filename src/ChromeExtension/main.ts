@@ -54,6 +54,8 @@ let _panel: HTMLDivElement;
 let _currentProductId: string
 let interestedInTopNItems = 10;
 let extendedLogging = true;
+let _allItemsCacheIdentifier = "allProducts"
+
 
 function transliterate(text: string): string {
     const map: { [key: string]: string } = {
@@ -743,7 +745,7 @@ async function fillProduct(client: EbayToolBackendClient) {
     let ignoreThatLot = _panel.querySelector("form#" + ignoreThatLotFormId)
     let productIdServer = _serverLotInfo?.productId?.trim()?.toLowerCase()
 
-    let products = await client.getAllProducts()
+    let products = await getAllProductsCached(client)
     for (let i = 0; i < products.length; i++) {
         let opt = document.createElement('option');
         opt.value = products[i].id;
@@ -1468,8 +1470,7 @@ function highlightWords(words: string[], highlightClass: string = "highlight"): 
         .replace('/', '\/')
         .replace('.', ',')
         .replace(',', '[,.]')
-        .replace(' ', '[ ]?')
-        .replace('-', '[- ]?')
+        .replace(/[- ]/g, '[- ]?')
         .replace(/[aа]/g, '[aа]')
         .replace(/[cс]/g, '[cс]')
         .replace(/[pр]/g, '[pр]')
@@ -1491,6 +1492,7 @@ function highlightWords(words: string[], highlightClass: string = "highlight"): 
         if (!parent) return;
         
         let originalText = node.textContent;
+        regex.lastIndex = 0;
         if (originalText && regex.test(originalText)) {
             parent.classList.add(highlightClass);
         }
@@ -1539,7 +1541,7 @@ async function processAvito() {
     let description = document.querySelectorAll<HTMLDivElement>('div[itemprop="description"]');
 
     description.forEach(function (post) {
-        post.innerHTML = '<pre>' + post.innerHTML.replace(/<br\s*\/?>/g, '</pre><pre>') + '</pre><br>';
+        post.innerHTML = '<div>' + post.innerHTML.replace(/<br\s*\/?>/g, '</div><div>') + '</div><br>';
     });
 }
 
@@ -1572,19 +1574,24 @@ async function processChipFind() {
     }
 }
 
+async function getAllProductsCached(backendClient: EbayToolBackendClient) {
+    return await getCachedDataOrFallback(_allItemsCacheIdentifier, async () => {
+            return await backendClient.getAllProducts();
+        },
+        60 * 60)
+}
+
 async function processSitePage() {
     let backendOAuth2Client: OAuth2Client = getBackendOAuth2Client();
     let backendClient = new EbayToolBackendClient(baseApiUrl, getAuthorizeFetch(backendOAuth2Client, backendApiScope, "ebayToolTokenStore", extensionAuthRedirectUrl));
 
-    let wordsToHighlight = await getCachedDataOrFallback("knownItems", async () => {
-            let allProducts = await backendClient.getAllProducts();
-            allProducts.map(x => x.name)
-                .concat(allProducts.map(x=>x.ruSearchQueries.map(x=>x.query)).reduce((acc, val) => acc.concat(val), []))
-
-            return Array.from(allProducts.map(x => x.name)
-                .concat(allProducts.map(x=>x.ruSearchQueries.map(x=>x.query)).reduce((acc, val) => acc.concat(val), [])));
-        },
-        60 * 60)
+    let allProducts = await getAllProductsCached(backendClient);
+    let  names = allProducts.map(x => x.name);
+    let ruNames = allProducts.map(x => x.ruSearchQueries.map(x=>x.query)).reduce((acc, val) => acc.concat(val), []);
+    console.log("names " + names.join(","))
+    console.log("ruNames " + ruNames.join(","))
+    
+    let wordsToHighlight = Array.from(names.concat(ruNames));
 
     if (chipFindRegex.test(location.host)) {
         await processChipFind();
@@ -1620,7 +1627,7 @@ async function searchSitePages() {
                 ruSearchQueries:  new Array<RuSearchQuery>(),
                 weight: 0
             }));
-            removeFromCache("knownItems");
+            removeFromCache(_allItemsCacheIdentifier);
             showToast("Product created \"" + productName + "\"");
         }
     });
