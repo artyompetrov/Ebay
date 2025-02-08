@@ -1,3 +1,4 @@
+name: ebay
 services:
   ebay_postgres:
     container_name: ebay_postgres
