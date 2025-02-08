@@ -45,7 +45,8 @@ const ignoredLotDiv = "ignoredLotDiv"
 const currentProductIdParamName = "tool_productId"
 let lotNotSupported = false;
 let _lotInfo = new LotInfo()
-
+let _purchaseHistory : PurchaseInfo[] | null;
+let _titleChangeDate : string | null;
 let _serverLotInfo: LotInfoWithProductId | undefined;
 let _needActualizationLotsIds: number[] = null
 let _serverAndEbayAreEqual = false;
@@ -563,31 +564,6 @@ function parseDate(dateString: string): Date {
     return date
 }
 
-function parseSoldItemsPage(text: string): PurchaseInfo[] {
-    let doc = new DOMParser().parseFromString(text, "text/html")
-    
-    let result = new Array<PurchaseInfoInner>();
-    let fixedPriceBlock = doc.querySelector('div.fixed-price tbody')
-    if (fixedPriceBlock !== null) {
-        let fixedPriceRows = [...fixedPriceBlock.querySelectorAll('tr')]
-        fillSoldItemsResult(fixedPriceRows, result);
-    }
-
-    let offerBlock = doc.querySelector('div.offer tbody')
-    if (offerBlock !== null) {
-        let offerRows = [...offerBlock.querySelectorAll('tr')]
-        fillSoldItemsResult(offerRows, result);
-    }
-
-    return result.sort(function (a, b) {
-        return b.date.getTime() - a.date.getTime();
-    }).map(function (x) {
-
-        return new PurchaseInfo({
-            date: x.date.toISOString(), quantity: x.quantity, price: x.price?.price
-        })
-    });
-}
 
 
 function hasShippingToCountry(country: string, shipsTo: Set<string>, excludes: Set<string>) {
@@ -626,52 +602,122 @@ async function fillIsIgnored(backendClient: EbayToolBackendClient) {
     showThatLotIsIgnored();
 }
 
-async function fillPurchaseHistory() {
+function fillPurchaseHistory() {
     let itemId = location.pathname.match(/\/itm\/([0-9]+)/)[1];
     let purchaseHistoryUrl = `https://${location.hostname}/bin/purchaseHistory?item=${itemId}`;
-    let response = await fetchResource(purchaseHistoryUrl, {method: 'GET', credentials: 'include'})
-    let text = await response.text()
-    if (/pardon/i.test(text)) {
-        throw new Error("Browser check failed");
-    }
-    _lotInfo.purchaseHistory = parseSoldItemsPage(text)
+
+    const myIframe = document.createElement('iframe');
+    myIframe.id = 'PurchaseHistoryFrame';
+    myIframe.src = purchaseHistoryUrl; 
+
+    // Можно задать стили или атрибуты:
+    myIframe.width = '1920';
+    myIframe.height = '1080';
+    myIframe.style.border = '1px solid #ccc';
+
+    document.body.appendChild(myIframe);
+    
+    myIframe.addEventListener('load', async () => {
+        try {
+            // Проверяем, можем ли мы получить доступ к содержимому
+            const iframeDoc = myIframe.contentDocument;
+            if (!iframeDoc) {
+                console.error('unable to get content inside iframe');
+                return;
+            }
+            await sleepElementLoaded('footer', iframeDoc)
+            
+            console.log("fillPurchaseHistory")
+            
+            let result = new Array<PurchaseInfoInner>();
+            let fixedPriceBlock = iframeDoc.querySelector('div.fixed-price tbody')
+            if (fixedPriceBlock !== null) {
+                let fixedPriceRows = [...fixedPriceBlock.querySelectorAll('tr')]
+                fillSoldItemsResult(fixedPriceRows, result);
+            }
+
+            let offerBlock = iframeDoc.querySelector('div.offer tbody')
+            if (offerBlock !== null) {
+                let offerRows = [...offerBlock.querySelectorAll('tr')]
+                fillSoldItemsResult(offerRows, result);
+            }
+
+            _purchaseHistory = result.sort(function (a, b) {
+                return b.date.getTime() - a.date.getTime();
+            }).map(function (x) {
+
+                return new PurchaseInfo({
+                    date: x.date.toISOString(), quantity: x.quantity, price: x.price?.price
+                })
+            });
+
+        } catch (error) {
+            console.error(
+                'Нas no access to iframe due to Same-Origin Policy):',
+                error
+            );
+        }
+    });
 }
 
-async function fillUpdateTitleDate() {
+function fillUpdateTitleDate() {
+
     let itemId = location.pathname.match(/\/itm\/([0-9]+)/)[1];
     let url = `https://${location.hostname}/rvh/${itemId}`;
     console.log(url);
-    let response = await fetchResource(url, {method: 'GET', credentials: 'include'})
-    let text = await response.text()
-    if (/pardon/i.test(text)) {
-        throw new Error("Browser check failed");
-    }
-    _lotInfo.titleChangeDate = parseRevisionSummary(text).toISOString()
-}
+    const myIframe = document.createElement('iframe');
+    myIframe.id = 'UpdateTitleDateFrame';
+    myIframe.src = url;
 
-function parseRevisionSummary(text: string): Date {
-    console.log("parseRevisionSummary")
-    let doc = new DOMParser().parseFromString(text, "text/html")
+    // Можно задать стили или атрибуты:
+    myIframe.width = '1920';
+    myIframe.height = '1080';
+    myIframe.style.border = '1px solid #ccc';
 
-    let table = doc.querySelector('div#vi-revision-history-layout-container table')
-    if (table) {
-        let rows = [...table.querySelectorAll('tr')]
+    document.body.appendChild(myIframe);
 
-        for (let row of rows.reverse()) {
-            let columns = [...row.querySelectorAll('td')]
-            if (columns.length === 0) continue;
-            let changes = columns[2].innerText;
-            if (changes.includes('Title')) {
-                let date = columns[0].innerText
-                let time = columns[1].innerText
-
-                return parseDate(date + " " + time)
+    myIframe.addEventListener('load', async () => {
+        try {
+            // Проверяем, можем ли мы получить доступ к содержимому
+            const iframeDoc = myIframe.contentDocument;
+            if (!iframeDoc) {
+                console.error('unable to get content inside iframe');
+                return;
             }
-        }
-    }
+            await sleepElementLoaded('footer', iframeDoc)
 
-    return new Date(0)
+            console.log("parseRevisionSummary")
+
+            let table = iframeDoc.querySelector('div#vi-revision-history-layout-container table')
+            if (table) {
+                let rows = [...table.querySelectorAll('tr')]
+
+                for (let row of rows.reverse()) {
+                    let columns = [...row.querySelectorAll('td')]
+                    if (columns.length === 0) continue;
+                    let changes = columns[2].innerText;
+                    if (changes.includes('Title')) {
+                        let date = columns[0].innerText
+                        let time = columns[1].innerText
+
+                        _titleChangeDate = parseDate(date + " " + time).toISOString()
+                        break;
+                    }
+                }
+            }
+            else {
+                _titleChangeDate = new Date(0).toISOString()
+            }
+            
+        } catch (error) {
+            console.error(
+                'Нas no access to iframe due to Same-Origin Policy):',
+                error
+            );
+        }
+    });
 }
+
 
 function getCurrentProductIdParam(): string | undefined {
     let currentProductId = new URL(document.location.href).searchParams?.get(currentProductIdParamName)?.trim()?.toLowerCase()
@@ -1087,6 +1133,20 @@ async function checkForUpdates(): Promise<void> {
 }
 
 
+async function waitForPurchaseHistoryAndTitleDate(){
+    let counter = 0;
+    while (!_purchaseHistory || !_titleChangeDate) {
+        await sleep(100);
+        console.log("retry " + counter)
+        if (counter > 600){
+            throw new Error("waitForPurchaseHistoryAndTitleDate run out of retries")
+        }
+    }
+    
+    _lotInfo.purchaseHistory = _purchaseHistory;
+    _lotInfo.titleChangeDate = _titleChangeDate;
+}
+
 async function getDataFromPage(backendClient: EbayToolBackendClient, ebayClient: EbayClient, ebayShoppingApiClient: EbayShoppingApiClient) {
     await Promise.all([
         await getEbayItem(ebayClient, ebayShoppingApiClient),
@@ -1095,10 +1155,12 @@ async function getDataFromPage(backendClient: EbayToolBackendClient, ebayClient:
 
     let extractedDataByFieldName = await extractManualFieldsData(backendClient);
 
+    fillPurchaseHistory();
+    fillUpdateTitleDate();
+    
     await Promise.all([
         fillIsIgnored(backendClient),
-        fillPurchaseHistory(),
-        fillUpdateTitleDate(),
+        waitForPurchaseHistoryAndTitleDate(),
         fillProduct(backendClient),
         fillManualCondition(backendClient, extractedDataByFieldName),
         fillPcs(extractedDataByFieldName),
