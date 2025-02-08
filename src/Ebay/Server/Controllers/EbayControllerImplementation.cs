@@ -403,7 +403,7 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken
     )
     {
-        // тарифы взяты отсюда https://post.kz/rates/individual
+        // тарифы взяты отсюда https://qazpost.kz/ru/help/tariffs?tab=pochtovye-uslugi
         return Task.FromResult<ICollection<ShippingType>>(
             new List<ShippingType>
             {
@@ -415,9 +415,9 @@ internal class EbayControllerImplementation : IEbayController
                         new(
                             rates: new List<ShippingRate>
                             {
-                                new(minWeight: 0, maxWeight: 500, price: 6_400),
-                                new(minWeight: 500, maxWeight: 1000, price: 11_000),
-                                new(minWeight: 1000, maxWeight: 2000, price: 19_900),
+                                new(minWeight: 0, maxWeight: 500, price: 8_960),
+                                new(minWeight: 500, maxWeight: 1000, price: 15_400),
+                                new(minWeight: 1000, maxWeight: 2000, price: 27_462),
                             },
                             specifiedCountries: null
                         )
@@ -431,11 +431,11 @@ internal class EbayControllerImplementation : IEbayController
                         new( // 3
                             rates: new List<ShippingRate>
                             {
-                                new(minWeight: 0, maxWeight: 2000, price: 11_300),
-                                new(minWeight: 2000, maxWeight: 3000, price: 16_150),
-                                new(minWeight: 3000, maxWeight: 4000, price: 20_550),
-                                new(minWeight: 4000, maxWeight: 5000, price: 25_150),
-                                new(minWeight: 5000, maxWeight: 6000, price: 29_600),
+                                new(minWeight: 0, maxWeight: 2000, price: 16_950),
+                                new(minWeight: 2000, maxWeight: 3000, price: 24_225),
+                                new(minWeight: 3000, maxWeight: 4000, price: 30_825),
+                                new(minWeight: 4000, maxWeight: 5000, price: 37_725),
+                                new(minWeight: 5000, maxWeight: 6000, price: 44_400),
                             },
                             specifiedCountries: new List<string>()
                             {
@@ -445,11 +445,11 @@ internal class EbayControllerImplementation : IEbayController
                         new( //4
                             rates: new List<ShippingRate>
                             {
-                                new(minWeight: 0, maxWeight: 2000, price: 11_450),
-                                new(minWeight: 2000, maxWeight: 3000, price: 17_650),
-                                new(minWeight: 3000, maxWeight: 4000, price: 23_450),
-                                new(minWeight: 4000, maxWeight: 5000, price: 29_400),
-                                new(minWeight: 5000, maxWeight: 6000, price: 35_100),
+                                new(minWeight: 0, maxWeight: 2000, price: 17_175),
+                                new(minWeight: 2000, maxWeight: 3000, price: 26_475),
+                                new(minWeight: 3000, maxWeight: 4000, price: 35_175),
+                                new(minWeight: 4000, maxWeight: 5000, price: 44_100),
+                                new(minWeight: 5000, maxWeight: 6000, price: 52_650),
                             },
                             specifiedCountries: new List<string>
                             {
@@ -459,11 +459,11 @@ internal class EbayControllerImplementation : IEbayController
                         new( //5
                             rates: new List<ShippingRate>
                             {
-                                new(minWeight: 0, maxWeight: 2000, price: 13_200),
-                                new(minWeight: 2000, maxWeight: 3000, price: 22_250),
-                                new(minWeight: 3000, maxWeight: 4000, price: 30_650),
-                                new(minWeight: 4000, maxWeight: 5000, price: 38_800),
-                                new(minWeight: 5000, maxWeight: 6000, price: 47_000),
+                                new(minWeight: 0, maxWeight: 2000, price: 19_800),
+                                new(minWeight: 2000, maxWeight: 3000, price: 33_375),
+                                new(minWeight: 3000, maxWeight: 4000, price: 45_975),
+                                new(minWeight: 4000, maxWeight: 5000, price: 58_200),
+                                new(minWeight: 5000, maxWeight: 6000, price: 70_500),
                             },
                             specifiedCountries: new List<string>
                             {
