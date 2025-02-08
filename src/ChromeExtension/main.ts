@@ -605,9 +605,10 @@ async function fillIsIgnored(backendClient: EbayToolBackendClient) {
 function fillPurchaseHistory() {
     let itemId = location.pathname.match(/\/itm\/([0-9]+)/)[1];
     let purchaseHistoryUrl = `https://${location.hostname}/bin/purchaseHistory?item=${itemId}`;
-
+    let id = 'PurchaseHistoryFrame';
+    if (document.getElementById(id)) return;
     const myIframe = document.createElement('iframe');
-    myIframe.id = 'PurchaseHistoryFrame';
+    myIframe.id = id;
     myIframe.src = purchaseHistoryUrl; 
 
     // Можно задать стили или атрибуты:
@@ -664,9 +665,10 @@ function fillUpdateTitleDate() {
 
     let itemId = location.pathname.match(/\/itm\/([0-9]+)/)[1];
     let url = `https://${location.hostname}/rvh/${itemId}`;
-    console.log(url);
+    let id = 'UpdateTitleDateFrame';
+    if (document.getElementById(id)) return;
     const myIframe = document.createElement('iframe');
-    myIframe.id = 'UpdateTitleDateFrame';
+    myIframe.id = id;
     myIframe.src = url;
 
     // Можно задать стили или атрибуты:
