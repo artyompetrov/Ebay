@@ -174,7 +174,7 @@
     {
         await UpdateData();
         StateHasChanged();
-        await _chart.Update();
+        await _chart.Update(_data, _layout);
     }
 
     private void OnDeleteButtonClick(LotInfoShort lot)
@@ -437,7 +437,7 @@
         public bool SubtractShippingCosts { get; set; } = true;
         public bool IsRecent { get; set; } = true;
         public bool New { get; set; } = true;
-        public bool Used { get; set; }
+        public bool Used { get; set; } = true;
     }
 
     private async Task<ICollection<LotInfoShort>> GetLots()
