@@ -436,6 +436,10 @@ internal class EbayControllerImplementation : IEbayController
                                 new(minWeight: 3000, maxWeight: 4000, price: 30_825),
                                 new(minWeight: 4000, maxWeight: 5000, price: 37_725),
                                 new(minWeight: 5000, maxWeight: 6000, price: 44_400),
+                                new(minWeight: 6000, maxWeight: 7000, price: 51_150),
+                                new(minWeight: 7000, maxWeight: 8000, price: 57_900),
+                                new(minWeight: 8000, maxWeight: 9000, price: 64_875),
+                                new(minWeight: 9000, maxWeight: 10000, price: 71_400),
                             },
                             specifiedCountries: new List<string>()
                             {
@@ -450,6 +454,10 @@ internal class EbayControllerImplementation : IEbayController
                                 new(minWeight: 3000, maxWeight: 4000, price: 35_175),
                                 new(minWeight: 4000, maxWeight: 5000, price: 44_100),
                                 new(minWeight: 5000, maxWeight: 6000, price: 52_650),
+                                new(minWeight: 6000, maxWeight: 7000, price: 61_125),
+                                new(minWeight: 7000, maxWeight: 8000, price: 70_200),
+                                new(minWeight: 8000, maxWeight: 9000, price: 78_450),
+                                new(minWeight: 9000, maxWeight: 10000, price: 87_150),
                             },
                             specifiedCountries: new List<string>
                             {
@@ -464,6 +472,10 @@ internal class EbayControllerImplementation : IEbayController
                                 new(minWeight: 3000, maxWeight: 4000, price: 45_975),
                                 new(minWeight: 4000, maxWeight: 5000, price: 58_200),
                                 new(minWeight: 5000, maxWeight: 6000, price: 70_500),
+                                new(minWeight: 6000, maxWeight: 7000, price: 82_950),
+                                new(minWeight: 7000, maxWeight: 8000, price: 95_700),
+                                new(minWeight: 8000, maxWeight: 9000, price: 108_300),
+                                new(minWeight: 9000, maxWeight: 10000, price: 120_600),
                             },
                             specifiedCountries: new List<string>
                             {

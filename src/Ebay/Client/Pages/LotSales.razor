@@ -360,11 +360,19 @@
         }
 
         var prices = _shippingRates[Worldwide].Concat(shippingRates);
+        
+        try
+        {
+            return prices.Where(x => x.WeightFrom <= weight && weight <= x.WeightTo).Min(x => x.PriceDollar);
+        }
+        catch (Exception)
+        {
+            var pricesString = string.Join(", ", prices);
+            Logger.LogError($"Error while calculating shipping price for {shippingCountry}, and weight {weight}, prices: '{pricesString}'");
 
-    //var pricesString = string.Join(", ", prices);
-    //Logger.LogWarning($"Calculate shipping price for {shippingCountry}, and weight {weight}, prices: '{pricesString}'");
+            throw;
+        }
 
-        return prices.Where(x => x.WeightFrom <= weight && weight <= x.WeightTo).Min(x => x.PriceDollar);
     }
 
     private static string GetCondition(LotInfoShort lot)
