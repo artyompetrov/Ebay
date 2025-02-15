@@ -89,15 +89,16 @@ services:
     volumes:
       - frappe_sites:/home/frappe/frappe-bench/sites
       - ./mount/frappe/logs/:/home/frappe/frappe-bench/logs
+      - ./config/frappe/apps/ebay/:/home/frappe/frappe-bench/apps/ebay
     environment:
       DB_HOST: ebay_frappe_db
       DB_PORT: "3306"
       MYSQL_ROOT_PASSWORD: $PG_PASSWORD
       MARIADB_ROOT_PASSWORD: $PG_PASSWORD
 
-  ebay_frappe_create-site:
+  ebay_frappe_create_site:
     image: frappe/erpnext:v15.51.1
-    container_name: ebay_frappe_create-site
+    container_name: ebay_frappe_create_site
     networks:
       - ebay_internal_network
     deploy:
@@ -114,12 +115,14 @@ services:
     volumes:
       - frappe_sites:/home/frappe/frappe-bench/sites
       - ./mount/frappe/logs/:/home/frappe/frappe-bench/logs
+      - ./config/frappe/apps/ebay/:/home/frappe/frappe-bench/apps/ebay
     entrypoint:
       - bash
       - -c
     command:
       - >
         ls -1 apps > sites/apps.txt;
+        ./env/bin/pip install -q -U -e ./apps/ebay;
         bench set-config -g db_host $$DB_HOST;
         bench set-config -gp db_port $$DB_PORT;
         bench set-config -g redis_cache "redis://$$REDIS_CACHE";
@@ -142,7 +145,8 @@ services:
           fi
         done;
         echo "sites/common_site_config.json found";
-        bench new-site --mariadb-user-host-login-scope='%' --admin-password=$$ADMIN_PASSWORD --db-root-username=root --db-root-password=$$DB_PASSWORD --set-default ebay_frappe_frontend;
+        bench new-site --mariadb-user-host-login-scope='%' --admin-password=$$ADMIN_PASSWORD --db-root-username=root --db-root-password=$$DB_PASSWORD  --install-app ebay --set-default ebay_frappe_frontend;
+        tail -f /dev/null
 
   ebay_frappe_db:
     image: mariadb:10.6
