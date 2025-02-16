@@ -83,9 +83,7 @@ services:
     container_name: ebay_frappe_backend
     networks:
       - ebay_internal_network
-    deploy:
-      restart_policy:
-        condition: on-failure
+    restart: unless-stopped
     volumes:
       - frappe_sites:/home/frappe/frappe-bench/sites
       - ./mount/frappe/logs/:/home/frappe/frappe-bench/logs
@@ -93,29 +91,11 @@ services:
     environment:
       DB_HOST: ebay_frappe_db
       DB_PORT: "3306"
-      MYSQL_ROOT_PASSWORD: $PG_PASSWORD
       MARIADB_ROOT_PASSWORD: $PG_PASSWORD
-
-  ebay_frappe_create_site:
-    image: frappe/erpnext:v15.51.1
-    container_name: ebay_frappe_create_site
-    networks:
-      - ebay_internal_network
-    deploy:
-      restart_policy:
-        condition: none
-    environment:
-      DB_HOST: ebay_frappe_db
-      DB_PORT: "3306"
-      REDIS_CACHE: ebay_frappe_redis-cache:6379
-      REDIS_QUEUE: ebay_frappe_redis-queue:6379
+      REDIS_CACHE: ebay_frappe_redis_cache:6379
+      REDIS_QUEUE: ebay_frappe_redis_queue:6379
       SOCKETIO_PORT: "9000"
-      DB_PASSWORD: $PG_PASSWORD
       ADMIN_PASSWORD: $PG_PASSWORD
-    volumes:
-      - frappe_sites:/home/frappe/frappe-bench/sites
-      - ./mount/frappe/logs/:/home/frappe/frappe-bench/logs
-      - ./config/frappe/apps/ebay/:/home/frappe/frappe-bench/apps/ebay
     entrypoint:
       - bash
       - -c
@@ -123,6 +103,7 @@ services:
       - >
         ls -1 apps > sites/apps.txt;
         ./env/bin/pip install -q -U -e ./apps/ebay;
+        bench build --app ebay;
         bench set-config -g db_host $$DB_HOST;
         bench set-config -gp db_port $$DB_PORT;
         bench set-config -g redis_cache "redis://$$REDIS_CACHE";
@@ -130,8 +111,8 @@ services:
         bench set-config -g redis_socketio "redis://$$REDIS_QUEUE";
         bench set-config -gp socketio_port $$SOCKETIO_PORT;
         wait-for-it -t 120 ebay_frappe_db:3306;
-        wait-for-it -t 120 ebay_frappe_redis-cache:6379;
-        wait-for-it -t 120 ebay_frappe_redis-queue:6379;
+        wait-for-it -t 120 ebay_frappe_redis_cache:6379;
+        wait-for-it -t 120 ebay_frappe_redis_queue:6379;
         export start=`date +%s`;
         until [[ -n `grep -hs ^ sites/common_site_config.json | jq -r ".db_host // empty"` ]] && \
           [[ -n `grep -hs ^ sites/common_site_config.json | jq -r ".redis_cache // empty"` ]] && \
@@ -145,8 +126,8 @@ services:
           fi
         done;
         echo "sites/common_site_config.json found";
-        bench new-site --mariadb-user-host-login-scope='%' --admin-password=$$ADMIN_PASSWORD --db-root-username=root --db-root-password=$$DB_PASSWORD  --install-app ebay --set-default ebay_frappe_frontend;
-        tail -f /dev/null
+        bench new-site --mariadb-user-host-login-scope='%' --admin-password=$$ADMIN_PASSWORD --db-root-username=root --db-root-password=$$MARIADB_ROOT_PASSWORD --install-app ebay --set-default ebay_frappe_frontend;
+        ./env/bin/gunicorn --chdir=/home/frappe/frappe-bench/sites --bind=0.0.0.0:8000 --threads=4 --workers=2 --worker-class=gthread --worker-tmp-dir=/dev/shm --timeout=120 --preload frappe.app:application;
 
   ebay_frappe_db:
     image: mariadb:10.6
@@ -157,16 +138,13 @@ services:
       test: mysqladmin ping -h localhost --password=$PG_PASSWORD
       interval: 1s
       retries: 20
-    deploy:
-      restart_policy:
-        condition: on-failure
+    restart: unless-stopped
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
       - --skip-character-set-client-handshake
       - --skip-innodb-read-only-compressed # Temporary fix for MariaDB 10.6
     environment:
-      MYSQL_ROOT_PASSWORD: $PG_PASSWORD
       MARIADB_ROOT_PASSWORD: $PG_PASSWORD
     volumes:
       - frappe_db_data:/var/lib/mysql
@@ -178,9 +156,7 @@ services:
       - ebay_internal_network
     depends_on:
       - ebay_frappe_websocket
-    deploy:
-      restart_policy:
-        condition: on-failure
+    restart: unless-stopped
     command:
       - nginx-entrypoint.sh
     environment:
@@ -198,14 +174,12 @@ services:
     ports:
       - "8080:8080"
 
-  ebay_frappe_queue-long:
+  ebay_frappe_queue_long:
     image: frappe/erpnext:v15.51.1
-    container_name: ebay_frappe_queue-long
+    container_name: ebay_frappe_queue_long
     networks:
       - ebay_internal_network
-    deploy:
-      restart_policy:
-        condition: on-failure
+    restart: unless-stopped
     command:
       - bench
       - worker
@@ -215,14 +189,12 @@ services:
       - frappe_sites:/home/frappe/frappe-bench/sites
       - ./mount/frappe/logs/:/home/frappe/frappe-bench/logs
 
-  ebay_frappe_queue-short:
+  ebay_frappe_queue_short:
     image: frappe/erpnext:v15.51.1
-    container_name: ebay_frappe_queue-short
+    container_name: ebay_frappe_queue_short
     networks:
       - ebay_internal_network
-    deploy:
-      restart_policy:
-        condition: on-failure
+    restart: unless-stopped
     command:
       - bench
       - worker
@@ -232,34 +204,28 @@ services:
       - frappe_sites:/home/frappe/frappe-bench/sites
       - ./mount/frappe/logs/:/home/frappe/frappe-bench/logs
 
-  ebay_frappe_redis-queue:
+  ebay_frappe_redis_queue:
     image: redis:6.2-alpine
-    container_name: ebay_frappe_redis-queue
+    container_name: ebay_frappe_redis_queue
     networks:
       - ebay_internal_network
-    deploy:
-      restart_policy:
-        condition: on-failure
+    restart: unless-stopped
     volumes:
-      - redis-queue-data:/data
+      - redis_queue_data:/data
 
-  ebay_frappe_redis-cache:
+  ebay_frappe_redis_cache:
     image: redis:6.2-alpine
-    container_name: ebay_frappe_redis-cache
+    container_name: ebay_frappe_redis_cache
     networks:
       - ebay_internal_network
-    deploy:
-      restart_policy:
-        condition: on-failure
+    restart: unless-stopped
 
   ebay_frappe_scheduler:
     image: frappe/erpnext:v15.51.1
     container_name: ebay_frappe_scheduler
     networks:
       - ebay_internal_network
-    deploy:
-      restart_policy:
-        condition: on-failure
+    restart: unless-stopped
     command:
       - bench
       - schedule
@@ -272,16 +238,13 @@ services:
     container_name: ebay_frappe_websocket
     networks:
       - ebay_internal_network
-    deploy:
-      restart_policy:
-        condition: on-failure
+    restart: unless-stopped
     command:
       - node
       - /home/frappe/frappe-bench/apps/frappe/socketio.js
     volumes:
       - frappe_sites:/home/frappe/frappe-bench/sites
       - ./mount/frappe/logs/:/home/frappe/frappe-bench/logs
-
 
 networks:
   ebay_internal_network:
@@ -291,6 +254,6 @@ volumes:
   frappe_sites:
   frappe_db_data:
   pgdata:
-  redis-queue-data:
+  redis_queue_data:
   ebay_helper_keys:
   portainer_data:
