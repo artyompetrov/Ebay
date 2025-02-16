@@ -95,6 +95,7 @@ services:
       REDIS_CACHE: ebay_frappe_redis_cache:6379
       REDIS_QUEUE: ebay_frappe_redis_queue:6379
       SOCKETIO_PORT: "9000"
+      DOMAIN: $DOMAIN
       ADMIN_PASSWORD: $PG_PASSWORD
     entrypoint:
       - bash
