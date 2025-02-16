@@ -123,7 +123,7 @@ services:
           fi
         done;
         echo "sites/common_site_config.json found";
-        bench new-site --mariadb-user-host-login-scope='%' --admin-password=$$ADMIN_PASSWORD --db-root-username=root --db-root-password=$$MARIADB_ROOT_PASSWORD --install-app ebay --set-default ebay_frappe_frontend;
+        bench new-site --mariadb-user-host-login-scope='%' --admin-password=$$ADMIN_PASSWORD --db-root-username=root --db-root-password=$$MARIADB_ROOT_PASSWORD --install-app ebay --set-default $$DOMAIN;
         ./env/bin/gunicorn --chdir=/home/frappe/frappe-bench/sites --bind=0.0.0.0:8000 --threads=4 --workers=2 --worker-class=gthread --worker-tmp-dir=/dev/shm --timeout=120 --preload frappe.app:application;
 
   ebay_frappe_frontend:
