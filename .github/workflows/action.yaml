@@ -142,7 +142,7 @@ jobs:
       - name: Install
         working-directory: /home/runner/frappe-bench
         run: |
-          cp -r $GITHUB_WORKSPACE/src/frappe_ebay ./apps/ebay
+          bench get-app --resolve-deps $GITHUB_WORKSPACE/src/frappe_ebay --soft-link
           bench setup requirements --dev
           bench new-site --db-root-password root --admin-password admin test_site
           bench --site test_site install-app ebay
