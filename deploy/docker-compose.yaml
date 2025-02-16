@@ -79,7 +79,7 @@ services:
     restart: unless-stopped
 
   ebay_frappe_backend:
-    image: frappe/erpnext:v15.51.1
+    image: ghcr.io/artyompetrov/frappe:latest
     container_name: ebay_frappe_backend
     networks:
       - ebay_internal_network
@@ -87,7 +87,6 @@ services:
     volumes:
       - frappe_sites:/home/frappe/frappe-bench/sites
       - ./mount/frappe/logs/:/home/frappe/frappe-bench/logs
-      - ./config/frappe/apps/ebay/:/home/frappe/frappe-bench/apps/ebay
     environment:
       DB_HOST: ebay_frappe_db
       DB_PORT: "3306"
@@ -129,28 +128,8 @@ services:
         bench new-site --mariadb-user-host-login-scope='%' --admin-password=$$ADMIN_PASSWORD --db-root-username=root --db-root-password=$$MARIADB_ROOT_PASSWORD --install-app ebay --set-default ebay_frappe_frontend;
         ./env/bin/gunicorn --chdir=/home/frappe/frappe-bench/sites --bind=0.0.0.0:8000 --threads=4 --workers=2 --worker-class=gthread --worker-tmp-dir=/dev/shm --timeout=120 --preload frappe.app:application;
 
-  ebay_frappe_db:
-    image: mariadb:10.6
-    container_name: ebay_frappe_db
-    networks:
-      - ebay_internal_network
-    healthcheck:
-      test: mysqladmin ping -h localhost --password=$PG_PASSWORD
-      interval: 1s
-      retries: 20
-    restart: unless-stopped
-    command:
-      - --character-set-server=utf8mb4
-      - --collation-server=utf8mb4_unicode_ci
-      - --skip-character-set-client-handshake
-      - --skip-innodb-read-only-compressed # Temporary fix for MariaDB 10.6
-    environment:
-      MARIADB_ROOT_PASSWORD: $PG_PASSWORD
-    volumes:
-      - frappe_db_data:/var/lib/mysql
-
   ebay_frappe_frontend:
-    image: frappe/erpnext:v15.51.1
+    image: ghcr.io/artyompetrov/frappe:latest
     container_name: ebay_frappe_frontend
     networks:
       - ebay_internal_network
@@ -175,7 +154,7 @@ services:
       - "8080:8080"
 
   ebay_frappe_queue_long:
-    image: frappe/erpnext:v15.51.1
+    image: ghcr.io/artyompetrov/frappe:latest
     container_name: ebay_frappe_queue_long
     networks:
       - ebay_internal_network
@@ -188,10 +167,9 @@ services:
     volumes:
       - frappe_sites:/home/frappe/frappe-bench/sites
       - ./mount/frappe/logs/:/home/frappe/frappe-bench/logs
-      - ./config/frappe/apps/ebay/:/home/frappe/frappe-bench/apps/ebay
 
   ebay_frappe_queue_short:
-    image: frappe/erpnext:v15.51.1
+    image: ghcr.io/artyompetrov/frappe:latest
     container_name: ebay_frappe_queue_short
     networks:
       - ebay_internal_network
@@ -204,10 +182,9 @@ services:
     volumes:
       - frappe_sites:/home/frappe/frappe-bench/sites
       - ./mount/frappe/logs/:/home/frappe/frappe-bench/logs
-      - ./config/frappe/apps/ebay/:/home/frappe/frappe-bench/apps/ebay
 
   ebay_frappe_scheduler:
-    image: frappe/erpnext:v15.51.1
+    image: ghcr.io/artyompetrov/frappe:latest
     container_name: ebay_frappe_scheduler
     networks:
       - ebay_internal_network
@@ -218,10 +195,9 @@ services:
     volumes:
       - frappe_sites:/home/frappe/frappe-bench/sites
       - ./mount/frappe/logs/:/home/frappe/frappe-bench/logs
-      - ./config/frappe/apps/ebay/:/home/frappe/frappe-bench/apps/ebay
 
   ebay_frappe_websocket:
-    image: frappe/erpnext:v15.51.1
+    image: ghcr.io/artyompetrov/frappe:latest
     container_name: ebay_frappe_websocket
     networks:
       - ebay_internal_network
@@ -249,6 +225,26 @@ services:
       - ebay_internal_network
     restart: unless-stopped
 
+  ebay_frappe_db:
+    image: mariadb:10.6
+    container_name: ebay_frappe_db
+    networks:
+      - ebay_internal_network
+    healthcheck:
+      test: mysqladmin ping -h localhost --password=$PG_PASSWORD
+      interval: 1s
+      retries: 20
+    restart: unless-stopped
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --skip-character-set-client-handshake
+      - --skip-innodb-read-only-compressed # Temporary fix for MariaDB 10.6
+    environment:
+      MARIADB_ROOT_PASSWORD: $PG_PASSWORD
+    volumes:
+      - frappe_db_data:/var/lib/mysql
+
 
 networks:
   ebay_internal_network:
@@ -257,7 +253,7 @@ networks:
 volumes:
   frappe_sites:
   frappe_db_data:
-  pgdata:
   redis_queue_data:
   ebay_helper_keys:
+  pgdata:
   portainer_data:
