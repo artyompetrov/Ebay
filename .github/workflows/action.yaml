@@ -67,7 +67,7 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           BUILD_VERSION=$(date +'%y%m.%d.%H.%M%S' | sed 's/\.0*/./g')
-          docker build -f dotnet.Dockerfile --build-arg BUILD_VERSION="$BUILD_VERSION" --tag ${{ env.REGISTRY }}/${{ env.DOTNET_IMAGE_NAME }} ./src
+          docker build -f ./src/dotnet.Dockerfile --build-arg BUILD_VERSION="$BUILD_VERSION" --tag ${{ env.REGISTRY }}/${{ env.DOTNET_IMAGE_NAME }} ./src/
           docker push ${{ env.REGISTRY }}/${{ env.DOTNET_IMAGE_NAME }}
 
   test_frappe:
@@ -179,7 +179,7 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           BUILD_VERSION=$(date +'%y%m.%d.%H.%M%S' | sed 's/\.0*/./g')
-          docker build -f frappe.Dockerfile --build-arg BUILD_VERSION="$BUILD_VERSION" --tag ${{ env.REGISTRY }}/${{ env.FRAPPE_IMAGE_NAME }} ./src/
+          docker build -f ./src/frappe.Dockerfile --build-arg BUILD_VERSION="$BUILD_VERSION" --tag ${{ env.REGISTRY }}/${{ env.FRAPPE_IMAGE_NAME }} ./src/
           docker push ${{ env.REGISTRY }}/${{ env.FRAPPE_IMAGE_NAME }}
 
   deploy:
