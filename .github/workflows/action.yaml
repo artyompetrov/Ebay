@@ -16,7 +16,7 @@ env:
 
 jobs:
   test_dotnet:
-    name: Run Tests
+    name: Run .NET Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -53,7 +53,7 @@ jobs:
         run: npm run build
 
   publish_dotnet:
-    name: Publish Docker Image
+    name: Publish .NET Docker Image
     runs-on: ubuntu-latest
     needs: test_dotnet
     if: github.ref == 'refs/heads/main'  # Запускается только на ветке main
@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-    name: Server
+    name: Run Frappe Tests
 
     services:
       redis-cache:
@@ -165,9 +165,9 @@ jobs:
           TYPE: server
 
   publish_frappe:
-    name: Publish Docker Image
+    name: Publish Frappe Docker Image
     runs-on: ubuntu-latest
-    needs: test_dotnet
+    needs: test_frappe
     if: github.ref == 'refs/heads/main'  # Запускается только на ветке main
 
     steps:
