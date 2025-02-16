@@ -14,7 +14,7 @@ services:
     volumes:
       - ./mount/postgres/data/:/var/lib/postgresql/data
     networks:
-      - ebay_internal_network
+      - internal_network
 
   ebay_helper:
     container_name: ebay_helper
@@ -37,7 +37,7 @@ services:
       - ASPNETCORE_ConnectionStrings__DefaultConnection=User ID=ebay;Password=${PG_PASSWORD};Server=ebay_postgres;Port=5432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=30;Enlist=true;
       - DATA_PROTECTION_KEYS_DIR=/app/DataProtection-Keys/
     networks:
-      - ebay_internal_network
+      - internal_network
 
   ebay_nginx:
     container_name: ebay_nginx
@@ -55,7 +55,7 @@ services:
       - SELF_SIGNED_CERTIFICATE=${LOCAL_RUN}
       - EMAIL=${EMAIL}
     networks:
-      - ebay_internal_network
+      - internal_network
     restart: unless-stopped
 
   ebay_portainer:
@@ -68,7 +68,7 @@ services:
       - portainer_data:/data
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
-      - ebay_internal_network
+      - internal_network
 
   ebay_noip:
     image: ghcr.io/noipcom/noip-duc:latest
@@ -83,7 +83,7 @@ services:
     image: ghcr.io/artyompetrov/frappe:latest
     container_name: ebay_frappe_backend
     networks:
-      - ebay_internal_network
+      - internal_network
     restart: unless-stopped
     volumes:
       - frappe_sites:/home/frappe/frappe-bench/sites
@@ -131,7 +131,7 @@ services:
     image: ghcr.io/artyompetrov/frappe:latest
     container_name: ebay_frappe_frontend
     networks:
-      - ebay_internal_network
+      - internal_network
     depends_on:
       - ebay_frappe_websocket
     restart: unless-stopped
@@ -154,7 +154,7 @@ services:
     image: ghcr.io/artyompetrov/frappe:latest
     container_name: ebay_frappe_queue_long
     networks:
-      - ebay_internal_network
+      - internal_network
     restart: unless-stopped
     command:
       - bench
@@ -169,7 +169,7 @@ services:
     image: ghcr.io/artyompetrov/frappe:latest
     container_name: ebay_frappe_queue_short
     networks:
-      - ebay_internal_network
+      - internal_network
     restart: unless-stopped
     command:
       - bench
@@ -184,7 +184,7 @@ services:
     image: ghcr.io/artyompetrov/frappe:latest
     container_name: ebay_frappe_scheduler
     networks:
-      - ebay_internal_network
+      - internal_network
     restart: unless-stopped
     command:
       - bench
@@ -197,7 +197,7 @@ services:
     image: ghcr.io/artyompetrov/frappe:latest
     container_name: ebay_frappe_websocket
     networks:
-      - ebay_internal_network
+      - internal_network
     restart: unless-stopped
     command:
       - node
@@ -210,7 +210,7 @@ services:
     image: redis:6.2-alpine
     container_name: ebay_frappe_redis_queue
     networks:
-      - ebay_internal_network
+      - internal_network
     restart: unless-stopped
     volumes:
       - redis_queue_data:/data
@@ -219,14 +219,14 @@ services:
     image: redis:6.2-alpine
     container_name: ebay_frappe_redis_cache
     networks:
-      - ebay_internal_network
+      - internal_network
     restart: unless-stopped
 
   ebay_frappe_db:
     image: mariadb:10.6
     container_name: ebay_frappe_db
     networks:
-      - ebay_internal_network
+      - internal_network
     healthcheck:
       test: mysqladmin ping -h localhost --password=$PG_PASSWORD
       interval: 1s
@@ -244,7 +244,7 @@ services:
 
 
 networks:
-  ebay_internal_network:
+  internal_network:
     driver: bridge
 
 volumes:
