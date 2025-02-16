@@ -46,6 +46,7 @@ services:
       - "80:80"
       - "443:443"
       - "9443:9443"
+      - "8080:8080"
     volumes:
       - ./mount/nginx/logs/:/var/log/nginx/
       - ./mount/nginx/certs/:/etc/letsencrypt/
@@ -124,31 +125,6 @@ services:
         echo "sites/common_site_config.json found";
         bench new-site --mariadb-user-host-login-scope='%' --admin-password=$$ADMIN_PASSWORD --db-root-username=root --db-root-password=$$MARIADB_ROOT_PASSWORD --install-app ebay --set-default ebay_frappe_frontend;
         ./env/bin/gunicorn --chdir=/home/frappe/frappe-bench/sites --bind=0.0.0.0:8000 --threads=4 --workers=2 --worker-class=gthread --worker-tmp-dir=/dev/shm --timeout=120 --preload frappe.app:application;
-
-  ebay_frappe_frontend:
-    image: ghcr.io/artyompetrov/frappe:latest
-    container_name: ebay_frappe_frontend
-    networks:
-      - ebay_internal_network
-    depends_on:
-      - ebay_frappe_websocket
-    restart: unless-stopped
-    command:
-      - nginx-entrypoint.sh
-    environment:
-      BACKEND: ebay_frappe_backend:8000
-      FRAPPE_SITE_NAME_HEADER: ebay_frappe_frontend
-      SOCKETIO: ebay_frappe_websocket:9000
-      UPSTREAM_REAL_IP_ADDRESS: 127.0.0.1
-      UPSTREAM_REAL_IP_HEADER: X-Forwarded-For
-      UPSTREAM_REAL_IP_RECURSIVE: "off"
-      PROXY_READ_TIMEOUT: 120
-      CLIENT_MAX_BODY_SIZE: 50m
-    volumes:
-      - frappe_sites:/home/frappe/frappe-bench/sites
-      - ./mount/frappe/logs/:/home/frappe/frappe-bench/logs
-    ports:
-      - "8080:8080"
 
   ebay_frappe_queue_long:
     image: ghcr.io/artyompetrov/frappe:latest
@@ -252,5 +228,4 @@ volumes:
   frappe_db_data:
   redis_queue_data:
   ebay_helper_keys:
-  pgdata:
   portainer_data:
