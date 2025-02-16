@@ -46,7 +46,7 @@ services:
       - "80:80"
       - "443:443"
       - "9443:9443"
-      - "8080:8080"
+      - "14542:14542"
     volumes:
       - ./mount/nginx/logs/:/var/log/nginx/
       - ./mount/nginx/certs/:/etc/letsencrypt/

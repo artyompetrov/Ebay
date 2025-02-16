@@ -108,7 +108,7 @@ server {
 }
 
 server {
-        listen 8080;
+        listen 14542;
         server_name ${DOMAIN};
         ssl_certificate /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
         ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
