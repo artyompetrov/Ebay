@@ -139,7 +139,7 @@ services:
       - nginx-entrypoint.sh
     environment:
       BACKEND: ebay_frappe_backend:8000
-      FRAPPE_SITE_NAME_HEADER: ebay_frappe_frontend
+      FRAPPE_SITE_NAME_HEADER: $DOMAIN
       SOCKETIO: ebay_frappe_websocket:9000
       UPSTREAM_REAL_IP_ADDRESS: 127.0.0.1
       UPSTREAM_REAL_IP_HEADER: X-Forwarded-For
