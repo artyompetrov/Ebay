@@ -139,6 +139,7 @@ jobs:
         working-directory: /home/runner/frappe-bench
         run: |
           cp -r $GITHUB_WORKSPACE/src/frappe_ebay ./apps/ebay/
+          ls -1 apps > sites/apps.txt;
           ./env/bin/pip install -q -U -e ./apps/ebay;
           bench setup requirements --dev
           bench new-site --db-root-password root --admin-password admin test_site
