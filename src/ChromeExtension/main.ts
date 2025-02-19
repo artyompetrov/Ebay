@@ -557,10 +557,18 @@ function parseDate(dateString: string): Date {
         date.setHours(date.getHours() - 12);
     }
 
-    if (matches[6].toUpperCase() === "MSK") {
-        date.setHours(date.getHours() - 3);
-    } else {
-        throw new Error("unknown timezone " + matches[6])
+    switch (matches[6].toUpperCase()) {
+        case "MSK":
+            date.setUTCHours(date.getUTCHours() - 3);
+            break;
+        case "PST":
+            date.setUTCHours(date.getUTCHours() + 8);
+            break;
+        case "PDT":
+            date.setUTCHours(date.getUTCHours() + 7);
+            break;
+        default:
+            throw new Error("unknown timezone " + matches[6]);
     }
 
     return date
@@ -656,7 +664,7 @@ function fillPurchaseHistory() {
 
         } catch (error) {
             console.error(
-                'Нas no access to iframe due to Same-Origin Policy):',
+                'Нas no access to iframe due to Same-Origin Policy:',
                 error
             );
         }
@@ -715,7 +723,7 @@ function fillUpdateTitleDate() {
             
         } catch (error) {
             console.error(
-                'Нas no access to iframe due to Same-Origin Policy):',
+                'Нas no access to iframe due to Same-Origin Policy:',
                 error
             );
         }
