@@ -5,7 +5,20 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "lotid"
+  "lotid",
+  "lotname",
+  "pcs",
+  "lotsize",
+  "price",
+  "shipping",
+  "shippingadditional",
+  "description",
+  "condition",
+  "conditiondescription",
+  "shortdescription",
+  "seller",
+  "locatedin",
+  "titlechangedate"
  ],
  "fields": [
   {
@@ -14,11 +27,93 @@
    "in_list_view": 1,
    "label": "lotId",
    "reqd": 1
+  },
+  {
+   "fieldname": "lotname",
+   "fieldtype": "Data",
+   "label": "lotName",
+   "reqd": 1
+  },
+  {
+   "fieldname": "pcs",
+   "fieldtype": "Int",
+   "label": "pcs",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "lotsize",
+   "fieldtype": "Int",
+   "label": "lotSize",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "price",
+   "fieldtype": "Currency",
+   "label": "price",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "shipping",
+   "fieldtype": "Currency",
+   "label": "shipping",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "shippingadditional",
+   "fieldtype": "Currency",
+   "label": "shippingAdditional",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text",
+   "label": "description",
+   "reqd": 1
+  },
+  {
+   "fieldname": "condition",
+   "fieldtype": "Data",
+   "label": "condition",
+   "reqd": 1
+  },
+  {
+   "fieldname": "conditiondescription",
+   "fieldtype": "Data",
+   "label": "conditionDescription",
+   "reqd": 1
+  },
+  {
+   "fieldname": "shortdescription",
+   "fieldtype": "Data",
+   "label": "shortDescription"
+  },
+  {
+   "fieldname": "seller",
+   "fieldtype": "Data",
+   "label": "seller",
+   "reqd": 1
+  },
+  {
+   "fieldname": "locatedin",
+   "fieldtype": "Data",
+   "label": "locatedIn",
+   "reqd": 1
+  },
+  {
+   "fieldname": "titlechangedate",
+   "fieldtype": "Date",
+   "label": "titleChangeDate",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-22 17:03:05.828309",
+ "modified": "2025-02-22 17:14:03.150574",
  "modified_by": "Administrator",
  "module": "Ebay",
  "name": "EbayLot",
