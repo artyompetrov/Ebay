@@ -355,7 +355,7 @@ async function createPanel(backendClient: EbayToolBackendClient, ebayClient: Eba
             <br>
             <label for="${pcsFieldName}">PCS</label>
             <input id="${pcsFieldName}" type="number" name="${pcsFieldName}" title="Вручную введенное количество"/>
-            <input id="${autoPcsFieldName}" type="text" name="${autoPcsFieldName}" title="Автоматически определенное количество (желтый цвет - есть подозрение на неточность, зеленый все ОК)" readonly/>
+            <input id="${autoPcsFieldName}" type="text" name="${autoPcsFieldName}" title="Автоматически определенное количество (красный цвет - невозможно автоматически определить количество, желтый цвет - есть подозрение на неточность, зеленый - все ОК)" readonly/>
         </div>
         <br>
         <div id="${categoriesDiv}">
