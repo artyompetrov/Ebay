@@ -1161,6 +1161,7 @@ async function getDataFromPage(backendClient: EbayToolBackendClient, ebayClient:
     
     await Promise.all([
         fillProduct(backendClient),
+        fillIsIgnored(backendClient),
         getEbayItem(ebayClient, ebayShoppingApiClient),
         getServerLotInfo(backendClient),
     ]);
@@ -1171,7 +1172,6 @@ async function getDataFromPage(backendClient: EbayToolBackendClient, ebayClient:
     fillUpdateTitleDate();
     
     await Promise.all([
-        fillIsIgnored(backendClient),
         waitForPurchaseHistoryAndTitleDate(),
         fillManualCondition(backendClient, extractedDataByFieldName),
         fillPcs(extractedDataByFieldName),
