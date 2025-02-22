@@ -1,0 +1,35 @@
+{
+ "charts": [],
+ "content": "[{\"id\":\"ODXEgjM-38\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Ebay</span>\",\"col\":12}},{\"id\":\"1Rkc0IrzVK\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"EbayLot\",\"col\":4}}]",
+ "creation": "2025-02-22 18:02:25.150582",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "retail",
+ "idx": 0,
+ "indicator_color": "",
+ "is_hidden": 0,
+ "label": "Ebay",
+ "links": [],
+ "modified": "2025-02-22 18:16:30.898365",
+ "modified_by": "Administrator",
+ "module": "Ebay",
+ "name": "Ebay",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [
+  {
+   "document_type": "EbayLot",
+   "label": "EbayLot",
+   "quick_list_filter": "[]"
+  }
+ ],
+ "roles": [],
+ "sequence_id": 28.0,
+ "shortcuts": [],
+ "title": "Ebay"
+}
