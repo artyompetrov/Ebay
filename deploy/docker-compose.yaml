@@ -88,6 +88,8 @@ services:
     volumes:
       - frappe_sites:/home/frappe/frappe-bench/sites
       - ./mount/frappe/logs/:/home/frappe/frappe-bench/logs
+      #только для разработки, не коммитить
+      #- ./../src/frappe_ebay/:/home/frappe/frappe-bench/apps/ebay/
     environment:
       DB_HOST: ebay_frappe_db
       DB_PORT: "3306"
@@ -125,6 +127,7 @@ services:
         done;
         echo "sites/common_site_config.json found";
         bench new-site --mariadb-user-host-login-scope='%' --admin-password=$$ADMIN_PASSWORD --db-root-username=root --db-root-password=$$MARIADB_ROOT_PASSWORD --install-app ebay --set-default $$DOMAIN;
+        bench --site $$DOMAIN migrate
         ./env/bin/gunicorn --chdir=/home/frappe/frappe-bench/sites --bind=0.0.0.0:8000 --threads=4 --workers=2 --worker-class=gthread --worker-tmp-dir=/dev/shm --timeout=120 --preload frappe.app:application;
 
   ebay_frappe_frontend:
