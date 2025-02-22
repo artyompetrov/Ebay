@@ -1000,10 +1000,8 @@ function getShippingCountry(ebayItem: Item) {
 }
 
 async function getEbayItem(ebayClient: EbayClient, ebayShoppingApiClient: EbayShoppingApiClient) {
-    let lotId = location.pathname.match(/\/itm\/([0-9]+)/)[1];
-
     let ebayItem = await ebayClient.getItemByLegacyId(undefined,
-        lotId,
+        _lotInfo.lotId.toString(),
         undefined,
         undefined,
         undefined,
@@ -1011,7 +1009,7 @@ async function getEbayItem(ebayClient: EbayClient, ebayShoppingApiClient: EbaySh
 
     let shippingCountry = getShippingCountry(ebayItem);
     let zipCode = supportedShippingCountries.get(shippingCountry).zip ?? ""
-    let shippingCostsXml = await ebayShoppingApiClient.getShippingCosts(lotId, shippingCountry, zipCode)
+    let shippingCostsXml = await ebayShoppingApiClient.getShippingCosts(_lotInfo.lotId.toString(), shippingCountry, zipCode)
 
     await fillLotInfo(ebayItem, shippingCountry, shippingCostsXml)
 }
@@ -1056,8 +1054,6 @@ async function fillShipping(shippingCostsXml: string, shippingCountry: string)  
 
 async function fillLotInfo(ebayItem: Item, shippingCountry: string, shippingCostXml: string) {
     console.log(JSON.stringify(ebayItem))
-
-    _lotInfo.lotId = parseInt(ebayItem.legacyItemId)
 
     if (ebayItem.price.convertedFromValue === undefined) {
         _lotInfo.price = parseFloat(ebayItem.price.value)
@@ -1160,9 +1156,13 @@ async function waitForPurchaseHistoryAndTitleDate(){
 }
 
 async function getDataFromPage(backendClient: EbayToolBackendClient, ebayClient: EbayClient, ebayShoppingApiClient: EbayShoppingApiClient) {
+    let lotId = location.pathname.match(/\/itm\/([0-9]+)/)[1];
+    _lotInfo.lotId = parseInt(lotId)
+    
     await Promise.all([
-        await getEbayItem(ebayClient, ebayShoppingApiClient),
-        await getServerLotInfo(backendClient),
+        fillProduct(backendClient),
+        getEbayItem(ebayClient, ebayShoppingApiClient),
+        getServerLotInfo(backendClient),
     ]);
 
     let extractedDataByFieldName = await extractManualFieldsData(backendClient);
@@ -1173,7 +1173,6 @@ async function getDataFromPage(backendClient: EbayToolBackendClient, ebayClient:
     await Promise.all([
         fillIsIgnored(backendClient),
         waitForPurchaseHistoryAndTitleDate(),
-        fillProduct(backendClient),
         fillManualCondition(backendClient, extractedDataByFieldName),
         fillPcs(extractedDataByFieldName),
     ]);
