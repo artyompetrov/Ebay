@@ -4,7 +4,7 @@ import json
 
 @frappe.whitelist(allow_guest=True)
 def generate():
-    doctype = "EbayLot"
+    doctype = "Item"
     """Generate Swagger documentation for the given Doctype."""
     
     # Получаем метаданные Doctype
@@ -22,7 +22,7 @@ def generate():
             "version": "1.0.0"
         },
         "paths": {
-            f"/api/resource/{doctype.lower()}": {  # Исправлено на динамическое использование lower()
+            f"/api/resource/{doctype}": {  # Исправлено на динамическое использование lower()
                 "get": {
                     "summary": f"Get {doctype} list",
                     "description": f"Retrieve a list of {doctype} records",

@@ -1,3 +1,6 @@
+import * as Frappe from "./EbayClient/FrappeClient"
+
+
 import {
     CategoryValue,
     EbayToolBackendClient,
@@ -28,12 +31,15 @@ const errorElementId = "errorElement"
 const submitId = "submitButton"
 const backendUrl = `https://tubessale.ddns.net/`;
 const baseApiUrl = `${backendUrl}api/ebay/v1`;
+const frappeBaseApiUrl = "https://localhost:8081"
+const frappeAuthRedirectUrl = `https://localhost:8081/api/method/ebay.api.chrome_extension_auth_page.auth`;
 const extensionAuthRedirectUrl = `${backendUrl}chrome_extensions/auth`;
 const ebayAuthRedirectUrl = `https://www.ebay.com/`;
 //todo нужно как-то защитить данные авторизации на ebay
 const ebayRedirectUriCode = "Artem_Petrov-ArtemPet-tubesS-dsrgu"
 const ebayApiScope = "https://api.ebay.com/oauth/api_scope"
 const backendApiScope = 'ServerAPI'
+const frappeScope = 'all openid'
 const lightGrayColor = "lightgray"
 const lightGreenColor = "#ecffec"
 const lightPinkColor = "lightpink"
@@ -77,8 +83,8 @@ function transliterate(text: string): string {
 }
 
 const ebaySiteRegex: RegExp =  /(?:^|\.)ebay\.com$/i;
-const chipFindRegex: RegExp = /(?:^|\.)chipfind\.ru/i
-const avitoRegex: RegExp = /(?:^|\.)avito\.ru/i
+const chipFindRegex: RegExp = /(?:^|\.)chipfind\.ru$/i
+const avitoRegex: RegExp = /(?:^|\.)avito\.ru$/i
 
 const searchOnSites: RegExp[] = [
     avitoRegex,
@@ -88,7 +94,9 @@ const searchOnSites: RegExp[] = [
 const workOnSites: RegExp[] = [
     ...searchOnSites,
     ebaySiteRegex,
-    /tubessale\.ddns\.net/i
+    /^localhost$/i,
+    /^localhost:8081$/i,
+    /^tubessale\.ddns\.net$/i
 ];
 
 class ShippingParameters {
@@ -1260,6 +1268,36 @@ async function productPage(backendClient: EbayToolBackendClient, ebayClient: Eba
     _panel.hidden = false;
 }
 
+async function frappeExtensionAuthPage() {
+    console.log("frappeExtensionAuthPage")
+
+    let backendOAuth2Client = getFrappeOAuth2Client();
+    let url = new URL(document.location.href)
+    if (url.searchParams.has("code")) {
+        let codeVerifier = (await chrome.storage.local.get(["code_verifier"])).code_verifier;
+
+        let oauth2Token = await backendOAuth2Client.authorizationCode.getTokenFromCodeRedirect(
+            document.location.href,
+            {
+                redirectUri: extensionAuthRedirectUrl,
+                codeVerifier
+            }
+        );
+
+        await chrome.storage.local.set({backend_url: backendUrl})
+        await chrome.storage.local.set({frappeTokenStore: JSON.stringify(oauth2Token)})
+
+        let returnPage = (await chrome.storage.local.get(["return_page"]))?.return_page;
+
+        if (returnPage) {
+            await chrome.storage.local.set({return_page: null})
+            redirectWithoutReferer(returnPage);
+        } else {
+            document.location.href = extensionAuthRedirectUrl
+        }
+    }
+}
+
 async function extensionAuthPage() {
     console.log("extensionAuthPage")
     
@@ -1439,11 +1477,24 @@ async function saveCodeVerifier() {
 }
 
 async function ebayPages(currentPage: string) {
+    let frappeOAuth2Client: OAuth2Client = getFrappeOAuth2Client();
+    let frappeClient = new Frappe.FrappeBackendClient(frappeBaseApiUrl, getAuthorizeFetch(frappeOAuth2Client, frappeScope, "frappeTokenStore", extensionAuthRedirectUrl));
+    let x = await frappeClient.item(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined
+    );
+    
+    console.log(x)
+
+
     let ebayOAuth2Client: OAuth2Client = getEbayOAuth2Client();
     let backendOAuth2Client: OAuth2Client = getBackendOAuth2Client();
-    
+
     await sleepElementLoaded('footer', document)
-    
+
     _currentProductId = getCurrentProductIdParam();
     if (!_currentProductId) {
         console.log("productId not found")
@@ -1666,6 +1717,17 @@ function getEbayOAuth2Client(): OAuth2Client {
     });
 }
 
+function getFrappeOAuth2Client(): OAuth2Client {
+    return new OAuth2Client({
+        server: "https://localhost:8081/",
+        clientId: 'giffi80q9d',
+        tokenEndpoint: '/api/method/frappe.integrations.oauth2.get_token',
+        authorizationEndpoint: '/api/method/frappe.integrations.oauth2.authorize',
+   //     clientSecret: "df1b867a2d",
+        fetch: fetchResource
+    });
+}
+
 function getBackendOAuth2Client() : OAuth2Client {
     return new OAuth2Client({
         server: backendUrl,
@@ -1713,13 +1775,16 @@ export async function run() {
     let currentPage = location.protocol + '//' + location.host + location.pathname
 
     if (currentPage === extensionAuthRedirectUrl) {
+        await frappeExtensionAuthPage();
+    }
+    else if (currentPage === extensionAuthRedirectUrl) {
         await extensionAuthPage();
     } else if (currentPage === ebayAuthRedirectUrl) {
         await ebayApiAuthPage();
     } else if (ebaySiteRegex.test(location.host)) {
         await ebayPages(currentPage);
     }
-    else {
+    else if (matchesAnyRegex(searchOnSites, location.host)) {
         await searchSitePages();
     }
 }

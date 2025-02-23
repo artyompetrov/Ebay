@@ -19,7 +19,7 @@ export class FrappeBackendClient {
     }
 
     /**
-     * Get Company list
+     * Get Item list
      * @param fields (optional) 
      * @param filters (optional) 
      * @param order_by (optional) 
@@ -27,8 +27,8 @@ export class FrappeBackendClient {
      * @param limit_page_length (optional) 
      * @return Successful response
      */
-    company(fields: string | undefined, filters: string | undefined, order_by: string | undefined, limit_start: number | undefined, limit_page_length: number | undefined): Promise<Anonymous> {
-        let url_ = this.baseUrl + "/api/resource/company?";
+    item(fields: string | undefined, filters: string | undefined, order_by: string | undefined, limit_start: number | undefined, limit_page_length: number | undefined): Promise<Anonymous> {
+        let url_ = this.baseUrl + "/api/resource/item?";
         if (fields === null)
             throw new Error("The parameter 'fields' cannot be null.");
         else if (fields !== undefined)
@@ -59,11 +59,11 @@ export class FrappeBackendClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCompany(_response);
+            return this.processItem(_response);
         });
     }
 
-    protected processCompany(response: Response): Promise<Anonymous> {
+    protected processItem(response: Response): Promise<Anonymous> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -82,233 +82,225 @@ export class FrappeBackendClient {
     }
 }
 
-export class Company implements ICompany {
-    /** details */
+export class Item implements IItem {
+    /** Details */
     details?: string;
-    /** Company */
-    company_name!: string;
-    /** Abbr */
-    abbr!: string;
-    /** Default Currency */
-    default_currency!: string;
-    /** Country */
-    country!: string;
-    /** Is Group */
-    is_group?: boolean;
-    /** Default Holiday List */
-    default_holiday_list?: string;
-    /** cb0 */
-    cb0?: string;
-    /** Default Letter Head */
-    default_letter_head?: string;
-    /** Tax ID */
-    tax_id?: string;
-    /** Domain */
-    domain?: string;
-    /** Date of Establishment */
-    date_of_establishment?: Date;
-    /** Parent Company */
-    parent_company?: string;
-    /** Address & Contact */
-    company_info?: string;
-    /** Company Logo */
-    company_logo?: string;
-    /** Date of Incorporation */
-    date_of_incorporation?: Date;
-    /** Phone No */
-    phone_no?: string;
-    /** Email */
-    email?: string;
-    /** Company Description */
-    company_description?: string;
-    /** column_break1 */
-    column_break1?: string;
-    /** Date of Commencement */
-    date_of_commencement?: Date;
-    /** Fax */
-    fax?: string;
-    /** Website */
-    website?: string;
-    /** address_html */
-    address_html?: string;
-    /** registration_info */
-    registration_info?: string;
-    /** Registration Details */
-    registration_details?: string;
-    /** Lft */
-    lft?: number;
-    /** Rgt */
-    rgt?: number;
-    /** old_parent */
-    old_parent?: string;
-    /** Accounts */
-    accounts_tab?: string;
-    /** Chart of Accounts */
-    section_break_28?: string;
-    /** Create Chart Of Accounts Based On */
-    create_chart_of_accounts_based_on?: string;
-    /** Existing Company  */
-    existing_company?: string;
-    /** column_break_26 */
-    column_break_26?: string;
-    /** Chart Of Accounts Template */
-    chart_of_accounts?: string;
-    /** Default Accounts */
-    default_settings?: string;
-    /** Default Bank Account */
-    default_bank_account?: string;
-    /** Default Cash Account */
-    default_cash_account?: string;
-    /** Default Receivable Account */
-    default_receivable_account?: string;
-    /** Default Payable Account */
-    default_payable_account?: string;
-    /** Write Off Account */
-    write_off_account?: string;
-    /** Unrealized Profit / Loss Account */
-    unrealized_profit_loss_account?: string;
+    /** Series */
+    naming_series?: string;
+    /** Item Code */
+    item_code!: string;
+    /** Item Name */
+    item_name?: string;
+    /** Item Group */
+    item_group!: string;
+    /** Default Unit of Measure */
+    stock_uom!: string;
     /** column_break0 */
     column_break0?: string;
-    /** Allow Account Creation Against Child Company */
-    allow_account_creation_against_child_company?: boolean;
-    /** Default Cost of Goods Sold Account */
-    default_expense_account?: string;
-    /** Default Income Account */
-    default_income_account?: string;
-    /** Default Payment Discount Account */
-    default_discount_account?: string;
-    /** Default Payment Terms Template */
-    payment_terms?: string;
-    /** Default Cost Center */
-    cost_center?: string;
-    /** Default Finance Book */
-    default_finance_book?: string;
-    /** Exchange Gain / Loss */
-    exchange_gain__loss_section?: string;
-    /** Exchange Gain / Loss Account */
-    exchange_gain_loss_account?: string;
-    /** column_break_sttp */
-    column_break_sttp?: string;
-    /** Unrealized Exchange Gain/Loss Account */
-    unrealized_exchange_gain_loss_account?: string;
-    /** Round Off */
-    round_off_section?: string;
-    /** Round Off Account */
-    round_off_account?: string;
-    /** Round Off Cost Center */
-    round_off_cost_center?: string;
-    /** column_break_jqfo */
-    column_break_jqfo?: string;
-    /** Round Off for Opening */
-    round_off_for_opening?: string;
-    /** Deferred Accounting */
-    deferred_accounting_section?: string;
-    /** Default Deferred Revenue Account */
-    default_deferred_revenue_account?: string;
-    /** column_break_dcdl */
-    column_break_dcdl?: string;
-    /** Default Deferred Expense Account */
-    default_deferred_expense_account?: string;
-    /** Advance Payments */
-    advance_payments_section?: string;
-    /** Book Advance Payments in Separate Party Account */
-    book_advance_payments_in_separate_party_account?: boolean;
-    /** Reconcile on Advance Payment Date */
-    reconcile_on_advance_payment_date?: boolean;
-    /** Reconciliation Takes Effect On */
-    reconciliation_takes_effect_on?: string;
-    /** column_break_fwcf */
-    column_break_fwcf?: string;
-    /** Default Advance Received Account */
-    default_advance_received_account?: string;
-    /** Default Advance Paid Account */
-    default_advance_paid_account?: string;
-    /** Exchange Rate Revaluation Settings */
-    exchange_rate_revaluation_settings_section?: string;
-    /** Auto Create Exchange Rate Revaluation */
-    auto_exchange_rate_revaluation?: boolean;
-    /** Frequency */
-    auto_err_frequency?: string;
-    /** Submit ERR Journals? */
-    submit_err_jv?: boolean;
-    /** Budget Detail */
-    budget_detail?: string;
-    /** Exception Budget Approver Role */
-    exception_budget_approver_role?: string;
-    /** Fixed Asset Defaults */
-    fixed_asset_defaults?: string;
-    /** Accumulated Depreciation Account */
-    accumulated_depreciation_account?: string;
-    /** Depreciation Expense Account */
-    depreciation_expense_account?: string;
-    /** Series for Asset Depreciation Entry (Journal Entry) */
-    series_for_depreciation_entry?: string;
-    /** Expenses Included In Asset Valuation */
-    expenses_included_in_asset_valuation?: string;
-    /** column_break_40 */
-    column_break_40?: string;
-    /** Gain/Loss Account on Asset Disposal */
-    disposal_account?: string;
-    /** Asset Depreciation Cost Center */
-    depreciation_cost_center?: string;
-    /** Capital Work In Progress Account */
-    capital_work_in_progress_account?: string;
-    /** Asset Received But Not Billed */
-    asset_received_but_not_billed?: string;
-    /** Buying and Selling */
-    buying_and_selling_tab?: string;
-    /** Buying & Selling Settings */
-    sales_settings?: string;
-    /** Default Buying Terms */
-    default_buying_terms?: string;
-    /** Sales Monthly History */
-    sales_monthly_history?: string;
-    /** Monthly Sales Target */
-    monthly_sales_target?: number;
-    /** Total Monthly Sales */
-    total_monthly_sales?: number;
-    /** column_break_goals */
-    column_break_goals?: string;
-    /** Default Selling Terms */
-    default_selling_terms?: string;
-    /** Default Warehouse for Sales Return */
-    default_warehouse_for_sales_return?: string;
-    /** Credit Limit */
-    credit_limit?: number;
-    /** Transactions Annual History */
-    transactions_annual_history?: string;
-    /** Stock and Manufacturing */
-    stock_tab?: string;
-    /** Stock Settings */
-    auto_accounting_for_stock_settings?: string;
-    /** Enable Perpetual Inventory */
-    enable_perpetual_inventory?: boolean;
-    /** Enable Provisional Accounting For Non Stock Items */
-    enable_provisional_accounting_for_non_stock_items?: boolean;
-    /** Default Inventory Account */
-    default_inventory_account?: string;
-    /** Stock Adjustment Account */
-    stock_adjustment_account?: string;
-    /** Default In-Transit Warehouse */
-    default_in_transit_warehouse?: string;
-    /** column_break_32 */
-    column_break_32?: string;
-    /** Stock Received But Not Billed */
-    stock_received_but_not_billed?: string;
-    /** Default Provisional Account */
-    default_provisional_account?: string;
-    /** Expenses Included In Valuation */
-    expenses_included_in_valuation?: string;
-    /** Manufacturing */
-    manufacturing_section?: string;
-    /** Default Operating Cost Account */
-    default_operating_cost_account?: string;
+    /** Disabled */
+    disabled?: boolean;
+    /** Allow Alternative Item */
+    allow_alternative_item?: boolean;
+    /** Maintain Stock */
+    is_stock_item?: boolean;
+    /** Has Variants */
+    has_variants?: boolean;
+    /** Opening Stock */
+    opening_stock?: number;
+    /** Valuation Rate */
+    valuation_rate?: number;
+    /** Standard Selling Rate */
+    standard_rate?: number;
+    /** Is Fixed Asset */
+    is_fixed_asset?: boolean;
+    /** Auto Create Assets on Purchase */
+    auto_create_assets?: boolean;
+    /** Create Grouped Asset */
+    is_grouped_asset?: boolean;
+    /** Asset Category */
+    asset_category?: string;
+    /** Asset Naming Series */
+    asset_naming_series?: string;
+    /** Over Delivery/Receipt Allowance (%) */
+    over_delivery_receipt_allowance?: number;
+    /** Over Billing Allowance (%) */
+    over_billing_allowance?: number;
+    /** Image */
+    image?: string;
+    /** Description */
+    section_break_11?: string;
+    /** Description */
+    description?: string;
+    /** Brand */
+    brand?: string;
+    /** Units of Measure */
+    unit_of_measure_conversion?: string;
+    /** UOMs */
+    uoms?: string;
     /** Dashboard */
     dashboard_tab?: string;
+    /** Inventory */
+    inventory_section?: string;
+    /** Inventory Settings */
+    inventory_settings_section?: string;
+    /** Shelf Life In Days */
+    shelf_life_in_days?: number;
+    /** End of Life */
+    end_of_life?: Date;
+    /** Default Material Request Type */
+    default_material_request_type?: string;
+    /** Valuation Method */
+    valuation_method?: string;
+    /** column_break1 */
+    column_break1?: string;
+    /** Warranty Period (in days) */
+    warranty_period?: string;
+    /** Weight Per Unit */
+    weight_per_unit?: number;
+    /** Weight UOM */
+    weight_uom?: string;
+    /** Allow Negative Stock */
+    allow_negative_stock?: boolean;
+    /** Barcodes */
+    sb_barcodes?: string;
+    /** Barcodes */
+    barcodes?: string;
+    /** Auto re-order */
+    reorder_section?: string;
+    /** Reorder level based on Warehouse */
+    reorder_levels?: string;
+    /** Serial Nos and Batches */
+    serial_nos_and_batches?: string;
+    /** Has Batch No */
+    has_batch_no?: boolean;
+    /** Automatically Create New Batch */
+    create_new_batch?: boolean;
+    /** Batch Number Series */
+    batch_number_series?: string;
+    /** Has Expiry Date */
+    has_expiry_date?: boolean;
+    /** Retain Sample */
+    retain_sample?: boolean;
+    /** Max Sample Quantity */
+    sample_quantity?: number;
+    /** column_break_37 */
+    column_break_37?: string;
+    /** Has Serial No */
+    has_serial_no?: boolean;
+    /** Serial Number Series */
+    serial_no_series?: string;
+    /** Variants */
+    variants_section?: string;
+    /** Variant Of */
+    variant_of?: string;
+    /** Variant Based On */
+    variant_based_on?: string;
+    /** Variant Attributes */
+    attributes?: string;
+    /** Accounting */
+    accounting?: string;
+    /** Deferred Accounting */
+    deferred_accounting_section?: string;
+    /** Enable Deferred Expense */
+    enable_deferred_expense?: boolean;
+    /** No of Months (Expense) */
+    no_of_months_exp?: number;
+    /** column_break_9s9o */
+    column_break_9s9o?: string;
+    /** Enable Deferred Revenue */
+    enable_deferred_revenue?: boolean;
+    /** No of Months (Revenue) */
+    no_of_months?: number;
+    /** section_break_avcp */
+    section_break_avcp?: string;
+    /** Item Defaults */
+    item_defaults?: string;
+    /** Purchasing */
+    purchasing_tab?: string;
+    /** Default Purchase Unit of Measure */
+    purchase_uom?: string;
+    /** Minimum Order Qty */
+    min_order_qty?: number;
+    /** Safety Stock */
+    safety_stock?: number;
+    /** Allow Purchase */
+    is_purchase_item?: boolean;
+    /** purchase_details_cb */
+    purchase_details_cb?: string;
+    /** Lead Time in days */
+    lead_time_days?: number;
+    /** Last Purchase Rate */
+    last_purchase_rate?: number;
+    /** Is Customer Provided Item */
+    is_customer_provided_item?: boolean;
+    /** Customer */
+    customer?: string;
+    /** Supplier Details */
+    supplier_details?: string;
+    /** Delivered by Supplier (Drop Ship) */
+    delivered_by_supplier?: boolean;
+    /** column_break2 */
+    column_break2?: string;
+    /** Supplier Items */
+    supplier_items?: string;
+    /** Foreign Trade Details */
+    foreign_trade_details?: string;
+    /** Country of Origin */
+    country_of_origin?: string;
+    /** column_break_59 */
+    column_break_59?: string;
+    /** Customs Tariff Number */
+    customs_tariff_number?: string;
+    /** Sales */
+    sales_details?: string;
+    /** Default Sales Unit of Measure */
+    sales_uom?: string;
+    /** Grant Commission */
+    grant_commission?: boolean;
+    /** Allow Sales */
+    is_sales_item?: boolean;
+    /** column_break3 */
+    column_break3?: string;
+    /** Max Discount (%) */
+    max_discount?: number;
+    /** Customer Details */
+    customer_details?: string;
+    /** Customer Items */
+    customer_items?: string;
+    /** Tax */
+    item_tax_section_break?: string;
+    /** Taxes */
+    taxes?: string;
+    /** Quality */
+    quality_tab?: string;
+    /** Inspection Required before Purchase */
+    inspection_required_before_purchase?: boolean;
+    /** Quality Inspection Template */
+    quality_inspection_template?: string;
+    /** Inspection Required before Delivery */
+    inspection_required_before_delivery?: boolean;
+    /** Manufacturing */
+    manufacturing?: string;
+    /** Include Item In Manufacturing */
+    include_item_in_manufacturing?: boolean;
+    /** Supply Raw Materials for Purchase */
+    is_sub_contracted_item?: boolean;
+    /** Default BOM */
+    default_bom?: string;
+    /** column_break_74 */
+    column_break_74?: string;
+    /** Customer Code */
+    customer_code?: string;
+    /** Default Item Manufacturer */
+    default_item_manufacturer?: string;
+    /** Default Manufacturer Part No */
+    default_manufacturer_part_no?: string;
+    /** Total Projected Qty */
+    total_projected_qty?: number;
 
     [key: string]: any;
 
-    constructor(data?: ICompany) {
+    constructor(data?: IItem) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -324,122 +316,118 @@ export class Company implements ICompany {
                     this[property] = _data[property];
             }
             this.details = _data["details"];
-            this.company_name = _data["company_name"];
-            this.abbr = _data["abbr"];
-            this.default_currency = _data["default_currency"];
-            this.country = _data["country"];
-            this.is_group = _data["is_group"];
-            this.default_holiday_list = _data["default_holiday_list"];
-            this.cb0 = _data["cb0"];
-            this.default_letter_head = _data["default_letter_head"];
-            this.tax_id = _data["tax_id"];
-            this.domain = _data["domain"];
-            this.date_of_establishment = _data["date_of_establishment"] ? new Date(_data["date_of_establishment"].toString()) : <any>undefined;
-            this.parent_company = _data["parent_company"];
-            this.company_info = _data["company_info"];
-            this.company_logo = _data["company_logo"];
-            this.date_of_incorporation = _data["date_of_incorporation"] ? new Date(_data["date_of_incorporation"].toString()) : <any>undefined;
-            this.phone_no = _data["phone_no"];
-            this.email = _data["email"];
-            this.company_description = _data["company_description"];
-            this.column_break1 = _data["column_break1"];
-            this.date_of_commencement = _data["date_of_commencement"] ? new Date(_data["date_of_commencement"].toString()) : <any>undefined;
-            this.fax = _data["fax"];
-            this.website = _data["website"];
-            this.address_html = _data["address_html"];
-            this.registration_info = _data["registration_info"];
-            this.registration_details = _data["registration_details"];
-            this.lft = _data["lft"];
-            this.rgt = _data["rgt"];
-            this.old_parent = _data["old_parent"];
-            this.accounts_tab = _data["accounts_tab"];
-            this.section_break_28 = _data["section_break_28"];
-            this.create_chart_of_accounts_based_on = _data["create_chart_of_accounts_based_on"];
-            this.existing_company = _data["existing_company"];
-            this.column_break_26 = _data["column_break_26"];
-            this.chart_of_accounts = _data["chart_of_accounts"];
-            this.default_settings = _data["default_settings"];
-            this.default_bank_account = _data["default_bank_account"];
-            this.default_cash_account = _data["default_cash_account"];
-            this.default_receivable_account = _data["default_receivable_account"];
-            this.default_payable_account = _data["default_payable_account"];
-            this.write_off_account = _data["write_off_account"];
-            this.unrealized_profit_loss_account = _data["unrealized_profit_loss_account"];
+            this.naming_series = _data["naming_series"];
+            this.item_code = _data["item_code"];
+            this.item_name = _data["item_name"];
+            this.item_group = _data["item_group"];
+            this.stock_uom = _data["stock_uom"];
             this.column_break0 = _data["column_break0"];
-            this.allow_account_creation_against_child_company = _data["allow_account_creation_against_child_company"];
-            this.default_expense_account = _data["default_expense_account"];
-            this.default_income_account = _data["default_income_account"];
-            this.default_discount_account = _data["default_discount_account"];
-            this.payment_terms = _data["payment_terms"];
-            this.cost_center = _data["cost_center"];
-            this.default_finance_book = _data["default_finance_book"];
-            this.exchange_gain__loss_section = _data["exchange_gain__loss_section"];
-            this.exchange_gain_loss_account = _data["exchange_gain_loss_account"];
-            this.column_break_sttp = _data["column_break_sttp"];
-            this.unrealized_exchange_gain_loss_account = _data["unrealized_exchange_gain_loss_account"];
-            this.round_off_section = _data["round_off_section"];
-            this.round_off_account = _data["round_off_account"];
-            this.round_off_cost_center = _data["round_off_cost_center"];
-            this.column_break_jqfo = _data["column_break_jqfo"];
-            this.round_off_for_opening = _data["round_off_for_opening"];
-            this.deferred_accounting_section = _data["deferred_accounting_section"];
-            this.default_deferred_revenue_account = _data["default_deferred_revenue_account"];
-            this.column_break_dcdl = _data["column_break_dcdl"];
-            this.default_deferred_expense_account = _data["default_deferred_expense_account"];
-            this.advance_payments_section = _data["advance_payments_section"];
-            this.book_advance_payments_in_separate_party_account = _data["book_advance_payments_in_separate_party_account"];
-            this.reconcile_on_advance_payment_date = _data["reconcile_on_advance_payment_date"];
-            this.reconciliation_takes_effect_on = _data["reconciliation_takes_effect_on"];
-            this.column_break_fwcf = _data["column_break_fwcf"];
-            this.default_advance_received_account = _data["default_advance_received_account"];
-            this.default_advance_paid_account = _data["default_advance_paid_account"];
-            this.exchange_rate_revaluation_settings_section = _data["exchange_rate_revaluation_settings_section"];
-            this.auto_exchange_rate_revaluation = _data["auto_exchange_rate_revaluation"];
-            this.auto_err_frequency = _data["auto_err_frequency"];
-            this.submit_err_jv = _data["submit_err_jv"];
-            this.budget_detail = _data["budget_detail"];
-            this.exception_budget_approver_role = _data["exception_budget_approver_role"];
-            this.fixed_asset_defaults = _data["fixed_asset_defaults"];
-            this.accumulated_depreciation_account = _data["accumulated_depreciation_account"];
-            this.depreciation_expense_account = _data["depreciation_expense_account"];
-            this.series_for_depreciation_entry = _data["series_for_depreciation_entry"];
-            this.expenses_included_in_asset_valuation = _data["expenses_included_in_asset_valuation"];
-            this.column_break_40 = _data["column_break_40"];
-            this.disposal_account = _data["disposal_account"];
-            this.depreciation_cost_center = _data["depreciation_cost_center"];
-            this.capital_work_in_progress_account = _data["capital_work_in_progress_account"];
-            this.asset_received_but_not_billed = _data["asset_received_but_not_billed"];
-            this.buying_and_selling_tab = _data["buying_and_selling_tab"];
-            this.sales_settings = _data["sales_settings"];
-            this.default_buying_terms = _data["default_buying_terms"];
-            this.sales_monthly_history = _data["sales_monthly_history"];
-            this.monthly_sales_target = _data["monthly_sales_target"];
-            this.total_monthly_sales = _data["total_monthly_sales"];
-            this.column_break_goals = _data["column_break_goals"];
-            this.default_selling_terms = _data["default_selling_terms"];
-            this.default_warehouse_for_sales_return = _data["default_warehouse_for_sales_return"];
-            this.credit_limit = _data["credit_limit"];
-            this.transactions_annual_history = _data["transactions_annual_history"];
-            this.stock_tab = _data["stock_tab"];
-            this.auto_accounting_for_stock_settings = _data["auto_accounting_for_stock_settings"];
-            this.enable_perpetual_inventory = _data["enable_perpetual_inventory"];
-            this.enable_provisional_accounting_for_non_stock_items = _data["enable_provisional_accounting_for_non_stock_items"];
-            this.default_inventory_account = _data["default_inventory_account"];
-            this.stock_adjustment_account = _data["stock_adjustment_account"];
-            this.default_in_transit_warehouse = _data["default_in_transit_warehouse"];
-            this.column_break_32 = _data["column_break_32"];
-            this.stock_received_but_not_billed = _data["stock_received_but_not_billed"];
-            this.default_provisional_account = _data["default_provisional_account"];
-            this.expenses_included_in_valuation = _data["expenses_included_in_valuation"];
-            this.manufacturing_section = _data["manufacturing_section"];
-            this.default_operating_cost_account = _data["default_operating_cost_account"];
+            this.disabled = _data["disabled"];
+            this.allow_alternative_item = _data["allow_alternative_item"];
+            this.is_stock_item = _data["is_stock_item"];
+            this.has_variants = _data["has_variants"];
+            this.opening_stock = _data["opening_stock"];
+            this.valuation_rate = _data["valuation_rate"];
+            this.standard_rate = _data["standard_rate"];
+            this.is_fixed_asset = _data["is_fixed_asset"];
+            this.auto_create_assets = _data["auto_create_assets"];
+            this.is_grouped_asset = _data["is_grouped_asset"];
+            this.asset_category = _data["asset_category"];
+            this.asset_naming_series = _data["asset_naming_series"];
+            this.over_delivery_receipt_allowance = _data["over_delivery_receipt_allowance"];
+            this.over_billing_allowance = _data["over_billing_allowance"];
+            this.image = _data["image"];
+            this.section_break_11 = _data["section_break_11"];
+            this.description = _data["description"];
+            this.brand = _data["brand"];
+            this.unit_of_measure_conversion = _data["unit_of_measure_conversion"];
+            this.uoms = _data["uoms"];
             this.dashboard_tab = _data["dashboard_tab"];
+            this.inventory_section = _data["inventory_section"];
+            this.inventory_settings_section = _data["inventory_settings_section"];
+            this.shelf_life_in_days = _data["shelf_life_in_days"];
+            this.end_of_life = _data["end_of_life"] ? new Date(_data["end_of_life"].toString()) : <any>undefined;
+            this.default_material_request_type = _data["default_material_request_type"];
+            this.valuation_method = _data["valuation_method"];
+            this.column_break1 = _data["column_break1"];
+            this.warranty_period = _data["warranty_period"];
+            this.weight_per_unit = _data["weight_per_unit"];
+            this.weight_uom = _data["weight_uom"];
+            this.allow_negative_stock = _data["allow_negative_stock"];
+            this.sb_barcodes = _data["sb_barcodes"];
+            this.barcodes = _data["barcodes"];
+            this.reorder_section = _data["reorder_section"];
+            this.reorder_levels = _data["reorder_levels"];
+            this.serial_nos_and_batches = _data["serial_nos_and_batches"];
+            this.has_batch_no = _data["has_batch_no"];
+            this.create_new_batch = _data["create_new_batch"];
+            this.batch_number_series = _data["batch_number_series"];
+            this.has_expiry_date = _data["has_expiry_date"];
+            this.retain_sample = _data["retain_sample"];
+            this.sample_quantity = _data["sample_quantity"];
+            this.column_break_37 = _data["column_break_37"];
+            this.has_serial_no = _data["has_serial_no"];
+            this.serial_no_series = _data["serial_no_series"];
+            this.variants_section = _data["variants_section"];
+            this.variant_of = _data["variant_of"];
+            this.variant_based_on = _data["variant_based_on"];
+            this.attributes = _data["attributes"];
+            this.accounting = _data["accounting"];
+            this.deferred_accounting_section = _data["deferred_accounting_section"];
+            this.enable_deferred_expense = _data["enable_deferred_expense"];
+            this.no_of_months_exp = _data["no_of_months_exp"];
+            this.column_break_9s9o = _data["column_break_9s9o"];
+            this.enable_deferred_revenue = _data["enable_deferred_revenue"];
+            this.no_of_months = _data["no_of_months"];
+            this.section_break_avcp = _data["section_break_avcp"];
+            this.item_defaults = _data["item_defaults"];
+            this.purchasing_tab = _data["purchasing_tab"];
+            this.purchase_uom = _data["purchase_uom"];
+            this.min_order_qty = _data["min_order_qty"];
+            this.safety_stock = _data["safety_stock"];
+            this.is_purchase_item = _data["is_purchase_item"];
+            this.purchase_details_cb = _data["purchase_details_cb"];
+            this.lead_time_days = _data["lead_time_days"];
+            this.last_purchase_rate = _data["last_purchase_rate"];
+            this.is_customer_provided_item = _data["is_customer_provided_item"];
+            this.customer = _data["customer"];
+            this.supplier_details = _data["supplier_details"];
+            this.delivered_by_supplier = _data["delivered_by_supplier"];
+            this.column_break2 = _data["column_break2"];
+            this.supplier_items = _data["supplier_items"];
+            this.foreign_trade_details = _data["foreign_trade_details"];
+            this.country_of_origin = _data["country_of_origin"];
+            this.column_break_59 = _data["column_break_59"];
+            this.customs_tariff_number = _data["customs_tariff_number"];
+            this.sales_details = _data["sales_details"];
+            this.sales_uom = _data["sales_uom"];
+            this.grant_commission = _data["grant_commission"];
+            this.is_sales_item = _data["is_sales_item"];
+            this.column_break3 = _data["column_break3"];
+            this.max_discount = _data["max_discount"];
+            this.customer_details = _data["customer_details"];
+            this.customer_items = _data["customer_items"];
+            this.item_tax_section_break = _data["item_tax_section_break"];
+            this.taxes = _data["taxes"];
+            this.quality_tab = _data["quality_tab"];
+            this.inspection_required_before_purchase = _data["inspection_required_before_purchase"];
+            this.quality_inspection_template = _data["quality_inspection_template"];
+            this.inspection_required_before_delivery = _data["inspection_required_before_delivery"];
+            this.manufacturing = _data["manufacturing"];
+            this.include_item_in_manufacturing = _data["include_item_in_manufacturing"];
+            this.is_sub_contracted_item = _data["is_sub_contracted_item"];
+            this.default_bom = _data["default_bom"];
+            this.column_break_74 = _data["column_break_74"];
+            this.customer_code = _data["customer_code"];
+            this.default_item_manufacturer = _data["default_item_manufacturer"];
+            this.default_manufacturer_part_no = _data["default_manufacturer_part_no"];
+            this.total_projected_qty = _data["total_projected_qty"];
         }
     }
 
-    static fromJS(data: any): Company {
+    static fromJS(data: any): Item {
         data = typeof data === 'object' ? data : {};
-        let result = new Company();
+        let result = new Item();
         result.init(data);
         return result;
     }
@@ -451,349 +439,337 @@ export class Company implements ICompany {
                 data[property] = this[property];
         }
         data["details"] = this.details;
-        data["company_name"] = this.company_name;
-        data["abbr"] = this.abbr;
-        data["default_currency"] = this.default_currency;
-        data["country"] = this.country;
-        data["is_group"] = this.is_group;
-        data["default_holiday_list"] = this.default_holiday_list;
-        data["cb0"] = this.cb0;
-        data["default_letter_head"] = this.default_letter_head;
-        data["tax_id"] = this.tax_id;
-        data["domain"] = this.domain;
-        data["date_of_establishment"] = this.date_of_establishment ? this.date_of_establishment.toISOString() : <any>undefined;
-        data["parent_company"] = this.parent_company;
-        data["company_info"] = this.company_info;
-        data["company_logo"] = this.company_logo;
-        data["date_of_incorporation"] = this.date_of_incorporation ? this.date_of_incorporation.toISOString() : <any>undefined;
-        data["phone_no"] = this.phone_no;
-        data["email"] = this.email;
-        data["company_description"] = this.company_description;
-        data["column_break1"] = this.column_break1;
-        data["date_of_commencement"] = this.date_of_commencement ? this.date_of_commencement.toISOString() : <any>undefined;
-        data["fax"] = this.fax;
-        data["website"] = this.website;
-        data["address_html"] = this.address_html;
-        data["registration_info"] = this.registration_info;
-        data["registration_details"] = this.registration_details;
-        data["lft"] = this.lft;
-        data["rgt"] = this.rgt;
-        data["old_parent"] = this.old_parent;
-        data["accounts_tab"] = this.accounts_tab;
-        data["section_break_28"] = this.section_break_28;
-        data["create_chart_of_accounts_based_on"] = this.create_chart_of_accounts_based_on;
-        data["existing_company"] = this.existing_company;
-        data["column_break_26"] = this.column_break_26;
-        data["chart_of_accounts"] = this.chart_of_accounts;
-        data["default_settings"] = this.default_settings;
-        data["default_bank_account"] = this.default_bank_account;
-        data["default_cash_account"] = this.default_cash_account;
-        data["default_receivable_account"] = this.default_receivable_account;
-        data["default_payable_account"] = this.default_payable_account;
-        data["write_off_account"] = this.write_off_account;
-        data["unrealized_profit_loss_account"] = this.unrealized_profit_loss_account;
+        data["naming_series"] = this.naming_series;
+        data["item_code"] = this.item_code;
+        data["item_name"] = this.item_name;
+        data["item_group"] = this.item_group;
+        data["stock_uom"] = this.stock_uom;
         data["column_break0"] = this.column_break0;
-        data["allow_account_creation_against_child_company"] = this.allow_account_creation_against_child_company;
-        data["default_expense_account"] = this.default_expense_account;
-        data["default_income_account"] = this.default_income_account;
-        data["default_discount_account"] = this.default_discount_account;
-        data["payment_terms"] = this.payment_terms;
-        data["cost_center"] = this.cost_center;
-        data["default_finance_book"] = this.default_finance_book;
-        data["exchange_gain__loss_section"] = this.exchange_gain__loss_section;
-        data["exchange_gain_loss_account"] = this.exchange_gain_loss_account;
-        data["column_break_sttp"] = this.column_break_sttp;
-        data["unrealized_exchange_gain_loss_account"] = this.unrealized_exchange_gain_loss_account;
-        data["round_off_section"] = this.round_off_section;
-        data["round_off_account"] = this.round_off_account;
-        data["round_off_cost_center"] = this.round_off_cost_center;
-        data["column_break_jqfo"] = this.column_break_jqfo;
-        data["round_off_for_opening"] = this.round_off_for_opening;
-        data["deferred_accounting_section"] = this.deferred_accounting_section;
-        data["default_deferred_revenue_account"] = this.default_deferred_revenue_account;
-        data["column_break_dcdl"] = this.column_break_dcdl;
-        data["default_deferred_expense_account"] = this.default_deferred_expense_account;
-        data["advance_payments_section"] = this.advance_payments_section;
-        data["book_advance_payments_in_separate_party_account"] = this.book_advance_payments_in_separate_party_account;
-        data["reconcile_on_advance_payment_date"] = this.reconcile_on_advance_payment_date;
-        data["reconciliation_takes_effect_on"] = this.reconciliation_takes_effect_on;
-        data["column_break_fwcf"] = this.column_break_fwcf;
-        data["default_advance_received_account"] = this.default_advance_received_account;
-        data["default_advance_paid_account"] = this.default_advance_paid_account;
-        data["exchange_rate_revaluation_settings_section"] = this.exchange_rate_revaluation_settings_section;
-        data["auto_exchange_rate_revaluation"] = this.auto_exchange_rate_revaluation;
-        data["auto_err_frequency"] = this.auto_err_frequency;
-        data["submit_err_jv"] = this.submit_err_jv;
-        data["budget_detail"] = this.budget_detail;
-        data["exception_budget_approver_role"] = this.exception_budget_approver_role;
-        data["fixed_asset_defaults"] = this.fixed_asset_defaults;
-        data["accumulated_depreciation_account"] = this.accumulated_depreciation_account;
-        data["depreciation_expense_account"] = this.depreciation_expense_account;
-        data["series_for_depreciation_entry"] = this.series_for_depreciation_entry;
-        data["expenses_included_in_asset_valuation"] = this.expenses_included_in_asset_valuation;
-        data["column_break_40"] = this.column_break_40;
-        data["disposal_account"] = this.disposal_account;
-        data["depreciation_cost_center"] = this.depreciation_cost_center;
-        data["capital_work_in_progress_account"] = this.capital_work_in_progress_account;
-        data["asset_received_but_not_billed"] = this.asset_received_but_not_billed;
-        data["buying_and_selling_tab"] = this.buying_and_selling_tab;
-        data["sales_settings"] = this.sales_settings;
-        data["default_buying_terms"] = this.default_buying_terms;
-        data["sales_monthly_history"] = this.sales_monthly_history;
-        data["monthly_sales_target"] = this.monthly_sales_target;
-        data["total_monthly_sales"] = this.total_monthly_sales;
-        data["column_break_goals"] = this.column_break_goals;
-        data["default_selling_terms"] = this.default_selling_terms;
-        data["default_warehouse_for_sales_return"] = this.default_warehouse_for_sales_return;
-        data["credit_limit"] = this.credit_limit;
-        data["transactions_annual_history"] = this.transactions_annual_history;
-        data["stock_tab"] = this.stock_tab;
-        data["auto_accounting_for_stock_settings"] = this.auto_accounting_for_stock_settings;
-        data["enable_perpetual_inventory"] = this.enable_perpetual_inventory;
-        data["enable_provisional_accounting_for_non_stock_items"] = this.enable_provisional_accounting_for_non_stock_items;
-        data["default_inventory_account"] = this.default_inventory_account;
-        data["stock_adjustment_account"] = this.stock_adjustment_account;
-        data["default_in_transit_warehouse"] = this.default_in_transit_warehouse;
-        data["column_break_32"] = this.column_break_32;
-        data["stock_received_but_not_billed"] = this.stock_received_but_not_billed;
-        data["default_provisional_account"] = this.default_provisional_account;
-        data["expenses_included_in_valuation"] = this.expenses_included_in_valuation;
-        data["manufacturing_section"] = this.manufacturing_section;
-        data["default_operating_cost_account"] = this.default_operating_cost_account;
+        data["disabled"] = this.disabled;
+        data["allow_alternative_item"] = this.allow_alternative_item;
+        data["is_stock_item"] = this.is_stock_item;
+        data["has_variants"] = this.has_variants;
+        data["opening_stock"] = this.opening_stock;
+        data["valuation_rate"] = this.valuation_rate;
+        data["standard_rate"] = this.standard_rate;
+        data["is_fixed_asset"] = this.is_fixed_asset;
+        data["auto_create_assets"] = this.auto_create_assets;
+        data["is_grouped_asset"] = this.is_grouped_asset;
+        data["asset_category"] = this.asset_category;
+        data["asset_naming_series"] = this.asset_naming_series;
+        data["over_delivery_receipt_allowance"] = this.over_delivery_receipt_allowance;
+        data["over_billing_allowance"] = this.over_billing_allowance;
+        data["image"] = this.image;
+        data["section_break_11"] = this.section_break_11;
+        data["description"] = this.description;
+        data["brand"] = this.brand;
+        data["unit_of_measure_conversion"] = this.unit_of_measure_conversion;
+        data["uoms"] = this.uoms;
         data["dashboard_tab"] = this.dashboard_tab;
+        data["inventory_section"] = this.inventory_section;
+        data["inventory_settings_section"] = this.inventory_settings_section;
+        data["shelf_life_in_days"] = this.shelf_life_in_days;
+        data["end_of_life"] = this.end_of_life ? this.end_of_life.toISOString() : <any>undefined;
+        data["default_material_request_type"] = this.default_material_request_type;
+        data["valuation_method"] = this.valuation_method;
+        data["column_break1"] = this.column_break1;
+        data["warranty_period"] = this.warranty_period;
+        data["weight_per_unit"] = this.weight_per_unit;
+        data["weight_uom"] = this.weight_uom;
+        data["allow_negative_stock"] = this.allow_negative_stock;
+        data["sb_barcodes"] = this.sb_barcodes;
+        data["barcodes"] = this.barcodes;
+        data["reorder_section"] = this.reorder_section;
+        data["reorder_levels"] = this.reorder_levels;
+        data["serial_nos_and_batches"] = this.serial_nos_and_batches;
+        data["has_batch_no"] = this.has_batch_no;
+        data["create_new_batch"] = this.create_new_batch;
+        data["batch_number_series"] = this.batch_number_series;
+        data["has_expiry_date"] = this.has_expiry_date;
+        data["retain_sample"] = this.retain_sample;
+        data["sample_quantity"] = this.sample_quantity;
+        data["column_break_37"] = this.column_break_37;
+        data["has_serial_no"] = this.has_serial_no;
+        data["serial_no_series"] = this.serial_no_series;
+        data["variants_section"] = this.variants_section;
+        data["variant_of"] = this.variant_of;
+        data["variant_based_on"] = this.variant_based_on;
+        data["attributes"] = this.attributes;
+        data["accounting"] = this.accounting;
+        data["deferred_accounting_section"] = this.deferred_accounting_section;
+        data["enable_deferred_expense"] = this.enable_deferred_expense;
+        data["no_of_months_exp"] = this.no_of_months_exp;
+        data["column_break_9s9o"] = this.column_break_9s9o;
+        data["enable_deferred_revenue"] = this.enable_deferred_revenue;
+        data["no_of_months"] = this.no_of_months;
+        data["section_break_avcp"] = this.section_break_avcp;
+        data["item_defaults"] = this.item_defaults;
+        data["purchasing_tab"] = this.purchasing_tab;
+        data["purchase_uom"] = this.purchase_uom;
+        data["min_order_qty"] = this.min_order_qty;
+        data["safety_stock"] = this.safety_stock;
+        data["is_purchase_item"] = this.is_purchase_item;
+        data["purchase_details_cb"] = this.purchase_details_cb;
+        data["lead_time_days"] = this.lead_time_days;
+        data["last_purchase_rate"] = this.last_purchase_rate;
+        data["is_customer_provided_item"] = this.is_customer_provided_item;
+        data["customer"] = this.customer;
+        data["supplier_details"] = this.supplier_details;
+        data["delivered_by_supplier"] = this.delivered_by_supplier;
+        data["column_break2"] = this.column_break2;
+        data["supplier_items"] = this.supplier_items;
+        data["foreign_trade_details"] = this.foreign_trade_details;
+        data["country_of_origin"] = this.country_of_origin;
+        data["column_break_59"] = this.column_break_59;
+        data["customs_tariff_number"] = this.customs_tariff_number;
+        data["sales_details"] = this.sales_details;
+        data["sales_uom"] = this.sales_uom;
+        data["grant_commission"] = this.grant_commission;
+        data["is_sales_item"] = this.is_sales_item;
+        data["column_break3"] = this.column_break3;
+        data["max_discount"] = this.max_discount;
+        data["customer_details"] = this.customer_details;
+        data["customer_items"] = this.customer_items;
+        data["item_tax_section_break"] = this.item_tax_section_break;
+        data["taxes"] = this.taxes;
+        data["quality_tab"] = this.quality_tab;
+        data["inspection_required_before_purchase"] = this.inspection_required_before_purchase;
+        data["quality_inspection_template"] = this.quality_inspection_template;
+        data["inspection_required_before_delivery"] = this.inspection_required_before_delivery;
+        data["manufacturing"] = this.manufacturing;
+        data["include_item_in_manufacturing"] = this.include_item_in_manufacturing;
+        data["is_sub_contracted_item"] = this.is_sub_contracted_item;
+        data["default_bom"] = this.default_bom;
+        data["column_break_74"] = this.column_break_74;
+        data["customer_code"] = this.customer_code;
+        data["default_item_manufacturer"] = this.default_item_manufacturer;
+        data["default_manufacturer_part_no"] = this.default_manufacturer_part_no;
+        data["total_projected_qty"] = this.total_projected_qty;
         return data;
     }
 }
 
-export interface ICompany {
-    /** details */
+export interface IItem {
+    /** Details */
     details?: string;
-    /** Company */
-    company_name: string;
-    /** Abbr */
-    abbr: string;
-    /** Default Currency */
-    default_currency: string;
-    /** Country */
-    country: string;
-    /** Is Group */
-    is_group?: boolean;
-    /** Default Holiday List */
-    default_holiday_list?: string;
-    /** cb0 */
-    cb0?: string;
-    /** Default Letter Head */
-    default_letter_head?: string;
-    /** Tax ID */
-    tax_id?: string;
-    /** Domain */
-    domain?: string;
-    /** Date of Establishment */
-    date_of_establishment?: Date;
-    /** Parent Company */
-    parent_company?: string;
-    /** Address & Contact */
-    company_info?: string;
-    /** Company Logo */
-    company_logo?: string;
-    /** Date of Incorporation */
-    date_of_incorporation?: Date;
-    /** Phone No */
-    phone_no?: string;
-    /** Email */
-    email?: string;
-    /** Company Description */
-    company_description?: string;
-    /** column_break1 */
-    column_break1?: string;
-    /** Date of Commencement */
-    date_of_commencement?: Date;
-    /** Fax */
-    fax?: string;
-    /** Website */
-    website?: string;
-    /** address_html */
-    address_html?: string;
-    /** registration_info */
-    registration_info?: string;
-    /** Registration Details */
-    registration_details?: string;
-    /** Lft */
-    lft?: number;
-    /** Rgt */
-    rgt?: number;
-    /** old_parent */
-    old_parent?: string;
-    /** Accounts */
-    accounts_tab?: string;
-    /** Chart of Accounts */
-    section_break_28?: string;
-    /** Create Chart Of Accounts Based On */
-    create_chart_of_accounts_based_on?: string;
-    /** Existing Company  */
-    existing_company?: string;
-    /** column_break_26 */
-    column_break_26?: string;
-    /** Chart Of Accounts Template */
-    chart_of_accounts?: string;
-    /** Default Accounts */
-    default_settings?: string;
-    /** Default Bank Account */
-    default_bank_account?: string;
-    /** Default Cash Account */
-    default_cash_account?: string;
-    /** Default Receivable Account */
-    default_receivable_account?: string;
-    /** Default Payable Account */
-    default_payable_account?: string;
-    /** Write Off Account */
-    write_off_account?: string;
-    /** Unrealized Profit / Loss Account */
-    unrealized_profit_loss_account?: string;
+    /** Series */
+    naming_series?: string;
+    /** Item Code */
+    item_code: string;
+    /** Item Name */
+    item_name?: string;
+    /** Item Group */
+    item_group: string;
+    /** Default Unit of Measure */
+    stock_uom: string;
     /** column_break0 */
     column_break0?: string;
-    /** Allow Account Creation Against Child Company */
-    allow_account_creation_against_child_company?: boolean;
-    /** Default Cost of Goods Sold Account */
-    default_expense_account?: string;
-    /** Default Income Account */
-    default_income_account?: string;
-    /** Default Payment Discount Account */
-    default_discount_account?: string;
-    /** Default Payment Terms Template */
-    payment_terms?: string;
-    /** Default Cost Center */
-    cost_center?: string;
-    /** Default Finance Book */
-    default_finance_book?: string;
-    /** Exchange Gain / Loss */
-    exchange_gain__loss_section?: string;
-    /** Exchange Gain / Loss Account */
-    exchange_gain_loss_account?: string;
-    /** column_break_sttp */
-    column_break_sttp?: string;
-    /** Unrealized Exchange Gain/Loss Account */
-    unrealized_exchange_gain_loss_account?: string;
-    /** Round Off */
-    round_off_section?: string;
-    /** Round Off Account */
-    round_off_account?: string;
-    /** Round Off Cost Center */
-    round_off_cost_center?: string;
-    /** column_break_jqfo */
-    column_break_jqfo?: string;
-    /** Round Off for Opening */
-    round_off_for_opening?: string;
-    /** Deferred Accounting */
-    deferred_accounting_section?: string;
-    /** Default Deferred Revenue Account */
-    default_deferred_revenue_account?: string;
-    /** column_break_dcdl */
-    column_break_dcdl?: string;
-    /** Default Deferred Expense Account */
-    default_deferred_expense_account?: string;
-    /** Advance Payments */
-    advance_payments_section?: string;
-    /** Book Advance Payments in Separate Party Account */
-    book_advance_payments_in_separate_party_account?: boolean;
-    /** Reconcile on Advance Payment Date */
-    reconcile_on_advance_payment_date?: boolean;
-    /** Reconciliation Takes Effect On */
-    reconciliation_takes_effect_on?: string;
-    /** column_break_fwcf */
-    column_break_fwcf?: string;
-    /** Default Advance Received Account */
-    default_advance_received_account?: string;
-    /** Default Advance Paid Account */
-    default_advance_paid_account?: string;
-    /** Exchange Rate Revaluation Settings */
-    exchange_rate_revaluation_settings_section?: string;
-    /** Auto Create Exchange Rate Revaluation */
-    auto_exchange_rate_revaluation?: boolean;
-    /** Frequency */
-    auto_err_frequency?: string;
-    /** Submit ERR Journals? */
-    submit_err_jv?: boolean;
-    /** Budget Detail */
-    budget_detail?: string;
-    /** Exception Budget Approver Role */
-    exception_budget_approver_role?: string;
-    /** Fixed Asset Defaults */
-    fixed_asset_defaults?: string;
-    /** Accumulated Depreciation Account */
-    accumulated_depreciation_account?: string;
-    /** Depreciation Expense Account */
-    depreciation_expense_account?: string;
-    /** Series for Asset Depreciation Entry (Journal Entry) */
-    series_for_depreciation_entry?: string;
-    /** Expenses Included In Asset Valuation */
-    expenses_included_in_asset_valuation?: string;
-    /** column_break_40 */
-    column_break_40?: string;
-    /** Gain/Loss Account on Asset Disposal */
-    disposal_account?: string;
-    /** Asset Depreciation Cost Center */
-    depreciation_cost_center?: string;
-    /** Capital Work In Progress Account */
-    capital_work_in_progress_account?: string;
-    /** Asset Received But Not Billed */
-    asset_received_but_not_billed?: string;
-    /** Buying and Selling */
-    buying_and_selling_tab?: string;
-    /** Buying & Selling Settings */
-    sales_settings?: string;
-    /** Default Buying Terms */
-    default_buying_terms?: string;
-    /** Sales Monthly History */
-    sales_monthly_history?: string;
-    /** Monthly Sales Target */
-    monthly_sales_target?: number;
-    /** Total Monthly Sales */
-    total_monthly_sales?: number;
-    /** column_break_goals */
-    column_break_goals?: string;
-    /** Default Selling Terms */
-    default_selling_terms?: string;
-    /** Default Warehouse for Sales Return */
-    default_warehouse_for_sales_return?: string;
-    /** Credit Limit */
-    credit_limit?: number;
-    /** Transactions Annual History */
-    transactions_annual_history?: string;
-    /** Stock and Manufacturing */
-    stock_tab?: string;
-    /** Stock Settings */
-    auto_accounting_for_stock_settings?: string;
-    /** Enable Perpetual Inventory */
-    enable_perpetual_inventory?: boolean;
-    /** Enable Provisional Accounting For Non Stock Items */
-    enable_provisional_accounting_for_non_stock_items?: boolean;
-    /** Default Inventory Account */
-    default_inventory_account?: string;
-    /** Stock Adjustment Account */
-    stock_adjustment_account?: string;
-    /** Default In-Transit Warehouse */
-    default_in_transit_warehouse?: string;
-    /** column_break_32 */
-    column_break_32?: string;
-    /** Stock Received But Not Billed */
-    stock_received_but_not_billed?: string;
-    /** Default Provisional Account */
-    default_provisional_account?: string;
-    /** Expenses Included In Valuation */
-    expenses_included_in_valuation?: string;
-    /** Manufacturing */
-    manufacturing_section?: string;
-    /** Default Operating Cost Account */
-    default_operating_cost_account?: string;
+    /** Disabled */
+    disabled?: boolean;
+    /** Allow Alternative Item */
+    allow_alternative_item?: boolean;
+    /** Maintain Stock */
+    is_stock_item?: boolean;
+    /** Has Variants */
+    has_variants?: boolean;
+    /** Opening Stock */
+    opening_stock?: number;
+    /** Valuation Rate */
+    valuation_rate?: number;
+    /** Standard Selling Rate */
+    standard_rate?: number;
+    /** Is Fixed Asset */
+    is_fixed_asset?: boolean;
+    /** Auto Create Assets on Purchase */
+    auto_create_assets?: boolean;
+    /** Create Grouped Asset */
+    is_grouped_asset?: boolean;
+    /** Asset Category */
+    asset_category?: string;
+    /** Asset Naming Series */
+    asset_naming_series?: string;
+    /** Over Delivery/Receipt Allowance (%) */
+    over_delivery_receipt_allowance?: number;
+    /** Over Billing Allowance (%) */
+    over_billing_allowance?: number;
+    /** Image */
+    image?: string;
+    /** Description */
+    section_break_11?: string;
+    /** Description */
+    description?: string;
+    /** Brand */
+    brand?: string;
+    /** Units of Measure */
+    unit_of_measure_conversion?: string;
+    /** UOMs */
+    uoms?: string;
     /** Dashboard */
     dashboard_tab?: string;
+    /** Inventory */
+    inventory_section?: string;
+    /** Inventory Settings */
+    inventory_settings_section?: string;
+    /** Shelf Life In Days */
+    shelf_life_in_days?: number;
+    /** End of Life */
+    end_of_life?: Date;
+    /** Default Material Request Type */
+    default_material_request_type?: string;
+    /** Valuation Method */
+    valuation_method?: string;
+    /** column_break1 */
+    column_break1?: string;
+    /** Warranty Period (in days) */
+    warranty_period?: string;
+    /** Weight Per Unit */
+    weight_per_unit?: number;
+    /** Weight UOM */
+    weight_uom?: string;
+    /** Allow Negative Stock */
+    allow_negative_stock?: boolean;
+    /** Barcodes */
+    sb_barcodes?: string;
+    /** Barcodes */
+    barcodes?: string;
+    /** Auto re-order */
+    reorder_section?: string;
+    /** Reorder level based on Warehouse */
+    reorder_levels?: string;
+    /** Serial Nos and Batches */
+    serial_nos_and_batches?: string;
+    /** Has Batch No */
+    has_batch_no?: boolean;
+    /** Automatically Create New Batch */
+    create_new_batch?: boolean;
+    /** Batch Number Series */
+    batch_number_series?: string;
+    /** Has Expiry Date */
+    has_expiry_date?: boolean;
+    /** Retain Sample */
+    retain_sample?: boolean;
+    /** Max Sample Quantity */
+    sample_quantity?: number;
+    /** column_break_37 */
+    column_break_37?: string;
+    /** Has Serial No */
+    has_serial_no?: boolean;
+    /** Serial Number Series */
+    serial_no_series?: string;
+    /** Variants */
+    variants_section?: string;
+    /** Variant Of */
+    variant_of?: string;
+    /** Variant Based On */
+    variant_based_on?: string;
+    /** Variant Attributes */
+    attributes?: string;
+    /** Accounting */
+    accounting?: string;
+    /** Deferred Accounting */
+    deferred_accounting_section?: string;
+    /** Enable Deferred Expense */
+    enable_deferred_expense?: boolean;
+    /** No of Months (Expense) */
+    no_of_months_exp?: number;
+    /** column_break_9s9o */
+    column_break_9s9o?: string;
+    /** Enable Deferred Revenue */
+    enable_deferred_revenue?: boolean;
+    /** No of Months (Revenue) */
+    no_of_months?: number;
+    /** section_break_avcp */
+    section_break_avcp?: string;
+    /** Item Defaults */
+    item_defaults?: string;
+    /** Purchasing */
+    purchasing_tab?: string;
+    /** Default Purchase Unit of Measure */
+    purchase_uom?: string;
+    /** Minimum Order Qty */
+    min_order_qty?: number;
+    /** Safety Stock */
+    safety_stock?: number;
+    /** Allow Purchase */
+    is_purchase_item?: boolean;
+    /** purchase_details_cb */
+    purchase_details_cb?: string;
+    /** Lead Time in days */
+    lead_time_days?: number;
+    /** Last Purchase Rate */
+    last_purchase_rate?: number;
+    /** Is Customer Provided Item */
+    is_customer_provided_item?: boolean;
+    /** Customer */
+    customer?: string;
+    /** Supplier Details */
+    supplier_details?: string;
+    /** Delivered by Supplier (Drop Ship) */
+    delivered_by_supplier?: boolean;
+    /** column_break2 */
+    column_break2?: string;
+    /** Supplier Items */
+    supplier_items?: string;
+    /** Foreign Trade Details */
+    foreign_trade_details?: string;
+    /** Country of Origin */
+    country_of_origin?: string;
+    /** column_break_59 */
+    column_break_59?: string;
+    /** Customs Tariff Number */
+    customs_tariff_number?: string;
+    /** Sales */
+    sales_details?: string;
+    /** Default Sales Unit of Measure */
+    sales_uom?: string;
+    /** Grant Commission */
+    grant_commission?: boolean;
+    /** Allow Sales */
+    is_sales_item?: boolean;
+    /** column_break3 */
+    column_break3?: string;
+    /** Max Discount (%) */
+    max_discount?: number;
+    /** Customer Details */
+    customer_details?: string;
+    /** Customer Items */
+    customer_items?: string;
+    /** Tax */
+    item_tax_section_break?: string;
+    /** Taxes */
+    taxes?: string;
+    /** Quality */
+    quality_tab?: string;
+    /** Inspection Required before Purchase */
+    inspection_required_before_purchase?: boolean;
+    /** Quality Inspection Template */
+    quality_inspection_template?: string;
+    /** Inspection Required before Delivery */
+    inspection_required_before_delivery?: boolean;
+    /** Manufacturing */
+    manufacturing?: string;
+    /** Include Item In Manufacturing */
+    include_item_in_manufacturing?: boolean;
+    /** Supply Raw Materials for Purchase */
+    is_sub_contracted_item?: boolean;
+    /** Default BOM */
+    default_bom?: string;
+    /** column_break_74 */
+    column_break_74?: string;
+    /** Customer Code */
+    customer_code?: string;
+    /** Default Item Manufacturer */
+    default_item_manufacturer?: string;
+    /** Default Manufacturer Part No */
+    default_manufacturer_part_no?: string;
+    /** Total Projected Qty */
+    total_projected_qty?: number;
 
     [key: string]: any;
 }
 
 export class Anonymous implements IAnonymous {
-    data?: Company[];
+    data?: Item[];
 
     [key: string]: any;
 
@@ -815,7 +791,7 @@ export class Anonymous implements IAnonymous {
             if (Array.isArray(_data["data"])) {
                 this.data = [] as any;
                 for (let item of _data["data"])
-                    this.data!.push(Company.fromJS(item));
+                    this.data!.push(Item.fromJS(item));
             }
         }
     }
@@ -843,7 +819,7 @@ export class Anonymous implements IAnonymous {
 }
 
 export interface IAnonymous {
-    data?: Company[];
+    data?: Item[];
 
     [key: string]: any;
 }
