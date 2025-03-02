@@ -100,6 +100,7 @@ services:
       SOCKETIO_PORT: "9000"
       DOMAIN: $DOMAIN
       ADMIN_PASSWORD: $PG_PASSWORD
+      RESTORE: ${RESTORE:-false}
     entrypoint:
       - bash
       - -c
@@ -127,9 +128,15 @@ services:
           fi
         done;
         echo "sites/common_site_config.json found";
-        bench new-site --mariadb-user-host-login-scope='%' --admin-password=$$ADMIN_PASSWORD --db-root-username=root --db-root-password=$$MARIADB_ROOT_PASSWORD --install-app erpnext --install-app ebay --set-default $$DOMAIN;
-        bench --site $$DOMAIN migrate;
-        ./env/bin/gunicorn --chdir=/home/frappe/frappe-bench/sites --bind=0.0.0.0:8000 --threads=4 --workers=2 --worker-class=gthread --worker-tmp-dir=/dev/shm --timeout=120 --preload frappe.app:application;
+        if [ "${RESTORE:-false}" = "true" ]; then
+          echo "Restoring backup...";
+          while true; do sleep 86400; done;
+        else
+          bench new-site --mariadb-user-host-login-scope='%' --admin-password=$$ADMIN_PASSWORD --db-root-username=root --db-root-password=$$MARIADB_ROOT_PASSWORD --install-app erpnext --install-app ebay --set-default $$DOMAIN;
+          bench --site $$DOMAIN migrate;
+          ./env/bin/gunicorn --chdir=/home/frappe/frappe-bench/sites --bind=0.0.0.0:8000 --threads=4 --workers=2 --worker-class=gthread --worker-tmp-dir=/dev/shm --timeout=120 --preload frappe.app:application;
+        fi;
+
 
   ebay_frappe_frontend:
     image: ghcr.io/artyompetrov/frappe:latest
