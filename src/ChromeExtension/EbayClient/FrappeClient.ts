@@ -28,7 +28,7 @@ export class FrappeBackendClient {
      * @return Successful response
      */
     item(fields: string | undefined, filters: string | undefined, order_by: string | undefined, limit_start: number | undefined, limit_page_length: number | undefined): Promise<Anonymous> {
-        let url_ = this.baseUrl + "/api/resource/item?";
+        let url_ = this.baseUrl + "/api/resource/Item?";
         if (fields === null)
             throw new Error("The parameter 'fields' cannot be null.");
         else if (fields !== undefined)

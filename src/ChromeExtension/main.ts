@@ -32,8 +32,8 @@ const submitId = "submitButton"
 const backendUrl = `https://tubessale.ddns.net/`;
 const baseApiUrl = `${backendUrl}api/ebay/v1`;
 const frappeBaseApiUrl = "https://tubessale.ddns.net:8081"
-const frappeAuthRedirectUrl = `https://localhost:8081/api/method/ebay.api.chrome_extension_auth_page.auth`;
 const extensionAuthRedirectUrl = `${backendUrl}chrome_extensions/auth`;
+const frappeAuthRedirectUrl = `${frappeBaseApiUrl}/api/method/ebay.api.chrome_extension_auth_page.auth`;
 const ebayAuthRedirectUrl = `https://www.ebay.com/`;
 //todo нужно как-то защитить данные авторизации на ebay
 const ebayRedirectUriCode = "Artem_Petrov-ArtemPet-tubesS-dsrgu"
@@ -95,8 +95,11 @@ const workOnSites: RegExp[] = [
     ...searchOnSites,
     ebaySiteRegex,
     /^localhost$/i,
+    /^localhost:8080$/i,
     /^localhost:8081$/i,
-    /^tubessale\.ddns\.net$/i
+    /^tubessale\.ddns\.net$/i,
+    /^tubessale\.ddns\.net:8080$/i,
+    /^tubessale\.ddns\.net:8081$/i
 ];
 
 class ShippingParameters {
@@ -446,8 +449,8 @@ async function createOpenMultipleButton(): Promise<HTMLDivElement> {
 
         let lastWindow: WindowProxy;
 
-        for (let x of _needActualizationLotsIds.slice(0, batchOpen)) {
-            let url = "https://www.ebay.com/itm/" + x + "?" + currentProductIdParamName + "=" + _currentProductId;
+        for (let lotId of _needActualizationLotsIds.slice(0, batchOpen)) {
+            let url = "https://www.ebay.com/itm/" + lotId + "?" + currentProductIdParamName + "=" + _currentProductId;
             lastWindow = window.open(url, '_blank');
 
             await sleep(50);
@@ -1477,8 +1480,10 @@ async function saveCodeVerifier() {
 }
 
 async function ebayPages(currentPage: string) {
+    await chrome.storage.local.set({return_page: document.location.href})
+    
     let frappeOAuth2Client: OAuth2Client = getFrappeOAuth2Client();
-    let frappeClient = new Frappe.FrappeBackendClient(frappeBaseApiUrl, getAuthorizeFetch(frappeOAuth2Client, frappeScope, "frappeTokenStore", extensionAuthRedirectUrl));
+    let frappeClient = new Frappe.FrappeBackendClient(frappeBaseApiUrl, getAuthorizeFetch(frappeOAuth2Client, frappeScope, "frappeTokenStore", frappeAuthRedirectUrl));
     let x = await frappeClient.item(
         undefined,
         undefined,
@@ -1501,7 +1506,7 @@ async function ebayPages(currentPage: string) {
         return;
     }
 
-    await chrome.storage.local.set({return_page: document.location.href})
+    
     let authorizeFetch = getAuthorizeFetch(ebayOAuth2Client, ebayApiScope, "ebayTokenStore", ebayRedirectUriCode)
 
     let ebayClient = new EbayClient("https://api.ebay.com/buy/browse/v1", authorizeFetch);
@@ -1723,6 +1728,7 @@ function getFrappeOAuth2Client(): OAuth2Client {
         clientId: 'rucemhiaqo',
         tokenEndpoint: '/api/method/frappe.integrations.oauth2.get_token',
         authorizationEndpoint: '/api/method/frappe.integrations.oauth2.authorize',
+        //clientSecret: "3533fa9cf9",
         fetch: fetchResource
     });
 }
@@ -1773,7 +1779,7 @@ export async function run() {
 
     let currentPage = location.protocol + '//' + location.host + location.pathname
 
-    if (currentPage === extensionAuthRedirectUrl) {
+    if (currentPage === frappeAuthRedirectUrl) {
         await frappeExtensionAuthPage();
     }
     else if (currentPage === extensionAuthRedirectUrl) {
@@ -1782,8 +1788,7 @@ export async function run() {
         await ebayApiAuthPage();
     } else if (ebaySiteRegex.test(location.host)) {
         await ebayPages(currentPage);
-    }
-    else if (matchesAnyRegex(searchOnSites, location.host)) {
+    } else if (matchesAnyRegex(searchOnSites, location.host)) {
         await searchSitePages();
     }
 }
