@@ -31,7 +31,7 @@ const errorElementId = "errorElement"
 const submitId = "submitButton"
 const backendUrl = `https://tubessale.ddns.net/`;
 const baseApiUrl = `${backendUrl}api/ebay/v1`;
-const frappeBaseApiUrl = "https://localhost:8081"
+const frappeBaseApiUrl = "https://tubessale.ddns.net:8081"
 const frappeAuthRedirectUrl = `https://localhost:8081/api/method/ebay.api.chrome_extension_auth_page.auth`;
 const extensionAuthRedirectUrl = `${backendUrl}chrome_extensions/auth`;
 const ebayAuthRedirectUrl = `https://www.ebay.com/`;
@@ -1719,11 +1719,10 @@ function getEbayOAuth2Client(): OAuth2Client {
 
 function getFrappeOAuth2Client(): OAuth2Client {
     return new OAuth2Client({
-        server: "https://localhost:8081/",
-        clientId: 'pgv0c24kcj',
-        tokenEndpoint: 'https://localhost:8080/api/method/frappe.integrations.oauth2.get_token',
-        authorizationEndpoint: 'https://localhost:8081/api/method/frappe.integrations.oauth2.authorize',
-   //     clientSecret: "df1b867a2d",
+        server: frappeBaseApiUrl,
+        clientId: 'rucemhiaqo',
+        tokenEndpoint: '/api/method/frappe.integrations.oauth2.get_token',
+        authorizationEndpoint: '/api/method/frappe.integrations.oauth2.authorize',
         fetch: fetchResource
     });
 }
