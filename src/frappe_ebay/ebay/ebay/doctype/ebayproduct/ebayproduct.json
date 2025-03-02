@@ -7,7 +7,8 @@
  "field_order": [
   "item",
   "ebay_search_names",
-  "ru_search_names"
+  "ru_search_names",
+  "links"
  ],
  "fields": [
   {
@@ -31,11 +32,18 @@
    "fieldtype": "Table",
    "label": "Ru search names",
    "options": "EbayRuSearchName"
+  },
+  {
+   "fieldname": "links",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Links",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-02 07:10:50.296672",
+ "modified": "2025-03-02 10:37:59.532012",
  "modified_by": "Administrator",
  "module": "Ebay",
  "name": "EbayProduct",
