@@ -32,7 +32,7 @@ print("!!! creating backups")
 print("Frappe backups")
 print("Removing old backups on host")
 subprocess.run([
-    r"ssh",
+    "ssh",
     "root@" + from_host,
     "rm",
     "-drf",
@@ -41,7 +41,7 @@ subprocess.run([
 
 print("Removing old backups inside container")
 subprocess.run([
-    r"ssh",
+    "ssh",
     "root@" + from_host,
     "docker",
     "exec",
@@ -53,7 +53,7 @@ subprocess.run([
 
 print("Creating new backup")
 subprocess.run([
-    r"ssh",
+    "ssh",
     "root@" + from_host,
     "docker",
     "exec",
@@ -70,7 +70,7 @@ subprocess.run([
 
 print("Copy backup to host")
 subprocess.run([
-    r"ssh",
+    "ssh",
     "root@" + from_host,
     "docker",
     "cp",
