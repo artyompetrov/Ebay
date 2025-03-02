@@ -124,10 +124,6 @@ print("!!! starting containers with RESTORE option")
 subprocess.run(["docker-compose", "-f", "./deploy/docker-compose.yaml", "--env-file", "./deploy/localhost.env", "up", "-d"], env={"RESTORE": "true"})
 time.sleep(5)
 
-print("!!! stoping ebay_helper")
-subprocess.run(["docker", "container", "stop", "ebay_helper"])
-time.sleep(5)
-
 # Удаление локальных баз данных
 print("!!! dropping local databases")
 subprocess.run([
@@ -191,9 +187,6 @@ subprocess.run([
     "--command", 'TRUNCATE TABLE "PersistedGrants";'
 ])
 time.sleep(5)
-# Запуск контейнеров
-print("!!! starting ebay_helper")
-subprocess.run(["docker", "container", "start", "ebay_helper"])
 
 print("frappe restore")
 
