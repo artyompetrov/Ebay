@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"ODXEgjM-38\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Ebay</span>\",\"col\":12}},{\"id\":\"2KOmsnv721\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"EbayProduct\",\"col\":4}}]",
+ "content": "[{\"id\":\"ODXEgjM-38\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Ebay</span>\",\"col\":12}},{\"id\":\"2wmJBx40vg\",\"type\":\"card\",\"data\":{\"card_name\":\"\u0421\u0441\u044b\u043b\u043a\u0438\",\"col\":4}}]",
  "creation": "2025-02-22 18:02:25.150582",
  "custom_blocks": [],
  "docstatus": 0,
@@ -12,8 +12,28 @@
  "indicator_color": "",
  "is_hidden": 0,
  "label": "Ebay",
- "links": [],
- "modified": "2025-03-02 06:00:28.419999",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "\u0421\u0441\u044b\u043b\u043a\u0438",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "EbayProduct",
+   "link_count": 0,
+   "link_to": "EbayProduct",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2025-03-02 06:23:27.389912",
  "modified_by": "Administrator",
  "module": "Ebay",
  "name": "Ebay",
@@ -21,13 +41,7 @@
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,
- "quick_lists": [
-  {
-   "document_type": "EbayProduct",
-   "label": "EbayProduct",
-   "quick_list_filter": "[]"
-  }
- ],
+ "quick_lists": [],
  "roles": [],
  "sequence_id": 28.0,
  "shortcuts": [],
