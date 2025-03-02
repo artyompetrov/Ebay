@@ -1720,9 +1720,9 @@ function getEbayOAuth2Client(): OAuth2Client {
 function getFrappeOAuth2Client(): OAuth2Client {
     return new OAuth2Client({
         server: "https://localhost:8081/",
-        clientId: 'giffi80q9d',
-        tokenEndpoint: '/api/method/frappe.integrations.oauth2.get_token',
-        authorizationEndpoint: '/api/method/frappe.integrations.oauth2.authorize',
+        clientId: 'pgv0c24kcj',
+        tokenEndpoint: 'https://localhost:8080/api/method/frappe.integrations.oauth2.get_token',
+        authorizationEndpoint: 'https://localhost:8081/api/method/frappe.integrations.oauth2.authorize',
    //     clientSecret: "df1b867a2d",
         fetch: fetchResource
     });
