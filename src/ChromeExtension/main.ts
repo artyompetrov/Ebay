@@ -1482,17 +1482,17 @@ async function saveCodeVerifier() {
 async function ebayPages(currentPage: string) {
     await chrome.storage.local.set({return_page: document.location.href})
     
-    let frappeOAuth2Client: OAuth2Client = getFrappeOAuth2Client();
-    let frappeClient = new Frappe.FrappeBackendClient(frappeBaseApiUrl, getAuthorizeFetch(frappeOAuth2Client, frappeScope, "frappeTokenStore", frappeAuthRedirectUrl));
-    let x = await frappeClient.item(
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined
-    );
-    
-    console.log(x)
+    // let frappeOAuth2Client: OAuth2Client = getFrappeOAuth2Client();
+    // let frappeClient = new Frappe.FrappeBackendClient(frappeBaseApiUrl, getAuthorizeFetch(frappeOAuth2Client, frappeScope, "frappeTokenStore", frappeAuthRedirectUrl));
+    // let x = await frappeClient.item(
+    //     undefined,
+    //     undefined,
+    //     undefined,
+    //     undefined,
+    //     undefined
+    // );
+    //
+    // console.log(x)
 
 
     let ebayOAuth2Client: OAuth2Client = getEbayOAuth2Client();
