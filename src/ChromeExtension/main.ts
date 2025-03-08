@@ -16,7 +16,6 @@ import {
 import {EbayClient, Item} from "./EbayClient/EbayClient"
 import {generateCodeVerifier, OAuth2Client} from '@badgateway/oauth2-client';
 import {FetchWrapperCustom} from "./FetchWrapperCustom";
-import {EbayShoppingApiClient} from "./EbayShoppingApiClient";
 import { v4 as uuidv4 } from 'uuid';
 
 const productFieldName = "productId";
@@ -268,7 +267,7 @@ async function sleepElementLoaded(selector: string, elementToSearchIn: Document 
 }
 
 
-async function createPanel(backendClient: EbayToolBackendClient, ebayClient: EbayClient, ebayShoppingApiClient: EbayShoppingApiClient): Promise<HTMLDivElement> {
+async function createPanel(backendClient: EbayToolBackendClient, ebayClient: EbayClient): Promise<HTMLDivElement> {
     let bodyElement = await sleepElementLoaded('body', document);
 
     let panel = <HTMLDivElement>bodyElement.querySelector('div.' + panelClass)
@@ -377,7 +376,7 @@ async function createPanel(backendClient: EbayToolBackendClient, ebayClient: Eba
     `;
 
     form.addEventListener("submit", async function (event: SubmitEvent) {
-        await handleSubmit(event, backendClient, ebayClient, ebayShoppingApiClient)
+        await handleSubmit(event, backendClient, ebayClient)
     });
 
     div.appendChild(form)
@@ -465,7 +464,7 @@ async function createOpenMultipleButton(): Promise<HTMLDivElement> {
     return div
 }
 
-async function handleSubmit(event: SubmitEvent, backendClient: EbayToolBackendClient, ebayClient: EbayClient, ebayShoppingApiClient: EbayShoppingApiClient) {
+async function handleSubmit(event: SubmitEvent, backendClient: EbayToolBackendClient, ebayClient: EbayClient) {
     try {
         event.preventDefault();
         let data = new FormData(<HTMLFormElement>event.target);
@@ -494,7 +493,7 @@ async function handleSubmit(event: SubmitEvent, backendClient: EbayToolBackendCl
         console.log("Sending to backend: " + JSON.stringify(_lotInfo))
         await backendClient.upsertLotInfo(_lotInfo, productId)
 
-        await productPage(backendClient, ebayClient, ebayShoppingApiClient)
+        await productPage(backendClient, ebayClient)
 
         if (_serverAndEbayAreEqual) {
             window.close()
@@ -1010,7 +1009,7 @@ function getShippingCountry(ebayItem: Item) {
     return currentCountry;
 }
 
-async function getEbayItem(ebayClient: EbayClient, ebayShoppingApiClient: EbayShoppingApiClient) {
+async function getEbayItem(ebayClient: EbayClient) {
     let ebayItem = await ebayClient.getItemByLegacyId(undefined,
         _lotInfo.lotId.toString(),
         undefined,
@@ -1019,51 +1018,53 @@ async function getEbayItem(ebayClient: EbayClient, ebayShoppingApiClient: EbaySh
         marketplaceId);
 
     let shippingCountry = getShippingCountry(ebayItem);
-    let zipCode = supportedShippingCountries.get(shippingCountry).zip ?? ""
-    let shippingCostsXml = await ebayShoppingApiClient.getShippingCosts(_lotInfo.lotId.toString(), shippingCountry, zipCode)
-
-    await fillLotInfo(ebayItem, shippingCountry, shippingCostsXml)
-}
-
-async function fillShipping(shippingCostsXml: string, shippingCountry: string)  {
-    console.log(shippingCostsXml)
-
-    let parser = new DOMParser();
-    let doc = parser.parseFromString(shippingCostsXml, "application/xml");
-
-    let errorCode = doc.querySelector("GetShippingCostsResponse Errors ErrorCode")
+    let zipCode = supportedShippingCountries.get(shippingCountry).zip ?? undefined
     
-    if (errorCode) {
-        // Item has no shipping option.
-        if (errorCode.innerHTML === '10.6') {
-            lotNotSupported = true;
-            console.log("Log not supported because Item has no shipping option");
-            return
-        }
-        throw Error("Unexpected error during shipping price extraction: " + shippingCostsXml)
-    }
-    
-    let shippingCostElement = doc.querySelector("ShippingDetails ShippingServiceCost")
-    if (!shippingCostElement) {
-        shippingCostElement = doc.querySelector("ListedShippingServiceCost")
-    }
-    let shippingCurrency = shippingCostElement.getAttribute("currencyID")
-    if (_lotInfo.currency != shippingCurrency) throw new Error("Shipping and lot currency mismatch lot + " + _lotInfo.currency + " shipping " + shippingCurrency)
-    _lotInfo.shipping = parseFloat(shippingCostElement.innerHTML)
-
-    let shippingAdditionalCostElement = doc.querySelector("ShippingDetails ShippingServiceAdditionalCost")
-    if (shippingAdditionalCostElement) {
-        let shippingAdditionalCurrency = shippingAdditionalCostElement.getAttribute("currencyID")
-        if (_lotInfo.currency != shippingAdditionalCurrency) throw new Error("Shipping and lot currency mismatch lot + " + _lotInfo.currency + " shipping additional " + shippingAdditionalCurrency)
-        _lotInfo.shippingAdditional = parseFloat(shippingAdditionalCostElement.innerHTML)
+    let shippingHeader: string;
+    if (zipCode) {
+        shippingHeader = `contextualLocation=country%3D${shippingCountry}%2Czip%3D${zipCode}`;
     } else {
-        _lotInfo.shippingAdditional = 0
+        shippingHeader = `contextualLocation=country%3D${shippingCountry}`;
     }
+    
+    let ebayItemWithShipping = await ebayClient.getItemByLegacyId(undefined,
+        _lotInfo.lotId.toString(),
+        undefined,
+        undefined,
+        shippingHeader,
+        marketplaceId);
 
-    _lotInfo.shippingCountry = shippingCountry
+    await fillLotInfo(ebayItemWithShipping, shippingCountry)
 }
 
-async function fillLotInfo(ebayItem: Item, shippingCountry: string, shippingCostXml: string) {
+function addShipping(ebayItem: Item) {
+    let shipping = undefined;
+    let shippingAdditional = undefined;
+    for (let shippingOption of ebayItem.shippingOptions) {
+
+        if (shippingOption.shippingCost.value < shipping || shipping === undefined) {
+            shipping = parseFloat(shippingOption.shippingCost.value);
+            shippingAdditional = shippingOption.additionalShippingCostPerUnit?.value;
+            if (shippingAdditional) {
+                shippingAdditional = parseFloat(shippingAdditional);
+            }
+
+            let shippingCurrency = shippingOption.shippingCost.currency
+            let shippingAdditionalCurrency = shippingOption.additionalShippingCostPerUnit?.currency
+
+            if (_lotInfo.currency != shippingCurrency)
+                throw new Error("Shipping and lot currency mismatch lot + " + _lotInfo.currency + " shipping " + shippingCurrency);
+
+            if (shippingAdditionalCurrency && _lotInfo.currency != shippingAdditionalCurrency)
+                throw new Error("Shipping additional and lot currency mismatch lot + " + _lotInfo.currency + " shipping " + shippingAdditionalCurrency);
+        }
+    }
+
+    _lotInfo.shipping = shipping;
+    _lotInfo.shippingAdditional = shippingAdditional;
+}
+
+async function fillLotInfo(ebayItem: Item, shippingCountry: string) {
     console.log(JSON.stringify(ebayItem))
 
     if (ebayItem.price.convertedFromValue === undefined) {
@@ -1088,7 +1089,8 @@ async function fillLotInfo(ebayItem: Item, shippingCountry: string, shippingCost
 
     _lotInfo.shortDescription = ebayItem.shortDescription
 
-    await fillShipping(shippingCostXml, shippingCountry);
+    _lotInfo.shippingCountry = shippingCountry;
+    addShipping(ebayItem);
 
     //todo categoryPath
 }
@@ -1166,14 +1168,14 @@ async function waitForPurchaseHistoryAndTitleDate(){
     _lotInfo.titleChangeDate = _titleChangeDate;
 }
 
-async function getDataFromPage(backendClient: EbayToolBackendClient, ebayClient: EbayClient, ebayShoppingApiClient: EbayShoppingApiClient) {
+async function getDataFromPage(backendClient: EbayToolBackendClient, ebayClient: EbayClient) {
     let lotId = location.pathname.match(/\/itm\/([0-9]+)/)[1];
     _lotInfo.lotId = parseInt(lotId)
     
     await Promise.all([
         fillProduct(backendClient),
         fillIsIgnored(backendClient),
-        getEbayItem(ebayClient, ebayShoppingApiClient),
+        getEbayItem(ebayClient),
         getServerLotInfo(backendClient),
     ]);
 
@@ -1258,12 +1260,12 @@ async function hideErrorsAndEnableSubmit() {
     errorDiv.innerHTML = ""
 }
 
-async function productPage(backendClient: EbayToolBackendClient, ebayClient: EbayClient, ebayShoppingApiClient: EbayShoppingApiClient) {
+async function productPage(backendClient: EbayToolBackendClient, ebayClient: EbayClient) {
     console.log("productPage")
 
-    await createPanel(backendClient, ebayClient, ebayShoppingApiClient)
+    await createPanel(backendClient, ebayClient)
     try {
-        await getDataFromPage(backendClient, ebayClient, ebayShoppingApiClient);
+        await getDataFromPage(backendClient, ebayClient);
         await hideErrorsAndEnableSubmit()
     } catch (error) {
         await showAndSaveError(error, backendClient);
@@ -1510,11 +1512,10 @@ async function ebayPages(currentPage: string) {
     let authorizeFetch = getAuthorizeFetch(ebayOAuth2Client, ebayApiScope, "ebayTokenStore", ebayRedirectUriCode)
 
     let ebayClient = new EbayClient("https://api.ebay.com/buy/browse/v1", authorizeFetch);
-    let ebayShoppingApiClient = new EbayShoppingApiClient(authorizeFetch)
     let backendClient = new EbayToolBackendClient(baseApiUrl, getAuthorizeFetch(backendOAuth2Client, backendApiScope, "ebayToolTokenStore", extensionAuthRedirectUrl));
     try {
         if (currentPage.startsWith("https://www.ebay.com/itm/")) {
-            await productPage(backendClient, ebayClient, ebayShoppingApiClient);
+            await productPage(backendClient, ebayClient);
         } else if (currentPage.startsWith("https://www.ebay.com/sch/")) {
             await searchPage(backendClient);
         }
@@ -1717,7 +1718,7 @@ function getEbayOAuth2Client(): OAuth2Client {
         clientId: 'ArtemPet-tubesSea-PRD-63b5a5e64-416f2036',
         tokenEndpoint: 'https://api.ebay.com/identity/v1/oauth2/token',
         authorizationEndpoint: '/oauth2/authorize',
-        clientSecret: "PRD-3b5a5e64bd92-2c90-41e9-bff8-e256",
+        clientSecret: "PRD-689869074719-68a0-4a78-9b78-8c3f",
         fetch: fetchResource
     });
 }
