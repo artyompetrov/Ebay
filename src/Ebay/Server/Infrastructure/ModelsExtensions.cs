@@ -68,8 +68,7 @@ internal static class ModelsExtensions
             titleChangeDate: lot.TitleChangeDate.ToString(WellKnown.Formats.TimeFormat),
             shipping: lot.Shipping,
             shippingAdditional: lot.ShippingAdditional,
-            shortDescription: lot.ShortDescription,
-            lotSize: lot.LotSize
+            shortDescription: lot.ShortDescription
         ),
         productId: lot.ProductId
     );
@@ -119,8 +118,7 @@ internal static class ModelsExtensions
             LocatedIn = lotInfo.LocatedIn,
             Categories = lotInfo.Categories.ToDictionary(x => x.Type, x => x.Value),
             TitleChangeDate = DateTime.Parse(lotInfo.TitleChangeDate).ToUniversalTime(),
-            UpdateDate = updateDate,
-            LotSize = lotInfo.LotSize
+            UpdateDate = updateDate
         };
 
     public static Purchase ToDbPurchase(this PurchaseInfo purchaseInfo, long lotId) =>
