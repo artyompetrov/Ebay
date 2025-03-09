@@ -1,4 +1,5 @@
 using Duende.IdentityServer.EntityFramework.Options;
+using MassTransit;
 using Server.Data.Models;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +9,15 @@ namespace Server.Data;
 
 internal class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
 {
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
+    }
+    
     public ApplicationDbContext(
         DbContextOptions options,
         IOptions<OperationalStoreOptions> operationalStoreOptions

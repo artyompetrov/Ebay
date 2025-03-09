@@ -1,11 +1,12 @@
 using System.Transactions;
+using MassTransit;
 using Server.Controllers.Generated;
 using Server.Data;
 using Server.Data.Models;
 using Server.Infrastructure;
 using Server.Services;
 using Microsoft.EntityFrameworkCore;
-
+using Server.Consumers;
 using ClientErrorInfo = Server.Controllers.Generated.ClientErrorInfo;
 using Currency = Server.Controllers.Generated.Currency;
 using DbProduct = Server.Data.Models.Product;
@@ -21,11 +22,12 @@ namespace Server.Controllers;
 internal class EbayControllerImplementation : IEbayController
 {
     private readonly ApplicationDbContext _applicationContext;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-
-    public EbayControllerImplementation(ApplicationDbContext applicationContext)
+    public EbayControllerImplementation(ApplicationDbContext applicationContext, IPublishEndpoint publishEndpoint)
     {
         _applicationContext = applicationContext;
+        _publishEndpoint = publishEndpoint;
     }
 
     public async Task<ICollection<ProductWithId>> GetAllProductsAsync(CancellationToken cancellationToken)
@@ -55,7 +57,8 @@ internal class EbayControllerImplementation : IEbayController
             transactionOptions: new TransactionOptions
             { IsolationLevel = IsolationLevel.ReadCommitted }
         );
-
+        await _publishEndpoint.Publish(new HelloMessage("test"), cancellationToken);
+        
         await _applicationContext.Products.AddAsync(
             entity: product.ToDbProduct(newProductId),
             cancellationToken: cancellationToken

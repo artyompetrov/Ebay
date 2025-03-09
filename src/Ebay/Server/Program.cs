@@ -1,4 +1,5 @@
 using Duende.IdentityServer.Models;
+using MassTransit;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Server;
 using Server.Controllers;
@@ -11,6 +12,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
 using Serilog;
+using Server.Consumers;
 using Secret = Duende.IdentityServer.Models.Secret;
 
 IdentityModelEventSource.ShowPII = true;
@@ -90,6 +92,37 @@ builder.Services.AddLogging(
     });
 builder.Services.AddHostedService<CurrencyRateHostedService>();
 
+
+builder.Services.AddOptions<SqlTransportOptions>()
+    .Configure(options =>
+    {
+        options.ConnectionString = connectionString;
+    });
+
+builder.Services.AddPostgresMigrationHostedService(x =>
+{
+    x.CreateDatabase = false;
+    x.CreateInfrastructure = true;
+});
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumer<HelloConsumer>();
+    x.AddEntityFrameworkOutbox<ApplicationDbContext>(o =>
+    {
+        o.UsePostgres();
+        o.UseBusOutbox();
+    });
+    
+    x.AddSqlMessageScheduler();
+    
+    x.UsingPostgres((context, cfg) =>
+    {
+        cfg.UseSqlMessageScheduler();
+    
+        cfg.ConfigureEndpoints(context);
+    });
+
+});
 
 var app = builder.Build();
 
