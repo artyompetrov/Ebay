@@ -226,11 +226,6 @@ internal class EbayControllerImplementation : IEbayController
         {
             validationErrors.Add(key: nameof(lotInfo.Shipping), value: new[] { "Not set" });
         }
-        
-        if (lotInfo.PurchaseHistory.Count == 0)
-        {
-            validationErrors.Add(key: nameof(lotInfo.PurchaseHistory), value: new[] { "Empty PurchaseHistory" });
-        }
 
         if (!new HashSet<string> { WellKnown.Categories.Conditions.CategoryName, WellKnown.Categories.TestState.CategoryName }.SequenceEqual(
                 lotInfo.Categories.Select(x => x.Type)
