@@ -213,7 +213,20 @@ paths:
           description: 'NotFound'
           schema:
             $ref: '#/definitions/NotFoundProblemDetailedInfo'
-
+            
+  /products/{productId}/calculate_prices/:
+    parameters:
+      - name: productId
+        in: path
+        required: true
+        type: string
+        format: guid
+    post:
+        operationId: CalculatePricesForProduct
+        responses:
+          200:
+            description: Ok
+        
   /lots/{lotId}/:
     parameters:
       - name: lotId
@@ -577,6 +590,8 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/PurchaseInfo'
+      lotCalculationResult:
+        $ref: '#/definitions/LotCalculationResult'
     required:
       - lotId
       - name
@@ -591,6 +606,19 @@ definitions:
       - purchaseHistory
       - titleChangeDate
 
+
+  LotCalculationResult:
+    type: object
+    properties:
+      revenue:
+        type: number
+        minimum: 0.01
+      quantityTotal:
+        type: integer
+        minimum: 1
+    required:
+      - revenue
+      - quantityTotal
 
   PurchaseInfo:
     type: object

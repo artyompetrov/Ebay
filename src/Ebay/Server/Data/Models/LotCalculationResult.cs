@@ -8,8 +8,8 @@ internal class LotCalculationResult
     public double Revenue { get; set; }
     
     /// <summary>
-    /// выручкаСПродажиВДолларах
+    /// общееКоличествоШтукВоВсехПродажах
     /// </summary>
-    public double PurchaseQuantity { get; set; }
+    public int QuantityTotal { get; set; }
     
 }

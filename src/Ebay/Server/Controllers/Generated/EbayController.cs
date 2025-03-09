@@ -112,6 +112,11 @@ namespace Server.Controllers.Generated
 
         System.Threading.Tasks.Task<bool> GetIsLotIgnoredForProductAsync(System.Guid productId, long lotId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
+
+        /// <returns>Ok</returns>
+
+        System.Threading.Tasks.Task CalculatePricesForProductAsync(System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+
         /// <summary>
         /// Получить информацию о лоте
         /// </summary>
@@ -304,6 +309,14 @@ namespace Server.Controllers.Generated
         {
 
             return _implementation.GetIsLotIgnoredForProductAsync(productId, lotId, cancellationToken);
+        }
+
+        /// <returns>Ok</returns>
+        [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("products/{productId}/calculate_prices/")]
+        public System.Threading.Tasks.Task CalculatePricesForProduct(System.Guid productId, System.Threading.CancellationToken cancellationToken)
+        {
+
+            return _implementation.CalculatePricesForProductAsync(productId, cancellationToken);
         }
 
         /// <summary>
@@ -679,7 +692,7 @@ namespace Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public LotInfoShort(System.Collections.Generic.List<CategoryValue> @categories, string @condition, string? @conditionDescription, string @currency, string @locatedIn, long @lotId, string @name, int @pcs, double @price, System.Collections.Generic.List<PurchaseInfo> @purchaseHistory, string @seller, double? @shipping, double? @shippingAdditional, string @shippingCountry, string? @shortDescription, string @titleChangeDate)
+        public LotInfoShort(System.Collections.Generic.List<CategoryValue> @categories, string @condition, string? @conditionDescription, string @currency, string @locatedIn, LotCalculationResult? @lotCalculationResult, long @lotId, string @name, int @pcs, double @price, System.Collections.Generic.List<PurchaseInfo> @purchaseHistory, string @seller, double? @shipping, double? @shippingAdditional, string @shippingCountry, string? @shortDescription, string @titleChangeDate)
 
         {
 
@@ -714,6 +727,8 @@ namespace Server.Controllers.Generated
             this.TitleChangeDate = @titleChangeDate;
 
             this.PurchaseHistory = @purchaseHistory;
+
+            this.LotCalculationResult = @lotCalculationResult;
 
         }    [Newtonsoft.Json.JsonProperty("lotId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public long LotId { get; }
@@ -778,6 +793,32 @@ namespace Server.Controllers.Generated
         [Newtonsoft.Json.JsonProperty("purchaseHistory", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
         public System.Collections.Generic.List<PurchaseInfo> PurchaseHistory { get; }
+
+        [Newtonsoft.Json.JsonProperty("lotCalculationResult", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public LotCalculationResult? LotCalculationResult { get; }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class LotCalculationResult
+    {
+        [Newtonsoft.Json.JsonConstructor]
+
+        public LotCalculationResult(int @quantityTotal, double @revenue)
+
+        {
+
+            this.Revenue = @revenue;
+
+            this.QuantityTotal = @quantityTotal;
+
+        }    [Newtonsoft.Json.JsonProperty("revenue", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Range(0.01D, double.MaxValue)]
+        public double Revenue { get; }
+
+        [Newtonsoft.Json.JsonProperty("quantityTotal", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Range(1, int.MaxValue)]
+        public int QuantityTotal { get; }
 
     }
 

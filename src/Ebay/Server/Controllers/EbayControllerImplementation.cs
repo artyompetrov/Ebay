@@ -315,6 +315,11 @@ internal class EbayControllerImplementation : IEbayController
         return dbLot;
     }
 
+    public async Task CalculatePricesForProductAsync(Guid productId, CancellationToken cancellationToken)
+    {
+        await _publishEndpoint.Publish(new CalculatePricesForProduct(productId), cancellationToken);
+        await _applicationContext.SaveChangesAsync(cancellationToken);
+    }
 
     public async Task<LotInfoWithProductId> GetLotInfoAsync(
         long lotId,
@@ -449,8 +454,10 @@ internal class EbayControllerImplementation : IEbayController
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task CalculatePricesForAllAsync(CancellationToken cancellationToken = default(CancellationToken))
+    public async Task CalculatePricesForAllAsync(CancellationToken cancellationToken)
     {
-        await _publishEndpoint.Publish(new CalculatePricesForAll());
+        await _publishEndpoint.Publish(new CalculatePricesForAll(), cancellationToken);
+        await _applicationContext.SaveChangesAsync(cancellationToken);
+
     }
 }

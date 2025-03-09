@@ -11,7 +11,6 @@ internal class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
 {
     private readonly ApplicationDbContext _applicationContext;
     private readonly ILogger<CalculatePricesForProductConsumer> _logger;
-    private readonly IPublishEndpoint _publishEndpoint;
     private readonly Dictionary<string, List<ShippingRatesService.ShippingRateInner>> _shippingRates;
 
     public CalculatePricesForLotConsumer(
@@ -21,7 +20,6 @@ internal class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
     {
         _applicationContext = applicationContext;
         _logger = logger;
-        _publishEndpoint = publishEndpoint;
 
         _shippingRates = shippingRatesService.GetShippingRatesDictionary();
     }
@@ -86,7 +84,7 @@ internal class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
         lot.LotCalculationResult = new LotCalculationResult
         {
             Revenue = общаяВыручкаВДолларах,
-            PurchaseQuantity = общееКоличествоШтукВоВсехПродажах
+            QuantityTotal = общееКоличествоШтукВоВсехПродажах
         };
 
         await _applicationContext.SaveChangesAsync(context.CancellationToken);

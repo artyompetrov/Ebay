@@ -4,8 +4,10 @@ using Server.Services;
 using DbProduct = Server.Data.Models.Product;
 using DbSearchQuery = Server.Data.Models.SearchQuery;
 using DbRuSearchQuery = Server.Data.Models.RuSearchQuery;
+using DbLotCalculationResult = Server.Data.Models.LotCalculationResult;
 using DbCurrency = Server.Data.Models.Currency;
 using ApiCurrency = Server.Controllers.Generated.Currency;
+using LotCalculationResult = Server.Controllers.Generated.LotCalculationResult;
 using Purchase = Server.Data.Models.Purchase;
 using RuSearchQuery = Server.Controllers.Generated.RuSearchQuery;
 using SearchQuery = Server.Controllers.Generated.SearchQuery;
@@ -89,9 +91,14 @@ internal static class ModelsExtensions
         shipping: lot.Shipping,
         titleChangeDate: lot.TitleChangeDate.ToString(WellKnown.Formats.TimeFormat),
         shippingAdditional: lot.ShippingAdditional,
-        shortDescription: lot.ShortDescription
+        shortDescription: lot.ShortDescription,
+        lotCalculationResult: lot.LotCalculationResult.ToApiLotCalculationResult()
     );
 
+    public static LotCalculationResult? ToApiLotCalculationResult(this DbLotCalculationResult? lotCalculationResult) => lotCalculationResult == null ? null : new(
+        quantityTotal: lotCalculationResult.QuantityTotal, revenue: lotCalculationResult.Revenue
+    );
+    
     public static PurchaseInfo ToApiPurchaseInfo(this Purchase purchase) => new(
         date: purchase.Date.ToString(WellKnown.Formats.TimeFormat),
         price: purchase.Price,

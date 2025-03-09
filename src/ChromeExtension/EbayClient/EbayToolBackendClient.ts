@@ -553,6 +553,42 @@ export class EbayToolBackendClient {
     }
 
     /**
+     * @return Ok
+     */
+    calculatePricesForProduct(productId: string): Promise<void> {
+        let url_ = this.baseUrl + "/products/{productId}/calculate_prices/";
+        if (productId === undefined || productId === null)
+            throw new Error("The parameter 'productId' must be defined.");
+        url_ = url_.replace("{productId}", encodeURIComponent("" + productId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCalculatePricesForProduct(_response);
+        });
+    }
+
+    protected processCalculatePricesForProduct(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
      * Получить информацию о лоте
      * @return Ok
      */
@@ -1395,6 +1431,7 @@ export class LotInfoShort implements ILotInfoShort {
     categories!: CategoryValue[];
     titleChangeDate!: string;
     purchaseHistory!: PurchaseInfo[];
+    lotCalculationResult?: LotCalculationResult | undefined;
 
     constructor(data?: ILotInfoShort) {
         if (data) {
@@ -1435,6 +1472,7 @@ export class LotInfoShort implements ILotInfoShort {
                 for (let item of _data["purchaseHistory"])
                     this.purchaseHistory!.push(PurchaseInfo.fromJS(item));
             }
+            this.lotCalculationResult = _data["lotCalculationResult"] ? LotCalculationResult.fromJS(_data["lotCalculationResult"]) : <any>undefined;
         }
     }
 
@@ -1471,6 +1509,7 @@ export class LotInfoShort implements ILotInfoShort {
             for (let item of this.purchaseHistory)
                 data["purchaseHistory"].push(item.toJSON());
         }
+        data["lotCalculationResult"] = this.lotCalculationResult ? this.lotCalculationResult.toJSON() : <any>undefined;
         return data;
     }
 }
@@ -1492,6 +1531,47 @@ export interface ILotInfoShort {
     categories: CategoryValue[];
     titleChangeDate: string;
     purchaseHistory: PurchaseInfo[];
+    lotCalculationResult?: LotCalculationResult | undefined;
+}
+
+export class LotCalculationResult implements ILotCalculationResult {
+    revenue!: number;
+    quantityTotal!: number;
+
+    constructor(data?: ILotCalculationResult) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.revenue = _data["revenue"];
+            this.quantityTotal = _data["quantityTotal"];
+        }
+    }
+
+    static fromJS(data: any): LotCalculationResult {
+        data = typeof data === 'object' ? data : {};
+        let result = new LotCalculationResult();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["revenue"] = this.revenue;
+        data["quantityTotal"] = this.quantityTotal;
+        return data;
+    }
+}
+
+export interface ILotCalculationResult {
+    revenue: number;
+    quantityTotal: number;
 }
 
 export class PurchaseInfo implements IPurchaseInfo {

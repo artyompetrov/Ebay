@@ -34,8 +34,11 @@
 @if (_lots != null && _product != null)
 {
     <PageTitle>Продажи товара @_product.Name</PageTitle>
-
-    <h4>Статистика @_product.Name</h4>
+    
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <h4>Статистика @_product.Name</h4>
+        <button class="btn btn-primary btn-sm" @onclick="UpdateAllPrices">Пересчитать цены</button>
+    </div>
 
     <EditForm EditContext="@_parametersModelEditContext"/>
     <div class="form-check form-check-inline">
@@ -85,6 +88,8 @@
             <th>Доставка (доп)</th>
             <th>Валюта</th>
             <th>Продаж лота</th>
+            <th>Продано штук</th>
+            <th>Общая выручка</th>
         </tr>
         </thead>
         <tbody>
@@ -105,6 +110,8 @@
                 <td>@lot.ShippingAdditional</td>
                 <td>@lot.Currency</td>
                 <td>@GetPurchaseHistorySummary(purchaseInfos: lot.PurchaseHistory)</td>
+                <td>@lot.LotCalculationResult?.QuantityTotal</td>
+                <td>@lot.LotCalculationResult?.Revenue</td>
             </tr>
         }
         </tbody>
@@ -169,7 +176,15 @@
         await UpdateData();
         StateHasChanged();
     }
-
+    
+    private void UpdateAllPrices()
+    {
+        _questionPopup.AskQuestion(questionText: "Пересчитать цены?", async () =>
+        {
+            await EbayClient.CalculatePricesForProductAsync(ProductId, CancellationToken.None);
+        });
+    }
+    
     private async Task UpdatePage()
     {
         await UpdateData();
