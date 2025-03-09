@@ -1061,7 +1061,7 @@ function addShipping(ebayItem: Item) {
     }
 
     _lotInfo.shipping = shipping;
-    _lotInfo.shippingAdditional = shippingAdditional;
+    _lotInfo.shippingAdditional = shippingAdditional ?? 0.0;
 }
 
 async function fillLotInfo(ebayItem: Item, shippingCountry: string) {
