@@ -1042,21 +1042,23 @@ function addShipping(ebayItem: Item) {
     let shippingAdditional = undefined;
     for (let shippingOption of ebayItem.shippingOptions) {
 
-        if (shippingOption.shippingCost.value < shipping || shipping === undefined) {
-            shipping = parseFloat(shippingOption.shippingCost.value);
-            shippingAdditional = shippingOption.additionalShippingCostPerUnit?.value;
-            if (shippingAdditional) {
-                shippingAdditional = parseFloat(shippingAdditional);
+        let shippingCurrencyValue = shippingOption.shippingCost.convertedFromCurrency ?? shippingOption.shippingCost.currency;
+        let shippingValue = shippingOption.shippingCost.convertedFromValue ?? shippingOption.shippingCost.value;
+
+        let shippingAdditionalCurrencyValue = shippingOption.additionalShippingCostPerUnit.convertedFromCurrency ?? shippingOption.additionalShippingCostPerUnit.currency;
+        let shippingAdditionalValue = shippingOption.additionalShippingCostPerUnit.convertedFromValue ?? shippingOption.additionalShippingCostPerUnit.value;
+
+        if (shippingValue < shipping || shipping === undefined) {
+            shipping = parseFloat(shippingValue);
+            if (shippingAdditionalValue) {
+                shippingAdditional = parseFloat(shippingAdditionalValue);
             }
 
-            let shippingCurrency = shippingOption.shippingCost.currency
-            let shippingAdditionalCurrency = shippingOption.additionalShippingCostPerUnit?.currency
+            if (_lotInfo.currency != shippingCurrencyValue)
+                throw new Error("Shipping and lot currency mismatch lot + " + _lotInfo.currency + " shipping " + shippingCurrencyValue);
 
-            if (_lotInfo.currency != shippingCurrency)
-                throw new Error("Shipping and lot currency mismatch lot + " + _lotInfo.currency + " shipping " + shippingCurrency);
-
-            if (shippingAdditionalCurrency && _lotInfo.currency != shippingAdditionalCurrency)
-                throw new Error("Shipping additional and lot currency mismatch lot + " + _lotInfo.currency + " shipping " + shippingAdditionalCurrency);
+            if (shippingAdditionalCurrencyValue && _lotInfo.currency != shippingAdditionalCurrencyValue)
+                throw new Error("Shipping additional and lot currency mismatch lot + " + _lotInfo.currency + " shipping " + shippingAdditionalCurrencyValue);
         }
     }
 
@@ -1080,8 +1082,9 @@ async function fillLotInfo(ebayItem: Item, shippingCountry: string) {
     _lotInfo.seller = ebayItem.seller.username
 
     _lotInfo.condition = ebayItem.condition ?? "--"
-    
-    _lotInfo.lotSize = ebayItem.lotSize
+    if (ebayItem.lotSize > 0) {
+        _lotInfo.lotSize = ebayItem.lotSize
+    }
     
     _lotInfo.conditionDescription = ebayItem.conditionDescription
 
