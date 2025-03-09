@@ -49,4 +49,6 @@ internal class Lot
     public Dictionary<string, string> Categories { get; set; } = null!;
 
     public List<Purchase> Purchases { get; set; } = null!;
+
+    public LotCalculationResult? LotCalculationResult { get; set; }
 }

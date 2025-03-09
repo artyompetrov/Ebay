@@ -1,8 +1,10 @@
+using System.Text.Json;
 using Duende.IdentityServer.EntityFramework.Options;
 using MassTransit;
 using Server.Data.Models;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Options;
 
 namespace Server.Data;
@@ -16,6 +18,16 @@ internal class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
         modelBuilder.AddInboxStateEntity();
         modelBuilder.AddOutboxMessageEntity();
         modelBuilder.AddOutboxStateEntity();
+        
+        var converter = new ValueConverter<LotCalculationResult?, string>(
+            v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
+            v => JsonSerializer.Deserialize<LotCalculationResult?>(v, (JsonSerializerOptions?)null)
+        );
+
+        modelBuilder.Entity<Lot>()
+            .Property(o => o.LotCalculationResult)
+            .HasConversion(converter);
+        
     }
     
     public ApplicationDbContext(

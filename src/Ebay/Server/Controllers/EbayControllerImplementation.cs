@@ -260,7 +260,7 @@ internal class EbayControllerImplementation : IEbayController
             _applicationContext.IgnoredLots.Where(x => x.ProductId == productId && x.LotId == lotInfo.LotId)
         );
 
-        await _publishEndpoint.Publish(new ProductChanged(productId), cancellationToken);
+        await _publishEndpoint.Publish(new LotChanged(lotInfo.LotId), cancellationToken);
         await _applicationContext.SaveChangesAsync(cancellationToken);
         transaction.Complete();
     }
