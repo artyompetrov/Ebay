@@ -1298,6 +1298,7 @@ export class LotInfo implements ILotInfo {
     lotId!: number;
     name!: string;
     pcs!: number;
+    lotSize?: number | undefined;
     shippingCountry!: string;
     currency!: string;
     price!: number;
@@ -1331,6 +1332,7 @@ export class LotInfo implements ILotInfo {
             this.lotId = _data["lotId"];
             this.name = _data["name"];
             this.pcs = _data["pcs"];
+            this.lotSize = _data["lotSize"];
             this.shippingCountry = _data["shippingCountry"];
             this.currency = _data["currency"];
             this.price = _data["price"];
@@ -1368,6 +1370,7 @@ export class LotInfo implements ILotInfo {
         data["lotId"] = this.lotId;
         data["name"] = this.name;
         data["pcs"] = this.pcs;
+        data["lotSize"] = this.lotSize;
         data["shippingCountry"] = this.shippingCountry;
         data["currency"] = this.currency;
         data["price"] = this.price;
@@ -1398,6 +1401,7 @@ export interface ILotInfo {
     lotId: number;
     name: string;
     pcs: number;
+    lotSize?: number | undefined;
     shippingCountry: string;
     currency: string;
     price: number;
@@ -1759,6 +1763,7 @@ export class LotDataToExtract implements ILotDataToExtract {
     conditionDescription?: string | undefined;
     description!: string;
     shortDescription?: string | undefined;
+    lotSize?: number | undefined;
 
     constructor(data?: ILotDataToExtract) {
         if (data) {
@@ -1776,6 +1781,7 @@ export class LotDataToExtract implements ILotDataToExtract {
             this.conditionDescription = _data["conditionDescription"];
             this.description = _data["description"];
             this.shortDescription = _data["shortDescription"];
+            this.lotSize = _data["lotSize"];
         }
     }
 
@@ -1793,6 +1799,7 @@ export class LotDataToExtract implements ILotDataToExtract {
         data["conditionDescription"] = this.conditionDescription;
         data["description"] = this.description;
         data["shortDescription"] = this.shortDescription;
+        data["lotSize"] = this.lotSize;
         return data;
     }
 }
@@ -1803,6 +1810,7 @@ export interface ILotDataToExtract {
     conditionDescription?: string | undefined;
     description: string;
     shortDescription?: string | undefined;
+    lotSize?: number | undefined;
 }
 
 export class ExtractedFields implements IExtractedFields {

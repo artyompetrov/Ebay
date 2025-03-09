@@ -476,6 +476,9 @@ definitions:
       pcs:
         type: integer
         minimum: 1
+      lotSize:
+        type: integer
+        minimum: 1
       shippingCountry:
         type: string
         minLength: 1
@@ -705,6 +708,8 @@ definitions:
       shortDescription:
         type: string
         minLength: 1
+      lotSize:
+        type: integer
     required:
       - name
       - condition

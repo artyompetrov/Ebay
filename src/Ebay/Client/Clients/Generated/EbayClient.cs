@@ -2262,6 +2262,10 @@ namespace Client.Clients.Generated
         [System.ComponentModel.DataAnnotations.Range(1, int.MaxValue)]
         public int Pcs { get; set; }
 
+        [Newtonsoft.Json.JsonProperty("lotSize", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Range(1, int.MaxValue)]
+        public int? LotSize { get; set; }
+
         [Newtonsoft.Json.JsonProperty("shippingCountry", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
         public string ShippingCountry { get; set; }
@@ -2494,6 +2498,9 @@ namespace Client.Clients.Generated
         [Newtonsoft.Json.JsonProperty("shortDescription", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.StringLength(int.MaxValue, MinimumLength = 1)]
         public string ShortDescription { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("lotSize", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public int? LotSize { get; set; }
 
     }
 

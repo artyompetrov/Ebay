@@ -75,6 +75,14 @@ internal class PcsExtractor : ExtractorBase, IExtractor
 
         var extractionResult = new Dictionary<string, HashSet<ExtractionResult>>();
 
+        if (lotDataToExtract.LotSize != null)
+        {
+            extractionResult.AppendOrCreateNewCollection(
+                key: lotDataToExtract.LotSize.ToString()!,
+                value: new ExtractionResult(ExtractedFrom: ExtractFrom.LotSize, Extractor: "lotSize", Match: lotDataToExtract.LotSize.ToString()!)
+            );
+        }
+
         Extract(splittedArray: titleSplitted, extractedFrom: ExtractFrom.Title, result: extractionResult);
 
         if (conditionDescriptionSplitted != null)
