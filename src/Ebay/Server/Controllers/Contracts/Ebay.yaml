@@ -347,6 +347,13 @@ paths:
         200:
           description: 'Ok'
 
+  /calculate_prices_for_all/:
+    post:
+      operationId: CalculatePricesForAll
+      responses:
+        200:
+          description: 'Ok'
+
 definitions:
   ProductWithoutId:
     type: object

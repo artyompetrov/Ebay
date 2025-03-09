@@ -6,9 +6,10 @@
 @inject EbayClient EbayClient
 
 <PageTitle>Перечень товаров</PageTitle>
-
-<h2>Перечень товаров</h2>
-
+<div style="display: flex; align-items: center; gap: 10px;">
+    <h2>Перечень товаров</h2>
+    <button class="btn btn-primary btn-sm" @onclick="UpdateAllPrices">Пересчитать цены</button>
+</div>
 <style>
     #productTable th {
       position: sticky;
@@ -100,6 +101,14 @@
         {
             await EbayClient.DeleteProductAsync(product.Id);
             await LoadActualProductList();
+        });
+    }
+
+    private void UpdateAllPrices()
+    {
+        _questionPopup.AskQuestion(questionText: "Пересчитать цены для всех?", async () =>
+        {
+            await EbayClient.CalculatePricesForAllAsync(CancellationToken.None);
         });
     }
 

@@ -108,8 +108,9 @@ builder.Services.AddPostgresMigrationHostedService(x =>
 });
 builder.Services.AddMassTransit(x =>
 {
-    x.AddConsumer<ProductChangedConsumer>();
-    x.AddConsumer<LotChangedConsumer>();
+    x.AddConsumer<CalculatePricesForAllConsumer>();
+    x.AddConsumer<CalculatePricesForProductConsumer>();
+    x.AddConsumer<CalculatePricesForLotConsumer>();
     x.AddEntityFrameworkOutbox<ApplicationDbContext>(o =>
     {
         o.UsePostgres();

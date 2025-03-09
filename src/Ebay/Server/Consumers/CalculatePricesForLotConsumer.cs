@@ -7,17 +7,17 @@ using Server.Services;
 
 namespace Server.Consumers;
 
-internal class LotChangedConsumer : IConsumer<LotChanged>
+internal class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
 {
     private readonly ApplicationDbContext _applicationContext;
-    private readonly ILogger<ProductChangedConsumer> _logger;
+    private readonly ILogger<CalculatePricesForProductConsumer> _logger;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly Dictionary<string, List<ShippingRatesService.ShippingRateInner>> _shippingRates;
 
-    public LotChangedConsumer(
+    public CalculatePricesForLotConsumer(
         ApplicationDbContext applicationContext,
         ShippingRatesService shippingRatesService,
-        ILogger<ProductChangedConsumer> logger, IPublishEndpoint publishEndpoint)
+        ILogger<CalculatePricesForProductConsumer> logger, IPublishEndpoint publishEndpoint)
     {
         _applicationContext = applicationContext;
         _logger = logger;
@@ -26,7 +26,7 @@ internal class LotChangedConsumer : IConsumer<LotChanged>
         _shippingRates = shippingRatesService.GetShippingRatesDictionary();
     }
 
-    public async Task Consume(ConsumeContext<LotChanged> context)
+    public async Task Consume(ConsumeContext<CalculatePricesForLot> context)
     {
         using var transaction = new TransactionScope(
             scopeOption: TransactionScopeOption.Required,
@@ -123,4 +123,4 @@ internal class LotChangedConsumer : IConsumer<LotChanged>
     }
 }
 
-public record LotChanged(long LotId);
+public record CalculatePricesForLot(long LotId);

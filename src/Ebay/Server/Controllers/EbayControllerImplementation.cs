@@ -112,7 +112,7 @@ internal class EbayControllerImplementation : IEbayController
             cancellationToken: cancellationToken
         );
         
-        await _publishEndpoint.Publish(new ProductChanged(id), cancellationToken);
+        await _publishEndpoint.Publish(new CalculatePricesForProduct(id), cancellationToken);
         
         await _applicationContext.SaveChangesAsync(cancellationToken);
 
@@ -260,7 +260,7 @@ internal class EbayControllerImplementation : IEbayController
             _applicationContext.IgnoredLots.Where(x => x.ProductId == productId && x.LotId == lotInfo.LotId)
         );
 
-        await _publishEndpoint.Publish(new LotChanged(lotInfo.LotId), cancellationToken);
+        await _publishEndpoint.Publish(new CalculatePricesForLot(lotInfo.LotId), cancellationToken);
         await _applicationContext.SaveChangesAsync(cancellationToken);
         transaction.Complete();
     }
@@ -349,7 +349,7 @@ internal class EbayControllerImplementation : IEbayController
                       .SingleOrDefaultAsync(predicate: x => x.Id == lotId, cancellationToken: cancellationToken) ??
                   throw new InvalidOperationException($"Lot with id {lotId} not found");
 
-        await _publishEndpoint.Publish(new ProductChanged(lot.ProductId), cancellationToken);
+        await _publishEndpoint.Publish(new CalculatePricesForProduct(lot.ProductId), cancellationToken);
         
         _applicationContext.Lots.Remove(lot);
         await _applicationContext.SaveChangesAsync(cancellationToken);
@@ -447,5 +447,10 @@ internal class EbayControllerImplementation : IEbayController
     {
         _applicationContext.ClientErrors.Add(error.ToDbClientError());
         await _applicationContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task CalculatePricesForAllAsync(CancellationToken cancellationToken = default(CancellationToken))
+    {
+        await _publishEndpoint.Publish(new CalculatePricesForAll());
     }
 }

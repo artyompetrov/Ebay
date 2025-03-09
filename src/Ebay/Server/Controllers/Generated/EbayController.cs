@@ -180,6 +180,11 @@ namespace Server.Controllers.Generated
 
         System.Threading.Tasks.Task SaveErrorAsync(ClientErrorInfo error, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
+
+        /// <returns>Ok</returns>
+
+        System.Threading.Tasks.Task CalculatePricesForAllAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))")]
@@ -389,6 +394,14 @@ namespace Server.Controllers.Generated
         {
 
             return _implementation.SaveErrorAsync(error, cancellationToken);
+        }
+
+        /// <returns>Ok</returns>
+        [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("calculate_prices_for_all/")]
+        public System.Threading.Tasks.Task CalculatePricesForAll(System.Threading.CancellationToken cancellationToken)
+        {
+
+            return _implementation.CalculatePricesForAllAsync(cancellationToken);
         }
 
     }
