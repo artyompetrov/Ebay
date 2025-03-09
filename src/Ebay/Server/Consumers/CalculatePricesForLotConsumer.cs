@@ -81,12 +81,20 @@ internal class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
             общаяВыручкаВДолларах += выручкаСПродажиВДолларах;
         }
 
-        lot.LotCalculationResult = new LotCalculationResult
+        if (общееКоличествоШтукВоВсехПродажах > 0)
         {
-            Revenue = общаяВыручкаВДолларах,
-            QuantityTotal = общееКоличествоШтукВоВсехПродажах
-        };
-
+            lot.LotCalculationResult = new LotCalculationResult
+            {
+                Revenue = общаяВыручкаВДолларах,
+                QuantityTotal = общееКоличествоШтукВоВсехПродажах
+            };
+        }
+        else
+        {
+            lot.LotCalculationResult = null;
+        }
+        
+        
         await _applicationContext.SaveChangesAsync(context.CancellationToken);
         // ReSharper restore IdentifierTypo
         

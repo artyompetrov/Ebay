@@ -2397,12 +2397,16 @@ namespace Client.Clients.Generated
     public partial class LotCalculationResult
     {
         [Newtonsoft.Json.JsonProperty("revenue", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        [System.ComponentModel.DataAnnotations.Range(0.01D, double.MaxValue)]
+        [System.ComponentModel.DataAnnotations.Range(0.00D, double.MaxValue)]
         public double Revenue { get; set; }
 
         [Newtonsoft.Json.JsonProperty("quantityTotal", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        [System.ComponentModel.DataAnnotations.Range(1, int.MaxValue)]
+        [System.ComponentModel.DataAnnotations.Range(0, int.MaxValue)]
         public int QuantityTotal { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("revenueAvg", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Range(0.00D, double.MaxValue)]
+        public double RevenueAvg { get; set; }
 
     }
 

@@ -12,4 +12,9 @@ internal class LotCalculationResult
     /// </summary>
     public int QuantityTotal { get; set; }
     
+    
+    /// <summary>
+    /// Средняя выручка для лота
+    /// </summary>
+    public double RevenueAvg => Revenue / QuantityTotal;
 }

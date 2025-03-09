@@ -96,7 +96,7 @@ internal static class ModelsExtensions
     );
 
     public static LotCalculationResult? ToApiLotCalculationResult(this DbLotCalculationResult? lotCalculationResult) => lotCalculationResult == null ? null : new(
-        quantityTotal: lotCalculationResult.QuantityTotal, revenue: lotCalculationResult.Revenue
+        quantityTotal: lotCalculationResult.QuantityTotal, revenue: lotCalculationResult.Revenue, revenueAvg: lotCalculationResult.RevenueAvg
     );
     
     public static PurchaseInfo ToApiPurchaseInfo(this Purchase purchase) => new(

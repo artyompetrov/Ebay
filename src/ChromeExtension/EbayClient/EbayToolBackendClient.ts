@@ -1537,6 +1537,7 @@ export interface ILotInfoShort {
 export class LotCalculationResult implements ILotCalculationResult {
     revenue!: number;
     quantityTotal!: number;
+    revenueAvg!: number;
 
     constructor(data?: ILotCalculationResult) {
         if (data) {
@@ -1551,6 +1552,7 @@ export class LotCalculationResult implements ILotCalculationResult {
         if (_data) {
             this.revenue = _data["revenue"];
             this.quantityTotal = _data["quantityTotal"];
+            this.revenueAvg = _data["revenueAvg"];
         }
     }
 
@@ -1565,6 +1567,7 @@ export class LotCalculationResult implements ILotCalculationResult {
         data = typeof data === 'object' ? data : {};
         data["revenue"] = this.revenue;
         data["quantityTotal"] = this.quantityTotal;
+        data["revenueAvg"] = this.revenueAvg;
         return data;
     }
 }
@@ -1572,6 +1575,7 @@ export class LotCalculationResult implements ILotCalculationResult {
 export interface ILotCalculationResult {
     revenue: number;
     quantityTotal: number;
+    revenueAvg: number;
 }
 
 export class PurchaseInfo implements IPurchaseInfo {

@@ -88,8 +88,9 @@
             <th>Доставка (доп)</th>
             <th>Валюта</th>
             <th>Продаж лота</th>
-            <th>Продано штук</th>
-            <th>Общая выручка</th>
+            <th>Продано штук всего</th>
+            <th>Общая выручка (USD)</th>
+            <th>Средняя выручка (USD)</th>
         </tr>
         </thead>
         <tbody>
@@ -111,7 +112,8 @@
                 <td>@lot.Currency</td>
                 <td>@GetPurchaseHistorySummary(purchaseInfos: lot.PurchaseHistory)</td>
                 <td>@lot.LotCalculationResult?.QuantityTotal</td>
-                <td>@lot.LotCalculationResult?.Revenue</td>
+                <td>@lot.LotCalculationResult?.Revenue.ToString("0.00")</td>
+                <td>@lot.LotCalculationResult?.RevenueAvg.ToString("0.00")</td>
             </tr>
         }
         </tbody>
