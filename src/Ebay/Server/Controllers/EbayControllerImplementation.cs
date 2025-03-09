@@ -23,11 +23,13 @@ internal class EbayControllerImplementation : IEbayController
 {
     private readonly ApplicationDbContext _applicationContext;
     private readonly IPublishEndpoint _publishEndpoint;
+    private readonly ShippingRatesService _shippingRatesService;
 
-    public EbayControllerImplementation(ApplicationDbContext applicationContext, IPublishEndpoint publishEndpoint)
+    public EbayControllerImplementation(ApplicationDbContext applicationContext, IPublishEndpoint publishEndpoint, ShippingRatesService shippingRatesService)
     {
         _applicationContext = applicationContext;
         _publishEndpoint = publishEndpoint;
+        _shippingRatesService = shippingRatesService;
     }
 
     public async Task<ICollection<ProductWithId>> GetAllProductsAsync(CancellationToken cancellationToken)
@@ -57,7 +59,6 @@ internal class EbayControllerImplementation : IEbayController
             transactionOptions: new TransactionOptions
             { IsolationLevel = IsolationLevel.ReadCommitted }
         );
-        await _publishEndpoint.Publish(new HelloMessage("test"), cancellationToken);
         
         await _applicationContext.Products.AddAsync(
             entity: product.ToDbProduct(newProductId),
@@ -110,7 +111,9 @@ internal class EbayControllerImplementation : IEbayController
             entities: product.RuSearchQueries.Select(x => x.ToDbRuSearchQuery(id)),
             cancellationToken: cancellationToken
         );
-
+        
+        await _publishEndpoint.Publish(new ProductChanged(id), cancellationToken);
+        
         await _applicationContext.SaveChangesAsync(cancellationToken);
 
         transaction.Complete();
@@ -257,6 +260,7 @@ internal class EbayControllerImplementation : IEbayController
             _applicationContext.IgnoredLots.Where(x => x.ProductId == productId && x.LotId == lotInfo.LotId)
         );
 
+        await _publishEndpoint.Publish(new ProductChanged(productId), cancellationToken);
         await _applicationContext.SaveChangesAsync(cancellationToken);
         transaction.Complete();
     }
@@ -335,12 +339,22 @@ internal class EbayControllerImplementation : IEbayController
 
     public async Task DeleteLotInfoAsync(long lotId, CancellationToken cancellationToken)
     {
-        var lot = new Lot { Id = lotId };
+        using var transaction = new TransactionScope(
+            scopeOption: TransactionScopeOption.Required,
+            asyncFlowOption: TransactionScopeAsyncFlowOption.Enabled,
+            transactionOptions: new TransactionOptions { IsolationLevel = IsolationLevel.Serializable }
+        );
 
-        _applicationContext.Lots.Attach(lot);
+        var lot = await _applicationContext.Lots
+                      .SingleOrDefaultAsync(predicate: x => x.Id == lotId, cancellationToken: cancellationToken) ??
+                  throw new InvalidOperationException($"Lot with id {lotId} not found");
+
+        await _publishEndpoint.Publish(new ProductChanged(lot.ProductId), cancellationToken);
+        
         _applicationContext.Lots.Remove(lot);
-
         await _applicationContext.SaveChangesAsync(cancellationToken);
+
+        transaction.Complete();
     }
 
     public async Task<ICollection<long>> GetLotIdsAsync(CancellationToken cancellationToken)
@@ -404,92 +418,8 @@ internal class EbayControllerImplementation : IEbayController
 
     public Task<ICollection<ShippingType>> GetShippingRatesAsync(
         CancellationToken cancellationToken
-    )
-    {
-        // тарифы взяты отсюда https://qazpost.kz/ru/help/tariffs?tab=pochtovye-uslugi
-        return Task.FromResult<ICollection<ShippingType>>(
-            new List<ShippingType>
-            {
-                new(
-                    name: "Мелкий пакет авиа",
-                    currency: WellKnown.Currencies.KZT,
-                    rates: new List<ShippingRates>
-                    {
-                        new(
-                            rates: new List<ShippingRate>
-                            {
-                                new(minWeight: 0, maxWeight: 500, price: 8_960),
-                                new(minWeight: 500, maxWeight: 1000, price: 15_400),
-                                new(minWeight: 1000, maxWeight: 2000, price: 27_462),
-                            },
-                            specifiedCountries: null
-                        )
-                    }
-                ),
-                new(
-                    name: "Посылка авиа",
-                    currency: WellKnown.Currencies.KZT,
-                    rates: new List<ShippingRates>
-                    {
-                        new( // 3
-                            rates: new List<ShippingRate>
-                            {
-                                new(minWeight: 0, maxWeight: 2000, price: 16_950),
-                                new(minWeight: 2000, maxWeight: 3000, price: 24_225),
-                                new(minWeight: 3000, maxWeight: 4000, price: 30_825),
-                                new(minWeight: 4000, maxWeight: 5000, price: 37_725),
-                                new(minWeight: 5000, maxWeight: 6000, price: 44_400),
-                                new(minWeight: 6000, maxWeight: 7000, price: 51_150),
-                                new(minWeight: 7000, maxWeight: 8000, price: 57_900),
-                                new(minWeight: 8000, maxWeight: 9000, price: 64_875),
-                                new(minWeight: 9000, maxWeight: 10000, price: 71_400),
-                            },
-                            specifiedCountries: new List<string>()
-                            {
-                                "DE", "IT", "FR", "GB", "PL", "RO", "SK", "EE", "LT", "BG", "LV"
-                            }
-                        ),
-                        new( //4
-                            rates: new List<ShippingRate>
-                            {
-                                new(minWeight: 0, maxWeight: 2000, price: 17_175),
-                                new(minWeight: 2000, maxWeight: 3000, price: 26_475),
-                                new(minWeight: 3000, maxWeight: 4000, price: 35_175),
-                                new(minWeight: 4000, maxWeight: 5000, price: 44_100),
-                                new(minWeight: 5000, maxWeight: 6000, price: 52_650),
-                                new(minWeight: 6000, maxWeight: 7000, price: 61_125),
-                                new(minWeight: 7000, maxWeight: 8000, price: 70_200),
-                                new(minWeight: 8000, maxWeight: 9000, price: 78_450),
-                                new(minWeight: 9000, maxWeight: 10000, price: 87_150),
-                            },
-                            specifiedCountries: new List<string>
-                            {
-                                "US",
-                            }
-                        ),
-                        new( //5
-                            rates: new List<ShippingRate>
-                            {
-                                new(minWeight: 0, maxWeight: 2000, price: 19_800),
-                                new(minWeight: 2000, maxWeight: 3000, price: 33_375),
-                                new(minWeight: 3000, maxWeight: 4000, price: 45_975),
-                                new(minWeight: 4000, maxWeight: 5000, price: 58_200),
-                                new(minWeight: 5000, maxWeight: 6000, price: 70_500),
-                                new(minWeight: 6000, maxWeight: 7000, price: 82_950),
-                                new(minWeight: 7000, maxWeight: 8000, price: 95_700),
-                                new(minWeight: 8000, maxWeight: 9000, price: 108_300),
-                                new(minWeight: 9000, maxWeight: 10000, price: 120_600),
-                            },
-                            specifiedCountries: new List<string>
-                            {
-                                "AU",
-                            }
-                        )
-                    }
-                ),
-            }
-        );
-    }
+    ) =>
+        Task.FromResult(_shippingRatesService.GetShippingRates());
 
     public async Task<ICollection<Currency>> GetCurrenciesAsync(
         CancellationToken cancellationToken

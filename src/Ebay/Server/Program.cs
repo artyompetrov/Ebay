@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
 using Serilog;
 using Server.Consumers;
+using Server.Services;
 using Secret = Duende.IdentityServer.Models.Secret;
 
 IdentityModelEventSource.ShowPII = true;
@@ -32,6 +33,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddNpgsqlDataSource(connectionString);
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql());
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+builder.Services.AddSingleton<ShippingRatesService>();
 builder.Services.AddScoped<IEbayController, EbayControllerImplementation>();
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
@@ -106,7 +108,7 @@ builder.Services.AddPostgresMigrationHostedService(x =>
 });
 builder.Services.AddMassTransit(x =>
 {
-    x.AddConsumer<HelloConsumer>();
+    x.AddConsumer<PriceCalculatorConsumer>();
     x.AddEntityFrameworkOutbox<ApplicationDbContext>(o =>
     {
         o.UsePostgres();
@@ -152,8 +154,6 @@ app.UseHttpsRedirection();
 
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
-
-
 
 app.UseRouting();
 
