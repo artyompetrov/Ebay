@@ -1080,7 +1080,9 @@ async function fillLotInfo(ebayItem: Item, shippingCountry: string) {
     _lotInfo.seller = ebayItem.seller.username
 
     _lotInfo.condition = ebayItem.condition ?? "--"
-
+    
+    _lotInfo.lotSize = ebayItem.lotSize
+    
     _lotInfo.conditionDescription = ebayItem.conditionDescription
 
     _lotInfo.description = ebayItem.description
