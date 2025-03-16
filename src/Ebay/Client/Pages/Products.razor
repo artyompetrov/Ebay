@@ -75,15 +75,15 @@
             {
                 <td>@product.Weight</td>
             }
-            @if (product.Weight == 0)
-            {
-                <td></td>
-                <td></td>
-            }
-            else
+            @if (product.ProductCalculationResult?.QuantityTotal > 0)
             {
                 <td>@product.ProductCalculationResult?.QuantityTotal</td>
                 <td>@product.ProductCalculationResult?.RevenueAvg.ToString("N0")</td>
+            }
+            else
+            {
+                <td></td>
+                <td></td>
             }
             <td>
                 <button class="btn btn-danger btn-sm oi oi-basket" @onclick="@(e => OnDeleteButtonClick(product))"></button>
