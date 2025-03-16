@@ -33,6 +33,7 @@
         <th>Другие названия</th>
         <th>Запрос (eBay)</th>
         <th>Вес без упаковки</th>
+        <th>Шт. продано</th>
         <th>Средняя выручка (USD)</th>
         <th></th>
     </tr>
@@ -74,8 +75,16 @@
             {
                 <td>@product.Weight</td>
             }
-
-            <td>@product.ProductCalculationResult?.RevenueAvg.ToString("0.00")</td>
+            @if (product.Weight == 0)
+            {
+                <td>0</td>
+                <td></td>
+            }
+            else
+            {
+                <td>@product.ProductCalculationResult?.QuantityTotal</td>
+                <td>@product.ProductCalculationResult?.RevenueAvg.ToString("N0")</td>
+            }
             <td>
                 <button class="btn btn-danger btn-sm oi oi-basket" @onclick="@(e => OnDeleteButtonClick(product))"></button>
             </td>
