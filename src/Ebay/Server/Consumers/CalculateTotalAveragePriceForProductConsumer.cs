@@ -20,7 +20,8 @@ internal class CalculateTotalAveragePriceForProductConsumer : IConsumer<Batch<Ca
 
         foreach (var productId in productsIds)
         {
-            var lotCalculationResults = await _applicationDbContext.Lots.AsNoTracking().Where(x => x.ProductId == productId && x.LotCalculationResult != null)
+            var lotCalculationResults = await _applicationDbContext.Lots.AsNoTracking()
+                .Where(x => x.ProductId == productId && x.LotCalculationResult != null)
                 .Select(x=>x.LotCalculationResult)
                 .ToListAsync(context.CancellationToken);
 

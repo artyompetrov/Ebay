@@ -5,9 +5,11 @@ using DbProduct = Server.Data.Models.Product;
 using DbSearchQuery = Server.Data.Models.SearchQuery;
 using DbRuSearchQuery = Server.Data.Models.RuSearchQuery;
 using DbLotCalculationResult = Server.Data.Models.LotCalculationResult;
+using DbProductCalculationResult = Server.Data.Models.ProductCalculationResult;
 using DbCurrency = Server.Data.Models.Currency;
 using ApiCurrency = Server.Controllers.Generated.Currency;
 using LotCalculationResult = Server.Controllers.Generated.LotCalculationResult;
+using ProductCalculationResult = Server.Controllers.Generated.ProductCalculationResult;
 using Purchase = Server.Data.Models.Purchase;
 using RuSearchQuery = Server.Controllers.Generated.RuSearchQuery;
 using SearchQuery = Server.Controllers.Generated.SearchQuery;
@@ -22,7 +24,8 @@ internal static class ModelsExtensions
         searchQueries: dbProduct.SearchQueries.Select(x => x.ToApiSearchQuery()).ToList(),
         ruSearchQueries: dbProduct.RuSearchQueries.Select(x => x.ToApiRuSearchQuery()).ToList(),
         lastCheckTime: dbProduct.LastCheckTime.ToString(WellKnown.Formats.TimeFormat),
-        weight: dbProduct.Weight
+        weight: dbProduct.Weight,
+        productCalculationResult: dbProduct.ProductCalculationResult.ToApiLotCalculationResult()
     );
 
     public static SearchQuery ToApiSearchQuery(this DbSearchQuery searchQuery) =>
@@ -96,6 +99,10 @@ internal static class ModelsExtensions
         lotCalculationResult: lot.LotCalculationResult.ToApiLotCalculationResult()
     );
 
+    public static ProductCalculationResult? ToApiLotCalculationResult(this DbProductCalculationResult? lotCalculationResult) => lotCalculationResult == null ? null : new(
+        quantityTotal: lotCalculationResult.QuantityTotal, revenue: lotCalculationResult.Revenue, revenueAvg: lotCalculationResult.RevenueAvg
+    );
+    
     public static LotCalculationResult? ToApiLotCalculationResult(this DbLotCalculationResult? lotCalculationResult) => lotCalculationResult == null ? null : new(
         quantityTotal: lotCalculationResult.QuantityTotal, revenue: lotCalculationResult.Revenue, revenueAvg: lotCalculationResult.RevenueAvg
     );

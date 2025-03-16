@@ -417,6 +417,8 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/RuSearchQuery'
+      ProductCalculationResult:
+        $ref: '#/definitions/ProductCalculationResult'
     required:
       - Id
       - Name
@@ -609,6 +611,23 @@ definitions:
       - purchaseHistory
       - titleChangeDate
 
+
+  ProductCalculationResult:
+    type: object
+    properties:
+      revenue:
+        type: number
+        minimum: 0.00
+      quantityTotal:
+        type: integer
+        minimum: 0
+      revenueAvg:
+        type: number
+        minimum: 0.00
+    required:
+      - revenue
+      - quantityTotal
+      - revenueAvg
 
   LotCalculationResult:
     type: object

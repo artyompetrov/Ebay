@@ -2205,6 +2205,9 @@ namespace Client.Clients.Generated
         [System.ComponentModel.DataAnnotations.Required]
         public System.Collections.Generic.ICollection<RuSearchQuery> RuSearchQueries { get; set; } = new System.Collections.ObjectModel.Collection<RuSearchQuery>();
 
+        [Newtonsoft.Json.JsonProperty("ProductCalculationResult", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public ProductCalculationResult ProductCalculationResult { get; set; }
+
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))")]
@@ -2394,6 +2397,23 @@ namespace Client.Clients.Generated
 
         [Newtonsoft.Json.JsonProperty("lotCalculationResult", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public LotCalculationResult LotCalculationResult { get; set; }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ProductCalculationResult
+    {
+        [Newtonsoft.Json.JsonProperty("revenue", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Range(0.00D, double.MaxValue)]
+        public double Revenue { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("quantityTotal", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Range(0, int.MaxValue)]
+        public int QuantityTotal { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("revenueAvg", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Range(0.00D, double.MaxValue)]
+        public double RevenueAvg { get; set; }
 
     }
 

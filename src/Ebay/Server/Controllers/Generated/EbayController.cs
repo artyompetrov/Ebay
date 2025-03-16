@@ -460,7 +460,7 @@ namespace Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public ProductWithId(System.Guid @id, string? @lastCheckTime, string @name, System.Collections.Generic.List<RuSearchQuery> @ruSearchQueries, System.Collections.Generic.List<SearchQuery> @searchQueries, int @weight)
+        public ProductWithId(System.Guid @id, string? @lastCheckTime, string @name, ProductCalculationResult? @productCalculationResult, System.Collections.Generic.List<RuSearchQuery> @ruSearchQueries, System.Collections.Generic.List<SearchQuery> @searchQueries, int @weight)
 
         {
 
@@ -475,6 +475,8 @@ namespace Server.Controllers.Generated
             this.SearchQueries = @searchQueries;
 
             this.RuSearchQueries = @ruSearchQueries;
+
+            this.ProductCalculationResult = @productCalculationResult;
 
         }    [Newtonsoft.Json.JsonProperty("Id", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
@@ -500,6 +502,9 @@ namespace Server.Controllers.Generated
         [Newtonsoft.Json.JsonProperty("RuSearchQueries", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
         public System.Collections.Generic.List<RuSearchQuery> RuSearchQueries { get; }
+
+        [Newtonsoft.Json.JsonProperty("ProductCalculationResult", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public ProductCalculationResult? ProductCalculationResult { get; }
 
     }
 
@@ -802,6 +807,35 @@ namespace Server.Controllers.Generated
 
         [Newtonsoft.Json.JsonProperty("lotCalculationResult", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public LotCalculationResult? LotCalculationResult { get; }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ProductCalculationResult
+    {
+        [Newtonsoft.Json.JsonConstructor]
+
+        public ProductCalculationResult(int @quantityTotal, double @revenue, double @revenueAvg)
+
+        {
+
+            this.Revenue = @revenue;
+
+            this.QuantityTotal = @quantityTotal;
+
+            this.RevenueAvg = @revenueAvg;
+
+        }    [Newtonsoft.Json.JsonProperty("revenue", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Range(0.00D, double.MaxValue)]
+        public double Revenue { get; }
+
+        [Newtonsoft.Json.JsonProperty("quantityTotal", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Range(0, int.MaxValue)]
+        public int QuantityTotal { get; }
+
+        [Newtonsoft.Json.JsonProperty("revenueAvg", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Range(0.00D, double.MaxValue)]
+        public double RevenueAvg { get; }
 
     }
 

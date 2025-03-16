@@ -1,4 +1,6 @@
-﻿namespace Server.Data.Models;
+﻿using System.Text.Json.Serialization;
+
+namespace Server.Data.Models;
 
 public class ProductCalculationResult
 {
@@ -13,8 +15,17 @@ public class ProductCalculationResult
     public int QuantityTotal { get; set; }
     
     
+    
     /// <summary>
     /// Средняя выручка для лота
     /// </summary>
-    public double RevenueAvg => Revenue / QuantityTotal;
+    [JsonIgnore]
+    public double RevenueAvg
+    {
+        get
+        {
+            if (QuantityTotal == 0.0) return 0.0;
+            return Revenue / QuantityTotal;
+        }
+    }
 }

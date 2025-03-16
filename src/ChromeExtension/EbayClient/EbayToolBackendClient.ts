@@ -1102,6 +1102,7 @@ export class ProductWithId implements IProductWithId {
     weight!: number;
     searchQueries!: SearchQuery[];
     ruSearchQueries!: RuSearchQuery[];
+    productCalculationResult?: ProductCalculationResult | undefined;
 
     constructor(data?: IProductWithId) {
         if (data) {
@@ -1132,6 +1133,7 @@ export class ProductWithId implements IProductWithId {
                 for (let item of _data["RuSearchQueries"])
                     this.ruSearchQueries!.push(RuSearchQuery.fromJS(item));
             }
+            this.productCalculationResult = _data["ProductCalculationResult"] ? ProductCalculationResult.fromJS(_data["ProductCalculationResult"]) : <any>undefined;
         }
     }
 
@@ -1158,6 +1160,7 @@ export class ProductWithId implements IProductWithId {
             for (let item of this.ruSearchQueries)
                 data["RuSearchQueries"].push(item.toJSON());
         }
+        data["ProductCalculationResult"] = this.productCalculationResult ? this.productCalculationResult.toJSON() : <any>undefined;
         return data;
     }
 }
@@ -1169,6 +1172,7 @@ export interface IProductWithId {
     weight: number;
     searchQueries: SearchQuery[];
     ruSearchQueries: RuSearchQuery[];
+    productCalculationResult?: ProductCalculationResult | undefined;
 }
 
 export class SearchQuery implements ISearchQuery {
@@ -1536,6 +1540,50 @@ export interface ILotInfoShort {
     titleChangeDate: string;
     purchaseHistory: PurchaseInfo[];
     lotCalculationResult?: LotCalculationResult | undefined;
+}
+
+export class ProductCalculationResult implements IProductCalculationResult {
+    revenue!: number;
+    quantityTotal!: number;
+    revenueAvg!: number;
+
+    constructor(data?: IProductCalculationResult) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.revenue = _data["revenue"];
+            this.quantityTotal = _data["quantityTotal"];
+            this.revenueAvg = _data["revenueAvg"];
+        }
+    }
+
+    static fromJS(data: any): ProductCalculationResult {
+        data = typeof data === 'object' ? data : {};
+        let result = new ProductCalculationResult();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["revenue"] = this.revenue;
+        data["quantityTotal"] = this.quantityTotal;
+        data["revenueAvg"] = this.revenueAvg;
+        return data;
+    }
+}
+
+export interface IProductCalculationResult {
+    revenue: number;
+    quantityTotal: number;
+    revenueAvg: number;
 }
 
 export class LotCalculationResult implements ILotCalculationResult {

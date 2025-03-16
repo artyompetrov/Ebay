@@ -1,4 +1,6 @@
-﻿namespace Server.Data.Models;
+﻿using Newtonsoft.Json;
+
+namespace Server.Data.Models;
 
 internal class LotCalculationResult
 {
@@ -16,5 +18,13 @@ internal class LotCalculationResult
     /// <summary>
     /// Средняя выручка для лота
     /// </summary>
-    public double RevenueAvg => Revenue / QuantityTotal;
+    [JsonIgnore]
+    public double RevenueAvg
+    {
+        get
+        {
+            if (QuantityTotal == 0.0) return 0.0;
+            return Revenue / QuantityTotal;
+        }
+    }
 }
