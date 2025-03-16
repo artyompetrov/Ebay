@@ -106,27 +106,36 @@ builder.Services.AddPostgresMigrationHostedService(x =>
     x.CreateDatabase = false;
     x.CreateInfrastructure = true;
 });
-builder.Services.AddMassTransit(x =>
-{
-    x.AddConsumer<CalculatePricesForAllConsumer>();
-    x.AddConsumer<CalculatePricesForProductConsumer>();
-    x.AddConsumer<CalculatePricesForLotConsumer>();
-    x.AddEntityFrameworkOutbox<ApplicationDbContext>(o =>
+builder.Services.AddMassTransit(
+    x =>
     {
-        o.UsePostgres();
-        o.UseBusOutbox();
-    });
-    
-    x.AddSqlMessageScheduler();
-    
-    x.UsingPostgres((context, cfg) =>
-    {
-        cfg.UseSqlMessageScheduler();
-    
-        cfg.ConfigureEndpoints(context);
-    });
+        x.AddConsumer<CalculatePricesForAllConsumer>();
+        x.AddConsumer<CalculatePricesForProductConsumer>();
+        x.AddConsumer<CalculatePricesForLotConsumer>();
+        x.AddConsumer<CalculateTotalAveragePriceForProductConsumer>(
+            c => c.Options<BatchOptions>(o =>
+            {
+                o.ConcurrencyLimit = 1;
+                o.MessageLimit = 100;
+            }));
+        x.AddEntityFrameworkOutbox<ApplicationDbContext>(
+            o =>
+            {
+                o.UsePostgres();
+                o.UseBusOutbox();
+            });
 
-});
+        x.AddSqlMessageScheduler();
+
+        x.UsingPostgres(
+            (context, cfg) =>
+            {
+                cfg.UseSqlMessageScheduler();
+
+                cfg.ConfigureEndpoints(context);
+            });
+
+    });
 
 var app = builder.Build();
 

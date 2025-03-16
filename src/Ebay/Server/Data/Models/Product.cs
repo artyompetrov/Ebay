@@ -19,4 +19,6 @@ internal sealed class Product
     public DateTime LastCheckTime { get; set; }
 
     public int Weight { get; set; }
+    
+    public ProductCalculationResult? ProductCalculationResult { get; set; }
 }

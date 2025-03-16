@@ -19,15 +19,19 @@ internal class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
         modelBuilder.AddOutboxMessageEntity();
         modelBuilder.AddOutboxStateEntity();
         
-        var converter = new ValueConverter<LotCalculationResult?, string>(
-            v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
-            v => JsonSerializer.Deserialize<LotCalculationResult?>(v, (JsonSerializerOptions?)null)
-        );
-
         modelBuilder.Entity<Lot>()
             .Property(o => o.LotCalculationResult)
-            .HasConversion(converter);
-        
+            .HasConversion(new ValueConverter<LotCalculationResult?, string>(
+                v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
+                v => JsonSerializer.Deserialize<LotCalculationResult?>(v, (JsonSerializerOptions?)null)
+            ));
+
+        modelBuilder.Entity<Product>()
+            .Property(o => o.ProductCalculationResult)
+            .HasConversion(new ValueConverter<ProductCalculationResult?, string>(
+                v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
+                v => JsonSerializer.Deserialize<ProductCalculationResult?>(v, (JsonSerializerOptions?)null)
+            ));
     }
     
     public ApplicationDbContext(

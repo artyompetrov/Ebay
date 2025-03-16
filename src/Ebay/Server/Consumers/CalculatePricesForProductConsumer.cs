@@ -26,7 +26,10 @@ internal class CalculatePricesForProductConsumer : IConsumer<CalculatePricesForP
         {
             await _publishEndpoint.Publish(new CalculatePricesForLot(lotId), context.CancellationToken);
         }
+
+        await _applicationContext.SaveChangesAsync(context.CancellationToken);
     }
 }
 
 public record CalculatePricesForProduct(Guid ProductId);
+

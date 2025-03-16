@@ -11,15 +11,18 @@ internal class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
 {
     private readonly ApplicationDbContext _applicationContext;
     private readonly ILogger<CalculatePricesForProductConsumer> _logger;
+    private readonly IPublishEndpoint _publishEndpoint;
     private readonly Dictionary<string, List<ShippingRatesService.ShippingRateInner>> _shippingRates;
 
     public CalculatePricesForLotConsumer(
         ApplicationDbContext applicationContext,
         ShippingRatesService shippingRatesService,
-        ILogger<CalculatePricesForProductConsumer> logger, IPublishEndpoint publishEndpoint)
+        ILogger<CalculatePricesForProductConsumer> logger,
+        IPublishEndpoint publishEndpoint)
     {
         _applicationContext = applicationContext;
         _logger = logger;
+        _publishEndpoint = publishEndpoint;
 
         _shippingRates = shippingRatesService.GetShippingRatesDictionary();
     }
@@ -29,11 +32,10 @@ internal class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
         using var transaction = new TransactionScope(
             scopeOption: TransactionScopeOption.Required,
             asyncFlowOption: TransactionScopeAsyncFlowOption.Enabled,
-            transactionOptions: new TransactionOptions
-                { IsolationLevel = IsolationLevel.ReadCommitted }
+            transactionOptions: new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted }
         );
 
-        
+
         var currencyRates = await _applicationContext.Currencies
             .AsNoTracking()
             .ToDictionaryAsync(x => x.CurrencyEbayName, x => x.CurrencyRate, context.CancellationToken);
@@ -81,23 +83,19 @@ internal class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
             общаяВыручкаВДолларах += выручкаСПродажиВДолларах;
         }
 
-        if (общееКоличествоШтукВоВсехПродажах > 0)
+
+        lot.LotCalculationResult = new LotCalculationResult
         {
-            lot.LotCalculationResult = new LotCalculationResult
-            {
-                Revenue = общаяВыручкаВДолларах,
-                QuantityTotal = общееКоличествоШтукВоВсехПродажах
-            };
-        }
-        else
-        {
-            lot.LotCalculationResult = null;
-        }
-        
+            Revenue = общаяВыручкаВДолларах, QuantityTotal = общееКоличествоШтукВоВсехПродажах
+        };
+
+        await _publishEndpoint.Publish(
+            new CalculateTotalAveragePriceForProduct(lot.ProductId),
+            context.CancellationToken);
         
         await _applicationContext.SaveChangesAsync(context.CancellationToken);
         // ReSharper restore IdentifierTypo
-        
+
         transaction.Complete();
     }
 

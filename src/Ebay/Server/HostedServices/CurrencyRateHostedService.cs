@@ -1,8 +1,10 @@
+using MassTransit;
 using Server.Data;
 using Server.Data.Models;
 using Server.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using OpenExchangeRates;
+using Server.Consumers;
 
 namespace Server.HostedServices;
 
@@ -25,14 +27,19 @@ internal class CurrencyRateHostedService : IHostedService, IDisposable
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
         var backgroundTask = Task.Run(
+
             async () =>
             {
                 try
                 {
-                    await RefreshCurrencyRatesForever(cts.Token);
+#if !DEBUG
+                // только в релизе обновляем курсы валют
+                await RefreshCurrencyRatesForever(cts.Token);
+#endif
                 }
                 catch (Exception e) when (!e.IsIntendedOperationCanceledException(cts.Token))
                 {
@@ -48,6 +55,7 @@ internal class CurrencyRateHostedService : IHostedService, IDisposable
         _state = new State(Task: backgroundTask, Cts: cts);
 
         return Task.CompletedTask;
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
@@ -93,7 +101,7 @@ internal class CurrencyRateHostedService : IHostedService, IDisposable
             try
             {
                 await RefreshCurrencyRates(cancellationToken);
-
+                
                 await Task.Delay(delay: WellKnown.CurrencyRate.UpdateTime, cancellationToken: cancellationToken);
             }
             catch (Exception e) when (!e.IsIntendedOperationCanceledException(cancellationToken))
@@ -110,6 +118,7 @@ internal class CurrencyRateHostedService : IHostedService, IDisposable
         _logger.LogInformation("Refreshing currency rates");
         using var scope = _serviceScopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var publishEndpoint = scope.ServiceProvider.GetRequiredService<IPublishEndpoint>();
 
         var currencies = await dbContext.Currencies
             .Select(x => new { x.CurrencyApiName, x.CurrencyEbayName })
@@ -137,6 +146,7 @@ internal class CurrencyRateHostedService : IHostedService, IDisposable
             dbProduct.Entity.LastUpdate = currentTime;
         }
 
+        await publishEndpoint.Publish(new CalculatePricesForAll(), cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
 
     }
