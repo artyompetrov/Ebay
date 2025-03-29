@@ -2,21 +2,21 @@
 
 namespace Server.Data.Models;
 
-internal class LotCalculationResult
+internal class PurchaseCalculationResult
 {
     /// <summary>
-    /// выручкаСПродажЛотаВДолларах
+    /// выручкаСПродажиВДолларах
     /// </summary>
     public double Revenue { get; set; }
     
     /// <summary>
-    /// общееКоличествоШтукВоВсехПродажах
+    /// общееКоличествоШтукВПродаже
     /// </summary>
     public int QuantityTotal { get; set; }
     
     
     /// <summary>
-    /// Средняя выручка для лота
+    /// Средняя выручка для продажи
     /// </summary>
     [JsonIgnore]
     public double RevenueAvg

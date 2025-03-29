@@ -32,6 +32,13 @@ internal class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
                 v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
                 v => JsonSerializer.Deserialize<ProductCalculationResult?>(v, (JsonSerializerOptions?)null)
             ));
+        
+        modelBuilder.Entity<Purchase>()
+            .Property(o => o.PurchaseCalculationResult)
+            .HasConversion(new ValueConverter<PurchaseCalculationResult?, string>(
+                v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
+                v => JsonSerializer.Deserialize<PurchaseCalculationResult?>(v, (JsonSerializerOptions?)null)
+            ));
     }
     
     public ApplicationDbContext(

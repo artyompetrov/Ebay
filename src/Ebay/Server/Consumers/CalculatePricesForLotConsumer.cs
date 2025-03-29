@@ -81,6 +81,12 @@ internal class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
 
             общееКоличествоШтукВоВсехПродажах += количествоШтукВПродаже;
             общаяВыручкаВДолларах += выручкаСПродажиВДолларах;
+
+            purchase.PurchaseCalculationResult = new PurchaseCalculationResult
+            {
+                Revenue = выручкаСПродажиВДолларах,
+                QuantityTotal = количествоШтукВПродаже
+            };
         }
 
 
