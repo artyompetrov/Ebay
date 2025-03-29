@@ -1532,8 +1532,8 @@ async function ebayPages(currentPage: string) {
 }
 
 
-function highlightWords(words: string[], highlightClass: string = "highlight"): void {
-    console.log("highlightWords")
+function highlightWords(words: string[], products: any[], highlightClass: string = "highlight"): void {
+    console.log("highlightWords");
     //todo regex надо кешировать
     let wordsReplaced = words.map(x => x.toLowerCase()
         .replace('(', '\(')
@@ -1558,17 +1558,13 @@ function highlightWords(words: string[], highlightClass: string = "highlight"): 
     const regex = new RegExp(`(?:^|\\s|\.)(${wordsReplaced.join("|")})(?:$|\\s|-|,|\.)`, "ig");
     console.log(regex);
     
-     const highlightWord = (node: Text) => {
-        let parent = node.parentElement;
-        if (!parent) return;
-        
-        let originalText = node.textContent;
-        regex.lastIndex = 0;
-        if (originalText && regex.test(originalText)) {
-            parent.classList.add(highlightClass);
-        }
-    };
-
+    // Создаем tooltip один раз для всех подсвеченных элементов
+    const tooltip = createTooltip();
+    
+    // Используем объекты для передачи ссылок на lastHighlightedElement и tooltipTimeout
+    const lastHighlightedElementRef = { current: null as HTMLElement | null };
+    const tooltipTimeoutRef = { current: null as number | null };
+    
     const traverseNodes = (element: HTMLElement | null): void => {
         if (!element) return;
         let children = Array.from(element.childNodes);
@@ -1576,12 +1572,22 @@ function highlightWords(words: string[], highlightClass: string = "highlight"): 
         for (let i = 0; i < children.length; i++) {
             const node = children[i];
             if (node.nodeType === Node.TEXT_NODE) {
-                highlightWord(node as Text);
+                highlightWord(node as Text, regex, highlightClass, tooltip, products, lastHighlightedElementRef, tooltipTimeoutRef);
             } else if (node.nodeType === Node.ELEMENT_NODE) {
                 traverseNodes(node as HTMLElement);
             }
         }
     };
+    
+    // Обработчики для самого tooltip
+    tooltip.addEventListener('mouseenter', () => {
+        if (tooltipTimeoutRef.current) clearTimeout(tooltipTimeoutRef.current);
+    });
+    
+    tooltip.addEventListener('mouseleave', () => {
+        lastHighlightedElementRef.current = null;
+        tooltip.style.display = 'none';
+    });
     
     const body = document.body;
     if (!body) {
@@ -1665,6 +1671,248 @@ async function getAllProductsCached(backendClient: EbayToolBackendClient, produc
     return cached;
 }
 
+// Функция для создания и показа всплывающей подсказки
+function createTooltip(): HTMLDivElement {
+    // Проверяем, существует ли уже tooltip
+    let existingTooltip = document.getElementById('product-price-tooltip');
+    if (existingTooltip) return existingTooltip as HTMLDivElement;
+    
+    let tooltip = document.createElement('div');
+    tooltip.id = 'product-price-tooltip';
+    tooltip.style.cssText = `
+        position: absolute;
+        background-color: white;
+        border: 2px solid #0000cc;
+        border-radius: 5px;
+        padding: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+        z-index: 9999;
+        display: none;
+        font-size: 14px;
+        color: #000;
+        max-width: 300px;
+        max-height: 30vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        line-height: 1.5;
+    `;
+    
+    // Добавляем крестик для закрытия
+    const closeButton = document.createElement('div');
+    closeButton.innerHTML = '✕';
+    closeButton.style.cssText = `
+        position: sticky;
+        top: 0;
+        right: 5px;
+        float: right;
+        cursor: pointer;
+        font-weight: bold;
+        color: #0000cc;
+        background-color: white;
+        padding: 3px;
+        margin-left: 5px;
+        z-index: 10000;
+    `;
+    closeButton.addEventListener('click', () => {
+        tooltip.style.display = 'none';
+    });
+    
+    tooltip.appendChild(closeButton);
+    document.body.appendChild(tooltip);
+    
+    // Добавляем возможность закрытия по щелчку на подсказку
+    tooltip.addEventListener('click', () => {
+        tooltip.style.display = 'none';
+    });
+    
+    return tooltip;
+}
+
+// Генерация HTML для отдельного продукта
+function generateProductHtml(product: any): string {
+    if (!product) return '';
+    
+    // Формируем заголовок с именем продукта (одинаковый для всех случаев)
+    const productHeader = `
+        <strong style="font-size: 16px; color: #0000aa;">
+            <a href="${backendUrl}LotSales/${product.id}" target="_blank" style="color: #0000aa; text-decoration: none; border-bottom: 1px dotted #0000aa;">
+                ${product.name}
+            </a>
+        </strong>
+    `;
+    
+    // Определяем содержимое в зависимости от наличия данных
+    let productContent = '';
+    
+    if (product.productCalculationResult) {
+        if (product.productCalculationResult.quantityTotal > 0) {
+            const avgPrice = product.productCalculationResult.revenueAvg;
+            productContent = `
+                <div><strong>Средняя цена:</strong> ${avgPrice.toFixed(2)} USD</div>
+                <div><strong>Всего продано:</strong> ${product.productCalculationResult.quantityTotal} шт.</div>
+            `;
+        } else {
+            productContent = `Нет данных о продажах для этого товара`;
+        }
+    } else {
+        productContent = `Нет данных о средней цене`;
+    }
+    
+    // Собираем всё в единую структуру
+    return `
+        <div style="position: relative;">
+            ${productHeader}<br>
+            <div style="margin-top: 8px;">
+                ${productContent}
+            </div>
+        </div>
+    `;
+}
+
+// Позиционирование tooltip с учетом границ экрана
+function positionTooltip(tooltip: HTMLElement, targetRect: DOMRect): void {
+    const tooltipWidth = 300; // максимальная ширина tooltip
+    
+    // Проверяем, поместится ли tooltip справа от элемента
+    if (targetRect.right + tooltipWidth + 10 <= window.innerWidth) {
+        tooltip.style.left = `${targetRect.right + 10}px`;
+    } else {
+        // Если не помещается справа, размещаем слева
+        tooltip.style.left = `${Math.max(0, targetRect.left - tooltipWidth - 10)}px`;
+    }
+    
+    tooltip.style.top = `${targetRect.top + window.scrollY}px`;
+}
+
+// Находит все подходящие продукты в тексте
+function findMatchingProducts(text: string, products: any[]): any[] {
+    const trimmedText = text.trim().toLowerCase();
+    const matches: any[] = [];
+    
+    // Ищем все продукты, которые могут соответствовать тексту
+    for (const product of products) {
+        // Прямое совпадение с именем
+        if (trimmedText.includes(product.name.toLowerCase())) {
+            matches.push(product);
+            continue; // Продолжаем поиск других продуктов
+        }
+        
+        // Поиск в ruSearchQueries
+        const hasMatchingQuery = product.ruSearchQueries.some(sq => 
+            trimmedText.includes(sq.query.toLowerCase()) || 
+            sq.query.toLowerCase().includes(trimmedText)
+        );
+        
+        if (hasMatchingQuery && !matches.some(p => p.id === product.id)) {
+            matches.push(product);
+        }
+    }
+    
+    return matches;
+}
+
+// Добавляет обработчики к tooltip
+function setupTooltipHandlers(tooltip: HTMLElement): void {
+    // Добавляем обработчик закрытия на крестик
+    const closeButton = tooltip.querySelector('div[style*="cursor: pointer"]');
+    if (closeButton) {
+        closeButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            tooltip.style.display = 'none';
+        });
+    }
+    
+    // Предотвращаем закрытие при клике на ссылки
+    const statsLinks = tooltip.querySelectorAll('a');
+    statsLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    });
+}
+
+// Выделяет текстовый узел и добавляет обработчики событий для tooltip
+function highlightWord(
+    node: Text, 
+    regex: RegExp, 
+    highlightClass: string, 
+    tooltip: HTMLDivElement, 
+    products: any[],
+    lastHighlightedElementRef: { current: HTMLElement | null },
+    tooltipTimeoutRef: { current: number | null }
+): void {
+    let parent = node.parentElement;
+    if (!parent) return;
+    
+    let originalText = node.textContent;
+    if (!originalText) return;
+    
+    regex.lastIndex = 0;
+    if (regex.test(originalText)) {
+        parent.classList.add(highlightClass);
+        
+        // Проверяем, не добавлены ли уже обработчики
+        if (parent.dataset.tooltipHandlersAdded === 'true') return;
+        parent.dataset.tooltipHandlersAdded = 'true';
+        
+        // Добавляем обработчики событий на элемент
+        parent.addEventListener('mouseenter', async (e) => {
+            if (tooltipTimeoutRef.current) clearTimeout(tooltipTimeoutRef.current);
+            
+            lastHighlightedElementRef.current = parent;
+            const text = parent.textContent || '';
+            
+            // Находим все соответствующие продукты
+            const matchedProducts = findMatchingProducts(text, products);
+            
+            if (matchedProducts.length === 0) return;
+            
+            // Показываем tooltip с информацией о продуктах
+            tooltip.innerHTML = 'Загрузка данных о ценах...';
+            tooltip.style.display = 'block';
+            
+            // Позиционируем подсказку рядом с элементом
+            const rect = parent.getBoundingClientRect();
+            positionTooltip(tooltip, rect);
+            
+            if (lastHighlightedElementRef.current === parent) {
+                // Формируем HTML для всех найденных продуктов
+                let productsHtml = '';
+                
+                for (let i = 0; i < matchedProducts.length; i++) {
+                    const product = matchedProducts[i];
+                    
+                    // Добавляем разделитель между продуктами
+                    if (i > 0) {
+                        productsHtml += '<hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">';
+                    }
+                    
+                    // Используем функцию generateProductHtml вместо дублирования HTML кода
+                    productsHtml += generateProductHtml(product);
+                }
+                
+                // Добавляем крестик закрытия сверху
+                tooltip.innerHTML = `
+                    <div style="position: relative;">
+                        <div style="position: sticky; top: 0; right: 0; float: right; cursor: pointer; font-weight: bold; color: #0000cc; background-color: white; padding: 3px; z-index: 10000;">✕</div>
+                        ${productsHtml}
+                    </div>
+                `;
+                
+                // Настраиваем обработчики событий для tooltip
+                setupTooltipHandlers(tooltip);
+            }
+        });
+        
+        parent.addEventListener('mouseleave', () => {
+            lastHighlightedElementRef.current = null;
+            tooltipTimeoutRef.current = window.setTimeout(() => {
+                tooltip.style.display = 'none';
+            }, 300) as unknown as number;
+        });
+    }
+}
+
 async function processSitePage() {
     let backendOAuth2Client: OAuth2Client = getBackendOAuth2Client();
     let backendClient = new EbayToolBackendClient(baseApiUrl, getAuthorizeFetch(backendOAuth2Client, backendApiScope, "ebayToolTokenStore", extensionAuthRedirectUrl));
@@ -1684,7 +1932,7 @@ async function processSitePage() {
        await processAvito();
        let _ = processAvitoBackground();
     }
-    highlightWords(wordsToHighlight);
+    highlightWords(wordsToHighlight, allProducts);
 }
 
 async function searchSitePages() {
