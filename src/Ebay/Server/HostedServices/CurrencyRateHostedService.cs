@@ -118,7 +118,6 @@ internal class CurrencyRateHostedService : IHostedService, IDisposable
         _logger.LogInformation("Refreshing currency rates");
         using var scope = _serviceScopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        var publishEndpoint = scope.ServiceProvider.GetRequiredService<IPublishEndpoint>();
 
         var currencies = await dbContext.Currencies
             .Select(x => new { x.CurrencyApiName, x.CurrencyEbayName })
@@ -145,9 +144,7 @@ internal class CurrencyRateHostedService : IHostedService, IDisposable
             dbProduct.Entity.CurrencyRate = decimal.ToDouble(value);
             dbProduct.Entity.LastUpdate = currentTime;
         }
-
-        await publishEndpoint.Publish(new CalculatePricesForAll(), cancellationToken);
+        
         await dbContext.SaveChangesAsync(cancellationToken);
-
     }
 }
