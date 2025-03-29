@@ -431,7 +431,7 @@ internal class EbayControllerImplementation : IEbayController
     public Task<ICollection<ShippingType>> GetShippingRatesAsync(
         CancellationToken cancellationToken
     ) =>
-        Task.FromResult(_shippingRatesService.GetShippingRates());
+        Task.FromResult<ICollection<ShippingType>>(_shippingRatesService.ShippingRates.ToList());
 
     public async Task<ICollection<Currency>> GetCurrenciesAsync(
         CancellationToken cancellationToken

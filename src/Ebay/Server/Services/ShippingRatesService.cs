@@ -5,10 +5,14 @@ namespace Server.Services;
 
 internal class ShippingRatesService
 {
-    public const string Worldwide = "Worldwide";
-    public ICollection<ShippingType> GetShippingRates() =>
-        // тарифы взяты отсюда https://qazpost.kz/ru/help/tariffs?tab=pochtovye-uslugi
-        new List<ShippingType>
+    private readonly List<ShippingType> _rates;
+    private readonly Dictionary<string, List<ShippingRateInner>> _shippingRatesDictionary;
+
+    // тарифы взяты отсюда https://qazpost.kz/ru/help/tariffs?tab=pochtovye-uslugi
+
+    public ShippingRatesService()
+    {
+        _rates = new List<ShippingType>
         {
             new(
                 name: "Мелкий пакет авиа",
@@ -43,7 +47,13 @@ internal class ShippingRatesService
                             new(minWeight: 7000, maxWeight: 8000, price: 57_900),
                             new(minWeight: 8000, maxWeight: 9000, price: 64_875),
                             new(minWeight: 9000, maxWeight: 10000, price: 71_400),
-                        },
+                        }.Concat(
+                            Enumerable.Range(10, 30).Select(x => new ShippingRate(
+                                minWeight: x * 1000,
+                                maxWeight: (x + 1) * 1000,
+                                price: 71_400 + (x - 9) * 6_600
+                            ))
+                        ).ToList(),
                         specifiedCountries: new List<string>()
                         {
                             "DE",
@@ -71,7 +81,13 @@ internal class ShippingRatesService
                             new(minWeight: 7000, maxWeight: 8000, price: 70_200),
                             new(minWeight: 8000, maxWeight: 9000, price: 78_450),
                             new(minWeight: 9000, maxWeight: 10000, price: 87_150),
-                        },
+                        }.Concat(
+                            Enumerable.Range(10, 30).Select(x => new ShippingRate(
+                                minWeight: x * 1000,
+                                maxWeight: (x + 1) * 1000,
+                                price: 87_150 + (x - 9) * 7_920
+                            ))
+                        ).ToList(),
                         specifiedCountries: new List<string> { "US", }
                     ),
                     new( //5
@@ -86,18 +102,34 @@ internal class ShippingRatesService
                             new(minWeight: 7000, maxWeight: 8000, price: 95_700),
                             new(minWeight: 8000, maxWeight: 9000, price: 108_300),
                             new(minWeight: 9000, maxWeight: 10000, price: 120_600),
-                        },
+                        }.Concat(
+                            Enumerable.Range(10, 30).Select(x => new ShippingRate(
+                                minWeight: x * 1000,
+                                maxWeight: (x + 1) * 1000,
+                                price: 120_600 + (x - 9) * 11_325
+                            ))
+                        ).ToList(),
                         specifiedCountries: new List<string> { "AU", }
                     )
                 }
             ),
         };
 
-    public Dictionary<string, List<ShippingRateInner>> GetShippingRatesDictionary()
+        _shippingRatesDictionary = GetShippingRatesDictionaryInner();
+    }
+    
+    
+    public const string Worldwide = "Worldwide";
+
+    public IReadOnlyCollection<ShippingType> ShippingRates => _rates;
+
+    public IReadOnlyDictionary<string, List<ShippingRateInner>> ShippingRatesDictionary => _shippingRatesDictionary;
+    
+    private Dictionary<string, List<ShippingRateInner>> GetShippingRatesDictionaryInner()
     {
         var rates = new Dictionary<string, List<ShippingRateInner>>();
 
-        foreach (var shippingRate in GetShippingRates())
+        foreach (var shippingRate in ShippingRates)
         {
             foreach (var shippingRateRate in shippingRate.Rates)
             {
@@ -136,10 +168,7 @@ internal class ShippingRatesService
     
     public record struct ShippingRateInner(int WeightFrom, int WeightTo, double Price, string Currency)
     {
-        public override string ToString()
-        {
-            return $"{WeightFrom}-{WeightTo} : {Price} {Currency}";
-        }
+        public override string ToString() => $"{WeightFrom}-{WeightTo} : {Price} {Currency}";
     };
     
 }

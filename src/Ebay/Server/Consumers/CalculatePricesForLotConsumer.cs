@@ -12,7 +12,7 @@ internal class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
     private readonly ApplicationDbContext _applicationContext;
     private readonly ILogger<CalculatePricesForProductConsumer> _logger;
     private readonly IPublishEndpoint _publishEndpoint;
-    private readonly Dictionary<string, List<ShippingRatesService.ShippingRateInner>> _shippingRates;
+    private readonly IReadOnlyDictionary<string, List<ShippingRatesService.ShippingRateInner>> _shippingRates;
 
     public CalculatePricesForLotConsumer(
         ApplicationDbContext applicationContext,
@@ -24,7 +24,7 @@ internal class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
         _logger = logger;
         _publishEndpoint = publishEndpoint;
 
-        _shippingRates = shippingRatesService.GetShippingRatesDictionary();
+        _shippingRates = shippingRatesService.ShippingRatesDictionary;
     }
 
     public async Task Consume(ConsumeContext<CalculatePricesForLot> context)
