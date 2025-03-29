@@ -250,7 +250,7 @@ internal class EbayControllerImplementation : IEbayController
 
         await _applicationContext.Lots.Upsert(dbLotInfo).RunAsync(cancellationToken);
 
-        var titleChangedDate = DateTime.Parse(lotInfo.TitleChangeDate);
+        var titleChangedDate = DateTime.Parse(lotInfo.TitleChangeDate).ToUniversalTime();
 
         var filteredPurchaseHistory = lotInfo.PurchaseHistory
             .Select(x => x.ToDbPurchase(lotId: lotInfo.LotId))
