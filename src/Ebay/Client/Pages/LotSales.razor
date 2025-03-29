@@ -91,6 +91,7 @@
             <th>Продано штук всего</th>
             <th>Общая выручка (USD)</th>
             <th>Средняя выручка (USD)</th>
+            <th>Средняя выручка (@WellKnown.Currencies.TargetCurrency)</th>
         </tr>
         </thead>
         <tbody>
@@ -114,6 +115,7 @@
                 <td>@lot.LotCalculationResult?.QuantityTotal</td>
                 <td>@lot.LotCalculationResult?.Revenue.ToString("0.00")</td>
                 <td>@lot.LotCalculationResult?.RevenueAvg.ToString("0.00")</td>
+                <td>@((lot.LotCalculationResult?.RevenueAvg * _targetCurrencyRate)?.ToString("N0"))</td>
             </tr>
         }
         </tbody>

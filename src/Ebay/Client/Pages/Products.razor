@@ -35,6 +35,7 @@
         <th>Вес без упаковки</th>
         <th>Шт. продано</th>
         <th>Средняя выручка (USD)</th>
+        <th>Средняя выручка (@WellKnown.Currencies.TargetCurrency)</th>
         <th></th>
     </tr>
     </thead>
@@ -79,9 +80,11 @@
             {
                 <td>@product.ProductCalculationResult?.QuantityTotal</td>
                 <td>@product.ProductCalculationResult?.RevenueAvg.ToString("N0")</td>
+                <td>@((product.ProductCalculationResult?.RevenueAvg * _targetCurrencyRate)?.ToString("N0"))</td>
             }
             else
             {
+                <td></td>
                 <td></td>
                 <td></td>
             }
@@ -99,14 +102,22 @@
 @code {
     private ProductPopup _productPopupComponent = null!;
     private QuestionPopup _questionPopup = null!;
+    private double _targetCurrencyRate;
 
     private ICollection<ProductWithId> _products = new List<ProductWithId>();
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadActualProductList();
+        await Task.WhenAll(LoadActualProductList(), GetCurrencies());
     }
 
+    private async Task GetCurrencies()
+    {
+        var currencies = await EbayClient.GetCurrenciesAsync();
+        var dict = currencies.ToDictionary(keySelector: x => x.EbayName, elementSelector: x => x.Rate);
+        _targetCurrencyRate = dict[WellKnown.Currencies.TargetCurrency];
+    }
+    
     private void OnDeleteButtonClick(ProductWithId product)
     {
         _questionPopup.AskQuestion(questionText: $"Вы действительно хотите удалить товар '{product.Name}'?", async () =>
