@@ -762,7 +762,7 @@ async function fillProduct(client: EbayToolBackendClient) {
     let ignoreThatLot = _panel.querySelector("form#" + ignoreThatLotFormId)
     let productIdServer = _serverLotInfo?.productId?.trim()?.toLowerCase()
 
-    let products = await getAllProductsCached(client)
+    let products = await getAllProductsCached(client, _currentProductId)
     for (let i = 0; i < products.length; i++) {
         let opt = document.createElement('option');
         opt.value = products[i].id;
@@ -1645,18 +1645,31 @@ async function processChipFind() {
     }
 }
 
-async function getAllProductsCached(backendClient: EbayToolBackendClient) {
-    return await getCachedDataOrFallback(_allItemsCacheIdentifier, async () => {
+async function getAllProductsCached(backendClient: EbayToolBackendClient, productId: string | null) {
+    let cached = await getCachedDataOrFallback(_allItemsCacheIdentifier, async () => {
             return await backendClient.getAllProducts();
         },
         60 * 60)
+    
+    productId = productId?.trim()?.toLowerCase()
+    if (productId && !cached.some(p => p.id.trim().toLowerCase() === productId)) {
+        console.log(`Product ID ${productId} not found in cache, refreshing cache, clearing cache...`);
+        removeFromCache(_allItemsCacheIdentifier);
+        
+        return await getCachedDataOrFallback(_allItemsCacheIdentifier, async () => {
+                return await backendClient.getAllProducts();
+            },
+            60 * 60);
+    }
+    
+    return cached;
 }
 
 async function processSitePage() {
     let backendOAuth2Client: OAuth2Client = getBackendOAuth2Client();
     let backendClient = new EbayToolBackendClient(baseApiUrl, getAuthorizeFetch(backendOAuth2Client, backendApiScope, "ebayToolTokenStore", extensionAuthRedirectUrl));
 
-    let allProducts = await getAllProductsCached(backendClient);
+    let allProducts = await getAllProductsCached(backendClient, null);
     let  names = allProducts.map(x => x.name);
     let ruNames = allProducts.map(x => x.ruSearchQueries.map(x=>x.query)).reduce((acc, val) => acc.concat(val), []);
     console.log("names " + names.join(","))
