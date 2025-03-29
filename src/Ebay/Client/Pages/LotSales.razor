@@ -212,16 +212,16 @@
         
         foreach (var grouping in _lots.GroupBy(x => (Condition:x.GetCondition(), TestState: x.GetTestState())))
         {
-            var purchases = grouping.SelectMany(x => x.PurchaseHistory).Select(x => x.PurchaseCalculationResult).ToList();
+            var purchases = grouping.SelectMany(x => x.PurchaseHistory.Select(y=> (x.LotId, y.PurchaseCalculationResult))).ToList();
             
             _data.Add(new Scatter
             {
                 Marker = new Marker { Color = GetColor(condition: grouping.Key.Condition, testState: grouping.Key.TestState) },
                 Mode = ModeFlag.Markers | ModeFlag.Text,
-                X = purchases.Select(x => x.RevenueAvg * _targetCurrencyRate).Cast<object>().ToList(),
-                Y = purchases.Select(x => x.QuantityTotal).Cast<object>().ToList(),
+                X = purchases.Select(x => x.PurchaseCalculationResult.RevenueAvg * _targetCurrencyRate).Cast<object>().ToList(),
+                Y = purchases.Select(x => x.PurchaseCalculationResult.QuantityTotal).Cast<object>().ToList(),
                 Name = $"{grouping.Key.Condition}, {grouping.Key.TestState}" ,
-                CustomData = grouping.Select(x => x.LotId).Cast<object>().ToList(),
+                CustomData = purchases.Select(x => x.LotId).Cast<object>().ToList(),
                 HoverTemplate = $"%{{x:.2f}} {WellKnown.Currencies.TargetCurrency}<br>%{{y}} шт"
             });
         }
