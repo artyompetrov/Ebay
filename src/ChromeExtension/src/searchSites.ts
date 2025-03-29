@@ -1,4 +1,4 @@
-import {EbayToolBackendClient, ProductWithoutId, RuSearchQuery, SearchQuery} from "../EbayClient/EbayToolBackendClient";
+import {EbayToolBackendClient, ProductWithoutId, RuSearchQuery, SearchQuery} from "./clients/EbayToolBackendClient";
 import {OAuth2Client} from "@badgateway/oauth2-client";
 import {v4 as uuidv4} from "uuid";
 

@@ -1,4 +1,4 @@
-import * as Frappe from "./EbayClient/FrappeClient"
+import * as Frappe from "./clients/FrappeClient"
 
 import {
     CategoryValue,
@@ -11,12 +11,11 @@ import {
     NotFoundProblemDetailedInfo,
     PurchaseInfo,
     ValidationProblemDetailedInfo, ProductWithoutId, SearchQuery, RuSearchQuery
-} from "./EbayClient/EbayToolBackendClient"
-import {EbayClient, Item} from "./EbayClient/EbayClient"
+} from "./clients/EbayToolBackendClient"
+import {EbayClient, Item} from "./clients/EbayClient"
 import {generateCodeVerifier, OAuth2Client} from '@badgateway/oauth2-client';
 import {FetchWrapperCustom} from "./FetchWrapperCustom";
-import { v4 as uuidv4 } from 'uuid';
-import {searchSitePages as searchSitePagesFunc} from "./searchSites/searchSites";
+import {searchSitePages as searchSitePagesFunc} from "./searchSites";
 
 const productFieldName = "productId";
 const ignoreThatLotFormId = "ignoreThatLot"

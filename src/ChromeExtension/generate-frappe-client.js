@@ -7,7 +7,7 @@ const { exec } = require('child_process');
 const OPENAPI_URL = 'https://localhost:8080/api/method/ebay.api.swagger.generate';
 const TEMP_DIR = os.tmpdir();
 const OPENAPI_FILE = path.join(TEMP_DIR, 'openapi.json');
-const OUTPUT_FILE = './src/EbayClient/FrappeClient.ts';
+const OUTPUT_FILE = './src/clients/FrappeClient.ts';
 
 async function fetchAndSaveOpenApi() {
     try {
