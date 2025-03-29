@@ -9,4 +9,14 @@ public partial class LotInfoShort
             purchaseInfo.SetRecent(TitleChangeDate);
         }
     }
+    
+    public string GetCondition()
+    {
+        return Categories.Single(x => x.Type == WellKnown.Categories.Conditions.CategoryName).Value!;
+    }
+
+    public string GetTestState()
+    {
+        return Categories.Single(x => x.Type == WellKnown.Categories.TestState.CategoryName).Value!;
+    }
 }

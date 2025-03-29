@@ -6,10 +6,12 @@ using DbSearchQuery = Server.Data.Models.SearchQuery;
 using DbRuSearchQuery = Server.Data.Models.RuSearchQuery;
 using DbLotCalculationResult = Server.Data.Models.LotCalculationResult;
 using DbProductCalculationResult = Server.Data.Models.ProductCalculationResult;
+using DbPurchaseCalculationResult = Server.Data.Models.PurchaseCalculationResult;
 using DbCurrency = Server.Data.Models.Currency;
 using ApiCurrency = Server.Controllers.Generated.Currency;
 using LotCalculationResult = Server.Controllers.Generated.LotCalculationResult;
 using ProductCalculationResult = Server.Controllers.Generated.ProductCalculationResult;
+using PurchaseCalculationResult = Server.Controllers.Generated.PurchaseCalculationResult;
 using Purchase = Server.Data.Models.Purchase;
 using RuSearchQuery = Server.Controllers.Generated.RuSearchQuery;
 using SearchQuery = Server.Controllers.Generated.SearchQuery;
@@ -107,10 +109,15 @@ internal static class ModelsExtensions
         quantityTotal: lotCalculationResult.QuantityTotal, revenue: lotCalculationResult.Revenue, revenueAvg: lotCalculationResult.RevenueAvg
     );
     
+    public static PurchaseCalculationResult? ToApiPurchaseCalculationResult(this DbPurchaseCalculationResult? lotCalculationResult) => lotCalculationResult == null ? null : new(
+        quantityTotal: lotCalculationResult.QuantityTotal, revenue: lotCalculationResult.Revenue, revenueAvg: lotCalculationResult.RevenueAvg
+    );
+    
     public static PurchaseInfo ToApiPurchaseInfo(this Purchase purchase) => new(
         date: purchase.Date.ToString(WellKnown.Formats.TimeFormat),
         price: purchase.Price,
-        quantity: purchase.Quantity
+        quantity: purchase.Quantity,
+        purchaseCalculationResult: purchase.PurchaseCalculationResult.ToApiPurchaseCalculationResult()
     );
 
     public static Lot ToDbLot(this LotInfo lotInfo, Guid productId, DateTime updateDate) =>

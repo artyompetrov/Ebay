@@ -659,9 +659,28 @@ definitions:
         type: string
         pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$
         minLength: 1
+      purchaseCalculationResult:
+        $ref: '#/definitions/PurchaseCalculationResult'
     required:
       - quantity
       - date
+  
+  PurchaseCalculationResult:
+    type: object
+    properties:
+      revenue:
+        type: number
+        minimum: 0.00
+      quantityTotal:
+        type: integer
+        minimum: 0
+      revenueAvg:
+        type: number
+        minimum: 0.00
+    required:
+      - revenue
+      - quantityTotal
+      - revenueAvg
   
   CategoryValue:
     type: object

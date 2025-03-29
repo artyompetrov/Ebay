@@ -1634,6 +1634,7 @@ export class PurchaseInfo implements IPurchaseInfo {
     price?: number | undefined;
     quantity!: number;
     date!: string;
+    purchaseCalculationResult?: PurchaseCalculationResult | undefined;
 
     constructor(data?: IPurchaseInfo) {
         if (data) {
@@ -1649,6 +1650,7 @@ export class PurchaseInfo implements IPurchaseInfo {
             this.price = _data["price"];
             this.quantity = _data["quantity"];
             this.date = _data["date"];
+            this.purchaseCalculationResult = _data["purchaseCalculationResult"] ? PurchaseCalculationResult.fromJS(_data["purchaseCalculationResult"]) : <any>undefined;
         }
     }
 
@@ -1664,6 +1666,7 @@ export class PurchaseInfo implements IPurchaseInfo {
         data["price"] = this.price;
         data["quantity"] = this.quantity;
         data["date"] = this.date;
+        data["purchaseCalculationResult"] = this.purchaseCalculationResult ? this.purchaseCalculationResult.toJSON() : <any>undefined;
         return data;
     }
 }
@@ -1672,6 +1675,51 @@ export interface IPurchaseInfo {
     price?: number | undefined;
     quantity: number;
     date: string;
+    purchaseCalculationResult?: PurchaseCalculationResult | undefined;
+}
+
+export class PurchaseCalculationResult implements IPurchaseCalculationResult {
+    revenue!: number;
+    quantityTotal!: number;
+    revenueAvg!: number;
+
+    constructor(data?: IPurchaseCalculationResult) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.revenue = _data["revenue"];
+            this.quantityTotal = _data["quantityTotal"];
+            this.revenueAvg = _data["revenueAvg"];
+        }
+    }
+
+    static fromJS(data: any): PurchaseCalculationResult {
+        data = typeof data === 'object' ? data : {};
+        let result = new PurchaseCalculationResult();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["revenue"] = this.revenue;
+        data["quantityTotal"] = this.quantityTotal;
+        data["revenueAvg"] = this.revenueAvg;
+        return data;
+    }
+}
+
+export interface IPurchaseCalculationResult {
+    revenue: number;
+    quantityTotal: number;
+    revenueAvg: number;
 }
 
 export class CategoryValue implements ICategoryValue {
