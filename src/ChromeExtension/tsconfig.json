@@ -12,8 +12,8 @@
     ]
   },
   "include": [
-    "main.ts",
-    "EbayClient/EbayClient.ts"
+    "index.ts",
+    "src/**/*.ts"
   ],
   "exclude": [
     "node_modules",

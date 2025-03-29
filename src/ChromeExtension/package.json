@@ -6,7 +6,7 @@
         "uuid": "^11.1.0"
     },
     "name": "chromeextension",
-    "main": "main.js",
+    "main": "index.js",
     "devDependencies": {
         "@types/jsonpath": "^0.2.4",
         "clean-webpack-plugin": "^4.0.0",
