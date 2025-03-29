@@ -1,6 +1,5 @@
 import * as Frappe from "./EbayClient/FrappeClient"
 
-
 import {
     CategoryValue,
     EbayToolBackendClient,
@@ -1169,7 +1168,10 @@ async function waitForPurchaseHistoryAndTitleDate(){
         }
     }
     
-    _lotInfo.purchaseHistory = _purchaseHistory;
+    const titleChangeDate = new Date(_titleChangeDate);
+    _lotInfo.purchaseHistory = _purchaseHistory.filter(purchase =>
+        new Date(purchase.date) >= titleChangeDate
+    );
     _lotInfo.titleChangeDate = _titleChangeDate;
 }
 

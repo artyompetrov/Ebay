@@ -11,6 +11,7 @@ internal class Lot
     public Guid ProductId { get; set; }
     public Product Product { get; set; } = null!;
 
+    // Тоже самое, что и title, но в коде везде Name
     public string Name { get; set; } = null!;
 
     public int Pcs { get; set; }

@@ -70,6 +70,7 @@
 
     <div>Продано штук: @_totalCount</div>
     <div>Средняя выручка с одной штуки: @_meanProfitPerPcs.ToString("#") @WellKnown.Currencies.TargetCurrency</div>
+    <div>Средняя выручка с одной штуки (предрасчет): @((_product?.ProductCalculationResult?.RevenueAvg * _targetCurrencyRate)?.ToString("#"))</div>
 
 
     <PlotlyChart @bind-Config="@_config" @bind-Layout="@_layout" @bind-Data="@_data" @ref="@_chart" ClickAction="GraphClickAction" AfterRender="SubscribeEvents" style="height: 60vh; min-height: 350px"/>
@@ -141,7 +142,8 @@
     double _meanProfitPerPcs;
     private Dictionary<string, List<ShippingRateInner>> _shippingRates = null!;
     private Dictionary<string, double> _currencyRates = null!;
-        private const string Worldwide = "Worldwide";
+    private double _targetCurrencyRate;
+    private const string Worldwide = "Worldwide";
 
     [Parameter]
     public Guid ProductId { get; set; }
@@ -171,6 +173,7 @@
 
         _product = productTask.Result;
         _currencyRates = getCurrenciesTask.Result;
+        _targetCurrencyRate = _currencyRates[WellKnown.Currencies.TargetCurrency];
         _shippingRates = GetShippingRates(shippingRates: getShippingRatesTask.Result, currencies: getCurrenciesTask.Result);
 
         _parametersModelEditContext = new EditContext(_parametersModel);

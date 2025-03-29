@@ -250,11 +250,18 @@ internal class EbayControllerImplementation : IEbayController
 
         await _applicationContext.Lots.Upsert(dbLotInfo).RunAsync(cancellationToken);
 
+        var titleChangedDate = DateTime.Parse(lotInfo.TitleChangeDate);
 
-        var dbPurchaseHistory = lotInfo.PurchaseHistory
+        var filteredPurchaseHistory = lotInfo.PurchaseHistory
             .Select(x => x.ToDbPurchase(lotId: lotInfo.LotId))
+            .Where(purchase => purchase.Date >= titleChangedDate)
             .ToList();
-        await _applicationContext.Purchases.UpsertRange(dbPurchaseHistory).RunAsync(cancellationToken);
+
+        await _applicationContext.Purchases.UpsertRange(filteredPurchaseHistory).RunAsync(cancellationToken);
+        
+        _applicationContext.RemoveRange(
+            _applicationContext.Purchases.Where(x => x.LotId == lotInfo.LotId && x.Date < titleChangedDate)
+        );
 
         _applicationContext.RemoveRange(
             _applicationContext.IgnoredLots.Where(x => x.ProductId == productId && x.LotId == lotInfo.LotId)
