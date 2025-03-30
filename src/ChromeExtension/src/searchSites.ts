@@ -106,23 +106,6 @@ export function transliterate(text: string): string {
         .join("");
 }
 
-// Функция для ожидания загрузки элемента
-export async function sleepElementLoaded(selector: string, elementToSearchIn: Document | Element): Promise<Element> {
-    let retry = 0;
-    while (true) {
-        retry++;
-        if (retry > 200) throw new Error("unable to find element by selector " + selector);
-
-        let element = elementToSearchIn.querySelector(selector);
-        if (element !== null) return element;
-        await sleep(100);
-    }
-}
-
-// Функция для паузы выполнения кода
-export function sleep(ms: number): Promise<number> {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 // Создание и показ всплывающей подсказки
 export function createTooltip(): HTMLDivElement {
