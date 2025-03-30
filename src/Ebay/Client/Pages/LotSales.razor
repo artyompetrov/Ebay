@@ -44,7 +44,6 @@
             <button class="btn btn-warning btn-sm" @onclick="@(e => MarkAsChecked(_product))">Отметить как проверенный</button>
         }
     </div>
-
     <br/>
     @if (_product.Weight == 0)
     {
@@ -52,12 +51,12 @@
     }
     else
     {
-        <div>Вес без упаковки: @_product?.Weight <a class="link" href="javascript:void(0)" @onclick="@(e => _productPopupComponent.ShowEdit(_product!))">Изменить вес без упаковки</a></div>
+        <div>Вес без упаковки: @_product?.Weight</div>
     }
 
     <div>Продано штук: @(_product?.ProductCalculationResult?.QuantityTotal)</div>
     <div>Средняя выручка с одной штуки: @((_product?.ProductCalculationResult?.RevenueAvg * _targetCurrencyRate)?.ToString("#"))  @WellKnown.Currencies.TargetCurrency</div>
-    <div>Запрос (eBay):
+    <div>Запросы (eBay):
     @foreach (var query in _product!.SearchQueries)
     {
         <span><a href="@Helpers.GetSearchLink(query: query.Query, productId: _product.Id)" rel="noreferrer" target=”_blank”>@Helpers.HighlightMinorityLetters(query.Query, "red")</a>&#160;</span>
