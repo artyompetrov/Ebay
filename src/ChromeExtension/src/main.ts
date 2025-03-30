@@ -2,11 +2,13 @@ import * as UpdatesCheckerClient from "./clients/UpdatesCheckerClient";
 import {tryGetEbaySiteProcessor} from "./siteProcessors/EbaySiteProcessor";
 import {ISiteProcessor} from "./siteProcessors/ISiteProcessor";
 import {tryGetAuthPageProssor} from "./siteProcessors/AuthPageProcessor";
+import {tryGetSearchSitesProcessor} from "./siteProcessors/SearchSitesProcessor";
 
 function getMatchingSiteProcessors(): ISiteProcessor[] {
     const processors = [
         tryGetAuthPageProssor(),
-        tryGetEbaySiteProcessor()
+        tryGetEbaySiteProcessor(),
+        tryGetSearchSitesProcessor()
     ];
     return processors.filter((processor) => processor !== null);
 }

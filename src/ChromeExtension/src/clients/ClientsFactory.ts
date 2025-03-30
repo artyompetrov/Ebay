@@ -15,7 +15,9 @@ export class ClientsFactory {
         }
     }
 
-    getBackendOAuth2Client(): OAuth2Client {
+    async getBackendOAuth2Client(): Promise<OAuth2Client> {
+        await this.saveCodeVerifier();
+        
         return new OAuth2Client({
             server: constants.Urls.backendUrl,
             clientId: 'Ebay.ChromeExtension',
@@ -25,7 +27,9 @@ export class ClientsFactory {
         });
     }
 
-    getEbayOAuth2Client(): OAuth2Client {
+    async getEbayOAuth2Client(): Promise<OAuth2Client> {
+        await this.saveCodeVerifier();
+        
         return new OAuth2Client({
             server: constants.Urls.backendUrl,
             clientId: 'Ebay.ChromeExtension',
@@ -39,7 +43,7 @@ export class ClientsFactory {
         await chrome.storage.local.set({return_page: document.location.href});
 
         return new EbayToolBackendClient.EbayToolBackendClient(constants.Urls.baseApiUrl,
-            this.getAuthorizeFetch(this.getBackendOAuth2Client(), constants.Auth.backendApiScope, "ebayToolTokenStore", constants.Urls.extensionAuthRedirectUrl));
+            this.getAuthorizeFetch(await this.getBackendOAuth2Client(), constants.Auth.backendApiScope, "ebayToolTokenStore", constants.Urls.extensionAuthRedirectUrl));
 
     }
     
@@ -47,7 +51,7 @@ export class ClientsFactory {
         await chrome.storage.local.set({return_page: document.location.href});
 
         return new EbayClient.EbayClient("https://api.ebay.com/buy/browse/v1",
-            this.getAuthorizeFetch(this.getEbayOAuth2Client(), constants.Auth.ebayApiScope, "ebayTokenStore", constants.Auth.ebayRedirectUriCode));
+            this.getAuthorizeFetch(await this.getEbayOAuth2Client(), constants.Auth.ebayApiScope, "ebayTokenStore", constants.Auth.ebayRedirectUriCode));
 
     }
 

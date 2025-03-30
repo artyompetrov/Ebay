@@ -2,11 +2,18 @@ import * as EbayToolBackendClient from "../clients/EbayToolBackendClient";
 import * as utils from "../infrastructure/Utils";
 import * as constants from '../constants';
 import { ISiteProcessor } from './ISiteProcessor';
-
 // noinspection SpellCheckingInspection
 import {v4 as uuidv4} from "uuid";
 
-export class SearchSitesProcessor implements ISiteProcessor {
+export function tryGetSearchSitesProcessor() : ISiteProcessor | null {
+    if (document.location) {
+
+        return new SearchSitesProcessor();
+    }
+    return null;
+}
+
+class SearchSitesProcessor implements ISiteProcessor {
     private _ebayToolBackendClient: EbayToolBackendClient.EbayToolBackendClient;
     private _allItemsCacheIdentifier = "searchSitesAllItems";
 
@@ -15,10 +22,6 @@ export class SearchSitesProcessor implements ISiteProcessor {
         chipFind: /(?:^|\.)chipfind\.ru$/i,
         avito: /(?:^|\.)avito\.ru$/i
     };
-    
-    constructor(ebayToolBackendClient: EbayToolBackendClient.EbayToolBackendClient) {
-        this._ebayToolBackendClient = ebayToolBackendClient
-    }
 
     // Получение всех продуктов из кэша или с сервера
     async getAllProductsCached(productId: string | null, allItemsCacheIdentifier: string) {

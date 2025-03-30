@@ -20,7 +20,7 @@ class AuthPageProcessor implements ISiteProcessor {
     async  extensionAuthPage() {
         console.log("extensionAuthPage")
         let clientsFactory = new ClientsFactory();
-        let backendOAuth2Client = clientsFactory.getBackendOAuth2Client();
+        let backendOAuth2Client = await clientsFactory.getBackendOAuth2Client();
         let url = new URL(document.location.href)
         if (url.searchParams.has("code")) {
             let codeVerifier = (await chrome.storage.local.get(["code_verifier"])).code_verifier;
@@ -50,7 +50,7 @@ class AuthPageProcessor implements ISiteProcessor {
     async  ebayApiAuthPage() {
         console.log("ebayApiAuthPage")
         let clientsFactory = new ClientsFactory();
-        let ebayOAuth2Client = clientsFactory.getEbayOAuth2Client();
+        let ebayOAuth2Client = await clientsFactory.getEbayOAuth2Client();
         let url = new URL(document.location.href)
         if (url.searchParams.has("code")) {
 
