@@ -1,7 +1,7 @@
 ﻿import * as EbayClient from "./clients/EbayClient"
 import * as EbayToolBackendClient from "./clients/EbayToolBackendClient";
 import * as utils from "./utils";
-import * as consts from './consts';
+import * as constants from './constants';
 
 class PurchaseInfoInner {
     constructor(quantity: number, date: Date, price?: Price | undefined) {
@@ -203,7 +203,7 @@ class Ebay {
         div.innerHTML = `
      <a href="${historyButtonHref}" target="_blank">История продаж лота</a>
         <br><a href="${revisionsButtonHref}" target="_blank">История изменений лота</a>
-        <br>Бэкенд: <a href="${consts.Urls.backendUrl}" target="_blank">${consts.Urls.backendUrl}</a>
+        <br>Бэкенд: <a href="${constants.Urls.backendUrl}" target="_blank">${constants.Urls.backendUrl}</a>
         <br><br>
         <div id="${this.ignoredLotDiv}" style="color: red;" hidden="hidden">Лот в игноре</div>
     `
@@ -212,7 +212,7 @@ class Ebay {
         formIgnoreThatLot.id = this.ignoreThatLotFormId
         div.appendChild(formIgnoreThatLot)
 
-        formIgnoreThatLot.addEventListener("submit", async function (event: SubmitEvent) {
+        formIgnoreThatLot.addEventListener("submit", async (event: SubmitEvent) => {
             await this.handleIgnoreThatLotSubmit(event)
         });
 
@@ -240,7 +240,7 @@ class Ebay {
             <input id="${this.submitId}" type="submit" value="Save" disabled/>
         `;
 
-        form.addEventListener("submit", async function (event: SubmitEvent) {
+        form.addEventListener("submit", async (event: SubmitEvent) => {
             await this.handleSubmit(event)
         });
 
@@ -302,10 +302,10 @@ class Ebay {
 
         // language=HTML
         form.innerHTML = `
-            <input id="${this.submitId}" type="submit" value="Окрыть ${this.batchOpen} лотов"/>
+            <input id="${this.submitId}" type="submit" value="Открыть ${this.batchOpen} лотов"/>
         `;
 
-        form.addEventListener("submit", async function (event: SubmitEvent) {
+        form.addEventListener("submit", async (event: SubmitEvent) => {
             event.preventDefault()
             if (this._needActualizationLotsIds === null) return;
             if (this._needActualizationLotsIds.length === 0) {
@@ -346,7 +346,7 @@ class Ebay {
                 } else {
                     this._lotInfo[key] = value;
                 }
-            });
+            }, this);
 
             this._lotInfo.categories = categories;
 
@@ -753,7 +753,7 @@ class Ebay {
         let pcsField = <HTMLInputElement>this._panel.querySelector('input#' + this.pcsFieldName);
         let autoPcsField = <HTMLInputElement>this._panel.querySelector('input#' + this.autoPcsFieldName);
 
-        let fillManualWithAutoValue = false
+        let fillManualWithAutoValue : boolean
         let extractedData: EbayToolBackendClient.LotDataExtractedItem[] = extractedDataByFieldName["pcs"];
 
         if (extractedData.length > 0) {
@@ -761,23 +761,23 @@ class Ebay {
             autoPcsField.value = extractedData[0].value;
 
             if (extractedData.length === 1) {
-                autoPcsField.style.backgroundColor = consts.Colors.lightGreen;
+                autoPcsField.style.backgroundColor = constants.Colors.lightGreen;
 
                 fillManualWithAutoValue = true
             } else {
                 if (extractedData[0].extractorInfo.length > extractedData[1].extractorInfo.length) {
-                    autoPcsField.style.backgroundColor = consts.Colors.lightYellow;
+                    autoPcsField.style.backgroundColor = constants.Colors.lightYellow;
 
                     fillManualWithAutoValue = false
                 } else {
-                    autoPcsField.style.backgroundColor = consts.Colors.lightPink;
+                    autoPcsField.style.backgroundColor = constants.Colors.lightPink;
                     fillManualWithAutoValue = false
                 }
             }
 
         } else {
             autoPcsField.value = "1"
-            autoPcsField.style.backgroundColor = consts.Colors.lightYellow;
+            autoPcsField.style.backgroundColor = constants.Colors.lightYellow;
 
             fillManualWithAutoValue = false
         }
@@ -827,14 +827,14 @@ class Ebay {
             }))
 
             if (ebayMaxDate === 0 || serverMaxDate === ebayMaxDate) {
-                panel.style.cssText = `background-color: ${consts.Colors.lightGreen};`
+                panel.style.cssText = `background-color: ${constants.Colors.lightGreen};`
                 this._serverAndEbayAreEqual = true;
             } else {
-                panel.style.cssText = `background-color: ${consts.Colors.lightYellow};`
+                panel.style.cssText = `background-color: ${constants.Colors.lightYellow};`
                 console.log(`Update needed because last sale server ${serverMaxDate} and ebay last sale ${ebayMaxDate}`)
             }
         } else {
-            panel.style.cssText = `background-color: ${consts.Colors.lightPink};`
+            panel.style.cssText = `background-color: ${constants.Colors.lightPink};`
             console.log(`Update needed because server and ebay lot info differs`)
         }
 
@@ -875,7 +875,7 @@ class Ebay {
         let position = -1
         while (!this.supportedShippingCountries.has(currentCountry) || !this.hasShippingToCountry(currentCountry, shipsTo, excludes)) {
             position++;
-            if (position >= supportedShippingCountriesArray.length) throw new Error("Position is greater than supportedShippingCountriesArray lenght");
+            if (position >= supportedShippingCountriesArray.length) throw new Error("Position is greater than supportedShippingCountriesArray length");
             currentCountry = supportedShippingCountriesArray[position]
         }
         return currentCountry;
@@ -1071,7 +1071,7 @@ class Ebay {
     async searchPage() {
         console.log("SearchPage")
 
-        //только на странице проданые лоты
+        //только на странице проданные лоты
         if (new URL(document.location.href).searchParams?.get('LH_Sold')?.trim() !== "1") return;
 
 
@@ -1119,17 +1119,17 @@ class Ebay {
 
                             let diffInDays = Math.ceil((x.soldDate.getTime() - new Date(lotState.lastUpdate).getTime()) / (1000 * 60 * 60 * 24));
                             if (diffInDays > 0) {
-                                x.color = consts.Colors.lightYellow
+                                x.color = constants.Colors.lightYellow
                             } else {
-                                x.color = consts.Colors.lightGreen
+                                x.color = constants.Colors.lightGreen
                             }
                             importantCount++;
                         } else {
-                            x.color = consts.Colors.lightPink
+                            x.color = constants.Colors.lightPink
                             importantCount++;
                         }
                     } else {
-                        x.color = consts.Colors.lightGray
+                        x.color = constants.Colors.lightGray
                     }
 
                     x.importantCount = importantCount;
@@ -1144,7 +1144,7 @@ class Ebay {
                 });
 
                 this._needActualizationLotsIds = filteredLinks
-                    .filter(x => x.color === consts.Colors.lightYellow || x.color === consts.Colors.lightPink)
+                    .filter(x => x.color === constants.Colors.lightYellow || x.color === constants.Colors.lightPink)
                     .map(x => x.id)
             } catch (error) {
                 await this.saveErrorToBackend(error)
@@ -1154,7 +1154,7 @@ class Ebay {
     }
 
 
-    private async ebayPages(currentPage: string) {
+    public async run(currentPage: string) {
         await chrome.storage.local.set({return_page: document.location.href})
         
         await utils.sleepElementLoaded('footer', document)
