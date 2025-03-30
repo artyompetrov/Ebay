@@ -30,5 +30,7 @@ export const Auth = {
 };
 
 export const Settings = {
-    extendedLogging: true
+    extendedLogging: true,
+    interestingRevenueRub: 1000,
+    interestingCountInStatistics: 5 /*если продано от 5-ти штук на ebay для репрезентативности*/
 };

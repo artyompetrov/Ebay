@@ -6,10 +6,10 @@ import { ISiteProcessor } from './ISiteProcessor';
 import {v4 as uuidv4} from "uuid";
 import {ClientsFactory} from "../clients/ClientsFactory";
 import {ProductWithId} from "../clients/EbayToolBackendClient";
+import elements = chrome.devtools.panels.elements;
 
 const chipFindRegex: RegExp = /(?:^|\.)chipfind\.ru$/i
 const avitoRegex: RegExp = /(?:^|\.)avito\.ru$/i
-const interestingPrice = 1000; //rub
 const searchOnSites: RegExp[] = [
     avitoRegex,
     chipFindRegex
@@ -26,14 +26,18 @@ export function tryGetSearchSitesProcessor() : ISiteProcessor | null {
 class ProductWithRegex {
     product: ProductWithId;
     regex: RegExp;
+    regexString: string;
+    regexFlagsString: string;
     revenueRub: number | null;
     isInteresting: boolean;
     
     constructor(product: EbayToolBackendClient.ProductWithId, regex: RegExp, rubRate: number) {
         this.product = product;
         this.regex = regex;
+        this.regexString = regex.source;
+        this.regexFlagsString = regex.flags;
         this.revenueRub = product.productCalculationResult?.revenueAvg * rubRate
-        this.isInteresting = this.revenueRub > interestingPrice;
+        this.isInteresting = this.revenueRub > constants.Settings.interestingRevenueRub && product.productCalculationResult.quantityTotal >= constants.Settings.interestingCountInStatistics;
     }
 }
 
@@ -42,6 +46,11 @@ class SearchSitesProcessor implements ISiteProcessor {
     private _allItemsCacheIdentifier = "searchSitesAllItems";
     private _targetCurrencyRate: number;
     private _targetCurrencyCacheIdentifier = "targetCurrency";
+    private _highlightKnownClass:string = "highlightKnown";
+    private _highlightCheckedClass:string = "highlightChecked";
+    private _highlightInterestingClass:string = "highlightInteresting";
+    private _foundProductIdsAttribute: string = 'data-product-ids';
+    private _products: Map<string, ProductWithRegex>;
 
 
     async getTargetCurrencyCached(): Promise<number> {
@@ -58,7 +67,7 @@ class SearchSitesProcessor implements ISiteProcessor {
     }
 
     // Получение всех продуктов из кэша или с сервера
-    async getAllProductsCached(productId: string | null, allItemsCacheIdentifier: string) : Promise<ProductWithRegex[]> {
+    async getAllProductsCached(productId: string | null, allItemsCacheIdentifier: string) : Promise<Map<string, ProductWithRegex>> {
         let cached = await utils.getCachedDataOrFallback(allItemsCacheIdentifier, async () => {
                 return await this.getProductWithRegexes()
             },
@@ -76,8 +85,14 @@ class SearchSitesProcessor implements ISiteProcessor {
                     60 * 60);
             }
         }
+
+        let result = new Map<string, ProductWithRegex>();
         
-        return cached.map(x=> new ProductWithRegex(x.product, new RegExp(x.regex.source, x.regex.flags), this._targetCurrencyRate));
+        for (const product of cached) {
+            result.set(product.product.id, new ProductWithRegex(product.product, new RegExp(product.regexString, product.regexFlagsString), this._targetCurrencyRate))
+        }
+        
+        return result;
     }
 
     async getProductWithRegexes() : Promise<ProductWithRegex[]> {
@@ -301,12 +316,7 @@ class SearchSitesProcessor implements ISiteProcessor {
 
     // Выделяет текстовый узел и добавляет обработчики событий для tooltip
     highlightWord(
-        node: Text,
-        products: ProductWithRegex[],
-        highlightClass: string,
-        tooltip: HTMLDivElement,
-        lastHighlightedElementRef: { current: HTMLElement | null },
-        tooltipTimeoutRef: { current: number | null }
+        node: Text
     ): void {
         let parent = node.parentElement;
         if (!parent) return;
@@ -314,136 +324,65 @@ class SearchSitesProcessor implements ISiteProcessor {
         let originalText = node.textContent;
         if (!originalText) return;
         
-        let shouldHighlight = false;
-        // Проверяем каждое регулярное выражение
-        for (const product of products) {
+        let matchedIdsString: string | null = null;
+        let hasInteresting = false;
+        let hasChecked = false;
+        for (const product of this._products.values()) {
             product.regex.lastIndex = 0;
             if (product.regex.test(originalText)) {
-                shouldHighlight = true;
-                break
+                if (matchedIdsString === null) {
+                    matchedIdsString = String(product.product.id);
+                } else {
+                    matchedIdsString += ',' + product.product.id;
+                }
+                
+                if (product.isInteresting) {
+                    hasInteresting = true;
+                }
+                if (product.product.isCheckRequired == false) {
+                    hasChecked = true;
+                }
             }
         }
-        if (shouldHighlight) {
-            parent.classList.add(highlightClass);
 
-            // Проверяем, не добавлены ли уже обработчики
-            if (parent.dataset.tooltipHandlersAdded === 'true') return;
-            parent.dataset.tooltipHandlersAdded = 'true';
-
-            // Добавляем обработчики событий на элемент
-            parent.addEventListener('mouseenter', async (_: MouseEvent) => {
-                if (tooltipTimeoutRef.current) clearTimeout(tooltipTimeoutRef.current);
-
-                lastHighlightedElementRef.current = parent;
-                const text = parent.textContent || '';
-
-                // Снова находим продукты при наведении, чтобы иметь самую свежую информацию
-                const hoveredMatchedProducts: ProductWithRegex[] = [];
-                for (const product of products) {
-                    product.regex.lastIndex = 0;
-                    if (product.regex.test(text)) {
-                        hoveredMatchedProducts.push(product);
-                    }
-                }
-
-                if (hoveredMatchedProducts.length === 0) return;
-
-                // Показываем tooltip с информацией о продуктах
-                tooltip.style.display = 'block';
-
-                // Позиционируем подсказку рядом с элементом
-                const rect = parent.getBoundingClientRect();
-                this.positionTooltip(tooltip, rect);
-
-                if (lastHighlightedElementRef.current === parent) {
-                    // Формируем HTML для всех найденных продуктов
-                    let productsHtml = '';
-
-                    for (let i = 0; i < hoveredMatchedProducts.length; i++) {
-                        const product = hoveredMatchedProducts[i];
-
-                        // Добавляем разделитель между продуктами
-                        if (i > 0) {
-                            productsHtml += '<hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">';
-                        }
-
-                        // Используем функцию generateProductHtml вместо дублирования HTML кода
-                        productsHtml += this.generateProductHtml(product);
-                    }
-
-                    // Добавляем крестик закрытия сверху
-                    tooltip.innerHTML = `
-                    <div style="position: relative;">
-                        <div style="position: sticky; top: 0; right: 0; float: right; cursor: pointer; font-weight: bold; color: #0000cc; background-color: white; padding: 3px; z-index: 10000;">✕</div>
-                        ${productsHtml}
-                    </div>
-                `;
-
-                    // Настраиваем обработчики событий для tooltip
-                    this.setupTooltipHandlers(tooltip);
-                }
-            });
-
-            parent.addEventListener('mouseleave', () => {
-                lastHighlightedElementRef.current = null;
-                tooltipTimeoutRef.current = window.setTimeout(() => {
-                    tooltip.style.display = 'none';
-                }, 300) as unknown as number;
-            });
+        if (matchedIdsString !== null) {
+            if (hasInteresting) {
+                parent.classList.add(this._highlightInterestingClass);
+            } else if (hasChecked) {
+                parent.classList.add(this._highlightCheckedClass);
+            }
+            else {
+                parent.classList.add(this._highlightKnownClass);
+            }
+            parent.setAttribute(this._foundProductIdsAttribute, matchedIdsString);
+            parent.addEventListener('mouseenter', this.onMouseEnterHighlight.bind(this));
         }
     }
-
-    // Подсвечивает слова на странице
-    highlightWords(products: ProductWithRegex[], highlightClass: string = "highlight"): void {
+    
+    highlightWords() {
         console.log("highlightWords");
         
-        // Создаем tooltip один раз для всех подсвеченных элементов
-        const tooltip = this.createTooltip();
-
-        // Используем объекты для передачи ссылок на lastHighlightedElement и tooltipTimeout
-        const lastHighlightedElementRef = {current: null as HTMLElement | null};
-        const tooltipTimeoutRef = {current: null as number | null};
-
-        const traverseNodes = (element: HTMLElement | null): void => {
-            if (!element) return;
-            let children = Array.from(element.childNodes);
-
-
-            for (let i = 0; i < children.length; i++) {
-                const node = children[i];
-                if (node.nodeType === Node.TEXT_NODE) {
-                     this.highlightWord(
-                        node as Text,
-                        products, 
-                        highlightClass, 
-                        tooltip, 
-                        lastHighlightedElementRef, 
-                        tooltipTimeoutRef
-                    );
-                    
-                } else if (node.nodeType === Node.ELEMENT_NODE) {
-                    traverseNodes(node as HTMLElement);
-                }
-            }
-        };
-
-        // Обработчики для самого tooltip
-        tooltip.addEventListener('mouseenter', () => {
-            if (tooltipTimeoutRef.current) clearTimeout(tooltipTimeoutRef.current);
-        });
-
-        tooltip.addEventListener('mouseleave', () => {
-            lastHighlightedElementRef.current = null;
-            tooltip.style.display = 'none';
-        });
-
         const body = document.body;
         if (!body) {
             console.error("Document body is null. Unable to traverse DOM.");
             return;
         }
 
-       traverseNodes(body);
+        const traverseNodes = (element: HTMLElement | null): void => {
+            if (!element) return;
+            let children = Array.from(element.childNodes);
+            for (let i = 0; i < children.length; i++) {
+                const node = children[i];
+                if (node.nodeType === Node.TEXT_NODE) {
+                    this.highlightWord(node as Text);
+
+                } else if (node.nodeType === Node.ELEMENT_NODE) {
+                    traverseNodes(node as HTMLElement);
+                }
+            }
+        };
+
+        traverseNodes(body);
     }
     
 
@@ -527,7 +466,7 @@ class SearchSitesProcessor implements ISiteProcessor {
 
     // Обработка страницы поискового сайта
     async processSitePage(allItemsCacheIdentifier: string): Promise<void> {
-        let allProducts = await this.getAllProductsCached(null, allItemsCacheIdentifier);
+       
         
         if (chipFindRegex.test(location.host)) {
             await this.processChipFind();
@@ -536,9 +475,15 @@ class SearchSitesProcessor implements ISiteProcessor {
             // noinspection JSUnusedLocalSymbols
             let _ = this.processAvitoBackground();
         }
-        this.highlightWords(allProducts);
+
+        this._products = await this.getAllProductsCached(null, this._allItemsCacheIdentifier);
+        this.highlightWords();
     }
-   
+    
+    onMouseEnterHighlight(event: MouseEvent): void {
+        const target = event.currentTarget as HTMLElement;
+       //alert(target.getAttribute(this._foundProductIdsAttribute));
+    }
 
     public async run(): Promise<void> {
         console.log("searchSitePages");
@@ -584,8 +529,18 @@ class SearchSitesProcessor implements ISiteProcessor {
         // Добавляем стили для подсветки
         const style = document.createElement("style");
         style.textContent = `
-.highlight {
+.${this._highlightKnownClass} {
+    background-color: ${constants.Colors.lightGray};
+    font-weight: bold;
+}
+
+.${this._highlightCheckedClass} {
     background-color: ${constants.Colors.lightGreen};
+    font-weight: bold;
+}
+
+.${this._highlightInterestingClass} {
+    background-color: ${constants.Colors.lightPink};
     font-weight: bold;
 }
 `;
