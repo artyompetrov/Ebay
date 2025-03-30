@@ -20,9 +20,9 @@ export class ClientsFactory {
         
         return new OAuth2Client({
             server: constants.Urls.backendUrl,
-            clientId: constants.Auth.backendApiClientId,
-            tokenEndpoint:  constants.Auth.backendApiTokenEndpoint,
-            authorizationEndpoint: constants.Auth.backendApiAuthorizationEndpoint,
+            clientId: constants.Auth.Backend.ClientId,
+            tokenEndpoint:  constants.Auth.Backend.TokenEndpoint,
+            authorizationEndpoint: constants.Auth.Backend.AuthorizationEndpoint,
             fetch: fetchResource
         });
     }
@@ -31,10 +31,11 @@ export class ClientsFactory {
         await this.saveCodeVerifier();
         
         return new OAuth2Client({
-            server: constants.Urls.backendUrl,
-            clientId: 'Ebay.ChromeExtension',
-            tokenEndpoint: '/connect/token',
-            authorizationEndpoint: '/connect/authorize',
+            server: constants.Auth.Ebay.Server,
+            clientId: constants.Auth.Ebay.ClientId,
+            tokenEndpoint: constants.Auth.Ebay.TokenEndpoint,
+            authorizationEndpoint: constants.Auth.Ebay.AuthorizationEndpoint,
+            clientSecret: constants.Auth.Ebay.ClientSecret,
             fetch: fetchResource
         })
     }
@@ -43,7 +44,7 @@ export class ClientsFactory {
         await chrome.storage.local.set({return_page: document.location.href});
 
         return new EbayToolBackendClient.EbayToolBackendClient(constants.Urls.backendUrl + 'api/ebay/v1',
-            this.getAuthorizeFetch(await this.getBackendOAuth2Client(), constants.Auth.backendApiScope, "ebayToolTokenStore", constants.Urls.extensionAuthRedirectUrl));
+            this.getAuthorizeFetch(await this.getBackendOAuth2Client(), constants.Auth.Backend.Scope, "ebayToolTokenStore", constants.Urls.extensionAuthRedirectUrl));
 
     }
     
@@ -51,7 +52,7 @@ export class ClientsFactory {
         await chrome.storage.local.set({return_page: document.location.href});
 
         return new EbayClient.EbayClient("https://api.ebay.com/buy/browse/v1",
-            this.getAuthorizeFetch(await this.getEbayOAuth2Client(), constants.Auth.ebayApiScope, "ebayTokenStore", constants.Auth.ebayRedirectUriCode));
+            this.getAuthorizeFetch(await this.getEbayOAuth2Client(), constants.Auth.Ebay.Scope, "ebayTokenStore", constants.Auth.Ebay.RedirectUriCode));
 
     }
 

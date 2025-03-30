@@ -68,7 +68,7 @@ class AuthPageProcessor implements ISiteProcessor {
             let oauth2Token = await oAuth2Client.authorizationCode.getTokenFromCodeRedirect(
                 document.location.href,
                 {
-                    redirectUri: constants.Auth.ebayRedirectUriCode,
+                    redirectUri: constants.Auth.Ebay.RedirectUriCode,
                     codeVerifier
                 }
             );
@@ -81,7 +81,7 @@ class AuthPageProcessor implements ISiteProcessor {
                 await chrome.storage.local.set({return_page: null})
                 document.location.href = returnPage;
             } else {
-                document.location.href = constants.Auth.ebayRedirectUriCode
+                document.location.href = constants.Auth.Ebay.RedirectUriCode
             }
         }
     }

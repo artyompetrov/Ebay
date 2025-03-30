@@ -12,13 +12,21 @@ export const Urls = {
 };
 
 export const Auth = {
-    ebayRedirectUriCode: "Artem_Petrov-ArtemPet-tubesS-dsrgu",
-    ebayApiScope: "https://api.ebay.com/oauth/api_scope",
-
-    backendApiTokenEndpoint: '/connect/token',
-    backendApiAuthorizationEndpoint: '/connect/authorize',
-    backendApiClientId: 'Ebay.ChromeExtension',
-    backendApiScope: 'ServerAPI',
+    Ebay: {
+        Server: "https://auth.ebay.com/",
+        ClientId: 'ArtemPet-tubesSea-PRD-63b5a5e64-416f2036',
+        TokenEndpoint: 'https://api.ebay.com/identity/v1/oauth2/token',
+        AuthorizationEndpoint: "/oauth2/authorize",
+        ClientSecret: "PRD-689869074719-68a0-4a78-9b78-8c3f",
+        RedirectUriCode: "Artem_Petrov-ArtemPet-tubesS-dsrgu",
+        Scope: "https://api.ebay.com/oauth/api_scope",
+    },
+    Backend: {
+        TokenEndpoint: '/connect/token',
+        AuthorizationEndpoint: '/connect/authorize',
+        ClientId: 'Ebay.ChromeExtension',
+        Scope: 'ServerAPI',
+    }
 };
 
 export const Settings = {
