@@ -27,6 +27,7 @@
     "storage"
   ],
   "host_permissions": [
+    "https://auth2.ebay.com/oauth2/ThirdPartyAuthSucessFailure/*",
     "https://vi.vipr.ebaydesc.com/*",
     "http://vi.vipr.ebaydesc.com/*",
     "https://178.208.65.100/*",

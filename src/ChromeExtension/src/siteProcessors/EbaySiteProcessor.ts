@@ -8,7 +8,8 @@ import {ClientsFactory} from "../clients/ClientsFactory";
 const ebaySiteRegex: RegExp =  /(?:^|\.)ebay\.com$/i;
 
 export function tryGetEbaySiteProcessor() : ISiteProcessor | null {
-    if (ebaySiteRegex.test(location.host)) {
+    let currentPage = location.protocol + '//' + location.host + location.pathname
+    if (ebaySiteRegex.test(location.host) && currentPage !== constants.Urls.ebayAuthRedirectUrl) {
         
         return new EbaySiteProcessor();
     }
