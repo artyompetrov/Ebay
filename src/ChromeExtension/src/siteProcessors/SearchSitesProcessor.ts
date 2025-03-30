@@ -245,28 +245,64 @@ class SearchSitesProcessor implements ISiteProcessor {
         });
     }
 
+    // Преобразует слово в регулярное выражение с учетом возможных вариаций написания
+    createRegexPattern(word: string): RegExp {
+        const processed = word.toLowerCase()
+            .replace('(', '\\(')
+            .replace(')', '\\)')
+            .replace('/', '\\/')
+            .replace('.', ',')
+            .replace(',', '[,.]')
+            .replace(/[- ]/g, '[- ]?')
+            .replace(/[aа]/g, '[aа]')
+            .replace(/[cс]/g, '[cс]')
+            .replace(/[pр]/g, '[pр]')
+            .replace(/[eе]/g, '[eе]')
+            .replace(/[oо]/g, '[oо]')
+            .replace(/[xх]/g, '[xх]')
+            .replace(/[yу]/g, '[yу]')
+            .replace(/[bв]/g, '[bв]')
+            .replace(/[hн]/g, '[hн]')
+            .replace(/[kк]/g, '[kк]')
+            .replace(/[mм]/g, '[mм]')
+            .replace(/[tт]/g, '[tт]');
+        
+        return new RegExp(`(?:^|\\s|\\.)(${processed})(?:$|\\s|-|,|=|\\.)`, "ig");
+    }
+
     // Выделяет текстовый узел и добавляет обработчики событий для tooltip
     highlightWord(
         node: Text,
-        regex: RegExp,
+        productsWithRegexes: { product: any, regex: RegExp }[],
         highlightClass: string,
         tooltip: HTMLDivElement,
-        products: any[],
         lastHighlightedElementRef: { current: HTMLElement | null },
         tooltipTimeoutRef: { current: number | null }
-    ): void {
+    ): Set<any> {
         let parent = node.parentElement;
-        if (!parent) return;
+        if (!parent) return new Set<any>();
 
         let originalText = node.textContent;
-        if (!originalText) return;
+        if (!originalText) return new Set<any>();
 
-        regex.lastIndex = 0;
-        if (regex.test(originalText)) {
+        // Найденные продукты для данного текстового узла
+        const matchedProducts = new Set<any>();
+        let shouldHighlight = false;
+
+        // Проверяем каждое регулярное выражение
+        for (const {product, regex} of productsWithRegexes) {
+            regex.lastIndex = 0;
+            if (regex.test(originalText)) {
+                matchedProducts.add(product);
+                shouldHighlight = true;
+            }
+        }
+
+        if (shouldHighlight) {
             parent.classList.add(highlightClass);
 
             // Проверяем, не добавлены ли уже обработчики
-            if (parent.dataset.tooltipHandlersAdded === 'true') return;
+            if (parent.dataset.tooltipHandlersAdded === 'true') return matchedProducts;
             parent.dataset.tooltipHandlersAdded = 'true';
 
             // Добавляем обработчики событий на элемент
@@ -276,10 +312,16 @@ class SearchSitesProcessor implements ISiteProcessor {
                 lastHighlightedElementRef.current = parent;
                 const text = parent.textContent || '';
 
-                // Находим все соответствующие продукты
-                const matchedProducts = this.findMatchingProducts(text, products);
+                // Снова находим продукты при наведении, чтобы иметь самую свежую информацию
+                const hoveredMatchedProducts: any[] = [];
+                for (const {product, regex} of productsWithRegexes) {
+                    regex.lastIndex = 0;
+                    if (regex.test(text)) {
+                        hoveredMatchedProducts.push(product);
+                    }
+                }
 
-                if (matchedProducts.length === 0) return;
+                if (hoveredMatchedProducts.length === 0) return;
 
                 // Показываем tooltip с информацией о продуктах
                 tooltip.innerHTML = 'Загрузка данных о ценах...';
@@ -293,8 +335,8 @@ class SearchSitesProcessor implements ISiteProcessor {
                     // Формируем HTML для всех найденных продуктов
                     let productsHtml = '';
 
-                    for (let i = 0; i < matchedProducts.length; i++) {
-                        const product = matchedProducts[i];
+                    for (let i = 0; i < hoveredMatchedProducts.length; i++) {
+                        const product = hoveredMatchedProducts[i];
 
                         // Добавляем разделитель между продуктами
                         if (i > 0) {
@@ -325,35 +367,45 @@ class SearchSitesProcessor implements ISiteProcessor {
                 }, 300) as unknown as number;
             });
         }
+
+        return matchedProducts;
     }
 
     // Подсвечивает слова на странице
-    highlightWords(words: string[], products: any[], highlightClass: string = "highlight"): void {
+    highlightWords(products: any[], highlightClass: string = "highlight"): void {
         console.log("highlightWords");
-        //todo regex надо кешировать
-        let wordsReplaced = words.map(x => x.toLowerCase()
-            .replace('(', '\\(')
-            .replace(')', '\\)')
-            .replace('/', '\\/')
-            .replace('.', ',')
-            .replace(',', '[,.]')
-            .replace(/[- ]/g, '[- ]?')
-            .replace(/[aа]/g, '[aа]')
-            .replace(/[cс]/g, '[cс]')
-            .replace(/[pр]/g, '[pр]')
-            .replace(/[eе]/g, '[eе]')
-            .replace(/[oо]/g, '[oо]')
-            .replace(/[xх]/g, '[xх]')
-            .replace(/[yу]/g, '[yу]')
-            .replace(/[bв]/g, '[bв]')
-            .replace(/[hн]/g, '[hн]')
-            .replace(/[kк]/g, '[kк]')
-            .replace(/[mм]/g, '[mм]')
-            .replace(/[tт]/g, '[tт]')
-        );
-        const regex = new RegExp(`(?:^|\\s|\\.)(${wordsReplaced.join("|")})(?:$|\\s|-|,|=|\\.)`, "ig");
-        console.log(regex);
-
+        
+        // Создаем регулярные выражения для каждого продукта
+        const productsWithRegexes: { product: any, regex: RegExp, words: string[] }[] = [];
+        
+        // Для каждого продукта создаем регулярку из его имени и поисковых запросов
+        for (const product of products) {
+            const productSearchTerms: string[] = [];
+            
+            // Добавляем имя продукта
+            productSearchTerms.push(product.name);
+            
+            // Добавляем поисковые запросы
+            if (product.ruSearchQueries && product.ruSearchQueries.length > 0) {
+                for (const sq of product.ruSearchQueries) {
+                    if (sq.query) {
+                        productSearchTerms.push(sq.query);
+                    }
+                }
+            }
+            
+            // Создаем регулярки для всех поисковых терминов этого продукта
+            for (const term of productSearchTerms) {
+                if (term && term.trim()) {
+                    productsWithRegexes.push({
+                        product,
+                        regex: this.createRegexPattern(term),
+                        words: [term]
+                    });
+                }
+            }
+        }
+        
         // Создаем tooltip один раз для всех подсвеченных элементов
         const tooltip = this.createTooltip();
 
@@ -361,18 +413,32 @@ class SearchSitesProcessor implements ISiteProcessor {
         const lastHighlightedElementRef = {current: null as HTMLElement | null};
         const tooltipTimeoutRef = {current: null as number | null};
 
-        const traverseNodes = (element: HTMLElement | null): void => {
-            if (!element) return;
+        const traverseNodes = (element: HTMLElement | null): Set<any> => {
+            if (!element) return new Set<any>();
             let children = Array.from(element.childNodes);
+            const allMatchedProducts = new Set<any>();
 
             for (let i = 0; i < children.length; i++) {
                 const node = children[i];
                 if (node.nodeType === Node.TEXT_NODE) {
-                    this.highlightWord(node as Text, regex, highlightClass, tooltip, products, lastHighlightedElementRef, tooltipTimeoutRef);
+                    const matches = this.highlightWord(
+                        node as Text, 
+                        productsWithRegexes, 
+                        highlightClass, 
+                        tooltip, 
+                        lastHighlightedElementRef, 
+                        tooltipTimeoutRef
+                    );
+                    
+                    // Добавляем найденные продукты в общий набор
+                    matches.forEach(product => allMatchedProducts.add(product));
                 } else if (node.nodeType === Node.ELEMENT_NODE) {
-                    traverseNodes(node as HTMLElement);
+                    const childMatches = traverseNodes(node as HTMLElement);
+                    childMatches.forEach(product => allMatchedProducts.add(product));
                 }
             }
+            
+            return allMatchedProducts;
         };
 
         // Обработчики для самого tooltip
@@ -391,7 +457,8 @@ class SearchSitesProcessor implements ISiteProcessor {
             return;
         }
 
-        traverseNodes(body);
+        const matchedProducts = traverseNodes(body);
+        console.log(`Найдено ${matchedProducts.size} уникальных продуктов на странице`);
     }
 
     // Обработка страницы chipfind.ru
@@ -472,16 +539,10 @@ class SearchSitesProcessor implements ISiteProcessor {
         }, duration);
     }
 
-        // Обработка страницы поискового сайта
-        async processSitePage(allItemsCacheIdentifier: string) {
+    // Обработка страницы поискового сайта
+    async processSitePage(allItemsCacheIdentifier: string) {
         let allProducts = await this.getAllProductsCached(null, allItemsCacheIdentifier);
-        let names = allProducts.map(x => x.name);
-        let ruNames = allProducts.map(x => x.ruSearchQueries.map(x => x.query)).reduce((acc, val) => acc.concat(val), []);
-        console.log("names " + names.join(","));
-        console.log("ruNames " + ruNames.join(","));
-
-        let wordsToHighlight = Array.from(names.concat(ruNames));
-
+        
         if (chipFindRegex.test(location.host)) {
             await this.processChipFind();
         } else if (avitoRegex.test(location.host)) {
@@ -489,7 +550,7 @@ class SearchSitesProcessor implements ISiteProcessor {
             // noinspection JSUnusedLocalSymbols
             let _ = this.processAvitoBackground();
         }
-        this.highlightWords(wordsToHighlight, allProducts);
+        this.highlightWords(allProducts);
     }
    
 
