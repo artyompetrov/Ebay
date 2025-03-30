@@ -482,7 +482,47 @@ class SearchSitesProcessor implements ISiteProcessor {
     
     onMouseEnterHighlight(event: MouseEvent): void {
         const target = event.currentTarget as HTMLElement;
-       //alert(target.getAttribute(this._foundProductIdsAttribute));
+        const productIds = target.getAttribute(this._foundProductIdsAttribute);
+        
+        if (productIds) {
+            const ids = productIds.split(',');
+            this.showTooltip(ids, event);
+        }
+    }
+
+    private showTooltip(ids: string[], event): void {
+        // Создаем всплывающее окно
+        const tooltip = this.createTooltip();
+        
+        // Генерируем содержимое для каждого найденного товара
+        let tooltipContent = '';
+        for (const id of ids) {
+            const product = this._products.get(id);
+            if (product) {
+                tooltipContent += this.generateProductHtml(product);
+                
+                // Добавляем разделитель между товарами, кроме последнего
+                if (id !== ids[ids.length - 1]) {
+                    tooltipContent += '<hr style="margin: 10px 0; border: 0; border-top: 1px solid #ddd;">';
+                }
+            }
+        }
+        
+        // Вставляем контент после кнопки закрытия (первого элемента)
+        const closeButton = tooltip.firstChild;
+        const contentContainer = document.createElement('div');
+        contentContainer.innerHTML = tooltipContent;
+        tooltip.insertBefore(contentContainer, closeButton.nextSibling);
+        
+        // Позиционируем всплывающее окно относительно элемента, вызвавшего событие
+        const targetElement = event.currentTarget as HTMLElement;
+        this.positionTooltip(tooltip, targetElement.getBoundingClientRect());
+        
+        // Показываем всплывающее окно
+        tooltip.style.display = 'block';
+        
+        // Настраиваем обработчики событий для всплывающего окна
+        this.setupTooltipHandlers(tooltip);
     }
 
     public async run(): Promise<void> {
