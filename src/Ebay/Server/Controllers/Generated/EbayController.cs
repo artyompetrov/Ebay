@@ -78,13 +78,9 @@ namespace Server.Controllers.Generated
         System.Threading.Tasks.Task MarkProductAsCheckedAsync(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
 
-
-        /// <param name="onlyRecentSales">Отфильтровывать продажи, соверщенные до последнего изменения иимени</param>
-
-
         /// <returns>Ok</returns>
 
-        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<LotInfoShort>> GetLotsAsync(string? conditions, string? testStates, bool? onlyRecentSales, System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<LotInfoShort>> GetLotsAsync(System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
         /// <summary>
         /// Обновляет информацию о лоте
@@ -267,13 +263,12 @@ namespace Server.Controllers.Generated
             return _implementation.MarkProductAsCheckedAsync(id, cancellationToken);
         }
 
-        /// <param name="onlyRecentSales">Отфильтровывать продажи, соверщенные до последнего изменения иимени</param>
         /// <returns>Ok</returns>
         [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("products/{productId}/lots/")]
-        public System.Threading.Tasks.Task<System.Collections.Generic.ICollection<LotInfoShort>> GetLots([Microsoft.AspNetCore.Mvc.FromQuery] string? conditions, [Microsoft.AspNetCore.Mvc.FromQuery] string? testStates, [Microsoft.AspNetCore.Mvc.FromQuery] bool? onlyRecentSales, System.Guid productId, System.Threading.CancellationToken cancellationToken)
+        public System.Threading.Tasks.Task<System.Collections.Generic.ICollection<LotInfoShort>> GetLots(System.Guid productId, System.Threading.CancellationToken cancellationToken)
         {
 
-            return _implementation.GetLotsAsync(conditions, testStates, onlyRecentSales, productId, cancellationToken);
+            return _implementation.GetLotsAsync(productId, cancellationToken);
         }
 
         /// <summary>

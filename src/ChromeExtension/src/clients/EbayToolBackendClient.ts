@@ -290,22 +290,13 @@ export class EbayToolBackendClient {
     }
 
     /**
-     * @param conditions (optional) 
-     * @param testStates (optional) 
-     * @param onlyRecentSales (optional) Отфильтровывать продажи, соверщенные до последнего изменения иимени
      * @return Ok
      */
-    getLots(conditions: string | null | undefined, testStates: string | null | undefined, onlyRecentSales: boolean | null | undefined, productId: string): Promise<LotInfoShort[]> {
-        let url_ = this.baseUrl + "/products/{productId}/lots/?";
+    getLots(productId: string): Promise<LotInfoShort[]> {
+        let url_ = this.baseUrl + "/products/{productId}/lots/";
         if (productId === undefined || productId === null)
             throw new Error("The parameter 'productId' must be defined.");
         url_ = url_.replace("{productId}", encodeURIComponent("" + productId));
-        if (conditions !== undefined && conditions !== null)
-            url_ += "conditions=" + encodeURIComponent("" + conditions) + "&";
-        if (testStates !== undefined && testStates !== null)
-            url_ += "testStates=" + encodeURIComponent("" + testStates) + "&";
-        if (onlyRecentSales !== undefined && onlyRecentSales !== null)
-            url_ += "onlyRecentSales=" + encodeURIComponent("" + onlyRecentSales) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {

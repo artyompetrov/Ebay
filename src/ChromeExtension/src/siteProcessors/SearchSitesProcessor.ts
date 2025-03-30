@@ -145,6 +145,7 @@ class SearchSitesProcessor implements ISiteProcessor {
                 ${product.name}
             </a>
         </strong>
+        ${product.IsCheckRequired ? '<span style="color: red;"> (Требуется проверка)</span>' : ''}
     `;
 
         // Определяем содержимое в зависимости от наличия данных
@@ -164,9 +165,13 @@ class SearchSitesProcessor implements ISiteProcessor {
             productContent = `Нет данных о средней цене`;
         }
 
+        if (product.isCheckRequired) {
+            productContent += '<div>Требуется проверка</div>';
+        }
+
         // Собираем всё в единую структуру
         return `
-        <div style="position: relative;">
+        <div style="position: relative; ${product.isCheckRequired ? 'background-color: #ffcccc;' : ''}">
             ${productHeader}<br>
             <div style="margin-top: 8px;">
                 ${productContent}
@@ -343,7 +348,7 @@ class SearchSitesProcessor implements ISiteProcessor {
             .replace(/[mм]/g, '[mм]')
             .replace(/[tт]/g, '[tт]')
         );
-        const regex = new RegExp(`(?:^|\\s|\\.)(${wordsReplaced.join("|")})(?:$|\\s|-|,|\\.)`, "ig");
+        const regex = new RegExp(`(?:^|\\s|\\.)(${wordsReplaced.join("|")})(?:$|\\s|-|,|=|\\.)`, "ig");
         console.log(regex);
 
         // Создаем tooltip один раз для всех подсвеченных элементов
@@ -503,15 +508,24 @@ class SearchSitesProcessor implements ISiteProcessor {
         chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
             if (message.action === "processText") {
                 console.log("Received message", message.text);
-                let productName = message.text.trim();
-                await this._ebayToolBackendClient.createProduct(new EbayToolBackendClient.ProductWithoutId({
-                    name: productName,
-                    searchQueries: Array.of(new EbayToolBackendClient.SearchQuery({id: uuidv4(), query: this.transliterate(productName)})),
-                    ruSearchQueries: new Array<EbayToolBackendClient.RuSearchQuery>(),
-                    weight: 0
-                }));
-                utils.removeFromCache(this._allItemsCacheIdentifier);
-                this.showToast("Product created \"" + productName + "\"");
+                try {
+                    let productName = message.text.trim();
+                    await this._ebayToolBackendClient.createProduct(new EbayToolBackendClient.ProductWithoutId({
+                        name: productName,
+                        searchQueries: Array.of(new EbayToolBackendClient.SearchQuery({
+                            id: uuidv4(),
+                            query: this.transliterate(productName)
+                        })),
+                        ruSearchQueries: new Array<EbayToolBackendClient.RuSearchQuery>(),
+                        weight: 0
+                    }));
+                    utils.removeFromCache(this._allItemsCacheIdentifier);
+                    this.showToast("Product created \"" + productName + "\"");
+                }
+                catch (error) {
+                    this.showToast("Error while creating a product");
+                    console.log(JSON.stringify(error))
+                }
             }
         });
 

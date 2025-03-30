@@ -108,20 +108,6 @@ paths:
         format: guid
     get:
       operationId: GetLots
-      parameters:
-        - name: conditions
-          in: query
-          type: string
-          required: false
-        - name: testStates
-          in: query
-          type: string
-          required: false
-        - name: onlyRecentSales
-          description: Отфильтровывать продажи, соверщенные до последнего изменения иимени
-          in: query
-          type: boolean
-          required: false
       responses:
         200:
           description: Ok

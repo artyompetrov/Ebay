@@ -37,31 +37,18 @@
     
     <div style="display: flex; align-items: center; gap: 10px;">
         <h4>Статистика @_product.Name</h4>
+        <button class="btn btn-primary btn-sm" @onclick="@(e => _productPopupComponent.ShowEdit(_product))">Редактировать</button>
         <button class="btn btn-primary btn-sm" @onclick="UpdateAllPrices">Пересчитать цены</button>
-    </div>
-
-    <EditForm EditContext="@_parametersModelEditContext"/>
-    <div class="form-check form-check-inline">
-        <InputCheckbox class="form-check-input" id="new" @bind-Value="@_parametersModel.New" @bind-Value:after="UpdatePage"/>
-        <label class="form-check-label" for="new">Новые</label>
-    </div>
-    <div class="form-check form-check-inline">
-        <InputCheckbox class="form-check-input" id="used" @bind-Value="@_parametersModel.Used" @bind-Value:after="UpdatePage"/>
-        <label class="form-check-label" for="used">БУ</label>
-    </div>
-    <div class="form-check form-check-inline">
-        <InputCheckbox class="form-check-input" id="subtractShippingCosts" @bind-Value="@_parametersModel.SubtractShippingCosts" @bind-Value:after="UpdatePage"/>
-        <label class="form-check-label" for="subtractShippingCosts">Полный расчет стоимости доставки</label>
-    </div>
-    <div class="form-check form-check-inline">
-        <InputCheckbox class="form-check-input" id="isRecent" @bind-Value="@_parametersModel.IsRecent" @bind-Value:after="UpdatePage"/>
-        <label class="form-check-label" for="isRecent">Игнорировать продажи до изменения имени</label>
+        @if (_product.IsCheckRequired)
+        {
+            <button class="btn btn-warning btn-sm" @onclick="@(e => MarkAsChecked(_product))">Отметить как проверенный</button>
+        }
     </div>
 
     <br/>
     @if (_product.Weight == 0)
     {
-        <h3 class="text-danger">Вес без упаковки не задан, для правильного расчета нужно задать вес <a href="javascript:void(0)" class="link" @onclick="@(e => _productPopupComponent.ShowEdit(_product))">Указать вес без упаковки</a></h3>
+        <h5 class="text-danger">Вес без упаковки не задан, для правильного расчета нужно задать вес <a href="javascript:void(0)" class="link" @onclick="@(e => _productPopupComponent.ShowEdit(_product))">Указать вес без упаковки</a></h5>
     }
     else
     {
@@ -70,7 +57,12 @@
 
     <div>Продано штук: @(_product?.ProductCalculationResult?.QuantityTotal)</div>
     <div>Средняя выручка с одной штуки: @((_product?.ProductCalculationResult?.RevenueAvg * _targetCurrencyRate)?.ToString("#"))  @WellKnown.Currencies.TargetCurrency</div>
-
+    <div>Запрос (eBay):
+    @foreach (var query in _product!.SearchQueries)
+    {
+        <span><a href="@Helpers.GetSearchLink(query: query.Query, productId: _product.Id)" rel="noreferrer" target=”_blank”>@Helpers.HighlightMinorityLetters(query.Query, "red")</a>&#160;</span>
+    }
+    </div>
 
     <PlotlyChart @bind-Config="@_config" @bind-Layout="@_layout" @bind-Data="@_data" @ref="@_chart" ClickAction="GraphClickAction" AfterRender="SubscribeEvents" style="height: 60vh; min-height: 350px"/>
 
@@ -127,9 +119,6 @@
 
 @code {
 
-    private readonly ParametersModel _parametersModel = new();
-    EditContext _parametersModelEditContext = null!;
-
     private PlotlyChart _chart = null!;
     private ProductPopup _productPopupComponent = null!;
     private ProductWithId? _product;
@@ -173,20 +162,15 @@
         _currencyRates = getCurrenciesTask.Result;
         _targetCurrencyRate = _currencyRates[WellKnown.Currencies.TargetCurrency];
 
-        _parametersModelEditContext = new EditContext(_parametersModel);
-
         await UpdateData();
         StateHasChanged();
     }
-    
+
     private void UpdateAllPrices()
     {
-        _questionPopup.AskQuestion(questionText: "Пересчитать цены?", async () =>
-        {
-            await EbayClient.CalculatePricesForProductAsync(ProductId, CancellationToken.None);
-        });
+        _questionPopup.AskQuestion(questionText: "Пересчитать цены?", async () => { await EbayClient.CalculatePricesForProductAsync(ProductId, CancellationToken.None); });
     }
-    
+
     private async Task UpdatePage()
     {
         await UpdateData();
@@ -196,11 +180,13 @@
 
     private void OnDeleteButtonClick(LotInfoShort lot)
     {
-        _questionPopup.AskQuestion(questionText: $"Вы действительно хотите удалить лот '{lot.Name}'?", onSubmit: async () =>
-        {
-            await EbayClient.DeleteLotInfoAsync(lot.LotId);
-            await UpdatePage();
-        });
+        _questionPopup.AskQuestion(
+            questionText: $"Вы действительно хотите удалить лот '{lot.Name}'?",
+            onSubmit: async () =>
+            {
+                await EbayClient.DeleteLotInfoAsync(lot.LotId);
+                await UpdatePage();
+            });
     }
 
     private async Task UpdateData()
@@ -211,44 +197,32 @@
         if (_lots.Count == 0) return;
 
         _data = new List<ITrace>();
-        
-        foreach (var grouping in _lots.GroupBy(x => (Condition:x.GetCondition(), TestState: x.GetTestState())))
+
+        foreach (var grouping in _lots.GroupBy(x => (Condition: x.GetCondition(), TestState: x.GetTestState())))
         {
-            var purchases = grouping.SelectMany(x => x.PurchaseHistory.Select(y=> (x.LotId, y.PurchaseCalculationResult))).ToList();
-            
-            _data.Add(new Scatter
-            {
-                Marker = new Marker { Color = GetColor(condition: grouping.Key.Condition, testState: grouping.Key.TestState) },
-                Mode = ModeFlag.Markers | ModeFlag.Text,
-                X = purchases.Select(x => x.PurchaseCalculationResult.RevenueAvg * _targetCurrencyRate).Cast<object>().ToList(),
-                Y = purchases.Select(x => x.PurchaseCalculationResult.QuantityTotal).Cast<object>().ToList(),
-                Name = $"{grouping.Key.Condition}, {grouping.Key.TestState}" ,
-                CustomData = purchases.Select(x => x.LotId).Cast<object>().ToList(),
-                HoverTemplate = $"%{{x:.2f}} {WellKnown.Currencies.TargetCurrency}<br>%{{y}} шт"
-            });
+            var purchases = grouping.SelectMany(x => x.PurchaseHistory.Select(y => (x.LotId, y.PurchaseCalculationResult))).ToList();
+
+            _data.Add(
+                new Scatter
+                {
+                    Marker = new Marker { Color = GetColor(condition: grouping.Key.Condition, testState: grouping.Key.TestState) },
+                    Mode = ModeFlag.Markers | ModeFlag.Text,
+                    X = purchases.Select(x => x.PurchaseCalculationResult.RevenueAvg * _targetCurrencyRate).Cast<object>().ToList(),
+                    Y = purchases.Select(x => x.PurchaseCalculationResult.QuantityTotal).Cast<object>().ToList(),
+                    Name = $"{grouping.Key.Condition}, {grouping.Key.TestState}",
+                    CustomData = purchases.Select(x => x.LotId).Cast<object>().ToList(),
+                    HoverTemplate = $"%{{x:.2f}} {WellKnown.Currencies.TargetCurrency}<br>%{{y}} шт"
+                });
         }
-        
+
         _config = new();
 
         _layout = new()
         {
             Title = new() { Text = $"Продажи {_product.Name}" },
             Margin = new Margin { R = 0, L = 0 },
-            XAxis = new List<XAxis>()
-            {
-                new()
-                {
-                    Title = new() { Text = $"Цена за штуку ({WellKnown.Currencies.TargetCurrency})" }
-                }
-            },
-            YAxis = new List<YAxis>()
-            {
-                new()
-                {
-                    MinAllowed = 0,
-                    Title = new() { Text = "Кол-во штук в продаже" }
-                }
-            },
+            XAxis = new List<XAxis>() { new() { Title = new() { Text = $"Цена за штуку ({WellKnown.Currencies.TargetCurrency})" } } },
+            YAxis = new List<YAxis>() { new() { MinAllowed = 0, Title = new() { Text = "Кол-во штук в продаже" } } },
             Shapes = new List<Shape>()
             {
                 new()
@@ -260,14 +234,21 @@
                     YRef = "paper",
                     Y0 = 0,
                     Y1 = 1,
-                    Line = new Line
-                    {
-                        Width = 3,
-                        Color = "lightblue"
-                    }
+                    Line = new Line { Width = 3, Color = "lightblue" }
                 }
             }
         };
+    }
+
+    private void MarkAsChecked(ProductWithId product)
+    {
+        _questionPopup.AskQuestion(
+            questionText: $"Вы действительно хотите отметить товар '{product.Name}' как учтенный?",
+            async () =>
+            {
+                await EbayClient.MarkProductAsCheckedAsync(product.Id);
+                await UpdatePage();
+            });
     }
 
     private static string GetColor(string condition, string testState)
@@ -277,37 +258,22 @@
             WellKnown.Categories.Conditions.New => testState switch
             {
                 WellKnown.Categories.TestState.NotTested => "#1D8348", //зеленый
-                WellKnown.Categories.TestState.Tested => "#B7950B",//желтый
-                WellKnown.Categories.TestState.Matched => "#B03A2E",//красный
+                WellKnown.Categories.TestState.Tested => "#B7950B", //желтый
+                WellKnown.Categories.TestState.Matched => "#B03A2E", //красный
                 _ => throw new ArgumentOutOfRangeException(nameof(testState))
-                },
+            },
             WellKnown.Categories.Conditions.Used => testState switch
             {
-                WellKnown.Categories.TestState.NotTested => "#616A6B",//серый
-                WellKnown.Categories.TestState.Tested => "#5499C7",//бледно-синий
+                WellKnown.Categories.TestState.NotTested => "#616A6B", //серый
+                WellKnown.Categories.TestState.Tested => "#5499C7", //бледно-синий
                 WellKnown.Categories.TestState.Matched => "#21618C", //синий
                 _ => throw new ArgumentOutOfRangeException(nameof(testState))
-                },
+            },
             WellKnown.Categories.Conditions.NotWorking => "#000000",
-            _ => throw new ArgumentOutOfRangeException(nameof(condition))};
+            _ => throw new ArgumentOutOfRangeException(nameof(condition))
+        };
     }
 
-    private static string GetSelectedConditions(ParametersModel parametersModel)
-    {
-        var conditions = new HashSet<string>();
-        if (parametersModel.New)
-        {
-            conditions.Add(WellKnown.Categories.Conditions.New);
-        }
-
-        if (parametersModel.Used)
-        {
-            conditions.Add(WellKnown.Categories.Conditions.Used);
-        }
-
-        return string.Join(separator: ",", values: conditions);
-    }
-    
 
     private string GetLinkToLot(LotInfoShort lot) => $"https://www.ebay.com/itm/{lot.LotId}?tool_productId={ProductId}";
 
@@ -360,26 +326,17 @@
         return (MarkupString)sb.ToString();
     }
 
-
-    public class ParametersModel
-    {
-        public bool SubtractShippingCosts { get; set; } = true;
-        public bool IsRecent { get; set; } = true;
-        public bool New { get; set; } = true;
-        public bool Used { get; set; } = true;
-    }
+    
 
     private async Task<ICollection<LotInfoShort>> GetLots()
     {
-        var lots = await EbayClient.GetLotsAsync(conditions:
-            GetSelectedConditions(_parametersModel),
-            testStates: null,
-            onlyRecentSales: _parametersModel.IsRecent,
+        var lots = await EbayClient.GetLotsAsync(
             productId: ProductId);
         foreach (var lotInfoShort in lots)
         {
             lotInfoShort.SetIsRecentToPurchases();
         }
+
         return lots;
     }
 
@@ -390,7 +347,8 @@
     }
 
     private static Dictionary<string, List<ShippingRateInner>> GetShippingRates(
-        ICollection<ShippingType> shippingRates, Dictionary<string, double> currencies)
+        ICollection<ShippingType> shippingRates,
+        Dictionary<string, double> currencies)
     {
         var rates = new Dictionary<string, List<ShippingRateInner>>();
 
@@ -404,10 +362,12 @@
                 {
                     if (shippingRateRate.SpecifiedCountries == null)
                     {
-                        rates.AppendOrCreateNewCollection(key: Worldwide, value: new ShippingRateInner(
-                            WeightFrom: rate.MinWeight,
-                            WeightTo: rate.MaxWeight,
-                            PriceDollar: rate.Price / currencies[shippingRate.Currency]));
+                        rates.AppendOrCreateNewCollection(
+                            key: Worldwide,
+                            value: new ShippingRateInner(
+                                WeightFrom: rate.MinWeight,
+                                WeightTo: rate.MaxWeight,
+                                PriceDollar: rate.Price / currencies[shippingRate.Currency]));
                     }
                     else
                     {
@@ -415,10 +375,12 @@
                         {
                             if (rate == null!) throw new NullReferenceException(nameof(rate));
 
-                            rates.AppendOrCreateNewCollection(key: specifiedCountry, value: new ShippingRateInner(
-                                WeightFrom: rate.MinWeight,
-                                WeightTo: rate.MaxWeight,
-                                PriceDollar: rate.Price / currencies[shippingRate.Currency]));
+                            rates.AppendOrCreateNewCollection(
+                                key: specifiedCountry,
+                                value: new ShippingRateInner(
+                                    WeightFrom: rate.MinWeight,
+                                    WeightTo: rate.MaxWeight,
+                                    PriceDollar: rate.Price / currencies[shippingRate.Currency]));
                         }
                     }
                 }

@@ -622,19 +622,17 @@ namespace Client.Clients.Generated
             }
         }
 
-        /// <param name="onlyRecentSales">Отфильтровывать продажи, соверщенные до последнего изменения иимени</param>
         /// <returns>Ok</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<System.Collections.Generic.ICollection<LotInfoShort>> GetLotsAsync(string conditions, string testStates, bool? onlyRecentSales, System.Guid productId)
+        public virtual System.Threading.Tasks.Task<System.Collections.Generic.ICollection<LotInfoShort>> GetLotsAsync(System.Guid productId)
         {
-            return GetLotsAsync(conditions, testStates, onlyRecentSales, productId, System.Threading.CancellationToken.None);
+            return GetLotsAsync(productId, System.Threading.CancellationToken.None);
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
-        /// <param name="onlyRecentSales">Отфильтровывать продажи, соверщенные до последнего изменения иимени</param>
         /// <returns>Ok</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<LotInfoShort>> GetLotsAsync(string conditions, string testStates, bool? onlyRecentSales, System.Guid productId, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<LotInfoShort>> GetLotsAsync(System.Guid productId, System.Threading.CancellationToken cancellationToken)
         {
             if (productId == null)
                 throw new System.ArgumentNullException("productId");
@@ -654,20 +652,6 @@ namespace Client.Clients.Generated
                     urlBuilder_.Append("products/");
                     urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(productId, System.Globalization.CultureInfo.InvariantCulture)));
                     urlBuilder_.Append("/lots/");
-                    urlBuilder_.Append('?');
-                    if (conditions != null)
-                    {
-                        urlBuilder_.Append(System.Uri.EscapeDataString("conditions")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(conditions, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
-                    }
-                    if (testStates != null)
-                    {
-                        urlBuilder_.Append(System.Uri.EscapeDataString("testStates")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(testStates, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
-                    }
-                    if (onlyRecentSales != null)
-                    {
-                        urlBuilder_.Append(System.Uri.EscapeDataString("onlyRecentSales")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(onlyRecentSales, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
-                    }
-                    urlBuilder_.Length--;
 
                     PrepareRequest(client_, request_, urlBuilder_);
 

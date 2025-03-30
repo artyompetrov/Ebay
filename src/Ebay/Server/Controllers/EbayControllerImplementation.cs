@@ -156,10 +156,8 @@ internal class EbayControllerImplementation : IEbayController
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 
+
     public async Task<ICollection<LotInfoShort>> GetLotsAsync(
-        string? conditions,
-        string? testStates,
-        bool? onlyRecentSales,
         Guid productId,
         CancellationToken cancellationToken
     )
@@ -172,42 +170,13 @@ internal class EbayControllerImplementation : IEbayController
         {
             throw NonOkHttpAnswerException.NotFound400();
         }
-
-        var conditionsSplitted = conditions?.Split(
-                separator: ",",
-                options: StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries
-            )
-            .ToHashSet();
-        var testStatesSplitted = testStates?.Split(
-                separator: ",",
-                options: StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries
-            )
-            .ToHashSet();
-
-        var result = new List<LotInfoShort>();
-
-        foreach (var lot in _applicationContext.Lots
+        
+        var lots = await _applicationContext.Lots
             .AsNoTracking()
             .Include(x => x.Purchases)
-            .Where(x => x.ProductId == productId))
-        {
-            if (conditionsSplitted != null &&
-                !conditionsSplitted.Contains(lot.Categories[WellKnown.Categories.Conditions.CategoryName]))
-                continue;
-            if (testStatesSplitted != null &&
-                !testStatesSplitted.Contains(lot.Categories[WellKnown.Categories.TestState.CategoryName]))
-                continue;
-
-            if (onlyRecentSales == true)
-            {
-                var titleChangeDate = lot.TitleChangeDate;
-                lot.Purchases = lot.Purchases.Where(x => x.Date > titleChangeDate).ToList();
-            }
-
-            result.Add(lot.ToApiLotInfoShort());
-        }
-
-        return result;
+            .Where(x => x.ProductId == productId).ToListAsync(cancellationToken);
+        
+        return lots.Select(x=>x.ToApiLotInfoShort()).ToList();
     }
 
     public async Task UpsertLotInfoAsync(
