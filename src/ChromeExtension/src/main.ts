@@ -26,7 +26,8 @@ export async function run() {
         console.log("No processors found for current page");
     }
     else {
-        throw new Error("More than one processor found for current page")
+        const processorTypes = processors.map(p => p.constructor.name).join(", ");
+        alert(`More than one processor found for current page: ${processorTypes}`);
     }
 }
 

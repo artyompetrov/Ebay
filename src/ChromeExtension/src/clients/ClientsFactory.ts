@@ -20,9 +20,9 @@ export class ClientsFactory {
         
         return new OAuth2Client({
             server: constants.Urls.backendUrl,
-            clientId: 'Ebay.ChromeExtension',
-            tokenEndpoint: '/connect/token',
-            authorizationEndpoint: '/connect/authorize',
+            clientId: constants.Auth.backendApiClientId,
+            tokenEndpoint:  constants.Auth.backendApiTokenEndpoint,
+            authorizationEndpoint: constants.Auth.backendApiAuthorizationEndpoint,
             fetch: fetchResource
         });
     }
@@ -42,7 +42,7 @@ export class ClientsFactory {
     async getEbayToolBackendClient(): Promise<EbayToolBackendClient.EbayToolBackendClient> {
         await chrome.storage.local.set({return_page: document.location.href});
 
-        return new EbayToolBackendClient.EbayToolBackendClient(constants.Urls.baseApiUrl,
+        return new EbayToolBackendClient.EbayToolBackendClient(constants.Urls.backendUrl + 'api/ebay/v1',
             this.getAuthorizeFetch(await this.getBackendOAuth2Client(), constants.Auth.backendApiScope, "ebayToolTokenStore", constants.Urls.extensionAuthRedirectUrl));
 
     }

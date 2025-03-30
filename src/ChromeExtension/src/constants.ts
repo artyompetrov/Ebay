@@ -7,7 +7,6 @@
 
 export const Urls = {
     backendUrl: `https://tubessale.ddns.net/`,
-    baseApiUrl: `https://tubessale.ddns.net/api/ebay/v1`,
     extensionAuthRedirectUrl: `https://tubessale.ddns.net/chrome_extensions/auth`,
     ebayAuthRedirectUrl: `https://www.ebay.com/`
 };
@@ -15,6 +14,10 @@ export const Urls = {
 export const Auth = {
     ebayRedirectUriCode: "Artem_Petrov-ArtemPet-tubesS-dsrgu",
     ebayApiScope: "https://api.ebay.com/oauth/api_scope",
+
+    backendApiTokenEndpoint: '/connect/token',
+    backendApiAuthorizationEndpoint: '/connect/authorize',
+    backendApiClientId: 'Ebay.ChromeExtension',
     backendApiScope: 'ServerAPI',
 };
 
