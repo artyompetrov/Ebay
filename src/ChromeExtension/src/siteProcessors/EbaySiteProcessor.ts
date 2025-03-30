@@ -1,7 +1,17 @@
-﻿import * as EbayClient from "./clients/EbayClient"
-import * as EbayToolBackendClient from "./clients/EbayToolBackendClient";
-import * as utils from "./utils";
-import * as constants from './constants';
+﻿import * as EbayClient from "../clients/EbayClient"
+import * as EbayToolBackendClient from "../clients/EbayToolBackendClient";
+import * as utils from "../infrastructure/Utils";
+import * as constants from '../constants';
+import { ISiteProcessor } from './ISiteProcessor';
+import {ClientsFactory} from "../clients/ClientsFactory";
+
+export function tryGetEbaySiteProcessor() : ISiteProcessor | null {
+    if (document.location) {
+        
+        return new EbaySiteProcessor();
+    }
+    return null;
+}
 
 class PurchaseInfoInner {
     constructor(quantity: number, date: Date, price?: Price | undefined) {
@@ -55,7 +65,7 @@ class LotLink {
 }
 
 
-class Ebay {
+class EbaySiteProcessor implements ISiteProcessor {
     private readonly productFieldName = "productId";
     private readonly ignoreThatLotFormId = "ignoreThatLot"
     private readonly pcsFieldName = "pcs";
@@ -89,11 +99,8 @@ class Ebay {
     private supportedShippingCountries = new Map<string, ShippingParameters>();
     private currencyMap = new Map<string, string>();
 
-    constructor(ebayClient: EbayClient.EbayClient, ebayToolBackendClient: EbayToolBackendClient.EbayToolBackendClient) {
+    constructor() {
 
-        this._ebayClient = ebayClient
-        this._ebayToolBackendClient = ebayToolBackendClient
-        
         // Инициализация supportedShippingCountries
         this.supportedShippingCountries.set('DE', new ShippingParameters(['EUROPE', 'EUROPEAN_UNION'], null));
         this.supportedShippingCountries.set('IT', new ShippingParameters(['EUROPE', 'EUROPEAN_UNION'], null));
@@ -1154,8 +1161,9 @@ class Ebay {
     }
 
 
-    public async run(currentPage: string) {
-        await chrome.storage.local.set({return_page: document.location.href})
+    public async run() {
+        
+        let clientsFactory = new ClientsFactory();
         
         await utils.sleepElementLoaded('footer', document)
 
@@ -1164,7 +1172,7 @@ class Ebay {
             console.log("productId not found")
             return;
         }
-        
+        /*
         try {
             if (currentPage.startsWith("https://www.ebay.com/itm/")) {
                 await this.productPage();
@@ -1173,7 +1181,7 @@ class Ebay {
             }
         } catch (error) {
             await this.saveErrorToBackend(error)
-        }
+        }*/
     }
 
 
