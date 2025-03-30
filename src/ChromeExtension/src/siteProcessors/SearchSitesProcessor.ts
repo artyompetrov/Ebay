@@ -5,6 +5,7 @@ import { ISiteProcessor } from './ISiteProcessor';
 // noinspection SpellCheckingInspection
 import {v4 as uuidv4} from "uuid";
 import {ClientsFactory} from "../clients/ClientsFactory";
+import {ProductWithId} from "../clients/EbayToolBackendClient";
 
 const chipFindRegex: RegExp = /(?:^|\.)chipfind\.ru$/i
 const avitoRegex: RegExp = /(?:^|\.)avito\.ru$/i
@@ -20,6 +21,20 @@ export function tryGetSearchSitesProcessor() : ISiteProcessor | null {
         return new SearchSitesProcessor();
     }
     return null;
+}
+
+class ProductWithRegex {
+    product: ProductWithId;
+    regex: RegExp;
+    revenueRub: number;
+    isInteresting: boolean;
+    
+    constructor(product: EbayToolBackendClient.ProductWithId, regex: RegExp, rubRate: number) {
+        this.product = product;
+        this.regex = regex;
+        this.revenueRub = product.productCalculationResult.revenueAvg * rubRate
+        this.isInteresting = this.revenueRub > 1000;
+    }
 }
 
 class SearchSitesProcessor implements ISiteProcessor {
@@ -42,32 +57,57 @@ class SearchSitesProcessor implements ISiteProcessor {
     }
 
     // Получение всех продуктов из кэша или с сервера
-    async getAllProductsCached(productId: string | null, allItemsCacheIdentifier: string) {
+    async getAllProductsCached(productId: string | null, allItemsCacheIdentifier: string) : Promise<ProductWithRegex[]> {
         let cached = await utils.getCachedDataOrFallback(allItemsCacheIdentifier, async () => {
-                return await this._ebayToolBackendClient.getAllProducts();
+                return await this.getProductWithRegexes()
             },
             60 * 60);
 
-        if (!cached) {
-            return [];
-        }
-
         if (productId) {
             const trimmedProductId = productId.trim().toLowerCase();
-            if (!cached.some(p => p.id.trim().toLowerCase() === trimmedProductId)) {
+            if (!cached.some(p => p.product.id.trim().toLowerCase() === trimmedProductId)) {
                 console.log(`Product ID ${trimmedProductId} not found in cache, refreshing cache, clearing cache...`);
                 utils.removeFromCache(allItemsCacheIdentifier);
 
-                const refreshedCache = await utils.getCachedDataOrFallback(allItemsCacheIdentifier, async () => {
-                        return await this._ebayToolBackendClient.getAllProducts();
+                cached = await utils.getCachedDataOrFallback(allItemsCacheIdentifier, async () => {
+                        return await this.getProductWithRegexes()
                     },
                     60 * 60);
-
-                return refreshedCache || [];
             }
         }
-
+        
         return cached;
+    }
+
+    async getProductWithRegexes() : Promise<ProductWithRegex[]> {
+        let products = await this._ebayToolBackendClient.getAllProducts();
+        
+        // Создаем регулярные выражения для каждого продукта
+        const productsWithRegexes: ProductWithRegex[] = [];
+
+        // Для каждого продукта создаем регулярку из его имени и поисковых запросов
+        for (const product of products) {
+            const productSearchTerms: string[] = [];
+
+            // Добавляем имя продукта
+            productSearchTerms.push(product.name);
+
+            // Добавляем поисковые запросы
+            if (product.ruSearchQueries && product.ruSearchQueries.length > 0) {
+                for (const sq of product.ruSearchQueries) {
+                    if (sq.query) {
+                        productSearchTerms.push(sq.query);
+                    }
+                }
+            }
+            productsWithRegexes.push(
+                new ProductWithRegex(
+                    product,
+                    this.createRegexPattern(productSearchTerms),
+                    this._targetCurrencyRate));
+        }
+
+        return productsWithRegexes;
     }
 
     // Функция для транслитерации текста с русского на английский
@@ -213,33 +253,6 @@ class SearchSitesProcessor implements ISiteProcessor {
         tooltip.style.top = `${targetRect.top + window.scrollY}px`;
     }
 
-    // Находит все подходящие продукты в тексте
-    findMatchingProducts(text: string, products: any[]): any[] {
-        const trimmedText = text.trim().toLowerCase();
-        const matches: any[] = [];
-
-        // Ищем все продукты, которые могут соответствовать тексту
-        for (const product of products) {
-            // Прямое совпадение с именем
-            if (trimmedText.includes(product.name.toLowerCase())) {
-                matches.push(product);
-                continue; // Продолжаем поиск других продуктов
-            }
-
-            // Поиск в ruSearchQueries
-            const hasMatchingQuery = product.ruSearchQueries.some(sq =>
-                trimmedText.includes(sq.query.toLowerCase()) ||
-                sq.query.toLowerCase().includes(trimmedText)
-            );
-
-            if (hasMatchingQuery && !matches.some(p => p.id === product.id)) {
-                matches.push(product);
-            }
-        }
-
-        return matches;
-    }
-
     // Добавляет обработчики к tooltip
     setupTooltipHandlers(tooltip: HTMLElement): void {
         // Добавляем обработчик закрытия на крестик
@@ -261,8 +274,8 @@ class SearchSitesProcessor implements ISiteProcessor {
     }
 
     // Преобразует слово в регулярное выражение с учетом возможных вариаций написания
-    createRegexPattern(word: string): RegExp {
-        const processed = word.toLowerCase()
+    createRegexPattern(word: string[]): RegExp {
+        const processed = word.map(x => x.toLowerCase().trim()
             .replace('(', '\\(')
             .replace(')', '\\)')
             .replace('/', '\\/')
@@ -280,15 +293,15 @@ class SearchSitesProcessor implements ISiteProcessor {
             .replace(/[hн]/g, '[hн]')
             .replace(/[kк]/g, '[kк]')
             .replace(/[mм]/g, '[mм]')
-            .replace(/[tт]/g, '[tт]');
+            .replace(/[tт]/g, '[tт]'));
         
-        return new RegExp(`(?:^|\\s|\\.)(${processed})(?:$|\\s|-|,|=|\\.)`, "ig");
+        return new RegExp(`(?:^|\\s|\\.)(${processed.join('|')})(?:$|\\s|-|,|=|\\.)`, "ig");
     }
 
     // Выделяет текстовый узел и добавляет обработчики событий для tooltip
     highlightWord(
         node: Text,
-        productsWithRegexes: { product: any, regex: RegExp }[],
+        products: ProductWithRegex[],
         highlightClass: string,
         tooltip: HTMLDivElement,
         lastHighlightedElementRef: { current: HTMLElement | null },
@@ -305,9 +318,9 @@ class SearchSitesProcessor implements ISiteProcessor {
         let shouldHighlight = false;
 
         // Проверяем каждое регулярное выражение
-        for (const {product, regex} of productsWithRegexes) {
-            regex.lastIndex = 0;
-            if (regex.test(originalText)) {
+        for (const product of products) {
+            product.regex.lastIndex = 0;
+            if (product.regex.test(originalText)) {
                 matchedProducts.add(product);
                 shouldHighlight = true;
             }
@@ -329,7 +342,7 @@ class SearchSitesProcessor implements ISiteProcessor {
 
                 // Снова находим продукты при наведении, чтобы иметь самую свежую информацию
                 const hoveredMatchedProducts: any[] = [];
-                for (const {product, regex} of productsWithRegexes) {
+                for (const {product, regex} of products) {
                     regex.lastIndex = 0;
                     if (regex.test(text)) {
                         hoveredMatchedProducts.push(product);
@@ -387,39 +400,8 @@ class SearchSitesProcessor implements ISiteProcessor {
     }
 
     // Подсвечивает слова на странице
-    highlightWords(products: any[], highlightClass: string = "highlight"): void {
+    highlightWords(products: ProductWithRegex[], highlightClass: string = "highlight"): void {
         console.log("highlightWords");
-        
-        // Создаем регулярные выражения для каждого продукта
-        const productsWithRegexes: { product: any, regex: RegExp, words: string[] }[] = [];
-        
-        // Для каждого продукта создаем регулярку из его имени и поисковых запросов
-        for (const product of products) {
-            const productSearchTerms: string[] = [];
-            
-            // Добавляем имя продукта
-            productSearchTerms.push(product.name);
-            
-            // Добавляем поисковые запросы
-            if (product.ruSearchQueries && product.ruSearchQueries.length > 0) {
-                for (const sq of product.ruSearchQueries) {
-                    if (sq.query) {
-                        productSearchTerms.push(sq.query);
-                    }
-                }
-            }
-            
-            // Создаем регулярки для всех поисковых терминов этого продукта
-            for (const term of productSearchTerms) {
-                if (term && term.trim()) {
-                    productsWithRegexes.push({
-                        product,
-                        regex: this.createRegexPattern(term),
-                        words: [term]
-                    });
-                }
-            }
-        }
         
         // Создаем tooltip один раз для всех подсвеченных элементов
         const tooltip = this.createTooltip();
@@ -437,8 +419,8 @@ class SearchSitesProcessor implements ISiteProcessor {
                 const node = children[i];
                 if (node.nodeType === Node.TEXT_NODE) {
                     const matches = this.highlightWord(
-                        node as Text, 
-                        productsWithRegexes, 
+                        node as Text,
+                        products, 
                         highlightClass, 
                         tooltip, 
                         lastHighlightedElementRef, 
@@ -472,11 +454,11 @@ class SearchSitesProcessor implements ISiteProcessor {
             return;
         }
 
-        const matchedProducts = traverseNodes(body);
-        console.log(`Найдено ${matchedProducts.size} уникальных продуктов на странице`);
+       traverseNodes(body);
     }
+    
 
-    // Обработка страницы chipfind.ru
+// Обработка страницы chipfind.ru
     async processChipFind() {
         console.log("processChipFind");
         if (location.pathname === "/market/search.htm" || location.pathname === "/market/") {
