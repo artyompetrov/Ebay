@@ -33,7 +33,7 @@
 
 @if (_lots != null && _product != null)
 {
-    <PageTitle>Продажи товара @_product.Name</PageTitle>
+    <PageTitle>Продажи товара @Helpers.HighlightMinorityLetters(@_product.Name, "red")</PageTitle>
     
     <div style="display: flex; align-items: center; gap: 10px;">
         <h4>Статистика @_product.Name</h4>

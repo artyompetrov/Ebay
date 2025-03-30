@@ -25,7 +25,21 @@ export function tryGetSearchSitesProcessor() : ISiteProcessor | null {
 class SearchSitesProcessor implements ISiteProcessor {
     private _ebayToolBackendClient: EbayToolBackendClient.EbayToolBackendClient;
     private _allItemsCacheIdentifier = "searchSitesAllItems";
-    
+    private _targetCurrencyRate: number;
+
+
+    async getTargetCurrencyCached() {
+        return await utils.getCachedDataOrFallback("targetCurrency", async () => {
+                let currencies = await this._ebayToolBackendClient.getCurrencies();
+                // Ищем RUB в списке валют
+                const rubCurrency = currencies.find(currency => currency.ebayName === "RUB");
+                if (!rubCurrency) {
+                    throw new Error("Currency RUB not found in currencies list");
+                }
+                return rubCurrency.rate;
+            },
+            24 * 60 * 60);
+    }
 
     // Получение всех продуктов из кэша или с сервера
     async getAllProductsCached(productId: string | null, allItemsCacheIdentifier: string) {
@@ -152,9 +166,10 @@ class SearchSitesProcessor implements ISiteProcessor {
 
         if (product.productCalculationResult) {
             if (product.productCalculationResult.quantityTotal > 0) {
+                
                 const avgPrice = product.productCalculationResult.revenueAvg;
                 productContent = `
-                <div><strong>Средняя цена:</strong> ${avgPrice.toFixed(2)} USD</div>
+                <div><strong>Средняя цена:</strong> ${(avgPrice * this._targetCurrencyRate).toFixed(0)} RUB</div>
                 <div><strong>Всего продано:</strong> ${product.productCalculationResult.quantityTotal} шт.</div>
             `;
             } else {
@@ -559,6 +574,8 @@ class SearchSitesProcessor implements ISiteProcessor {
         
         let clientsFactory = new ClientsFactory();
         this._ebayToolBackendClient = await clientsFactory.getEbayToolBackendClient()
+
+        this._targetCurrencyRate = await this.getTargetCurrencyCached();
         
         // Обрабатываем страницу
         if (document.readyState === "loading") {
