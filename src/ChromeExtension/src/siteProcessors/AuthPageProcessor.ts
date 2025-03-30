@@ -80,8 +80,6 @@ class AuthPageProcessor implements ISiteProcessor {
             if (returnPage) {
                 await chrome.storage.local.set({return_page: null})
                 document.location.href = returnPage;
-            } else {
-                document.location.href = constants.Auth.Ebay.RedirectUriCode
             }
         }
     }
