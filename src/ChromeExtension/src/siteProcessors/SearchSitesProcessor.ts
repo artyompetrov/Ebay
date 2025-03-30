@@ -9,6 +9,13 @@ import {v4 as uuidv4} from "uuid";
 export class SearchSitesProcessor implements ISiteProcessor {
     private _ebayToolBackendClient: EbayToolBackendClient.EbayToolBackendClient;
     private _allItemsCacheIdentifier = "searchSitesAllItems";
+
+    private regexPatterns = {
+        ebaySite: /(?:^|\.)ebay\.com$/i,
+        chipFind: /(?:^|\.)chipfind\.ru$/i,
+        avito: /(?:^|\.)avito\.ru$/i
+    };
+    
     constructor(ebayToolBackendClient: EbayToolBackendClient.EbayToolBackendClient) {
         this._ebayToolBackendClient = ebayToolBackendClient
     }
@@ -460,9 +467,9 @@ export class SearchSitesProcessor implements ISiteProcessor {
 
         let wordsToHighlight = Array.from(names.concat(ruNames));
 
-        if (constants.RegexPatterns.chipFind.test(location.host)) {
+        if (this.regexPatterns.chipFind.test(location.host)) {
             await this.processChipFind();
-        } else if (constants.RegexPatterns.avito.test(location.host)) {
+        } else if (this.regexPatterns.avito.test(location.host)) {
             await this.processAvito();
             // noinspection JSUnusedLocalSymbols
             let _ = this.processAvitoBackground();
