@@ -166,12 +166,16 @@ class SearchSitesProcessor implements ISiteProcessor {
         }
 
         if (product.isCheckRequired) {
-            productContent += '<div>Требуется проверка</div>';
+            productContent += '<divs style="color: red;">Требуется проверка</div>';
+        }
+
+        if (product.weight === 0) {
+            productContent += '<div style="color: red;">Вес не указан</div>';
         }
 
         // Собираем всё в единую структуру
         return `
-        <div style="position: relative; ${product.isCheckRequired ? 'background-color: #ffcccc;' : ''}">
+        <div style="position: relative; ${(product.IsCheckRequired || product.weight === 0) ? 'background-color: #ffcccc;' : ''}">
             ${productHeader}<br>
             <div style="margin-top: 8px;">
                 ${productContent}
