@@ -1098,7 +1098,7 @@ export interface IProductWithoutId {
 export class ProductWithId implements IProductWithId {
     id!: string;
     name!: string;
-    lastCheckTime?: string | undefined;
+    isCheckRequired!: boolean;
     weight!: number;
     searchQueries!: SearchQuery[];
     ruSearchQueries!: RuSearchQuery[];
@@ -1121,7 +1121,7 @@ export class ProductWithId implements IProductWithId {
         if (_data) {
             this.id = _data["Id"];
             this.name = _data["Name"];
-            this.lastCheckTime = _data["LastCheckTime"];
+            this.isCheckRequired = _data["IsCheckRequired"];
             this.weight = _data["Weight"];
             if (Array.isArray(_data["SearchQueries"])) {
                 this.searchQueries = [] as any;
@@ -1148,7 +1148,7 @@ export class ProductWithId implements IProductWithId {
         data = typeof data === 'object' ? data : {};
         data["Id"] = this.id;
         data["Name"] = this.name;
-        data["LastCheckTime"] = this.lastCheckTime;
+        data["IsCheckRequired"] = this.isCheckRequired;
         data["Weight"] = this.weight;
         if (Array.isArray(this.searchQueries)) {
             data["SearchQueries"] = [];
@@ -1168,7 +1168,7 @@ export class ProductWithId implements IProductWithId {
 export interface IProductWithId {
     id: string;
     name: string;
-    lastCheckTime?: string | undefined;
+    isCheckRequired: boolean;
     weight: number;
     searchQueries: SearchQuery[];
     ruSearchQueries: RuSearchQuery[];

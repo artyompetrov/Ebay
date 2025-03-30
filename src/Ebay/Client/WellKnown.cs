@@ -2,8 +2,6 @@ namespace Client;
 
 internal class WellKnown
 {
-    public const int RecheckTimeInDays = 360;
-
     public static class Categories
     {
         public static class Conditions

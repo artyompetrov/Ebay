@@ -25,7 +25,7 @@ internal static class ModelsExtensions
         name: dbProduct.Name,
         searchQueries: dbProduct.SearchQueries.Select(x => x.ToApiSearchQuery()).ToList(),
         ruSearchQueries: dbProduct.RuSearchQueries.Select(x => x.ToApiRuSearchQuery()).ToList(),
-        lastCheckTime: dbProduct.LastCheckTime.ToString(WellKnown.Formats.TimeFormat),
+        isCheckRequired: dbProduct.IsCheckRequired,
         weight: dbProduct.Weight,
         productCalculationResult: dbProduct.ProductCalculationResult.ToApiLotCalculationResult()
     );

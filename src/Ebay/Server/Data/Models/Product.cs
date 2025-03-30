@@ -18,6 +18,8 @@ internal sealed class Product
 
     public DateTime LastCheckTime { get; set; }
 
+    public bool IsCheckRequired => DateTime.UtcNow - LastCheckTime > TimeSpan.FromDays(WellKnown.RecheckTimeInDays);
+
     public int Weight { get; set; }
     
     public ProductCalculationResult? ProductCalculationResult { get; set; }

@@ -2188,10 +2188,8 @@ namespace Client.Clients.Generated
         [System.ComponentModel.DataAnnotations.Required]
         public string Name { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("LastCheckTime", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        [System.ComponentModel.DataAnnotations.StringLength(int.MaxValue, MinimumLength = 1)]
-        [System.ComponentModel.DataAnnotations.RegularExpression(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$")]
-        public string LastCheckTime { get; set; }
+        [Newtonsoft.Json.JsonProperty("IsCheckRequired", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public bool IsCheckRequired { get; set; }
 
         [Newtonsoft.Json.JsonProperty("Weight", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Range(0, int.MaxValue)]

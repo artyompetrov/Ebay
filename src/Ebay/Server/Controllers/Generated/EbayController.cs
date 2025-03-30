@@ -460,7 +460,7 @@ namespace Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public ProductWithId(System.Guid @id, string? @lastCheckTime, string @name, ProductCalculationResult? @productCalculationResult, System.Collections.Generic.List<RuSearchQuery> @ruSearchQueries, System.Collections.Generic.List<SearchQuery> @searchQueries, int @weight)
+        public ProductWithId(System.Guid @id, bool @isCheckRequired, string @name, ProductCalculationResult? @productCalculationResult, System.Collections.Generic.List<RuSearchQuery> @ruSearchQueries, System.Collections.Generic.List<SearchQuery> @searchQueries, int @weight)
 
         {
 
@@ -468,7 +468,7 @@ namespace Server.Controllers.Generated
 
             this.Name = @name;
 
-            this.LastCheckTime = @lastCheckTime;
+            this.IsCheckRequired = @isCheckRequired;
 
             this.Weight = @weight;
 
@@ -486,10 +486,8 @@ namespace Server.Controllers.Generated
         [System.ComponentModel.DataAnnotations.Required]
         public string Name { get; }
 
-        [Newtonsoft.Json.JsonProperty("LastCheckTime", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        [System.ComponentModel.DataAnnotations.StringLength(int.MaxValue, MinimumLength = 1)]
-        [System.ComponentModel.DataAnnotations.RegularExpression(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$")]
-        public string? LastCheckTime { get; }
+        [Newtonsoft.Json.JsonProperty("IsCheckRequired", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public bool IsCheckRequired { get; }
 
         [Newtonsoft.Json.JsonProperty("Weight", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Range(0, int.MaxValue)]

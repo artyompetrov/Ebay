@@ -48,7 +48,7 @@
                 <button class="btn btn-primary btn-sm oi oi-pencil" @onclick="@(e => _productPopupComponent.ShowEdit(product))"></button>
             </td>
             <td>
-                @if (product.IsRecheckRequired)
+                @if (product.IsCheckRequired)
                 {
                 <button class="btn btn-warning btn-sm oi oi-check" @onclick="@(e => MarkAsChecked(product))"></button>
                 }
