@@ -16,10 +16,15 @@
       top: 3.5rem;
       background-color: white;
       z-index: 100;
+      cursor: pointer;
     }
     
     #productTable td {
       vertical-align: middle;
+    }
+    
+    .sort-icon {
+      margin-left: 5px;
     }
 </style>
 
@@ -28,20 +33,36 @@
     <thead>
     <tr>
         <th></th>
-        <th></th>
-        <th>Название <button class="btn btn-primary btn-sm" @onclick="@(() => _productPopupComponent.ShowCreate())">Добавить</button></th>
-        <th>Другие названия</th>
-        <th>Запрос (eBay)</th>
-        <th>Вес без упаковки</th>
-        <th>Шт. продано</th>
-        <th>Средняя выручка (USD)</th>
-        <th>Средняя выручка (@WellKnown.Currencies.TargetCurrency)</th>
+        <th @onclick="@(() => SortTable(nameof(ProductWithId.IsCheckRequired)))"><span class="sort-icon">@GetSortIcon(nameof(ProductWithId.IsCheckRequired))</span></th>
+        <th @onclick="@(() => SortTable(nameof(ProductWithId.Name)))">
+            Название 
+            <button class="btn btn-primary btn-sm" @onclick:stopPropagation="true" @onclick="@(() => _productPopupComponent.ShowCreate())">Добавить</button>
+            <span class="sort-icon">@GetSortIcon(nameof(ProductWithId.Name))</span>
+        </th>
+        <th>
+            Другие названия
+        </th>
+        <th>
+            Запрос (eBay)
+        </th>
+        <th @onclick="@(() => SortTable(nameof(ProductWithId.Weight)))">
+            Вес без упаковки
+            <span class="sort-icon">@GetSortIcon(nameof(ProductWithId.Weight))</span>
+        </th>
+        <th @onclick="@(() => SortTable(nameof(ProductWithId.ProductCalculationResult.QuantityTotal)))">
+            Шт. продано
+            <span class="sort-icon">@GetSortIcon(nameof(ProductWithId.ProductCalculationResult.QuantityTotal))</span>
+        </th>
+        <th @onclick="@(() => SortTable("RevenueAvgTarget"))">
+            Средняя выручка (@WellKnown.Currencies.TargetCurrency)
+            <span class="sort-icon">@GetSortIcon("RevenueAvgTarget")</span>
+        </th>
         <th></th>
     </tr>
     </thead>
 
     <tbody>
-    @foreach (var product in _products)
+    @foreach (var product in _sortedProducts)
     {
         <tr>
             <td>
@@ -79,12 +100,10 @@
             @if (product.ProductCalculationResult?.QuantityTotal > 0)
             {
                 <td>@product.ProductCalculationResult?.QuantityTotal</td>
-                <td>@product.ProductCalculationResult?.RevenueAvg.ToString("N0")</td>
                 <td>@((product.ProductCalculationResult?.RevenueAvg * _targetCurrencyRate)?.ToString("N0"))</td>
             }
             else
             {
-                <td></td>
                 <td></td>
                 <td></td>
             }
@@ -105,6 +124,10 @@
     private double _targetCurrencyRate;
 
     private ICollection<ProductWithId> _products = new List<ProductWithId>();
+    private IEnumerable<ProductWithId> _sortedProducts => ApplySorting(_products);
+
+    private string _sortColumn = string.Empty;
+    private bool _sortAscending = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -117,22 +140,21 @@
         var dict = currencies.ToDictionary(keySelector: x => x.EbayName, elementSelector: x => x.Rate);
         _targetCurrencyRate = dict[WellKnown.Currencies.TargetCurrency];
     }
-    
+
     private void OnDeleteButtonClick(ProductWithId product)
     {
-        _questionPopup.AskQuestion(questionText: $"Вы действительно хотите удалить товар '{product.Name}'?", async () =>
-        {
-            await EbayClient.DeleteProductAsync(product.Id);
-            await LoadActualProductList();
-        });
+        _questionPopup.AskQuestion(
+            questionText: $"Вы действительно хотите удалить товар '{product.Name}'?",
+            async () =>
+            {
+                await EbayClient.DeleteProductAsync(product.Id);
+                await LoadActualProductList();
+            });
     }
 
     private void UpdateAllPrices()
     {
-        _questionPopup.AskQuestion(questionText: "Пересчитать цены для всех?", async () =>
-        {
-            await EbayClient.CalculatePricesForAllAsync(CancellationToken.None);
-        });
+        _questionPopup.AskQuestion(questionText: "Пересчитать цены для всех?", async () => { await EbayClient.CalculatePricesForAllAsync(CancellationToken.None); });
     }
 
     private async Task LoadActualProductList()
@@ -141,15 +163,83 @@
         StateHasChanged();
     }
 
-    
+    private void SortTable(string columnName)
+    {
+        if (_sortColumn == columnName)
+        {
+            _sortAscending = !_sortAscending;
+        }
+        else
+        {
+            _sortColumn = columnName;
+            _sortAscending = true;
+        }
+
+        StateHasChanged();
+    }
+
+    private string GetSortIcon(string columnName)
+    {
+        if (_sortColumn != columnName)
+            return "";
+
+        return _sortAscending ? "↑" : "↓";
+    }
+
+    private IEnumerable<ProductWithId> ApplySorting(IEnumerable<ProductWithId> products)
+    {
+        if (string.IsNullOrEmpty(_sortColumn))
+            return products;
+
+        var result = products.ToList();
+
+        switch (_sortColumn)
+        {
+            case nameof(ProductWithId.Name):
+                result = _sortAscending
+                    ? result.OrderBy(p => p.Name).ToList()
+                    : result.OrderByDescending(p => p.Name).ToList();
+                break;
+                
+            case nameof(ProductWithId.IsCheckRequired):
+                result = _sortAscending
+                    ? result.OrderBy(p => p.IsCheckRequired).ToList()
+                    : result.OrderByDescending(p => p.IsCheckRequired).ToList();
+                break;
+
+            case nameof(ProductWithId.Weight):
+                result = _sortAscending
+                    ? result.OrderBy(p => p.Weight).ToList()
+                    : result.OrderByDescending(p => p.Weight).ToList();
+                break;
+
+            case nameof(ProductWithId.ProductCalculationResult.QuantityTotal):
+                result = _sortAscending
+                    ? result.OrderBy(p => p.ProductCalculationResult?.QuantityTotal ?? 0).ToList()
+                    : result.OrderByDescending(p => p.ProductCalculationResult?.QuantityTotal ?? 0).ToList();
+                break;
+                
+            case "RevenueAvgTarget":
+                result = _sortAscending
+                    ? result.OrderBy(p => (p.ProductCalculationResult?.RevenueAvg ?? 0) * _targetCurrencyRate).ToList()
+                    : result.OrderByDescending(p => (p.ProductCalculationResult?.RevenueAvg ?? 0) * _targetCurrencyRate).ToList();
+                break;
+
+            default: throw new InvalidOperationException(_sortColumn);
+        }
+
+        return result;
+    }
 
     private void MarkAsChecked(ProductWithId product)
     {
-        _questionPopup.AskQuestion(questionText: $"Вы действительно хотите отметить товар '{product.Name}' как учтенный?", async () =>
-        {
-            await EbayClient.MarkProductAsCheckedAsync(product.Id);
-            await LoadActualProductList();
-        });
+        _questionPopup.AskQuestion(
+            questionText: $"Вы действительно хотите отметить товар '{product.Name}' как учтенный?",
+            async () =>
+            {
+                await EbayClient.MarkProductAsCheckedAsync(product.Id);
+                await LoadActualProductList();
+            });
     }
 
 }
