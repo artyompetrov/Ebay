@@ -9,7 +9,7 @@ import {ProductWithId} from "../clients/EbayToolBackendClient";
 
 const chipFindRegex: RegExp = /(?:^|\.)chipfind\.ru$/i
 const avitoRegex: RegExp = /(?:^|\.)avito\.ru$/i
-
+const interestingPrice = 1000; //rub
 const searchOnSites: RegExp[] = [
     avitoRegex,
     chipFindRegex
@@ -26,14 +26,14 @@ export function tryGetSearchSitesProcessor() : ISiteProcessor | null {
 class ProductWithRegex {
     product: ProductWithId;
     regex: RegExp;
-    revenueRub: number;
+    revenueRub: number | null;
     isInteresting: boolean;
     
     constructor(product: EbayToolBackendClient.ProductWithId, regex: RegExp, rubRate: number) {
         this.product = product;
         this.regex = regex;
-        this.revenueRub = product.productCalculationResult.revenueAvg * rubRate
-        this.isInteresting = this.revenueRub > 1000;
+        this.revenueRub = product.productCalculationResult?.revenueAvg * rubRate
+        this.isInteresting = this.revenueRub > interestingPrice;
     }
 }
 
@@ -189,13 +189,13 @@ class SearchSitesProcessor implements ISiteProcessor {
     }
 
     // Генерация HTML для отдельного продукта
-    generateProductHtml(product: any, backendUrl: string): string {
+    generateProductHtml(product: any): string {
         if (!product) return '';
 
         // Формируем заголовок с именем продукта
         const productHeader = `
         <strong style="font-size: 16px; color: #0000aa;">
-            <a href="${backendUrl}LotSales/${product.id}" target="_blank" style="color: #0000aa; text-decoration: none; border-bottom: 1px dotted #0000aa;">
+            <a href="${constants.Urls.backendUrl}LotSales/${product.id}" target="_blank" style="color: #0000aa; text-decoration: none; border-bottom: 1px dotted #0000aa;">
                 ${product.name}
             </a>
         </strong>
@@ -306,31 +306,27 @@ class SearchSitesProcessor implements ISiteProcessor {
         tooltip: HTMLDivElement,
         lastHighlightedElementRef: { current: HTMLElement | null },
         tooltipTimeoutRef: { current: number | null }
-    ): Set<any> {
+    ) {
         let parent = node.parentElement;
-        if (!parent) return new Set<any>();
+        if (!parent) return;
 
         let originalText = node.textContent;
-        if (!originalText) return new Set<any>();
-
-        // Найденные продукты для данного текстового узла
-        const matchedProducts = new Set<any>();
+        if (!originalText) return;
+        
         let shouldHighlight = false;
-
         // Проверяем каждое регулярное выражение
         for (const product of products) {
             product.regex.lastIndex = 0;
             if (product.regex.test(originalText)) {
-                matchedProducts.add(product);
                 shouldHighlight = true;
+                break
             }
         }
-
         if (shouldHighlight) {
             parent.classList.add(highlightClass);
 
             // Проверяем, не добавлены ли уже обработчики
-            if (parent.dataset.tooltipHandlersAdded === 'true') return matchedProducts;
+            if (parent.dataset.tooltipHandlersAdded === 'true') return;
             parent.dataset.tooltipHandlersAdded = 'true';
 
             // Добавляем обработчики событий на элемент
@@ -342,9 +338,9 @@ class SearchSitesProcessor implements ISiteProcessor {
 
                 // Снова находим продукты при наведении, чтобы иметь самую свежую информацию
                 const hoveredMatchedProducts: any[] = [];
-                for (const {product, regex} of products) {
-                    regex.lastIndex = 0;
-                    if (regex.test(text)) {
+                for (const product of products) {
+                    product.regex.lastIndex = 0;
+                    if (product.regex.test(text)) {
                         hoveredMatchedProducts.push(product);
                     }
                 }
@@ -352,7 +348,6 @@ class SearchSitesProcessor implements ISiteProcessor {
                 if (hoveredMatchedProducts.length === 0) return;
 
                 // Показываем tooltip с информацией о продуктах
-                tooltip.innerHTML = 'Загрузка данных о ценах...';
                 tooltip.style.display = 'block';
 
                 // Позиционируем подсказку рядом с элементом
@@ -372,7 +367,7 @@ class SearchSitesProcessor implements ISiteProcessor {
                         }
 
                         // Используем функцию generateProductHtml вместо дублирования HTML кода
-                        productsHtml += this.generateProductHtml(product, constants.Urls.backendUrl);
+                        productsHtml += this.generateProductHtml(product);
                     }
 
                     // Добавляем крестик закрытия сверху
@@ -395,8 +390,6 @@ class SearchSitesProcessor implements ISiteProcessor {
                 }, 300) as unknown as number;
             });
         }
-
-        return matchedProducts;
     }
 
     // Подсвечивает слова на странице
@@ -413,12 +406,12 @@ class SearchSitesProcessor implements ISiteProcessor {
         const traverseNodes = (element: HTMLElement | null): Set<any> => {
             if (!element) return new Set<any>();
             let children = Array.from(element.childNodes);
-            const allMatchedProducts = new Set<any>();
+
 
             for (let i = 0; i < children.length; i++) {
                 const node = children[i];
                 if (node.nodeType === Node.TEXT_NODE) {
-                    const matches = this.highlightWord(
+                     this.highlightWord(
                         node as Text,
                         products, 
                         highlightClass, 
@@ -427,15 +420,10 @@ class SearchSitesProcessor implements ISiteProcessor {
                         tooltipTimeoutRef
                     );
                     
-                    // Добавляем найденные продукты в общий набор
-                    matches.forEach(product => allMatchedProducts.add(product));
                 } else if (node.nodeType === Node.ELEMENT_NODE) {
-                    const childMatches = traverseNodes(node as HTMLElement);
-                    childMatches.forEach(product => allMatchedProducts.add(product));
+                    traverseNodes(node as HTMLElement);
                 }
             }
-            
-            return allMatchedProducts;
         };
 
         // Обработчики для самого tooltip
