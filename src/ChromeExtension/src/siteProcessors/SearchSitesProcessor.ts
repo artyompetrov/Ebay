@@ -6,7 +6,6 @@ import { ISiteProcessor } from './ISiteProcessor';
 import {v4 as uuidv4} from "uuid";
 import {ClientsFactory} from "../clients/ClientsFactory";
 import {ProductWithId} from "../clients/EbayToolBackendClient";
-import elements = chrome.devtools.panels.elements;
 
 const chipFindRegex: RegExp = /(?:^|\.)chipfind\.ru$/i
 const avitoRegex: RegExp = /(?:^|\.)avito\.ru$/i
@@ -149,9 +148,11 @@ class SearchSitesProcessor implements ISiteProcessor {
 
     // Создание и показ всплывающей подсказки
     createTooltip(): HTMLDivElement {
-        // Проверяем, существует ли уже tooltip
+        // Удаляем существующий tooltip, если он есть
         let existingTooltip = document.getElementById('product-price-tooltip');
-        if (existingTooltip) return existingTooltip as HTMLDivElement;
+        if (existingTooltip) {
+            document.body.removeChild(existingTooltip);
+        }
 
         let tooltip = document.createElement('div');
         tooltip.id = 'product-price-tooltip';
@@ -160,7 +161,6 @@ class SearchSitesProcessor implements ISiteProcessor {
         background-color: white;
         border: 2px solid #0000cc;
         border-radius: 5px;
-        padding: 12px;
         box-shadow: 0 2px 12px rgba(0,0,0,0.3);
         z-index: 9999;
         display: none;
@@ -183,8 +183,6 @@ class SearchSitesProcessor implements ISiteProcessor {
         float: right;
         cursor: pointer;
         font-weight: bold;
-        color: #0000cc;
-        background-color: white;
         padding: 3px;
         margin-left: 5px;
         z-index: 10000;
@@ -229,7 +227,7 @@ class SearchSitesProcessor implements ISiteProcessor {
                 <div><strong>Всего продано:</strong> ${product.product.productCalculationResult.quantityTotal} шт.</div>
             `;
             } else {
-                productContent = `Нет данных о продажах для этого товара`;
+                productContent = `Нет данных о продажах`;
             }
         } else {
             productContent = `Нет данных о средней цене`;
@@ -242,10 +240,11 @@ class SearchSitesProcessor implements ISiteProcessor {
         if (product.product.weight === 0) {
             productContent += '<div style="color: red;">Вес не указан</div>';
         }
+        let elementClass = this.getProductElementClass(product);
 
         // Собираем всё в единую структуру
         return `
-        <div style="position: relative; ${(product.product.isCheckRequired || product.product.weight === 0) ? 'background-color: #ffcccc;' : ''}">
+        <div class="${elementClass}" style="position: relative; padding: 10px;">
             ${productHeader}<br>
             <div style="margin-top: 8px;">
                 ${productContent}
@@ -254,7 +253,17 @@ class SearchSitesProcessor implements ISiteProcessor {
     `;
     }
 
-    // Позиционирование tooltip с учетом границ экрана
+    private getProductElementClass(product: ProductWithRegex) {
+        if (product.isInteresting) {
+            return this._highlightInterestingClass
+        } else if (!product.product.isCheckRequired) {
+            return this._highlightCheckedClass
+        } else {
+            return this._highlightKnownClass
+        }
+    }
+
+// Позиционирование tooltip с учетом границ экрана
     positionTooltip(tooltip: HTMLElement, targetRect: DOMRect): void {
         const tooltipWidth = 300; // максимальная ширина tooltip
 
@@ -465,7 +474,7 @@ class SearchSitesProcessor implements ISiteProcessor {
     }
 
     // Обработка страницы поискового сайта
-    async processSitePage(allItemsCacheIdentifier: string): Promise<void> {
+    async processSitePage(): Promise<void> {
        
         
         if (chipFindRegex.test(location.host)) {
@@ -491,7 +500,7 @@ class SearchSitesProcessor implements ISiteProcessor {
     }
 
     private showTooltip(ids: string[], event): void {
-        // Создаем всплывающее окно
+        // Создаем новое всплывающее окно
         const tooltip = this.createTooltip();
         
         // Генерируем содержимое для каждого найденного товара
@@ -503,12 +512,12 @@ class SearchSitesProcessor implements ISiteProcessor {
                 
                 // Добавляем разделитель между товарами, кроме последнего
                 if (id !== ids[ids.length - 1]) {
-                    tooltipContent += '<hr style="margin: 10px 0; border: 0; border-top: 1px solid #ddd;">';
+                    tooltipContent += '<hr style="margin: 0; border: 0; border-top: 1px solid #ddd;">';
                 }
             }
         }
         
-        // Вставляем контент после кнопки закрытия (первого элемента)
+        // Вставляем контент после кнопки закрытия
         const closeButton = tooltip.firstChild;
         const contentContainer = document.createElement('div');
         contentContainer.innerHTML = tooltipContent;
@@ -535,9 +544,9 @@ class SearchSitesProcessor implements ISiteProcessor {
         
         // Обрабатываем страницу
         if (document.readyState === "loading") {
-            document.addEventListener("DOMContentLoaded", () => this.processSitePage(this._allItemsCacheIdentifier));
+            document.addEventListener("DOMContentLoaded", () => this.processSitePage());
         } else {
-            await this.processSitePage(this._allItemsCacheIdentifier);
+            await this.processSitePage();
         }
 
         // Слушаем сообщения от background скрипта
@@ -575,12 +584,12 @@ class SearchSitesProcessor implements ISiteProcessor {
 }
 
 .${this._highlightCheckedClass} {
-    background-color: ${constants.Colors.lightGreen};
+    background-color: ${constants.Colors.lightYellow};
     font-weight: bold;
 }
 
 .${this._highlightInterestingClass} {
-    background-color: ${constants.Colors.lightPink};
+    background-color: ${constants.Colors.lightGreen};
     font-weight: bold;
 }
 `;

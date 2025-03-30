@@ -1,8 +1,8 @@
 ﻿export const Colors = {
     lightGray: "lightgray",
-    lightGreen: "#ecffec",
+    lightGreen: "rgb(166 255 166)",
     lightPink: "lightpink",
-    lightYellow: "#e0e07f"
+    lightYellow: "#e5e582"
 };
 
 export const Urls = {
