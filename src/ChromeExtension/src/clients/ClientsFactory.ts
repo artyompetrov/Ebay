@@ -2,7 +2,7 @@
 import * as EbayToolBackendClient from "../clients/EbayToolBackendClient";
 import * as constants from '../constants';
 import {generateCodeVerifier, OAuth2Client} from "@badgateway/oauth2-client";
-import {fetchResource} from "../infrastructure/ChromeExtensionApi";
+import {fetchResource} from "../infrastructure/Utils";
 import {FetchWrapperCustom} from "./FetchWrapperCustom";
 
 export class ClientsFactory {

@@ -92,8 +92,8 @@ class EbaySiteProcessor implements ISiteProcessor {
     private _panel: HTMLDivElement;
     private _currentProductId: string
     private interestedInTopNItems = 10;
-    private readonly _ebayClient: EbayClient.EbayClient;
-    private readonly _ebayToolBackendClient: EbayToolBackendClient.EbayToolBackendClient;
+    private _ebayClient: EbayClient.EbayClient;
+    private _ebayToolBackendClient: EbayToolBackendClient.EbayToolBackendClient;
 
     // Создадим эти классовые переменные
     private supportedShippingCountries = new Map<string, ShippingParameters>();
@@ -1164,6 +1164,8 @@ class EbaySiteProcessor implements ISiteProcessor {
     public async run() {
         
         let clientsFactory = new ClientsFactory();
+        this._ebayClient = await clientsFactory.getEbayClient();
+        this._ebayToolBackendClient = await clientsFactory.getEbayToolBackendClient();
         
         await utils.sleepElementLoaded('footer', document)
 
@@ -1172,7 +1174,8 @@ class EbaySiteProcessor implements ISiteProcessor {
             console.log("productId not found")
             return;
         }
-        /*
+        let currentPage = location.protocol + '//' + location.host + location.pathname
+
         try {
             if (currentPage.startsWith("https://www.ebay.com/itm/")) {
                 await this.productPage();
@@ -1181,7 +1184,7 @@ class EbaySiteProcessor implements ISiteProcessor {
             }
         } catch (error) {
             await this.saveErrorToBackend(error)
-        }*/
+        }
     }
 
 

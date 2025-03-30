@@ -1,4 +1,4 @@
-﻿import * as ChromeExtensionApi from "../infrastructure/ChromeExtensionApi"; 
+﻿import * as Utils from "../infrastructure/Utils"; 
 
 export async function  checkForUpdates(): Promise<void> {
     const currentVersion = chrome.runtime.getManifest().version;
@@ -7,7 +7,7 @@ export async function  checkForUpdates(): Promise<void> {
     if (!updateUrl) {
         throw new Error("Update URL not defined in manifest.");
     }
-    const response = await ChromeExtensionApi.fetchResource(updateUrl, {});
+    const response = await Utils.fetchResource(updateUrl, {});
     if (!response.ok) {
         throw new Error("Failed to fetch update manifest: " + response.statusText);
     }

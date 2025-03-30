@@ -4,6 +4,7 @@ import * as constants from '../constants';
 import { ISiteProcessor } from './ISiteProcessor';
 // noinspection SpellCheckingInspection
 import {v4 as uuidv4} from "uuid";
+import {ClientsFactory} from "../clients/ClientsFactory";
 
 export function tryGetSearchSitesProcessor() : ISiteProcessor | null {
     if (document.location) {
@@ -483,6 +484,9 @@ class SearchSitesProcessor implements ISiteProcessor {
 
     public async run() {
         console.log("searchSitePages");
+        
+        let clientsFactory = new ClientsFactory();
+        this._ebayToolBackendClient = await clientsFactory.getEbayToolBackendClient()
         
         // Обрабатываем страницу
         if (document.readyState === "loading") {

@@ -3,8 +3,10 @@ import {ClientsFactory} from "../clients/ClientsFactory";
 import * as constants from '../constants';
 import * as utils from "../infrastructure/Utils";
 
-export function tryGetAuthPageProssor() : ISiteProcessor | null {
-    if (document.location) {
+export function tryGetAuthPageProcessor() : ISiteProcessor | null {
+    let currentPage = location.protocol + '//' + location.host + location.pathname
+    
+    if (currentPage === constants.Urls.extensionAuthRedirectUrl || currentPage === constants.Urls.ebayAuthRedirectUrl) {
 
         return new AuthPageProcessor();
     }
@@ -14,7 +16,12 @@ export function tryGetAuthPageProssor() : ISiteProcessor | null {
 class AuthPageProcessor implements ISiteProcessor {
     
     async run(): Promise<void> {
-        
+        let currentPage = location.protocol + '//' + location.host + location.pathname
+        if (currentPage === constants.Urls.extensionAuthRedirectUrl) {
+            await this.extensionAuthPage();
+        } else if (currentPage === constants.Urls.ebayAuthRedirectUrl) {
+            await this.ebayApiAuthPage();
+        }
     }
 
     async  extensionAuthPage() {
