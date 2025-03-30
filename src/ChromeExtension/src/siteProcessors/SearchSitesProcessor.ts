@@ -6,8 +6,16 @@ import { ISiteProcessor } from './ISiteProcessor';
 import {v4 as uuidv4} from "uuid";
 import {ClientsFactory} from "../clients/ClientsFactory";
 
+const chipFindRegex: RegExp = /(?:^|\.)chipfind\.ru$/i
+const avitoRegex: RegExp = /(?:^|\.)avito\.ru$/i
+
+const searchOnSites: RegExp[] = [
+    avitoRegex,
+    chipFindRegex
+]
+
 export function tryGetSearchSitesProcessor() : ISiteProcessor | null {
-    if (document.location) {
+    if (utils.matchesAnyRegex(searchOnSites, location.host)) {
 
         return new SearchSitesProcessor();
     }
@@ -17,12 +25,7 @@ export function tryGetSearchSitesProcessor() : ISiteProcessor | null {
 class SearchSitesProcessor implements ISiteProcessor {
     private _ebayToolBackendClient: EbayToolBackendClient.EbayToolBackendClient;
     private _allItemsCacheIdentifier = "searchSitesAllItems";
-
-    private regexPatterns = {
-        ebaySite: /(?:^|\.)ebay\.com$/i,
-        chipFind: /(?:^|\.)chipfind\.ru$/i,
-        avito: /(?:^|\.)avito\.ru$/i
-    };
+    
 
     // Получение всех продуктов из кэша или с сервера
     async getAllProductsCached(productId: string | null, allItemsCacheIdentifier: string) {
@@ -471,9 +474,9 @@ class SearchSitesProcessor implements ISiteProcessor {
 
         let wordsToHighlight = Array.from(names.concat(ruNames));
 
-        if (this.regexPatterns.chipFind.test(location.host)) {
+        if (chipFindRegex.test(location.host)) {
             await this.processChipFind();
-        } else if (this.regexPatterns.avito.test(location.host)) {
+        } else if (avitoRegex.test(location.host)) {
             await this.processAvito();
             // noinspection JSUnusedLocalSymbols
             let _ = this.processAvitoBackground();

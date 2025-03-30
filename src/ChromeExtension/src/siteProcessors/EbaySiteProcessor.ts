@@ -5,8 +5,10 @@ import * as constants from '../constants';
 import { ISiteProcessor } from './ISiteProcessor';
 import {ClientsFactory} from "../clients/ClientsFactory";
 
+const ebaySiteRegex: RegExp =  /(?:^|\.)ebay\.com$/i;
+
 export function tryGetEbaySiteProcessor() : ISiteProcessor | null {
-    if (document.location) {
+    if (ebaySiteRegex.test(location.host)) {
         
         return new EbaySiteProcessor();
     }
