@@ -77,7 +77,7 @@ class SearchSitesProcessor implements ISiteProcessor {
             }
         }
         
-        return cached;
+        return cached.map(x=> new ProductWithRegex(x.product, new RegExp(x.regex.source, x.regex.flags), this._targetCurrencyRate));
     }
 
     async getProductWithRegexes() : Promise<ProductWithRegex[]> {
@@ -591,5 +591,4 @@ class SearchSitesProcessor implements ISiteProcessor {
 `;
         document.head.appendChild(style);
     }
-
 }
