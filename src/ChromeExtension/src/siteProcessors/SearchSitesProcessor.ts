@@ -320,7 +320,7 @@ class SearchSitesProcessor implements ISiteProcessor {
             .replace(/[mм]/g, '[mм]')
             .replace(/[tт]/g, '[tт]'));
         
-        return new RegExp(`(?:^|\\s|\\.)(${processed.join('|')})(?:$|\\s|-|,|=|\\.)`, "ig");
+        return new RegExp(`(?:^|\\s|\\.)(${processed.join('|')})(?:$|\\s|-|,|=|\\(|\\.)`, "ig");
     }
 
     // Выделяет текстовый узел и добавляет обработчики событий для tooltip
