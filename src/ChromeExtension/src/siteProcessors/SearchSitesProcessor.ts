@@ -41,11 +41,12 @@ class SearchSitesProcessor implements ISiteProcessor {
     private _ebayToolBackendClient: EbayToolBackendClient.EbayToolBackendClient;
     private _allItemsCacheIdentifier = "searchSitesAllItems";
     private _targetCurrencyRate: number;
+    private _targetCurrencyCacheIdentifier = "targetCurrency";
 
 
-    async getTargetCurrencyCached() {
-        return await utils.getCachedDataOrFallback("targetCurrency", async () => {
-                let currencies = await this._ebayToolBackendClient.getCurrencies();
+    async getTargetCurrencyCached(): Promise<number> {
+        return await utils.getCachedDataOrFallback<number>(this._targetCurrencyCacheIdentifier, async () => {
+                const currencies = await this._ebayToolBackendClient.getCurrencies();
                 // Ищем RUB в списке валют
                 const rubCurrency = currencies.find(currency => currency.ebayName === "RUB");
                 if (!rubCurrency) {
@@ -189,14 +190,14 @@ class SearchSitesProcessor implements ISiteProcessor {
     }
 
     // Генерация HTML для отдельного продукта
-    generateProductHtml(product: any): string {
+    generateProductHtml(product: ProductWithRegex): string {
         if (!product) return '';
 
         // Формируем заголовок с именем продукта
         const productHeader = `
         <strong style="font-size: 16px; color: #0000aa;">
-            <a href="${constants.Urls.backendUrl}LotSales/${product.id}" target="_blank" style="color: #0000aa; text-decoration: none; border-bottom: 1px dotted #0000aa;">
-                ${product.name}
+            <a href="${constants.Urls.backendUrl}LotSales/${product.product.id}" target="_blank" style="color: #0000aa; text-decoration: none; border-bottom: 1px dotted #0000aa;">
+                ${product.product.name}
             </a>
         </strong>
     `;
@@ -204,13 +205,13 @@ class SearchSitesProcessor implements ISiteProcessor {
         // Определяем содержимое в зависимости от наличия данных
         let productContent: string;
 
-        if (product.productCalculationResult) {
-            if (product.productCalculationResult.quantityTotal > 0) {
+        if (product.product.productCalculationResult) {
+            if (product.product.productCalculationResult.quantityTotal > 0) {
                 
-                const avgPrice = product.productCalculationResult.revenueAvg;
+                const avgPrice = product.product.productCalculationResult.revenueAvg;
                 productContent = `
                 <div><strong>Средняя цена:</strong> ${(avgPrice * this._targetCurrencyRate).toFixed(0)} RUB</div>
-                <div><strong>Всего продано:</strong> ${product.productCalculationResult.quantityTotal} шт.</div>
+                <div><strong>Всего продано:</strong> ${product.product.productCalculationResult.quantityTotal} шт.</div>
             `;
             } else {
                 productContent = `Нет данных о продажах для этого товара`;
@@ -219,17 +220,17 @@ class SearchSitesProcessor implements ISiteProcessor {
             productContent = `Нет данных о средней цене`;
         }
 
-        if (product.isCheckRequired) {
+        if (product.product.isCheckRequired) {
             productContent += '<div style="color: red;">Требуется проверка</div>';
         }
 
-        if (product.weight === 0) {
+        if (product.product.weight === 0) {
             productContent += '<div style="color: red;">Вес не указан</div>';
         }
 
         // Собираем всё в единую структуру
         return `
-        <div style="position: relative; ${(product.isCheckRequired || product.weight === 0) ? 'background-color: #ffcccc;' : ''}">
+        <div style="position: relative; ${(product.product.isCheckRequired || product.product.weight === 0) ? 'background-color: #ffcccc;' : ''}">
             ${productHeader}<br>
             <div style="margin-top: 8px;">
                 ${productContent}
@@ -306,7 +307,7 @@ class SearchSitesProcessor implements ISiteProcessor {
         tooltip: HTMLDivElement,
         lastHighlightedElementRef: { current: HTMLElement | null },
         tooltipTimeoutRef: { current: number | null }
-    ) {
+    ): void {
         let parent = node.parentElement;
         if (!parent) return;
 
@@ -330,14 +331,14 @@ class SearchSitesProcessor implements ISiteProcessor {
             parent.dataset.tooltipHandlersAdded = 'true';
 
             // Добавляем обработчики событий на элемент
-            parent.addEventListener('mouseenter', async (_) => {
+            parent.addEventListener('mouseenter', async (_: MouseEvent) => {
                 if (tooltipTimeoutRef.current) clearTimeout(tooltipTimeoutRef.current);
 
                 lastHighlightedElementRef.current = parent;
                 const text = parent.textContent || '';
 
                 // Снова находим продукты при наведении, чтобы иметь самую свежую информацию
-                const hoveredMatchedProducts: any[] = [];
+                const hoveredMatchedProducts: ProductWithRegex[] = [];
                 for (const product of products) {
                     product.regex.lastIndex = 0;
                     if (product.regex.test(text)) {
@@ -403,8 +404,8 @@ class SearchSitesProcessor implements ISiteProcessor {
         const lastHighlightedElementRef = {current: null as HTMLElement | null};
         const tooltipTimeoutRef = {current: null as number | null};
 
-        const traverseNodes = (element: HTMLElement | null): Set<any> => {
-            if (!element) return new Set<any>();
+        const traverseNodes = (element: HTMLElement | null): void => {
+            if (!element) return;
             let children = Array.from(element.childNodes);
 
 
@@ -447,7 +448,7 @@ class SearchSitesProcessor implements ISiteProcessor {
     
 
 // Обработка страницы chipfind.ru
-    async processChipFind() {
+    async processChipFind(): Promise<void> {
         console.log("processChipFind");
         if (location.pathname === "/market/search.htm" || location.pathname === "/market/") {
             await utils.sleepElementLoaded('div.pages', document);
@@ -475,7 +476,7 @@ class SearchSitesProcessor implements ISiteProcessor {
     }
 
     // Обработка страницы avito.ru в фоне
-    async processAvitoBackground() {
+    async processAvitoBackground(): Promise<void> {
         console.log("processAvitoBackground");
         let found = false;
         do {
@@ -491,7 +492,7 @@ class SearchSitesProcessor implements ISiteProcessor {
     }
 
     // Обработка страницы avito.ru
-    async processAvito() {
+    async processAvito(): Promise<void> {
         console.log("processAvito");
         let description = document.querySelectorAll<HTMLDivElement>('div[itemprop="description"]');
 
@@ -501,7 +502,7 @@ class SearchSitesProcessor implements ISiteProcessor {
     }
 
     // Показывает уведомление
-    showToast(message: string, duration = 3000) {
+    showToast(message: string, duration: number = 3000): void {
         const toast = document.createElement("div");
         toast.textContent = message;
         toast.style.position = "fixed";
@@ -525,7 +526,7 @@ class SearchSitesProcessor implements ISiteProcessor {
     }
 
     // Обработка страницы поискового сайта
-    async processSitePage(allItemsCacheIdentifier: string) {
+    async processSitePage(allItemsCacheIdentifier: string): Promise<void> {
         let allProducts = await this.getAllProductsCached(null, allItemsCacheIdentifier);
         
         if (chipFindRegex.test(location.host)) {
@@ -539,10 +540,10 @@ class SearchSitesProcessor implements ISiteProcessor {
     }
    
 
-    public async run() {
+    public async run(): Promise<void> {
         console.log("searchSitePages");
         
-        let clientsFactory = new ClientsFactory();
+        const clientsFactory = new ClientsFactory();
         this._ebayToolBackendClient = await clientsFactory.getEbayToolBackendClient()
 
         this._targetCurrencyRate = await this.getTargetCurrencyCached();
@@ -556,11 +557,11 @@ class SearchSitesProcessor implements ISiteProcessor {
 
         // Слушаем сообщения от background скрипта
         // noinspection JSUnusedLocalSymbols
-        chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+        chrome.runtime.onMessage.addListener(async (message: {action: string, text: string}, sender, sendResponse) => {
             if (message.action === "processText") {
                 console.log("Received message", message.text);
                 try {
-                    let productName = message.text.trim();
+                    const productName = message.text.trim();
                     await this._ebayToolBackendClient.createProduct(new EbayToolBackendClient.ProductWithoutId({
                         name: productName,
                         searchQueries: Array.of(new EbayToolBackendClient.SearchQuery({
