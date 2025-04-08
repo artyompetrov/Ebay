@@ -335,14 +335,12 @@ class SearchSitesProcessor implements ISiteProcessor {
     }
 
     // Выделяет текстовый узел и добавляет обработчики событий для tooltip
-    highlightWord(
-        node: Text
-    ): void {
+    highlightWord(node: Text): HTMLElement | null {
         let parent = node.parentElement;
-        if (!parent) return;
+        if (!parent) return null;
 
         let originalText = node.textContent;
-        if (!originalText) return;
+        if (!originalText) return null;
         
         let matchedIdsString: string | null = null;
         let hasInteresting = false;
@@ -375,8 +373,9 @@ class SearchSitesProcessor implements ISiteProcessor {
                 parent.classList.add(this._highlightKnownClass);
             }
             parent.setAttribute(this._foundProductIdsAttribute, matchedIdsString);
-            parent.addEventListener('mouseenter', this.onMouseEnterHighlight.bind(this));
+            return parent;
         }
+        return null;
     }
     
     highlightWords() {
@@ -388,21 +387,51 @@ class SearchSitesProcessor implements ISiteProcessor {
             return;
         }
 
-        const traverseNodes = (element: HTMLElement | null): void => {
+        const BATCH_SIZE = 100; // Количество узлов для обработки за один раз
+        let nodesToProcess: Node[] = [];
+        
+        // Собираем все узлы для обработки
+        const collectNodes = (element: HTMLElement | null): void => {
             if (!element) return;
             let children = Array.from(element.childNodes);
-            for (let i = 0; i < children.length; i++) {
-                const node = children[i];
+            for (const node of children) {
                 if (node.nodeType === Node.TEXT_NODE) {
-                    this.highlightWord(node as Text);
-
+                    nodesToProcess.push(node);
                 } else if (node.nodeType === Node.ELEMENT_NODE) {
-                    traverseNodes(node as HTMLElement);
+                    collectNodes(node as HTMLElement);
                 }
             }
         };
 
-        traverseNodes(body);
+        // Обрабатываем узлы порциями
+        const processBatch = () => {
+            const batch = nodesToProcess.splice(0, BATCH_SIZE);
+            const highlightedElements: HTMLElement[] = [];
+            
+            for (const node of batch) {
+                const highlightedElement = this.highlightWord(node as Text);
+                if (highlightedElement) {
+                    highlightedElements.push(highlightedElement);
+                }
+            }
+            
+            // Добавляем обработчики событий для всех подсвеченных элементов в этой порции
+            for (const element of highlightedElements) {
+                element.addEventListener('mouseenter', this.onMouseEnterHighlight.bind(this));
+            }
+            
+            if (nodesToProcess.length > 0) {
+                requestAnimationFrame(processBatch);
+            }
+        };
+
+        // Начинаем сбор узлов
+        collectNodes(body);
+        
+        // Запускаем обработку первой порции
+        if (nodesToProcess.length > 0) {
+            requestAnimationFrame(processBatch);
+        }
     }
     
 
