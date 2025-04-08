@@ -331,7 +331,7 @@ class SearchSitesProcessor implements ISiteProcessor {
             .replace('9', '[- ]?9[- ]?')
         );
         
-        return new RegExp(`(?:^|[\\s\\.\\(\\)])(${processed.join('|')})(?:$|[\\s\\-,:;=\\(\\)\\.])`, "ig");
+        return new RegExp(`(?:^|\\b|[\\s\\.\\(\\)"\-_])(${processed.join('|')})(?:$|\\b|[\\s\\-,:;=\\(\\)\\."_])`, "ig");
     }
 
     // Выделяет текстовый узел и добавляет обработчики событий для tooltip
