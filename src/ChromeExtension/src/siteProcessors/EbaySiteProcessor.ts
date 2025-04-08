@@ -931,8 +931,13 @@ class EbaySiteProcessor implements ISiteProcessor {
             let shippingCurrencyValue = shippingOption.shippingCost.convertedFromCurrency ?? shippingOption.shippingCost.currency;
             let shippingValue = shippingOption.shippingCost.convertedFromValue ?? shippingOption.shippingCost.value;
 
-            let shippingAdditionalCurrencyValue = shippingOption.additionalShippingCostPerUnit.convertedFromCurrency ?? shippingOption.additionalShippingCostPerUnit.currency;
-            let shippingAdditionalValue = shippingOption.additionalShippingCostPerUnit.convertedFromValue ?? shippingOption.additionalShippingCostPerUnit.value;
+            let shippingAdditionalCurrencyValue = undefined;
+            let shippingAdditionalValue = undefined;
+            
+            if (shippingOption.additionalShippingCostPerUnit) {
+                shippingAdditionalCurrencyValue = shippingOption.additionalShippingCostPerUnit.convertedFromCurrency ?? shippingOption.additionalShippingCostPerUnit.currency;
+                shippingAdditionalValue = shippingOption.additionalShippingCostPerUnit.convertedFromValue ?? shippingOption.additionalShippingCostPerUnit.value;
+            }
 
             if (shippingValue < shipping || shipping === undefined) {
                 shipping = parseFloat(shippingValue);
