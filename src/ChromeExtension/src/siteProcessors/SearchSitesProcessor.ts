@@ -322,7 +322,7 @@ class SearchSitesProcessor implements ISiteProcessor {
             .replace('0', '[- ]?0[- ]?')
             .replace('1', '[- ]?1[- ]?')
             .replace('2', '[- ]?2[- ]?')
-            .replace('3', '[- ]?3[- ]?')
+            .replace('3', '[- ]?[3Зз][- ]?')
             .replace('4', '[- ]?4[- ]?')
             .replace('5', '[- ]?5[- ]?')
             .replace('6', '[- ]?6[- ]?')
