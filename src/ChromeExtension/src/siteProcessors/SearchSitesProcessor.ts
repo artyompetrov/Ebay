@@ -514,17 +514,24 @@ class SearchSitesProcessor implements ISiteProcessor {
         // Создаем новое всплывающее окно
         const tooltip = this.createTooltip();
         
+        // Получаем все найденные товары и сортируем их по цене (от большей к меньшей)
+        const sortedProducts = ids
+            .map(id => this._products.get(id))
+            .filter(product => product !== undefined)
+            .sort((a, b) => {
+                const priceA = a.revenueRub || 0;
+                const priceB = b.revenueRub || 0;
+                return priceB - priceA;
+            });
+        
         // Генерируем содержимое для каждого найденного товара
         let tooltipContent = '';
-        for (const id of ids) {
-            const product = this._products.get(id);
-            if (product) {
-                tooltipContent += this.generateProductHtml(product);
-                
-                // Добавляем разделитель между товарами, кроме последнего
-                if (id !== ids[ids.length - 1]) {
-                    tooltipContent += '<hr style="margin: 0; border: 0; border-top: 1px solid #ddd;">';
-                }
+        for (const product of sortedProducts) {
+            tooltipContent += this.generateProductHtml(product);
+            
+            // Добавляем разделитель между товарами, кроме последнего
+            if (product !== sortedProducts[sortedProducts.length - 1]) {
+                tooltipContent += '<hr style="margin: 0; border: 0; border-top: 1px solid #ddd;">';
             }
         }
         
