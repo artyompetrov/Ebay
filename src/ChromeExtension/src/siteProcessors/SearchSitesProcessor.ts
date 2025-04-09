@@ -457,17 +457,15 @@ class SearchSitesProcessor implements ISiteProcessor {
                 }
             }
 
-            // Применяем подсветку к текущему элементу, если есть совпадения
-            if (allMatchedIds && allMatchedIds.size > 0) {
-                const matchedIdsString = Array.from(allMatchedIds).join(',');
-                
-                // Проверяем, не изменились ли найденные совпадения
-                if (element.hasAttribute(this._foundProductIdsAttribute)) {
-                    let ids = element.getAttribute(this._foundProductIdsAttribute);
-                    if (ids === matchedIdsString) {
-                        return;
-                    }
-                    // Удаляем старые классы и обработчики
+            // Проверяем текущее состояние элемента
+            const hasExistingHighlight = element.hasAttribute(this._foundProductIdsAttribute);
+            const currentMatchedIdsString = allMatchedIds ? Array.from(allMatchedIds).join(',') : '';
+            const existingIds = hasExistingHighlight ? element.getAttribute(this._foundProductIdsAttribute) : '';
+
+            // Если состояние изменилось (включая случай, когда совпадений больше нет)
+            if (currentMatchedIdsString !== existingIds) {
+                // Сначала удаляем старую подсветку
+                if (hasExistingHighlight) {
                     element.removeAttribute(this._foundProductIdsAttribute);
                     element.classList.remove(this._highlightInterestingClass);
                     element.classList.remove(this._highlightCheckedClass);
@@ -475,16 +473,18 @@ class SearchSitesProcessor implements ISiteProcessor {
                     element.removeEventListener('mouseenter', this.onMouseEnterHighlight.bind(this));
                 }
 
-                // Добавляем новую подсветку
-                if (hasInteresting) {
-                    element.classList.add(this._highlightInterestingClass);
-                } else if (hasChecked) {
-                    element.classList.add(this._highlightCheckedClass);
-                } else {
-                    element.classList.add(this._highlightKnownClass);
+                // Добавляем новую подсветку, только если есть совпадения
+                if (allMatchedIds && allMatchedIds.size > 0) {
+                    if (hasInteresting) {
+                        element.classList.add(this._highlightInterestingClass);
+                    } else if (hasChecked) {
+                        element.classList.add(this._highlightCheckedClass);
+                    } else {
+                        element.classList.add(this._highlightKnownClass);
+                    }
+                    element.setAttribute(this._foundProductIdsAttribute, currentMatchedIdsString);
+                    element.addEventListener('mouseenter', this.onMouseEnterHighlight.bind(this));
                 }
-                element.setAttribute(this._foundProductIdsAttribute, matchedIdsString);
-                element.addEventListener('mouseenter', this.onMouseEnterHighlight.bind(this));
             }
         };
 
