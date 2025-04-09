@@ -53,6 +53,7 @@ class SearchSitesProcessor implements ISiteProcessor {
     private _foundProductIdsAttribute: string = 'data-product-ids';
     private _products: Map<string, ProductWithRegex>;
     private _lastMousePosition: { x: number, y: number } | null = null;
+    private _tooltipId: string = 'product-price-tooltip';
 
 
     async getTargetCurrencyCached(): Promise<number> {
@@ -152,13 +153,13 @@ class SearchSitesProcessor implements ISiteProcessor {
     // Создание и показ всплывающей подсказки
     createTooltip(): HTMLDivElement {
         // Удаляем существующий tooltip, если он есть
-        let existingTooltip = document.getElementById('product-price-tooltip');
+        let existingTooltip = document.getElementById(this._tooltipId);
         if (existingTooltip) {
             document.body.removeChild(existingTooltip);
         }
 
         let tooltip = document.createElement('div');
-        tooltip.id = 'product-price-tooltip';
+        tooltip.id = this._tooltipId;
         tooltip.style.cssText = `
         position: absolute;
         background-color: white;
@@ -426,8 +427,9 @@ class SearchSitesProcessor implements ISiteProcessor {
         const traverseNodes = async (element: HTMLElement | null): Promise<void> => {
             if (!element) return;
             
-            // Пропускаем элемент, если он уже был обработан
-            if (element.hasAttribute(this._foundProductIdsAttribute)) {
+            // Пропускаем элемент, если он уже был обработан или это тултип
+            if (element.hasAttribute(this._foundProductIdsAttribute) || 
+                element.id === this._tooltipId) {
                 return;
             }
             
@@ -542,7 +544,16 @@ class SearchSitesProcessor implements ISiteProcessor {
         }
 
         this._products = await this.getAllProductsCached(null, this._allItemsCacheIdentifier);
-        await this.highlightWords();
+       
+
+        const startBackgroundHighlighting = async () => {
+            while (true) {
+                await this.highlightWords();
+                await utils.sleep(2000);
+            }
+        };
+
+        let _ = startBackgroundHighlighting()
     }
     
     onMouseEnterHighlight(event: MouseEvent): void {
@@ -605,17 +616,13 @@ class SearchSitesProcessor implements ISiteProcessor {
 
         this._targetCurrencyRate = await this.getTargetCurrencyCached();
         
-        // Запускаем периодический анализ страницы
-        const startBackgroundProcessing = async () => {
-            while (true) {
-                await this.processSitePage();
-                // Ждем 2 секунды перед следующей итерацией
-                await utils.sleep(2000);
-            }
-        };
+        // Обрабатываем страницу
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", () => this.processSitePage());
+        } else {
+            await this.processSitePage();
+        }
 
-        // Запускаем обработку независимо от состояния загрузки документа
-        startBackgroundProcessing();
 
         // Слушаем сообщения от background скрипта
         // noinspection JSUnusedLocalSymbols
