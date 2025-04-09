@@ -505,19 +505,24 @@ class SearchSitesProcessor implements ISiteProcessor {
                 element.click();
                 await utils.sleep(300);
             }
-
-            let posts = document.querySelectorAll<HTMLTableCellElement>('table.post td.rr div');
-
-            posts.forEach(function (post) {
-                let plus = post.querySelector<HTMLDivElement>('div.plus');
-                let contact = post.querySelector<HTMLDivElement>('div.contact');
-
-                let contactHtml = contact?.innerHTML ?? "";
-                plus?.remove();
-                contact?.remove();
-                post.innerHTML = '<pre>' + post.innerHTML.replace(/<br\s*\/?>/g, '</pre><pre>') + '</pre><br>' + contactHtml;
-            });
         }
+
+        let posts = document.querySelectorAll<HTMLTableCellElement>('table.post');
+
+        posts.forEach(function (post) {
+            let plus = post.querySelector<HTMLDivElement>('div.plus');
+            let contact = post.querySelector<HTMLDivElement>('div.contact');
+
+            let contactHtml = contact?.innerHTML ?? "";
+            plus?.remove();
+            contact?.remove();
+
+            let targetDiv = post.querySelector<HTMLDivElement>('div[id^="R"], td.rr');
+            if (targetDiv) {
+                targetDiv.innerHTML = '<pre>' + targetDiv.innerHTML.replace(/<br\s*\/?>/g, '</pre><pre>') + '</pre><br>' + contactHtml;
+            }
+        });
+    
     }
 
     // Обработка страницы avito.ru в фоне
