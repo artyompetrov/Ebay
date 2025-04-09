@@ -9,9 +9,11 @@ import {ProductWithId} from "../clients/EbayToolBackendClient";
 
 const chipFindRegex: RegExp = /(?:^|\.)chipfind\.ru$/i
 const avitoRegex: RegExp = /(?:^|\.)avito\.ru$/i
+const meshokfindRegex: RegExp = /(?:^|\.)meshok\.net$/i
 const searchOnSites: RegExp[] = [
     avitoRegex,
-    chipFindRegex
+    chipFindRegex,
+    meshokfindRegex
 ]
 
 export function tryGetSearchSitesProcessor() : ISiteProcessor | null {
