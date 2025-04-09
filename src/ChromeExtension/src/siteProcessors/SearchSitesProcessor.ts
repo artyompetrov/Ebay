@@ -335,12 +335,14 @@ class SearchSitesProcessor implements ISiteProcessor {
     }
 
     // Выделяет текстовый узел и добавляет обработчики событий для tooltip
-    highlightWord(node: Text): HTMLElement | null {
+    highlightWord(
+        node: Text
+    ): void {
         let parent = node.parentElement;
-        if (!parent) return null;
+        if (!parent) return;
 
         let originalText = node.textContent;
-        if (!originalText) return null;
+        if (!originalText) return;
         
         let matchedIdsString: string | null = null;
         let hasInteresting = false;
@@ -373,9 +375,8 @@ class SearchSitesProcessor implements ISiteProcessor {
                 parent.classList.add(this._highlightKnownClass);
             }
             parent.setAttribute(this._foundProductIdsAttribute, matchedIdsString);
-            return parent;
+            parent.addEventListener('mouseenter', this.onMouseEnterHighlight.bind(this));
         }
-        return null;
     }
     
     highlightWords() {
@@ -387,51 +388,21 @@ class SearchSitesProcessor implements ISiteProcessor {
             return;
         }
 
-        const BATCH_SIZE = 100; // Количество узлов для обработки за один раз
-        let nodesToProcess: Node[] = [];
-        
-        // Собираем все узлы для обработки
-        const collectNodes = (element: HTMLElement | null): void => {
+        const traverseNodes = (element: HTMLElement | null): void => {
             if (!element) return;
             let children = Array.from(element.childNodes);
-            for (const node of children) {
+            for (let i = 0; i < children.length; i++) {
+                const node = children[i];
                 if (node.nodeType === Node.TEXT_NODE) {
-                    nodesToProcess.push(node);
+                    this.highlightWord(node as Text);
+
                 } else if (node.nodeType === Node.ELEMENT_NODE) {
-                    collectNodes(node as HTMLElement);
+                    traverseNodes(node as HTMLElement);
                 }
             }
         };
 
-        // Обрабатываем узлы порциями
-        const processBatch = () => {
-            const batch = nodesToProcess.splice(0, BATCH_SIZE);
-            const highlightedElements: HTMLElement[] = [];
-            
-            for (const node of batch) {
-                const highlightedElement = this.highlightWord(node as Text);
-                if (highlightedElement) {
-                    highlightedElements.push(highlightedElement);
-                }
-            }
-            
-            // Добавляем обработчики событий для всех подсвеченных элементов в этой порции
-            for (const element of highlightedElements) {
-                element.addEventListener('mouseenter', this.onMouseEnterHighlight.bind(this));
-            }
-            
-            if (nodesToProcess.length > 0) {
-                requestAnimationFrame(processBatch);
-            }
-        };
-
-        // Начинаем сбор узлов
-        collectNodes(body);
-        
-        // Запускаем обработку первой порции
-        if (nodesToProcess.length > 0) {
-            requestAnimationFrame(processBatch);
-        }
+        traverseNodes(body);
     }
     
 
