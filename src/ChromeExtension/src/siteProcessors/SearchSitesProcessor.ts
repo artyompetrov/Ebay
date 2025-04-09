@@ -400,7 +400,22 @@ class SearchSitesProcessor implements ISiteProcessor {
             }
         }
 
+        if (parent.hasAttribute(this._foundProductIdsAttribute)) {
+            let ids = parent.getAttribute(this._foundProductIdsAttribute);
+            if (ids !== matchedIdsString) {
+                parent.removeAttribute(this._foundProductIdsAttribute);
+                parent.classList.remove(this._highlightInterestingClass);
+                parent.classList.remove(this._highlightCheckedClass);
+                parent.classList.remove(this._highlightKnownClass);
+                parent.removeEventListener('mouseenter', this.onMouseEnterHighlight.bind(this));
+            }
+            else {
+                return;
+            }
+        }
+
         if (matchedIdsString !== null) {
+
             if (hasInteresting) {
                 parent.classList.add(this._highlightInterestingClass);
             } else if (hasChecked) {
@@ -428,8 +443,7 @@ class SearchSitesProcessor implements ISiteProcessor {
             if (!element) return;
             
             // Пропускаем элемент, если он уже был обработан или это тултип
-            if (element.hasAttribute(this._foundProductIdsAttribute) || 
-                element.id === this._tooltipId) {
+            if (element.id === this._tooltipId) {
                 return;
             }
             
@@ -438,8 +452,8 @@ class SearchSitesProcessor implements ISiteProcessor {
                 const node = children[i];
                 
                 processedNodes++;
-                // Каждые 50 узлов отдаем управление основному потоку
-                if (processedNodes % 50 === 0) {
+                // Каждые 30 узлов отдаем управление основному потоку
+                if (processedNodes % 30 === 0) {
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
                 
