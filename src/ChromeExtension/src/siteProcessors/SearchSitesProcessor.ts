@@ -369,27 +369,26 @@ class SearchSitesProcessor implements ISiteProcessor {
         return new RegExp(`(?:^|\\b|[\\s\\.,\\(\\)"\-_])(${processed.join('|')})(?:$|\\b|[\\s\\-,:;=\\(\\)\\."_])`, "ig");
     }
 
-    // Выделяет текстовый узел и добавляет обработчики событий для tooltip
-    highlightWord(
+    // Ищет совпадения в текстовом узле
+    findMatches(
         node: Text
-    ): void {
+    ): { matchedIds: string[], hasInteresting: boolean, hasChecked: boolean } | null {
         let parent = node.parentElement;
-        if (!parent) return;
+        if (!parent) return null;
 
         let originalText = node.textContent;
-        if (!originalText) return;
+        if (!originalText) return null;
         
-        let matchedIdsString: string | null = null;
+        let matchedIds: string[] | null = null;
         let hasInteresting = false;
         let hasChecked = false;
         for (const product of this._products.values()) {
             product.regex.lastIndex = 0;
             if (product.regex.test(originalText)) {
-                if (matchedIdsString === null) {
-                    matchedIdsString = String(product.product.id);
-                } else {
-                    matchedIdsString += ',' + product.product.id;
+                if (!matchedIds) {
+                    matchedIds = [];
                 }
+                matchedIds.push(product.product.id);
                 
                 if (product.isInteresting) {
                     hasInteresting = true;
@@ -400,33 +399,15 @@ class SearchSitesProcessor implements ISiteProcessor {
             }
         }
 
-        if (parent.hasAttribute(this._foundProductIdsAttribute)) {
-            let ids = parent.getAttribute(this._foundProductIdsAttribute);
-            if (ids !== matchedIdsString) {
-                parent.removeAttribute(this._foundProductIdsAttribute);
-                parent.classList.remove(this._highlightInterestingClass);
-                parent.classList.remove(this._highlightCheckedClass);
-                parent.classList.remove(this._highlightKnownClass);
-                parent.removeEventListener('mouseenter', this.onMouseEnterHighlight.bind(this));
-            }
-            else {
-                return;
-            }
+        if (!matchedIds) {
+            return null;
         }
 
-        if (matchedIdsString !== null) {
-
-            if (hasInteresting) {
-                parent.classList.add(this._highlightInterestingClass);
-            } else if (hasChecked) {
-                parent.classList.add(this._highlightCheckedClass);
-            }
-            else {
-                parent.classList.add(this._highlightKnownClass);
-            }
-            parent.setAttribute(this._foundProductIdsAttribute, matchedIdsString);
-            parent.addEventListener('mouseenter', this.onMouseEnterHighlight.bind(this));
-        }
+        return {
+            matchedIds,
+            hasInteresting,
+            hasChecked
+        };
     }
     
     async highlightWords() {
@@ -446,6 +427,10 @@ class SearchSitesProcessor implements ISiteProcessor {
             if (element.id === this._tooltipId) {
                 return;
             }
+
+            let allMatchedIds: Set<string> | null = null;
+            let hasInteresting = false;
+            let hasChecked = false;
             
             let children = Array.from(element.childNodes);
             for (let i = 0; i < children.length; i++) {
@@ -458,10 +443,48 @@ class SearchSitesProcessor implements ISiteProcessor {
                 }
                 
                 if (node.nodeType === Node.TEXT_NODE) {
-                    this.highlightWord(node as Text);
+                    const result = this.findMatches(node as Text);
+                    if (result) {
+                        if (!allMatchedIds) {
+                            allMatchedIds = new Set<string>();
+                        }
+                        result.matchedIds.forEach(id => allMatchedIds.add(id));
+                        hasInteresting = hasInteresting || result.hasInteresting;
+                        hasChecked = hasChecked || result.hasChecked;
+                    }
                 } else if (node.nodeType === Node.ELEMENT_NODE) {
                     await traverseNodes(node as HTMLElement);
                 }
+            }
+
+            // Применяем подсветку к текущему элементу, если есть совпадения
+            if (allMatchedIds && allMatchedIds.size > 0) {
+                const matchedIdsString = Array.from(allMatchedIds).join(',');
+                
+                // Проверяем, не изменились ли найденные совпадения
+                if (element.hasAttribute(this._foundProductIdsAttribute)) {
+                    let ids = element.getAttribute(this._foundProductIdsAttribute);
+                    if (ids === matchedIdsString) {
+                        return;
+                    }
+                    // Удаляем старые классы и обработчики
+                    element.removeAttribute(this._foundProductIdsAttribute);
+                    element.classList.remove(this._highlightInterestingClass);
+                    element.classList.remove(this._highlightCheckedClass);
+                    element.classList.remove(this._highlightKnownClass);
+                    element.removeEventListener('mouseenter', this.onMouseEnterHighlight.bind(this));
+                }
+
+                // Добавляем новую подсветку
+                if (hasInteresting) {
+                    element.classList.add(this._highlightInterestingClass);
+                } else if (hasChecked) {
+                    element.classList.add(this._highlightCheckedClass);
+                } else {
+                    element.classList.add(this._highlightKnownClass);
+                }
+                element.setAttribute(this._foundProductIdsAttribute, matchedIdsString);
+                element.addEventListener('mouseenter', this.onMouseEnterHighlight.bind(this));
             }
         };
 
