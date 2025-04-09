@@ -52,6 +52,7 @@ class SearchSitesProcessor implements ISiteProcessor {
     private _highlightInterestingClass:string = "highlightInteresting";
     private _foundProductIdsAttribute: string = 'data-product-ids';
     private _products: Map<string, ProductWithRegex>;
+    private _lastMousePosition: { x: number, y: number } | null = null;
 
 
     async getTargetCurrencyCached(): Promise<number> {
@@ -196,9 +197,28 @@ class SearchSitesProcessor implements ISiteProcessor {
         tooltip.appendChild(closeButton);
         document.body.appendChild(tooltip);
 
-        // Добавляем возможность закрытия по щелчку на подсказку
-        tooltip.addEventListener('click', () => {
-            tooltip.style.display = 'none';
+        // Добавляем отслеживание движения мыши для автозакрытия
+        document.addEventListener('mousemove', (e) => {
+            this._lastMousePosition = { x: e.clientX, y: e.clientY };
+            
+            // Проверяем расстояние между мышью и тултипом
+            if (tooltip.style.display !== 'none') {
+                const tooltipRect = tooltip.getBoundingClientRect();
+                const tooltipCenter = {
+                    x: tooltipRect.left + tooltipRect.width / 2,
+                    y: tooltipRect.top + tooltipRect.height / 2
+                };
+                
+                const distance = Math.sqrt(
+                    Math.pow(this._lastMousePosition.x - tooltipCenter.x, 2) +
+                    Math.pow(this._lastMousePosition.y - tooltipCenter.y, 2)
+                );
+                
+                // Если расстояние больше 300 пикселей, закрываем тултип
+                if (distance > 300) {
+                    tooltip.style.display = 'none';
+                }
+            }
         });
 
         return tooltip;
