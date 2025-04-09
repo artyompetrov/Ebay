@@ -379,7 +379,7 @@ class SearchSitesProcessor implements ISiteProcessor {
         }
     }
     
-    highlightWords() {
+    async highlightWords() {
         console.log("highlightWords");
         
         const body = document.body;
@@ -388,21 +388,29 @@ class SearchSitesProcessor implements ISiteProcessor {
             return;
         }
 
-        const traverseNodes = (element: HTMLElement | null): void => {
+        let processedNodes = 0;
+        const traverseNodes = async (element: HTMLElement | null): Promise<void> => {
             if (!element) return;
+            
             let children = Array.from(element.childNodes);
             for (let i = 0; i < children.length; i++) {
                 const node = children[i];
+                
+                processedNodes++;
+                // Каждые 50 узлов отдаем управление основному потоку
+                if (processedNodes % 50 === 0) {
+                    await new Promise(resolve => setTimeout(resolve, 0));
+                }
+                
                 if (node.nodeType === Node.TEXT_NODE) {
                     this.highlightWord(node as Text);
-
                 } else if (node.nodeType === Node.ELEMENT_NODE) {
-                    traverseNodes(node as HTMLElement);
+                    await traverseNodes(node as HTMLElement);
                 }
             }
         };
 
-        traverseNodes(body);
+        await traverseNodes(body);
     }
     
 
@@ -486,8 +494,6 @@ class SearchSitesProcessor implements ISiteProcessor {
 
     // Обработка страницы поискового сайта
     async processSitePage(): Promise<void> {
-       
-        
         if (chipFindRegex.test(location.host)) {
             await this.processChipFind();
         } else if (avitoRegex.test(location.host)) {
@@ -497,7 +503,7 @@ class SearchSitesProcessor implements ISiteProcessor {
         }
 
         this._products = await this.getAllProductsCached(null, this._allItemsCacheIdentifier);
-        this.highlightWords();
+        await this.highlightWords();
     }
     
     onMouseEnterHighlight(event: MouseEvent): void {
