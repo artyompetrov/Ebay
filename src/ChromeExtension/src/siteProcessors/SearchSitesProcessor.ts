@@ -265,19 +265,31 @@ class SearchSitesProcessor implements ISiteProcessor {
         }
     }
 
-// Позиционирование tooltip с учетом границ экрана
-    positionTooltip(tooltip: HTMLElement, targetRect: DOMRect): void {
+    // Позиционирование tooltip с учетом границ экрана и положения курсора
+    positionTooltip(tooltip: HTMLElement, targetRect: DOMRect, event: MouseEvent): void {
         const tooltipWidth = 300; // максимальная ширина tooltip
+        const padding = 10; // отступ от курсора
 
-        // Проверяем, поместится ли tooltip справа от элемента
-        if (targetRect.right + tooltipWidth + 10 <= window.innerWidth) {
-            tooltip.style.left = `${targetRect.right + 10}px`;
+        // Получаем координаты курсора
+        const mouseX = event.clientX;
+        const mouseY = event.clientY;
+
+        // Проверяем, поместится ли tooltip справа от курсора
+        if (mouseX + tooltipWidth + padding <= window.innerWidth) {
+            tooltip.style.left = `${mouseX + padding}px`;
         } else {
-            // Если не помещается справа, размещаем слева
-            tooltip.style.left = `${Math.max(0, targetRect.left - tooltipWidth - 10)}px`;
+            // Если не помещается справа, размещаем слева от курсора
+            tooltip.style.left = `${Math.max(0, mouseX - tooltipWidth - padding)}px`;
         }
 
-        tooltip.style.top = `${targetRect.top + window.scrollY}px`;
+        // Проверяем, поместится ли tooltip снизу от курсора
+        const tooltipHeight = tooltip.offsetHeight || 200; // Используем примерную высоту, если элемент еще не отрендерен
+        if (mouseY + tooltipHeight + padding <= window.innerHeight) {
+            tooltip.style.top = `${mouseY + window.scrollY + padding}px`;
+        } else {
+            // Если не помещается снизу, размещаем сверху от курсора
+            tooltip.style.top = `${Math.max(0, mouseY + window.scrollY - tooltipHeight - padding)}px`;
+        }
     }
 
     // Добавляет обработчики к tooltip
@@ -518,7 +530,7 @@ class SearchSitesProcessor implements ISiteProcessor {
         }
     }
 
-    private showTooltip(ids: string[], event): void {
+    private showTooltip(ids: string[], event: MouseEvent): void {
         // Создаем новое всплывающее окно
         const tooltip = this.createTooltip();
         
@@ -549,9 +561,9 @@ class SearchSitesProcessor implements ISiteProcessor {
         contentContainer.innerHTML = tooltipContent;
         tooltip.insertBefore(contentContainer, closeButton.nextSibling);
         
-        // Позиционируем всплывающее окно относительно элемента, вызвавшего событие
+        // Позиционируем всплывающее окно относительно курсора
         const targetElement = event.currentTarget as HTMLElement;
-        this.positionTooltip(tooltip, targetElement.getBoundingClientRect());
+        this.positionTooltip(tooltip, targetElement.getBoundingClientRect(), event);
         
         // Показываем всплывающее окно
         tooltip.style.display = 'block';
