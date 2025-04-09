@@ -9,15 +9,15 @@ import {ProductWithId} from "../clients/EbayToolBackendClient";
 
 const chipFindRegex: RegExp = /(?:^|\.)chipfind\.ru$/i
 const avitoRegex: RegExp = /(?:^|\.)avito\.ru$/i
-const meshokfindRegex: RegExp = /(?:^|\.)meshok\.net$/i
-const searchOnSites: RegExp[] = [
-    avitoRegex,
-    chipFindRegex,
-    meshokfindRegex
+
+
+const excludeSites: RegExp[] = [
+    /(?:^|\.)ebay\..*$/i,
+    /(?:^|\.)tubessale\.ddns\.net$/i,
 ]
 
 export function tryGetSearchSitesProcessor() : ISiteProcessor | null {
-    if (utils.matchesAnyRegex(searchOnSites, location.host)) {
+    if (!utils.matchesAnyRegex(excludeSites, location.host)) {
 
         return new SearchSitesProcessor();
     }
