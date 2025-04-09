@@ -406,6 +406,11 @@ class SearchSitesProcessor implements ISiteProcessor {
         const traverseNodes = async (element: HTMLElement | null): Promise<void> => {
             if (!element) return;
             
+            // Пропускаем элемент, если он уже был обработан
+            if (element.hasAttribute(this._foundProductIdsAttribute)) {
+                return;
+            }
+            
             let children = Array.from(element.childNodes);
             for (let i = 0; i < children.length; i++) {
                 const node = children[i];
@@ -580,12 +585,17 @@ class SearchSitesProcessor implements ISiteProcessor {
 
         this._targetCurrencyRate = await this.getTargetCurrencyCached();
         
-        // Обрабатываем страницу
-        if (document.readyState === "loading") {
-            document.addEventListener("DOMContentLoaded", () => this.processSitePage());
-        } else {
-            await this.processSitePage();
-        }
+        // Запускаем периодический анализ страницы
+        const startBackgroundProcessing = async () => {
+            while (true) {
+                await this.processSitePage();
+                // Ждем 2 секунды перед следующей итерацией
+                await utils.sleep(2000);
+            }
+        };
+
+        // Запускаем обработку независимо от состояния загрузки документа
+        startBackgroundProcessing();
 
         // Слушаем сообщения от background скрипта
         // noinspection JSUnusedLocalSymbols
