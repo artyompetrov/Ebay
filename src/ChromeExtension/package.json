@@ -1,6 +1,6 @@
 {
     "dependencies": {
-        "@badgateway/oauth2-client": "^2.4.2",
+        "@badgateway/oauth2-client": "^3.2.0",
         "@types/chrome": "^0.0.307",
         "jsonpath": "^1.1.1",
         "uuid": "^11.1.0"
