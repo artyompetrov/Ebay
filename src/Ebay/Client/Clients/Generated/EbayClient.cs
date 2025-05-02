@@ -1177,24 +1177,23 @@ namespace Client.Clients.Generated
             }
         }
 
-        /// <param name="measurementId">measurementId</param>
-        /// <param name="file">The ZIP file to upload</param>
         /// <returns>Ok</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task UploadMeasurementAsync(string measurementId, FileParameter file, System.Guid productId)
+        public virtual System.Threading.Tasks.Task UploadMeasurementAsync(File file, System.Guid productId)
         {
-            return UploadMeasurementAsync(measurementId, file, productId, System.Threading.CancellationToken.None);
+            return UploadMeasurementAsync(file, productId, System.Threading.CancellationToken.None);
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
-        /// <param name="measurementId">measurementId</param>
-        /// <param name="file">The ZIP file to upload</param>
         /// <returns>Ok</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task UploadMeasurementAsync(string measurementId, FileParameter file, System.Guid productId, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task UploadMeasurementAsync(File file, System.Guid productId, System.Threading.CancellationToken cancellationToken)
         {
             if (productId == null)
                 throw new System.ArgumentNullException("productId");
+
+            if (file == null)
+                throw new System.ArgumentNullException("file");
 
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -1202,27 +1201,9 @@ namespace Client.Clients.Generated
             {
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
                 {
-                    var boundary_ = System.Guid.NewGuid().ToString();
-                    var content_ = new System.Net.Http.MultipartFormDataContent(boundary_);
-                    content_.Headers.Remove("Content-Type");
-                    content_.Headers.TryAddWithoutValidation("Content-Type", "multipart/form-data; boundary=" + boundary_);
-
-                    if (measurementId == null)
-                        throw new System.ArgumentNullException("measurementId");
-                    else
-                    {
-                        content_.Add(new System.Net.Http.StringContent(ConvertToString(measurementId, System.Globalization.CultureInfo.InvariantCulture)), "measurementId");
-                    }
-
-                    if (file == null)
-                        throw new System.ArgumentNullException("file");
-                    else
-                    {
-                        var content_file_ = new System.Net.Http.StreamContent(file.Data);
-                        if (!string.IsNullOrEmpty(file.ContentType))
-                            content_file_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse(file.ContentType);
-                        content_.Add(content_file_, "file", file.FileName ?? "file");
-                    }
+                    var json_ = Newtonsoft.Json.JsonConvert.SerializeObject(file, JsonSerializerSettings);
+                    var content_ = new System.Net.Http.StringContent(json_);
+                    content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
                     request_.Content = content_;
                     request_.Method = new System.Net.Http.HttpMethod("POST");
 
@@ -1263,12 +1244,12 @@ namespace Client.Clients.Generated
                         else
                         if (status_ == 400)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<InvalidMeasurement>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<ValidationProblemDetailedInfo>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<InvalidMeasurement>("InvalidMeasurement", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<ValidationProblemDetailedInfo>("InvalidMeasurement", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         {
@@ -2834,10 +2815,16 @@ namespace Client.Clients.Generated
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class InvalidMeasurement : ProblemDetailedInfo
+    public partial class File
     {
-        [Newtonsoft.Json.JsonProperty("errors", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public Errors3 Errors { get; set; }
+        [Newtonsoft.Json.JsonProperty("measurementId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [System.ComponentModel.DataAnnotations.StringLength(100)]
+        public string MeasurementId { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("file", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public byte[] File1 { get; set; }
 
     }
 
@@ -2858,21 +2845,6 @@ namespace Client.Clients.Generated
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class Errors2
-    {
-
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
-
-        [Newtonsoft.Json.JsonExtensionData]
-        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
-        {
-            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
-            set { _additionalProperties = value; }
-        }
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class Errors3
     {
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;

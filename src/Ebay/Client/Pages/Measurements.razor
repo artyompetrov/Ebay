@@ -1,6 +1,8 @@
 ﻿@page "/Measurements/{ProductId:guid}"
+@using System.Text.Json
 @using Client.Clients.Generated
 @using Microsoft.AspNetCore.Authorization
+@using Newtonsoft.Json
 @attribute [Authorize]
 @inject EbayClient EbayClient
 @inject ILogger<Measurements> Logger
@@ -19,11 +21,17 @@
     <p style="color:red">@_error</p>
 }
 
+@if (_message != null)
+{
+    <p style="color:green">@_message</p>
+}
+
 <div id="reader" style="width: 500px;"></div>
 
 @code {
     private ProductWithId? _product;
     private string? _error;
+    private string? _message;
 
     [Parameter]
     public Guid ProductId { get; set; }
@@ -39,31 +47,50 @@
     {
         if (_product == null) throw new NullReferenceException(nameof(_product));
 
-        var file = e.File;
-
-        if (!file.Name.EndsWith(value: ".zip", comparisonType: StringComparison.OrdinalIgnoreCase))
+        try
         {
-            _error = "Разрешены только zip файлы";
+            _message = null;
+            _error = null;
 
-            return;
+            var file = e.File;
+
+            if (!file.Name.EndsWith(value: ".zip", comparisonType: StringComparison.OrdinalIgnoreCase))
+            {
+                _error = "Разрешены только zip файлы";
+
+                return;
+            }
+
+            if (file.ContentType != "application/zip" && file.ContentType != "application/x-zip-compressed")
+            {
+                _error = $"Невалидный MIME type: {file.ContentType}";
+
+                return;
+            }
+
+            var qrCodeData = await Interop.StartQrScanner();
+
+            var id = qrCodeData.Split('/').Last();
+
+            await using var stream = file.OpenReadStream();
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+
+            await EbayClient.UploadMeasurementAsync(
+                file: new File { File1 = ms.ToArray(), MeasurementId = id },
+                productId: _product.Id,
+                cancellationToken: CancellationToken.None);
+
+            _message = $"Успешно загружен {id}";
         }
-
-        if (file.ContentType != "application/zip" && file.ContentType != "application/x-zip-compressed")
+        catch (ApiException<ValidationProblemDetailedInfo> ex)
         {
-            _error = $"Невалидный MIME type: {file.ContentType}";
-
-            return;
+            _error = JsonConvert.SerializeObject(value: ex.Result);
         }
-
-        var qrCodeData = await Interop.StartQrScanner();
-
-        await using var stream = file.OpenReadStream();
-
-        await EbayClient.UploadMeasurementAsync(
-            productId: _product.Id,
-            measurementId: "",
-            file: new FileParameter(data: stream, fileName: "measurement.zip", contentType: "application/zip"),
-            cancellationToken: CancellationToken.None);
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
     }
 
 }

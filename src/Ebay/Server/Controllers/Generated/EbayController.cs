@@ -114,14 +114,10 @@ namespace Server.Controllers.Generated
         System.Threading.Tasks.Task CalculatePricesForProductAsync(System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
 
-        /// <param name="measurementId">measurementId</param>
-
-        /// <param name="file">The ZIP file to upload</param>
-
 
         /// <returns>Ok</returns>
 
-        System.Threading.Tasks.Task UploadMeasurementAsync(string measurementId, FileParameter file, System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+        System.Threading.Tasks.Task UploadMeasurementAsync(File file, System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
         /// <summary>
         /// Получить информацию о лоте
@@ -324,14 +320,12 @@ namespace Server.Controllers.Generated
             return _implementation.CalculatePricesForProductAsync(productId, cancellationToken);
         }
 
-        /// <param name="measurementId">measurementId</param>
-        /// <param name="file">The ZIP file to upload</param>
         /// <returns>Ok</returns>
         [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("products/{productId}/measurements/")]
-        public System.Threading.Tasks.Task UploadMeasurement(string measurementId, FileParameter file, System.Guid productId, System.Threading.CancellationToken cancellationToken)
+        public System.Threading.Tasks.Task UploadMeasurement([Microsoft.AspNetCore.Mvc.FromBody] File file, System.Guid productId, System.Threading.CancellationToken cancellationToken)
         {
 
-            return _implementation.UploadMeasurementAsync(measurementId, file, productId, cancellationToken);
+            return _implementation.UploadMeasurementAsync(file, productId, cancellationToken);
         }
 
         /// <summary>
@@ -1410,20 +1404,26 @@ namespace Server.Controllers.Generated
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class InvalidMeasurement : ProblemDetailedInfo
+    public partial class File
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public InvalidMeasurement(string? @detail, Errors3? @errors, string? @instance, int? @status, string? @title, string? @type)
-
-            : base(detail, instance, status, title, type)
+        public File(byte[] @file, string @measurementId)
 
         {
 
-            this.Errors = @errors;
+            this.MeasurementId = @measurementId;
 
-        }    [Newtonsoft.Json.JsonProperty("errors", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public Errors3? Errors { get; }
+            this.File1 = @file;
+
+        }    [Newtonsoft.Json.JsonProperty("measurementId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [System.ComponentModel.DataAnnotations.StringLength(100)]
+        public string MeasurementId { get; }
+
+        [Newtonsoft.Json.JsonProperty("file", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public byte[] File1 { get; }
 
     }
 
@@ -1455,28 +1455,6 @@ namespace Server.Controllers.Generated
         [Newtonsoft.Json.JsonConstructor]
 
         public Errors2()
-
-        {
-
-        }
-
-        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
-
-        [Newtonsoft.Json.JsonExtensionData]
-        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
-        {
-            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
-            set { _additionalProperties = value; }
-        }
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class Errors3
-    {
-        [Newtonsoft.Json.JsonConstructor]
-
-        public Errors3()
 
         {
 

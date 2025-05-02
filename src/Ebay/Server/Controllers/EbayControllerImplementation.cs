@@ -1,3 +1,6 @@
+using System.Collections.Concurrent;
+using System.IO.Compression;
+using System.Text.RegularExpressions;
 using System.Transactions;
 using MassTransit;
 using Server.Controllers.Generated;
@@ -10,6 +13,7 @@ using Server.Consumers;
 using ClientErrorInfo = Server.Controllers.Generated.ClientErrorInfo;
 using Currency = Server.Controllers.Generated.Currency;
 using DbProduct = Server.Data.Models.Product;
+using File = Server.Controllers.Generated.File;
 using LotInfo = Server.Controllers.Generated.LotInfo;
 using LotInfoShort = Server.Controllers.Generated.LotInfoShort;
 using LotInfoWithProductId = Server.Controllers.Generated.LotInfoWithProductId;
@@ -24,18 +28,15 @@ internal class EbayControllerImplementation : IEbayController
     private readonly ApplicationDbContext _applicationContext;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly ShippingRatesService _shippingRatesService;
-    private readonly MeasurementsService _measurementsService;
 
     public EbayControllerImplementation(
         ApplicationDbContext applicationContext,
         IPublishEndpoint publishEndpoint,
-        ShippingRatesService shippingRatesService,
-        MeasurementsService measurementsService)
+        ShippingRatesService shippingRatesService)
     {
         _applicationContext = applicationContext;
         _publishEndpoint = publishEndpoint;
         _shippingRatesService = shippingRatesService;
-        _measurementsService = measurementsService;
     }
 
     public async Task<ICollection<ProductWithId>> GetAllProductsAsync(CancellationToken cancellationToken)
@@ -181,22 +182,22 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken
     )
     {
-        var validationErrors = new Dictionary<string, string[]>();
+        var validationErrors = new List<(string key, string[] value)>();
         if (lotInfo.ShippingAdditional == null)
         {
-            validationErrors.Add(key: nameof(lotInfo.ShippingAdditional), value: new[] { "Not set" });
+            validationErrors.Add((key: nameof(lotInfo.ShippingAdditional), value: new[] { "Not set" }));
         }
 
         if (lotInfo.Shipping == null)
         {
-            validationErrors.Add(key: nameof(lotInfo.Shipping), value: new[] { "Not set" });
+            validationErrors.Add((key: nameof(lotInfo.Shipping), value: new[] { "Not set" }));
         }
 
         if (!new HashSet<string> { WellKnown.Categories.Conditions.CategoryName, WellKnown.Categories.TestState.CategoryName }.SequenceEqual(
                 lotInfo.Categories.Select(x => x.Type)
             ))
         {
-            validationErrors.Add(key: nameof(lotInfo.Categories), value: new[] { "Not all categories set" });
+            validationErrors.Add((key: nameof(lotInfo.Categories), value: new[] { "Not all categories set" }));
         }
 
         if (validationErrors.Count > 0)
@@ -282,20 +283,69 @@ internal class EbayControllerImplementation : IEbayController
         await _publishEndpoint.Publish(new CalculatePricesForProduct(productId), cancellationToken);
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
-    
-    public async Task UploadMeasurementAsync(
-        string measurementId,
-        FileParameter file,
-        Guid productId,
-        CancellationToken cancellationToken)
-    {
-        await _measurementsService.SaveMeasurement(
-            productId: productId,
-            measurementId: measurementId,
-            file: file.Data,
-            cancellationToken: cancellationToken);
-    }
 
+    public async Task UploadMeasurementAsync(
+        File file,
+        Guid productId,
+        CancellationToken cancellationToken )
+    {
+        var errors = new List<(string key, string[] value)>();
+        
+        if (!Regex.IsMatch(file.MeasurementId, "^[A-Z0-9]+$"))
+        {
+            errors.Add((nameof(file), ["Invalid measurementId"]));
+        }
+        
+        using var inputMemoryStream = new MemoryStream(file.File1);
+        using var archive = new ZipArchive(inputMemoryStream, ZipArchiveMode.Read, leaveOpen: true);
+
+
+        var fileCount = 0;
+        foreach (var entry in archive.Entries)
+        {
+            var fileName = entry.FullName;
+
+            if (string.IsNullOrEmpty(entry.Name))
+            {
+                errors.Add((nameof(file), [$"No folders allowed, but found {fileName}"]));
+            }
+            else
+            {
+                fileCount++;
+                
+                if (!entry.Name.Equals("anode_curves.utd", StringComparison.Ordinal) &&
+                    !entry.Name.Equals("quick_test.txt", StringComparison.Ordinal))
+                {
+                    errors.Add((nameof(file), [$"unsupported filename {fileName}"]));
+                }
+            }
+        }
+
+        if (fileCount != 2)
+        {
+            errors.Add((nameof(file), ["exactly two files expected"]));
+        }
+        
+
+        if (errors.Count > 0)
+        {
+            throw NonOkHttpAnswerException.ValidationError400(errors);
+        }
+        
+        await _applicationContext.ProductMeasurements.Upsert(
+                new ProductMeasurement
+                {
+                    Id = file.MeasurementId,
+                    ProductId = productId,
+                    State = MeasurementState.Created,
+                    Measurements = inputMemoryStream.ToArray()
+                })
+            .RunAsync(cancellationToken);
+
+        await _applicationContext.SaveChangesAsync(cancellationToken);
+        
+    }
+    
     public async Task<LotInfoWithProductId> GetLotInfoAsync(
         long lotId,
         CancellationToken cancellationToken

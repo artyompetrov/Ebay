@@ -223,25 +223,28 @@ paths:
     post:
       operationId: UploadMeasurement
       parameters:
-        - name: measurementId
-          in: formData
-          description: measurementId
-          required: true
-          type: string
         - name: file
-          in: formData
-          description: The ZIP file to upload
+          in: body
           required: true
-          type: file
-      consumes:
-        - multipart/form-data
+          schema:
+            type: object
+            properties:
+              measurementId:
+                type: string
+                maxLength: 100
+              file:
+                type: string
+                format: binary
+            required: 
+              - measurementId
+              - file
       responses:
         200:
           description: Ok
         400:
           description: 'InvalidMeasurement'
           schema:
-            $ref: '#/definitions/InvalidMeasurement'
+            $ref: '#/definitions/ValidationProblemDetailedInfo'
   
   /lots/{lotId}/:
     parameters:
@@ -962,10 +965,4 @@ definitions:
     properties:
       errors:
         additionalProperties: { }
-        
-  InvalidMeasurement:
-    allOf:
-      - $ref: '#/definitions/ProblemDetailedInfo'
-    properties:
-      errors:
-        additionalProperties: { }
+      

@@ -12,14 +12,23 @@ internal class NonOkHttpAnswerException : Exception
         ProblemDetails = problemDetails;
     }
 
-    public static NonOkHttpAnswerException ValidationError400(IDictionary<string, string[]> errors) => new(
+    public static NonOkHttpAnswerException ValidationError400(List<(string, string[])> errors) => new(
         new ValidationProblemDetailedInfo(
             detail: null,
             instance: null,
             status: 400,
             title: null,
             type: nameof(ValidationProblemDetailedInfo),
-            errors: new Errors2 { AdditionalProperties = errors.ToDictionary(x => x.Key, x => (object)x.Value) }));
+            errors: new Errors2
+            {
+                AdditionalProperties = errors
+                    .SelectMany(pair => pair.Item2.Select(msg => (pair.Item1, msg)))
+                    .GroupBy(x => x.Item1)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => (object)g.Select(x => x.msg).ToArray()
+                    )
+            }));
 
 
     public static NonOkHttpAnswerException NotFound400() => new(

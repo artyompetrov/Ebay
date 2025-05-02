@@ -580,31 +580,22 @@ export class EbayToolBackendClient {
     }
 
     /**
-     * @param measurementId measurementId
-     * @param file The ZIP file to upload
      * @return Ok
      */
-    uploadMeasurement(measurementId: string, file: FileParameter, productId: string): Promise<void> {
+    uploadMeasurement(file: File, productId: string): Promise<void> {
         let url_ = this.baseUrl + "/products/{productId}/measurements/";
         if (productId === undefined || productId === null)
             throw new Error("The parameter 'productId' must be defined.");
         url_ = url_.replace("{productId}", encodeURIComponent("" + productId));
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = new FormData();
-        if (measurementId === null || measurementId === undefined)
-            throw new Error("The parameter 'measurementId' cannot be null.");
-        else
-            content_.append("measurementId", measurementId.toString());
-        if (file === null || file === undefined)
-            throw new Error("The parameter 'file' cannot be null.");
-        else
-            content_.append("file", file.data, file.fileName ? file.fileName : "file");
+        const content_ = JSON.stringify(file);
 
         let options_: RequestInit = {
             body: content_,
             method: "POST",
             headers: {
+                "Content-Type": "application/json",
             }
         };
 
@@ -624,7 +615,7 @@ export class EbayToolBackendClient {
             return response.text().then((_responseText) => {
             let result400: any = null;
             let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result400 = InvalidMeasurement.fromJS(resultData400);
+            result400 = ValidationProblemDetailedInfo.fromJS(resultData400);
             return throwException("InvalidMeasurement", status, _responseText, _headers, result400);
             });
         } else if (status !== 200 && status !== 204) {
@@ -2588,37 +2579,44 @@ export interface IValidationProblemDetailedInfo extends IProblemDetailedInfo {
     errors?: errors | undefined;
 }
 
-export class InvalidMeasurement extends ProblemDetailedInfo implements IInvalidMeasurement {
-    errors?: errors2 | undefined;
+export class File implements IFile {
+    measurementId!: string;
+    file!: string;
 
-    constructor(data?: IInvalidMeasurement) {
-        super(data);
-    }
-
-    init(_data?: any) {
-        super.init(_data);
-        if (_data) {
-            this.errors = _data["errors"];
+    constructor(data?: IFile) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
         }
     }
 
-    static fromJS(data: any): InvalidMeasurement {
+    init(_data?: any) {
+        if (_data) {
+            this.measurementId = _data["measurementId"];
+            this.file = _data["file"];
+        }
+    }
+
+    static fromJS(data: any): File {
         data = typeof data === 'object' ? data : {};
-        let result = new InvalidMeasurement();
+        let result = new File();
         result.init(data);
         return result;
     }
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["errors"] = this.errors;
-        super.toJSON(data);
+        data["measurementId"] = this.measurementId;
+        data["file"] = this.file;
         return data;
     }
 }
 
-export interface IInvalidMeasurement extends IProblemDetailedInfo {
-    errors?: errors2 | undefined;
+export interface IFile {
+    measurementId: string;
+    file: string;
 }
 
 export class Errors implements IErrors {
@@ -2705,50 +2703,6 @@ export class errors implements Ierrors {
 }
 
 export interface Ierrors {
-
-    [key: string]: any;
-}
-
-export class errors2 implements Ierrors2 {
-
-    [key: string]: any;
-
-    constructor(data?: Ierrors2) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-        }
-    }
-
-    static fromJS(data: any): errors2 {
-        data = typeof data === 'object' ? data : {};
-        let result = new errors2();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        return data;
-    }
-}
-
-export interface Ierrors2 {
 
     [key: string]: any;
 }
