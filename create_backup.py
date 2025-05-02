@@ -13,7 +13,7 @@ import re
 # Конфигурационные переменные
 from_host = "tubessale.ddns.net"
 to_host = "localhost"
-backup_path_folder = r"D:\YandexDisk\Backups\Ebay"
+backup_path_folder = r"C:\Users\APETROV\files\yandex.disk\YandexDisk\Backups\Ebay"
 
 pg_password = "catnip0-spoil4-untrimmed"
 
