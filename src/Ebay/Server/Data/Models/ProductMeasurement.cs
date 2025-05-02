@@ -11,5 +11,7 @@ internal class ProductMeasurement
     public Guid ProductId { get; set; }
     public Product Product { get; set; } = null!;
     
+    public MeasurementState State { get; set; }
+    
     public byte[] Measurements { get; set; } = null!;
 }

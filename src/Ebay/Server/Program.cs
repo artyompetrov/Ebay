@@ -33,8 +33,8 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddNpgsqlDataSource(connectionString);
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql());
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-builder.Services.AddSingleton<MeasurementsService>();
 builder.Services.AddSingleton<ShippingRatesService>();
+builder.Services.AddScoped<MeasurementsService>();
 builder.Services.AddScoped<IEbayController, EbayControllerImplementation>();
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();

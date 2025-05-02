@@ -29,10 +29,13 @@ internal class MeasurementsService
         await _applicationContext.ProductMeasurements.Upsert(
                 new ProductMeasurement
                 {
-                    Id = measurementId, ProductId = productId, Measurements = inputMemoryStream.ToArray()
+                    Id = measurementId,
+                    ProductId = productId,
+                    State = MeasurementState.Created,
+                    Measurements = inputMemoryStream.ToArray()
                 })
             .RunAsync(cancellationToken);
-        
+
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 }
