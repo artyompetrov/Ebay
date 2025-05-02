@@ -39,6 +39,12 @@ internal class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
                 v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
                 v => JsonSerializer.Deserialize<PurchaseCalculationResult?>(v, (JsonSerializerOptions?)null)
             ));
+        
+        modelBuilder.Entity<ProductMeasurement>(entity =>
+        {
+            entity.HasIndex(e => e.HashAnodeCurves).IsUnique();
+            entity.HasIndex(e => e.HashQuickTest).IsUnique();
+        });
     }
     
     public ApplicationDbContext(

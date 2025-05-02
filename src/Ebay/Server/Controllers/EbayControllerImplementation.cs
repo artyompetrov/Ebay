@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.IO.Compression;
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Transactions;
 using MassTransit;
@@ -301,23 +302,31 @@ internal class EbayControllerImplementation : IEbayController
 
 
         var fileCount = 0;
+        string? hashAnodeCurves = null;
+        string? hashQuickTest = null;
         foreach (var entry in archive.Entries)
         {
-            var fileName = entry.FullName;
+            var fileName = entry.Name;
 
-            if (string.IsNullOrEmpty(entry.Name))
+            if (string.IsNullOrEmpty(fileName))
             {
-                errors.Add((nameof(file), [$"No folders allowed, but found {fileName}"]));
+                errors.Add((nameof(file), [$"No folders allowed, but found {entry.FullName}"]));
+                continue;
+            }
+
+            fileCount++;
+
+            if (fileName.Equals("anode_curves.utd", StringComparison.Ordinal))
+            {
+                hashAnodeCurves = await ComputeEntryHashAsync(entry, cancellationToken);
+            }
+            else if (fileName.Equals("quick_test.txt", StringComparison.Ordinal))
+            {
+                hashQuickTest = await ComputeEntryHashAsync(entry, cancellationToken);
             }
             else
             {
-                fileCount++;
-                
-                if (!entry.Name.Equals("anode_curves.utd", StringComparison.Ordinal) &&
-                    !entry.Name.Equals("quick_test.txt", StringComparison.Ordinal))
-                {
-                    errors.Add((nameof(file), [$"unsupported filename {fileName}"]));
-                }
+                errors.Add((nameof(file), [$"unsupported filename {entry.FullName}"]));
             }
         }
 
@@ -338,7 +347,9 @@ internal class EbayControllerImplementation : IEbayController
                     Id = file.MeasurementId,
                     ProductId = productId,
                     State = MeasurementState.Created,
-                    Measurements = inputMemoryStream.ToArray()
+                    Measurements = inputMemoryStream.ToArray(),
+                    HashAnodeCurves = hashAnodeCurves ?? throw new NullReferenceException(nameof(hashAnodeCurves)),
+                    HashQuickTest = hashQuickTest ?? throw new NullReferenceException(nameof(hashQuickTest))
                 })
             .RunAsync(cancellationToken);
 
@@ -346,6 +357,14 @@ internal class EbayControllerImplementation : IEbayController
         
     }
     
+    private async static Task<string> ComputeEntryHashAsync(ZipArchiveEntry entry, CancellationToken cancellationToken)
+    {
+        await using var entryStream = entry.Open();
+        using var memory = new MemoryStream();
+        await entryStream.CopyToAsync(memory, cancellationToken);
+        var hashBytes = SHA256.HashData(memory.ToArray());
+        return Convert.ToHexString(hashBytes);
+    }
     public async Task<LotInfoWithProductId> GetLotInfoAsync(
         long lotId,
         CancellationToken cancellationToken

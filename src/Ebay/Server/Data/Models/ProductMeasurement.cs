@@ -9,10 +9,17 @@ internal class ProductMeasurement
     [MaxLength(100)]
     public required string Id { get; set; } = null!;
     
-    public Guid ProductId { get; set; }
+    public required Guid ProductId { get; set; }
     public Product Product { get; set; } = null!;
     
-    public MeasurementState State { get; set; }
+    public required MeasurementState State { get; set; }
     
-    public byte[] Measurements { get; set; } = null!;
+    public required byte[] Measurements { get; set; } = null!;
+    
+    
+    [MaxLength(128)]
+    public required string HashAnodeCurves { get; set; } = null!;
+
+    [MaxLength(128)]
+    public required string HashQuickTest { get; set; } = null!;
 }
