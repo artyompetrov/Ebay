@@ -6,7 +6,8 @@ namespace Server.Data.Models;
 internal class ProductMeasurement
 {
     [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
-    public Guid Id { get; set; }
+    [MaxLength(100)]
+    public required string Id { get; set; } = null!;
     
     public Guid ProductId { get; set; }
     public Product Product { get; set; } = null!;

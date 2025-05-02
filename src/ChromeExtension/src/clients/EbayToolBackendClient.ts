@@ -584,7 +584,7 @@ export class EbayToolBackendClient {
      * @param file The ZIP file to upload
      * @return Ok
      */
-    uploadMeasurement(productId: string, measurementId: string, file: FileParameter): Promise<void> {
+    uploadMeasurement(measurementId: string, file: FileParameter, productId: string): Promise<void> {
         let url_ = this.baseUrl + "/products/{productId}/measurements/";
         if (productId === undefined || productId === null)
             throw new Error("The parameter 'productId' must be defined.");

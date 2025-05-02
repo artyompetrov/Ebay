@@ -1181,9 +1181,9 @@ namespace Client.Clients.Generated
         /// <param name="file">The ZIP file to upload</param>
         /// <returns>Ok</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task UploadMeasurementAsync(System.Guid productId, System.Guid measurementId, FileParameter file)
+        public virtual System.Threading.Tasks.Task UploadMeasurementAsync(string measurementId, FileParameter file, System.Guid productId)
         {
-            return UploadMeasurementAsync(productId, measurementId, file, System.Threading.CancellationToken.None);
+            return UploadMeasurementAsync(measurementId, file, productId, System.Threading.CancellationToken.None);
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
@@ -1191,7 +1191,7 @@ namespace Client.Clients.Generated
         /// <param name="file">The ZIP file to upload</param>
         /// <returns>Ok</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task UploadMeasurementAsync(System.Guid productId, System.Guid measurementId, FileParameter file, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task UploadMeasurementAsync(string measurementId, FileParameter file, System.Guid productId, System.Threading.CancellationToken cancellationToken)
         {
             if (productId == null)
                 throw new System.ArgumentNullException("productId");

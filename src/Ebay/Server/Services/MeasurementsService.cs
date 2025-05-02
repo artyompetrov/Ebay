@@ -16,7 +16,7 @@ internal class MeasurementsService
 
     public async Task SaveMeasurement(
         Guid productId,
-        Guid measurementId,
+        string measurementId,
         Stream file,
         CancellationToken cancellationToken)
     {

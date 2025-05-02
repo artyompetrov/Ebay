@@ -1,0 +1,69 @@
+﻿@page "/Measurements/{ProductId:guid}"
+@using Client.Clients.Generated
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inject EbayClient EbayClient
+@inject ILogger<Measurements> Logger
+
+<h3>Добавить измерение для @_product?.Name</h3>
+<script src="https://unpkg.com/html5-qrcode"></script>
+<style>
+    #reader video {
+        transform: scaleX(-1); /* зеркалирование по горизонтали */
+    }
+</style>
+<InputFile OnChange="HandleFileSelected" accept=".zip" />
+
+@if (_error != null)
+{
+    <p style="color:red">@_error</p>
+}
+
+<div id="reader" style="width: 500px;"></div>
+
+@code {
+    private ProductWithId? _product;
+    private string? _error;
+
+    [Parameter]
+    public Guid ProductId { get; set; }
+    
+
+    protected async override Task OnInitializedAsync()
+    {
+        _product = await EbayClient.GetProductAsync(ProductId);
+        
+    }
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        if (_product == null) throw new NullReferenceException(nameof(_product));
+
+        var file = e.File;
+
+        if (!file.Name.EndsWith(value: ".zip", comparisonType: StringComparison.OrdinalIgnoreCase))
+        {
+            _error = "Разрешены только zip файлы";
+
+            return;
+        }
+
+        if (file.ContentType != "application/zip" && file.ContentType != "application/x-zip-compressed")
+        {
+            _error = $"Невалидный MIME type: {file.ContentType}";
+
+            return;
+        }
+
+        var qrCodeData = await Interop.StartQrScanner();
+
+        await using var stream = file.OpenReadStream();
+
+        await EbayClient.UploadMeasurementAsync(
+            productId: _product.Id,
+            measurementId: "",
+            file: new FileParameter(data: stream, fileName: "measurement.zip", contentType: "application/zip"),
+            cancellationToken: CancellationToken.None);
+    }
+
+}

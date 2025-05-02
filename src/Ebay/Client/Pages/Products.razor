@@ -34,6 +34,7 @@
     <tr>
         <th></th>
         <th @onclick="@(() => SortTable(nameof(ProductWithId.IsCheckRequired)))"><span class="sort-icon">@GetSortIcon(nameof(ProductWithId.IsCheckRequired))</span></th>
+        <th></th>
         <th @onclick="@(() => SortTable(nameof(ProductWithId.Name)))">
             Название 
             <button class="btn btn-primary btn-sm" @onclick:stopPropagation="true" @onclick="@(() => _productPopupComponent.ShowCreate())">Добавить</button>
@@ -71,8 +72,11 @@
             <td>
                 @if (product.IsCheckRequired)
                 {
-                <button class="btn btn-warning btn-sm oi oi-check" @onclick="@(e => MarkAsChecked(product))"></button>
+                    <button class="btn btn-warning btn-sm oi oi-check" @onclick="@(e => MarkAsChecked(product))"></button>
                 }
+            </td>
+            <td>
+                <NavLink class="btn btn-info btn-sm oi oi-pulse" href="@($"Measurements/{product.Id}")" target="_blank"></NavLink>
             </td>
             <td>
                 <NavLink href="@($"LotSales/{product.Id}")" target="_blank">@Helpers.HighlightMinorityLetters(product.Name, "red")</NavLink>

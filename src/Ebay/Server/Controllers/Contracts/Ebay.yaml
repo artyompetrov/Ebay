@@ -220,19 +220,21 @@ paths:
         required: true
         type: string
         format: guid
-      - name: measurementId
-        in: formData
-        description: measurementId
-        required: true
-        type: string
-        format: guid
-      - name: file
-        in: formData
-        description: The ZIP file to upload
-        required: true
-        type: file
     post:
       operationId: UploadMeasurement
+      parameters:
+        - name: measurementId
+          in: formData
+          description: measurementId
+          required: true
+          type: string
+        - name: file
+          in: formData
+          description: The ZIP file to upload
+          required: true
+          type: file
+      consumes:
+        - multipart/form-data
       responses:
         200:
           description: Ok

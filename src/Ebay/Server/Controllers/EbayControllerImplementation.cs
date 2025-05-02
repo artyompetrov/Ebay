@@ -282,11 +282,11 @@ internal class EbayControllerImplementation : IEbayController
         await _publishEndpoint.Publish(new CalculatePricesForProduct(productId), cancellationToken);
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
-
+    
     public async Task UploadMeasurementAsync(
-        Guid productId,
-        Guid measurementId,
+        string measurementId,
         FileParameter file,
+        Guid productId,
         CancellationToken cancellationToken)
     {
         await _measurementsService.SaveMeasurement(

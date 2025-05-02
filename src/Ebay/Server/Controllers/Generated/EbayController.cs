@@ -118,9 +118,10 @@ namespace Server.Controllers.Generated
 
         /// <param name="file">The ZIP file to upload</param>
 
+
         /// <returns>Ok</returns>
 
-        System.Threading.Tasks.Task UploadMeasurementAsync(System.Guid productId, System.Guid measurementId, FileParameter file, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+        System.Threading.Tasks.Task UploadMeasurementAsync(string measurementId, FileParameter file, System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
         /// <summary>
         /// Получить информацию о лоте
@@ -327,10 +328,10 @@ namespace Server.Controllers.Generated
         /// <param name="file">The ZIP file to upload</param>
         /// <returns>Ok</returns>
         [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("products/{productId}/measurements/")]
-        public System.Threading.Tasks.Task UploadMeasurement(System.Guid productId, System.Guid measurementId, FileParameter file, System.Threading.CancellationToken cancellationToken)
+        public System.Threading.Tasks.Task UploadMeasurement(string measurementId, FileParameter file, System.Guid productId, System.Threading.CancellationToken cancellationToken)
         {
 
-            return _implementation.UploadMeasurementAsync(productId, measurementId, file, cancellationToken);
+            return _implementation.UploadMeasurementAsync(measurementId, file, productId, cancellationToken);
         }
 
         /// <summary>
