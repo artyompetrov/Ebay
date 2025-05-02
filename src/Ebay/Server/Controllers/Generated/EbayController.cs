@@ -113,6 +113,15 @@ namespace Server.Controllers.Generated
 
         System.Threading.Tasks.Task CalculatePricesForProductAsync(System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
+
+        /// <param name="measurementId">measurementId</param>
+
+        /// <param name="file">The ZIP file to upload</param>
+
+        /// <returns>Ok</returns>
+
+        System.Threading.Tasks.Task UploadMeasurementAsync(System.Guid productId, System.Guid measurementId, FileParameter file, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+
         /// <summary>
         /// Получить информацию о лоте
         /// </summary>
@@ -312,6 +321,16 @@ namespace Server.Controllers.Generated
         {
 
             return _implementation.CalculatePricesForProductAsync(productId, cancellationToken);
+        }
+
+        /// <param name="measurementId">measurementId</param>
+        /// <param name="file">The ZIP file to upload</param>
+        /// <returns>Ok</returns>
+        [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("products/{productId}/measurements/")]
+        public System.Threading.Tasks.Task UploadMeasurement(System.Guid productId, System.Guid measurementId, FileParameter file, System.Threading.CancellationToken cancellationToken)
+        {
+
+            return _implementation.UploadMeasurementAsync(productId, measurementId, file, cancellationToken);
         }
 
         /// <summary>
@@ -1390,6 +1409,24 @@ namespace Server.Controllers.Generated
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class InvalidMeasurement : ProblemDetailedInfo
+    {
+        [Newtonsoft.Json.JsonConstructor]
+
+        public InvalidMeasurement(string? @detail, Errors3? @errors, string? @instance, int? @status, string? @title, string? @type)
+
+            : base(detail, instance, status, title, type)
+
+        {
+
+            this.Errors = @errors;
+
+        }    [Newtonsoft.Json.JsonProperty("errors", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public Errors3? Errors { get; }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class Errors
     {
         [Newtonsoft.Json.JsonConstructor]
@@ -1431,6 +1468,55 @@ namespace Server.Controllers.Generated
             set { _additionalProperties = value; }
         }
 
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class Errors3
+    {
+        [Newtonsoft.Json.JsonConstructor]
+
+        public Errors3()
+
+        {
+
+        }
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [Newtonsoft.Json.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NSwag", "14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class FileParameter
+    {
+        public FileParameter(System.IO.Stream data)
+            : this (data, null, null)
+        {
+        }
+
+        public FileParameter(System.IO.Stream data, string? fileName)
+            : this (data, fileName, null)
+        {
+        }
+
+        public FileParameter(System.IO.Stream data, string? fileName, string? contentType)
+        {
+            Data = data;
+            FileName = fileName;
+            ContentType = contentType;
+        }
+
+        public System.IO.Stream Data { get; private set; }
+
+        public string? FileName { get; private set; }
+
+        public string? ContentType { get; private set; }
     }
 
 

@@ -24,12 +24,18 @@ internal class EbayControllerImplementation : IEbayController
     private readonly ApplicationDbContext _applicationContext;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly ShippingRatesService _shippingRatesService;
+    private readonly MeasurementsService _measurementsService;
 
-    public EbayControllerImplementation(ApplicationDbContext applicationContext, IPublishEndpoint publishEndpoint, ShippingRatesService shippingRatesService)
+    public EbayControllerImplementation(
+        ApplicationDbContext applicationContext,
+        IPublishEndpoint publishEndpoint,
+        ShippingRatesService shippingRatesService,
+        MeasurementsService measurementsService)
     {
         _applicationContext = applicationContext;
         _publishEndpoint = publishEndpoint;
         _shippingRatesService = shippingRatesService;
+        _measurementsService = measurementsService;
     }
 
     public async Task<ICollection<ProductWithId>> GetAllProductsAsync(CancellationToken cancellationToken)
@@ -53,12 +59,7 @@ internal class EbayControllerImplementation : IEbayController
     {
         var newProductId = Guid.NewGuid();
 
-        using var transaction = new TransactionScope(
-            scopeOption: TransactionScopeOption.Required,
-            asyncFlowOption: TransactionScopeAsyncFlowOption.Enabled,
-            transactionOptions: new TransactionOptions
-            { IsolationLevel = IsolationLevel.ReadCommitted }
-        );
+        using var transaction = TransactionScopeFactory.Create();
         
         await _applicationContext.Products.AddAsync(
             entity: product.ToDbProduct(newProductId),
@@ -88,12 +89,7 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken
     )
     {
-        using var transaction = new TransactionScope(
-            scopeOption: TransactionScopeOption.Required,
-            asyncFlowOption: TransactionScopeAsyncFlowOption.Enabled,
-            transactionOptions: new TransactionOptions
-            { IsolationLevel = IsolationLevel.ReadCommitted }
-        );
+        using var transaction = TransactionScopeFactory.Create();
 
         var dbProduct = _applicationContext.Products.Attach(new DbProduct { Id = id });
         dbProduct.Entity.Name = product.Name;
@@ -210,12 +206,7 @@ internal class EbayControllerImplementation : IEbayController
 
         var dbLotInfo = lotInfo.ToDbLot(productId: productId, updateDate: DateTime.UtcNow);
 
-        using var transaction = new TransactionScope(
-            scopeOption: TransactionScopeOption.Required,
-            asyncFlowOption: TransactionScopeAsyncFlowOption.Enabled,
-            transactionOptions: new TransactionOptions
-            { IsolationLevel = IsolationLevel.ReadCommitted }
-        );
+        using var transaction = TransactionScopeFactory.Create();
 
         await _applicationContext.Lots.Upsert(dbLotInfo).RunAsync(cancellationToken);
 
@@ -258,12 +249,7 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken
     )
     {
-        using var transaction = new TransactionScope(
-            scopeOption: TransactionScopeOption.Required,
-            asyncFlowOption: TransactionScopeAsyncFlowOption.Enabled,
-            transactionOptions: new TransactionOptions
-            { IsolationLevel = IsolationLevel.Serializable }
-        );
+        using var transaction = TransactionScopeFactory.Create();
 
         var lotIds = ignoredLots.ToList();
 
@@ -297,6 +283,19 @@ internal class EbayControllerImplementation : IEbayController
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task UploadMeasurementAsync(
+        Guid productId,
+        Guid measurementId,
+        FileParameter file,
+        CancellationToken cancellationToken)
+    {
+        await _measurementsService.SaveMeasurement(
+            productId: productId,
+            measurementId: measurementId,
+            file: file.Data,
+            cancellationToken: cancellationToken);
+    }
+
     public async Task<LotInfoWithProductId> GetLotInfoAsync(
         long lotId,
         CancellationToken cancellationToken
@@ -320,11 +319,7 @@ internal class EbayControllerImplementation : IEbayController
 
     public async Task DeleteLotInfoAsync(long lotId, CancellationToken cancellationToken)
     {
-        using var transaction = new TransactionScope(
-            scopeOption: TransactionScopeOption.Required,
-            asyncFlowOption: TransactionScopeAsyncFlowOption.Enabled,
-            transactionOptions: new TransactionOptions { IsolationLevel = IsolationLevel.Serializable }
-        );
+        using var transaction = TransactionScopeFactory.Create();
 
         var lot = await _applicationContext.Lots
                       .SingleOrDefaultAsync(predicate: x => x.Id == lotId, cancellationToken: cancellationToken) ??

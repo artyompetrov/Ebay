@@ -3,6 +3,7 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
 using Server.Data.Models;
+using Server.Infrastructure;
 using Server.Services;
 
 namespace Server.Consumers;
@@ -29,13 +30,8 @@ internal class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
 
     public async Task Consume(ConsumeContext<CalculatePricesForLot> context)
     {
-        using var transaction = new TransactionScope(
-            scopeOption: TransactionScopeOption.Required,
-            asyncFlowOption: TransactionScopeAsyncFlowOption.Enabled,
-            transactionOptions: new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted }
-        );
-
-
+        using var transaction = TransactionScopeFactory.Create();
+        
         var currencyRates = await _applicationContext.Currencies
             .AsNoTracking()
             .ToDictionaryAsync(x => x.CurrencyEbayName, x => x.CurrencyRate, context.CancellationToken);

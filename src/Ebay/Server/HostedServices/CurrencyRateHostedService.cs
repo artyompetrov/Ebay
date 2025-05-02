@@ -41,7 +41,7 @@ internal class CurrencyRateHostedService : IHostedService, IDisposable
                 await RefreshCurrencyRatesForever(cts.Token);
 #endif
                 }
-                catch (Exception e) when (!e.IsIntendedOperationCanceledException(cts.Token))
+                catch (Exception e) when (e.IsNotIntendedCancellation(cts.Token))
                 {
                     _logger.LogError(exception: e, message: $"{nameof(RefreshCurrencyRatesForever)} finished with error");
                 }
@@ -80,12 +80,9 @@ internal class CurrencyRateHostedService : IHostedService, IDisposable
         {
             _state.Value.Task.GetAwaiter().GetResult();
         }
-        catch (Exception e)
+        catch (Exception e)when (e.IsNotIntendedCancellation(_state.Value.Cts.Token))
         {
-            if (!e.IsIntendedOperationCanceledException(_state.Value.Cts.Token))
-            {
-                _logger.LogError(exception: e, message: "Error while stopping background service");
-            }
+            _logger.LogError(exception: e, message: "Error while stopping background service");
         }
 
         _state.Value.Cts.Dispose();
@@ -104,7 +101,7 @@ internal class CurrencyRateHostedService : IHostedService, IDisposable
                 
                 await Task.Delay(delay: WellKnown.CurrencyRate.UpdateTime, cancellationToken: cancellationToken);
             }
-            catch (Exception e) when (!e.IsIntendedOperationCanceledException(cancellationToken))
+            catch (Exception e) when (e.IsNotIntendedCancellation(cancellationToken))
             {
                 _logger.LogError(exception: e, message: "Error while refreshing currency rates");
 

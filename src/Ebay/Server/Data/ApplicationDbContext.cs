@@ -61,6 +61,8 @@ internal class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
     public DbSet<Purchase> Purchases { get; set; } = null!;
 
     public DbSet<ClientError> ClientErrors { get; set; } = null!;
+    
+    public DbSet<ProductMeasurement> ProductMeasurements { get; set; } = null!;
 
     public DbSet<Currency> Currencies { get; set; } = null!;
 }

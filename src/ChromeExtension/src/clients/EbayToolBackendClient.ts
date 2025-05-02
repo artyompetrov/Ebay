@@ -580,6 +580,62 @@ export class EbayToolBackendClient {
     }
 
     /**
+     * @param measurementId measurementId
+     * @param file The ZIP file to upload
+     * @return Ok
+     */
+    uploadMeasurement(productId: string, measurementId: string, file: FileParameter): Promise<void> {
+        let url_ = this.baseUrl + "/products/{productId}/measurements/";
+        if (productId === undefined || productId === null)
+            throw new Error("The parameter 'productId' must be defined.");
+        url_ = url_.replace("{productId}", encodeURIComponent("" + productId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = new FormData();
+        if (measurementId === null || measurementId === undefined)
+            throw new Error("The parameter 'measurementId' cannot be null.");
+        else
+            content_.append("measurementId", measurementId.toString());
+        if (file === null || file === undefined)
+            throw new Error("The parameter 'file' cannot be null.");
+        else
+            content_.append("file", file.data, file.fileName ? file.fileName : "file");
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUploadMeasurement(_response);
+        });
+    }
+
+    protected processUploadMeasurement(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = InvalidMeasurement.fromJS(resultData400);
+            return throwException("InvalidMeasurement", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
      * Получить информацию о лоте
      * @return Ok
      */
@@ -2532,6 +2588,39 @@ export interface IValidationProblemDetailedInfo extends IProblemDetailedInfo {
     errors?: errors | undefined;
 }
 
+export class InvalidMeasurement extends ProblemDetailedInfo implements IInvalidMeasurement {
+    errors?: errors2 | undefined;
+
+    constructor(data?: IInvalidMeasurement) {
+        super(data);
+    }
+
+    init(_data?: any) {
+        super.init(_data);
+        if (_data) {
+            this.errors = _data["errors"];
+        }
+    }
+
+    static fromJS(data: any): InvalidMeasurement {
+        data = typeof data === 'object' ? data : {};
+        let result = new InvalidMeasurement();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["errors"] = this.errors;
+        super.toJSON(data);
+        return data;
+    }
+}
+
+export interface IInvalidMeasurement extends IProblemDetailedInfo {
+    errors?: errors2 | undefined;
+}
+
 export class Errors implements IErrors {
 
     [key: string]: any;
@@ -2618,6 +2707,55 @@ export class errors implements Ierrors {
 export interface Ierrors {
 
     [key: string]: any;
+}
+
+export class errors2 implements Ierrors2 {
+
+    [key: string]: any;
+
+    constructor(data?: Ierrors2) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+        }
+    }
+
+    static fromJS(data: any): errors2 {
+        data = typeof data === 'object' ? data : {};
+        let result = new errors2();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        return data;
+    }
+}
+
+export interface Ierrors2 {
+
+    [key: string]: any;
+}
+
+export interface FileParameter {
+    data: any;
+    fileName: string;
 }
 
 export class ApiException extends Error {

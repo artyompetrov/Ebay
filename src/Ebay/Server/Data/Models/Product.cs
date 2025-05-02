@@ -21,6 +21,8 @@ internal sealed class Product
     public bool IsCheckRequired => DateTime.UtcNow - LastCheckTime > TimeSpan.FromDays(WellKnown.RecheckTimeInDays);
 
     public int Weight { get; set; }
+
+    public List<ProductMeasurement> ProductMeasurements { get; set; } = null!;
     
     public ProductCalculationResult? ProductCalculationResult { get; set; }
 }

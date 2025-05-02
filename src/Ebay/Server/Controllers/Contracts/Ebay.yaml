@@ -212,7 +212,35 @@ paths:
         responses:
           200:
             description: Ok
-        
+
+  /products/{productId}/measurements/:
+    parameters:
+      - name: productId
+        in: path
+        required: true
+        type: string
+        format: guid
+      - name: measurementId
+        in: formData
+        description: measurementId
+        required: true
+        type: string
+        format: guid
+      - name: file
+        in: formData
+        description: The ZIP file to upload
+        required: true
+        type: file
+    post:
+      operationId: UploadMeasurement
+      responses:
+        200:
+          description: Ok
+        400:
+          description: 'InvalidMeasurement'
+          schema:
+            $ref: '#/definitions/InvalidMeasurement'
+  
   /lots/{lotId}/:
     parameters:
       - name: lotId
@@ -927,6 +955,13 @@ definitions:
         additionalProperties: { }
   
   ValidationProblemDetailedInfo:
+    allOf:
+      - $ref: '#/definitions/ProblemDetailedInfo'
+    properties:
+      errors:
+        additionalProperties: { }
+        
+  InvalidMeasurement:
     allOf:
       - $ref: '#/definitions/ProblemDetailedInfo'
     properties:
