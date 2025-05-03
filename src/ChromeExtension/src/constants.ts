@@ -6,8 +6,8 @@
 };
 
 export const Urls = {
-    backendUrl: `https://tubessale.ddns.net/`,
-    extensionAuthRedirectUrl: `https://tubessale.ddns.net/chrome_extensions/auth`,
+    backendUrl: `https://radiotubes.kz/`,
+    extensionAuthRedirectUrl: `https://radiotubes.kz/chrome_extensions/auth`,
     ebayAuthRedirectUrl: `https://auth2.ebay.com/oauth2/ThirdPartyAuthSucessFailure`
 };
 
