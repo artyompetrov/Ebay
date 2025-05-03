@@ -21,6 +21,17 @@
     }
 </style>
 <br>
+<div id="reader" style="width: 500px;"></div>
+@if (_error != null)
+{
+    <p style="color:red">@_error</p>
+}
+
+@if (_message != null)
+{
+    <p style="color:green">@_message</p>
+}
+<br>
 <label for="typeSelect">Тип измерения:</label>
 <select id="typeSelect" class="form-control" @bind="_selectedState">
     <option value="">-- выберите тип --</option>
@@ -34,19 +45,6 @@
 <input id="monthInput" @bind="_manufactureMonth" type="month" class="form-control" lang="ru" />
 <br>
 <InputFile OnChange="HandleFileSelected" accept=".zip" />
-<br>
-<br>
-<div id="reader" style="width: 500px;"></div>
-@if (_error != null)
-{
-    <p style="color:red">@_error</p>
-}
-
-@if (_message != null)
-{
-    <p style="color:green">@_message</p>
-}
-
 
 @code {
     private ProductWithId? _product;
