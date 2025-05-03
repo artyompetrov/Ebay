@@ -1,4 +1,4 @@
-﻿namespace Server.Data;
+﻿namespace Server.Data.Models;
 
 internal enum MeasurementState
 {

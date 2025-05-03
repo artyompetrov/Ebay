@@ -117,7 +117,7 @@ namespace Server.Controllers.Generated
 
         /// <returns>Ok</returns>
 
-        System.Threading.Tasks.Task UploadMeasurementAsync(File file, System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+        System.Threading.Tasks.Task UploadMeasurementAsync(MeasurementData measurementData, System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
         /// <summary>
         /// Получить информацию о лоте
@@ -322,10 +322,10 @@ namespace Server.Controllers.Generated
 
         /// <returns>Ok</returns>
         [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("products/{productId}/measurements/")]
-        public System.Threading.Tasks.Task UploadMeasurement([Microsoft.AspNetCore.Mvc.FromBody] File file, System.Guid productId, System.Threading.CancellationToken cancellationToken)
+        public System.Threading.Tasks.Task UploadMeasurement([Microsoft.AspNetCore.Mvc.FromBody] MeasurementData measurementData, System.Guid productId, System.Threading.CancellationToken cancellationToken)
         {
 
-            return _implementation.UploadMeasurementAsync(file, productId, cancellationToken);
+            return _implementation.UploadMeasurementAsync(measurementData, productId, cancellationToken);
         }
 
         /// <summary>
@@ -425,6 +425,18 @@ namespace Server.Controllers.Generated
 
             return _implementation.CalculatePricesForAllAsync(cancellationToken);
         }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public enum ProductState
+    {
+
+        [System.Runtime.Serialization.EnumMember(Value = @"New")]
+        New = 0,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Used")]
+        Used = 1,
 
     }
 
@@ -1404,26 +1416,40 @@ namespace Server.Controllers.Generated
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class File
+    public partial class MeasurementData
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public File(byte[] @file, string @measurementId)
+        public MeasurementData(byte[] @file, string @manufactureDate, string @measurementId, ProductState @productState)
 
         {
 
             this.MeasurementId = @measurementId;
 
-            this.File1 = @file;
+            this.ManufactureDate = @manufactureDate;
+
+            this.ProductState = @productState;
+
+            this.File = @file;
 
         }    [Newtonsoft.Json.JsonProperty("measurementId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         [System.ComponentModel.DataAnnotations.StringLength(100)]
         public string MeasurementId { get; }
 
+        [Newtonsoft.Json.JsonProperty("manufactureDate", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^\d{4}-(0[1-9]|1[0-2])$")]
+        public string ManufactureDate { get; }
+
+        [Newtonsoft.Json.JsonProperty("productState", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
+        public ProductState ProductState { get; }
+
         [Newtonsoft.Json.JsonProperty("file", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public byte[] File1 { get; }
+        public byte[] File { get; }
 
     }
 

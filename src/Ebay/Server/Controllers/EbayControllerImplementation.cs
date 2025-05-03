@@ -14,11 +14,12 @@ using Server.Consumers;
 using ClientErrorInfo = Server.Controllers.Generated.ClientErrorInfo;
 using Currency = Server.Controllers.Generated.Currency;
 using DbProduct = Server.Data.Models.Product;
-using File = Server.Controllers.Generated.File;
 using LotInfo = Server.Controllers.Generated.LotInfo;
 using LotInfoShort = Server.Controllers.Generated.LotInfoShort;
 using LotInfoWithProductId = Server.Controllers.Generated.LotInfoWithProductId;
 using LotState = Server.Controllers.Generated.LotState;
+using DbProductState = Server.Data.Models.ProductState;
+using ProductState = Server.Controllers.Generated.ProductState;
 using ProductWithId = Server.Controllers.Generated.ProductWithId;
 using ProductWithoutId = Server.Controllers.Generated.ProductWithoutId;
 
@@ -286,18 +287,18 @@ internal class EbayControllerImplementation : IEbayController
     }
 
     public async Task UploadMeasurementAsync(
-        File file,
+        MeasurementData measurementData,
         Guid productId,
         CancellationToken cancellationToken )
     {
         var errors = new List<(string key, string[] value)>();
         
-        if (!Regex.IsMatch(file.MeasurementId, "^[A-Z0-9]+$"))
+        if (!Regex.IsMatch(measurementData.MeasurementId, "^[A-Z0-9]+$"))
         {
-            errors.Add((nameof(file), ["Invalid measurementId"]));
+            errors.Add((nameof(measurementData.MeasurementId), ["Invalid measurementId"]));
         }
         
-        using var inputMemoryStream = new MemoryStream(file.File1);
+        using var inputMemoryStream = new MemoryStream(measurementData.File);
         using var archive = new ZipArchive(inputMemoryStream, ZipArchiveMode.Read, leaveOpen: true);
 
 
@@ -310,7 +311,7 @@ internal class EbayControllerImplementation : IEbayController
 
             if (string.IsNullOrEmpty(fileName))
             {
-                errors.Add((nameof(file), [$"No folders allowed, but found {entry.FullName}"]));
+                errors.Add((nameof(measurementData), [$"No folders allowed, but found {entry.FullName}"]));
                 continue;
             }
 
@@ -326,13 +327,13 @@ internal class EbayControllerImplementation : IEbayController
             }
             else
             {
-                errors.Add((nameof(file), [$"unsupported filename {entry.FullName}"]));
+                errors.Add((nameof(measurementData), [$"unsupported filename {entry.FullName}"]));
             }
         }
 
         if (fileCount != 2)
         {
-            errors.Add((nameof(file), ["exactly two files expected"]));
+            errors.Add((nameof(measurementData), ["exactly two files expected"]));
         }
         
 
@@ -344,17 +345,29 @@ internal class EbayControllerImplementation : IEbayController
         await _applicationContext.ProductMeasurements.Upsert(
                 new ProductMeasurement
                 {
-                    Id = file.MeasurementId,
+                    Id = measurementData.MeasurementId,
                     ProductId = productId,
-                    State = MeasurementState.Created,
+                    MeasurementState = MeasurementState.Created,
+                    ProductState = Map( measurementData.ProductState),
                     Measurements = inputMemoryStream.ToArray(),
                     HashAnodeCurves = hashAnodeCurves ?? throw new NullReferenceException(nameof(hashAnodeCurves)),
-                    HashQuickTest = hashQuickTest ?? throw new NullReferenceException(nameof(hashQuickTest))
+                    HashQuickTest = hashQuickTest ?? throw new NullReferenceException(nameof(hashQuickTest)),
+                    ManufactureDate = measurementData.ManufactureDate
                 })
             .RunAsync(cancellationToken);
 
         await _applicationContext.SaveChangesAsync(cancellationToken);
         
+    }
+
+    private DbProductState Map(ProductState productState)
+    {
+        return productState switch
+        {
+            ProductState.New => DbProductState.New,
+            ProductState.Used => DbProductState.Used,
+            _ => throw new ArgumentOutOfRangeException(nameof(productState), productState, null)
+        };
     }
     
     private async static Task<string> ComputeEntryHashAsync(ZipArchiveEntry entry, CancellationToken cancellationToken)

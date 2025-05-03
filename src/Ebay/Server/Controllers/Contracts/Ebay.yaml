@@ -223,7 +223,7 @@ paths:
     post:
       operationId: UploadMeasurement
       parameters:
-        - name: file
+        - name: measurementData
           in: body
           required: true
           schema:
@@ -232,11 +232,19 @@ paths:
               measurementId:
                 type: string
                 maxLength: 100
+              manufactureDate:
+                type: string
+                pattern: '^\d{4}-(0[1-9]|1[0-2])$'
+                example: '2024-11'
+              productState:
+                $ref: '#/definitions/ProductState'
               file:
                 type: string
                 format: binary
             required: 
               - measurementId
+              - manufactureDate
+              - productState
               - file
       responses:
         200:
@@ -387,6 +395,12 @@ paths:
           description: 'Ok'
 
 definitions:
+  ProductState:
+    type: string
+    enum:
+      - New
+      - Used
+      
   ProductWithoutId:
     type: object
     properties:

@@ -13,9 +13,30 @@
     #reader video {
         transform: scaleX(-1); /* зеркалирование по горизонтали */
     }
+    #typeSelect {
+        width: 300px;
+    }
+    #monthInput {
+        width: 300px;
+    }
 </style>
+<br>
+<label for="typeSelect">Тип измерения:</label>
+<select id="typeSelect" class="form-control" @bind="_selectedState">
+    <option value="">-- выберите тип --</option>
+    @foreach (var state in _productStates)
+    {
+        <option value="@state">@state</option>
+    }
+</select>
+<br>
+<label for="monthInput">Дата производства (yyyy-mm):</label>
+<input id="monthInput" @bind="_manufactureMonth" type="month" class="form-control" lang="ru" />
+<br>
 <InputFile OnChange="HandleFileSelected" accept=".zip" />
-
+<br>
+<br>
+<div id="reader" style="width: 500px;"></div>
 @if (_error != null)
 {
     <p style="color:red">@_error</p>
@@ -26,13 +47,14 @@
     <p style="color:green">@_message</p>
 }
 
-<div id="reader" style="width: 500px;"></div>
 
 @code {
     private ProductWithId? _product;
     private string? _error;
     private string? _message;
-
+    private ProductState? _selectedState;
+    private DateTime? _manufactureMonth;
+    private List<ProductState> _productStates = Enum.GetValues(typeof(ProductState)).Cast<ProductState>().ToList();
     [Parameter]
     public Guid ProductId { get; set; }
     
@@ -77,7 +99,13 @@
             await stream.CopyToAsync(ms);
 
             await EbayClient.UploadMeasurementAsync(
-                file: new File { File1 = ms.ToArray(), MeasurementId = id },
+                measurementData: new MeasurementData()
+                {
+                    File = ms.ToArray(),
+                    MeasurementId = id,
+                    ManufactureDate = _manufactureMonth?.ToString("yyyy-MM"),
+                    ProductState = _selectedState ?? throw new InvalidOperationException("Тип измерения не выбран")
+                },
                 productId: _product.Id,
                 cancellationToken: CancellationToken.None);
 

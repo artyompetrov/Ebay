@@ -582,14 +582,14 @@ export class EbayToolBackendClient {
     /**
      * @return Ok
      */
-    uploadMeasurement(file: File, productId: string): Promise<void> {
+    uploadMeasurement(measurementData: MeasurementData, productId: string): Promise<void> {
         let url_ = this.baseUrl + "/products/{productId}/measurements/";
         if (productId === undefined || productId === null)
             throw new Error("The parameter 'productId' must be defined.");
         url_ = url_.replace("{productId}", encodeURIComponent("" + productId));
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(file);
+        const content_ = JSON.stringify(measurementData);
 
         let options_: RequestInit = {
             body: content_,
@@ -1063,6 +1063,11 @@ export class EbayToolBackendClient {
         }
         return Promise.resolve<void>(null as any);
     }
+}
+
+export enum ProductState {
+    New = "New",
+    Used = "Used",
 }
 
 export class ProductWithoutId implements IProductWithoutId {
@@ -2579,11 +2584,13 @@ export interface IValidationProblemDetailedInfo extends IProblemDetailedInfo {
     errors?: errors | undefined;
 }
 
-export class File implements IFile {
+export class MeasurementData implements IMeasurementData {
     measurementId!: string;
+    manufactureDate!: string;
+    productState!: ProductState;
     file!: string;
 
-    constructor(data?: IFile) {
+    constructor(data?: IMeasurementData) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -2595,13 +2602,15 @@ export class File implements IFile {
     init(_data?: any) {
         if (_data) {
             this.measurementId = _data["measurementId"];
+            this.manufactureDate = _data["manufactureDate"];
+            this.productState = _data["productState"];
             this.file = _data["file"];
         }
     }
 
-    static fromJS(data: any): File {
+    static fromJS(data: any): MeasurementData {
         data = typeof data === 'object' ? data : {};
-        let result = new File();
+        let result = new MeasurementData();
         result.init(data);
         return result;
     }
@@ -2609,13 +2618,17 @@ export class File implements IFile {
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         data["measurementId"] = this.measurementId;
+        data["manufactureDate"] = this.manufactureDate;
+        data["productState"] = this.productState;
         data["file"] = this.file;
         return data;
     }
 }
 
-export interface IFile {
+export interface IMeasurementData {
     measurementId: string;
+    manufactureDate: string;
+    productState: ProductState;
     file: string;
 }
 

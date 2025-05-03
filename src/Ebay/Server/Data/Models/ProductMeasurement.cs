@@ -12,7 +12,7 @@ internal class ProductMeasurement
     public required Guid ProductId { get; set; }
     public Product Product { get; set; } = null!;
     
-    public required MeasurementState State { get; set; }
+    public required MeasurementState MeasurementState { get; set; }
     
     public required byte[] Measurements { get; set; } = null!;
     
@@ -22,4 +22,10 @@ internal class ProductMeasurement
 
     [MaxLength(128)]
     public required string HashQuickTest { get; set; } = null!;
+
+
+    [MaxLength(7)]
+    public required string ManufactureDate { get; set; } = null!;
+
+    public required ProductState ProductState { get; set; }
 }
