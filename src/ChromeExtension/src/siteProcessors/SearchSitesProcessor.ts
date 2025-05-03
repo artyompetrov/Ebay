@@ -13,7 +13,7 @@ const avitoRegex: RegExp = /(?:^|\.)avito\.ru$/i
 
 const excludeSites: RegExp[] = [
     /(?:^|\.)ebay\..*$/i,
-    /(?:^|\.)tubessale\.ddns\.net$/i,
+    /(?:^|\.)radiotubes\.kz$/i,
 ]
 
 export function tryGetSearchSitesProcessor() : ISiteProcessor | null {
