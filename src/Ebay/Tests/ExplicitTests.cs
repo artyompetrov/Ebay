@@ -10,7 +10,7 @@ namespace Tests;
 [Explicit]
 public class ExplicitTests
 {
-    private const string Server = "tubessale.ddns.net";
+    private const string Server = "radiotubes.kz";
     private static readonly EbayClient Client = CreateClient();
 
     private static EbayClient CreateClient()

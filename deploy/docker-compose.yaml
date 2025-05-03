@@ -83,15 +83,6 @@ services:
     networks:
       - internal_network
 
-  ebay_noip:
-    image: ghcr.io/noipcom/noip-duc:latest
-    container_name: ebay_noip
-    environment:
-      - NOIP_USERNAME=${NOIP_USERNAME}
-      - NOIP_PASSWORD=${NOIP_PASSWORD}
-      - NOIP_HOSTNAMES=all.ddnskey.com
-    restart: unless-stopped
-
   ebay_frappe_backend:
     image: ghcr.io/artyompetrov/frappe:latest
     container_name: ebay_frappe_backend
