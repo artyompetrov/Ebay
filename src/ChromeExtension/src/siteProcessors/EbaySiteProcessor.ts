@@ -390,7 +390,7 @@ class EbaySiteProcessor implements ISiteProcessor {
 
             let price = columns[1]
 
-            if (price === "Expired" || price === "Declined") {
+            if (price === "Expired" || price === "Declined" || price === "Pending") {
                 continue
             }
 
