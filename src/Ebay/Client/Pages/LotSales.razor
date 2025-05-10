@@ -82,12 +82,13 @@
             <th>Общая выручка (USD)</th>
             <th>Средняя выручка (USD)</th>
             <th>Средняя выручка (@WellKnown.Currencies.TargetCurrency)</th>
+            <th>Дата расчета</th>
         </tr>
         </thead>
         <tbody>
         @foreach (var lot in _lots)
         {
-            <tr title="@GetRecalculationInfo(lot.LotCalculationResult)">
+            <tr>
                 <td>
                     <a id="@GetLotLinkId(lot.LotId)" href="@GetLinkToLot(lot)" rel="noreferrer" target="_blank">@lot.Name</a>
                 </td>
@@ -105,7 +106,8 @@
                 <td>@lot.LotCalculationResult?.QuantityTotal</td>
                 <td>@lot.LotCalculationResult?.Revenue.ToString("0.00")</td>
                 <td>@lot.LotCalculationResult?.RevenueAvg.ToString("0.00")</td>
-                <td title="">@((lot.LotCalculationResult?.RevenueAvg * _targetCurrencyRate)?.ToString("N0"))</td>
+                <td>@((lot.LotCalculationResult?.RevenueAvg * _targetCurrencyRate)?.ToString("N0"))</td>
+                <td>@lot.LotCalculationResult?.CalculationDate</td>
             </tr>
         }
         </tbody>
@@ -162,16 +164,6 @@
 
         await UpdateData();
         StateHasChanged();
-    }
-
-    private string GetRecalculationInfo(LotCalculationResult? lotCalculationResult)
-    {
-        if (lotCalculationResult == null)
-        {
-            return "Нет информации о пересчете";
-        }
-
-        return $"Пересчитано {lotCalculationResult.CalculationDate}";
     }
 
     private void UpdateAllPrices()

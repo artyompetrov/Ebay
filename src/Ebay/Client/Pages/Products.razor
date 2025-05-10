@@ -58,6 +58,10 @@
             Средняя выручка (@WellKnown.Currencies.TargetCurrency)
             <span class="sort-icon">@GetSortIcon("RevenueAvgTarget")</span>
         </th>
+        <th @onclick="@(() => SortTable(nameof(ProductWithId.ProductCalculationResult.CalculationDate)))">
+            Дата расчета
+            <span class="sort-icon">@GetSortIcon(nameof(ProductWithId.ProductCalculationResult.CalculationDate))</span>
+        </th>
         <th></th>
     </tr>
     </thead>
@@ -65,7 +69,7 @@
     <tbody>
     @foreach (var product in _sortedProducts)
     {
-        <tr title="@GetProductRecalculationInfo(product.ProductCalculationResult)">
+        <tr>
             <td>
                 <button class="btn btn-primary btn-sm oi oi-pencil" @onclick="@(e => _productPopupComponent.ShowEdit(product))"></button>
             </td>
@@ -105,9 +109,11 @@
             {
                 <td>@product.ProductCalculationResult?.QuantityTotal</td>
                 <td>@((product.ProductCalculationResult?.RevenueAvg * _targetCurrencyRate)?.ToString("N0"))</td>
+                <td>@product.ProductCalculationResult?.CalculationDate</td>
             }
             else
             {
+                <td></td>
                 <td></td>
                 <td></td>
             }
@@ -244,15 +250,5 @@
                 await EbayClient.MarkProductAsCheckedAsync(product.Id);
                 await LoadActualProductList();
             });
-    }
-    
-    private string GetProductRecalculationInfo(ProductCalculationResult? productCalculationResult)
-    {
-        if (productCalculationResult == null)
-        {
-            return "Нет информации о пересчете";
-        }
-
-        return $"Пересчитано {productCalculationResult.CalculationDate}";
     }
 }

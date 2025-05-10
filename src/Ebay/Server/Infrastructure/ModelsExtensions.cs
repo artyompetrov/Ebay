@@ -102,11 +102,11 @@ internal static class ModelsExtensions
     );
 
     public static ProductCalculationResult? ToApiLotCalculationResult(this DbProductCalculationResult? productCalculationResult) => productCalculationResult == null ? null : new(
-        quantityTotal: productCalculationResult.QuantityTotal, revenue: productCalculationResult.Revenue, revenueAvg: productCalculationResult.RevenueAvg, calculationDate: productCalculationResult.CalculationDate.ToString("dd-MM-yyyy hh:mm")
+        quantityTotal: productCalculationResult.QuantityTotal, revenue: productCalculationResult.Revenue, revenueAvg: productCalculationResult.RevenueAvg, calculationDate: productCalculationResult.CalculationDate.ToString("dd-MM-yy")
     );
     
     public static LotCalculationResult? ToApiLotCalculationResult(this DbLotCalculationResult? lotCalculationResult) => lotCalculationResult == null ? null : new(
-        quantityTotal: lotCalculationResult.QuantityTotal, revenue: lotCalculationResult.Revenue, revenueAvg: lotCalculationResult.RevenueAvg, calculationDate: lotCalculationResult.CalculationDate.ToString("dd-MM-yyyy hh:mm")
+        quantityTotal: lotCalculationResult.QuantityTotal, revenue: lotCalculationResult.Revenue, revenueAvg: lotCalculationResult.RevenueAvg, calculationDate: lotCalculationResult.CalculationDate.ToString("dd-MM-yy")
     );
     
     public static PurchaseCalculationResult? ToApiPurchaseCalculationResult(this DbPurchaseCalculationResult? lotCalculationResult) => lotCalculationResult == null ? null : new(
