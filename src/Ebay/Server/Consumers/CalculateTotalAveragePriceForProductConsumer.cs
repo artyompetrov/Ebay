@@ -27,17 +27,26 @@ internal class CalculateTotalAveragePriceForProductConsumer : IConsumer<Batch<Ca
 
             var revenue = 0.0;
             var quantityTotal = 0;
+
+            var dateTime = DateTime.UtcNow;
             foreach (var lotCalculationResult in lotCalculationResults)
             {
                 if (lotCalculationResult == null) throw new NullReferenceException(nameof(lotCalculationResults));
                 revenue += lotCalculationResult.Revenue;
                 quantityTotal += lotCalculationResult.QuantityTotal;
+                
+                if (dateTime > lotCalculationResult.CalculationDate)
+                {
+                    dateTime = lotCalculationResult.CalculationDate;
+                }
             }
             
             var dbProduct = _applicationDbContext.Products.Attach(new Product { Id = productId });
             dbProduct.Entity.ProductCalculationResult = new ProductCalculationResult
             {
-                Revenue = revenue, QuantityTotal = quantityTotal
+                Revenue = revenue,
+                QuantityTotal = quantityTotal,
+                CalculationDate = dateTime
             };
 
             await _applicationDbContext.SaveChangesAsync(context.CancellationToken);

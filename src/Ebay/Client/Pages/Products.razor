@@ -65,7 +65,7 @@
     <tbody>
     @foreach (var product in _sortedProducts)
     {
-        <tr>
+        <tr title="@GetProductRecalculationInfo(product.ProductCalculationResult)">
             <td>
                 <button class="btn btn-primary btn-sm oi oi-pencil" @onclick="@(e => _productPopupComponent.ShowEdit(product))"></button>
             </td>
@@ -245,5 +245,14 @@
                 await LoadActualProductList();
             });
     }
+    
+    private string GetProductRecalculationInfo(ProductCalculationResult? productCalculationResult)
+    {
+        if (productCalculationResult == null)
+        {
+            return "Нет информации о пересчете";
+        }
 
+        return $"Пересчитано {productCalculationResult.CalculationDate}";
+    }
 }

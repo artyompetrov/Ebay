@@ -14,6 +14,10 @@ internal class LotCalculationResult
     /// </summary>
     public int QuantityTotal { get; set; }
     
+    /// <summary>
+    /// Дата расчета
+    /// </summary>
+    public DateTime CalculationDate { get; set; }
     
     /// <summary>
     /// Средняя выручка для лота

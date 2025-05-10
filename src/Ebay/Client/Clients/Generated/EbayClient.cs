@@ -2503,6 +2503,10 @@ namespace Client.Clients.Generated
         [System.ComponentModel.DataAnnotations.Range(0.00D, double.MaxValue)]
         public double RevenueAvg { get; set; }
 
+        [Newtonsoft.Json.JsonProperty("calculationDate", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string CalculationDate { get; set; }
+
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))")]
@@ -2519,6 +2523,10 @@ namespace Client.Clients.Generated
         [Newtonsoft.Json.JsonProperty("revenueAvg", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Range(0.00D, double.MaxValue)]
         public double RevenueAvg { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("calculationDate", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string CalculationDate { get; set; }
 
     }
 

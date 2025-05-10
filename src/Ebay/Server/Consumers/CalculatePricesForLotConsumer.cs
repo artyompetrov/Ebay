@@ -30,6 +30,7 @@ internal class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
 
     public async Task Consume(ConsumeContext<CalculatePricesForLot> context)
     {
+        var currentDate = DateTime.UtcNow;
         using var transaction = TransactionScopeFactory.Create();
         
         var currencyRates = await _applicationContext.Currencies
@@ -81,14 +82,17 @@ internal class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
             purchase.PurchaseCalculationResult = new PurchaseCalculationResult
             {
                 Revenue = выручкаСПродажиВДолларах,
-                QuantityTotal = количествоШтукВПродаже
+                QuantityTotal = количествоШтукВПродаже,
+                CalculationDate = currentDate
             };
         }
 
 
         lot.LotCalculationResult = new LotCalculationResult
         {
-            Revenue = общаяВыручкаВДолларах, QuantityTotal = общееКоличествоШтукВоВсехПродажах
+            Revenue = общаяВыручкаВДолларах,
+            QuantityTotal = общееКоличествоШтукВоВсехПродажах,
+            CalculationDate = currentDate
         };
 
         await _publishEndpoint.Publish(

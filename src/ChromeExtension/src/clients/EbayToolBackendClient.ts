@@ -1589,6 +1589,7 @@ export class ProductCalculationResult implements IProductCalculationResult {
     revenue!: number;
     quantityTotal!: number;
     revenueAvg!: number;
+    calculationDate!: string;
 
     constructor(data?: IProductCalculationResult) {
         if (data) {
@@ -1604,6 +1605,7 @@ export class ProductCalculationResult implements IProductCalculationResult {
             this.revenue = _data["revenue"];
             this.quantityTotal = _data["quantityTotal"];
             this.revenueAvg = _data["revenueAvg"];
+            this.calculationDate = _data["calculationDate"];
         }
     }
 
@@ -1619,6 +1621,7 @@ export class ProductCalculationResult implements IProductCalculationResult {
         data["revenue"] = this.revenue;
         data["quantityTotal"] = this.quantityTotal;
         data["revenueAvg"] = this.revenueAvg;
+        data["calculationDate"] = this.calculationDate;
         return data;
     }
 }
@@ -1627,12 +1630,14 @@ export interface IProductCalculationResult {
     revenue: number;
     quantityTotal: number;
     revenueAvg: number;
+    calculationDate: string;
 }
 
 export class LotCalculationResult implements ILotCalculationResult {
     revenue!: number;
     quantityTotal!: number;
     revenueAvg!: number;
+    calculationDate!: string;
 
     constructor(data?: ILotCalculationResult) {
         if (data) {
@@ -1648,6 +1653,7 @@ export class LotCalculationResult implements ILotCalculationResult {
             this.revenue = _data["revenue"];
             this.quantityTotal = _data["quantityTotal"];
             this.revenueAvg = _data["revenueAvg"];
+            this.calculationDate = _data["calculationDate"];
         }
     }
 
@@ -1663,6 +1669,7 @@ export class LotCalculationResult implements ILotCalculationResult {
         data["revenue"] = this.revenue;
         data["quantityTotal"] = this.quantityTotal;
         data["revenueAvg"] = this.revenueAvg;
+        data["calculationDate"] = this.calculationDate;
         return data;
     }
 }
@@ -1671,6 +1678,7 @@ export interface ILotCalculationResult {
     revenue: number;
     quantityTotal: number;
     revenueAvg: number;
+    calculationDate: string;
 }
 
 export class PurchaseInfo implements IPurchaseInfo {

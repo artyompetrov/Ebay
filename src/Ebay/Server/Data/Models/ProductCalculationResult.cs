@@ -13,8 +13,11 @@ public class ProductCalculationResult
     /// общееКоличествоШтукВоВсехПродажах
     /// </summary>
     public int QuantityTotal { get; set; }
-    
-    
+
+    /// <summary>
+    /// Дата расчета (равно меньшему из всех дочерних расчетов)
+    /// </summary>
+    public DateTime CalculationDate { get; set; }
     
     /// <summary>
     /// Средняя выручка для лота

@@ -834,7 +834,7 @@ namespace Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public ProductCalculationResult(int @quantityTotal, double @revenue, double @revenueAvg)
+        public ProductCalculationResult(string @calculationDate, int @quantityTotal, double @revenue, double @revenueAvg)
 
         {
 
@@ -843,6 +843,8 @@ namespace Server.Controllers.Generated
             this.QuantityTotal = @quantityTotal;
 
             this.RevenueAvg = @revenueAvg;
+
+            this.CalculationDate = @calculationDate;
 
         }    [Newtonsoft.Json.JsonProperty("revenue", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Range(0.00D, double.MaxValue)]
@@ -855,6 +857,10 @@ namespace Server.Controllers.Generated
         [Newtonsoft.Json.JsonProperty("revenueAvg", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Range(0.00D, double.MaxValue)]
         public double RevenueAvg { get; }
+
+        [Newtonsoft.Json.JsonProperty("calculationDate", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string CalculationDate { get; }
 
     }
 
@@ -863,7 +869,7 @@ namespace Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public LotCalculationResult(int @quantityTotal, double @revenue, double @revenueAvg)
+        public LotCalculationResult(string @calculationDate, int @quantityTotal, double @revenue, double @revenueAvg)
 
         {
 
@@ -872,6 +878,8 @@ namespace Server.Controllers.Generated
             this.QuantityTotal = @quantityTotal;
 
             this.RevenueAvg = @revenueAvg;
+
+            this.CalculationDate = @calculationDate;
 
         }    [Newtonsoft.Json.JsonProperty("revenue", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Range(0.00D, double.MaxValue)]
@@ -884,6 +892,10 @@ namespace Server.Controllers.Generated
         [Newtonsoft.Json.JsonProperty("revenueAvg", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Range(0.00D, double.MaxValue)]
         public double RevenueAvg { get; }
+
+        [Newtonsoft.Json.JsonProperty("calculationDate", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string CalculationDate { get; }
 
     }
 

@@ -656,10 +656,13 @@ definitions:
       revenueAvg:
         type: number
         minimum: 0.00
+      calculationDate:
+        type: string
     required:
       - revenue
       - quantityTotal
       - revenueAvg
+      - calculationDate
 
   LotCalculationResult:
     type: object
@@ -673,10 +676,13 @@ definitions:
       revenueAvg:
         type: number
         minimum: 0.00
+      calculationDate:
+        type: string
     required:
       - revenue
       - quantityTotal
       - revenueAvg
+      - calculationDate
 
   PurchaseInfo:
     type: object
