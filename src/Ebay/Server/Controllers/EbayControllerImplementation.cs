@@ -289,21 +289,22 @@ internal class EbayControllerImplementation : IEbayController
     public async Task UploadMeasurementAsync(
         MeasurementData measurementData,
         Guid productId,
-        CancellationToken cancellationToken )
+        CancellationToken cancellationToken)
     {
         var errors = new List<(string key, string[] value)>();
-        
+
         if (!Regex.IsMatch(measurementData.MeasurementId, "^[A-Z0-9]+$"))
         {
             errors.Add((nameof(measurementData.MeasurementId), ["Invalid measurementId"]));
         }
-        
+
         using var inputMemoryStream = new MemoryStream(measurementData.File);
         using var archive = new ZipArchive(inputMemoryStream, ZipArchiveMode.Read, leaveOpen: true);
 
 
         var fileCount = 0;
         string? hashAnodeCurves = null;
+        string? hashPlateCurves = null;
         string? hashQuickTest = null;
         foreach (var entry in archive.Entries)
         {
@@ -317,47 +318,53 @@ internal class EbayControllerImplementation : IEbayController
 
             fileCount++;
 
-            if (fileName.Equals("anode_curves.utd", StringComparison.Ordinal))
+            if (fileName.EndsWith("anode_curves.uts.utd", StringComparison.Ordinal))
             {
                 hashAnodeCurves = await ComputeEntryHashAsync(entry, cancellationToken);
             }
-            else if (fileName.Equals("quick_test.txt", StringComparison.Ordinal))
+            else if (fileName.EndsWith("plate_curves.uts.utd", StringComparison.Ordinal))
+            {
+                hashPlateCurves = await ComputeEntryHashAsync(entry, cancellationToken);
+            }
+            else if (fileName.EndsWith("quick_test.txt", StringComparison.Ordinal))
             {
                 hashQuickTest = await ComputeEntryHashAsync(entry, cancellationToken);
             }
-            else
+            else if (!fileName.EndsWith("anode_curves.uts", StringComparison.Ordinal) &&
+                     !fileName.EndsWith("plate_curves.uts", StringComparison.Ordinal))
             {
                 errors.Add((nameof(measurementData), [$"unsupported filename {entry.FullName}"]));
             }
         }
 
-        if (fileCount != 2)
+        if (fileCount != 4)
         {
-            errors.Add((nameof(measurementData), ["exactly two files expected"]));
+            errors.Add((nameof(measurementData), ["exactly 4 files expected"]));
         }
-        
+
 
         if (errors.Count > 0)
         {
             throw NonOkHttpAnswerException.ValidationError400(errors);
         }
-        
+
         await _applicationContext.ProductMeasurements.Upsert(
                 new ProductMeasurement
                 {
                     Id = measurementData.MeasurementId,
                     ProductId = productId,
                     MeasurementState = MeasurementState.Created,
-                    ProductState = Map( measurementData.ProductState),
+                    ProductState = Map(measurementData.ProductState),
                     Measurements = inputMemoryStream.ToArray(),
                     HashAnodeCurves = hashAnodeCurves ?? throw new NullReferenceException(nameof(hashAnodeCurves)),
+                    HashPlateCurves = hashPlateCurves ?? throw new NullReferenceException(nameof(hashPlateCurves)),
                     HashQuickTest = hashQuickTest ?? throw new NullReferenceException(nameof(hashQuickTest)),
                     ManufactureDate = measurementData.ManufactureDate
                 })
             .RunAsync(cancellationToken);
 
         await _applicationContext.SaveChangesAsync(cancellationToken);
-        
+
     }
 
     private DbProductState Map(ProductState productState)

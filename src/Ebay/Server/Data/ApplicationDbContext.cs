@@ -44,6 +44,7 @@ internal class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
         {
             entity.HasIndex(e => e.HashAnodeCurves).IsUnique();
             entity.HasIndex(e => e.HashQuickTest).IsUnique();
+            entity.HasIndex(e => e.HashPlateCurves).IsUnique();
         });
     }
     
