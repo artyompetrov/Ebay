@@ -326,7 +326,7 @@ internal class EbayControllerImplementation : IEbayController
             {
                 hashPlateCurves = await ComputeEntryHashAsync(entry, cancellationToken);
             }
-            else if (fileName.EndsWith(".uts.txt", StringComparison.Ordinal))
+            else if (fileName.EndsWith(".txt", StringComparison.Ordinal))
             {
                 hashQuickTest = await ComputeEntryHashAsync(entry, cancellationToken);
             }
