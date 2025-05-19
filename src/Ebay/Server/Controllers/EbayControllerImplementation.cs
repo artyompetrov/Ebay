@@ -337,9 +337,9 @@ internal class EbayControllerImplementation : IEbayController
             }
         }
 
-        if (fileCount != 4)
+        if (fileCount != 5)
         {
-            errors.Add((nameof(measurementData), ["exactly 4 files expected"]));
+            errors.Add((nameof(measurementData), ["exactly 5 files expected"]));
         }
 
 
