@@ -372,7 +372,7 @@ internal class EbayControllerImplementation : IEbayController
                     Id = measurementData.MeasurementId,
                     ProductId = productId,
                     MeasurementState = MeasurementState.Created,
-                    ProductState = Map(measurementData.ProductState),
+                    ProductState = measurementData.ProductState.ToDbProductState(),
                     Measurements = inputMemoryStream.ToArray(),
                     HashAnodeCurves = hashAnodeCurves ?? throw new NullReferenceException(nameof(hashAnodeCurves)),
                     HashPlateCurves = hashPlateCurves ?? throw new NullReferenceException(nameof(hashPlateCurves)),
@@ -382,19 +382,20 @@ internal class EbayControllerImplementation : IEbayController
                 cancellationToken: cancellationToken);
 
         await _applicationContext.SaveChangesAsync(cancellationToken);
-
     }
 
-    private DbProductState Map(ProductState productState)
+    public async Task DeleteMeasurementAsync(
+        Guid productId,
+        string measurementId,
+        CancellationToken cancellationToken)
     {
-        return productState switch
-        {
-            ProductState.New => DbProductState.New,
-            ProductState.Used => DbProductState.Used,
-            _ => throw new ArgumentOutOfRangeException(nameof(productState), productState, null)
-        };
+        _applicationContext.ProductMeasurements.RemoveRange(
+            _applicationContext.ProductMeasurements.Where(x =>
+                x.ProductId == productId && x.Id == measurementId.ToString()));
+
+        await _applicationContext.SaveChangesAsync(cancellationToken);
     }
-    
+
     private async static Task<string> ComputeEntryHashAsync(ZipArchiveEntry entry, CancellationToken cancellationToken)
     {
         await using var entryStream = entry.Open();

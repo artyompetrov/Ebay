@@ -51,13 +51,14 @@
     <br>
     <br>
     <br>
-    <h3>Замеры:</h3>
+    <h3>Зарегистрированные замеры:</h3>
     <table class="table">
         <thead>
         <tr>
             <th>Название</th>
             <th>Дата производства</th>
             <th>Состояние</th>
+            <th></th>
         </tr>
         </thead>
         <tbody>
@@ -68,11 +69,14 @@
                 <td>@measurement.MeasurementId</td>
                 <td>@measurement.ManufactureDate</td>
                 <td>@measurement.ProductState.ToString("G")</td>
+                <td><button class="btn btn-danger btn-sm oi oi-basket" @onclick="@(e => OnDeleteButtonClick(measurement.MeasurementId))"></button></td>
             </tr>
         }
         </tbody>
     </table>
 }
+
+<QuestionPopup @ref="_questionPopup"/>
 
 @code {
     private ProductWithId? _product;
@@ -82,7 +86,8 @@
     private DateTime? _manufactureMonth;
     private List<ProductState> _productStates = Enum.GetValues(typeof(ProductState)).Cast<ProductState>().ToList();
     private ICollection<MeasurementData>? _measurements;
-
+    private QuestionPopup _questionPopup = null!;
+    
     [Parameter]
     public Guid ProductId { get; set; }
     
@@ -91,6 +96,7 @@
     {
         _product = await EbayClient.GetProductAsync(ProductId);
         _measurements = await EbayClient.GetMeasurementsAsync(ProductId);
+        StateHasChanged();
     }
 
     private async Task HandleFileSelected(InputFileChangeEventArgs e)
@@ -147,6 +153,19 @@
         {
             _error = ex.Message;
         }
+        
+        _measurements = await EbayClient.GetMeasurementsAsync(ProductId);
     }
 
+    private void OnDeleteButtonClick(string measurementMeasurementId)
+    {
+        _questionPopup.AskQuestion(
+            questionText: $"Вы действительно хотите удалить измерение '{measurementMeasurementId}'?",
+            onSubmit: async () =>
+            {
+                await EbayClient.DeleteMeasurementAsync(productId: ProductId, measurementId: measurementMeasurementId);
+                await OnInitializedAsync();
+            });
+        
+    }
 }

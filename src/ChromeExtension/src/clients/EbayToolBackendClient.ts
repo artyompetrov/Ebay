@@ -674,6 +674,45 @@ export class EbayToolBackendClient {
     }
 
     /**
+     * @return Ok
+     */
+    deleteMeasurement(productId: string, measurementId: string): Promise<void> {
+        let url_ = this.baseUrl + "/products/{productId}/measurements/{measurementId}/";
+        if (productId === undefined || productId === null)
+            throw new Error("The parameter 'productId' must be defined.");
+        url_ = url_.replace("{productId}", encodeURIComponent("" + productId));
+        if (measurementId === undefined || measurementId === null)
+            throw new Error("The parameter 'measurementId' must be defined.");
+        url_ = url_.replace("{measurementId}", encodeURIComponent("" + measurementId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteMeasurement(_response);
+        });
+    }
+
+    protected processDeleteMeasurement(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
      * Получить информацию о лоте
      * @return Ok
      */

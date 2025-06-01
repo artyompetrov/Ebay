@@ -244,7 +244,25 @@ paths:
           description: 'InvalidMeasurement'
           schema:
             $ref: '#/definitions/ValidationProblemDetailedInfo'
-  
+
+  /products/{productId}/measurements/{measurementId}/:
+    parameters:
+      - name: productId
+        in: path
+        required: true
+        type: string
+        format: guid
+      - name: measurementId
+        in: path
+        required: true
+        type: string
+        maxLength: 100
+    delete:
+      operationId: DeleteMeasurement
+      responses:
+        200:
+          description: Ok
+
   /lots/{lotId}/:
     parameters:
       - name: lotId

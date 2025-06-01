@@ -196,4 +196,14 @@ internal static class ModelsExtensions
             _ => throw new ArgumentOutOfRangeException(paramName: nameof(productState), actualValue: productState, message: null)
         };
     }
+    
+    public static DbProductState ToDbProductState(this ProductState productState)
+    {
+        return productState switch
+        {
+            ProductState.New => DbProductState.New,
+            ProductState.Used => DbProductState.Used,
+            _ => throw new ArgumentOutOfRangeException(nameof(productState), productState, null)
+        };
+    }
 }

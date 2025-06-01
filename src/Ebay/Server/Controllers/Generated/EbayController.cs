@@ -124,6 +124,12 @@ namespace Server.Controllers.Generated
 
         System.Threading.Tasks.Task UploadMeasurementAsync(MeasurementDataToUpload measurementData, System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
+
+
+        /// <returns>Ok</returns>
+
+        System.Threading.Tasks.Task DeleteMeasurementAsync(System.Guid productId, string measurementId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+
         /// <summary>
         /// Получить информацию о лоте
         /// </summary>
@@ -339,6 +345,14 @@ namespace Server.Controllers.Generated
         {
 
             return _implementation.UploadMeasurementAsync(measurementData, productId, cancellationToken);
+        }
+
+        /// <returns>Ok</returns>
+        [Microsoft.AspNetCore.Mvc.HttpDelete, Microsoft.AspNetCore.Mvc.Route("products/{productId}/measurements/{measurementId}/")]
+        public System.Threading.Tasks.Task DeleteMeasurement(System.Guid productId, string measurementId, System.Threading.CancellationToken cancellationToken)
+        {
+
+            return _implementation.DeleteMeasurementAsync(productId, measurementId, cancellationToken);
         }
 
         /// <summary>
