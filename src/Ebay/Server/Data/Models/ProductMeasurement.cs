@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Server.Data.Models;
 
-internal class ProductMeasurement
+public class ProductMeasurement
 {
     [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
     [MaxLength(100)]

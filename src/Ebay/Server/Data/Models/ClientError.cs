@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Server.Data.Models;
 
-internal class ClientError
+public class ClientError
 {
     [Key]
     public Guid Id { get; set; }

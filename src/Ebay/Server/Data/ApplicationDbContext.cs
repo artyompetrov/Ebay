@@ -9,7 +9,7 @@ using Microsoft.Extensions.Options;
 
 namespace Server.Data;
 
-internal class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
+public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
 {
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

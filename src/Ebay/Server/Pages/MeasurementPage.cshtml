@@ -1,0 +1,33 @@
+﻿@page "/m/{measurementId}"
+@model Server.Pages.MeasurementPage
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    @if (Model.Measurement == null)
+    {
+        <title>Measurement not found</title>
+    }
+    else
+    {
+        <title>@Model.Measurement.Id</title>
+    }
+</head>
+<body>
+<div>
+    @if (Model.Measurement == null)
+    {
+        <text>Measurement not found</text>
+    }
+    else
+    {
+        <text>@Model.Measurement.Product</text>
+    }
+</div>
+</body>
+</html>

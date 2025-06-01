@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Server.Data.Models;
 
-internal sealed class Product
+public sealed class Product
 {
     [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
     public Guid Id { get; set; }

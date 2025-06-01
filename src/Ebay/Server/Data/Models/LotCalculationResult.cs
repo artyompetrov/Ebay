@@ -2,7 +2,7 @@
 
 namespace Server.Data.Models;
 
-internal class LotCalculationResult
+public class LotCalculationResult
 {
     /// <summary>
     /// выручкаСПродажЛотаВДолларах

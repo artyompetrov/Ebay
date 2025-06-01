@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Server.Data.Models;
 
 [PrimaryKey(propertyName: nameof(ProductId), nameof(LotId))]
-internal class IgnoredLot
+public class IgnoredLot
 {
     public Guid ProductId { get; set; }
 

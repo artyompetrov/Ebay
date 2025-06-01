@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Server.Data.Models;
 
-internal class Currency
+public class Currency
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.None)]

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Server.Data.Models;
 
-internal class ApplicationUser : IdentityUser
+public class ApplicationUser : IdentityUser
 {
     public DbSet<Product> Products { get; set; } = null!;
 }

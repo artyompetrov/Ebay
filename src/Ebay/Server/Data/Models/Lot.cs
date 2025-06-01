@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Server.Data.Models;
 
-internal class Lot
+public class Lot
 {
     [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
     public long Id { get; set; }

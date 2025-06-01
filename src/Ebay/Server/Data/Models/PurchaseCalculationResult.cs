@@ -2,7 +2,7 @@
 
 namespace Server.Data.Models;
 
-internal class PurchaseCalculationResult
+public class PurchaseCalculationResult
 {
     /// <summary>
     /// выручкаСПродажиВДолларах
