@@ -11,7 +11,7 @@ from urllib.parse import urlencode
 import re
 
 # Конфигурационные переменные
-from_host = "tubessale.ddns.net"
+from_host = "radiotubes.kz"
 to_host = "localhost"
 backup_path_folder = r"C:\Users\APETROV\files\yandex.disk\YandexDisk\Backups\Ebay"
 

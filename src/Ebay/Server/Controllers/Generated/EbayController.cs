@@ -114,10 +114,15 @@ namespace Server.Controllers.Generated
         System.Threading.Tasks.Task CalculatePricesForProductAsync(System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
 
+        /// <returns>Ok</returns>
+
+        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MeasurementData>> GetMeasurementsAsync(System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+
+
 
         /// <returns>Ok</returns>
 
-        System.Threading.Tasks.Task UploadMeasurementAsync(MeasurementData measurementData, System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+        System.Threading.Tasks.Task UploadMeasurementAsync(MeasurementDataToUpload measurementData, System.Guid productId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
         /// <summary>
         /// Получить информацию о лоте
@@ -321,8 +326,16 @@ namespace Server.Controllers.Generated
         }
 
         /// <returns>Ok</returns>
+        [Microsoft.AspNetCore.Mvc.HttpGet, Microsoft.AspNetCore.Mvc.Route("products/{productId}/measurements/")]
+        public System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MeasurementData>> GetMeasurements(System.Guid productId, System.Threading.CancellationToken cancellationToken)
+        {
+
+            return _implementation.GetMeasurementsAsync(productId, cancellationToken);
+        }
+
+        /// <returns>Ok</returns>
         [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("products/{productId}/measurements/")]
-        public System.Threading.Tasks.Task UploadMeasurement([Microsoft.AspNetCore.Mvc.FromBody] MeasurementData measurementData, System.Guid productId, System.Threading.CancellationToken cancellationToken)
+        public System.Threading.Tasks.Task UploadMeasurement([Microsoft.AspNetCore.Mvc.FromBody] MeasurementDataToUpload measurementData, System.Guid productId, System.Threading.CancellationToken cancellationToken)
         {
 
             return _implementation.UploadMeasurementAsync(measurementData, productId, cancellationToken);
@@ -595,6 +608,76 @@ namespace Server.Controllers.Generated
         [Newtonsoft.Json.JsonProperty("lotInfo", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
         public LotInfo LotInfo { get; }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class MeasurementData
+    {
+        [Newtonsoft.Json.JsonConstructor]
+
+        public MeasurementData(string @manufactureDate, string @measurementId, ProductState @productState)
+
+        {
+
+            this.MeasurementId = @measurementId;
+
+            this.ManufactureDate = @manufactureDate;
+
+            this.ProductState = @productState;
+
+        }    [Newtonsoft.Json.JsonProperty("measurementId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [System.ComponentModel.DataAnnotations.StringLength(100)]
+        public string MeasurementId { get; }
+
+        [Newtonsoft.Json.JsonProperty("manufactureDate", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^\d{4}-(0[1-9]|1[0-2])$")]
+        public string ManufactureDate { get; }
+
+        [Newtonsoft.Json.JsonProperty("productState", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
+        public ProductState ProductState { get; }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class MeasurementDataToUpload
+    {
+        [Newtonsoft.Json.JsonConstructor]
+
+        public MeasurementDataToUpload(byte[] @file, string @manufactureDate, string @measurementId, ProductState @productState)
+
+        {
+
+            this.MeasurementId = @measurementId;
+
+            this.ManufactureDate = @manufactureDate;
+
+            this.ProductState = @productState;
+
+            this.File = @file;
+
+        }    [Newtonsoft.Json.JsonProperty("measurementId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [System.ComponentModel.DataAnnotations.StringLength(100)]
+        public string MeasurementId { get; }
+
+        [Newtonsoft.Json.JsonProperty("manufactureDate", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^\d{4}-(0[1-9]|1[0-2])$")]
+        public string ManufactureDate { get; }
+
+        [Newtonsoft.Json.JsonProperty("productState", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
+        public ProductState ProductState { get; }
+
+        [Newtonsoft.Json.JsonProperty("file", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public byte[] File { get; }
 
     }
 
@@ -1424,44 +1507,6 @@ namespace Server.Controllers.Generated
 
         }    [Newtonsoft.Json.JsonProperty("errors", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public Errors2? Errors { get; }
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class MeasurementData
-    {
-        [Newtonsoft.Json.JsonConstructor]
-
-        public MeasurementData(byte[] @file, string @manufactureDate, string @measurementId, ProductState @productState)
-
-        {
-
-            this.MeasurementId = @measurementId;
-
-            this.ManufactureDate = @manufactureDate;
-
-            this.ProductState = @productState;
-
-            this.File = @file;
-
-        }    [Newtonsoft.Json.JsonProperty("measurementId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        [System.ComponentModel.DataAnnotations.StringLength(100)]
-        public string MeasurementId { get; }
-
-        [Newtonsoft.Json.JsonProperty("manufactureDate", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        [System.ComponentModel.DataAnnotations.RegularExpression(@"^\d{4}-(0[1-9]|1[0-2])$")]
-        public string ManufactureDate { get; }
-
-        [Newtonsoft.Json.JsonProperty("productState", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
-        public ProductState ProductState { get; }
-
-        [Newtonsoft.Json.JsonProperty("file", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public byte[] File { get; }
 
     }
 

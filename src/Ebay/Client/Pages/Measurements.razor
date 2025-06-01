@@ -46,6 +46,34 @@
 <br>
 <InputFile OnChange="HandleFileSelected" accept=".zip" />
 
+@if (_measurements != null)
+{
+    <br>
+    <br>
+    <br>
+    <h3>Замеры:</h3>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Название</th>
+            <th>Дата производства</th>
+            <th>Состояние</th>
+        </tr>
+        </thead>
+        <tbody>
+
+        @foreach (var measurement in _measurements)
+        {
+            <tr>
+                <td>@measurement.MeasurementId</td>
+                <td>@measurement.ManufactureDate</td>
+                <td>@measurement.ProductState.ToString("G")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
 @code {
     private ProductWithId? _product;
     private string? _error;
@@ -53,6 +81,8 @@
     private ProductState? _selectedState;
     private DateTime? _manufactureMonth;
     private List<ProductState> _productStates = Enum.GetValues(typeof(ProductState)).Cast<ProductState>().ToList();
+    private ICollection<MeasurementData>? _measurements;
+
     [Parameter]
     public Guid ProductId { get; set; }
     
@@ -60,7 +90,7 @@
     protected async override Task OnInitializedAsync()
     {
         _product = await EbayClient.GetProductAsync(ProductId);
-        
+        _measurements = await EbayClient.GetMeasurementsAsync(ProductId);
     }
 
     private async Task HandleFileSelected(InputFileChangeEventArgs e)
@@ -97,7 +127,7 @@
             await stream.CopyToAsync(ms);
 
             await EbayClient.UploadMeasurementAsync(
-                measurementData: new MeasurementData()
+                measurementData: new MeasurementDataToUpload()
                 {
                     File = ms.ToArray(),
                     MeasurementId = id,

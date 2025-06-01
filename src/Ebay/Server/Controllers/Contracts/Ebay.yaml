@@ -220,6 +220,15 @@ paths:
         required: true
         type: string
         format: guid
+    get:
+      operationId: GetMeasurements
+      responses:
+        200:
+          description: Ok
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/MeasurementData'
     post:
       operationId: UploadMeasurement
       parameters:
@@ -227,25 +236,7 @@ paths:
           in: body
           required: true
           schema:
-            type: object
-            properties:
-              measurementId:
-                type: string
-                maxLength: 100
-              manufactureDate:
-                type: string
-                pattern: '^\d{4}-(0[1-9]|1[0-2])$'
-                example: '2024-11'
-              productState:
-                $ref: '#/definitions/ProductState'
-              file:
-                type: string
-                format: binary
-            required: 
-              - measurementId
-              - manufactureDate
-              - productState
-              - file
+            $ref: '#/definitions/MeasurementDataToUpload'
       responses:
         200:
           description: Ok
@@ -497,7 +488,45 @@ definitions:
     required:
       - productId
       - lotInfo
-  
+
+  MeasurementData:
+    type: object
+    properties:
+      measurementId:
+        type: string
+        maxLength: 100
+      manufactureDate:
+        type: string
+        pattern: '^\d{4}-(0[1-9]|1[0-2])$'
+        example: '2024-11'
+      productState:
+        $ref: '#/definitions/ProductState'
+    required:
+      - measurementId
+      - manufactureDate
+      - productState
+
+  MeasurementDataToUpload:
+    type: object
+    properties:
+      measurementId:
+        type: string
+        maxLength: 100
+      manufactureDate:
+        type: string
+        pattern: '^\d{4}-(0[1-9]|1[0-2])$'
+        example: '2024-11'
+      productState:
+        $ref: '#/definitions/ProductState'
+      file:
+        type: string
+        format: binary
+    required:
+      - measurementId
+      - manufactureDate
+      - productState
+      - file
+
   LotInfo:
     type: object
     properties:

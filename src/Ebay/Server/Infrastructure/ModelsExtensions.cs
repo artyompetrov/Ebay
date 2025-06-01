@@ -8,6 +8,7 @@ using DbLotCalculationResult = Server.Data.Models.LotCalculationResult;
 using DbProductCalculationResult = Server.Data.Models.ProductCalculationResult;
 using DbPurchaseCalculationResult = Server.Data.Models.PurchaseCalculationResult;
 using DbCurrency = Server.Data.Models.Currency;
+using DbProductState = Server.Data.Models.ProductState;
 using ApiCurrency = Server.Controllers.Generated.Currency;
 using LotCalculationResult = Server.Controllers.Generated.LotCalculationResult;
 using ProductCalculationResult = Server.Controllers.Generated.ProductCalculationResult;
@@ -15,6 +16,7 @@ using PurchaseCalculationResult = Server.Controllers.Generated.PurchaseCalculati
 using Purchase = Server.Data.Models.Purchase;
 using RuSearchQuery = Server.Controllers.Generated.RuSearchQuery;
 using SearchQuery = Server.Controllers.Generated.SearchQuery;
+using ProductState = Server.Controllers.Generated.ProductState;
 
 namespace Server.Infrastructure;
 
@@ -183,5 +185,15 @@ internal static class ModelsExtensions
                 .ToList(),
             fieldName: z.Key
         )).ToList();
+    }
+
+    public static ProductState ToApiProductState(this DbProductState productState)
+    {
+        return productState switch
+        {
+            DbProductState.New => ProductState.New,
+            DbProductState.Used => ProductState.Used,
+            _ => throw new ArgumentOutOfRangeException(paramName: nameof(productState), actualValue: productState, message: null)
+        };
     }
 }

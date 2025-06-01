@@ -286,10 +286,29 @@ internal class EbayControllerImplementation : IEbayController
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task UploadMeasurementAsync(
-        MeasurementData measurementData,
+    public async Task<ICollection<MeasurementData>> GetMeasurementsAsync(
         Guid productId,
         CancellationToken cancellationToken)
+    {
+        var measurements = await _applicationContext.ProductMeasurements
+            .Where(x => x.ProductId == productId)
+            .Select(x => new { MeasurementId = x.Id, x.ManufactureDate, x.ProductState })
+            .ToListAsync(cancellationToken);
+
+        var result = measurements
+            .Select(x => new MeasurementData(
+                manufactureDate: x.ManufactureDate,
+                measurementId: x.MeasurementId,
+                productState: x.ProductState.ToApiProductState())).ToList();
+
+        return result;
+    }
+    
+
+    public async Task UploadMeasurementAsync(
+        MeasurementDataToUpload measurementData,
+        Guid productId,
+        CancellationToken cancellationToken) 
     {
         var errors = new List<(string key, string[] value)>();
 
@@ -300,7 +319,6 @@ internal class EbayControllerImplementation : IEbayController
 
         using var inputMemoryStream = new MemoryStream(measurementData.File);
         using var archive = new ZipArchive(inputMemoryStream, ZipArchiveMode.Read, leaveOpen: true);
-
 
         var fileCount = 0;
         string? hashAnodeCurves = null;
@@ -348,8 +366,8 @@ internal class EbayControllerImplementation : IEbayController
             throw NonOkHttpAnswerException.ValidationError400(errors);
         }
 
-        await _applicationContext.ProductMeasurements.Upsert(
-                new ProductMeasurement
+        await _applicationContext.ProductMeasurements.AddAsync(
+                entity: new ProductMeasurement
                 {
                     Id = measurementData.MeasurementId,
                     ProductId = productId,
@@ -360,8 +378,8 @@ internal class EbayControllerImplementation : IEbayController
                     HashPlateCurves = hashPlateCurves ?? throw new NullReferenceException(nameof(hashPlateCurves)),
                     HashQuickTest = hashQuickTest ?? throw new NullReferenceException(nameof(hashQuickTest)),
                     ManufactureDate = measurementData.ManufactureDate
-                })
-            .RunAsync(cancellationToken);
+                },
+                cancellationToken: cancellationToken);
 
         await _applicationContext.SaveChangesAsync(cancellationToken);
 
