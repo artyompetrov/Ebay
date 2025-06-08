@@ -38,6 +38,7 @@
     <PackageVersion Include="Paramore.Brighter.Extensions.DependencyInjection" Version="9.9.8" />
     <PackageVersion Include="Paramore.Brighter.Outbox.PostgreSql" Version="9.9.8" />
     <PackageVersion Include="Plotly.Blazor" Version="6.0.1" />
+    <PackageVersion Include="ScottPlot" Version="5.0.55" />
     <PackageVersion Include="Serilog.AspNetCore" Version="9.0.0" />
   </ItemGroup>
 </Project>

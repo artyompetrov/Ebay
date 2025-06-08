@@ -22,11 +22,15 @@
 <div>
     @if (Model.Measurement == null)
     {
-        <text>Measurement not found</text>
+        <h1>Measurement not found</h1>
     }
     else
     {
-        <text>@Model.Measurement.Product</text>
+        <h1>@Model.Measurement.Product.RuSearchQueries.FirstOrDefault()?.Query</h1>
+        <h4>ManufactureDate: @Model.Measurement.ManufactureDate</h4>
+        <h4>State: @Model.Measurement.ProductState</h4>
+        
+        <img src="/m/@Model.Measurement.Id/anode_curves" alt="Anode curves">
     }
 </div>
 </body>

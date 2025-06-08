@@ -303,12 +303,12 @@ internal class EbayControllerImplementation : IEbayController
 
         return result;
     }
-    
+
 
     public async Task UploadMeasurementAsync(
         MeasurementDataToUpload measurementData,
         Guid productId,
-        CancellationToken cancellationToken) 
+        CancellationToken cancellationToken)
     {
         var errors = new List<(string key, string[] value)>();
 
@@ -317,69 +317,42 @@ internal class EbayControllerImplementation : IEbayController
             errors.Add((nameof(measurementData.MeasurementId), ["Invalid measurementId"]));
         }
 
-        using var inputMemoryStream = new MemoryStream(measurementData.File);
-        using var archive = new ZipArchive(inputMemoryStream, ZipArchiveMode.Read, leaveOpen: true);
-
-        var fileCount = 0;
-        string? hashAnodeCurves = null;
-        string? hashPlateCurves = null;
-        string? hashQuickTest = null;
-        foreach (var entry in archive.Entries)
-        {
-            var fileName = entry.Name;
-
-            if (string.IsNullOrEmpty(fileName))
-            {
-                errors.Add((nameof(measurementData), [$"No folders allowed, but found {entry.FullName}"]));
-                continue;
-            }
-
-            fileCount++;
-
-            if (fileName.EndsWith("anode_curves.uts.utd", StringComparison.Ordinal))
-            {
-                hashAnodeCurves = await ComputeEntryHashAsync(entry, cancellationToken);
-            }
-            else if (fileName.EndsWith("plate_curves.uts.utd", StringComparison.Ordinal))
-            {
-                hashPlateCurves = await ComputeEntryHashAsync(entry, cancellationToken);
-            }
-            else if (fileName.EndsWith(".txt", StringComparison.Ordinal))
-            {
-                hashQuickTest = await ComputeEntryHashAsync(entry, cancellationToken);
-            }
-            else if (!fileName.EndsWith("anode_curves.uts", StringComparison.Ordinal) &&
-                     !fileName.EndsWith("plate_curves.uts", StringComparison.Ordinal))
-            {
-                errors.Add((nameof(measurementData), [$"unsupported filename {entry.FullName}"]));
-            }
-        }
-
-        if (fileCount != 5)
-        {
-            errors.Add((nameof(measurementData), ["exactly 5 files expected"]));
-        }
-
-
         if (errors.Count > 0)
         {
             throw NonOkHttpAnswerException.ValidationError400(errors);
         }
 
+        if (!MeasurementHelper.ReadMeasurementFile(
+                measurementData: measurementData.File,
+                errors: out var fileErrors,
+                anodeCurvesConfig: out  _,
+                plateCurvesConfig: out _,
+                anodeCurves: out var anodeCurves,
+                plateCurves: out var plateCurves,
+                quickTest: out var quickTest))
+        {
+            errors.Add((nameof(measurementData.File), fileErrors.ToArray()));
+            throw NonOkHttpAnswerException.ValidationError400(errors);
+        }
+
+        var hashAnodeCurves = ComputeEntryHashAsync(anodeCurves);
+        var hashPlateCurves = ComputeEntryHashAsync(plateCurves);
+        var hashQuickTest = ComputeEntryHashAsync(quickTest);
+
         await _applicationContext.ProductMeasurements.AddAsync(
-                entity: new ProductMeasurement
-                {
-                    Id = measurementData.MeasurementId,
-                    ProductId = productId,
-                    MeasurementState = MeasurementState.Created,
-                    ProductState = measurementData.ProductState.ToDbProductState(),
-                    Measurements = inputMemoryStream.ToArray(),
-                    HashAnodeCurves = hashAnodeCurves ?? throw new NullReferenceException(nameof(hashAnodeCurves)),
-                    HashPlateCurves = hashPlateCurves ?? throw new NullReferenceException(nameof(hashPlateCurves)),
-                    HashQuickTest = hashQuickTest ?? throw new NullReferenceException(nameof(hashQuickTest)),
-                    ManufactureDate = measurementData.ManufactureDate
-                },
-                cancellationToken: cancellationToken);
+            entity: new ProductMeasurement
+            {
+                Id = measurementData.MeasurementId,
+                ProductId = productId,
+                MeasurementState = MeasurementState.Created,
+                ProductState = measurementData.ProductState.ToDbProductState(),
+                Measurements = measurementData.File,
+                HashAnodeCurves = hashAnodeCurves ?? throw new NullReferenceException(nameof(hashAnodeCurves)),
+                HashPlateCurves = hashPlateCurves ?? throw new NullReferenceException(nameof(hashPlateCurves)),
+                HashQuickTest = hashQuickTest ?? throw new NullReferenceException(nameof(hashQuickTest)),
+                ManufactureDate = measurementData.ManufactureDate
+            },
+            cancellationToken: cancellationToken);
 
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
@@ -396,12 +369,9 @@ internal class EbayControllerImplementation : IEbayController
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 
-    private async static Task<string> ComputeEntryHashAsync(ZipArchiveEntry entry, CancellationToken cancellationToken)
+    private static string ComputeEntryHashAsync(byte[] bytes)
     {
-        await using var entryStream = entry.Open();
-        using var memory = new MemoryStream();
-        await entryStream.CopyToAsync(memory, cancellationToken);
-        var hashBytes = SHA256.HashData(memory.ToArray());
+        var hashBytes = SHA256.HashData(bytes);
         return Convert.ToHexString(hashBytes);
     }
     public async Task<LotInfoWithProductId> GetLotInfoAsync(
