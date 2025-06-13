@@ -59,6 +59,12 @@ public class MeasurementPage : PageModel
 
         quickTestStr = Regex.Replace(
             quickTestStr,
+            @"(\r?\n[ \t]*){2,}",
+            "\n\n"
+        );
+        
+        quickTestStr = Regex.Replace(
+            quickTestStr,
             @"\s+\d+\s*% of nominal [\d\.,]+ ?\([^)]+\)",
             m => new string(' ', m.Value.Length));
 
@@ -87,6 +93,6 @@ public class MeasurementPage : PageModel
             RegexOptions.Multiline
         );
         
-        return aligned;
+        return aligned.Trim();
     }
 }
