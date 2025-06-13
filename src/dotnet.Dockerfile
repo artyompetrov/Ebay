@@ -9,7 +9,7 @@ COPY Ebay Ebay
 WORKDIR "/src/Ebay/Server"
 ARG BUILD_VERSION="0.0.0.1"
 RUN dotnet publish "Server.csproj" -c Release -o /app/publish /p:UseAppHost=false /p:Version=$BUILD_VERSION
-RUN apt-get update && apt-get install -y fonts-dejavu fonts-liberation && fc-cache -f -v
+RUN apt-get update && apt-get install -y fontconfig fonts-dejavu fonts-liberation && fc-cache -f -v
 
 FROM node:18-alpine AS build_crome_extension
 WORKDIR /src
@@ -30,10 +30,6 @@ COPY --from=build_crome_extension /app/publish/mlebgdemjnpnfgcgbbncllpniiicffbm_
 
 COPY --from=build_dotnet /usr/share/fonts /usr/share/fonts
 COPY --from=build_dotnet /etc/fonts /etc/fonts
-
-RUN apt update && \
-    aptя install -y fonts-dejavu fonts-liberation && \
-    fc-cache -f -v
 
 EXPOSE 80
 EXPOSE 443
