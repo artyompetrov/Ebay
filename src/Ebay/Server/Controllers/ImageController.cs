@@ -18,7 +18,11 @@ public class ImageController : ControllerBase
     }
 
     [HttpGet("{measurementId}/curves")]
-    public async Task<IActionResult> Get(string measurementId)
+    public async Task<IActionResult> Get(
+        string measurementId,
+        [FromQuery] bool vertical = true,
+        [FromQuery] int width = 800,
+        [FromQuery] int height = 500)
     {
         var measurements = await _applicationContext.ProductMeasurements
             .AsNoTracking()
@@ -40,10 +44,25 @@ public class ImageController : ControllerBase
             return Problem();
         }
 
-        var anodeCurvesSvg = CreateAnodeCurvesPlot(anodeCurves: anodeCurves);
-        var plateCurvesSvg = CreatePlateCurvesPlot(plateCurves: plateCurves);
+        var anodeCurvesSvg = CreatePlot(
+            measurementData: anodeCurves,
+            action: PlotAnodeCurves,
+            vertical: vertical,
+            width: width,
+            height: height);
+        
+        var plateCurvesSvg = CreatePlot(
+            measurementData: plateCurves,
+            action: PlotPlateCurves,
+            vertical: vertical,
+            width: width,
+            height: height);
 
-        var result = SvgMerger.MergeSvgsHorizontally(vertical: true, defaultFontFamily: "Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif", anodeCurvesSvg, plateCurvesSvg);
+        var result = SvgMerger.MergeSvgsHorizontally(
+            vertical: vertical,
+            defaultFontFamily: "Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif",
+            anodeCurvesSvg,
+            plateCurvesSvg);
 
         var response = Content(result, "image/svg+xml");
 #if !DEBUG
@@ -54,58 +73,44 @@ public class ImageController : ControllerBase
         return response;
     }
 
-    private static string CreateAnodeCurvesPlot(byte[] anodeCurves)
+    private static void PlotAnodeCurves(Dictionary<int, MeasurementPoint[]> data, Plot plot, List<LegendItem> legendItems)
     {
-        var plt = new Plot();
-        var anodeCurvesPoints = MeasurementHelper.ParseSpaceSeparatedTable(anodeCurves);
-        var legendItems = new List<LegendItem>();
-        
-        foreach (var (i, values) in anodeCurvesPoints)
+        foreach (var (i, values) in data)
         {
             var vg = values.Select(x => x.Vg).Average();
-            
-            var s = plt.Add.Scatter(values.Select(x => new Coordinates(x: x.Va, y: x.Ia)).ToList());
+
+            var s = plot.Add.Scatter(values.Select(x => new Coordinates(x: x.Va, y: x.Ia)).ToList());
             s.LinePattern = LinePattern.Solid;
             s.MarkerShape = MarkerShape.Cross;
-            
-            var s2 = plt.Add.Scatter(values.Select(x => new Coordinates(x: x.Va, y: x.Is)).ToList());
+
+            var s2 = plot.Add.Scatter(values.Select(x => new Coordinates(x: x.Va, y: x.Is)).ToList());
             s2.LinePattern = LinePattern.Solid;
             s2.MarkerShape = MarkerShape.OpenDiamond;
             s2.Color = s.Color;
-    
-            legendItems.Add(new LegendItem
-            {
-                LabelText = $"Vg = {vg:N0}",
-                LineColor = s.Color,
-                LinePattern = LinePattern.Solid,
-                LineWidth = 5
-            });
-        }
-        
-        plt.XLabel("Va (V)");
-        plt.YLabel("Ia (mA)");
-        plt.Title("Anode Curves");
-        plt.Legend.ManualItems = legendItems;
-        plt.ShowLegend(Edge.Bottom);
 
-        return plt.GetSvgXml(600, 500);
+            legendItems.Add(
+                new LegendItem
+                {
+                    LabelText = $"Vg = {vg:N0}", LineColor = s.Color, LinePattern = LinePattern.Solid, LineWidth = 5
+                });
+        }
+
+        plot.XLabel("Va (V)");
+        plot.YLabel("Ia (mA)");
+        plot.Title("Anode Curves");
     }
     
-    private static string CreatePlateCurvesPlot(byte[] plateCurves)
+    private static void PlotPlateCurves(Dictionary<int, MeasurementPoint[]> data, Plot plot, List<LegendItem> legendItems)
     {
-        var plt = new Plot();
-        var plateCurvesPoints = MeasurementHelper.ParseSpaceSeparatedTable(plateCurves);
-        var legendItems = new List<LegendItem>();
-        
-        foreach (var (i, values) in plateCurvesPoints)
+        foreach (var (i, values) in data)
         {
             var va = values.Select(x => x.Va).Average();
             
-            var s = plt.Add.Scatter(values.Select(x => new Coordinates(x: x.Vg, y: x.Ia)).ToList());
+            var s = plot.Add.Scatter(values.Select(x => new Coordinates(x: x.Vg, y: x.Ia)).ToList());
             s.LinePattern = LinePattern.Solid;
             s.MarkerShape = MarkerShape.Cross;
             
-            var s2 = plt.Add.Scatter(values.Select(x => new Coordinates(x: x.Vg, y: x.Is)).ToList());
+            var s2 = plot.Add.Scatter(values.Select(x => new Coordinates(x: x.Vg, y: x.Is)).ToList());
             s2.LinePattern = LinePattern.Solid;
             s2.MarkerShape = MarkerShape.OpenDiamond;
             s2.Color = s.Color;
@@ -119,12 +124,28 @@ public class ImageController : ControllerBase
             });
         }
         
-        plt.XLabel("Vg (V)");
-        plt.YLabel("Ia (mA)");
-        plt.Title("Plate Curves");
-        plt.Legend.ManualItems = legendItems;
-        plt.ShowLegend(Edge.Bottom);
+        plot.XLabel("Vg (V)");
+        plot.YLabel("Ia (mA)");
+        plot.Title("Plate Curves");
+    }
 
-        return plt.GetSvgXml(600, 500);
+    private static string CreatePlot(
+        byte[] measurementData,
+        Action<Dictionary<int, MeasurementPoint[]>, Plot, List<LegendItem>> action,
+        bool vertical,
+        int width,
+        int height)
+    {
+        var plt = new Plot();
+        var anodeCurvesPoints = MeasurementHelper.ParseSpaceSeparatedTable(measurementData);
+        var legendItems = new List<LegendItem>();
+
+        action(arg1: anodeCurvesPoints, arg2: plt, arg3: legendItems);
+
+        plt.Legend.ManualItems = legendItems;
+        
+        plt.ShowLegend(vertical ? Edge.Right : Edge.Bottom);
+
+        return plt.GetSvgXml(width: width, height: height);
     }
 }
