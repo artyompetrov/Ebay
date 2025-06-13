@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ScottPlot;
-using ScottPlot.Stylers;
 using Server.Data;
 using Server.Infrastructure;
 
@@ -58,6 +57,7 @@ public class ImageController : ControllerBase
     private static string CreateAnodeCurvesPlot(byte[] anodeCurves)
     {
         var plt = new Plot();
+        plt.Font.Set("");
         var anodeCurvesPoints = MeasurementHelper.ParseSpaceSeparatedTable(anodeCurves);
         var legendItems = new List<LegendItem>();
         
