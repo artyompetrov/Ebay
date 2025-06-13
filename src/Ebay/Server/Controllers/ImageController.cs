@@ -139,9 +139,10 @@ public class ImageController : ControllerBase
     {
         var plt = new Plot();
         var style = new Light();
-        style.FigureBackgroundColor = new(0, 0, 0, 0);
-        style.DataBackgroundColor = new(0, 0, 0, 0);
-        style.LegendBackgroundColor = new(0, 0, 0, 0);
+        style.FigureBackgroundColor = new Color(0, 0, 0, 0);
+        style.DataBackgroundColor = new Color(0, 0, 0, 0);
+        style.LegendBackgroundColor = new Color(0, 0, 0, 0);
+        style.LegendOutlineColor = new(0, 0, 0);
         plt.SetStyle(style);
         var anodeCurvesPoints = MeasurementHelper.ParseSpaceSeparatedTable(measurementData);
         var legendItems = new List<LegendItem>();
@@ -149,7 +150,7 @@ public class ImageController : ControllerBase
         action(arg1: anodeCurvesPoints, arg2: plt, arg3: legendItems);
 
         plt.Legend.ManualItems = legendItems;
-        
+        plt.Legend.ShadowColor = new Color(0, 0, 0, 0);;
         plt.ShowLegend(vertical ? Edge.Right : Edge.Bottom);
 
         return plt.GetSvgXml(width: width, height: height);
