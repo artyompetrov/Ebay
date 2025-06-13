@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ScottPlot;
+using ScottPlot.Stylers;
 using Server.Data;
 using Server.Infrastructure;
 
@@ -43,7 +44,7 @@ public class ImageController : ControllerBase
         var anodeCurvesSvg = CreateAnodeCurvesPlot(anodeCurves: anodeCurves);
         var plateCurvesSvg = CreatePlateCurvesPlot(plateCurves: plateCurves);
 
-        var result = SvgMerger.MergeSvgsHorizontally(anodeCurvesSvg, plateCurvesSvg);
+        var result = SvgMerger.MergeSvgsHorizontally(vertical: true, anodeCurvesSvg, plateCurvesSvg);
 
         var response = Content(result, "image/svg+xml");
 #if !DEBUG
@@ -57,6 +58,7 @@ public class ImageController : ControllerBase
     private static string CreateAnodeCurvesPlot(byte[] anodeCurves)
     {
         var plt = new Plot();
+        plt.Font.Set("Segoe UI, Arial, Helvetica, sans-serif");
         var anodeCurvesPoints = MeasurementHelper.ParseSpaceSeparatedTable(anodeCurves);
         var legendItems = new List<LegendItem>();
         
