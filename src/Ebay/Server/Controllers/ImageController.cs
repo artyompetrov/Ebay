@@ -43,7 +43,7 @@ public class ImageController : ControllerBase
         var anodeCurvesSvg = CreateAnodeCurvesPlot(anodeCurves: anodeCurves);
         var plateCurvesSvg = CreatePlateCurvesPlot(plateCurves: plateCurves);
 
-        var result = SvgMerger.MergeSvgsHorizontally(vertical: true, anodeCurvesSvg, plateCurvesSvg);
+        var result = SvgMerger.MergeSvgsHorizontally(vertical: true, defaultFontFamily: "Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif", anodeCurvesSvg, plateCurvesSvg);
 
         var response = Content(result, "image/svg+xml");
 #if !DEBUG
@@ -57,7 +57,6 @@ public class ImageController : ControllerBase
     private static string CreateAnodeCurvesPlot(byte[] anodeCurves)
     {
         var plt = new Plot();
-        plt.Font.Set("");
         var anodeCurvesPoints = MeasurementHelper.ParseSpaceSeparatedTable(anodeCurves);
         var legendItems = new List<LegendItem>();
         
