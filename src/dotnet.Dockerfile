@@ -1,4 +1,4 @@
-﻿FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm AS build_dotnet
+﻿FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim AS build_dotnet
 WORKDIR /src
 COPY "Ebay/Ebay.sln" "Ebay/"
 COPY "Ebay/Directory.Packages.props" "Ebay/"
