@@ -58,7 +58,7 @@ public class ImageController : ControllerBase
     private static string CreateAnodeCurvesPlot(byte[] anodeCurves)
     {
         var plt = new Plot();
-        plt.Font.Set("Segoe UI, Arial, Helvetica, sans-serif");
+        plt.Font.Set("Arial");
         var anodeCurvesPoints = MeasurementHelper.ParseSpaceSeparatedTable(anodeCurves);
         var legendItems = new List<LegendItem>();
         
@@ -96,6 +96,7 @@ public class ImageController : ControllerBase
     private static string CreatePlateCurvesPlot(byte[] plateCurves)
     {
         var plt = new Plot();
+        plt.Font.Set("Arial");
         var plateCurvesPoints = MeasurementHelper.ParseSpaceSeparatedTable(plateCurves);
         var legendItems = new List<LegendItem>();
         
