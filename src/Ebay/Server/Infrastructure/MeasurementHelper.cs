@@ -41,7 +41,11 @@ public static class MeasurementHelper
             {
                 anodeCurves = GetBytes(entry);
             }
-            else if (fileName.EndsWith("grid_curves.uts.utd", StringComparison.Ordinal) || /*два названия из-за ошибки (раньше grid curves назывались plate curves в коде)*/ fileName.EndsWith("plate_curves.uts.utd", StringComparison.Ordinal))
+            else if
+                (fileName.EndsWith("grid_curves.uts.utd", comparisonType: StringComparison.Ordinal) ||
+                 /*два названия из-за ошибки (раньше grid curves ошибочно назывались plate curves в коде,
+                  неправильные названия остались в zip файлах)*/
+                 fileName.EndsWith("plate_curves.uts.utd", StringComparison.Ordinal))
             {
                 gridCurves = GetBytes(entry);
             }
@@ -53,7 +57,11 @@ public static class MeasurementHelper
             {
                 anodeCurvesConfig = GetBytes(entry);
             }
-            else if (fileName.EndsWith("grid_curves.uts", StringComparison.Ordinal) || /*два названия из-за ошибки (раньше grid curves назывались plate curves в коде)*/ fileName.EndsWith("plate_curves.uts", StringComparison.Ordinal))
+            else if
+                (fileName.EndsWith("grid_curves.uts", comparisonType: StringComparison.Ordinal) ||
+                 /*два названия из-за ошибки (раньше grid curves ошибочно назывались plate curves в коде,
+                  неправильные названия остались в zip файлах)*/
+                 fileName.EndsWith("plate_curves.uts", StringComparison.Ordinal))
             {
                 gridCurvesConfig = GetBytes(entry);
             }
