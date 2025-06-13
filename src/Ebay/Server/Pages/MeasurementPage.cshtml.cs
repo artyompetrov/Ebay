@@ -48,12 +48,12 @@ public class MeasurementPage : PageModel
             return NotFound("Measurement not found");
         }
 
-        QuickTest = ParseAndPretifyQuickTest(quickTest);
+        QuickTest = ParseAndPrettifyQuickTest(quickTest);
         
         return Page();
     }
 
-    private static string ParseAndPretifyQuickTest(byte[] quickTest)
+    private static string ParseAndPrettifyQuickTest(byte[] quickTest)
     {
         var quickTestStr = System.Text.Encoding.UTF8.GetString(quickTest);
 

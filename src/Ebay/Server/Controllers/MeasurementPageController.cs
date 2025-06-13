@@ -9,15 +9,34 @@ namespace Server.Controllers;
 
 [ApiController]
 [Route("/m/")]
-public class ImageController : ControllerBase
+public class MeasurementPageController : ControllerBase
 {
     private readonly ApplicationDbContext _applicationContext;
 
-    public ImageController(ApplicationDbContext applicationContext)
+    public MeasurementPageController(ApplicationDbContext applicationContext)
     {
         _applicationContext = applicationContext;
     }
 
+    [HttpGet("{measurementId}/download")]
+    public async Task<IActionResult> DownloadZip(string measurementId)
+    {
+        var zipBytes = await _applicationContext.ProductMeasurements
+            .AsNoTracking()
+            .Where(x => x.Id == measurementId)
+            .Select(x => x.Measurements)
+            .SingleOrDefaultAsync();
+        
+        if (zipBytes == null)
+            return NotFound();
+        
+        return File(
+            zipBytes,
+            "application/zip",
+            $"{measurementId}.zip"
+        );
+    }
+    
     [HttpGet("{measurementId}/curves")]
     public async Task<IActionResult> Get(
         string measurementId,

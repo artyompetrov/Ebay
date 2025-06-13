@@ -16,18 +16,24 @@
     <h4>Thank you for your purchase!</h4>
     <p>
         If you’re happy with your order, please consider leaving positive feedback — it really helps my small business.<br>
-        If you need more items, you can find them in <a href="https://www.ebay.com/usr/radiotubes_kz" rel="noreferrer" target="_blank">eBay store</a>.<br>
+        If you need more items, you can find them in my <a href="https://www.ebay.com/usr/radiotubes_kz" rel="noreferrer" target="_blank">eBay store</a>.<br>
         Thank you again!
     </p>
-    <h3>Below are the test results for your item</h3>
+    <h4>A few words about the measurement equipment</h4>
     <p>
-        The measurements were performed using a <a href="https://www.dos4ever.com/uTracer3/uTracer3_pag0.html" rel="noreferrer" target="_blank">uTracer 3+ tube tester</a>.<br>
-        Maximum measurement ranges: up to 400V (anode/screen), 200V (grid), and 600mA (current).
+        Measurements were performed using a <a href="https://www.dos4ever.com/uTracer3/uTracer3_pag0.html" rel="noreferrer" target="_blank">uTracer 3+ tube tester</a>.<br>
+        Maximum measurement ranges: up to 400V (anode/screen), 50V (grid), and 600mA (current).
     </p>
+    <br>
+    <h2>Measurement results:</h2>
     <p><b>Item name:</b> @Model.Measurement.Product.SearchQueries.FirstOrDefault()?.Query </p>
     <p><b>Item number:</b> @Model.Measurement.Id</p>
-    <p><b>ManufactureDate:</b> @Model.Measurement.ManufactureDate</p>
-    <p><b>State:</b> @Model.Measurement.ProductState</p>
+    <p><b>Manufacture date:</b> @Model.Measurement.ManufactureDate</p>
+    <p><b>Condition:</b> @Model.Measurement.ProductState</p>
+    <h3>Download:</h3>
+    <p><a href="/m/@Model.Measurement.Id/download" target="_blank">Zip archive with measurements</a> 
+        (you can import  it into <a href="https://www.dos4ever.com/uTracer3/uTracer3_pag0.html" rel="noreferrer" target="_blank">excel</a>,
+        or a <a href="https://www.dos4ever.com/uTracer3/uTracer3_pag0.html" rel="noreferrer" target="_blank">load line tool</a>)</p>
     <h3>Quick test results:</h3>
     <pre>@Model.QuickTest</pre>
     
