@@ -40,9 +40,9 @@ public class MeasurementPage : PageModel
                 measurementData: Measurement.Measurements,
                 errors: out var fileErrors,
                 anodeCurvesConfig: out var anodeCurvesConfig,
-                plateCurvesConfig: out var plateCurvesConfig,
+                gridCurvesConfig: out var gridCurvesConfig,
                 anodeCurves: out var anodeCurves,
-                plateCurves: out var plateCurves,
+                gridCurves: out var gridCurves,
                 quickTest: out var quickTest))
         {
             return NotFound("Measurement not found");

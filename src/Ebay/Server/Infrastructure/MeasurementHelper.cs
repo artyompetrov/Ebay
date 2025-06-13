@@ -10,17 +10,17 @@ public static class MeasurementHelper
         byte[] measurementData,
         [NotNullWhen(false)] out List<string>? errors,
         [NotNullWhen(true)] out byte[]? anodeCurvesConfig,
-        [NotNullWhen(true)] out byte[]? plateCurvesConfig,
+        [NotNullWhen(true)] out byte[]? gridCurvesConfig,
         [NotNullWhen(true)] out byte[]? anodeCurves,
-        [NotNullWhen(true)] out byte[]? plateCurves,
+        [NotNullWhen(true)] out byte[]? gridCurves,
         [NotNullWhen(true)] out byte[]? quickTest)
     {
         errors = [];
         anodeCurves = [];
-        plateCurves = [];
+        gridCurves = [];
         quickTest = [];
         anodeCurvesConfig = [];
-        plateCurvesConfig = [];
+        gridCurvesConfig = [];
 
         using var inputMemoryStream = new MemoryStream(measurementData);
         using var archive = new ZipArchive(inputMemoryStream, ZipArchiveMode.Read, leaveOpen: true);
@@ -41,9 +41,9 @@ public static class MeasurementHelper
             {
                 anodeCurves = GetBytes(entry);
             }
-            else if (fileName.EndsWith("plate_curves.uts.utd", StringComparison.Ordinal))
+            else if (fileName.EndsWith("grid_curves.uts.utd", StringComparison.Ordinal) || /*два названия из-за ошибки (раньше grid curves назывались plate curves в коде)*/ fileName.EndsWith("plate_curves.uts.utd", StringComparison.Ordinal))
             {
-                plateCurves = GetBytes(entry);
+                gridCurves = GetBytes(entry);
             }
             else if (fileName.EndsWith(".txt", StringComparison.Ordinal))
             {
@@ -53,9 +53,9 @@ public static class MeasurementHelper
             {
                 anodeCurvesConfig = GetBytes(entry);
             }
-            else if (fileName.EndsWith("plate_curves.uts", StringComparison.Ordinal))
+            else if (fileName.EndsWith("grid_curves.uts", StringComparison.Ordinal) || /*два названия из-за ошибки (раньше grid curves назывались plate curves в коде)*/ fileName.EndsWith("plate_curves.uts", StringComparison.Ordinal))
             {
-                plateCurvesConfig = GetBytes(entry);
+                gridCurvesConfig = GetBytes(entry);
             }
             else
             {
@@ -72,10 +72,10 @@ public static class MeasurementHelper
 
 
         anodeCurves = null;
-        plateCurves = null;
+        gridCurves = null;
         quickTest = null;
         anodeCurvesConfig = null;
-        plateCurvesConfig = null;
+        gridCurvesConfig = null;
         return false;
     }
 

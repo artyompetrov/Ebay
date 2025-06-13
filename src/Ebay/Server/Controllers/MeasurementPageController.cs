@@ -56,9 +56,9 @@ public class MeasurementPageController : ControllerBase
                 measurementData: measurements,
                 errors: out var fileErrors,
                 anodeCurvesConfig: out var anodeCurvesConfig,
-                plateCurvesConfig: out var plateCurvesConfig,
+                gridCurvesConfig: out var gridCurvesConfig,
                 anodeCurves: out var anodeCurves,
-                plateCurves: out var plateCurves,
+                gridCurves: out var gridCurves,
                 quickTest: out var quickTest))
         {
             return Problem();
@@ -71,9 +71,9 @@ public class MeasurementPageController : ControllerBase
             width: width,
             height: height);
         
-        var plateCurvesSvg = CreatePlot(
-            measurementData: plateCurves,
-            action: PlotPlateCurves,
+        var gridCurvesSvg = CreatePlot(
+            measurementData: gridCurves,
+            action: PlotGridCurves,
             vertical: vertical,
             width: width,
             height: height);
@@ -82,7 +82,7 @@ public class MeasurementPageController : ControllerBase
             vertical: vertical,
             defaultFontFamily: "Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif",
             anodeCurvesSvg,
-            plateCurvesSvg);
+            gridCurvesSvg);
 
         var response = Content(result, "image/svg+xml");
 #if !DEBUG
@@ -95,8 +95,24 @@ public class MeasurementPageController : ControllerBase
 
     private static void PlotAnodeCurves(Dictionary<int, MeasurementPoint[]> data, Plot plot, List<LegendItem> legendItems)
     {
+        var maxX = 0.0;
+        var maxY = 0.0;
+
         foreach (var (i, values) in data)
         {
+            var lineMaxX = values.Select(x => x.Va).Max();
+            var lineMaxY = values.Select(x => x.Ia).Union(values.Select(x=>x.Is)).Max();
+
+            if (lineMaxX > maxX)
+            {
+                maxX = lineMaxX;
+            }
+            
+            if (lineMaxY > maxY)
+            {
+                maxY = lineMaxY;
+            }
+            
             var vg = values.Select(x => x.Vg).Average();
 
             var s = plot.Add.Scatter(values.Select(x => new Coordinates(x: x.Va, y: x.Ia)).ToList());
@@ -114,16 +130,50 @@ public class MeasurementPageController : ControllerBase
                     LabelText = $"Vg = {vg:N0}", LineColor = s.Color, LinePattern = LinePattern.Solid, LineWidth = 5
                 });
         }
-
+        
+        var pMax = 1.1; //todo нужно получать из конфига
+        
+        double PowerLimit(double u) => pMax * 1000 / u;
+        
+        var func = plot.Add.Function(PowerLimit);
+        func.MinX = 0.1;
+        func.LineColor = new Color(255, 0, 0);
+        func.LineWidth = 2;
+        legendItems.Add(
+            new LegendItem
+            {
+                LabelText = $"MaxP = {pMax}W", LineColor = func.LineColor, LineWidth = func.LineWidth
+            });
+        plot.Axes.SetLimits(bottom: 0, left: 0, top: maxY, right: maxX);
         plot.XLabel("Va (V)");
         plot.YLabel("Ia (mA)");
-        plot.Title("Anode Curves");
+        plot.Title("Anode curves");
+        
     }
     
-    private static void PlotPlateCurves(Dictionary<int, MeasurementPoint[]> data, Plot plot, List<LegendItem> legendItems)
+    private static void PlotGridCurves(
+        Dictionary<int, MeasurementPoint[]> data,
+        Plot plot,
+        List<LegendItem> legendItems)
     {
+        
+        var minX = 0.0;
+        var maxY = 0.0;
         foreach (var (i, values) in data)
         {
+            var lineMinX = values.Select(x => x.Vg).Min();
+            var lineMaxY = values.Select(x => x.Ia).Union(values.Select(x=>x.Is)).Max();
+
+            if (lineMinX < minX)
+            {
+                minX = lineMinX;
+            }
+            
+            if (lineMaxY > maxY)
+            {
+                maxY = lineMaxY;
+            }
+            
             var va = values.Select(x => x.Va).Average();
             
             var s = plot.Add.Scatter(values.Select(x => new Coordinates(x: x.Vg, y: x.Ia)).ToList());
@@ -143,10 +193,10 @@ public class MeasurementPageController : ControllerBase
                 LineWidth = 5
             });
         }
-        
+        plot.Axes.SetLimits(bottom: 0, left: minX, top: maxY, right: 0);
         plot.XLabel("Vg (V)");
         plot.YLabel("Ia (mA)");
-        plot.Title("Plate Curves");
+        plot.Title("Grid curves");
     }
 
     private static string CreatePlot(

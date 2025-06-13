@@ -326,9 +326,9 @@ internal class EbayControllerImplementation : IEbayController
                 measurementData: measurementData.File,
                 errors: out var fileErrors,
                 anodeCurvesConfig: out  _,
-                plateCurvesConfig: out _,
+                gridCurvesConfig: out _,
                 anodeCurves: out var anodeCurves,
-                plateCurves: out var plateCurves,
+                gridCurves: out var gridCurves,
                 quickTest: out var quickTest))
         {
             errors.Add((nameof(measurementData.File), fileErrors.ToArray()));
@@ -336,7 +336,7 @@ internal class EbayControllerImplementation : IEbayController
         }
 
         var hashAnodeCurves = ComputeEntryHashAsync(anodeCurves);
-        var hashPlateCurves = ComputeEntryHashAsync(plateCurves);
+        var hashGridCurves = ComputeEntryHashAsync(gridCurves);
         var hashQuickTest = ComputeEntryHashAsync(quickTest);
 
         await _applicationContext.ProductMeasurements.AddAsync(
@@ -348,7 +348,7 @@ internal class EbayControllerImplementation : IEbayController
                 ProductState = measurementData.ProductState.ToDbProductState(),
                 Measurements = measurementData.File,
                 HashAnodeCurves = hashAnodeCurves ?? throw new NullReferenceException(nameof(hashAnodeCurves)),
-                HashPlateCurves = hashPlateCurves ?? throw new NullReferenceException(nameof(hashPlateCurves)),
+                HashGridCurves = hashGridCurves ?? throw new NullReferenceException(nameof(hashGridCurves)),
                 HashQuickTest = hashQuickTest ?? throw new NullReferenceException(nameof(hashQuickTest)),
                 ManufactureDate = measurementData.ManufactureDate
             },
