@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ScottPlot;
+using ScottPlot.PlotStyles;
 using Server.Data;
 using Server.Infrastructure;
 
@@ -137,6 +138,11 @@ public class ImageController : ControllerBase
         int height)
     {
         var plt = new Plot();
+        var style = new Light();
+        style.FigureBackgroundColor = new(0, 0, 0, 0);
+        style.DataBackgroundColor = new(0, 0, 0, 0);
+        style.LegendBackgroundColor = new(0, 0, 0, 0);
+        plt.SetStyle(style);
         var anodeCurvesPoints = MeasurementHelper.ParseSpaceSeparatedTable(measurementData);
         var legendItems = new List<LegendItem>();
 
