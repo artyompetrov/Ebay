@@ -3,10 +3,12 @@ using Server;
 using Client.Clients.Generated;
 using Server.Services;
 using Newtonsoft.Json.Linq;
+using NUnit.Framework;
 using LotDataToExtract = Server.Controllers.Generated.LotDataToExtract;
 
 namespace Tests;
 
+[Category("ExplicitOnly")]
 [Explicit]
 public class ExplicitTests
 {
