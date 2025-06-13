@@ -58,7 +58,7 @@
     <div>Запросы (eBay):
     @foreach (var query in _product!.SearchQueries)
     {
-        <span><a href="@Helpers.GetSearchLink(query: query.Query, productId: _product.Id)" rel="noreferrer" target=”_blank”>@Helpers.HighlightMinorityLetters(query.Query, "red")</a>&#160;</span>
+        <span><a href="@Helpers.GetSearchLink(query: query.Query, productId: _product.Id)" rel="noreferrer" target="_blank">@Helpers.HighlightMinorityLetters(query.Query, "red")</a>&#160;</span>
     }
     </div>
 

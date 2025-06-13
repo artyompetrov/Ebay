@@ -9,29 +9,30 @@
 
 <html lang="en">
 <head>
-    @if (Model.Measurement == null)
-    {
-        <title>Measurement not found</title>
-    }
-    else
-    {
-        <title>@Model.Measurement.Id</title>
-    }
+        <title>@Model.Measurement.Product.SearchQueries.FirstOrDefault()?.Query #@Model.Measurement.Id</title>
 </head>
 <body>
 <div>
-    @if (Model.Measurement == null)
-    {
-        <h1>Measurement not found</h1>
-    }
-    else
-    {
-        <h1>@Model.Measurement.Product.SearchQueries.FirstOrDefault()?.Query #@Model.Measurement.Id</h1>
-        <h4>ManufactureDate: @Model.Measurement.ManufactureDate</h4>
-        <h4>State: @Model.Measurement.ProductState</h4>
-        
-        <img src="/m/@Model.Measurement.Id/curves" alt="Curves">
-    }
+    <h4>Thank you for your purchase!</h4>
+    <p>
+        If you’re happy with your order, please consider leaving positive feedback — it really helps my small business.<br>
+        If you need more items, you can find them in <a href="https://www.ebay.com/usr/radiotubes_kz" rel="noreferrer" target="_blank">radiotubes_kz eBay store</a>.<br>
+        Thank you again!
+    </p>
+    <h3>Below are the test results for your item</h3>
+    <p>
+        The measurements were performed using a <a href="https://www.dos4ever.com/uTracer3/uTracer3_pag0.html" rel="noreferrer" target="_blank">uTracer 3+ tube tester</a>.<br>
+        Maximum measurement ranges: up to 400V (anode/screen), 200V (grid), and 600mA (current).
+    </p>
+    <p><b>Item name:</b> @Model.Measurement.Product.SearchQueries.FirstOrDefault()?.Query </p>
+    <p><b>Item number:</b> @Model.Measurement.Id</p>
+    <p><b>ManufactureDate:</b> @Model.Measurement.ManufactureDate</p>
+    <p><b>State:</b> @Model.Measurement.ProductState</p>
+    <h3>Quick test results:</h3>
+    <pre>@Model.QuickTest</pre>
+    
+    <h3>Curves:</h3>
+    <img src="/m/@Model.Measurement.Id/curves" alt="Curves">
 </div>
 </body>
 </html>
