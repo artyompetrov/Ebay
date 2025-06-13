@@ -26,11 +26,11 @@
     }
     else
     {
-        <h1>@Model.Measurement.Product.RuSearchQueries.FirstOrDefault()?.Query</h1>
+        <h1>@Model.Measurement.Product.SearchQueries.FirstOrDefault()?.Query #@Model.Measurement.Id</h1>
         <h4>ManufactureDate: @Model.Measurement.ManufactureDate</h4>
         <h4>State: @Model.Measurement.ProductState</h4>
         
-        <img src="/m/@Model.Measurement.Id/anode_curves" alt="Anode curves">
+        <img src="/m/@Model.Measurement.Id/curves" alt="Curves">
     }
 </div>
 </body>

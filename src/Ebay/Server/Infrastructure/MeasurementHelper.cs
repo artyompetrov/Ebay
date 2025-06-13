@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.IO.Compression;
 
 namespace Server.Infrastructure;
@@ -8,11 +9,11 @@ public static class MeasurementHelper
     public static bool ReadMeasurementFile(
         byte[] measurementData,
         [NotNullWhen(false)] out List<string>? errors,
-        [NotNullWhen(true)]out byte[]? anodeCurvesConfig,
-        [NotNullWhen(true)]out byte[]? plateCurvesConfig,
-        [NotNullWhen(true)]out byte[]? anodeCurves,
-        [NotNullWhen(true)]out byte[]? plateCurves,
-        [NotNullWhen(true)]out byte[]? quickTest)
+        [NotNullWhen(true)] out byte[]? anodeCurvesConfig,
+        [NotNullWhen(true)] out byte[]? plateCurvesConfig,
+        [NotNullWhen(true)] out byte[]? anodeCurves,
+        [NotNullWhen(true)] out byte[]? plateCurves,
+        [NotNullWhen(true)] out byte[]? quickTest)
     {
         errors = [];
         anodeCurves = [];
@@ -20,7 +21,7 @@ public static class MeasurementHelper
         quickTest = [];
         anodeCurvesConfig = [];
         plateCurvesConfig = [];
-        
+
         using var inputMemoryStream = new MemoryStream(measurementData);
         using var archive = new ZipArchive(inputMemoryStream, ZipArchiveMode.Read, leaveOpen: true);
         var fileCount = 0;
@@ -62,23 +63,20 @@ public static class MeasurementHelper
             }
         }
 
-
         if (fileCount != 5)
         {
             errors.Add("exactly 5 files expected");
         }
 
-        if (errors.Count > 0)
-        {
-            anodeCurves = null;
-            plateCurves = null;
-            quickTest = null;
-            anodeCurvesConfig = null;
-            plateCurvesConfig = null;
-            return false;
-        }
-        
-        return true;
+        if (errors.Count <= 0) return true;
+
+
+        anodeCurves = null;
+        plateCurves = null;
+        quickTest = null;
+        anodeCurvesConfig = null;
+        plateCurvesConfig = null;
+        return false;
     }
 
     private static byte[] GetBytes(ZipArchiveEntry entry)
@@ -88,5 +86,43 @@ public static class MeasurementHelper
         entryStream.CopyTo(memory);
 
         return memory.ToArray();
+    }
+
+    public static Dictionary<int, MeasurementPoint[]> ParseSpaceSeparatedTable(byte[] data)
+    {
+        var stringData = System.Text.Encoding.UTF8.GetString(data);
+
+        var lines = stringData
+            .Replace(oldChar: ',', newChar: '.')
+            .Split(separator: ['\r', '\n'], options: StringSplitOptions.RemoveEmptyEntries);
+
+        var header = lines[0].Split(separator: ["  "], options: StringSplitOptions.RemoveEmptyEntries)
+            .Select(x => x.Trim()).ToArray();
+
+        var idxCurve = Array.IndexOf(array: header, value: "Curve");
+        var idxIa = Array.IndexOf(array: header, value: "Ia (mA)");
+        var idxIs = Array.IndexOf(array: header, value: "Is (mA)");
+        var idxVg = Array.IndexOf(array: header, value: "Vg (V)");
+        var idxVa = Array.IndexOf(array: header, value: "Va (V)");
+        var idxVs = Array.IndexOf(array: header, value: "Vs (V)");
+        var idxVf = Array.IndexOf(array: header, value: "Vf (V)");
+
+        var rows = lines.Skip(1)
+            .Select(l => l.Split(separator: ["  "], options: StringSplitOptions.RemoveEmptyEntries))
+            .Select(parts => new
+            {
+                Curve = int.Parse(parts[idxCurve]),
+                Data = new MeasurementPoint(
+                    Ia: double.Parse(s: parts[idxIa], provider: CultureInfo.InvariantCulture),
+                    Is: double.Parse(s: parts[idxIs], provider: CultureInfo.InvariantCulture),
+                    Vg: double.Parse(s: parts[idxVg], provider: CultureInfo.InvariantCulture),
+                    Va: double.Parse(s: parts[idxVa], provider: CultureInfo.InvariantCulture),
+                    Vs: double.Parse(s: parts[idxVs], provider: CultureInfo.InvariantCulture),
+                    Vf: double.Parse(s: parts[idxVf], provider: CultureInfo.InvariantCulture)
+                )
+            });
+
+        return rows.GroupBy(x => x.Curve)
+            .ToDictionary(x => x.Key, x => x.Select(x => x.Data).ToArray());
     }
 }

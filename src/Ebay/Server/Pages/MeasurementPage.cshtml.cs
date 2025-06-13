@@ -19,8 +19,6 @@ public class MeasurementPage : PageModel
 
     public async Task OnGet(string measurementId)
     {
-
-        //todo извлекать только нужные поля
         Measurement = await _applicationContext.ProductMeasurements
             .AsNoTracking()
             .Include(x=>x.Product)

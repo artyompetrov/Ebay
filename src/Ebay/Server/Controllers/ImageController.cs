@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using ScottPlot;
 using Server.Data;
+using Server.Infrastructure;
 
 namespace Server.Controllers;
 
@@ -15,30 +16,115 @@ public class ImageController : ControllerBase
     {
         _applicationContext = applicationContext;
     }
-    
-    [HttpGet("{measurementId}/anode_curves")]
+
+    [HttpGet("{measurementId}/curves")]
     public async Task<IActionResult> Get(string measurementId)
     {
         var measurements = await _applicationContext.ProductMeasurements
             .AsNoTracking()
             .Where(x => x.Id == measurementId)
-            .Select(x=>x.Measurements)
+            .Select(x => x.Measurements)
             .SingleOrDefaultAsync();
-        
-        
-        
-        if (measurements == null) return NotFound();
-        
-        var plt = new Plot();
-        double[] xs = [1, 2, 3, 4, 5];
-        double[] ys = [1, 4, 9, 16, 25];
-        plt.Add.Scatter(xs, ys);
-        plt.Title("y = x^2");
-        plt.XLabel("X");
-        plt.YLabel("Y");
-        
-        var pngBytes = plt.GetImageBytes(300, 300, ImageFormat.Png);
 
-        return File(pngBytes, "image/png");
+        if (measurements == null) return NotFound();
+
+        if (!MeasurementHelper.ReadMeasurementFile(
+                measurementData: measurements,
+                errors: out var fileErrors,
+                anodeCurvesConfig: out var anodeCurvesConfig,
+                plateCurvesConfig: out var plateCurvesConfig,
+                anodeCurves: out var anodeCurves,
+                plateCurves: out var plateCurves,
+                quickTest: out var quickTest))
+        {
+            return Problem();
+        }
+
+        var anodeCurvesSvg = CreateAnodeCurvesPlot(anodeCurves: anodeCurves);
+        var plateCurvesSvg = CreatePlateCurvesPlot(plateCurves: plateCurves);
+
+        var result = SvgMerger.MergeSvgsHorizontally(anodeCurvesSvg, plateCurvesSvg);
+
+        var response = Content(result, "image/svg+xml");
+#if !DEBUG
+        // Только в релизе используем кеширование
+        Response.Headers.CacheControl = "public, max-age=86400";
+        Response.Headers.Expires = DateTime.UtcNow.AddDays(1).ToString("R");
+#endif
+        return response;
+    }
+
+    private static string CreateAnodeCurvesPlot(byte[] anodeCurves)
+    {
+        var plt = new Plot();
+        var anodeCurvesPoints = MeasurementHelper.ParseSpaceSeparatedTable(anodeCurves);
+        var legendItems = new List<LegendItem>();
+        
+        foreach (var (i, values) in anodeCurvesPoints)
+        {
+            var vg = values.Select(x => x.Vg).Average();
+            
+            var s = plt.Add.Scatter(values.Select(x => new Coordinates(x: x.Va, y: x.Ia)).ToList());
+            s.LinePattern = LinePattern.Solid;
+            s.MarkerShape = MarkerShape.Cross;
+            
+            var s2 = plt.Add.Scatter(values.Select(x => new Coordinates(x: x.Va, y: x.Is)).ToList());
+            s2.LinePattern = LinePattern.Solid;
+            s2.MarkerShape = MarkerShape.OpenDiamond;
+            s2.Color = s.Color;
+    
+            legendItems.Add(new LegendItem
+            {
+                LabelText = $"Vg = {vg:N0}",
+                LineColor = s.Color,
+                LinePattern = LinePattern.Solid,
+                LineWidth = 5
+            });
+        }
+        
+        plt.XLabel("Va (V)");
+        plt.YLabel("Ia (mA)");
+        plt.Title("Anode Curves");
+        plt.Legend.ManualItems = legendItems;
+        plt.ShowLegend(Edge.Bottom);
+
+        return plt.GetSvgXml(600, 500);
+    }
+    
+    private static string CreatePlateCurvesPlot(byte[] plateCurves)
+    {
+        var plt = new Plot();
+        var plateCurvesPoints = MeasurementHelper.ParseSpaceSeparatedTable(plateCurves);
+        var legendItems = new List<LegendItem>();
+        
+        foreach (var (i, values) in plateCurvesPoints)
+        {
+            var va = values.Select(x => x.Va).Average();
+            
+            var s = plt.Add.Scatter(values.Select(x => new Coordinates(x: x.Vg, y: x.Ia)).ToList());
+            s.LinePattern = LinePattern.Solid;
+            s.MarkerShape = MarkerShape.Cross;
+            
+            var s2 = plt.Add.Scatter(values.Select(x => new Coordinates(x: x.Vg, y: x.Is)).ToList());
+            s2.LinePattern = LinePattern.Solid;
+            s2.MarkerShape = MarkerShape.OpenDiamond;
+            s2.Color = s.Color;
+    
+            legendItems.Add(new LegendItem
+            {
+                LabelText = $"Va = {va:N0}",
+                LineColor = s.Color,
+                LinePattern = LinePattern.Solid,
+                LineWidth = 5
+            });
+        }
+        
+        plt.XLabel("Vg (V)");
+        plt.YLabel("Ia (mA)");
+        plt.Title("Plate Curves");
+        plt.Legend.ManualItems = legendItems;
+        plt.ShowLegend(Edge.Bottom);
+
+        return plt.GetSvgXml(600, 500);
     }
 }
