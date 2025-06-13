@@ -27,6 +27,10 @@ COPY --from=build_dotnet /app/publish .
 ARG BUILD_VERSION="0.0.0.1"
 COPY --from=build_crome_extension /app/publish/mlebgdemjnpnfgcgbbncllpniiicffbm_${BUILD_VERSION}.crx /app/wwwroot/chrome_extensions/
 
+RUN apt-get update && \
+    apt-get install -y fonts-dejavu fonts-liberation && \
+    fc-cache -f -v
+
 EXPOSE 80
 EXPOSE 443
 ENTRYPOINT ["dotnet", "Server.dll"]
