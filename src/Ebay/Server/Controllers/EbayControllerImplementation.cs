@@ -338,9 +338,26 @@ internal class EbayControllerImplementation : IEbayController
             quickTest: quickTest,
             errors: errors);
 
+        var hashAnodeCurvesConfig = ComputeEntryHashAsync(anodeCurvesConfig);
+        var hashGridCurvesConfig = ComputeEntryHashAsync(gridCurvesConfig);
         var hashAnodeCurves = ComputeEntryHashAsync(anodeCurves);
         var hashGridCurves = ComputeEntryHashAsync(gridCurves);
         var hashQuickTest = ComputeEntryHashAsync(quickTest);
+
+        var hashes = new HashSet<string>
+        {
+            hashAnodeCurvesConfig,
+            hashGridCurvesConfig,
+            hashAnodeCurves,
+            hashGridCurves,
+            hashQuickTest
+        };
+
+        if (hashes.Count != 5)
+        {
+            errors.Add((nameof(measurementData.File), ["File duplicates"]));
+            throw NonOkHttpAnswerException.ValidationError400(errors);
+        }
 
         await _applicationContext.ProductMeasurements.AddAsync(
             entity: new ProductMeasurement
