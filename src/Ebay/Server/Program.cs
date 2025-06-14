@@ -1,20 +1,18 @@
 using Duende.IdentityServer.Models;
 using MassTransit;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Logging;
-using Serilog;
 using Server;
-using Server.Consumers;
 using Server.Controllers;
 using Server.Controllers.Generated;
 using Server.Data;
 using Server.Data.Models;
 using Server.HostedServices;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Logging;
+using Serilog;
+using Server.Consumers;
 using Server.Services;
 using Secret = Duende.IdentityServer.Models.Secret;
 
@@ -79,25 +77,7 @@ builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(keyStoragePath))
     .SetApplicationName("EbayHelper");
 
-// для авторизации через куки и jwt
-builder.Services.AddAuthentication(options =>
-    {
-        options.DefaultScheme = "smart"; // схема по умолчанию
-        options.DefaultAuthenticateScheme = "smart";
-        options.DefaultChallengeScheme = "smart";
-    })
-    .AddPolicyScheme(
-        "smart",
-        "Smart Scheme",
-        options =>
-        {
-            options.ForwardDefaultSelector = context =>
-            {
-                var hasBearer = context.Request.Headers["Authorization"].ToString().StartsWith("Bearer ");
-                return hasBearer ? JwtBearerDefaults.AuthenticationScheme : IdentityConstants.ApplicationScheme;
-            };
-        })
-    .AddIdentityServerJwt();
+builder.Services.AddAuthentication().AddIdentityServerJwt();
 
 builder.Services.AddControllersWithViews(option => { option.Filters.Add<ErrorFilter>(); })
     .AddNewtonsoftJson();
@@ -162,9 +142,6 @@ var app = builder.Build();
 builder.Services.AddResponseCaching();
 app.UseSerilogRequestLogging();
 
-
-
-
 // Migrate DB
 using (var scope = app.Services.CreateScope())
 {
@@ -186,58 +163,19 @@ else
 }
 
 app.UseHttpsRedirection();
-app.UseRouting();
-app.UseAuthentication();
-app.UseAuthorization();
-app.UseIdentityServer();
-AddBlazorFilesProtection(app);
+
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
+
+app.UseRouting();
 app.UseResponseCaching();
+
+app.UseAuthentication();
+app.UseIdentityServer();
+app.UseAuthorization();
+
 app.MapRazorPages();
 app.MapControllers();
 app.MapFallbackToFile("index.html");
 
 app.Run();
-return;
-
-// Чтобы не светить в интернет исходниками клиента
-static void AddBlazorFilesProtection(WebApplication webApplication)
-{
-    webApplication.MapGet(
-        "/auth/check",
-        (HttpContext ctx) =>
-        {
-            if (!ctx.User.Identity?.IsAuthenticated ?? true)
-                return Results.Unauthorized();
-
-            return Results.Ok();
-        });
-    webApplication.UseWhen(
-        ctx => IsBlazorStaticResource(ctx.Request),
-        appBuilder =>
-        {
-            appBuilder.Use(async (context, next) =>
-            {
-                if (!context.User.Identity?.IsAuthenticated ?? true)
-                {
-                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                    return;
-                }
-
-                await next();
-            });
-        });
-}
-
-static bool IsBlazorStaticResource(HttpRequest request)
-{
-    var path = request.Path.Value ?? string.Empty;
-
-    return path.StartsWith("/_framework", StringComparison.OrdinalIgnoreCase)
-           || path.StartsWith("/_content", StringComparison.OrdinalIgnoreCase)
-           || path.EndsWith(".wasm", StringComparison.OrdinalIgnoreCase)
-           || path.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)
-           || path.EndsWith("blazor.boot.json", StringComparison.OrdinalIgnoreCase)
-           || path.EndsWith("blazor.webassembly.js", StringComparison.OrdinalIgnoreCase);
-}
