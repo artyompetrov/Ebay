@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO.Compression;
+using System.Text.RegularExpressions;
 
 namespace Server.Infrastructure;
 
@@ -96,6 +97,7 @@ public static class MeasurementHelper
         return memory.ToArray();
     }
 
+    
     public static Dictionary<int, MeasurementPoint[]> ParseSpaceSeparatedTable(byte[] data)
     {
         var stringData = System.Text.Encoding.UTF8.GetString(data);
@@ -133,4 +135,35 @@ public static class MeasurementHelper
         return rows.GroupBy(x => x.Curve)
             .ToDictionary(x => x.Key, x => x.Select(x => x.Data).ToArray());
     }
+
+    
+    public static MeasurementConfig ParseMeasurementConfigTable(byte[] data)
+    {
+        var lineRegex = new Regex(@"^\s*([+-]?\d+)\s+(.*?)\s*$", RegexOptions.Compiled);
+
+        var stringData = System.Text.Encoding.UTF8.GetString(data);
+
+        var config = new Dictionary<string, int>();
+        var lines = File.ReadAllLines(stringData);
+
+        foreach (var line in lines)
+        {
+            var match = lineRegex.Match(line);
+            if (!match.Success)
+                continue;
+
+            var value = int.Parse(match.Groups[1].Value);
+            var comment = match.Groups[2].Value.Trim();
+
+            config.Add(comment, value);
+        }
+
+        return new MeasurementConfig(
+            Pmax: config["Pmax"]
+        );
+    }
+
+
+    /// <param name="Pmax">Максимальная мощность мВт</param>
+    public record MeasurementConfig(int Pmax);
 }
