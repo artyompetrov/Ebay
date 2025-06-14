@@ -136,15 +136,16 @@ public static class MeasurementHelper
             .ToDictionary(x => x.Key, x => x.Select(x => x.Data).ToArray());
     }
 
-    
+
     public static MeasurementConfig ParseMeasurementConfigTable(byte[] data)
     {
-        var lineRegex = new Regex(@"^\s*([+-]?\d+)\s+(.*?)\s*$", RegexOptions.Compiled);
+        var lineRegex = new Regex(@"^([+-]?\d+)\s+(.*)$", RegexOptions.Compiled);
 
         var stringData = System.Text.Encoding.UTF8.GetString(data);
 
         var config = new Dictionary<string, int?>();
-        var lines = File.ReadAllLines(stringData);
+        var lines = stringData.Split('\n').Select(x => x.Trim());
+
 
         foreach (var line in lines)
         {
@@ -155,9 +156,9 @@ public static class MeasurementHelper
             var value = int.Parse(match.Groups[1].Value);
             var comment = match.Groups[2].Value.Trim();
 
-            config.Add(comment, value);
+            config[comment] = value;
         }
-
+        
         return new MeasurementConfig(
             Pmax: config.GetValueOrDefault("Pmax", defaultValue: null)
         );
