@@ -17,7 +17,7 @@ public class MeasurementPageTest : ExplicitTestsBase
             {
                 yield return new TestCaseData(measurement.MeasurementId)
                 {
-                    TestName = $"{measurement.MeasurementId}"
+                    TestName = $"{productWithId.Name} {measurement.MeasurementId}"
                 };
             }
         }

@@ -18,11 +18,7 @@
         </PackageReference>
         <PackageReference Include="Plotly.Blazor" />
     </ItemGroup>
-
-    <ItemGroup>
-        <TypeScriptCompile Remove="Clients\Generated\EbayClient.ts"/>
-    </ItemGroup>
-
+    
     <ItemGroup>
       <Content Update="wwwroot\js\interop.js">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
