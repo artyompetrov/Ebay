@@ -178,29 +178,7 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseIdentityServer();
-
-// Чтобы не светить в интернет исходниками клиента
-app.MapGet("/auth/check", (HttpContext ctx) =>
-{
-    if (!ctx.User.Identity?.IsAuthenticated ?? true)
-        return Results.Unauthorized();
-
-    return Results.Ok();
-});
-app.UseWhen(ctx => IsBlazorStaticResource(ctx.Request), appBuilder =>
-{
-    appBuilder.Use(async (context, next) =>
-    {
-        if (!context.User.Identity?.IsAuthenticated ?? true)
-        {
-            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            return;
-        }
-
-        await next();
-    });
-});
-
+AddBlazorFilesProtection(app);
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 app.UseResponseCaching();
@@ -209,6 +187,36 @@ app.MapControllers();
 app.MapFallbackToFile("index.html");
 
 app.Run();
+return;
+
+// Чтобы не светить в интернет исходниками клиента
+static void AddBlazorFilesProtection(WebApplication webApplication)
+{
+    webApplication.MapGet(
+        "/auth/check",
+        (HttpContext ctx) =>
+        {
+            if (!ctx.User.Identity?.IsAuthenticated ?? true)
+                return Results.Unauthorized();
+
+            return Results.Ok();
+        });
+    webApplication.UseWhen(
+        ctx => IsBlazorStaticResource(ctx.Request),
+        appBuilder =>
+        {
+            appBuilder.Use(async (context, next) =>
+            {
+                if (!context.User.Identity?.IsAuthenticated ?? true)
+                {
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    return;
+                }
+
+                await next();
+            });
+        });
+}
 
 static bool IsBlazorStaticResource(HttpRequest request)
 {
