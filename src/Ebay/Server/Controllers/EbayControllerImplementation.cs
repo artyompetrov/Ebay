@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics.Metrics;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
@@ -325,8 +326,8 @@ internal class EbayControllerImplementation : IEbayController
         if (!MeasurementHelper.ReadMeasurementFile(
                 measurementData: measurementData.File,
                 errors: out var fileErrors,
-                anodeCurvesConfig: out  _,
-                gridCurvesConfig: out _,
+                anodeCurvesConfig: out var anodeCurvesConfig,
+                gridCurvesConfig: out var gridCurvesConfig,
                 anodeCurves: out var anodeCurves,
                 gridCurves: out var gridCurves,
                 quickTest: out var quickTest))
@@ -334,6 +335,14 @@ internal class EbayControllerImplementation : IEbayController
             errors.Add((nameof(measurementData.File), fileErrors.ToArray()));
             throw NonOkHttpAnswerException.ValidationError400(errors);
         }
+
+        ValidateMeasurementFiles(
+            anodeCurvesConfig: anodeCurvesConfig,
+            gridCurvesConfig: gridCurvesConfig,
+            anodeCurves: anodeCurves,
+            gridCurves: gridCurves,
+            quickTest: quickTest,
+            errors: errors);
 
         var hashAnodeCurves = ComputeEntryHashAsync(anodeCurves);
         var hashGridCurves = ComputeEntryHashAsync(gridCurves);
@@ -355,6 +364,38 @@ internal class EbayControllerImplementation : IEbayController
             cancellationToken: cancellationToken);
 
         await _applicationContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private static void ValidateMeasurementFiles(byte[] anodeCurvesConfig, byte[] gridCurvesConfig, byte[] anodeCurves,
+        byte[] gridCurves, byte[] quickTest, List<(string key, string[] value)> errors)
+    {
+        // Проверка, что измерения загружены правильно
+        try
+        {
+            var anodeConfig = MeasurementHelper.ParseMeasurementConfigTable(anodeCurvesConfig);
+            var gridConfig = MeasurementHelper.ParseMeasurementConfigTable(gridCurvesConfig);
+
+            if (anodeConfig.MeasurementType != MeasurementHelper.MeasurementType.TriodeAnodeCurves ||
+                anodeConfig.MeasurementType != MeasurementHelper.MeasurementType.PentodeAnodeCurves)
+            {
+                throw new InvalidOperationException("AnodeCurves expected");
+            }
+
+            if (gridConfig.MeasurementType != MeasurementHelper.MeasurementType.PentodeScreenCurves ||
+                gridConfig.MeasurementType != MeasurementHelper.MeasurementType.TriodeGridCurves)
+            {
+                throw new InvalidOperationException("Grid or screen curves expected");
+            }
+            
+            MeasurementHelper.ParseSpaceSeparatedTable(anodeCurves);
+            MeasurementHelper.ParseSpaceSeparatedTable(gridCurves);
+            MeasurementHelper.ParseAndPrettifyQuickTest(quickTest);
+        }
+        catch (Exception ex)
+        {
+            errors.Add((nameof(MeasurementDataToUpload.File), [ex.ToString()]));
+            throw NonOkHttpAnswerException.ValidationError400(errors);
+        }
     }
 
     public async Task DeleteMeasurementAsync(

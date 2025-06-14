@@ -119,7 +119,7 @@ public class MeasurementPageController : ControllerBase
             case MeasurementHelper.MeasurementType.TriodeAnodeCurves:
                 PlotTriodeAnodeCurves(anodeCurvesPoints, config, plt, legendItems);
                 break;
-            case MeasurementHelper.MeasurementType.TriodePlateCurves:
+            case MeasurementHelper.MeasurementType.TriodeGridCurves:
                 PlotTriodeGridCurves(anodeCurvesPoints, config, plt, legendItems);
                 break;
             case MeasurementHelper.MeasurementType.PentodeAnodeCurves:

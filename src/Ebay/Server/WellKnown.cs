@@ -15,7 +15,7 @@ internal static class WellKnown
     {
         public static string PythonClientId = "Ebay.Python";//todo переименовать
         public static string Scope = "ServerAPI";
-        public static string AuthToken = "ac4ab670-ae20-451a-ab4a-3a20275e807d";
+        public static string ClientSecret = "ac4ab670-ae20-451a-ab4a-3a20275e807d";
     }
 
     public static class Formats

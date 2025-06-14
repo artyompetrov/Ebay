@@ -8,6 +8,7 @@ using Server.Data;
 using Server.Data.Models;
 using Server.HostedServices;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -60,7 +61,7 @@ builder.Services.AddIdentityServer()
                 new Duende.IdentityServer.Models.Client
                 {
                     ClientId = WellKnown.Authorization.PythonClientId,
-                    ClientSecrets = new List<Secret> { new(WellKnown.Authorization.AuthToken.Sha256()) },
+                    ClientSecrets = new List<Secret> { new(WellKnown.Authorization.ClientSecret.Sha256()) },
                     AllowedGrantTypes = GrantTypes.ClientCredentials,
                     AllowedScopes =
                     {
@@ -78,14 +79,23 @@ builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(keyStoragePath))
     .SetApplicationName("EbayHelper");
 
+// для авторизации через куки и jwt
 builder.Services.AddAuthentication(options =>
     {
-        // Это явное указание использовать куки-схему по умолчанию
-        options.DefaultScheme = IdentityConstants.ApplicationScheme;
-        options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
-        options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
+        options.DefaultScheme = "smart"; // схема по умолчанию
+        options.DefaultAuthenticateScheme = "smart";
+        options.DefaultChallengeScheme = "smart";
     })
-    .AddIdentityServerJwt();
+    .AddPolicyScheme("smart", "Smart Scheme", options =>
+    {
+        options.ForwardDefaultSelector = context =>
+        {
+            var hasBearer = context.Request.Headers["Authorization"].ToString().StartsWith("Bearer ");
+            return hasBearer ? JwtBearerDefaults.AuthenticationScheme : IdentityConstants.ApplicationScheme;
+        };
+    })
+    .AddIdentityServerJwt() // JWT токены
+    .AddCookie(IdentityConstants.ApplicationScheme);
 
 builder.Services.AddControllersWithViews(option => { option.Filters.Add<ErrorFilter>(); })
     .AddNewtonsoftJson();

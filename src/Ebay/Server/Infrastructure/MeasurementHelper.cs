@@ -219,7 +219,7 @@ public static class MeasurementHelper
     public enum MeasurementType
     {
         // I(Vg, Va) with Vs, Vh Constant
-        TriodePlateCurves = 1,
+        TriodeGridCurves = 1,
         
         // I(Va, Vg) with Vs, Vh Constant
         PentodeAnodeCurves = 2,
@@ -229,5 +229,53 @@ public static class MeasurementHelper
         
         // I(Vs, Vg) with Va, Vh Constant
         PentodeScreenCurves = 5
+    }
+    
+    public static string ParseAndPrettifyQuickTest(byte[] quickTest)
+    {
+        var quickTestOriginal = System.Text.Encoding.UTF8.GetString(quickTest);
+
+        var quickTestStr = Regex.Replace(
+            quickTestOriginal,
+            @"(\r?\n[ \t]*){2,}",
+            "\n\n"
+        );
+        
+        quickTestStr = Regex.Replace(
+            quickTestStr,
+            @"\s+\d+\s*% of nominal [\d\.,]+ ?\([^)]+\)",
+            m => new string(' ', m.Value.Length));
+
+        quickTestStr = Regex.Replace(quickTestStr, @"[ ]{3,}", "|");
+        
+        quickTestStr = Regex.Replace(quickTestStr, @"[ ]{3,}", "");
+        
+        var matches = Regex.Matches(quickTestStr, @"^(.*?)\|", RegexOptions.Multiline);
+        var maxWidth = matches.Cast<Match>().Select(m => m.Groups[1].Value.Length).DefaultIfEmpty(0).Max();
+        var tabSize = 8; // браузер чаще всего 8
+
+        // Шаг 2: Заменить каждое "до |" на выровненное + табы
+        var aligned = Regex.Replace(
+            quickTestStr,
+            @"^(.*?)\|",
+            m =>
+            {
+                var left = m.Groups[1].Value.TrimEnd();
+                // Сколько надо символов до maxWidth
+                var padLen = maxWidth - left.Length;
+                // Сколько табов (с учётом табуляции 8)
+                var tabsNeeded = ((left.Length + padLen) / tabSize) + 1 - (left.Length / tabSize);
+                if (tabsNeeded < 1) tabsNeeded = 1;
+                return left + new string('\t', tabsNeeded);
+            },
+            RegexOptions.Multiline
+        );
+
+        if (quickTestOriginal == quickTestStr)
+        {
+            throw new InvalidOperationException("Nothing has changed after quick test prettification");
+        }
+        
+        return aligned.Trim();
     }
 }

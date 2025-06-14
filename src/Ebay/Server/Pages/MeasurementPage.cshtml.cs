@@ -48,51 +48,8 @@ public class MeasurementPage : PageModel
             return NotFound("Measurement not found");
         }
 
-        QuickTest = ParseAndPrettifyQuickTest(quickTest);
+        QuickTest = MeasurementHelper.ParseAndPrettifyQuickTest(quickTest);
         
         return Page();
-    }
-
-    private static string ParseAndPrettifyQuickTest(byte[] quickTest)
-    {
-        var quickTestStr = System.Text.Encoding.UTF8.GetString(quickTest);
-
-        quickTestStr = Regex.Replace(
-            quickTestStr,
-            @"(\r?\n[ \t]*){2,}",
-            "\n\n"
-        );
-        
-        quickTestStr = Regex.Replace(
-            quickTestStr,
-            @"\s+\d+\s*% of nominal [\d\.,]+ ?\([^)]+\)",
-            m => new string(' ', m.Value.Length));
-
-        quickTestStr = Regex.Replace(quickTestStr, @"[ ]{3,}", "|");
-        
-        quickTestStr = Regex.Replace(quickTestStr, @"[ ]{3,}", "");
-        
-        var matches = Regex.Matches(quickTestStr, @"^(.*?)\|", RegexOptions.Multiline);
-        var maxWidth = matches.Cast<Match>().Select(m => m.Groups[1].Value.Length).DefaultIfEmpty(0).Max();
-        var tabSize = 8; // браузер чаще всего 8
-
-        // Шаг 2: Заменить каждое "до |" на выровненное + табы
-        var aligned = Regex.Replace(
-            quickTestStr,
-            @"^(.*?)\|",
-            m =>
-            {
-                var left = m.Groups[1].Value.TrimEnd();
-                // Сколько надо символов до maxWidth
-                var padLen = maxWidth - left.Length;
-                // Сколько табов (с учётом табуляции 8)
-                var tabsNeeded = ((left.Length + padLen) / tabSize) + 1 - (left.Length / tabSize);
-                if (tabsNeeded < 1) tabsNeeded = 1;
-                return left + new string('\t', tabsNeeded);
-            },
-            RegexOptions.Multiline
-        );
-        
-        return aligned.Trim();
     }
 }

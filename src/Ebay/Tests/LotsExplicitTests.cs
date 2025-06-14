@@ -1,51 +1,14 @@
-using System.Net.Http.Headers;
 using Server;
-using Client.Clients.Generated;
 using Server.Services;
-using Newtonsoft.Json.Linq;
-using NUnit.Framework;
 using LotDataToExtract = Server.Controllers.Generated.LotDataToExtract;
 
 namespace Tests;
 
 [Category("ExplicitOnly")]
 [Explicit]
-public class ExplicitTests
+[NonParallelizable]
+public class LotsExplicitTests : ExplicitTestsBase
 {
-    private const string Server = "radiotubes.kz";
-    private static readonly EbayClient Client = CreateClient();
-
-    private static EbayClient CreateClient()
-    {
-        var port = 443;
-        var baseAddress = $"https://{Server}:{port}";
-
-        var url = $"{baseAddress}/connect/token";
-        var httpClient = new HttpClient();
-
-        using var res = httpClient.SendAsync(
-                new HttpRequestMessage(method: HttpMethod.Post, requestUri: url)
-                {
-                    Content = new FormUrlEncodedContent(
-                        new List<KeyValuePair<string, string>>
-                        {
-                            new(key: "grant_type", value: "client_credentials"),
-                            new(key: "client_id", value: WellKnown.Authorization.PythonClientId),
-                            new(key: "client_secret", value: WellKnown.Authorization.AuthToken),
-                        }
-                    )
-                }
-            )
-            .GetAwaiter()
-            .GetResult();
-
-        var token = JToken.Parse(res.Content.ReadAsStringAsync().GetAwaiter().GetResult())["access_token"]!.ToString();
-
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme: "Bearer", parameter: token);
-
-        return new EbayClient(httpClient) { BaseUrl = baseAddress + "/api/ebay/v1" };
-    }
-
     private static readonly HashSet<long> ExcludedLotIdsPcs = new()
     {
         115990989605,
@@ -55,7 +18,7 @@ public class ExplicitTests
     [TestCaseSource(nameof(GetLots))]
     public async Task Check_Extractor_Function_Pcs(long lotId)
     {
-        var lotInfoFull = await Client.GetLotInfoAsync(lotId);
+        var lotInfoFull = await BackendClient.GetLotInfoAsync(lotId);
 
         if (ExcludedLotIdsPcs.Contains(lotId)) return;
 
@@ -107,7 +70,7 @@ public class ExplicitTests
     [TestCaseSource(nameof(GetLots))]
     public async Task Check_Extractor_Function_Condition(long lotId)
     {
-        var lotInfoFull = await Client.GetLotInfoAsync(lotId);
+        var lotInfoFull = await BackendClient.GetLotInfoAsync(lotId);
 
         if (ExcludedLotIdsCondition.Contains(lotId)) return;
 
@@ -145,14 +108,12 @@ public class ExplicitTests
         134725931500,
         115993741586,
         126212251918
-
-
     };
 
     [TestCaseSource(nameof(GetLots))]
     public async Task Check_Extractor_Function_TestState(long lotId)
     {
-        var lotInfoFull = await Client.GetLotInfoAsync(lotId);
+        var lotInfoFull = await BackendClient.GetLotInfoAsync(lotId);
 
         if (ExcludedLotIdsState.Contains(lotId)) return;
 
@@ -185,7 +146,7 @@ public class ExplicitTests
 
     public static IEnumerable<TestCaseData> GetLots()
     {
-        var allLotIds = Client.GetLotIdsAsync().GetAwaiter().GetResult();
+        var allLotIds = BackendClient.GetLotIdsAsync().GetAwaiter().GetResult();
 
         foreach (var lotId in allLotIds)
         {
