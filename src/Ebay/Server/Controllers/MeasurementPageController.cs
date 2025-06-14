@@ -216,7 +216,7 @@ public class MeasurementPageController : ControllerBase
             legendItems.Add(
                 new LegendItem
                 {
-                    LabelText = $"Va = {va:N0}",
+                    LabelText = $"Va = {va:N1}",
                     LineColor = iaScatter.Color,
                     LinePattern = LinePattern.Solid,
                     LineWidth = 5
