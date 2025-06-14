@@ -207,11 +207,27 @@ public static class MeasurementHelper
         }
         
         return new MeasurementConfig(
+            MeasurementType: (MeasurementType)config["measurement type"]!.Value,
             Pmax: config.GetValueOrDefault("Pmax", defaultValue: null)
         );
     }
 
 
     /// <param name="Pmax">Максимальная мощность мВт</param>
-    public record MeasurementConfig(int? Pmax);
+    public record MeasurementConfig(MeasurementType MeasurementType, int? Pmax);
+
+    public enum MeasurementType
+    {
+        // I(Vg, Va) with Vs, Vh Constant
+        TriodePlateCurves = 1,
+        
+        // I(Va, Vg) with Vs, Vh Constant
+        PentodeAnodeCurves = 2,
+        
+        // I(Va=Vs, Vg) with Vh Constant
+        TriodeAnodeCurves = 4,
+        
+        // I(Vs, Vg) with Va, Vh Constant
+        PentodeScreenCurves = 5
+    }
 }
