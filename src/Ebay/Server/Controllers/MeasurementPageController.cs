@@ -459,19 +459,19 @@ public class MeasurementPageController : ControllerBase
         var lineWidth = 1;
         var markerSize = 5;
         
-        var minX = 0.0;
+        var maxX = 0.0;
         var maxY = 0.0;
         foreach (var (i, values) in data)
         {
             var iaValues = values.TakeWhile(x => x.dIa > IgnoreDI).Select(x => (x.Vs, x.Ia)).ToList();
             var isValues = values.TakeWhile(x => x.dIs > IgnoreDI).Select(x => (x.Vs, x.Is)).ToList();
 
-            var lineMinX = values.Select(x => x.Vs).Min();
+            var lineMaxX = values.Select(x => x.Vs).Max();
             var lineMaxY = iaValues.Select(x => x.Ia).Union(isValues.Select(x => x.Is)).Max();
 
-            if (lineMinX < minX)
+            if (lineMaxX > maxX)
             {
-                minX = lineMinX;
+                maxX = lineMaxX;
             }
 
             if (lineMaxY > maxY)
@@ -530,7 +530,7 @@ public class MeasurementPageController : ControllerBase
                 MarkerFillColor = new Color(0, 0, 0)
             });
 
-        plot.Axes.SetLimits(bottom: 0, left: minX, top: maxY, right: 0);
+        plot.Axes.SetLimits(bottom: 0, left: 0, top: maxY, right: maxX);
         plot.XLabel("Vscreen (V)");
         plot.YLabel("I (mA)");
         plot.Title("Screen curves");
