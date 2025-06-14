@@ -69,7 +69,7 @@ public class MeasurementPageController : ControllerBase
 
         var anodeCurvesSvg = CreatePlot(
             measurementData: anodeCurves,
-            measurementConfig: gridCurvesConfig,
+            measurementConfig: anodeCurvesConfig,
             action: PlotAnodeCurves,
             vertical: vertical,
             width: width,
@@ -135,14 +135,18 @@ public class MeasurementPageController : ControllerBase
                 });
         }
 
-        double PowerLimit(double u) => measurementConfig.Pmax / u;
+        if (measurementConfig.Pmax.HasValue)
+        {
+            double PowerLimit(double u) => measurementConfig.Pmax.Value / u;
 
-        var func = plot.Add.Function(PowerLimit);
-        func.MinX = 0.1;
-        func.LineColor = new Color(255, 0, 0);
-        func.LineWidth = 2;
-        legendItems.Add(
-            new LegendItem { LabelText = $"MaxP = {measurementConfig.Pmax / 1000.0:F1}W", LineColor = func.LineColor, LineWidth = func.LineWidth });
+            var func = plot.Add.Function(PowerLimit);
+            func.MinX = 0.1;
+            func.LineColor = new Color(255, 0, 0);
+            func.LineWidth = 2;
+            legendItems.Add(
+                new LegendItem { LabelText = $"MaxP = {measurementConfig.Pmax.Value / 1000.0:F1}W", LineColor = func.LineColor, LineWidth = func.LineWidth });
+        }
+      
         plot.Axes.SetLimits(bottom: 0, left: 0, top: maxY, right: maxX);
         plot.XLabel("Va (V)");
         plot.YLabel("Ia (mA)");

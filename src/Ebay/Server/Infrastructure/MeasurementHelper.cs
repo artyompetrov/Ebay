@@ -143,7 +143,7 @@ public static class MeasurementHelper
 
         var stringData = System.Text.Encoding.UTF8.GetString(data);
 
-        var config = new Dictionary<string, int>();
+        var config = new Dictionary<string, int?>();
         var lines = File.ReadAllLines(stringData);
 
         foreach (var line in lines)
@@ -159,11 +159,11 @@ public static class MeasurementHelper
         }
 
         return new MeasurementConfig(
-            Pmax: config["Pmax"]
+            Pmax: config.GetValueOrDefault("Pmax", defaultValue: null)
         );
     }
 
 
     /// <param name="Pmax">Максимальная мощность мВт</param>
-    public record MeasurementConfig(int Pmax);
+    public record MeasurementConfig(int? Pmax);
 }
