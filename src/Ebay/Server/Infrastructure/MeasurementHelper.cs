@@ -97,7 +97,7 @@ public static class MeasurementHelper
         return memory.ToArray();
     }
 
-    
+
     public static Dictionary<int, MeasurementPoint[]> ParseSpaceSeparatedTable(byte[] data)
     {
         var stringData = System.Text.Encoding.UTF8.GetString(data);
@@ -117,20 +117,67 @@ public static class MeasurementHelper
         var idxVs = Array.IndexOf(array: header, value: "Vs (V)");
         var idxVf = Array.IndexOf(array: header, value: "Vf (V)");
 
+        var previousIa = 0.0;
+        var previousIs = 0.0;
+        var previousVg = 0.0;
+        var previousVa = 0.0;
+        var previousVs = 0.0;
+        var previousVf = 0.0;
+
+        var previousCurve = 0;
+
+        
         var rows = lines.Skip(1)
             .Select(l => l.Split(separator: ["  "], options: StringSplitOptions.RemoveEmptyEntries))
-            .Select(parts => new
+            .Select(parts =>
             {
-                Curve = int.Parse(parts[idxCurve]),
-                Data = new MeasurementPoint(
-                    Ia: double.Parse(s: parts[idxIa], provider: CultureInfo.InvariantCulture),
-                    Is: double.Parse(s: parts[idxIs], provider: CultureInfo.InvariantCulture),
-                    Vg: double.Parse(s: parts[idxVg], provider: CultureInfo.InvariantCulture),
-                    Va: double.Parse(s: parts[idxVa], provider: CultureInfo.InvariantCulture),
-                    Vs: double.Parse(s: parts[idxVs], provider: CultureInfo.InvariantCulture),
-                    Vf: double.Parse(s: parts[idxVf], provider: CultureInfo.InvariantCulture)
-                )
-            });
+                var currentCurve = int.Parse(parts[idxCurve]);
+                if (previousCurve != currentCurve)
+                {
+                    previousIa = 0.0;
+                    previousIs = 0.0;
+                    previousVg = 0.0;
+                    previousVa = 0.0;
+                    previousVs = 0.0;
+                    previousVf = 0.0;
+
+                    previousCurve = currentCurve;
+                }
+                
+                var currentIa = double.Parse(s: parts[idxIa], provider: CultureInfo.InvariantCulture);
+                var currentIs = double.Parse(s: parts[idxIs], provider: CultureInfo.InvariantCulture);
+                var currentVg = double.Parse(s: parts[idxVg], provider: CultureInfo.InvariantCulture);
+                var currentVa = double.Parse(s: parts[idxVa], provider: CultureInfo.InvariantCulture);
+                var currentVs = double.Parse(s: parts[idxVs], provider: CultureInfo.InvariantCulture);
+                var currentVf = double.Parse(s: parts[idxVf], provider: CultureInfo.InvariantCulture);
+
+                var result = new
+                {
+                    Curve = currentCurve,
+                    Data = new MeasurementPoint(
+                        Ia: currentIa,
+                        Is: currentIs,
+                        Vg: currentVg,
+                        Va: currentVa,
+                        Vs: currentVs,
+                        Vf: currentVf,
+                        dIa: currentIa - previousIa,
+                        dIs: currentIs - previousIs,
+                        dVg: currentVg - previousVg,
+                        dVa: currentVa - previousVa,
+                        dVs: currentVs - previousVs,
+                        dVf: currentVf - previousVf
+                    )
+                };
+                
+                previousIa = currentIa;
+                previousIs = currentIs;
+                previousVg = currentVg;
+                previousVa = currentVa;
+                previousVs = currentVs;
+                previousVf = currentVf;
+                return result;
+            }).ToList();
 
         return rows.GroupBy(x => x.Curve)
             .ToDictionary(x => x.Key, x => x.Select(x => x.Data).ToArray());

@@ -11,6 +11,8 @@ namespace Server.Controllers;
 [Route("/m/")]
 public class MeasurementPageController : ControllerBase
 {
+    // Максимальное dI - чтобы отсечь некорректные изменения из-за compliance
+    private const int IgnoreDI = -10;
     private readonly ApplicationDbContext _applicationContext;
 
     public MeasurementPageController(ApplicationDbContext applicationContext)
@@ -104,8 +106,11 @@ public class MeasurementPageController : ControllerBase
 
         foreach (var (i, values) in data)
         {
+            var iaValues = values.TakeWhile(x => x.dIa > IgnoreDI).Select(x => (x.Va, x.Ia)).ToList();
+            var isValues = values.TakeWhile(x => x.dIs > IgnoreDI).Select(x => (x.Va, x.Is)).ToList();
+
             var lineMaxX = values.Select(x => x.Va).Max();
-            var lineMaxY = values.Select(x => x.Ia).Union(values.Select(x => x.Is)).Max();
+            var lineMaxY = iaValues.Select(x => x.Ia).Union(isValues.Select(x => x.Is)).Max();
 
             if (lineMaxX > maxX)
             {
@@ -119,19 +124,26 @@ public class MeasurementPageController : ControllerBase
 
             var vg = values.Select(x => x.Vg).Average();
 
-            var s = plot.Add.Scatter(values.Select(x => new Coordinates(x: x.Va, y: x.Ia)).ToList());
-            s.LinePattern = LinePattern.Solid;
-            s.MarkerShape = MarkerShape.Cross;
+            var iaValuesScatter = plot.Add.Scatter(
+                iaValues
+                    .Select(x => new Coordinates(x: x.Va, y: x.Ia)).ToList());
+            iaValuesScatter.LinePattern = LinePattern.Solid;
+            iaValuesScatter.MarkerShape = MarkerShape.Cross;
 
-            var s2 = plot.Add.Scatter(values.Select(x => new Coordinates(x: x.Va, y: x.Is)).ToList());
-            s2.LinePattern = LinePattern.Solid;
-            s2.MarkerShape = MarkerShape.OpenDiamond;
-            s2.Color = s.Color;
+            var isValuesScatter = plot.Add.Scatter(
+                isValues
+                    .Select(x => new Coordinates(x: x.Va, y: x.Is)).ToList());
+            isValuesScatter.LinePattern = LinePattern.Solid;
+            isValuesScatter.MarkerShape = MarkerShape.OpenDiamond;
+            isValuesScatter.Color = iaValuesScatter.Color;
 
             legendItems.Add(
                 new LegendItem
                 {
-                    LabelText = $"Vg = {vg:N0}", LineColor = s.Color, LinePattern = LinePattern.Solid, LineWidth = 5
+                    LabelText = $"Vg = {vg:N0}",
+                    LineColor = iaValuesScatter.Color,
+                    LinePattern = LinePattern.Solid,
+                    LineWidth = 5
                 });
         }
 
@@ -144,9 +156,14 @@ public class MeasurementPageController : ControllerBase
             func.LineColor = new Color(255, 0, 0);
             func.LineWidth = 2;
             legendItems.Add(
-                new LegendItem { LabelText = $"MaxP = {measurementConfig.Pmax.Value / 1000.0:F1}W", LineColor = func.LineColor, LineWidth = func.LineWidth });
+                new LegendItem
+                {
+                    LabelText = $"MaxP = {measurementConfig.Pmax.Value / 1000.0:F1}W",
+                    LineColor = func.LineColor,
+                    LineWidth = func.LineWidth
+                });
         }
-      
+
         plot.Axes.SetLimits(bottom: 0, left: 0, top: maxY, right: maxX);
         plot.XLabel("Va (V)");
         plot.YLabel("Ia (mA)");
@@ -158,15 +175,18 @@ public class MeasurementPageController : ControllerBase
         MeasurementHelper.MeasurementConfig measurementConfig,
         Plot plot,
         List<LegendItem> legendItems
-        )
+    )
     {
 
         var minX = 0.0;
         var maxY = 0.0;
         foreach (var (i, values) in data)
         {
+            var iaValues = values.TakeWhile(x => x.dIa > IgnoreDI).Select(x => (x.Vg, x.Ia)).ToList();
+            var isValues = values.TakeWhile(x => x.dIs > IgnoreDI).Select(x => (x.Vg, x.Is)).ToList();
+
             var lineMinX = values.Select(x => x.Vg).Min();
-            var lineMaxY = values.Select(x => x.Ia).Union(values.Select(x => x.Is)).Max();
+            var lineMaxY = iaValues.Select(x => x.Ia).Union(isValues.Select(x => x.Is)).Max();
 
             if (lineMinX < minX)
             {
@@ -180,19 +200,26 @@ public class MeasurementPageController : ControllerBase
 
             var va = values.Select(x => x.Va).Average();
 
-            var s = plot.Add.Scatter(values.Select(x => new Coordinates(x: x.Vg, y: x.Ia)).ToList());
-            s.LinePattern = LinePattern.Solid;
-            s.MarkerShape = MarkerShape.Cross;
+            var iaScatter = plot.Add.Scatter(
+                iaValues
+                    .Select(x => new Coordinates(x: x.Vg, y: x.Ia)).ToList());
+            iaScatter.LinePattern = LinePattern.Solid;
+            iaScatter.MarkerShape = MarkerShape.Cross;
 
-            var s2 = plot.Add.Scatter(values.Select(x => new Coordinates(x: x.Vg, y: x.Is)).ToList());
-            s2.LinePattern = LinePattern.Solid;
-            s2.MarkerShape = MarkerShape.OpenDiamond;
-            s2.Color = s.Color;
+            var isScatter = plot.Add.Scatter(
+                isValues
+                    .Select(x => new Coordinates(x: x.Vg, y: x.Is)).ToList());
+            isScatter.LinePattern = LinePattern.Solid;
+            isScatter.MarkerShape = MarkerShape.OpenDiamond;
+            isScatter.Color = iaScatter.Color;
 
             legendItems.Add(
                 new LegendItem
                 {
-                    LabelText = $"Va = {va:N0}", LineColor = s.Color, LinePattern = LinePattern.Solid, LineWidth = 5
+                    LabelText = $"Va = {va:N0}",
+                    LineColor = iaScatter.Color,
+                    LinePattern = LinePattern.Solid,
+                    LineWidth = 5
                 });
         }
 
@@ -211,13 +238,14 @@ public class MeasurementPageController : ControllerBase
         int height)
     {
         var plt = new Plot();
-        plt.SetStyle(new Light
-        {
-            FigureBackgroundColor = new Color(0, 0, 0, 0),
-            DataBackgroundColor = new Color(0, 0, 0, 0),
-            LegendBackgroundColor = new Color(0, 0, 0, 0),
-            LegendOutlineColor = new Color(0, 0, 0)
-        });
+        plt.SetStyle(
+            new Light
+            {
+                FigureBackgroundColor = new Color(0, 0, 0, 0),
+                DataBackgroundColor = new Color(0, 0, 0, 0),
+                LegendBackgroundColor = new Color(0, 0, 0, 0),
+                LegendOutlineColor = new Color(0, 0, 0)
+            });
         var anodeCurvesPoints = MeasurementHelper.ParseSpaceSeparatedTable(measurementData);
         var legendItems = new List<LegendItem>();
 
