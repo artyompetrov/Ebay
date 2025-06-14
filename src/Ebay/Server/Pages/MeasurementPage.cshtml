@@ -55,15 +55,14 @@
             <p><b>Item name:</b> @Model.Measurement.Product.SearchQueries.FirstOrDefault()?.Query </p>
             <p><b>Manufacture date:</b> @Model.Measurement.ManufactureDate</p>
             <p><b>Condition:</b> @Model.Measurement.ProductState</p>
-            <p><b>Measurement equipment:</b> Measurements were performed using a <a href="https://www.dos4ever.com/uTracer3/uTracer3_pag0.html" rel="noreferrer" target="_blank">uTracer 3+</a> tube tester.
-                Maximum measurement ranges: up to 400V (anode/screen), 50V (grid), and 600mA (current).</p>
-            <p><b>Download:</b> <a href="/m/@Model.Measurement.Id/download" target="_blank">Zip archive with measurements</a>
+            <p><b>Measurement equipment:</b> <a href="https://www.dos4ever.com/uTracer3/uTracer3_pag0.html" rel="noreferrer" target="_blank">uTracer 3+</a> tube tester.</p>
+            <p><b>Measurement ranges:</b> Anode and screen supplies: 0 to 400 V @@ 600 mA. Negative grid supply: 0 to -50 V</p>
+            <p><b>Download:</b> <a href="/m/@Model.Measurement.Id/download" target="_blank">Zip archive</a> with measurement results
                 (you can import it into <a href="https://www.dos4ever.com/uTracer3/uTracer3_pag5.html#importexcel" rel="noreferrer" target="_blank">Excel</a>,
                 or a <a href="https://www.dos4ever.com/uTracer3/uTracer3_pag16.html" rel="noreferrer" target="_blank">load line tool</a>)
         </td>
     </tr>
     <tr>
-        
         <td>
             <h3>Quick test results:</h3>
             <pre>@Model.QuickTest</pre>
