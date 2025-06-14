@@ -40,18 +40,12 @@
 <body>
 <table class="my-table">
     <tr>
-        <td style="text-align: center; background-color: #e8e8e8">
+        <td style="text-align: center; background-color: #ececec">
             <h4>Thank you for your purchase!</h4>
             <p>
                 If you’re happy with your order, please consider leaving positive feedback - it really helps my small business.<br>
                 If you need more items, you can find them in my <a href="https://www.ebay.com/usr/radiotubes_kz" rel="noreferrer" target="_blank">radiotubes_kz</a> eBay store.<br>
                 Thank you again!
-            </p>
-            <br>
-            <h4>A few words about the measurement equipment</h4>
-            <p>
-                Measurements were performed using a <a href="https://www.dos4ever.com/uTracer3/uTracer3_pag0.html" rel="noreferrer" target="_blank">uTracer 3+</a> tube tester.<br>
-                Maximum measurement ranges: up to 400V (anode/screen), 50V (grid), and 600mA (current).
             </p>
         </td>
     </tr>
@@ -61,6 +55,8 @@
             <p><b>Item name:</b> @Model.Measurement.Product.SearchQueries.FirstOrDefault()?.Query </p>
             <p><b>Manufacture date:</b> @Model.Measurement.ManufactureDate</p>
             <p><b>Condition:</b> @Model.Measurement.ProductState</p>
+            <p><b>Measurement equipment:</b> Measurements were performed using a <a href="https://www.dos4ever.com/uTracer3/uTracer3_pag0.html" rel="noreferrer" target="_blank">uTracer 3+</a> tube tester.
+                Maximum measurement ranges: up to 400V (anode/screen), 50V (grid), and 600mA (current).</p>
             <p><b>Download:</b> <a href="/m/@Model.Measurement.Id/download" target="_blank">Zip archive with measurements</a>
                 (you can import it into <a href="https://www.dos4ever.com/uTracer3/uTracer3_pag5.html#importexcel" rel="noreferrer" target="_blank">Excel</a>,
                 or a <a href="https://www.dos4ever.com/uTracer3/uTracer3_pag16.html" rel="noreferrer" target="_blank">load line tool</a>)
