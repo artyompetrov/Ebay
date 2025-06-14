@@ -86,16 +86,18 @@ builder.Services.AddAuthentication(options =>
         options.DefaultAuthenticateScheme = "smart";
         options.DefaultChallengeScheme = "smart";
     })
-    .AddPolicyScheme("smart", "Smart Scheme", options =>
-    {
-        options.ForwardDefaultSelector = context =>
+    .AddPolicyScheme(
+        "smart",
+        "Smart Scheme",
+        options =>
         {
-            var hasBearer = context.Request.Headers["Authorization"].ToString().StartsWith("Bearer ");
-            return hasBearer ? JwtBearerDefaults.AuthenticationScheme : IdentityConstants.ApplicationScheme;
-        };
-    })
-    .AddIdentityServerJwt() // JWT токены
-    .AddCookie(IdentityConstants.ApplicationScheme);
+            options.ForwardDefaultSelector = context =>
+            {
+                var hasBearer = context.Request.Headers["Authorization"].ToString().StartsWith("Bearer ");
+                return hasBearer ? JwtBearerDefaults.AuthenticationScheme : IdentityConstants.ApplicationScheme;
+            };
+        })
+    .AddIdentityServerJwt();
 
 builder.Services.AddControllersWithViews(option => { option.Filters.Add<ErrorFilter>(); })
     .AddNewtonsoftJson();
