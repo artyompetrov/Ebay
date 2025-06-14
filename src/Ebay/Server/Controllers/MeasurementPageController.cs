@@ -275,7 +275,7 @@ public class MeasurementPageController : ControllerBase
                 MarkerShape = section1MarkerShape,
                 MarkerSize = markerSize,
                 LineWidth = lineWidth,
-                LineColor = new Color(0, 0, 0),
+                MarkerFillColor = new Color(0, 0, 0)
             });
         legendItems.Add(
             new LegendItem
@@ -285,7 +285,6 @@ public class MeasurementPageController : ControllerBase
                 MarkerShape = section2MarkerShape,
                 MarkerSize = markerSize,
                 LineWidth = lineWidth,
-                LineColor = new Color(0, 0, 0),
                 MarkerFillColor = new Color(0, 0, 0)
             });
 
