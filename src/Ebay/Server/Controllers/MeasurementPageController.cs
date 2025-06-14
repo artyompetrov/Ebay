@@ -104,6 +104,13 @@ public class MeasurementPageController : ControllerBase
         var maxX = 0.0;
         var maxY = 0.0;
 
+        var section1LinePattern = LinePattern.Solid;
+        var section1MarkerShape = MarkerShape.FilledCircle;
+        var section2LinePattern = LinePattern.Dotted;
+        var section2MarkerShape = MarkerShape.OpenCircle;
+        var lineWidth = 1;
+        var markerSize = 5;
+        
         foreach (var (i, values) in data)
         {
             var iaValues = values.TakeWhile(x => x.dIa > IgnoreDI).Select(x => (x.Va, x.Ia)).ToList();
@@ -124,26 +131,30 @@ public class MeasurementPageController : ControllerBase
 
             var vg = values.Select(x => x.Vg).Average();
 
-            var iaValuesScatter = plot.Add.Scatter(
+            var section1ValuesScatter = plot.Add.Scatter(
                 iaValues
                     .Select(x => new Coordinates(x: x.Va, y: x.Ia)).ToList());
-            iaValuesScatter.LinePattern = LinePattern.Solid;
-            iaValuesScatter.MarkerShape = MarkerShape.Cross;
+            section1ValuesScatter.LinePattern = section1LinePattern;
+            section1ValuesScatter.MarkerShape = section1MarkerShape;
+            section1ValuesScatter.MarkerSize = markerSize;
+            section1ValuesScatter.LineWidth = lineWidth;
 
-            var isValuesScatter = plot.Add.Scatter(
+            var section2ValuesScatter = plot.Add.Scatter(
                 isValues
                     .Select(x => new Coordinates(x: x.Va, y: x.Is)).ToList());
-            isValuesScatter.LinePattern = LinePattern.Solid;
-            isValuesScatter.MarkerShape = MarkerShape.OpenDiamond;
-            isValuesScatter.Color = iaValuesScatter.Color;
-
+            section2ValuesScatter.LinePattern = section2LinePattern;
+            section2ValuesScatter.MarkerShape = section2MarkerShape;
+            section2ValuesScatter.Color = section1ValuesScatter.Color;
+            section2ValuesScatter.MarkerSize = markerSize;
+            section2ValuesScatter.LineWidth = lineWidth;
+            
             legendItems.Add(
                 new LegendItem
                 {
                     LabelText = $"Vg = {vg:N0}",
-                    LineColor = iaValuesScatter.Color,
+                    LineColor = section1ValuesScatter.Color,
                     LinePattern = LinePattern.Solid,
-                    LineWidth = 5
+                    LineWidth = lineWidth
                 });
         }
 
@@ -154,15 +165,37 @@ public class MeasurementPageController : ControllerBase
             var func = plot.Add.Function(PowerLimit);
             func.MinX = 0.1;
             func.LineColor = new Color(255, 0, 0);
-            func.LineWidth = 2;
+            func.LineWidth = 3;
             legendItems.Add(
                 new LegendItem
                 {
                     LabelText = $"MaxP = {measurementConfig.Pmax.Value / 1000.0:F1}W",
                     LineColor = func.LineColor,
-                    LineWidth = func.LineWidth
+                    LineWidth = func.LineWidth,
                 });
         }
+        
+        legendItems.Add(
+            new LegendItem
+            {
+                LabelText = "Section 1",
+                LinePattern = section1LinePattern,
+                MarkerShape = section1MarkerShape,
+                MarkerSize = markerSize,
+                LineWidth = lineWidth,
+                MarkerFillColor = new Color(0, 0, 0)
+            });
+        
+        legendItems.Add(
+            new LegendItem
+            {
+                LabelText = "Section 2",
+                LinePattern = section2LinePattern,
+                MarkerShape = section2MarkerShape,
+                MarkerSize = markerSize,
+                LineWidth = lineWidth,
+                MarkerFillColor = new Color(0, 0, 0)
+            });
 
         plot.Axes.SetLimits(bottom: 0, left: 0, top: maxY, right: maxX);
         plot.XLabel("Va (V)");
@@ -177,7 +210,13 @@ public class MeasurementPageController : ControllerBase
         List<LegendItem> legendItems
     )
     {
-
+        var section1LinePattern = LinePattern.Solid;
+        var section1MarkerShape = MarkerShape.FilledCircle;
+        var section2LinePattern = LinePattern.Dotted;
+        var section2MarkerShape = MarkerShape.OpenCircle;
+        var lineWidth = 1;
+        var markerSize = 5;
+        
         var minX = 0.0;
         var maxY = 0.0;
         foreach (var (i, values) in data)
@@ -200,28 +239,55 @@ public class MeasurementPageController : ControllerBase
 
             var va = values.Select(x => x.Va).Average();
 
-            var iaScatter = plot.Add.Scatter(
+            var section1ValuesScatter = plot.Add.Scatter(
                 iaValues
                     .Select(x => new Coordinates(x: x.Vg, y: x.Ia)).ToList());
-            iaScatter.LinePattern = LinePattern.Solid;
-            iaScatter.MarkerShape = MarkerShape.Cross;
+            section1ValuesScatter.LinePattern = section1LinePattern;
+            section1ValuesScatter.MarkerShape = section1MarkerShape;
+            section1ValuesScatter.MarkerSize = markerSize;
+            section1ValuesScatter.LineWidth = lineWidth;
 
-            var isScatter = plot.Add.Scatter(
+            var section2ValuesScatter = plot.Add.Scatter(
                 isValues
                     .Select(x => new Coordinates(x: x.Vg, y: x.Is)).ToList());
-            isScatter.LinePattern = LinePattern.Solid;
-            isScatter.MarkerShape = MarkerShape.OpenDiamond;
-            isScatter.Color = iaScatter.Color;
+            section2ValuesScatter.LinePattern =section2LinePattern;
+            section2ValuesScatter.MarkerShape = section2MarkerShape;
+            section2ValuesScatter.Color = section1ValuesScatter.Color;
+            section2ValuesScatter.MarkerSize = markerSize;
+            section2ValuesScatter.LineWidth = lineWidth;
 
             legendItems.Add(
                 new LegendItem
                 {
                     LabelText = $"Va = {va:N1}",
-                    LineColor = iaScatter.Color,
+                    LineColor = section1ValuesScatter.Color,
                     LinePattern = LinePattern.Solid,
-                    LineWidth = 5
+                    LineWidth = lineWidth
                 });
         }
+
+
+        legendItems.Add(
+            new LegendItem
+            {
+                LabelText = "Section 1",
+                LinePattern = section1LinePattern,
+                MarkerShape = section1MarkerShape,
+                MarkerSize = markerSize,
+                LineWidth = lineWidth,
+                LineColor = new Color(0, 0, 0),
+            });
+        legendItems.Add(
+            new LegendItem
+            {
+                LabelText = "Section 2",
+                LinePattern = section2LinePattern,
+                MarkerShape = section2MarkerShape,
+                MarkerSize = markerSize,
+                LineWidth = lineWidth,
+                LineColor = new Color(0, 0, 0),
+                MarkerFillColor = new Color(0, 0, 0)
+            });
 
         plot.Axes.SetLimits(bottom: 0, left: minX, top: maxY, right: 0);
         plot.XLabel("Vg (V)");
