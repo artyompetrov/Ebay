@@ -1,4 +1,3 @@
-﻿using System.Transactions;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
@@ -32,7 +31,7 @@ internal class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
     {
         var currentDate = DateTime.UtcNow;
         using var transaction = TransactionScopeFactory.Create();
-        
+
         var currencyRates = await _applicationContext.Currencies
             .AsNoTracking()
             .ToDictionaryAsync(x => x.CurrencyEbayName, x => x.CurrencyRate, context.CancellationToken);
@@ -98,7 +97,7 @@ internal class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
         await _publishEndpoint.Publish(
             new CalculateTotalAveragePriceForProduct(lot.ProductId),
             context.CancellationToken);
-        
+
         await _applicationContext.SaveChangesAsync(context.CancellationToken);
         // ReSharper restore IdentifierTypo
 

@@ -11,7 +11,7 @@ public sealed class Product
     public string Name { get; set; } = null!;
 
     public List<RuSearchQuery> RuSearchQueries { get; set; } = null!;
-    
+
     public List<SearchQuery> SearchQueries { get; set; } = null!;
 
     public List<Lot> Lots { get; set; } = null!;
@@ -23,6 +23,6 @@ public sealed class Product
     public int Weight { get; set; }
 
     public List<ProductMeasurement> ProductMeasurements { get; set; } = null!;
-    
+
     public ProductCalculationResult? ProductCalculationResult { get; set; }
 }

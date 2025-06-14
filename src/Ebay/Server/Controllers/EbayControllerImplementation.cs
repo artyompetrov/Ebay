@@ -1,17 +1,13 @@
-using System.Collections.Concurrent;
-using System.Diagnostics.Metrics;
-using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
-using System.Transactions;
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
+using Server.Consumers;
 using Server.Controllers.Generated;
 using Server.Data;
 using Server.Data.Models;
 using Server.Infrastructure;
 using Server.Services;
-using Microsoft.EntityFrameworkCore;
-using Server.Consumers;
 using ClientErrorInfo = Server.Controllers.Generated.ClientErrorInfo;
 using Currency = Server.Controllers.Generated.Currency;
 using DbProduct = Server.Data.Models.Product;
@@ -19,8 +15,6 @@ using LotInfo = Server.Controllers.Generated.LotInfo;
 using LotInfoShort = Server.Controllers.Generated.LotInfoShort;
 using LotInfoWithProductId = Server.Controllers.Generated.LotInfoWithProductId;
 using LotState = Server.Controllers.Generated.LotState;
-using DbProductState = Server.Data.Models.ProductState;
-using ProductState = Server.Controllers.Generated.ProductState;
 using ProductWithId = Server.Controllers.Generated.ProductWithId;
 using ProductWithoutId = Server.Controllers.Generated.ProductWithoutId;
 
@@ -64,7 +58,7 @@ internal class EbayControllerImplementation : IEbayController
         var newProductId = Guid.NewGuid();
 
         using var transaction = TransactionScopeFactory.Create();
-        
+
         await _applicationContext.Products.AddAsync(
             entity: product.ToDbProduct(newProductId),
             cancellationToken: cancellationToken
@@ -79,7 +73,7 @@ internal class EbayControllerImplementation : IEbayController
             entities: product.RuSearchQueries.Select(x => x.ToDbRuSearchQuery(newProductId)),
             cancellationToken: cancellationToken
         );
-        
+
         await _applicationContext.SaveChangesAsync(cancellationToken);
 
         transaction.Complete();
@@ -106,14 +100,14 @@ internal class EbayControllerImplementation : IEbayController
             entities: product.SearchQueries.Select(x => x.ToDbSearchQuery(id)),
             cancellationToken: cancellationToken
         );
-        
+
         await _applicationContext.RuSearchQueries.AddRangeAsync(
             entities: product.RuSearchQueries.Select(x => x.ToDbRuSearchQuery(id)),
             cancellationToken: cancellationToken
         );
-        
+
         await _publishEndpoint.Publish(new CalculatePricesForProduct(id), cancellationToken);
-        
+
         await _applicationContext.SaveChangesAsync(cancellationToken);
 
         transaction.Complete();
@@ -170,13 +164,13 @@ internal class EbayControllerImplementation : IEbayController
         {
             throw NonOkHttpAnswerException.NotFound400();
         }
-        
+
         var lots = await _applicationContext.Lots
             .AsNoTracking()
             .Include(x => x.Purchases)
             .Where(x => x.ProductId == productId).ToListAsync(cancellationToken);
-        
-        return lots.Select(x=>x.ToApiLotInfoShort()).ToList();
+
+        return lots.Select(x => x.ToApiLotInfoShort()).ToList();
     }
 
     public async Task UpsertLotInfoAsync(
@@ -222,7 +216,7 @@ internal class EbayControllerImplementation : IEbayController
             .ToList();
 
         await _applicationContext.Purchases.UpsertRange(filteredPurchaseHistory).RunAsync(cancellationToken);
-        
+
         _applicationContext.RemoveRange(
             _applicationContext.Purchases.Where(x => x.LotId == lotInfo.LotId && x.Date < titleChangedDate)
         );
@@ -386,7 +380,7 @@ internal class EbayControllerImplementation : IEbayController
             {
                 throw new InvalidOperationException("Grid or screen curves expected");
             }
-            
+
             MeasurementHelper.ParseSpaceSeparatedTable(anodeCurves);
             MeasurementHelper.ParseSpaceSeparatedTable(gridCurves);
             MeasurementHelper.ParseAndPrettifyQuickTest(quickTest);
@@ -445,7 +439,7 @@ internal class EbayControllerImplementation : IEbayController
                   throw new InvalidOperationException($"Lot with id {lotId} not found");
 
         await _publishEndpoint.Publish(new CalculatePricesForProduct(lot.ProductId), cancellationToken);
-        
+
         _applicationContext.Lots.Remove(lot);
         await _applicationContext.SaveChangesAsync(cancellationToken);
 

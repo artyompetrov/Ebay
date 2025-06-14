@@ -1,4 +1,4 @@
-﻿using System.Transactions;
+using System.Transactions;
 
 namespace Server.Infrastructure;
 
@@ -9,6 +9,6 @@ internal static class TransactionScopeFactory
             scopeOption: TransactionScopeOption.Required,
             asyncFlowOption: TransactionScopeAsyncFlowOption.Enabled,
             transactionOptions: new TransactionOptions
-                { IsolationLevel = isolationLevel }
+            { IsolationLevel = isolationLevel }
         );
 }

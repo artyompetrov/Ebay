@@ -1,4 +1,4 @@
-﻿using System.Net.Http.Headers;
+using System.Net.Http.Headers;
 using Client.Clients.Generated;
 using Newtonsoft.Json.Linq;
 using Server;
@@ -15,14 +15,14 @@ public abstract class ExplicitTestsBase
     {
         CreateClient();
     }
-    
+
 
     [OneTimeTearDown]
     public void OneTimeTearDown()
     {
         HttpClient.Dispose();
     }
-    
+
     private static void CreateClient()
     {
         var port = 443;

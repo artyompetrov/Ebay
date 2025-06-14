@@ -1,11 +1,11 @@
 using System.Text.Json;
 using Duende.IdentityServer.EntityFramework.Options;
 using MassTransit;
-using Server.Data.Models;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Options;
+using Server.Data.Models;
 
 namespace Server.Data;
 
@@ -18,7 +18,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
         modelBuilder.AddInboxStateEntity();
         modelBuilder.AddOutboxMessageEntity();
         modelBuilder.AddOutboxStateEntity();
-        
+
         modelBuilder.Entity<Lot>()
             .Property(o => o.LotCalculationResult)
             .HasConversion(new ValueConverter<LotCalculationResult?, string>(
@@ -32,14 +32,14 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
                 v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
                 v => JsonSerializer.Deserialize<ProductCalculationResult?>(v, (JsonSerializerOptions?)null)
             ));
-        
+
         modelBuilder.Entity<Purchase>()
             .Property(o => o.PurchaseCalculationResult)
             .HasConversion(new ValueConverter<PurchaseCalculationResult?, string>(
                 v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
                 v => JsonSerializer.Deserialize<PurchaseCalculationResult?>(v, (JsonSerializerOptions?)null)
             ));
-        
+
         modelBuilder.Entity<ProductMeasurement>(entity =>
         {
             entity.HasIndex(e => e.HashAnodeCurves).IsUnique();
@@ -47,7 +47,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
             entity.HasIndex(e => e.HashGridCurves).IsUnique();
         });
     }
-    
+
     public ApplicationDbContext(
         DbContextOptions options,
         IOptions<OperationalStoreOptions> operationalStoreOptions
@@ -58,7 +58,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
     public DbSet<Product> Products { get; set; } = null!;
 
     public DbSet<SearchQuery> SearchQueries { get; set; } = null!;
-    
+
     public DbSet<RuSearchQuery> RuSearchQueries { get; set; } = null!;
 
     public DbSet<Lot> Lots { get; set; } = null!;
@@ -68,7 +68,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
     public DbSet<Purchase> Purchases { get; set; } = null!;
 
     public DbSet<ClientError> ClientErrors { get; set; } = null!;
-    
+
     public DbSet<ProductMeasurement> ProductMeasurements { get; set; } = null!;
 
     public DbSet<Currency> Currencies { get; set; } = null!;

@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 
 namespace Server.Data.Models;
 
@@ -8,17 +8,17 @@ public class LotCalculationResult
     /// выручкаСПродажЛотаВДолларах
     /// </summary>
     public double Revenue { get; set; }
-    
+
     /// <summary>
     /// общееКоличествоШтукВоВсехПродажах
     /// </summary>
     public int QuantityTotal { get; set; }
-    
+
     /// <summary>
     /// Дата расчета
     /// </summary>
     public DateTime CalculationDate { get; set; }
-    
+
     /// <summary>
     /// Средняя выручка для лота
     /// </summary>

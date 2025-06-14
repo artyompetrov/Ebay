@@ -1,7 +1,5 @@
 using System.Runtime.InteropServices.JavaScript;
 using System.Runtime.Versioning;
-using Client.Pages;
-using Microsoft.JSInterop;
 
 namespace Client;
 

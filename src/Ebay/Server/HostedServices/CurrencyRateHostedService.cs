@@ -1,10 +1,9 @@
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
+using OpenExchangeRates;
 using Server.Data;
 using Server.Data.Models;
 using Server.Infrastructure;
-using Microsoft.EntityFrameworkCore;
-using OpenExchangeRates;
-using Server.Consumers;
 
 namespace Server.HostedServices;
 
@@ -80,7 +79,7 @@ internal class CurrencyRateHostedService : IHostedService, IDisposable
         {
             _state.Value.Task.GetAwaiter().GetResult();
         }
-        catch (Exception e)when (e.IsNotIntendedCancellation(_state.Value.Cts.Token))
+        catch (Exception e) when (e.IsNotIntendedCancellation(_state.Value.Cts.Token))
         {
             _logger.LogError(exception: e, message: "Error while stopping background service");
         }
@@ -98,7 +97,7 @@ internal class CurrencyRateHostedService : IHostedService, IDisposable
             try
             {
                 await RefreshCurrencyRates(cancellationToken);
-                
+
                 await Task.Delay(delay: WellKnown.CurrencyRate.UpdateTime, cancellationToken: cancellationToken);
             }
             catch (Exception e) when (e.IsNotIntendedCancellation(cancellationToken))
@@ -141,7 +140,7 @@ internal class CurrencyRateHostedService : IHostedService, IDisposable
             dbProduct.Entity.CurrencyRate = decimal.ToDouble(value);
             dbProduct.Entity.LastUpdate = currentTime;
         }
-        
+
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 }

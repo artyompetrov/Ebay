@@ -3,7 +3,7 @@ namespace Server;
 internal static class WellKnown
 {
     public const int RecheckTimeInDays = 360 * 2;
-    
+
     public static class ChromeExtension
     {
         public static string Id = "mlebgdemjnpnfgcgbbncllpniiicffbm";

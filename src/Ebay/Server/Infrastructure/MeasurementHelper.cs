@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO.Compression;
 using System.Text.RegularExpressions;
@@ -126,7 +126,7 @@ public static class MeasurementHelper
 
         var previousCurve = 0;
 
-        
+
         var rows = lines.Skip(1)
             .Select(l => l.Split(separator: ["  "], options: StringSplitOptions.RemoveEmptyEntries))
             .Select(parts =>
@@ -143,7 +143,7 @@ public static class MeasurementHelper
 
                     previousCurve = currentCurve;
                 }
-                
+
                 var currentIa = double.Parse(s: parts[idxIa], provider: CultureInfo.InvariantCulture);
                 var currentIs = double.Parse(s: parts[idxIs], provider: CultureInfo.InvariantCulture);
                 var currentVg = double.Parse(s: parts[idxVg], provider: CultureInfo.InvariantCulture);
@@ -169,7 +169,7 @@ public static class MeasurementHelper
                         dVf: currentVf - previousVf
                     )
                 };
-                
+
                 previousIa = currentIa;
                 previousIs = currentIs;
                 previousVg = currentVg;
@@ -205,7 +205,7 @@ public static class MeasurementHelper
 
             config[comment] = value;
         }
-        
+
         return new MeasurementConfig(
             MeasurementType: (MeasurementType)config["measurement type"]!.Value,
             Pmax: config.GetValueOrDefault("Pmax", defaultValue: null)
@@ -220,17 +220,17 @@ public static class MeasurementHelper
     {
         // I(Vg, Va) with Vs, Vh Constant
         TriodeGridCurves = 1,
-        
+
         // I(Va, Vg) with Vs, Vh Constant
         PentodeAnodeCurves = 2,
-        
+
         // I(Va=Vs, Vg) with Vh Constant
         TriodeAnodeCurves = 4,
-        
+
         // I(Vs, Vg) with Va, Vh Constant
         PentodeScreenCurves = 5
     }
-    
+
     public static string ParseAndPrettifyQuickTest(byte[] quickTest)
     {
         var quickTestOriginal = System.Text.Encoding.UTF8.GetString(quickTest);
@@ -240,16 +240,16 @@ public static class MeasurementHelper
             @"(\r?\n[ \t]*){2,}",
             "\n\n"
         );
-        
+
         quickTestStr = Regex.Replace(
             quickTestStr,
             @"\s+\d+\s*% of nominal [\d\.,]+ ?\([^)]+\)",
             m => new string(' ', m.Value.Length));
 
         quickTestStr = Regex.Replace(quickTestStr, @"[ ]{3,}", "|");
-        
+
         quickTestStr = Regex.Replace(quickTestStr, @"[ ]{3,}", "");
-        
+
         var matches = Regex.Matches(quickTestStr, @"^(.*?)\|", RegexOptions.Multiline);
         var maxWidth = matches.Cast<Match>().Select(m => m.Groups[1].Value.Length).DefaultIfEmpty(0).Max();
         var tabSize = 8; // браузер чаще всего 8
@@ -275,7 +275,7 @@ public static class MeasurementHelper
         {
             throw new InvalidOperationException("Nothing has changed after quick test prettification");
         }
-        
+
         return aligned.Trim();
     }
 }

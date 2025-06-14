@@ -1,4 +1,3 @@
-﻿using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -49,7 +48,7 @@ public class MeasurementPage : PageModel
         }
 
         QuickTest = MeasurementHelper.ParseAndPrettifyQuickTest(quickTest);
-        
+
         return Page();
     }
 }

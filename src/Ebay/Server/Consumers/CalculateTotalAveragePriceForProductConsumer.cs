@@ -1,4 +1,4 @@
-﻿using MassTransit;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
 using Server.Data.Models;
@@ -22,7 +22,7 @@ internal class CalculateTotalAveragePriceForProductConsumer : IConsumer<Batch<Ca
         {
             var lotCalculationResults = await _applicationDbContext.Lots.AsNoTracking()
                 .Where(x => x.ProductId == productId && x.LotCalculationResult != null)
-                .Select(x=>x.LotCalculationResult)
+                .Select(x => x.LotCalculationResult)
                 .ToListAsync(context.CancellationToken);
 
             var revenue = 0.0;
@@ -34,13 +34,13 @@ internal class CalculateTotalAveragePriceForProductConsumer : IConsumer<Batch<Ca
                 if (lotCalculationResult == null) throw new NullReferenceException(nameof(lotCalculationResults));
                 revenue += lotCalculationResult.Revenue;
                 quantityTotal += lotCalculationResult.QuantityTotal;
-                
+
                 if (dateTime > lotCalculationResult.CalculationDate)
                 {
                     dateTime = lotCalculationResult.CalculationDate;
                 }
             }
-            
+
             var dbProduct = _applicationDbContext.Products.Attach(new Product { Id = productId });
             dbProduct.Entity.ProductCalculationResult = new ProductCalculationResult
             {

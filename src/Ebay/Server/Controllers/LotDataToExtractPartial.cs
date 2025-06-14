@@ -9,7 +9,7 @@ namespace Server.Controllers.Generated;
 /// </summary>
 public partial class LotDataToExtract
 {
-    
+
     private string? _descriptionText;
     /// <summary>
     /// Описание лота без HtmlРазметки

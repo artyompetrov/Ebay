@@ -1,4 +1,4 @@
-﻿using MassTransit;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
 
@@ -19,7 +19,7 @@ internal class CalculatePricesForAllConsumer : IConsumer<CalculatePricesForAll>
 
     public async Task Consume(ConsumeContext<CalculatePricesForAll> context)
     {
-        var productIds = await _applicationContext.Products.AsNoTracking().Select(x=>x.Id)
+        var productIds = await _applicationContext.Products.AsNoTracking().Select(x => x.Id)
             .ToListAsync(context.CancellationToken);
 
         foreach (var productId in productIds)

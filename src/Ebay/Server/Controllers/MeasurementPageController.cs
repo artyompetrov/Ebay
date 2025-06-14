@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ScottPlot;
 using ScottPlot.PlotStyles;
@@ -92,7 +92,7 @@ public class MeasurementPageController : ControllerBase
         var response = Content(result, "image/svg+xml");
         return response;
     }
-    
+
     private static string CreatePlot(
         byte[] measurementData,
         byte[] measurementConfig,
@@ -140,11 +140,11 @@ public class MeasurementPageController : ControllerBase
         return plt.GetSvgXml(width: width, height: height);
     }
 
-        private static void PlotTriodeAnodeCurves(
-        Dictionary<int, MeasurementPoint[]> data,
-        MeasurementHelper.MeasurementConfig measurementConfig,
-        Plot plot,
-        List<LegendItem> legendItems)
+    private static void PlotTriodeAnodeCurves(
+    Dictionary<int, MeasurementPoint[]> data,
+    MeasurementHelper.MeasurementConfig measurementConfig,
+    Plot plot,
+    List<LegendItem> legendItems)
     {
         var maxX = 0.0;
         var maxY = 0.0;
@@ -155,7 +155,7 @@ public class MeasurementPageController : ControllerBase
         var section2MarkerShape = MarkerShape.OpenCircle;
         var lineWidth = 1;
         var markerSize = 5;
-        
+
         foreach (var (i, values) in data)
         {
             var iaValues = values.TakeWhile(x => x.dIa > IgnoreDI).Select(x => (x.Va, x.Ia)).ToList();
@@ -192,7 +192,7 @@ public class MeasurementPageController : ControllerBase
             section2ValuesScatter.Color = section1ValuesScatter.Color;
             section2ValuesScatter.MarkerSize = markerSize;
             section2ValuesScatter.LineWidth = lineWidth;
-            
+
             legendItems.Add(
                 new LegendItem
                 {
@@ -219,7 +219,7 @@ public class MeasurementPageController : ControllerBase
                     LineWidth = func.LineWidth,
                 });
         }
-        
+
         legendItems.Add(
             new LegendItem
             {
@@ -230,7 +230,7 @@ public class MeasurementPageController : ControllerBase
                 LineWidth = lineWidth,
                 MarkerFillColor = new Color(0, 0, 0)
             });
-        
+
         legendItems.Add(
             new LegendItem
             {
@@ -260,7 +260,7 @@ public class MeasurementPageController : ControllerBase
         var section2MarkerShape = MarkerShape.OpenCircle;
         var lineWidth = 1;
         var markerSize = 5;
-        
+
         var minX = 0.0;
         var maxY = 0.0;
         foreach (var (i, values) in data)
@@ -294,7 +294,7 @@ public class MeasurementPageController : ControllerBase
             var section2ValuesScatter = plot.Add.Scatter(
                 isValues
                     .Select(x => new Coordinates(x: x.Vg, y: x.Is)).ToList());
-            section2ValuesScatter.LinePattern =section2LinePattern;
+            section2ValuesScatter.LinePattern = section2LinePattern;
             section2ValuesScatter.MarkerShape = section2MarkerShape;
             section2ValuesScatter.Color = section1ValuesScatter.Color;
             section2ValuesScatter.MarkerSize = markerSize;
@@ -320,7 +320,7 @@ public class MeasurementPageController : ControllerBase
                 LineWidth = lineWidth,
                 MarkerFillColor = new Color(0, 0, 0)
             });
-        
+
         legendItems.Add(
             new LegendItem
             {
@@ -353,7 +353,7 @@ public class MeasurementPageController : ControllerBase
         var section2MarkerShape = MarkerShape.OpenCircle;
         var lineWidth = 1;
         var markerSize = 5;
-        
+
         foreach (var (i, values) in data)
         {
             var iaValues = values.TakeWhile(x => x.dIa > IgnoreDI).Select(x => (x.Va, x.Ia)).ToList();
@@ -390,7 +390,7 @@ public class MeasurementPageController : ControllerBase
             section2ValuesScatter.Color = section1ValuesScatter.Color;
             section2ValuesScatter.MarkerSize = markerSize;
             section2ValuesScatter.LineWidth = lineWidth;
-            
+
             legendItems.Add(
                 new LegendItem
                 {
@@ -417,7 +417,7 @@ public class MeasurementPageController : ControllerBase
                     LineWidth = func.LineWidth,
                 });
         }
-        
+
         legendItems.Add(
             new LegendItem
             {
@@ -428,7 +428,7 @@ public class MeasurementPageController : ControllerBase
                 LineWidth = lineWidth,
                 MarkerFillColor = new Color(0, 0, 0)
             });
-        
+
         legendItems.Add(
             new LegendItem
             {
@@ -445,20 +445,20 @@ public class MeasurementPageController : ControllerBase
         plot.YLabel("I (mA)");
         plot.Title("Anode curves");
     }
-    
+
     private static void PlotPentodeScreenCurves(
         Dictionary<int, MeasurementPoint[]> data,
         MeasurementHelper.MeasurementConfig config,
         Plot plot,
         List<LegendItem> legendItems)
     {
-         var section1LinePattern = LinePattern.Solid;
+        var section1LinePattern = LinePattern.Solid;
         var section1MarkerShape = MarkerShape.FilledCircle;
         var section2LinePattern = LinePattern.Dotted;
         var section2MarkerShape = MarkerShape.OpenCircle;
         var lineWidth = 1;
         var markerSize = 5;
-        
+
         var maxX = 0.0;
         var maxY = 0.0;
         foreach (var (i, values) in data)
@@ -492,7 +492,7 @@ public class MeasurementPageController : ControllerBase
             var section2ValuesScatter = plot.Add.Scatter(
                 isValues
                     .Select(x => new Coordinates(x: x.Vs, y: x.Is)).ToList());
-            section2ValuesScatter.LinePattern =section2LinePattern;
+            section2ValuesScatter.LinePattern = section2LinePattern;
             section2ValuesScatter.MarkerShape = section2MarkerShape;
             section2ValuesScatter.Color = section1ValuesScatter.Color;
             section2ValuesScatter.MarkerSize = markerSize;
@@ -518,7 +518,7 @@ public class MeasurementPageController : ControllerBase
                 LineWidth = lineWidth,
                 MarkerFillColor = new Color(0, 0, 0)
             });
-        
+
         legendItems.Add(
             new LegendItem
             {

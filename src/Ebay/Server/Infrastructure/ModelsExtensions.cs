@@ -1,22 +1,22 @@
 using Server.Controllers.Generated;
 using Server.Data.Models;
 using Server.Services;
-using DbProduct = Server.Data.Models.Product;
-using DbSearchQuery = Server.Data.Models.SearchQuery;
-using DbRuSearchQuery = Server.Data.Models.RuSearchQuery;
-using DbLotCalculationResult = Server.Data.Models.LotCalculationResult;
-using DbProductCalculationResult = Server.Data.Models.ProductCalculationResult;
-using DbPurchaseCalculationResult = Server.Data.Models.PurchaseCalculationResult;
-using DbCurrency = Server.Data.Models.Currency;
-using DbProductState = Server.Data.Models.ProductState;
 using ApiCurrency = Server.Controllers.Generated.Currency;
+using DbCurrency = Server.Data.Models.Currency;
+using DbLotCalculationResult = Server.Data.Models.LotCalculationResult;
+using DbProduct = Server.Data.Models.Product;
+using DbProductCalculationResult = Server.Data.Models.ProductCalculationResult;
+using DbProductState = Server.Data.Models.ProductState;
+using DbPurchaseCalculationResult = Server.Data.Models.PurchaseCalculationResult;
+using DbRuSearchQuery = Server.Data.Models.RuSearchQuery;
+using DbSearchQuery = Server.Data.Models.SearchQuery;
 using LotCalculationResult = Server.Controllers.Generated.LotCalculationResult;
 using ProductCalculationResult = Server.Controllers.Generated.ProductCalculationResult;
-using PurchaseCalculationResult = Server.Controllers.Generated.PurchaseCalculationResult;
+using ProductState = Server.Controllers.Generated.ProductState;
 using Purchase = Server.Data.Models.Purchase;
+using PurchaseCalculationResult = Server.Controllers.Generated.PurchaseCalculationResult;
 using RuSearchQuery = Server.Controllers.Generated.RuSearchQuery;
 using SearchQuery = Server.Controllers.Generated.SearchQuery;
-using ProductState = Server.Controllers.Generated.ProductState;
 
 namespace Server.Infrastructure;
 
@@ -34,7 +34,7 @@ internal static class ModelsExtensions
 
     public static SearchQuery ToApiSearchQuery(this DbSearchQuery searchQuery) =>
         new(id: searchQuery.Id, query: searchQuery.Query);
-    
+
     public static RuSearchQuery ToApiRuSearchQuery(this DbRuSearchQuery searchQuery) =>
         new(id: searchQuery.Id, query: searchQuery.Query);
 
@@ -44,7 +44,7 @@ internal static class ModelsExtensions
         Query = searchQuery.Query,
         ProductId = productId
     };
-    
+
     public static DbRuSearchQuery ToDbRuSearchQuery(this RuSearchQuery searchQuery, Guid productId) => new()
     {
         Id = searchQuery.Id,
@@ -106,15 +106,15 @@ internal static class ModelsExtensions
     public static ProductCalculationResult? ToApiLotCalculationResult(this DbProductCalculationResult? productCalculationResult) => productCalculationResult == null ? null : new(
         quantityTotal: productCalculationResult.QuantityTotal, revenue: productCalculationResult.Revenue, revenueAvg: productCalculationResult.RevenueAvg, calculationDate: productCalculationResult.CalculationDate.ToString("dd-MM-yy")
     );
-    
+
     public static LotCalculationResult? ToApiLotCalculationResult(this DbLotCalculationResult? lotCalculationResult) => lotCalculationResult == null ? null : new(
         quantityTotal: lotCalculationResult.QuantityTotal, revenue: lotCalculationResult.Revenue, revenueAvg: lotCalculationResult.RevenueAvg, calculationDate: lotCalculationResult.CalculationDate.ToString("dd-MM-yy")
     );
-    
+
     public static PurchaseCalculationResult? ToApiPurchaseCalculationResult(this DbPurchaseCalculationResult? lotCalculationResult) => lotCalculationResult == null ? null : new(
         quantityTotal: lotCalculationResult.QuantityTotal, revenue: lotCalculationResult.Revenue, revenueAvg: lotCalculationResult.RevenueAvg
     );
-    
+
     public static PurchaseInfo ToApiPurchaseInfo(this Purchase purchase) => new(
         date: purchase.Date.ToString(WellKnown.Formats.TimeFormat),
         price: purchase.Price,
@@ -196,7 +196,7 @@ internal static class ModelsExtensions
             _ => throw new ArgumentOutOfRangeException(paramName: nameof(productState), actualValue: productState, message: null)
         };
     }
-    
+
     public static DbProductState ToDbProductState(this ProductState productState)
     {
         return productState switch

@@ -1,4 +1,4 @@
-﻿using Server.Controllers.Generated;
+using Server.Controllers.Generated;
 using Server.Infrastructure;
 
 namespace Server.Services;
@@ -117,14 +117,14 @@ internal class ShippingRatesService
 
         _shippingRatesDictionary = GetShippingRatesDictionaryInner();
     }
-    
-    
+
+
     public const string Worldwide = "Worldwide";
 
     public IReadOnlyCollection<ShippingType> ShippingRates => _rates;
 
     public IReadOnlyDictionary<string, List<ShippingRateInner>> ShippingRatesDictionary => _shippingRatesDictionary;
-    
+
     private Dictionary<string, List<ShippingRateInner>> GetShippingRatesDictionaryInner()
     {
         var rates = new Dictionary<string, List<ShippingRateInner>>();
@@ -164,11 +164,11 @@ internal class ShippingRatesService
 
         return rates;
     }
-    
-    
+
+
     public record struct ShippingRateInner(int WeightFrom, int WeightTo, double Price, string Currency)
     {
         public override string ToString() => $"{WeightFrom}-{WeightTo} : {Price} {Currency}";
     };
-    
+
 }

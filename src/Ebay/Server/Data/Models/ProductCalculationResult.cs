@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace Server.Data.Models;
 
@@ -8,7 +8,7 @@ public class ProductCalculationResult
     /// выручкаСПродажиВДолларах
     /// </summary>
     public double Revenue { get; set; }
-    
+
     /// <summary>
     /// общееКоличествоШтукВоВсехПродажах
     /// </summary>
@@ -18,7 +18,7 @@ public class ProductCalculationResult
     /// Дата расчета (равно меньшему из всех дочерних расчетов)
     /// </summary>
     public DateTime CalculationDate { get; set; }
-    
+
     /// <summary>
     /// Средняя выручка для лота
     /// </summary>

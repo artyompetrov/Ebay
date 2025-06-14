@@ -1,12 +1,6 @@
 using Duende.IdentityServer.Models;
 using MassTransit;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
-using Server;
-using Server.Controllers;
-using Server.Controllers.Generated;
-using Server.Data;
-using Server.Data.Models;
-using Server.HostedServices;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
@@ -14,7 +8,13 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
 using Serilog;
+using Server;
 using Server.Consumers;
+using Server.Controllers;
+using Server.Controllers.Generated;
+using Server.Data;
+using Server.Data.Models;
+using Server.HostedServices;
 using Server.Services;
 using Secret = Duende.IdentityServer.Models.Secret;
 
