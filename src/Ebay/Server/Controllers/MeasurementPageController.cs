@@ -36,7 +36,10 @@ public class MeasurementPageController : ControllerBase
             $"{measurementId}.zip"
         );
     }
-    
+#if !DEBUG
+    // Только в релизе используем кеширование
+    [ResponseCache(Duration = 60 /*с*/ * 60 /*м*/ * 24 /*ч*/)]
+#endif
     [HttpGet("{measurementId}/curves")]
     public async Task<IActionResult> Get(
         string measurementId,
@@ -85,11 +88,6 @@ public class MeasurementPageController : ControllerBase
             gridCurvesSvg);
 
         var response = Content(result, "image/svg+xml");
-#if !DEBUG
-        // Только в релизе используем кеширование
-        Response.Headers.CacheControl = "public, max-age=86400";
-        Response.Headers.Expires = DateTime.UtcNow.AddDays(1).ToString("R");
-#endif
         return response;
     }
 

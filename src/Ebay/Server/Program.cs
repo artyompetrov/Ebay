@@ -139,6 +139,7 @@ builder.Services.AddMassTransit(
 
 var app = builder.Build();
 
+builder.Services.AddResponseCaching();
 app.UseSerilogRequestLogging();
 
 // Migrate DB
@@ -167,6 +168,7 @@ app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 
 app.UseRouting();
+app.UseResponseCaching();
 
 app.UseAuthentication();
 app.UseIdentityServer();
