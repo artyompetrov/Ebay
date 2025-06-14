@@ -208,13 +208,13 @@ public static class MeasurementHelper
 
         return new MeasurementConfig(
             MeasurementType: (MeasurementType)config["measurement type"]!.Value,
-            Pmax: config.GetValueOrDefault("Pmax", defaultValue: null)
+            Pmax: config["Pmax"]!.Value
         );
     }
 
 
     /// <param name="Pmax">Максимальная мощность мВт</param>
-    public record MeasurementConfig(MeasurementType MeasurementType, int? Pmax);
+    public record MeasurementConfig(MeasurementType MeasurementType, int Pmax);
 
     public enum MeasurementType
     {

@@ -146,6 +146,8 @@ public class MeasurementPageController : ControllerBase
     Plot plot,
     List<LegendItem> legendItems)
     {
+        double PowerLimit(double v) => measurementConfig.Pmax / v;
+        
         var maxX = 0.0;
         var maxY = 0.0;
 
@@ -162,7 +164,8 @@ public class MeasurementPageController : ControllerBase
             var isValues = values.TakeWhile(x => x.dIs > IgnoreDI).Select(x => (x.Va, x.Is)).ToList();
 
             var lineMaxX = values.Select(x => x.Va).Max();
-            var lineMaxY = iaValues.Select(x => x.Ia).Union(isValues.Select(x => x.Is)).Max();
+            var lineMaxY = GetLineMaxY(iValues: iaValues
+                .Select(x => (V: x.Va, I: x.Ia)).Union(isValues.Select(x => (V: x.Va, I: x.Is))).ToList(), powerLimit: PowerLimit);
 
             if (lineMaxX > maxX)
             {
@@ -203,23 +206,18 @@ public class MeasurementPageController : ControllerBase
                 });
         }
 
-        if (measurementConfig.Pmax.HasValue)
-        {
-            double PowerLimit(double u) => measurementConfig.Pmax.Value / u;
-
-            var func = plot.Add.Function(PowerLimit);
-            func.MinX = 0.1;
-            func.LineColor = new Color(255, 0, 0);
-            func.LineWidth = 3;
-            legendItems.Add(
-                new LegendItem
-                {
-                    LabelText = $"MaxP = {measurementConfig.Pmax.Value / 1000.0:F1}W",
-                    LineColor = func.LineColor,
-                    LineWidth = func.LineWidth,
-                });
-        }
-
+        var func = plot.Add.Function(PowerLimit);
+        func.MinX = 0.1;
+        func.LineColor = new Color(255, 0, 0);
+        func.LineWidth = 3;
+        legendItems.Add(
+            new LegendItem
+            {
+                LabelText = $"MaxP = {measurementConfig.Pmax / 1000.0:F1}W",
+                LineColor = func.LineColor,
+                LineWidth = func.LineWidth,
+            });
+        
         legendItems.Add(
             new LegendItem
             {
@@ -248,6 +246,16 @@ public class MeasurementPageController : ControllerBase
         plot.Title("Anode curves");
     }
 
+    private static double GetLineMaxY(List<(double V, double I)> iValues, Func<double, double> powerLimit)
+    {
+        var lowerPmax = iValues.Where(x => powerLimit(x.V) > x.I).Select(x => x.I).Append(0.0)
+            .Max();
+        var abovePmaxValues = iValues.Where(x => powerLimit(x.V) < x.I).Select(x => x.I).ToList();
+            
+        var lineMaxY = abovePmaxValues.Count == 0 ? lowerPmax :  Math.Max(lowerPmax, abovePmaxValues.Min());
+        return lineMaxY;
+    }
+
     private static void PlotTriodeGridCurves(
         Dictionary<int, MeasurementPoint[]> data,
         MeasurementHelper.MeasurementConfig measurementConfig,
@@ -261,15 +269,19 @@ public class MeasurementPageController : ControllerBase
         var lineWidth = 1;
         var markerSize = 5;
 
+        double PowerLimit(double v) => measurementConfig.Pmax / v;
+        
         var minX = 0.0;
         var maxY = 0.0;
         foreach (var (i, values) in data)
         {
-            var iaValues = values.TakeWhile(x => x.dIa > IgnoreDI).Select(x => (x.Vg, x.Ia)).ToList();
-            var isValues = values.TakeWhile(x => x.dIs > IgnoreDI).Select(x => (x.Vg, x.Is)).ToList();
+            var iaValues = values.TakeWhile(x => x.dIa > IgnoreDI).Select(x => (x.Va, x.Vg, x.Ia)).ToList();
+            var isValues = values.TakeWhile(x => x.dIs > IgnoreDI).Select(x => (x.Va,x.Vg, x.Is)).ToList();
 
             var lineMinX = values.Select(x => x.Vg).Min();
-            var lineMaxY = iaValues.Select(x => x.Ia).Union(isValues.Select(x => x.Is)).Max();
+            
+            var lineMaxY = GetLineMaxY(iValues: iaValues
+                .Select(x => (V: x.Va, I: x.Ia)).Union(isValues.Select(x => (V: x.Va, I: x.Is))).ToList(), powerLimit: PowerLimit);
 
             if (lineMinX < minX)
             {
@@ -344,6 +356,8 @@ public class MeasurementPageController : ControllerBase
         Plot plot,
         List<LegendItem> legendItems)
     {
+        double PowerLimit(double v) => measurementConfig.Pmax / v;
+        
         var maxX = 0.0;
         var maxY = 0.0;
 
@@ -360,7 +374,8 @@ public class MeasurementPageController : ControllerBase
             var isValues = values.TakeWhile(x => x.dIs > IgnoreDI).Select(x => (x.Va, x.Is)).ToList();
 
             var lineMaxX = values.Select(x => x.Va).Max();
-            var lineMaxY = iaValues.Select(x => x.Ia).Union(isValues.Select(x => x.Is)).Max();
+            var lineMaxY = GetLineMaxY(iValues: iaValues
+                .Select(x => (V: x.Va, I: x.Ia)).Union(isValues.Select(x => (V: x.Va, I: x.Is))).ToList(), powerLimit: PowerLimit);
 
             if (lineMaxX > maxX)
             {
@@ -401,22 +416,18 @@ public class MeasurementPageController : ControllerBase
                 });
         }
 
-        if (measurementConfig.Pmax.HasValue)
-        {
-            double PowerLimit(double u) => measurementConfig.Pmax.Value / u;
-
-            var func = plot.Add.Function(PowerLimit);
-            func.MinX = 0.1;
-            func.LineColor = new Color(255, 0, 0);
-            func.LineWidth = 3;
-            legendItems.Add(
-                new LegendItem
-                {
-                    LabelText = $"MaxP = {measurementConfig.Pmax.Value / 1000.0:F1}W",
-                    LineColor = func.LineColor,
-                    LineWidth = func.LineWidth,
-                });
-        }
+        var func = plot.Add.Function(PowerLimit);
+        func.MinX = 0.1;
+        func.LineColor = new Color(255, 0, 0);
+        func.LineWidth = 3;
+        legendItems.Add(
+            new LegendItem
+            {
+                LabelText = $"MaxP = {measurementConfig.Pmax / 1000.0:F1}W",
+                LineColor = func.LineColor,
+                LineWidth = func.LineWidth,
+            });
+        
 
         legendItems.Add(
             new LegendItem
@@ -459,15 +470,17 @@ public class MeasurementPageController : ControllerBase
         var lineWidth = 1;
         var markerSize = 5;
 
+        double PowerLimit(double v) => config.Pmax / v;
         var maxX = 0.0;
         var maxY = 0.0;
         foreach (var (i, values) in data)
         {
-            var iaValues = values.TakeWhile(x => x.dIa > IgnoreDI).Select(x => (x.Vs, x.Ia)).ToList();
-            var isValues = values.TakeWhile(x => x.dIs > IgnoreDI).Select(x => (x.Vs, x.Is)).ToList();
+            var iaValues = values.TakeWhile(x => x.dIa > IgnoreDI).Select(x => (x.Va, x.Vs, x.Ia)).ToList();
+            var isValues = values.TakeWhile(x => x.dIs > IgnoreDI).Select(x => (x.Va, x.Vs, x.Is)).ToList();
 
             var lineMaxX = values.Select(x => x.Vs).Max();
-            var lineMaxY = iaValues.Select(x => x.Ia).Union(isValues.Select(x => x.Is)).Max();
+            var lineMaxY = GetLineMaxY(iValues: iaValues
+                .Select(x => (V: x.Va, I: x.Ia)).Union(isValues.Select(x => (V: x.Va, I: x.Is))).ToList(), powerLimit: PowerLimit);
 
             if (lineMaxX > maxX)
             {
