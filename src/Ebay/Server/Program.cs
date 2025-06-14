@@ -179,6 +179,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseIdentityServer();
 
+// Чтобы не светить в интернет исходниками клиента
 app.MapGet("/auth/check", (HttpContext ctx) =>
 {
     if (!ctx.User.Identity?.IsAuthenticated ?? true)
