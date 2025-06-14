@@ -9,6 +9,7 @@ using Server.Data.Models;
 using Server.HostedServices;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
 using Serilog;
@@ -77,7 +78,14 @@ builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(keyStoragePath))
     .SetApplicationName("EbayHelper");
 
-builder.Services.AddAuthentication().AddIdentityServerJwt();
+builder.Services.AddAuthentication(options =>
+    {
+        // Это явное указание использовать куки-схему по умолчанию
+        options.DefaultScheme = IdentityConstants.ApplicationScheme;
+        options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
+        options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
+    })
+    .AddIdentityServerJwt();
 
 builder.Services.AddControllersWithViews(option => { option.Filters.Add<ErrorFilter>(); })
     .AddNewtonsoftJson();
@@ -142,6 +150,9 @@ var app = builder.Build();
 builder.Services.AddResponseCaching();
 app.UseSerilogRequestLogging();
 
+
+
+
 // Migrate DB
 using (var scope = app.Services.CreateScope())
 {
@@ -163,19 +174,49 @@ else
 }
 
 app.UseHttpsRedirection();
+app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseIdentityServer();
+
+app.MapGet("/auth/check", (HttpContext ctx) =>
+{
+    if (!ctx.User.Identity?.IsAuthenticated ?? true)
+        return Results.Unauthorized();
+
+    return Results.Ok();
+});
+app.UseWhen(ctx => IsBlazorStaticResource(ctx.Request), appBuilder =>
+{
+    appBuilder.Use(async (context, next) =>
+    {
+        if (!context.User.Identity?.IsAuthenticated ?? true)
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return;
+        }
+
+        await next();
+    });
+});
 
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
-
-app.UseRouting();
 app.UseResponseCaching();
-
-app.UseAuthentication();
-app.UseIdentityServer();
-app.UseAuthorization();
-
 app.MapRazorPages();
 app.MapControllers();
 app.MapFallbackToFile("index.html");
 
 app.Run();
+
+static bool IsBlazorStaticResource(HttpRequest request)
+{
+    var path = request.Path.Value ?? string.Empty;
+
+    return path.StartsWith("/_framework", StringComparison.OrdinalIgnoreCase)
+           || path.StartsWith("/_content", StringComparison.OrdinalIgnoreCase)
+           || path.EndsWith(".wasm", StringComparison.OrdinalIgnoreCase)
+           || path.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)
+           || path.EndsWith("blazor.boot.json", StringComparison.OrdinalIgnoreCase)
+           || path.EndsWith("blazor.webassembly.js", StringComparison.OrdinalIgnoreCase);
+}

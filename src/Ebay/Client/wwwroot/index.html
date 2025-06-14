@@ -18,8 +18,33 @@
     <a class="reload" href="">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
-<script src="_content/Microsoft.AspNetCore.Components.WebAssembly.Authentication/AuthenticationService.js"></script>
-<script src="_framework/blazor.webassembly.js"></script>
+<script>
+    // 🔐 Проверяем авторизацию перед загрузкой Blazor
+    fetch('/auth/check', { credentials: 'include' })
+        .then(response => {
+            if (response.ok) {
+                // ✅ Авторизован — грузим Blazor
+                const authScript = document.createElement('script');
+                authScript.src = "_content/Microsoft.AspNetCore.Components.WebAssembly.Authentication/AuthenticationService.js";
+                document.body.appendChild(authScript);
+
+                const blazorScript = document.createElement('script');
+                blazorScript.src = "_framework/blazor.webassembly.js";
+                document.body.appendChild(blazorScript);
+            } else if (response.status === 401) {
+                // ❌ Не авторизован — редирект на логин
+                const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+                window.location.href = `/Identity/Account/Login?returnUrl=${returnUrl}`;
+            } else {
+                document.getElementById('app').innerText = "Unexpected error. Try again later.";
+            }
+        })
+        .catch(error => {
+            console.error("Authorization check failed", error);
+            document.getElementById('app').innerText = "Network error. Try again later.";
+        });
+</script>
+
 </body>
 
 </html>
