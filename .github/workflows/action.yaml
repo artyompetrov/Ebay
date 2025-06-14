@@ -5,6 +5,10 @@ on:
     branches:
       - '**'      # Запускается на все ветки
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: ghcr.io
   DOTNET_IMAGE_NAME: ${{ github.actor }}/ebay:latest
