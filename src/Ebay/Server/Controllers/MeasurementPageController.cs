@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ScottPlot;
@@ -31,13 +32,51 @@ public class MeasurementPageController : ControllerBase
 
         if (zipBytes == null)
             return NotFound();
+        
+        if (!MeasurementHelper.ReadMeasurementFile(
+                measurementData: zipBytes,
+                errors: out var fileErrors,
+                anodeCurvesConfig: out var anodeCurvesConfig,
+                gridCurvesConfig: out var gridCurvesConfig,
+                anodeCurves: out var anodeCurves,
+                gridCurves: out var gridCurves,
+                quickTest: out var quickTest))
+        {
+            return NotFound();
+        }
 
-        return File(
-            zipBytes,
-            "application/zip",
-            $"{measurementId}.zip"
-        );
+        var config = MeasurementHelper.ParseMeasurementConfigTable(gridCurvesConfig);
+        
+        var gridFileName = config.MeasurementType switch
+        {
+            MeasurementHelper.MeasurementType.TriodeGridCurves => "grid_curves",
+            MeasurementHelper.MeasurementType.PentodeScreenCurves => "screen_curves",
+            _ => throw new ArgumentOutOfRangeException()
+        };
+        
+        using var zipStream = new MemoryStream();
+        using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, leaveOpen: true))
+        {
+
+            await SaveFileToZipArchive(archive: archive, fileName: "anode_curves_measurement_config.uts", content: anodeCurvesConfig);
+            await SaveFileToZipArchive(archive: archive, fileName: $"{gridFileName}_measurement_config.uts", content: gridCurvesConfig);
+            await SaveFileToZipArchive(archive: archive, fileName: "anode_curves.utd", content: anodeCurves);
+            await SaveFileToZipArchive(archive: archive, fileName: $"{gridFileName}.utd", content: gridCurves);
+            await SaveFileToZipArchive(archive: archive, fileName: "quick_test.txt", content: quickTest);
+        }
+
+        zipStream.Position = 0;
+
+        return File(zipStream.ToArray(), "application/zip", $"{measurementId}.zip");
     }
+
+    private async static Task SaveFileToZipArchive(ZipArchive archive, string fileName, byte[] content)
+    {
+        var entry = archive.CreateEntry(fileName);
+        await using var entryStream = entry.Open();
+        entryStream.Write(content, 0, content.Length);
+    }
+    
 #if !DEBUG
     // Только в релизе используем кеширование
     [ResponseCache(Duration = 60 /*с*/ * 60 /*м*/ * 24 /*ч*/)]
