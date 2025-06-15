@@ -386,13 +386,13 @@ internal class EbayControllerImplementation : IEbayController
             var anodeConfig = MeasurementHelper.ParseMeasurementConfigTable(anodeCurvesConfig);
             var gridConfig = MeasurementHelper.ParseMeasurementConfigTable(gridCurvesConfig);
 
-            if (anodeConfig.MeasurementType != MeasurementHelper.MeasurementType.TriodeAnodeCurves ||
+            if (anodeConfig.MeasurementType != MeasurementHelper.MeasurementType.TriodeAnodeCurves &&
                 anodeConfig.MeasurementType != MeasurementHelper.MeasurementType.PentodeAnodeCurves)
             {
                 throw new InvalidOperationException("AnodeCurves expected");
             }
 
-            if (gridConfig.MeasurementType != MeasurementHelper.MeasurementType.PentodeScreenCurves ||
+            if (gridConfig.MeasurementType != MeasurementHelper.MeasurementType.PentodeScreenCurves &&
                 gridConfig.MeasurementType != MeasurementHelper.MeasurementType.TriodeGridCurves)
             {
                 throw new InvalidOperationException("Grid or screen curves expected");
