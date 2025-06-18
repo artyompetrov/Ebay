@@ -1,7 +1,7 @@
 ﻿export const Colors = {
     lightGray: "lightgray",
     lightGreen: "rgb(166 255 166)",
-    lightPink: "lightpink",
+    lightPink: "#f6cbd2",
     lightYellow: "#e5e582"
 };
 

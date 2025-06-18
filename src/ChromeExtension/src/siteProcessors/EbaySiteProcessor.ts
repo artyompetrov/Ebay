@@ -52,15 +52,15 @@ class ShippingParameters {
 
 
 class LotLink {
-    constructor(id: number, link: HTMLAnchorElement, soldDate: Date) {
+    constructor(id: number, itemHtmlElement: HTMLElement, soldDate: Date) {
         this.id = id
-        this.link = link
+        this.itemHtmlElement = itemHtmlElement
         this.soldDate = soldDate
         this.color = null
     }
 
     id: number;
-    link: HTMLAnchorElement;
+    itemHtmlElement: HTMLElement;
     soldDate: Date
     importantCount: number | null
     previousColor: string | null
@@ -1097,10 +1097,10 @@ class EbaySiteProcessor implements ISiteProcessor {
             let links: LotLink[] = [];
             for (let li of [...searchResults.querySelectorAll('li')]) {
                 if (li.classList.contains("srp-river-answer--REWRITE_START") && li.innerText === "Results matching fewer words") break
-                if (li.classList.contains("s-item")) {
-                    let link = <HTMLAnchorElement>li.querySelector('a.s-item__link')
-                    let soldDate = new Date((<HTMLElement>li.querySelector('span.POSITIVE')).innerText.replace("Sold ", ""))
-                    links.push(new LotLink(parseInt(link.href.match(/https:\/\/[^\/]+\/itm\/(\d+)/)[1]), link, soldDate));
+                if (li.classList.contains("s-card")) {
+                    let link = <HTMLAnchorElement>li.querySelector('a.su-link')
+                    let soldDate = new Date((<HTMLElement>li.querySelector('span.positive')).innerText.replace("Sold ", ""))
+                    links.push(new LotLink(parseInt(link.href.match(/https:\/\/[^\/]+\/itm\/(\d+)/)[1]), li, soldDate));
                 }
             }
             // noinspection JSUnusedLocalSymbols
@@ -1154,7 +1154,7 @@ class EbaySiteProcessor implements ISiteProcessor {
 
                 filteredLinks.forEach(x => {
                     if (x.color !== null && x.previousColor !== x.color) {
-                        x.link.style.cssText = `background-color: ${x.color};`
+                        x.itemHtmlElement.style.cssText = `background-color: ${x.color};`
                     }
                 });
 
