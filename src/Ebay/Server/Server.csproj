@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Server.Adapters.ChipFind\Server.Adapters.ChipFind.csproj" />
       <ProjectReference Include="..\Server.Application\Server.Application.csproj" />
     </ItemGroup>
 

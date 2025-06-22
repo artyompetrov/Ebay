@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
 using Serilog;
 using Server;
+using Server.Adapters.ChipFind;
 using Server.Application;
 using Server.Application.Consumers;
 using Server.Application.Controllers;
@@ -42,6 +43,7 @@ builder.Services.AddNpgsqlDataSource(connectionString);
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql());
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddSingleton<ShippingRatesService>();
+builder.Services.AddSingleton<IChipfindAdapter, ChipfindAdapter>();
 builder.Services.AddScoped<IEbayController, EbayControllerImplementation>();
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
