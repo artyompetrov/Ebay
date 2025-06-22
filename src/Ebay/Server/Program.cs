@@ -29,10 +29,8 @@ var options = new EbayServerOptions();
 builder.Configuration.Bind("EbayServer", options);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new NullReferenceException("Connection string cannot be null");
 
-builder.Services.AddApplicationServices(options, connectionString);
-
-builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddChipFindAdapter();
+builder.Services.AddApplicationServices(options, connectionString);
 
 builder.Services.AddIdentityServer()
     .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(
@@ -52,7 +50,7 @@ builder.Services.AddIdentityServer()
             o.Clients.Add(spaClient);
 
             o.Clients.Add(
-                new Client
+                new Duende.IdentityServer.Models.Client
                 {
                     ClientId = WellKnown.Authorization.PythonClientId,
                     ClientSecrets = new List<Secret> { new(WellKnown.Authorization.ClientSecret.Sha256()) },

@@ -1,6 +1,9 @@
+using System.Reflection;
 using MassTransit;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Server.Application.Consumers;
 using Server.Application.Controllers;
 using Server.Application.Data;
@@ -16,23 +19,24 @@ public static class ServiceCollectionExtensions
 {
     public static void AddApplicationServices(this IServiceCollection services, EbayServerOptions options, string connectionString)
     {
+        var appAssembly = typeof(ServiceCollectionExtensions).Assembly;
+        
         services.AddSingleton(options);
         services.AddNpgsqlDataSource(connectionString);
-        services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql());
+        services.AddDbContext<ApplicationDbContext>(o => o.UseNpgsql());
         services.AddSingleton<ShippingRatesService>();
 
         services.AddScoped<IEbayController, EbayControllerImplementation>();
-
-        services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+        services.AddDefaultIdentity<ApplicationUser>(o => o.SignIn.RequireConfirmedAccount = true)
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
         services.AddHostedService<CurrencyRateBackgroundTask>();
         services.AddHostedService<ChipfindBackgroundTask>();
 
         services.AddOptions<SqlTransportOptions>()
-            .Configure(options =>
+            .Configure(o =>
             {
-                options.ConnectionString = connectionString;
+                o.ConnectionString = connectionString;
             });
 
         services.AddPostgresMigrationHostedService(x =>
@@ -70,10 +74,14 @@ public static class ServiceCollectionExtensions
                     });
 
             });
-
+        services.AddDatabaseDeveloperPageExceptionFilter();
+        
         services.AddControllersWithViews(option => { option.Filters.Add<ErrorFilter>(); })
+            .AddApplicationPart(appAssembly)
             .AddNewtonsoftJson();
-        services.AddRazorPages();
+
+        services.AddRazorPages()
+            .AddApplicationPart(typeof(ServiceCollectionExtensions).Assembly);
     }
 
     public static void InitializeApplication(this IServiceProvider serviceProvider)
