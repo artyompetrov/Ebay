@@ -39,9 +39,10 @@ jobs:
         working-directory: ./src/Ebay
         run: dotnet build --no-restore --configuration Release
 
-      - name: Run .NET Tests
-        working-directory: ./src/Ebay
-        run: dotnet test --no-build --filter "TestCategory!=ExplicitOnly" --verbosity normal --configuration Release
+# ходит на продакшн в момент билда
+#      - name: Run .NET Tests
+#        working-directory: ./src/Ebay
+#        run: dotnet test --no-build --filter "TestCategory!=ExplicitOnly" --verbosity normal --configuration Release
 
       - name: Install Node.js Dependencies
         working-directory: ./src/ChromeExtension
