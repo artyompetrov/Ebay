@@ -16,6 +16,7 @@ using Server.Controllers.Generated;
 using Server.Application.Data.Models;
 using Server.Application.HostedServices.ChipFind;
 using Server.Application.HostedServices.Currencies;
+using Server.Application.Pages;
 using Server.Application.Services;
 using Secret = Duende.IdentityServer.Models.Secret;
 
@@ -32,21 +33,16 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 
 // Add services to the container.
-builder.Services.AddSingleton(sp =>
-{
-    var options = new EbayServerOptions();
-    builder.Configuration.Bind("EbayServer", options);
-    return options;
-});
+var options = new EbayServerOptions();
+builder.Configuration.Bind("EbayServer", options);
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new NullReferenceException("Connection string cannot be null");
-builder.Services.AddNpgsqlDataSource(connectionString);
-builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql());
+
+builder.Services.AddApplicationServices(options, connectionString);
+
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-builder.Services.AddSingleton<ShippingRatesService>();
+
 builder.Services.AddSingleton<IChipfindAdapter, ChipfindAdapter>();
-builder.Services.AddScoped<IEbayController, EbayControllerImplementation>();
-builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddEntityFrameworkStores<ApplicationDbContext>();
 
 builder.Services.AddIdentityServer()
     .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(
@@ -66,7 +62,7 @@ builder.Services.AddIdentityServer()
             options.Clients.Add(spaClient);
 
             options.Clients.Add(
-                new Duende.IdentityServer.Models.Client
+                new Client
                 {
                     ClientId = WellKnown.Authorization.PythonClientId,
                     ClientSecrets = new List<Secret> { new(WellKnown.Authorization.ClientSecret.Sha256()) },
@@ -91,7 +87,7 @@ builder.Services.AddAuthentication().AddIdentityServerJwt();
 
 builder.Services.AddControllersWithViews(option => { option.Filters.Add<ErrorFilter>(); })
     .AddNewtonsoftJson();
-builder.Services.AddRazorPages();
+builder.Services.AddRazorPages().AddApplicationPart(typeof(MeasurementPage).Assembly);
 builder.Services.AddLogging(
     options =>
     {
@@ -102,65 +98,15 @@ builder.Services.AddLogging(
                 c.UseUtcTimestamp = true;
             });
     });
-builder.Services.AddHostedService<CurrencyRateBackgroundTask>();
-builder.Services.AddHostedService<ChipfindBackgroundTask>();
-
-
-builder.Services.AddOptions<SqlTransportOptions>()
-    .Configure(options =>
-    {
-        options.ConnectionString = connectionString;
-    });
-
-builder.Services.AddPostgresMigrationHostedService(x =>
-{
-    x.CreateDatabase = false;
-    x.CreateInfrastructure = true;
-});
-builder.Services.AddMassTransit(
-    x =>
-    {
-        x.AddConsumer<CalculatePricesForAllConsumer>();
-        x.AddConsumer<CalculatePricesForProductConsumer>();
-        x.AddConsumer<CalculatePricesForLotConsumer>();
-        x.AddConsumer<CalculateTotalAveragePriceForProductConsumer>(
-            c => c.Options<BatchOptions>(o =>
-            {
-                o.ConcurrencyLimit = 1;
-                o.MessageLimit = 100;
-            }));
-        x.AddEntityFrameworkOutbox<ApplicationDbContext>(
-            o =>
-            {
-                o.UsePostgres();
-                o.UseBusOutbox();
-            });
-
-        x.AddSqlMessageScheduler();
-
-        x.UsingPostgres(
-            (context, cfg) =>
-            {
-                cfg.UseSqlMessageScheduler();
-
-                cfg.ConfigureEndpoints(context);
-            });
-
-    });
 
 var app = builder.Build();
 
 builder.Services.AddResponseCaching();
 
+app.Services.InitializeApplication();
 
 app.UseSerilogRequestLogging();
 
-// Migrate DB
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    dbContext.Database.Migrate();
-}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -176,17 +122,13 @@ else
 }
 
 app.UseHttpsRedirection();
-
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
-
 app.UseRouting();
 app.UseResponseCaching();
-
 app.UseAuthentication();
 app.UseIdentityServer();
 app.UseAuthorization();
-
 app.MapRazorPages();
 app.MapControllers();
 app.MapFallbackToFile("index.html");

@@ -28,11 +28,15 @@ public abstract class BackgroundTask : IHostedService, IDisposable
                 }
                 catch (Exception e) when (e.IsNotIntendedCancellation(cts.Token))
                 {
-                    _logger.LogError(exception: e, message: $"{GetType().Name} {nameof(BackgroundService)} finished with error");
+                    _logger.LogError(exception: e, message: $"{GetType().Name} {nameof(BackgroundTask)} finished with error");
+                }
+                catch (Exception e) when (!e.IsNotIntendedCancellation(cts.Token))
+                {
+                    // gracefull shutdown
                 }
                 finally
                 {
-                    _logger.LogInformation(message: $"{GetType().Name} {nameof(BackgroundService)} stopped working");
+                    _logger.LogInformation(message: $"{GetType().Name} {nameof(BackgroundTask)} stopped working");
                 }
             },
             cancellationToken: cts.Token);
