@@ -1,11 +1,7 @@
 ﻿FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim AS build_dotnet
 WORKDIR /src
-COPY "Ebay/Ebay.sln" "Ebay/"
-COPY "Ebay/Directory.Packages.props" "Ebay/"
-COPY "Ebay/Server/Server.csproj" "Ebay/Server/Server.csproj"
-COPY "Ebay/Client/Client.csproj" "Ebay/Client/Client.csproj"
-RUN dotnet restore "Ebay/Server/Server.csproj"
 COPY Ebay Ebay
+RUN dotnet restore "Ebay/Server/Server.csproj"
 WORKDIR "/src/Ebay/Server"
 ARG BUILD_VERSION="0.0.0.1"
 RUN dotnet publish "Server.csproj" -c Release -o /app/publish /p:UseAppHost=false /p:Version=$BUILD_VERSION
