@@ -1,6 +1,6 @@
 ﻿import * as Utils from "../infrastructure/Utils"; 
 
-export async function  checkForUpdates(): Promise<void> {
+export async function  checkForUpdates(): Promise<boolean> {
     const currentVersion = chrome.runtime.getManifest().version;
     const updateUrl = chrome.runtime.getManifest().update_url;
 
@@ -20,8 +20,7 @@ export async function  checkForUpdates(): Promise<void> {
     const remoteVersion = updateCheckNode?.getAttribute("version");
 
     if (!remoteVersion) {
-        console.error("Version not found in the update manifest.");
-        return;
+        throw new Error("Version not found in the update manifest.");
     }
 
     const isNewerVersion = (current: string, remote: string): boolean => {
@@ -49,8 +48,10 @@ export async function  checkForUpdates(): Promise<void> {
             console.log("Alerting " + alertMessage)
         } else {
             alert(alertMessage);
+            
+            return false;
         }
-        return;
+        return true;
     }
 
     console.log("No updates available. Current version is up-to-date.");
