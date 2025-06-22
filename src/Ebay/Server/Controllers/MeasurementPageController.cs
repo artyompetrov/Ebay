@@ -50,6 +50,7 @@ public class MeasurementPageController : ControllerBase
         var gridFileName = config.MeasurementType switch
         {
             MeasurementHelper.MeasurementType.TriodeGridCurves => "grid_curves",
+            MeasurementHelper.MeasurementType.DoubleTriodeGridCurves => "grid_curves",
             MeasurementHelper.MeasurementType.PentodeScreenCurves => "screen_curves",
             _ => throw new ArgumentOutOfRangeException()
         };
@@ -143,10 +144,10 @@ public class MeasurementPageController : ControllerBase
         plt.SetStyle(
             new Light
             {
-                FigureBackgroundColor = new Color(0, 0, 0, 0),
-                DataBackgroundColor = new Color(0, 0, 0, 0),
-                LegendBackgroundColor = new Color(0, 0, 0, 0),
-                LegendOutlineColor = new Color(0, 0, 0)
+                FigureBackgroundColor = new Color(red: 0, green: 0, blue: 0, alpha: 0),
+                DataBackgroundColor = new Color(red: 0, green: 0, blue: 0, alpha: 0),
+                LegendBackgroundColor = new Color(red: 0, green: 0, blue: 0, alpha: 0),
+                LegendOutlineColor = new Color(red: 0, green: 0, blue: 0)
             });
         var anodeCurvesPoints = MeasurementHelper.ParseSpaceSeparatedTable(measurementData);
         var legendItems = new List<LegendItem>();
@@ -156,24 +157,55 @@ public class MeasurementPageController : ControllerBase
         switch (config.MeasurementType)
         {
             case MeasurementHelper.MeasurementType.TriodeAnodeCurves:
-                PlotTriodeAnodeCurves(anodeCurvesPoints, config, plt, legendItems);
+                PlotTriodeAnodeCurves(
+                    data: anodeCurvesPoints,
+                    measurementConfig: config,
+                    plotSecondCurve: false,
+                    plot: plt,
+                    legendItems: legendItems);
                 break;
             case MeasurementHelper.MeasurementType.TriodeGridCurves:
-                PlotTriodeGridCurves(anodeCurvesPoints, config, plt, legendItems);
+                PlotTriodeGridCurves(
+                    data: anodeCurvesPoints,
+                    measurementConfig: config,
+                    plotSecondCurve: false,
+                    plot: plt,
+                    legendItems: legendItems);
+                break;
+            case MeasurementHelper.MeasurementType.DoubleTriodeAnodeCurves:
+                PlotTriodeAnodeCurves(
+                    data: anodeCurvesPoints,
+                    measurementConfig: config,
+                    plotSecondCurve: true,
+                    plot: plt,
+                    legendItems: legendItems);
+                break;
+            case MeasurementHelper.MeasurementType.DoubleTriodeGridCurves:
+                PlotTriodeGridCurves(
+                    data: anodeCurvesPoints,
+                    measurementConfig: config,
+                    plotSecondCurve: true,
+                    plot: plt,
+                    legendItems: legendItems);
                 break;
             case MeasurementHelper.MeasurementType.PentodeAnodeCurves:
-                PlotPentodeAnodeCurves(anodeCurvesPoints, config, plt, legendItems);
+                PlotPentodeAnodeCurves(
+                    data: anodeCurvesPoints,
+                    measurementConfig: config,
+                    plot: plt,
+                    legendItems: legendItems);
                 break;
             case MeasurementHelper.MeasurementType.PentodeScreenCurves:
-                PlotPentodeScreenCurves(anodeCurvesPoints, config, plt, legendItems);
+                PlotPentodeScreenCurves(data: anodeCurvesPoints, config: config, plot: plt, legendItems: legendItems);
                 break;
+
             default:
                 throw new ArgumentOutOfRangeException();
         }
 
         plt.Legend.ManualItems = legendItems;
-        plt.Legend.ShadowColor = new Color(0, 0, 0, 0);
-        ;
+        plt.Legend.ShadowColor = new Color(red: 0, green: 0, blue: 0, alpha: 0);
+        
         plt.ShowLegend(vertical ? Edge.Right : Edge.Bottom);
 
         return plt.GetSvgXml(width: width, height: height);
@@ -182,6 +214,7 @@ public class MeasurementPageController : ControllerBase
     private static void PlotTriodeAnodeCurves(
     Dictionary<int, MeasurementPoint[]> data,
     MeasurementHelper.MeasurementConfig measurementConfig,
+    bool plotSecondCurve,
     Plot plot,
     List<LegendItem> legendItems)
     {
@@ -203,8 +236,15 @@ public class MeasurementPageController : ControllerBase
             var isValues = values.TakeWhile(x => x.dIs > IgnoreDI).Select(x => (x.Va, x.Is)).ToList();
 
             var lineMaxX = values.Select(x => x.Va).Max();
-            var lineMaxY = GetLineMaxY(iValues: iaValues
-                .Select(x => (V: x.Va, I: x.Ia)).Union(isValues.Select(x => (V: x.Va, I: x.Is))).ToList(), powerLimit: PowerLimit);
+
+            var iValues = iaValues
+                .Select(x => (V: x.Va, I: x.Ia));
+            if (plotSecondCurve)
+            {
+                iValues = iValues.Union(isValues.Select(x => (V: x.Va, I: x.Is)));
+            }
+            
+            var lineMaxY = GetLineMaxY(iValues: iValues.ToList(), powerLimit: PowerLimit);
 
             if (lineMaxX > maxX)
             {
@@ -226,14 +266,17 @@ public class MeasurementPageController : ControllerBase
             section1ValuesScatter.MarkerSize = markerSize;
             section1ValuesScatter.LineWidth = lineWidth;
 
-            var section2ValuesScatter = plot.Add.Scatter(
-                isValues
-                    .Select(x => new Coordinates(x: x.Va, y: x.Is)).ToList());
-            section2ValuesScatter.LinePattern = section2LinePattern;
-            section2ValuesScatter.MarkerShape = section2MarkerShape;
-            section2ValuesScatter.Color = section1ValuesScatter.Color;
-            section2ValuesScatter.MarkerSize = markerSize;
-            section2ValuesScatter.LineWidth = lineWidth;
+            if (plotSecondCurve)
+            {
+                var section2ValuesScatter = plot.Add.Scatter(
+                    isValues
+                        .Select(x => new Coordinates(x: x.Va, y: x.Is)).ToList());
+                section2ValuesScatter.LinePattern = section2LinePattern;
+                section2ValuesScatter.MarkerShape = section2MarkerShape;
+                section2ValuesScatter.Color = section1ValuesScatter.Color;
+                section2ValuesScatter.MarkerSize = markerSize;
+                section2ValuesScatter.LineWidth = lineWidth;
+            }
 
             legendItems.Add(
                 new LegendItem
@@ -268,16 +311,19 @@ public class MeasurementPageController : ControllerBase
                 MarkerFillColor = new Color(0, 0, 0)
             });
 
-        legendItems.Add(
-            new LegendItem
-            {
-                LabelText = "Section 2",
-                LinePattern = section2LinePattern,
-                MarkerShape = section2MarkerShape,
-                MarkerSize = markerSize,
-                LineWidth = lineWidth,
-                MarkerFillColor = new Color(0, 0, 0)
-            });
+        if (plotSecondCurve)
+        {
+            legendItems.Add(
+                new LegendItem
+                {
+                    LabelText = "Section 2",
+                    LinePattern = section2LinePattern,
+                    MarkerShape = section2MarkerShape,
+                    MarkerSize = markerSize,
+                    LineWidth = lineWidth,
+                    MarkerFillColor = new Color(0, 0, 0)
+                });
+        }
 
         plot.Axes.SetLimits(bottom: 0, left: 0, top: maxY, right: maxX);
         plot.XLabel("Vanode (V)");
@@ -298,6 +344,7 @@ public class MeasurementPageController : ControllerBase
     private static void PlotTriodeGridCurves(
         Dictionary<int, MeasurementPoint[]> data,
         MeasurementHelper.MeasurementConfig measurementConfig,
+        bool plotSecondCurve,
         Plot plot,
         List<LegendItem> legendItems)
     {
@@ -318,9 +365,14 @@ public class MeasurementPageController : ControllerBase
             var isValues = values.TakeWhile(x => x.dIs > IgnoreDI).Select(x => (x.Va,x.Vg, x.Is)).ToList();
 
             var lineMinX = values.Select(x => x.Vg).Min();
+
+            var iValues = iaValues.Select(x => (V: x.Va, I: x.Ia));
+            if (plotSecondCurve)
+            {
+                iValues = iValues.Union(isValues.Select(x => (V: x.Va, I: x.Is)));
+            }
             
-            var lineMaxY = GetLineMaxY(iValues: iaValues
-                .Select(x => (V: x.Va, I: x.Ia)).Union(isValues.Select(x => (V: x.Va, I: x.Is))).ToList(), powerLimit: PowerLimit);
+            var lineMaxY = GetLineMaxY(iValues: iValues.ToList(), powerLimit: PowerLimit);
 
             if (lineMinX < minX)
             {
@@ -342,14 +394,17 @@ public class MeasurementPageController : ControllerBase
             section1ValuesScatter.MarkerSize = markerSize;
             section1ValuesScatter.LineWidth = lineWidth;
 
-            var section2ValuesScatter = plot.Add.Scatter(
-                isValues
-                    .Select(x => new Coordinates(x: x.Vg, y: x.Is)).ToList());
-            section2ValuesScatter.LinePattern = section2LinePattern;
-            section2ValuesScatter.MarkerShape = section2MarkerShape;
-            section2ValuesScatter.Color = section1ValuesScatter.Color;
-            section2ValuesScatter.MarkerSize = markerSize;
-            section2ValuesScatter.LineWidth = lineWidth;
+            if (plotSecondCurve)
+            {
+                var section2ValuesScatter = plot.Add.Scatter(
+                    isValues
+                        .Select(x => new Coordinates(x: x.Vg, y: x.Is)).ToList());
+                section2ValuesScatter.LinePattern = section2LinePattern;
+                section2ValuesScatter.MarkerShape = section2MarkerShape;
+                section2ValuesScatter.Color = section1ValuesScatter.Color;
+                section2ValuesScatter.MarkerSize = markerSize;
+                section2ValuesScatter.LineWidth = lineWidth;
+            }
 
             legendItems.Add(
                 new LegendItem
@@ -372,16 +427,19 @@ public class MeasurementPageController : ControllerBase
                 MarkerFillColor = new Color(0, 0, 0)
             });
 
-        legendItems.Add(
-            new LegendItem
-            {
-                LabelText = "Section 2",
-                LinePattern = section2LinePattern,
-                MarkerShape = section2MarkerShape,
-                MarkerSize = markerSize,
-                LineWidth = lineWidth,
-                MarkerFillColor = new Color(0, 0, 0)
-            });
+        if (plotSecondCurve)
+        {
+            legendItems.Add(
+                new LegendItem
+                {
+                    LabelText = "Section 2",
+                    LinePattern = section2LinePattern,
+                    MarkerShape = section2MarkerShape,
+                    MarkerSize = markerSize,
+                    LineWidth = lineWidth,
+                    MarkerFillColor = new Color(0, 0, 0)
+                });
+        }
 
         plot.Axes.SetLimits(bottom: 0, left: minX, top: maxY, right: 0);
         plot.XLabel("Vgrid (V)");

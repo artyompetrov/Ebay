@@ -207,7 +207,7 @@ public static class MeasurementHelper
         }
 
         return new MeasurementConfig(
-            MeasurementType: (MeasurementType)config["measurement type"]!.Value,
+            MeasurementType: GetMeasurementType(measurementType: config["measurement type"]!.Value, y2AxisVariable: config["Y2 axis variable"]!.Value),
             Pmax: config["Pmax"]!.Value
         );
     }
@@ -216,22 +216,51 @@ public static class MeasurementHelper
     /// <param name="Pmax">Максимальная мощность мВт</param>
     public record MeasurementConfig(MeasurementType MeasurementType, int Pmax);
 
-    public enum MeasurementType
+
+    private static MeasurementType GetMeasurementType(int measurementType, int y2AxisVariable)
     {
-        // I(Vg, Va) with Vs, Vh Constant
-        TriodeGridCurves = 1,
-
-        // I(Va, Vg) with Vs, Vh Constant
-        PentodeAnodeCurves = 2,
-
-        // I(Va=Vs, Vg) with Vh Constant
-        TriodeAnodeCurves = 4,
-
-        // I(Vs, Vg) with Va, Vh Constant
-        PentodeScreenCurves = 5
+        return measurementType switch
+        {
+            // I(Vg, Va) with Vs, Vh Constant
+            1 => y2AxisVariable switch
+            {
+                // второго графика нет
+                0 => MeasurementType.TriodeGridCurves,
+                // Is
+                2 => MeasurementType.DoubleTriodeGridCurves,
+                _ => throw new ArgumentOutOfRangeException(nameof(y2AxisVariable))
+            },
+            
+            // I(Va, Vg) with Vs, Vh Constant
+            2 => MeasurementType.PentodeAnodeCurves,
+            
+            // I(Va=Vs, Vg) with Vh Constant
+            4 => y2AxisVariable switch
+            {
+                // второго графика нет
+                0 => MeasurementType.TriodeAnodeCurves,
+                // Is
+                2 => MeasurementType.DoubleTriodeAnodeCurves,
+                _ => throw new ArgumentOutOfRangeException(nameof(y2AxisVariable))
+            },
+            
+            // I(Vs, Vg) with Va, Vh Constant
+            5 => MeasurementType.PentodeScreenCurves,
+            _ => throw new ArgumentOutOfRangeException(nameof(measurementType))
+        };
     }
 
-    public static string ParseAndPrettifyQuickTest(byte[] quickTest)
+    public enum MeasurementType
+    {
+        TriodeAnodeCurves,
+        TriodeGridCurves,
+        DoubleTriodeAnodeCurves,
+        DoubleTriodeGridCurves,
+        PentodeAnodeCurves,
+        PentodeScreenCurves,
+    }
+
+    public static string ParseAndPrettifyQuickTest(byte[] quickTest, bool removeSection2)
     {
         var quickTestOriginal = System.Text.Encoding.UTF8.GetString(quickTest);
 
@@ -250,6 +279,12 @@ public static class MeasurementHelper
 
         quickTestStr = Regex.Replace(quickTestStr, @"[ ]{3,}", "");
 
+        if (removeSection2)
+        {
+            var parts = quickTestStr.Split("SECTION 2", StringSplitOptions.None);
+            quickTestStr = parts[0];
+        }
+        
         var matches = Regex.Matches(quickTestStr, @"^(.*?)\|", RegexOptions.Multiline);
         var maxWidth = matches.Cast<Match>().Select(m => m.Groups[1].Value.Length).DefaultIfEmpty(0).Max();
         var tabSize = 8; // браузер чаще всего 8

@@ -387,20 +387,22 @@ internal class EbayControllerImplementation : IEbayController
             var gridConfig = MeasurementHelper.ParseMeasurementConfigTable(gridCurvesConfig);
 
             if (anodeConfig.MeasurementType != MeasurementHelper.MeasurementType.TriodeAnodeCurves &&
+                anodeConfig.MeasurementType != MeasurementHelper.MeasurementType.DoubleTriodeAnodeCurves &&
                 anodeConfig.MeasurementType != MeasurementHelper.MeasurementType.PentodeAnodeCurves)
             {
                 throw new InvalidOperationException("AnodeCurves expected");
             }
 
-            if (gridConfig.MeasurementType != MeasurementHelper.MeasurementType.PentodeScreenCurves &&
-                gridConfig.MeasurementType != MeasurementHelper.MeasurementType.TriodeGridCurves)
+            if (anodeConfig.MeasurementType != MeasurementHelper.MeasurementType.TriodeGridCurves &&
+                gridConfig.MeasurementType != MeasurementHelper.MeasurementType.DoubleTriodeGridCurves && 
+                gridConfig.MeasurementType != MeasurementHelper.MeasurementType.PentodeScreenCurves)
             {
                 throw new InvalidOperationException("Grid or screen curves expected");
             }
 
             MeasurementHelper.ParseSpaceSeparatedTable(anodeCurves);
             MeasurementHelper.ParseSpaceSeparatedTable(gridCurves);
-            MeasurementHelper.ParseAndPrettifyQuickTest(quickTest);
+            MeasurementHelper.ParseAndPrettifyQuickTest(quickTest, removeSection2: false);
         }
         catch (Exception ex)
         {
