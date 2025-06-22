@@ -1,5 +1,6 @@
 ﻿FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim AS build_dotnet
 WORKDIR /src
+#тут была оптимизация разбивки по слоям - сначала рестор потом билд, но я ее убрал
 COPY Ebay Ebay
 RUN dotnet restore "Ebay/Server/Server.csproj"
 WORKDIR "/src/Ebay/Server"
