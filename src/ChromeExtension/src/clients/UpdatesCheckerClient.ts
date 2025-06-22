@@ -46,13 +46,16 @@ export async function  checkForUpdates(): Promise<boolean> {
         if (currentVersion === "0") {
             // Локальный дебаг
             console.log("Alerting " + alertMessage)
+
+            return true;
         } else {
             alert(alertMessage);
             
             return false;
         }
-        return true;
     }
 
     console.log("No updates available. Current version is up-to-date.");
+
+    return true;
 }
