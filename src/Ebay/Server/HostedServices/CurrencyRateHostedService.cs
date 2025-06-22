@@ -7,110 +7,26 @@ using Server.Infrastructure;
 
 namespace Server.HostedServices;
 
-internal class CurrencyRateHostedService : IHostedService, IDisposable
+internal class CurrencyRateHostedService : BackgroundTask
 {
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly ILogger<CurrencyRateHostedService> _logger;
 
     public CurrencyRateHostedService(
         IServiceScopeFactory serviceScopeFactory,
-        ILogger<CurrencyRateHostedService> logger)
+        ILogger<CurrencyRateHostedService> logger) : base(logger)
     {
         _serviceScopeFactory = serviceScopeFactory;
         _logger = logger;
     }
+    
 
-    private State? _state;
-
-    private record struct State(Task Task, CancellationTokenSource Cts);
-
-    public Task StartAsync(CancellationToken cancellationToken)
-    {
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-        var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-
-        var backgroundTask = Task.Run(
-
-            async () =>
-            {
-                try
-                {
-#if !DEBUG
-                // только в релизе обновляем курсы валют
-                await RefreshCurrencyRatesForever(cts.Token);
-#endif
-                }
-                catch (Exception e) when (e.IsNotIntendedCancellation(cts.Token))
-                {
-                    _logger.LogError(exception: e, message: $"{nameof(RefreshCurrencyRatesForever)} finished with error");
-                }
-                finally
-                {
-                    _logger.LogInformation(message: $"{nameof(RefreshCurrencyRatesForever)} stopped working");
-                }
-            },
-            cancellationToken: cancellationToken);
-
-        _state = new State(Task: backgroundTask, Cts: cts);
-
-        return Task.CompletedTask;
+    protected async override Task BackgroundTaskImplementation(CancellationToken cancellationToken)
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
-    }
-
-    public Task StopAsync(CancellationToken cancellationToken)
     {
-        StopTaskAndDispose();
-        _logger.LogInformation(message: $"{nameof(CurrencyRateHostedService)} stopped working");
-        return Task.CompletedTask;
-    }
+#if !DEBUG
 
-    public void Dispose()
-    {
-        StopTaskAndDispose();
-    }
-
-    private void StopTaskAndDispose()
-    {
-        if (_state == null) return;
-
-        _state.Value.Cts.Cancel();
-
-        try
-        {
-            _state.Value.Task.GetAwaiter().GetResult();
-        }
-        catch (Exception e) when (e.IsNotIntendedCancellation(_state.Value.Cts.Token))
-        {
-            _logger.LogError(exception: e, message: "Error while stopping background service");
-        }
-
-        _state.Value.Cts.Dispose();
-        _state.Value.Task.Dispose();
-
-        _state = null;
-    }
-
-    private async Task RefreshCurrencyRatesForever(CancellationToken cancellationToken)
-    {
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            try
-            {
-                await RefreshCurrencyRates(cancellationToken);
-
-                await Task.Delay(delay: WellKnown.CurrencyRate.UpdateTime, cancellationToken: cancellationToken);
-            }
-            catch (Exception e) when (e.IsNotIntendedCancellation(cancellationToken))
-            {
-                _logger.LogError(exception: e, message: "Error while refreshing currency rates");
-
-                await Task.Delay(delay: WellKnown.CurrencyRate.ErrorDelay, cancellationToken: cancellationToken);
-            }
-        }
-    }
-
-    private async Task RefreshCurrencyRates(CancellationToken cancellationToken)
-    {
         _logger.LogInformation("Refreshing currency rates");
         using var scope = _serviceScopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -142,5 +58,6 @@ internal class CurrencyRateHostedService : IHostedService, IDisposable
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
+#endif
     }
 }
