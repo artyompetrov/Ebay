@@ -1,11 +1,6 @@
-using MassTransit;
-using Microsoft.EntityFrameworkCore;
-using OpenExchangeRates;
-using Server.Data;
-using Server.Data.Models;
 using Server.Infrastructure;
 
-namespace Server.HostedServices;
+namespace Server.HostedServices.Currencies;
 
 internal class CurrencyRateHostedService : BackgroundTask
 {
@@ -19,7 +14,7 @@ internal class CurrencyRateHostedService : BackgroundTask
         _serviceScopeFactory = serviceScopeFactory;
         _logger = logger;
     }
-    
+
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     protected async override Task BackgroundTaskImplementation(CancellationToken cancellationToken)

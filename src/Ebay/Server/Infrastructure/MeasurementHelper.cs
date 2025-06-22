@@ -230,10 +230,10 @@ public static class MeasurementHelper
                 2 => MeasurementType.DoubleTriodeGridCurves,
                 _ => throw new ArgumentOutOfRangeException(nameof(y2AxisVariable))
             },
-            
+
             // I(Va, Vg) with Vs, Vh Constant
             2 => MeasurementType.PentodeAnodeCurves,
-            
+
             // I(Va=Vs, Vg) with Vh Constant
             4 => y2AxisVariable switch
             {
@@ -243,7 +243,7 @@ public static class MeasurementHelper
                 2 => MeasurementType.DoubleTriodeAnodeCurves,
                 _ => throw new ArgumentOutOfRangeException(nameof(y2AxisVariable))
             },
-            
+
             // I(Vs, Vg) with Va, Vh Constant
             5 => MeasurementType.PentodeScreenCurves,
             _ => throw new ArgumentOutOfRangeException(nameof(measurementType))
@@ -284,7 +284,7 @@ public static class MeasurementHelper
             var parts = quickTestStr.Split("SECTION 2", StringSplitOptions.None);
             quickTestStr = parts[0];
         }
-        
+
         var matches = Regex.Matches(quickTestStr, @"^(.*?)\|", RegexOptions.Multiline);
         var maxWidth = matches.Cast<Match>().Select(m => m.Groups[1].Value.Length).DefaultIfEmpty(0).Max();
         var tabSize = 8; // браузер чаще всего 8

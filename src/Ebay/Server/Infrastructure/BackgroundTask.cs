@@ -1,4 +1,4 @@
-﻿namespace Server.Infrastructure;
+namespace Server.Infrastructure;
 
 internal abstract class BackgroundTask : IHostedService, IDisposable
 {
@@ -6,7 +6,7 @@ internal abstract class BackgroundTask : IHostedService, IDisposable
     {
         _logger = logger;
     }
-    
+
     private State? _state;
     private readonly ILogger _logger;
 
@@ -87,7 +87,7 @@ internal abstract class BackgroundTask : IHostedService, IDisposable
 
         _state = null;
     }
-    
+
     public void Dispose()
     {
         StopTaskAndDispose();

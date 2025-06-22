@@ -32,7 +32,7 @@ public class MeasurementPageController : ControllerBase
 
         if (zipBytes == null)
             return NotFound();
-        
+
         if (!MeasurementHelper.ReadMeasurementFile(
                 measurementData: zipBytes,
                 errors: out var fileErrors,
@@ -46,7 +46,7 @@ public class MeasurementPageController : ControllerBase
         }
 
         var config = MeasurementHelper.ParseMeasurementConfigTable(gridCurvesConfig);
-        
+
         var gridFileName = config.MeasurementType switch
         {
             MeasurementHelper.MeasurementType.TriodeGridCurves => "grid_curves",
@@ -54,7 +54,7 @@ public class MeasurementPageController : ControllerBase
             MeasurementHelper.MeasurementType.PentodeScreenCurves => "screen_curves",
             _ => throw new ArgumentOutOfRangeException()
         };
-        
+
         using var zipStream = new MemoryStream();
         using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, leaveOpen: true))
         {
@@ -77,7 +77,7 @@ public class MeasurementPageController : ControllerBase
         await using var entryStream = entry.Open();
         entryStream.Write(content, 0, content.Length);
     }
-    
+
 #if !DEBUG
     // Только в релизе используем кеширование
     [ResponseCache(Duration = 60 /*с*/ * 60 /*м*/ * 24 /*ч*/)]
@@ -205,7 +205,7 @@ public class MeasurementPageController : ControllerBase
 
         plt.Legend.ManualItems = legendItems;
         plt.Legend.ShadowColor = new Color(red: 0, green: 0, blue: 0, alpha: 0);
-        
+
         plt.ShowLegend(vertical ? Edge.Right : Edge.Bottom);
 
         return plt.GetSvgXml(width: width, height: height);
@@ -219,7 +219,7 @@ public class MeasurementPageController : ControllerBase
     List<LegendItem> legendItems)
     {
         double PowerLimit(double v) => measurementConfig.Pmax / v;
-        
+
         var maxX = 0.0;
         var maxY = 0.0;
 
@@ -243,7 +243,7 @@ public class MeasurementPageController : ControllerBase
             {
                 iValues = iValues.Union(isValues.Select(x => (V: x.Va, I: x.Is)));
             }
-            
+
             var lineMaxY = GetLineMaxY(iValues: iValues.ToList(), powerLimit: PowerLimit);
 
             if (lineMaxX > maxX)
@@ -299,7 +299,7 @@ public class MeasurementPageController : ControllerBase
                 LineColor = func.LineColor,
                 LineWidth = func.LineWidth,
             });
-        
+
         legendItems.Add(
             new LegendItem
             {
@@ -336,8 +336,8 @@ public class MeasurementPageController : ControllerBase
         var lowerPmax = iValues.Where(x => powerLimit(x.V) > x.I).Select(x => x.I).Append(0.0)
             .Max();
         var abovePmaxValues = iValues.Where(x => powerLimit(x.V) < x.I).Select(x => x.I).ToList();
-            
-        var lineMaxY = abovePmaxValues.Count == 0 ? lowerPmax :  Math.Max(lowerPmax, abovePmaxValues.Min());
+
+        var lineMaxY = abovePmaxValues.Count == 0 ? lowerPmax : Math.Max(lowerPmax, abovePmaxValues.Min());
         return lineMaxY;
     }
 
@@ -356,13 +356,13 @@ public class MeasurementPageController : ControllerBase
         var markerSize = 5;
 
         double PowerLimit(double v) => measurementConfig.Pmax / v;
-        
+
         var minX = 0.0;
         var maxY = 0.0;
         foreach (var (i, values) in data)
         {
             var iaValues = values.TakeWhile(x => x.dIa > IgnoreDI).Select(x => (x.Va, x.Vg, x.Ia)).ToList();
-            var isValues = values.TakeWhile(x => x.dIs > IgnoreDI).Select(x => (x.Va,x.Vg, x.Is)).ToList();
+            var isValues = values.TakeWhile(x => x.dIs > IgnoreDI).Select(x => (x.Va, x.Vg, x.Is)).ToList();
 
             var lineMinX = values.Select(x => x.Vg).Min();
 
@@ -371,7 +371,7 @@ public class MeasurementPageController : ControllerBase
             {
                 iValues = iValues.Union(isValues.Select(x => (V: x.Va, I: x.Is)));
             }
-            
+
             var lineMaxY = GetLineMaxY(iValues: iValues.ToList(), powerLimit: PowerLimit);
 
             if (lineMinX < minX)
@@ -454,7 +454,7 @@ public class MeasurementPageController : ControllerBase
         List<LegendItem> legendItems)
     {
         double PowerLimit(double v) => measurementConfig.Pmax / v;
-        
+
         var maxX = 0.0;
         var maxY = 0.0;
 
@@ -524,7 +524,7 @@ public class MeasurementPageController : ControllerBase
                 LineColor = func.LineColor,
                 LineWidth = func.LineWidth,
             });
-        
+
 
         legendItems.Add(
             new LegendItem

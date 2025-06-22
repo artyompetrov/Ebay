@@ -394,7 +394,7 @@ internal class EbayControllerImplementation : IEbayController
             }
 
             if (anodeConfig.MeasurementType != MeasurementHelper.MeasurementType.TriodeGridCurves &&
-                gridConfig.MeasurementType != MeasurementHelper.MeasurementType.DoubleTriodeGridCurves && 
+                gridConfig.MeasurementType != MeasurementHelper.MeasurementType.DoubleTriodeGridCurves &&
                 gridConfig.MeasurementType != MeasurementHelper.MeasurementType.PentodeScreenCurves)
             {
                 throw new InvalidOperationException("Grid or screen curves expected");

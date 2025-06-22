@@ -1,4 +1,4 @@
-﻿namespace Server.HostedServices;
+namespace Server.HostedServices.ChipFind;
 
 public interface IChipfindAdapter
 {

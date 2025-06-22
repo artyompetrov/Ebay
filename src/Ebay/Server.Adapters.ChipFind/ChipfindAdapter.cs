@@ -1,7 +1,7 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using HtmlAgilityPack;
-using Server.HostedServices;
+using Server.HostedServices.ChipFind;
 
 namespace Server.Adapters.ChipFind;
 
@@ -33,7 +33,7 @@ public class ChipfindAdapter : IChipfindAdapter
             doc.LoadHtml(description);
 
             var plainText = doc.DocumentNode.InnerText;
-            
+
             var items = plainText
                 .Split(separator: ['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
                 .Select(x => x.Trim())
@@ -41,17 +41,17 @@ public class ChipfindAdapter : IChipfindAdapter
                 .ToArray();
 
             var matchingResult = titleRegex.Match(titleAndSeller);
-            
+
             if (!matchingResult.Success) throw new InvalidOperationException("Unable to parse title");
-            
+
             var title = matchingResult.Groups[1].Value.Trim();
             var seller = matchingResult.Groups[2].Value.Trim();
-            
+
             result.Add(
                 new SaleAdvertisement(
                     Title: title,
                     Seller: seller,
-                    Date: DateTime.Parse(pubDate).ToUniversalTime(), 
+                    Date: DateTime.Parse(pubDate).ToUniversalTime(),
                     Link: new Uri(link),
                     Items: items));
         }

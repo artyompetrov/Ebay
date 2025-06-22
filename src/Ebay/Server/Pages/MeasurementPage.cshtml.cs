@@ -20,7 +20,7 @@ public class MeasurementPage : PageModel
     internal ProductMeasurement Measurement { get; private set; } = null!;
     public string QuickTest { get; private set; } = null!;
     public MeasurementHelper.MeasurementConfig AnodeCurvesConfig { get; private set; } = null!;
-    
+
     public MeasurementHelper.MeasurementConfig GridCurvesConfig { get; private set; } = null!;
 
     public async Task<IActionResult> OnGet(string measurementId)
