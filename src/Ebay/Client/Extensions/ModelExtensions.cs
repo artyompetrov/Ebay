@@ -51,7 +51,7 @@ internal static class ModelExtensions
             }
         }
     }
-    
+
     public static string GetCondition(this LotInfoShort lotInfo)
     {
         return lotInfo.Categories.Single(x => x.Type == WellKnown.Categories.Conditions.CategoryName).Value!;

@@ -1,4 +1,4 @@
-﻿namespace Server.Application;
+namespace Server.Application;
 
 public class EbayServerOptions
 {

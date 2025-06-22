@@ -24,14 +24,14 @@ public class CurrencyRateBackgroundTask : BackgroundTask
         _options = options;
     }
 
-    public override TimeSpan UpdateTime  => WellKnown.CurrencyRate.UpdateTime;
+    public override TimeSpan UpdateTime => WellKnown.CurrencyRate.UpdateTime;
     public override TimeSpan ErrorDelay => WellKnown.CurrencyRate.ErrorDelay;
-    
+
 
     protected async override Task BackgroundTaskImplementation(CancellationToken cancellationToken)
     {
         if (_options.IsLocalRun) return;
-        
+
         _logger.LogInformation("Refreshing currency rates");
         using var scope = _serviceScopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();

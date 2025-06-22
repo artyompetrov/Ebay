@@ -1,4 +1,4 @@
-﻿using MassTransit;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Application.Consumers;
@@ -14,21 +14,21 @@ namespace Server.Application;
 
 public static class ServiceCollectionExtensions
 {
-    public static void AddApplicationServices(this IServiceCollection services, EbayServerOptions options,  string connectionString)
+    public static void AddApplicationServices(this IServiceCollection services, EbayServerOptions options, string connectionString)
     {
         services.AddSingleton(options);
         services.AddNpgsqlDataSource(connectionString);
         services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql());
         services.AddSingleton<ShippingRatesService>();
-        
+
         services.AddScoped<IEbayController, EbayControllerImplementation>();
-        
+
         services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
             .AddEntityFrameworkStores<ApplicationDbContext>();
-        
+
         services.AddHostedService<CurrencyRateBackgroundTask>();
         services.AddHostedService<ChipfindBackgroundTask>();
-        
+
         services.AddOptions<SqlTransportOptions>()
             .Configure(options =>
             {
@@ -70,6 +70,10 @@ public static class ServiceCollectionExtensions
                     });
 
             });
+
+        services.AddControllersWithViews(option => { option.Filters.Add<ErrorFilter>(); })
+            .AddNewtonsoftJson();
+        services.AddRazorPages();
     }
 
     public static void InitializeApplication(this IServiceProvider serviceProvider)
@@ -81,5 +85,5 @@ public static class ServiceCollectionExtensions
             dbContext.Database.Migrate();
         }
     }
-    
+
 }

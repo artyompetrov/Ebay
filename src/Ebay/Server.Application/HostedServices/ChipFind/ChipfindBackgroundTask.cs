@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using Server.Application.Infrastructure;
 
 namespace Server.Application.HostedServices.ChipFind;
@@ -17,7 +17,7 @@ public class ChipfindBackgroundTask : BackgroundTask
         _chipfindAdapter = chipfindAdapter;
     }
 
-    public override TimeSpan UpdateTime  => WellKnown.ChipFind.UpdateTime;
+    public override TimeSpan UpdateTime => WellKnown.ChipFind.UpdateTime;
     public override TimeSpan ErrorDelay => WellKnown.ChipFind.ErrorDelay;
 
     protected async override Task BackgroundTaskImplementation(CancellationToken cancellationToken)

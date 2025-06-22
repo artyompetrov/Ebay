@@ -1,5 +1,4 @@
 using Duende.IdentityServer.Models;
-using MassTransit;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
@@ -9,15 +8,8 @@ using Serilog;
 using Server;
 using Server.Adapters.ChipFind;
 using Server.Application;
-using Server.Application.Consumers;
-using Server.Application.Controllers;
 using Server.Application.Data;
-using Server.Controllers.Generated;
 using Server.Application.Data.Models;
-using Server.Application.HostedServices.ChipFind;
-using Server.Application.HostedServices.Currencies;
-using Server.Application.Pages;
-using Server.Application.Services;
 using Secret = Duende.IdentityServer.Models.Secret;
 
 IdentityModelEventSource.ShowPII = true;
@@ -35,18 +27,16 @@ builder.Host.UseSerilog();
 // Add services to the container.
 var options = new EbayServerOptions();
 builder.Configuration.Bind("EbayServer", options);
-
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new NullReferenceException("Connection string cannot be null");
 
 builder.Services.AddApplicationServices(options, connectionString);
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-
-builder.Services.AddSingleton<IChipfindAdapter, ChipfindAdapter>();
+builder.Services.AddChipFindAdapter();
 
 builder.Services.AddIdentityServer()
     .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(
-        options =>
+        o =>
         {
             var domain = Environment.GetEnvironmentVariable("DOMAIN") ?? "localhost";
 
@@ -59,9 +49,9 @@ builder.Services.AddIdentityServer()
                 $"chrome-extension://{WellKnown.ChromeExtension.Id}",
                 "https://" + domain
             ];
-            options.Clients.Add(spaClient);
+            o.Clients.Add(spaClient);
 
-            options.Clients.Add(
+            o.Clients.Add(
                 new Client
                 {
                     ClientId = WellKnown.Authorization.PythonClientId,
@@ -85,13 +75,10 @@ builder.Services.AddDataProtection()
 
 builder.Services.AddAuthentication().AddIdentityServerJwt();
 
-builder.Services.AddControllersWithViews(option => { option.Filters.Add<ErrorFilter>(); })
-    .AddNewtonsoftJson();
-builder.Services.AddRazorPages().AddApplicationPart(typeof(MeasurementPage).Assembly);
 builder.Services.AddLogging(
-    options =>
+    o =>
     {
-        options.AddSimpleConsole(
+        o.AddSimpleConsole(
             c =>
             {
                 c.TimestampFormat = "[yyyy-MM-dd HH:mm:ss] ";

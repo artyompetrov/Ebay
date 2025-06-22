@@ -3,7 +3,7 @@ namespace Server.Application;
 internal static class WellKnown
 {
     public const int RecheckTimeInDays = 360 * 2;
-    
+
     public static class Formats
     {
         public static string TimeFormat = "yyyy-MM-ddTHH:mm:ss.fffZ";
@@ -14,7 +14,7 @@ internal static class WellKnown
         public static string KZT = "KZT";
         public static string UsDollar = "USD";
     }
-    
+
     public static class CurrencyRate
     {
         public static string BaseCurrency = "USD";
@@ -28,7 +28,7 @@ internal static class WellKnown
         public static TimeSpan UpdateTime = TimeSpan.FromHours(1);
         public static TimeSpan ErrorDelay = TimeSpan.FromMinutes(5);
     }
-    
+
     public static class Categories
     {
         public static class Conditions
