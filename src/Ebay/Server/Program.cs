@@ -7,13 +7,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
 using Serilog;
 using Server;
-using Server.Consumers;
-using Server.Controllers;
+using Server.Application;
+using Server.Application.Consumers;
+using Server.Application.Controllers;
+using Server.Application.Data;
 using Server.Controllers.Generated;
-using Server.Data;
-using Server.Data.Models;
-using Server.HostedServices.Currencies;
-using Server.Services;
+using Server.Application.Data.Models;
+using Server.Application.HostedServices.ChipFind;
+using Server.Application.HostedServices.Currencies;
+using Server.Application.Services;
 using Secret = Duende.IdentityServer.Models.Secret;
 
 IdentityModelEventSource.ShowPII = true;
@@ -29,6 +31,12 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 
 // Add services to the container.
+builder.Services.AddSingleton(sp =>
+{
+    var options = new EbayServerOptions();
+    builder.Configuration.Bind("EbayServer", options);
+    return options;
+});
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new NullReferenceException("Connection string cannot be null");
 builder.Services.AddNpgsqlDataSource(connectionString);
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql());
@@ -92,7 +100,8 @@ builder.Services.AddLogging(
                 c.UseUtcTimestamp = true;
             });
     });
-builder.Services.AddHostedService<CurrencyRateHostedService>();
+builder.Services.AddHostedService<CurrencyRateBackgroundTask>();
+builder.Services.AddHostedService<ChipfindBackgroundTask>();
 
 
 builder.Services.AddOptions<SqlTransportOptions>()
@@ -140,6 +149,8 @@ builder.Services.AddMassTransit(
 var app = builder.Build();
 
 builder.Services.AddResponseCaching();
+
+
 app.UseSerilogRequestLogging();
 
 // Migrate DB

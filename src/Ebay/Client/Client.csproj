@@ -24,8 +24,9 @@
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
     </ItemGroup>
+    
+    <ItemGroup>
+      <ProjectReference Include="..\Server.Client\Server.Client.csproj" />
+    </ItemGroup>
 
-    <Target Name="NSwag" BeforeTargets="BeforeBuild">
-        <Exec Command="$(NSwagExe_Net80) openapi2csclient /input:../Server/Controllers/Contracts/Ebay.yaml /classname:EbayClient /namespace:Client.Clients.Generated /output:Clients/Generated/EbayClient.cs /RequiredPropertiesMustBeDefined:false"/>
-    </Target>
 </Project>

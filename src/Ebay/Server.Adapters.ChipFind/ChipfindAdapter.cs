@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using HtmlAgilityPack;
-using Server.HostedServices.ChipFind;
+using Server.Application.HostedServices.ChipFind;
 
 namespace Server.Adapters.ChipFind;
 

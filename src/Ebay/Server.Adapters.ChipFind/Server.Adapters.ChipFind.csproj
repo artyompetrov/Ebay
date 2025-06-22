@@ -7,7 +7,12 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Server.Application\Server.Application.csproj" />
       <ProjectReference Include="..\Server\Server.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="HtmlAgilityPack" />
     </ItemGroup>
 
 </Project>
