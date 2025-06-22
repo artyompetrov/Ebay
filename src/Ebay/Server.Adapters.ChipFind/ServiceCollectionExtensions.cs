@@ -1,7 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
-using Server.Application.Controllers;
 using Server.Application.HostedServices.ChipFind;
-using Server.Controllers.Generated;
 
 namespace Server.Adapters.ChipFind;
 

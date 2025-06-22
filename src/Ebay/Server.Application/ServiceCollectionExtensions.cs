@@ -1,9 +1,6 @@
-using System.Reflection;
 using MassTransit;
-using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.FileProviders;
 using Server.Application.Consumers;
 using Server.Application.Controllers;
 using Server.Application.Data;
@@ -20,7 +17,7 @@ public static class ServiceCollectionExtensions
     public static void AddApplicationServices(this IServiceCollection services, EbayServerOptions options, string connectionString)
     {
         var appAssembly = typeof(ServiceCollectionExtensions).Assembly;
-        
+
         services.AddSingleton(options);
         services.AddNpgsqlDataSource(connectionString);
         services.AddDbContext<ApplicationDbContext>(o => o.UseNpgsql());
@@ -75,7 +72,7 @@ public static class ServiceCollectionExtensions
 
             });
         services.AddDatabaseDeveloperPageExceptionFilter();
-        
+
         services.AddControllersWithViews(option => { option.Filters.Add<ErrorFilter>(); })
             .AddApplicationPart(appAssembly)
             .AddNewtonsoftJson();
