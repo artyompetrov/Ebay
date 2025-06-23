@@ -393,7 +393,7 @@ public class EbayControllerImplementation : IEbayController
                 throw new InvalidOperationException("AnodeCurves expected");
             }
 
-            if (anodeConfig.MeasurementType != MeasurementHelper.MeasurementType.TriodeGridCurves &&
+            if (gridConfig.MeasurementType != MeasurementHelper.MeasurementType.TriodeGridCurves &&
                 gridConfig.MeasurementType != MeasurementHelper.MeasurementType.DoubleTriodeGridCurves &&
                 gridConfig.MeasurementType != MeasurementHelper.MeasurementType.PentodeScreenCurves)
             {
