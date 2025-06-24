@@ -7,7 +7,7 @@ const regex: RegExp =  /(?:^|\.)?e\.mail\.ru$/i;
 export function tryGetMailRuProcessor() : ISiteProcessor | null {
     if (regex.test(location.host)) {
 
-        return new MailRuSiteProcessor();
+        //return new MailRuSiteProcessor();
     }
     return null;
 }
