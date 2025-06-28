@@ -46,6 +46,10 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
             entity.HasIndex(e => e.HashQuickTest).IsUnique();
             entity.HasIndex(e => e.HashGridCurves).IsUnique();
         });
+        
+        modelBuilder.Entity<EmailSendHistory>()
+            .HasIndex(x => x.EmailId)
+            .IsUnique();
     }
 
     public ApplicationDbContext(
@@ -72,4 +76,6 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
     public DbSet<ProductMeasurement> ProductMeasurements { get; set; } = null!;
 
     public DbSet<Currency> Currencies { get; set; } = null!;
+    
+    public DbSet<EmailSendHistory> EmailSendHistories { get; set; } = null!;
 }

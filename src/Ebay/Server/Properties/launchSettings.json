@@ -15,7 +15,8 @@
         "Smtp__Server": "smtp.yandex.ru",
         "Smtp__Port": "587",
         "Smtp__Login": "radio-tubes",
-        "Smtp__Password": "jthzppcjiumyovuu"
+        "Smtp__Password": "jthzppcjiumyovuu",
+        "Smtp__Email": "radio-tubes@ya.ru"
       }
     }
   }

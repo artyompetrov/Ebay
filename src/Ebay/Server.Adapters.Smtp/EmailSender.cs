@@ -18,7 +18,7 @@ public class EmailSender : IEmailSender
     public async Task Send(string targetAddress, string topic, string messageText)
     {
         var message = new MimeMessage();
-        message.From.Add(new MailboxAddress("Ваше имя", "ваш_логин@yandex.ru"));
+        message.From.Add(new MailboxAddress(_settings.Email, _settings.Email));
         message.To.Add(new MailboxAddress(targetAddress, targetAddress));
         message.Subject = topic;
 
