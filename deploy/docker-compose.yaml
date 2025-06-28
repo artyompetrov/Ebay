@@ -37,11 +37,11 @@ services:
       - ASPNETCORE_ConnectionStrings__DefaultConnection=User ID=ebay;Password=${PG_PASSWORD};Server=ebay_postgres;Port=5432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=30;Enlist=true;
       - DATA_PROTECTION_KEYS_DIR=/app/DataProtection-Keys/
       - EbayServer__IsLocalRun=${LOCAL_RUN:-true}
-      - EbayServer__TargetEmail=${EMAIL},
-      - Smtp__Server=${SMTP_SERVER},
-      - Smtp__Port=${SMTP_PORT},
-      - Smtp__Login=${SMTP_LOGIN},
-      - Smtp__Password=${SMTP_PASSWORD},
+      - EbayServer__TargetEmail=${EMAIL}
+      - Smtp__Server=${SMTP_SERVER}
+      - Smtp__Port=${SMTP_PORT}
+      - Smtp__Login=${SMTP_LOGIN}
+      - Smtp__Password=${SMTP_PASSWORD}
       - Smtp__Email=${EMAIL}
       - RESTORE=${RESTORE:-false}
     networks:
