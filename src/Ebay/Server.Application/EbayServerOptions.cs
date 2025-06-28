@@ -6,4 +6,6 @@ public class EbayServerOptions
     /// Отключает функции которые работают только на сервере
     /// </summary>
     public bool IsLocalRun { get; set; } = true;
+    
+    public string TargetEmail { get; set; } = null!;
 }

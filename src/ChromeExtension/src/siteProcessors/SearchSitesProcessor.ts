@@ -437,8 +437,8 @@ class SearchSitesProcessor implements ISiteProcessor {
                 const node = children[i];
                 
                 processedNodes++;
-                // Каждые 30 узлов отдаем управление основному потоку
-                if (processedNodes % 30 === 0) {
+                // Каждые n узлов отдаем управление основному потоку
+                if (processedNodes % 2 === 0) {
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
                 

@@ -53,7 +53,8 @@ public class ChipfindAdapter : IChipfindAdapter
                     Seller: seller,
                     Date: DateTime.Parse(pubDate).ToUniversalTime(),
                     Link: new Uri(link),
-                    Items: items));
+                    Items: items,
+                    Body: description));
         }
 
 

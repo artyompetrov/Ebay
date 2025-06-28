@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Logging;
 using Serilog;
 using Server;
 using Server.Adapters.ChipFind;
+using Server.Adapters.Smtp;
 using Server.Application;
 using Server.Application.Data;
 using Server.Application.Data.Models;
@@ -28,7 +29,7 @@ builder.Host.UseSerilog();
 var options = new EbayServerOptions();
 builder.Configuration.Bind("EbayServer", options);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new NullReferenceException("Connection string cannot be null");
-
+builder.Services.AddEmailAdapter(builder.Configuration);
 builder.Services.AddChipFindAdapter();
 builder.Services.AddApplicationServices(options, connectionString);
 

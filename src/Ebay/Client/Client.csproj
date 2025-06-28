@@ -28,5 +28,9 @@
     <ItemGroup>
       <ProjectReference Include="..\Server.Client\Server.Client.csproj" />
     </ItemGroup>
+    
+    <ItemGroup>
+      <None Remove="Properties\launchSettings.json" />
+    </ItemGroup>
 
 </Project>

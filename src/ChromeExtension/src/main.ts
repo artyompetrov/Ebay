@@ -3,14 +3,12 @@ import {tryGetEbaySiteProcessor} from "./siteProcessors/EbaySiteProcessor";
 import {ISiteProcessor} from "./siteProcessors/ISiteProcessor";
 import {tryGetAuthPageProcessor} from "./siteProcessors/AuthPageProcessor";
 import {tryGetSearchSitesProcessor} from "./siteProcessors/SearchSitesProcessor";
-import {tryGetMailRuProcessor} from "./siteProcessors/MailRuProcessor";
 
 function getMatchingSiteProcessors(): ISiteProcessor[] {
     const processors = [
         tryGetAuthPageProcessor(),
         tryGetEbaySiteProcessor(),
-        tryGetSearchSitesProcessor(),
-        tryGetMailRuProcessor(),
+        tryGetSearchSitesProcessor()
     ];
     return processors.filter((processor) => processor !== null);
 }
