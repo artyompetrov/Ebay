@@ -78,7 +78,7 @@ public class ChipfindBackgroundTask : BackgroundTask
             {
                 var productKey = $"{saleAdvertisement.Seller}_{product.ProductId}".ToLower();
 
-                var exists = await applicationDbContext.EmailSendHistories
+                var exists = await applicationDbContext.ProductEmailSendHistory
                     .AnyAsync(e => e.ProductKey == productKey, cancellationToken: cancellationToken);
 
                 if (exists)
@@ -87,7 +87,7 @@ public class ChipfindBackgroundTask : BackgroundTask
                     continue;
                 }
 
-                applicationDbContext.EmailSendHistories.Add(
+                applicationDbContext.ProductEmailSendHistory.Add(
                     new ProductEmailSendHistory { ProductKey = productKey, CreatedAt = saleAdvertisement.Date });
 
                 await applicationDbContext.SaveChangesAsync(cancellationToken);
