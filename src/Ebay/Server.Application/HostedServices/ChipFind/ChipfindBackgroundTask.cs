@@ -35,74 +35,81 @@ public class ChipfindBackgroundTask : BackgroundTask
     public override TimeSpan ErrorDelay => WellKnown.ChipFind.ErrorDelay;
 
     private record ProductIdWithRegex(Guid ProductId, Regex Regex);
-        
+
     protected async override Task BackgroundTaskImplementation(CancellationToken cancellationToken)
     {
         if (_ebayServerOptions.IsLocalRun) return;
-        
+
         using var scope = _serviceScopeFactory.CreateScope();
         var applicationDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        
-        var products = await GetInterestingProductIdsWithRegexes(cancellationToken: cancellationToken, applicationDbContext: applicationDbContext);
 
-        var recentSales = await _chipfindAdapter.GetRecentSaleAdvertisements(cancellationToken);
-        
-        foreach (var saleAdvertisement in recentSales)
+        var products = await GetInterestingProductIdsWithRegexes(
+            cancellationToken: cancellationToken,
+            applicationDbContext: applicationDbContext);
+
+        var recentAdvertisements = await _chipfindAdapter.GetRecentSaleAdvertisements(cancellationToken);
+
+        foreach (var saleAdvertisement in recentAdvertisements)
         {
-            try
+            await ProcessAdvertisement(
+                cancellationToken: cancellationToken,
+                saleAdvertisement: saleAdvertisement,
+                products: products,
+                applicationDbContext: applicationDbContext);
+        }
+    }
+
+    private async Task ProcessAdvertisement(
+        CancellationToken cancellationToken,
+        SaleAdvertisement saleAdvertisement,
+        IReadOnlyCollection<ProductIdWithRegex> products,
+        ApplicationDbContext applicationDbContext)
+    {
+        using var transaction = TransactionScopeFactory.Create();
+
+        var newAds = new HashSet<string>();
+        foreach (var saleAdvertisementItem in saleAdvertisement.Items)
+        {
+            var matchesWithProducts = products
+                .Where(x => x.Regex.IsMatch(saleAdvertisementItem))
+                .ToList();
+
+            foreach (var product in matchesWithProducts)
             {
-                using var transaction = TransactionScopeFactory.Create();
+                var productKey = $"{saleAdvertisement.Seller}_{product.ProductId}".ToLower();
 
-                var newAds = new HashSet<string>();
-                foreach (var saleAdvertisementItem in saleAdvertisement.Items)
+                var exists = await applicationDbContext.EmailSendHistories
+                    .AnyAsync(e => e.ProductKey == productKey, cancellationToken: cancellationToken);
+
+                if (exists)
                 {
-                    var matchesWithProducts = products
-                        .Where(x => x.Regex.IsMatch(saleAdvertisementItem))
-                        .ToList();
-
-                    foreach (var product in matchesWithProducts)
-                    {
-                        var productKey = $"{saleAdvertisement.Seller}_{product.ProductId}".ToLower();
-
-                        var exists = await applicationDbContext.EmailSendHistories
-                            .AnyAsync(e => e.ProductKey == productKey, cancellationToken: cancellationToken);
-
-                        if (exists)
-                        {
-                            // Уже уведомляли об этом продукте
-                            continue;
-                        }
-
-                        applicationDbContext.EmailSendHistories.Add(
-                            new ProductEmailSendHistory { ProductKey = productKey, CreatedAt = saleAdvertisement.Date });
-
-                        await applicationDbContext.SaveChangesAsync(cancellationToken);
-
-                        newAds.Add(saleAdvertisementItem);
-                    }
+                    // Уже уведомляли об этом продукте
+                    continue;
                 }
-                
-                if (newAds.Count > 0)
-                {
-                    var newItems = string.Join("</br>", newAds);
-                    var emailBody = $"<a href=\"{saleAdvertisement.Link}\">ссылка</a></br></br>{newItems}";
-                
-                    await _emailSender.Send(
-                        targetAddress: _ebayServerOptions.TargetEmail,
-                        topic: $"{saleAdvertisement.Title} [{saleAdvertisement.Seller}]",
-                        messageText: emailBody);
-                    
-                    await Task.Delay(millisecondsDelay: DelayAfterSendMilliseconds, cancellationToken: cancellationToken);
-                }
-                
-                transaction.Complete();
-                
-            }
-            catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
-            {
-                // Если дубликат — ничего не делаем
+
+                applicationDbContext.EmailSendHistories.Add(
+                    new ProductEmailSendHistory { ProductKey = productKey, CreatedAt = saleAdvertisement.Date });
+
+                await applicationDbContext.SaveChangesAsync(cancellationToken);
+
+                newAds.Add(saleAdvertisementItem);
             }
         }
+
+        if (newAds.Count > 0)
+        {
+            var newItems = string.Join("<br>", newAds);
+            var emailBody = $"<a href=\"{saleAdvertisement.Link}\">ссылка</a><br><br>{newItems}";
+
+            await _emailSender.Send(
+                targetAddress: _ebayServerOptions.TargetEmail,
+                topic: $"{saleAdvertisement.Title} [{saleAdvertisement.Seller}]",
+                messageText: emailBody);
+
+            await Task.Delay(millisecondsDelay: DelayAfterSendMilliseconds, cancellationToken: cancellationToken);
+        }
+
+        transaction.Complete();
     }
 
     private async static Task<IReadOnlyCollection<ProductIdWithRegex>> GetInterestingProductIdsWithRegexes(
@@ -121,13 +128,5 @@ public class ChipfindBackgroundTask : BackgroundTask
             .Select(x => new ProductIdWithRegex(ProductId: x.Id, Regex: x.GetProductRegex()))
             .ToArray();
         return productsArray;
-    }
-
-    private bool IsUniqueConstraintViolation(DbUpdateException ex)
-    {
-        var isUniqueConstraintViolation = ex.InnerException != null &&
-                                          (ex.InnerException.Message.Contains("UNIQUE") ||
-                                           ex.InnerException.Message.Contains("duplicate"));
-        return isUniqueConstraintViolation;
     }
 }
