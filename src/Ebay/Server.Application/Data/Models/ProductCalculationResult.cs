@@ -5,12 +5,12 @@ namespace Server.Application.Data.Models;
 public class ProductCalculationResult
 {
     /// <summary>
-    /// выручкаСПродажиВДолларах
+    /// Общая выручка для всех продаж
     /// </summary>
     public double Revenue { get; set; }
 
     /// <summary>
-    /// общееКоличествоШтукВоВсехПродажах
+    /// Общее количество штук продано
     /// </summary>
     public int QuantityTotal { get; set; }
 
@@ -20,7 +20,7 @@ public class ProductCalculationResult
     public DateTime CalculationDate { get; set; }
 
     /// <summary>
-    /// Средняя выручка для лота
+    /// Средняя выручка для продукта
     /// </summary>
     [JsonIgnore]
     public double RevenueAvg

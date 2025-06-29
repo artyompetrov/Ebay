@@ -459,6 +459,10 @@ definitions:
           $ref: '#/definitions/RuSearchQuery'
       ProductCalculationResult:
         $ref: '#/definitions/ProductCalculationResult'
+      ProductRegex:
+        type: string
+      IsInteresting:
+        type: boolean
     required:
       - Id
       - Name
@@ -466,6 +470,8 @@ definitions:
       - RuSearchQueries
       - Weight
       - IsCheckRequired
+      - ProductRegex
+      - IsInteresting
   
   SearchQuery:
     type: object

@@ -1232,6 +1232,8 @@ export class ProductWithId implements IProductWithId {
     searchQueries!: SearchQuery[];
     ruSearchQueries!: RuSearchQuery[];
     productCalculationResult?: ProductCalculationResult | undefined;
+    productRegex!: string;
+    isInteresting!: boolean;
 
     constructor(data?: IProductWithId) {
         if (data) {
@@ -1263,6 +1265,8 @@ export class ProductWithId implements IProductWithId {
                     this.ruSearchQueries!.push(RuSearchQuery.fromJS(item));
             }
             this.productCalculationResult = _data["ProductCalculationResult"] ? ProductCalculationResult.fromJS(_data["ProductCalculationResult"]) : <any>undefined;
+            this.productRegex = _data["ProductRegex"];
+            this.isInteresting = _data["IsInteresting"];
         }
     }
 
@@ -1290,6 +1294,8 @@ export class ProductWithId implements IProductWithId {
                 data["RuSearchQueries"].push(item.toJSON());
         }
         data["ProductCalculationResult"] = this.productCalculationResult ? this.productCalculationResult.toJSON() : <any>undefined;
+        data["ProductRegex"] = this.productRegex;
+        data["IsInteresting"] = this.isInteresting;
         return data;
     }
 }
@@ -1302,6 +1308,8 @@ export interface IProductWithId {
     searchQueries: SearchQuery[];
     ruSearchQueries: RuSearchQuery[];
     productCalculationResult?: ProductCalculationResult | undefined;
+    productRegex: string;
+    isInteresting: boolean;
 }
 
 export class SearchQuery implements ISearchQuery {

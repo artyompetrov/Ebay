@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -13,6 +14,7 @@ public class ChipfindBackgroundTask : BackgroundTask
     private readonly IEmailSender _emailSender;
     private readonly EbayServerOptions _ebayServerOptions;
     private readonly IServiceScopeFactory _serviceScopeFactory;
+    private const int DelayAfterSendMilliseconds = 5000;
 
     public ChipfindBackgroundTask(
         ILogger<ChipfindBackgroundTask> logger,
@@ -32,9 +34,16 @@ public class ChipfindBackgroundTask : BackgroundTask
     public override TimeSpan UpdateTime => WellKnown.ChipFind.UpdateTime;
     public override TimeSpan ErrorDelay => WellKnown.ChipFind.ErrorDelay;
 
+    private record ProductIdWithRegex(Guid ProductId, Regex Regex);
+        
     protected async override Task BackgroundTaskImplementation(CancellationToken cancellationToken)
     {
         if (_ebayServerOptions.IsLocalRun) return;
+        
+        using var scope = _serviceScopeFactory.CreateScope();
+        var applicationDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        
+        var products = await GetInterestingProductIdsWithRegexes(cancellationToken: cancellationToken, applicationDbContext: applicationDbContext);
 
         var recentSales = await _chipfindAdapter.GetRecentSaleAdvertisements(cancellationToken);
         
@@ -42,38 +51,49 @@ public class ChipfindBackgroundTask : BackgroundTask
         {
             try
             {
-                await Task.Delay(5000, cancellationToken);
-                
-                using var scope = _serviceScopeFactory.CreateScope();
-                var applicationDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                
-                var emailKey = $"{saleAdvertisement.Link.AbsoluteUri}_{saleAdvertisement.Date}";
-                
                 using var transaction = TransactionScopeFactory.Create();
-                
-                var exists = await applicationDbContext.EmailSendHistories
-                    .AnyAsync(e => e.EmailId == emailKey, cancellationToken);
 
-                if (exists)
+                var newAds = new HashSet<string>();
+                foreach (var saleAdvertisementItem in saleAdvertisement.Items)
                 {
-                    // Уже отправлено, пропускаем
-                    continue;
+                    var matchesWithProducts = products
+                        .Where(x => x.Regex.IsMatch(saleAdvertisementItem))
+                        .ToList();
+
+                    foreach (var product in matchesWithProducts)
+                    {
+                        var productKey = $"{saleAdvertisement.Seller}_{product.ProductId}".ToLower();
+
+                        var exists = await applicationDbContext.EmailSendHistories
+                            .AnyAsync(e => e.ProductKey == productKey, cancellationToken: cancellationToken);
+
+                        if (exists)
+                        {
+                            // Уже уведомляли об этом продукте
+                            continue;
+                        }
+
+                        applicationDbContext.EmailSendHistories.Add(
+                            new ProductEmailSendHistory { ProductKey = productKey, CreatedAt = saleAdvertisement.Date });
+
+                        await applicationDbContext.SaveChangesAsync(cancellationToken);
+
+                        newAds.Add(saleAdvertisementItem);
+                    }
                 }
                 
-                applicationDbContext.EmailSendHistories.Add(new EmailSendHistory
+                if (newAds.Count > 0)
                 {
-                    EmailId = emailKey,
-                    CreatedAt = saleAdvertisement.Date
-                });
-
-                await applicationDbContext.SaveChangesAsync();
-
-                var emailBody = $"<a href=\"{saleAdvertisement.Link}\">ссылка</a></br>{saleAdvertisement.Body}";
+                    var newItems = string.Join("</br>", newAds);
+                    var emailBody = $"<a href=\"{saleAdvertisement.Link}\">ссылка</a></br></br>{newItems}";
                 
-                await _emailSender.Send(
-                    targetAddress: _ebayServerOptions.TargetEmail,
-                    topic: $"{saleAdvertisement.Title} [{saleAdvertisement.Seller}]",
-                    messageText: emailBody);
+                    await _emailSender.Send(
+                        targetAddress: _ebayServerOptions.TargetEmail,
+                        topic: $"{saleAdvertisement.Title} [{saleAdvertisement.Seller}]",
+                        messageText: emailBody);
+                    
+                    await Task.Delay(millisecondsDelay: DelayAfterSendMilliseconds, cancellationToken: cancellationToken);
+                }
                 
                 transaction.Complete();
                 
@@ -84,7 +104,25 @@ public class ChipfindBackgroundTask : BackgroundTask
             }
         }
     }
-    
+
+    private async static Task<IReadOnlyCollection<ProductIdWithRegex>> GetInterestingProductIdsWithRegexes(
+        ApplicationDbContext applicationDbContext,
+        CancellationToken cancellationToken)
+    {
+        var dbProducts = await applicationDbContext.Products
+            .AsNoTracking()
+            .OrderBy(x => x.Name)
+            .ThenBy(x => x.Id)
+            .Include(x => x.RuSearchQueries)
+            .ToListAsync(cancellationToken);
+        
+        var productsArray = dbProducts.
+            Where(x=>x.GetIsInteresting())
+            .Select(x => new ProductIdWithRegex(ProductId: x.Id, Regex: x.GetProductRegex()))
+            .ToArray();
+        return productsArray;
+    }
+
     private bool IsUniqueConstraintViolation(DbUpdateException ex)
     {
         var isUniqueConstraintViolation = ex.InnerException != null &&

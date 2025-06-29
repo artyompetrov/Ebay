@@ -508,7 +508,7 @@ namespace Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public ProductWithId(System.Guid @id, bool @isCheckRequired, string @name, ProductCalculationResult? @productCalculationResult, System.Collections.Generic.List<RuSearchQuery> @ruSearchQueries, System.Collections.Generic.List<SearchQuery> @searchQueries, int @weight)
+        public ProductWithId(System.Guid @id, bool @isCheckRequired, bool @isInteresting, string @name, ProductCalculationResult? @productCalculationResult, string @productRegex, System.Collections.Generic.List<RuSearchQuery> @ruSearchQueries, System.Collections.Generic.List<SearchQuery> @searchQueries, int @weight)
 
         {
 
@@ -525,6 +525,10 @@ namespace Server.Controllers.Generated
             this.RuSearchQueries = @ruSearchQueries;
 
             this.ProductCalculationResult = @productCalculationResult;
+
+            this.ProductRegex = @productRegex;
+
+            this.IsInteresting = @isInteresting;
 
         }    [Newtonsoft.Json.JsonProperty("Id", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
@@ -551,6 +555,13 @@ namespace Server.Controllers.Generated
 
         [Newtonsoft.Json.JsonProperty("ProductCalculationResult", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public ProductCalculationResult? ProductCalculationResult { get; }
+
+        [Newtonsoft.Json.JsonProperty("ProductRegex", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string ProductRegex { get; }
+
+        [Newtonsoft.Json.JsonProperty("IsInteresting", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public bool IsInteresting { get; }
 
     }
 

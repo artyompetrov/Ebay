@@ -29,7 +29,9 @@ internal static class ModelsExtensions
         ruSearchQueries: dbProduct.RuSearchQueries.Select(x => x.ToApiRuSearchQuery()).ToList(),
         isCheckRequired: dbProduct.IsCheckRequired,
         weight: dbProduct.Weight,
-        productCalculationResult: dbProduct.ProductCalculationResult.ToApiLotCalculationResult()
+        productCalculationResult: dbProduct.ProductCalculationResult.ToApiLotCalculationResult(),
+        productRegex:dbProduct.GetProductRegex().ToString(),
+        isInteresting: dbProduct.GetIsInteresting()
     );
 
     public static SearchQuery ToApiSearchQuery(this DbSearchQuery searchQuery) =>

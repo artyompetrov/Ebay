@@ -47,8 +47,8 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
             entity.HasIndex(e => e.HashGridCurves).IsUnique();
         });
         
-        modelBuilder.Entity<EmailSendHistory>()
-            .HasIndex(x => x.EmailId)
+        modelBuilder.Entity<ProductEmailSendHistory>()
+            .HasIndex(x => x.ProductKey)
             .IsUnique();
     }
 
@@ -77,5 +77,5 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
 
     public DbSet<Currency> Currencies { get; set; } = null!;
     
-    public DbSet<EmailSendHistory> EmailSendHistories { get; set; } = null!;
+    public DbSet<ProductEmailSendHistory> EmailSendHistories { get; set; } = null!;
 }
