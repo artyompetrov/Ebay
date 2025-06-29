@@ -38,7 +38,7 @@ internal static class WellKnown
 
     public static class ChipFind
     {
-        public static TimeSpan UpdateTime = TimeSpan.FromHours(1);
+        public static TimeSpan UpdateTime = TimeSpan.FromMinutes(20);
         public static TimeSpan ErrorDelay = TimeSpan.FromMinutes(5);
     }
 
