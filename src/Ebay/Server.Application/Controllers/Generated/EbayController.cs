@@ -641,13 +641,13 @@ namespace Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public MeasurementData(string @manufactureDate, string @measurementId, ProductState @productState)
+        public MeasurementData(string @manufactureCode, string @measurementId, ProductState @productState)
 
         {
 
             this.MeasurementId = @measurementId;
 
-            this.ManufactureDate = @manufactureDate;
+            this.ManufactureCode = @manufactureCode;
 
             this.ProductState = @productState;
 
@@ -656,10 +656,9 @@ namespace Server.Controllers.Generated
         [System.ComponentModel.DataAnnotations.StringLength(100)]
         public string MeasurementId { get; }
 
-        [Newtonsoft.Json.JsonProperty("manufactureDate", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        [System.ComponentModel.DataAnnotations.RegularExpression(@"^\d{4}-(0[1-9]|1[0-2])$")]
-        public string ManufactureDate { get; }
+        [Newtonsoft.Json.JsonProperty("ManufactureCode", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public string ManufactureCode { get; }
 
         [Newtonsoft.Json.JsonProperty("productState", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
@@ -673,13 +672,13 @@ namespace Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public MeasurementDataToUpload(byte[] @file, string @manufactureDate, string @measurementId, ProductState @productState)
+        public MeasurementDataToUpload(byte[] @file, string @manufactureCode, string @measurementId, ProductState @productState)
 
         {
 
             this.MeasurementId = @measurementId;
 
-            this.ManufactureDate = @manufactureDate;
+            this.ManufactureCode = @manufactureCode;
 
             this.ProductState = @productState;
 
@@ -690,10 +689,9 @@ namespace Server.Controllers.Generated
         [System.ComponentModel.DataAnnotations.StringLength(100)]
         public string MeasurementId { get; }
 
-        [Newtonsoft.Json.JsonProperty("manufactureDate", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        [System.ComponentModel.DataAnnotations.RegularExpression(@"^\d{4}-(0[1-9]|1[0-2])$")]
-        public string ManufactureDate { get; }
+        [Newtonsoft.Json.JsonProperty("ManufactureCode", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public string ManufactureCode { get; }
 
         [Newtonsoft.Json.JsonProperty("productState", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]

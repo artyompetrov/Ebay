@@ -519,15 +519,15 @@ definitions:
       measurementId:
         type: string
         maxLength: 100
-      manufactureDate:
+      ManufactureCode:
         type: string
-        pattern: '^\d{4}-(0[1-9]|1[0-2])$'
+        minLength: 1
         example: '2024-11'
       productState:
         $ref: '#/definitions/ProductState'
     required:
       - measurementId
-      - manufactureDate
+      - ManufactureCode
       - productState
 
   MeasurementDataToUpload:
@@ -536,9 +536,9 @@ definitions:
       measurementId:
         type: string
         maxLength: 100
-      manufactureDate:
+      ManufactureCode:
         type: string
-        pattern: '^\d{4}-(0[1-9]|1[0-2])$'
+        minLength: 1
         example: '2024-11'
       productState:
         $ref: '#/definitions/ProductState'
@@ -547,7 +547,7 @@ definitions:
         format: binary
     required:
       - measurementId
-      - manufactureDate
+      - ManufactureCode
       - productState
       - file
 

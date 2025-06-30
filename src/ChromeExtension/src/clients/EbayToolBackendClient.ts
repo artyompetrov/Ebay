@@ -1437,7 +1437,7 @@ export interface ILotInfoWithProductId {
 
 export class MeasurementData implements IMeasurementData {
     measurementId!: string;
-    manufactureDate!: string;
+    manufactureCode!: string;
     productState!: ProductState;
 
     constructor(data?: IMeasurementData) {
@@ -1452,7 +1452,7 @@ export class MeasurementData implements IMeasurementData {
     init(_data?: any) {
         if (_data) {
             this.measurementId = _data["measurementId"];
-            this.manufactureDate = _data["manufactureDate"];
+            this.manufactureCode = _data["ManufactureCode"];
             this.productState = _data["productState"];
         }
     }
@@ -1467,7 +1467,7 @@ export class MeasurementData implements IMeasurementData {
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         data["measurementId"] = this.measurementId;
-        data["manufactureDate"] = this.manufactureDate;
+        data["ManufactureCode"] = this.manufactureCode;
         data["productState"] = this.productState;
         return data;
     }
@@ -1475,13 +1475,13 @@ export class MeasurementData implements IMeasurementData {
 
 export interface IMeasurementData {
     measurementId: string;
-    manufactureDate: string;
+    manufactureCode: string;
     productState: ProductState;
 }
 
 export class MeasurementDataToUpload implements IMeasurementDataToUpload {
     measurementId!: string;
-    manufactureDate!: string;
+    manufactureCode!: string;
     productState!: ProductState;
     file!: string;
 
@@ -1497,7 +1497,7 @@ export class MeasurementDataToUpload implements IMeasurementDataToUpload {
     init(_data?: any) {
         if (_data) {
             this.measurementId = _data["measurementId"];
-            this.manufactureDate = _data["manufactureDate"];
+            this.manufactureCode = _data["ManufactureCode"];
             this.productState = _data["productState"];
             this.file = _data["file"];
         }
@@ -1513,7 +1513,7 @@ export class MeasurementDataToUpload implements IMeasurementDataToUpload {
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         data["measurementId"] = this.measurementId;
-        data["manufactureDate"] = this.manufactureDate;
+        data["ManufactureCode"] = this.manufactureCode;
         data["productState"] = this.productState;
         data["file"] = this.file;
         return data;
@@ -1522,7 +1522,7 @@ export class MeasurementDataToUpload implements IMeasurementDataToUpload {
 
 export interface IMeasurementDataToUpload {
     measurementId: string;
-    manufactureDate: string;
+    manufactureCode: string;
     productState: ProductState;
     file: string;
 }

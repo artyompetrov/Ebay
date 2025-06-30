@@ -287,12 +287,12 @@ public class EbayControllerImplementation : IEbayController
     {
         var measurements = await _applicationContext.ProductMeasurements
             .Where(x => x.ProductId == productId)
-            .Select(x => new { MeasurementId = x.Id, x.ManufactureDate, x.ProductState })
+            .Select(x => new { MeasurementId = x.Id, ManufactureDate = x.ManufactureCode, x.ProductState })
             .ToListAsync(cancellationToken);
 
         var result = measurements
             .Select(x => new MeasurementData(
-                manufactureDate: x.ManufactureDate,
+                manufactureCode: x.ManufactureDate,
                 measurementId: x.MeasurementId,
                 productState: x.ProductState.ToApiProductState())).ToList();
 
@@ -370,7 +370,7 @@ public class EbayControllerImplementation : IEbayController
                 HashAnodeCurves = hashAnodeCurves ?? throw new NullReferenceException(nameof(hashAnodeCurves)),
                 HashGridCurves = hashGridCurves ?? throw new NullReferenceException(nameof(hashGridCurves)),
                 HashQuickTest = hashQuickTest ?? throw new NullReferenceException(nameof(hashQuickTest)),
-                ManufactureDate = measurementData.ManufactureDate
+                ManufactureCode = measurementData.ManufactureCode
             },
             cancellationToken: cancellationToken);
 

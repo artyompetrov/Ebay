@@ -2519,10 +2519,9 @@ namespace Client.Clients.Generated
         [System.ComponentModel.DataAnnotations.StringLength(100)]
         public string MeasurementId { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("manufactureDate", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        [System.ComponentModel.DataAnnotations.RegularExpression(@"^\d{4}-(0[1-9]|1[0-2])$")]
-        public string ManufactureDate { get; set; }
+        [Newtonsoft.Json.JsonProperty("ManufactureCode", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public string ManufactureCode { get; set; }
 
         [Newtonsoft.Json.JsonProperty("productState", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
@@ -2539,10 +2538,9 @@ namespace Client.Clients.Generated
         [System.ComponentModel.DataAnnotations.StringLength(100)]
         public string MeasurementId { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("manufactureDate", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        [System.ComponentModel.DataAnnotations.RegularExpression(@"^\d{4}-(0[1-9]|1[0-2])$")]
-        public string ManufactureDate { get; set; }
+        [Newtonsoft.Json.JsonProperty("ManufactureCode", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public string ManufactureCode { get; set; }
 
         [Newtonsoft.Json.JsonProperty("productState", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]

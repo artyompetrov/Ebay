@@ -41,8 +41,8 @@
     }
 </select>
 <br>
-<label for="monthInput">Дата производства (yyyy-mm):</label>
-<input id="monthInput" @bind="_manufactureMonth" type="month" class="form-control" lang="ru" />
+<label for="manufactureCodeInput">Код или дата производства в формате yyyy-mm:</label>
+<input id="manufactureCodeInput" @bind="_manufactureCode" type="text" class="form-control" lang="en" />
 <br>
 <InputFile OnChange="HandleFileSelected" accept=".zip" />
 
@@ -56,7 +56,7 @@
         <thead>
         <tr>
             <th>Название</th>
-            <th>Дата производства</th>
+            <th>Код</th>
             <th>Состояние</th>
             <th></th>
         </tr>
@@ -67,7 +67,7 @@
         {
             <tr>
                 <td><NavLink href="@($"m/{measurement.MeasurementId}")" target="_blank">@measurement.MeasurementId</NavLink></td>
-                <td>@measurement.ManufactureDate</td>
+                <td>@measurement.ManufactureCode</td>
                 <td>@measurement.ProductState.ToString("G")</td>
                 <td><button class="btn btn-danger btn-sm oi oi-basket" @onclick="@(e => OnDeleteButtonClick(measurement.MeasurementId))"></button></td>
             </tr>
@@ -83,11 +83,11 @@
     private string? _error;
     private string? _message;
     private ProductState? _selectedState;
-    private DateTime? _manufactureMonth;
     private List<ProductState> _productStates = Enum.GetValues(typeof(ProductState)).Cast<ProductState>().ToList();
     private ICollection<MeasurementData>? _measurements;
     private QuestionPopup _questionPopup = null!;
-    
+    private string? _manufactureCode;
+
     [Parameter]
     public Guid ProductId { get; set; }
     
@@ -137,7 +137,7 @@
                 {
                     File = ms.ToArray(),
                     MeasurementId = id,
-                    ManufactureDate = _manufactureMonth?.ToString("yyyy-MM"),
+                    ManufactureCode = _manufactureCode,
                     ProductState = _selectedState ?? throw new InvalidOperationException("Тип измерения не выбран")
                 },
                 productId: _product.Id,

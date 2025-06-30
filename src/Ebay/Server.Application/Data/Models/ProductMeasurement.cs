@@ -25,9 +25,12 @@ public class ProductMeasurement
     [MaxLength(128)]
     public required string HashQuickTest { get; set; } = null!;
 
+    /// <summary>
+    /// Дата производства или код
+    /// </summary>
 
-    [MaxLength(7)]
-    public required string ManufactureDate { get; set; } = null!;
+    [MaxLength(128)]
+    public required string ManufactureCode { get; set; } = null!;
 
     public required ProductState ProductState { get; set; }
 }
