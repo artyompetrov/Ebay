@@ -8,7 +8,8 @@ namespace Server.Adapters.ChipFind;
 public class ChipfindAdapter : IChipfindAdapter
 {
 
-    public async Task<IReadOnlyCollection<SaleAdvertisement>> GetRecentSaleAdvertisements(CancellationToken cancellationToken)
+    public async Task<IReadOnlyCollection<SaleAdvertisement>> GetRecentSaleAdvertisements(
+        CancellationToken cancellationToken)
     {
         var url = "https://www.chipfind.ru/market/sale_full.xml";
 
@@ -32,7 +33,13 @@ public class ChipfindAdapter : IChipfindAdapter
             var doc = new HtmlDocument();
             doc.LoadHtml(description);
 
-            var plainText = doc.DocumentNode.InnerText;
+            PreNodesAsNewLines(doc);
+
+            var plainText = Regex.Replace(
+                input: doc.DocumentNode.InnerText,
+                pattern: @"<br\s*/?>",
+                replacement: "\n",
+                options: RegexOptions.IgnoreCase);
 
             var items = plainText
                 .Split(separator: ['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
@@ -59,5 +66,28 @@ public class ChipfindAdapter : IChipfindAdapter
 
 
         return result;
+    }
+
+    private static void PreNodesAsNewLines(HtmlDocument doc)
+    {
+        var preNodes = doc.DocumentNode.SelectNodes("//pre");
+        if (preNodes != null)
+        {
+            foreach (var pre in preNodes)
+            {
+                // Создаём текстовый узел
+                var textNode = doc.CreateTextNode(pre.InnerText.Trim());
+
+                // Создаём <br>
+                var brNode = doc.CreateElement("br");
+
+                // Вставляем перед <pre>
+                pre.ParentNode.InsertBefore(textNode, pre);
+                pre.ParentNode.InsertBefore(brNode, pre);
+
+                // Удаляем сам <pre>
+                pre.Remove();
+            }
+        }
     }
 }
