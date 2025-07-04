@@ -12,8 +12,8 @@ namespace Server.Application.Controllers;
 [Route("/m/")]
 public class MeasurementPageController : ControllerBase
 {
-    // Максимальное dI - чтобы отсечь некорректные изменения из-за compliance
-    private const int IgnoreDI = -10;
+    // Максимальное dI - чтобы отсечь некорректные изменения из-за compliance, в долях от максимального тока
+    private const double IgnoreDI = -0.1;
     private readonly ApplicationDbContext _applicationContext;
 
     public MeasurementPageController(ApplicationDbContext applicationContext)
@@ -232,8 +232,10 @@ public class MeasurementPageController : ControllerBase
 
         foreach (var (i, values) in data)
         {
-            var iaValues = values.TakeWhile(x => x.dIa > IgnoreDI).Select(x => (x.Va, x.Ia)).ToList();
-            var isValues = values.TakeWhile(x => x.dIs > IgnoreDI).Select(x => (x.Va, x.Is)).ToList();
+            var maxI = values.Select(x => x.Ia).Union(values.Select(x=>x.Is)).Max();
+            
+            var iaValues = values.TakeWhile(x => x.dIa / maxI > IgnoreDI).Select(x => (x.Va, x.Ia)).ToList();
+            var isValues = values.TakeWhile(x => x.dIs / maxI > IgnoreDI).Select(x => (x.Va, x.Is)).ToList();
 
             var lineMaxX = values.Select(x => x.Va).Max();
 
@@ -361,8 +363,10 @@ public class MeasurementPageController : ControllerBase
         var maxY = 0.0;
         foreach (var (i, values) in data)
         {
-            var iaValues = values.TakeWhile(x => x.dIa > IgnoreDI).Select(x => (x.Va, x.Vg, x.Ia)).ToList();
-            var isValues = values.TakeWhile(x => x.dIs > IgnoreDI).Select(x => (x.Va, x.Vg, x.Is)).ToList();
+            var maxI = values.Select(x => x.Ia).Union(values.Select(x=>x.Is)).Max();
+            
+            var iaValues = values.TakeWhile(x => x.dIa / maxI > IgnoreDI).Select(x => (x.Va, x.Vg, x.Ia)).ToList();
+            var isValues = values.TakeWhile(x => x.dIs / maxI > IgnoreDI).Select(x => (x.Va, x.Vg, x.Is)).ToList();
 
             var lineMinX = values.Select(x => x.Vg).Min();
 
@@ -467,8 +471,10 @@ public class MeasurementPageController : ControllerBase
 
         foreach (var (i, values) in data)
         {
-            var iaValues = values.TakeWhile(x => x.dIa > IgnoreDI).Select(x => (x.Va, x.Ia)).ToList();
-            var isValues = values.TakeWhile(x => x.dIs > IgnoreDI).Select(x => (x.Va, x.Is)).ToList();
+            var maxI = values.Select(x => x.Ia).Union(values.Select(x=>x.Is)).Max();
+            
+            var iaValues = values.TakeWhile(x => x.dIa / maxI > IgnoreDI).Select(x => (x.Va, x.Ia)).ToList();
+            var isValues = values.TakeWhile(x => x.dIs / maxI > IgnoreDI).Select(x => (x.Va, x.Is)).ToList();
 
             var lineMaxX = values.Select(x => x.Va).Max();
             var lineMaxY = GetLineMaxY(iValues: iaValues
@@ -572,8 +578,9 @@ public class MeasurementPageController : ControllerBase
         var maxY = 0.0;
         foreach (var (i, values) in data)
         {
-            var iaValues = values.TakeWhile(x => x.dIa > IgnoreDI).Select(x => (x.Va, x.Vs, x.Ia)).ToList();
-            var isValues = values.TakeWhile(x => x.dIs > IgnoreDI).Select(x => (x.Va, x.Vs, x.Is)).ToList();
+            var maxI = values.Select(x => x.Ia).Union(values.Select(x=>x.Is)).Max();
+            var iaValues = values.TakeWhile(x => x.dIa / maxI > IgnoreDI).Select(x => (x.Va, x.Vs, x.Ia)).ToList();
+            var isValues = values.TakeWhile(x => x.dIs / maxI > IgnoreDI).Select(x => (x.Va, x.Vs, x.Is)).ToList();
 
             var lineMaxX = values.Select(x => x.Vs).Max();
             var lineMaxY = GetLineMaxY(iValues: iaValues
