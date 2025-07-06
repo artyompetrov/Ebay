@@ -27,6 +27,8 @@ class AvitoSavedSearchesPageProcessor implements ISiteProcessor {
                     .map(x=> new ProductWithRegex(x, new RegExp(x.productRegex, "ig")))];
             
             let productsFoundInSearches = new Set<ProductWithId>();
+            
+            let elementCount = 1;
             for (let element of document.querySelectorAll<HTMLDivElement>('[data-marker="favorite-search/description"]')) {
                 let splited = element.textContent.trim().split(',')
                 
@@ -34,19 +36,30 @@ class AvitoSavedSearchesPageProcessor implements ISiteProcessor {
                 let region = splited[1].trim().toLowerCase();
                 let name = splited[2].trim().toLowerCase();
 
+                let foundSmth = false;
                 if (region === "все регионы" && category === "все категории") {
                     for (let interestingProduct of interestingProducts)
                     {
                         interestingProduct.regex.lastIndex = 0;
                         if (interestingProduct.regex.test(name)) {
                             productsFoundInSearches.add(interestingProduct.product)
+                            foundSmth = true;
+
+                            element.innerText += " " + Math.round(interestingProduct.product.productCalculationResult.revenueAvg)
                         }
                     }
+                    if (!foundSmth) {
+                        element.style.backgroundColor = "yellow";
+                    }
+
+                    element.innerText = elementCount + ". " + element.innerText
                 }
                 else
                 {
-                    element.style.backgroundColor = "yellow";
+                    element.style.backgroundColor = "pink";
                 }
+
+                elementCount ++;
             }
             
             let result = Array.from( interestingProducts
@@ -57,21 +70,21 @@ class AvitoSavedSearchesPageProcessor implements ISiteProcessor {
             {
                 const h1 = Array.from(document.querySelectorAll("h1"))
                     .find(el => el.textContent.trim() === "Избранное");
-
-                const parent = h1?.parentElement;
-
-                const br = document.createElement("br");
-                parent?.append(br);
-
-                const h2 = document.createElement("h2");
-                h2.textContent = "Не найдено сохранненых поисков для:";
-                parent?.append(h2);
                 
+                let container = document.createElement("div");
+                h1?.parentElement.prepend(container);
+                const br = document.createElement("br");
+                container?.append(br);
+
+                const h2 = document.createElement("h1");
+                h2.textContent = "Не найдено сохранненых поисков для:";
+                container?.append(h2);
+                                
                 for (let product of result) {
                     const div = document.createElement("div");
                     let a = document.createElement("a");
                     a.textContent = product.name;
-                    a.setAttribute("href", constants.Urls.backendUrl + "LotSales/" + product.id);
+                    a.setAttribute("href", "https://www.avito.ru/all?q=" + product.name);
                     a.setAttribute("target", "_blank")
                     div.appendChild(a);
                     
@@ -79,11 +92,15 @@ class AvitoSavedSearchesPageProcessor implements ISiteProcessor {
                         div.appendChild(document.createTextNode(" | "));
                         let a = document.createElement("a");
                         a.textContent = ruSearchQuery.query;
-                        a.setAttribute("href", constants.Urls.backendUrl + "LotSales/" + product.id);
+                        a.setAttribute("href", "https://www.avito.ru/all?q=" + encodeURIComponent(ruSearchQuery.query));
                         a.setAttribute("target", "_blank")
                         div.appendChild(a);
                     }
-                    parent?.append(div);
+                    container?.append(div);
+
+                    div.appendChild(document.createTextNode(" | " + Math.round(product.productCalculationResult.revenueAvg)));
+                    
+                    
                 }
             }
         };
