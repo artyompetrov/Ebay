@@ -3,9 +3,11 @@ import {tryGetEbaySiteProcessor} from "./siteProcessors/EbaySiteProcessor";
 import {ISiteProcessor} from "./siteProcessors/ISiteProcessor";
 import {tryGetAuthPageProcessor} from "./siteProcessors/AuthPageProcessor";
 import {tryGetSearchSitesProcessor} from "./siteProcessors/SearchSitesProcessor";
+import {tryGetAvitoSavedSearchesProcessor} from "./siteProcessors/AvitoSavedSearchesPageProcessor";
 
 function getMatchingSiteProcessors(): ISiteProcessor[] {
     const processors = [
+        tryGetAvitoSavedSearchesProcessor(),
         tryGetAuthPageProcessor(),
         tryGetEbaySiteProcessor(),
         tryGetSearchSitesProcessor()
@@ -22,6 +24,11 @@ export async function run() {
         if (actualVersion) {
             for (let processor of processors) {
                 await processor.run()
+                
+                if (processor.breakAfterSearchProcessor)
+                {
+                    break
+                }
             }
         }
     }

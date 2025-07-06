@@ -41,6 +41,8 @@ class ProductWithRegex {
 }
 
 class SearchSitesProcessor implements ISiteProcessor {
+    breakAfterSearchProcessor: boolean = false;
+    
     private _ebayToolBackendClient: EbayToolBackendClient.EbayToolBackendClient;
     private _allItemsCacheIdentifier = "searchSitesAllItems";
     private _targetCurrencyRate: number;

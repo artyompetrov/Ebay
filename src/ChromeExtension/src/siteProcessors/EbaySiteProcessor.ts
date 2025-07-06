@@ -69,6 +69,9 @@ class LotLink {
 
 
 class EbaySiteProcessor implements ISiteProcessor {
+
+    breakAfterSearchProcessor: boolean = false;
+    
     private readonly productFieldName = "productId";
     private readonly ignoreThatLotFormId = "ignoreThatLot"
     private readonly pcsFieldName = "pcs";

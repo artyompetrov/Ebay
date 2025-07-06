@@ -14,7 +14,7 @@ export function tryGetAuthPageProcessor() : ISiteProcessor | null {
 }
 
 class AuthPageProcessor implements ISiteProcessor {
-    
+    breakAfterSearchProcessor: boolean = true;
     async run(): Promise<void> {
         let currentPage = location.protocol + '//' + location.host + location.pathname
         if (currentPage === constants.Urls.extensionAuthRedirectUrl) {
