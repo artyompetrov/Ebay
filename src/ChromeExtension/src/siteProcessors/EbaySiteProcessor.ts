@@ -1091,7 +1091,8 @@ class EbaySiteProcessor implements ISiteProcessor {
 
         //только на странице проданные лоты
         if (new URL(document.location.href).searchParams?.get('LH_Sold')?.trim() !== "1") return;
-
+        const linkRegex = /https:\/\/[^\/]+\/itm\/(\d+)/;
+        const soldRegex = /Sold\s.+/;
 
         let searchResults = await utils.sleepElementLoaded('ul.srp-results', document)
 
@@ -1100,10 +1101,14 @@ class EbaySiteProcessor implements ISiteProcessor {
             let links: LotLink[] = [];
             for (let li of [...searchResults.querySelectorAll('li')]) {
                 if (li.classList.contains("srp-river-answer--REWRITE_START") && li.innerText === "Results matching fewer words") break
-                if (li.classList.contains("s-card")) {
-                    let link = <HTMLAnchorElement>li.querySelector('a.su-link')
-                    let soldDate = new Date((<HTMLElement>li.querySelector('span.positive')).innerText.replace("Sold ", ""))
-                    links.push(new LotLink(parseInt(link.href.match(/https:\/\/[^\/]+\/itm\/(\d+)/)[1]), li, soldDate));
+                if (li.classList.contains("s-item")) {
+                    
+                    let linkMatch = Array.from(li.querySelectorAll('a')).map(link => link.href.match(linkRegex)).find(x=>x);
+                    let soldMatch = Array.from(li.querySelectorAll('span')).map(span => span.innerText.match(soldRegex)).find(x=>x);
+                        
+                    let soldDate = new Date(soldMatch[0].replace("Sold ", ""))
+                    let lotLink = new LotLink(parseInt(linkMatch[1]), li, soldDate);
+                    links.push(lotLink);
                 }
             }
             // noinspection JSUnusedLocalSymbols
