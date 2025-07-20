@@ -713,6 +713,49 @@ export class EbayToolBackendClient {
     }
 
     /**
+     * @return Ok
+     */
+    updateMeasurementLocation(location: string, productId: string, measurementId: string): Promise<void> {
+        let url_ = this.baseUrl + "/products/{productId}/measurements/{measurementId}/location/";
+        if (productId === undefined || productId === null)
+            throw new Error("The parameter 'productId' must be defined.");
+        url_ = url_.replace("{productId}", encodeURIComponent("" + productId));
+        if (measurementId === undefined || measurementId === null)
+            throw new Error("The parameter 'measurementId' must be defined.");
+        url_ = url_.replace("{measurementId}", encodeURIComponent("" + measurementId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(location);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateMeasurementLocation(_response);
+        });
+    }
+
+    protected processUpdateMeasurementLocation(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
      * Получить информацию о лоте
      * @return Ok
      */
@@ -1438,6 +1481,7 @@ export interface ILotInfoWithProductId {
 export class MeasurementData implements IMeasurementData {
     measurementId!: string;
     manufactureCode!: string;
+    location?: string | undefined;
     productState!: ProductState;
 
     constructor(data?: IMeasurementData) {
@@ -1452,7 +1496,8 @@ export class MeasurementData implements IMeasurementData {
     init(_data?: any) {
         if (_data) {
             this.measurementId = _data["measurementId"];
-            this.manufactureCode = _data["ManufactureCode"];
+            this.manufactureCode = _data["manufactureCode"];
+            this.location = _data["Location"];
             this.productState = _data["productState"];
         }
     }
@@ -1467,7 +1512,8 @@ export class MeasurementData implements IMeasurementData {
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         data["measurementId"] = this.measurementId;
-        data["ManufactureCode"] = this.manufactureCode;
+        data["manufactureCode"] = this.manufactureCode;
+        data["Location"] = this.location;
         data["productState"] = this.productState;
         return data;
     }
@@ -1476,6 +1522,7 @@ export class MeasurementData implements IMeasurementData {
 export interface IMeasurementData {
     measurementId: string;
     manufactureCode: string;
+    location?: string | undefined;
     productState: ProductState;
 }
 
@@ -1484,6 +1531,7 @@ export class MeasurementDataToUpload implements IMeasurementDataToUpload {
     manufactureCode!: string;
     productState!: ProductState;
     file!: string;
+    location?: string | undefined;
 
     constructor(data?: IMeasurementDataToUpload) {
         if (data) {
@@ -1497,9 +1545,10 @@ export class MeasurementDataToUpload implements IMeasurementDataToUpload {
     init(_data?: any) {
         if (_data) {
             this.measurementId = _data["measurementId"];
-            this.manufactureCode = _data["ManufactureCode"];
+            this.manufactureCode = _data["manufactureCode"];
             this.productState = _data["productState"];
             this.file = _data["file"];
+            this.location = _data["location"];
         }
     }
 
@@ -1513,9 +1562,10 @@ export class MeasurementDataToUpload implements IMeasurementDataToUpload {
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         data["measurementId"] = this.measurementId;
-        data["ManufactureCode"] = this.manufactureCode;
+        data["manufactureCode"] = this.manufactureCode;
         data["productState"] = this.productState;
         data["file"] = this.file;
+        data["location"] = this.location;
         return data;
     }
 }
@@ -1525,6 +1575,7 @@ export interface IMeasurementDataToUpload {
     manufactureCode: string;
     productState: ProductState;
     file: string;
+    location?: string | undefined;
 }
 
 export class LotInfo implements ILotInfo {

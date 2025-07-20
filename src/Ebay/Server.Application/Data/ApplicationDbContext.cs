@@ -50,6 +50,13 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
         modelBuilder.Entity<ProductEmailSendHistory>()
             .HasIndex(x => x.ProductKey)
             .IsUnique();
+        
+        modelBuilder.Entity<ProductMeasurement>()
+            .Property(p => p.CreatedAt)
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
+        
+        modelBuilder.Entity<ProductMeasurement>()
+            .HasIndex(p => p.CreatedAt);
     }
 
     public ApplicationDbContext(

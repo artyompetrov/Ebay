@@ -43,6 +43,9 @@
 <br>
 <label for="manufactureCodeInput">Код или дата производства в формате yyyy-mm:</label>
 <input id="manufactureCodeInput" @bind="_manufactureCode" type="text" class="form-control" lang="en" />
+
+<label for="locationInput">Место хранения (необязательно):</label>
+<input id="locationInput" @bind="_location" type="text" class="form-control" lang="en" />
 <br>
 <InputFile OnChange="HandleFileSelected" accept=".zip" />
 
@@ -58,6 +61,7 @@
             <th>Название</th>
             <th>Код</th>
             <th>Состояние</th>
+            <th>Расположение</th>
             <th></th>
         </tr>
         </thead>
@@ -69,6 +73,11 @@
                 <td><NavLink href="@($"m/{measurement.MeasurementId}")" target="_blank">@measurement.MeasurementId</NavLink></td>
                 <td>@measurement.ManufactureCode</td>
                 <td>@measurement.ProductState.ToString("G")</td>
+                <td>
+                    <input type="text"
+                           class="form-control"
+                           value="@measurement.Location"
+                           @oninput="async e => await OnLocationChanged(measurement, e.Value?.ToString())"/></td>
                 <td><button class="btn btn-danger btn-sm oi oi-basket" @onclick="@(e => OnDeleteButtonClick(measurement.MeasurementId))"></button></td>
             </tr>
         }
@@ -87,6 +96,7 @@
     private ICollection<MeasurementData>? _measurements;
     private QuestionPopup _questionPopup = null!;
     private string? _manufactureCode;
+    private string? _location;
 
     [Parameter]
     public Guid ProductId { get; set; }
@@ -168,4 +178,25 @@
             });
         
     }
+
+    private async Task OnLocationChanged(MeasurementData measurement, string? newValue)
+    {
+        try
+        {
+            measurement.Location = newValue;
+
+            await EbayClient.UpdateMeasurementLocationAsync(
+                productId: ProductId,
+                measurementId: measurement.MeasurementId,
+                location: newValue);
+
+            Logger.LogInformation("Updated note for {Id}: {Note}", measurement.MeasurementId, newValue);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error updating note for {Id}", measurement.MeasurementId);
+            _error = "Ошибка при обновлении заметки";
+        }
+    }
+
 }

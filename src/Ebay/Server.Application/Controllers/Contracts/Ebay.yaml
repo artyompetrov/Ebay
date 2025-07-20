@@ -263,6 +263,30 @@ paths:
         200:
           description: Ok
 
+  /products/{productId}/measurements/{measurementId}/location/:
+    parameters:
+      - name: productId
+        in: path
+        required: true
+        type: string
+        format: guid
+      - name: measurementId
+        in: path
+        required: true
+        type: string
+        maxLength: 100
+    post:
+      operationId: UpdateMeasurementLocation
+      parameters:
+        - name: location
+          in: body
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+
   /lots/{lotId}/:
     parameters:
       - name: lotId
@@ -519,15 +543,17 @@ definitions:
       measurementId:
         type: string
         maxLength: 100
-      ManufactureCode:
+      manufactureCode:
         type: string
         minLength: 1
         example: '2024-11'
+      Location:
+        type: string
       productState:
         $ref: '#/definitions/ProductState'
     required:
       - measurementId
-      - ManufactureCode
+      - manufactureCode
       - productState
 
   MeasurementDataToUpload:
@@ -536,7 +562,7 @@ definitions:
       measurementId:
         type: string
         maxLength: 100
-      ManufactureCode:
+      manufactureCode:
         type: string
         minLength: 1
         example: '2024-11'
@@ -545,9 +571,11 @@ definitions:
       file:
         type: string
         format: binary
+      location:
+        type: string
     required:
       - measurementId
-      - ManufactureCode
+      - manufactureCode
       - productState
       - file
 

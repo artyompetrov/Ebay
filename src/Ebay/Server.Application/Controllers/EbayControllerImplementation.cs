@@ -287,14 +287,20 @@ public class EbayControllerImplementation : IEbayController
     {
         var measurements = await _applicationContext.ProductMeasurements
             .Where(x => x.ProductId == productId)
-            .Select(x => new { MeasurementId = x.Id, ManufactureDate = x.ManufactureCode, x.ProductState })
+            .OrderByDescending(p => p.CreatedAt)
+            .ThenByDescending(p=>p.Id)
+            .Select(x => new { MeasurementId = x.Id, ManufactureDate = x.ManufactureCode, x.ProductState, x.Location })
             .ToListAsync(cancellationToken);
 
         var result = measurements
             .Select(x => new MeasurementData(
-                manufactureCode: x.ManufactureDate,
-                measurementId: x.MeasurementId,
-                productState: x.ProductState.ToApiProductState())).ToList();
+                    manufactureCode: x.ManufactureDate,
+                    measurementId: x.MeasurementId,
+                    productState: x.ProductState.ToApiProductState(),
+                    location: x.Location
+                )
+
+            ).ToList();
 
         return result;
     }
@@ -370,7 +376,8 @@ public class EbayControllerImplementation : IEbayController
                 HashAnodeCurves = hashAnodeCurves ?? throw new NullReferenceException(nameof(hashAnodeCurves)),
                 HashGridCurves = hashGridCurves ?? throw new NullReferenceException(nameof(hashGridCurves)),
                 HashQuickTest = hashQuickTest ?? throw new NullReferenceException(nameof(hashQuickTest)),
-                ManufactureCode = measurementData.ManufactureCode
+                ManufactureCode = measurementData.ManufactureCode,
+                Location = measurementData.Location
             },
             cancellationToken: cancellationToken);
 
@@ -421,6 +428,28 @@ public class EbayControllerImplementation : IEbayController
                 x.ProductId == productId && x.Id == measurementId.ToString()));
 
         await _applicationContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task UpdateMeasurementLocationAsync(
+        string location,
+        Guid productId,
+        string measurementId,
+        CancellationToken cancellationToken)
+    {
+        
+        var measurement = await _applicationContext.ProductMeasurements
+            .Where(m => m.ProductId == productId && m.Id == measurementId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (measurement == null)
+        {
+            throw new InvalidOperationException("Measurement not found.");
+        }
+
+        measurement.Location = location;
+
+        await _applicationContext.SaveChangesAsync(cancellationToken);
+        
     }
 
     private static string ComputeEntryHashAsync(byte[] bytes)

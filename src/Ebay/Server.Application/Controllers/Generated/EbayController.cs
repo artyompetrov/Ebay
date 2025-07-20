@@ -130,6 +130,12 @@ namespace Server.Controllers.Generated
 
         System.Threading.Tasks.Task DeleteMeasurementAsync(System.Guid productId, string measurementId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
+
+
+        /// <returns>Ok</returns>
+
+        System.Threading.Tasks.Task UpdateMeasurementLocationAsync(string location, System.Guid productId, string measurementId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+
         /// <summary>
         /// Получить информацию о лоте
         /// </summary>
@@ -353,6 +359,14 @@ namespace Server.Controllers.Generated
         {
 
             return _implementation.DeleteMeasurementAsync(productId, measurementId, cancellationToken);
+        }
+
+        /// <returns>Ok</returns>
+        [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("products/{productId}/measurements/{measurementId}/location/")]
+        public System.Threading.Tasks.Task UpdateMeasurementLocation([Microsoft.AspNetCore.Mvc.FromBody] string location, System.Guid productId, string measurementId, System.Threading.CancellationToken cancellationToken)
+        {
+
+            return _implementation.UpdateMeasurementLocationAsync(location, productId, measurementId, cancellationToken);
         }
 
         /// <summary>
@@ -641,13 +655,15 @@ namespace Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public MeasurementData(string @manufactureCode, string @measurementId, ProductState @productState)
+        public MeasurementData(string? @location, string @manufactureCode, string @measurementId, ProductState @productState)
 
         {
 
             this.MeasurementId = @measurementId;
 
             this.ManufactureCode = @manufactureCode;
+
+            this.Location = @location;
 
             this.ProductState = @productState;
 
@@ -656,9 +672,12 @@ namespace Server.Controllers.Generated
         [System.ComponentModel.DataAnnotations.StringLength(100)]
         public string MeasurementId { get; }
 
-        [Newtonsoft.Json.JsonProperty("ManufactureCode", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("manufactureCode", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
         public string ManufactureCode { get; }
+
+        [Newtonsoft.Json.JsonProperty("Location", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string? Location { get; }
 
         [Newtonsoft.Json.JsonProperty("productState", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
@@ -672,7 +691,7 @@ namespace Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public MeasurementDataToUpload(byte[] @file, string @manufactureCode, string @measurementId, ProductState @productState)
+        public MeasurementDataToUpload(byte[] @file, string? @location, string @manufactureCode, string @measurementId, ProductState @productState)
 
         {
 
@@ -684,12 +703,14 @@ namespace Server.Controllers.Generated
 
             this.File = @file;
 
+            this.Location = @location;
+
         }    [Newtonsoft.Json.JsonProperty("measurementId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         [System.ComponentModel.DataAnnotations.StringLength(100)]
         public string MeasurementId { get; }
 
-        [Newtonsoft.Json.JsonProperty("ManufactureCode", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("manufactureCode", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required]
         public string ManufactureCode { get; }
 
@@ -701,6 +722,9 @@ namespace Server.Controllers.Generated
         [Newtonsoft.Json.JsonProperty("file", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         public byte[] File { get; }
+
+        [Newtonsoft.Json.JsonProperty("location", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string? Location { get; }
 
     }
 
