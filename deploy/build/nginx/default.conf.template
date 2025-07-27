@@ -17,9 +17,13 @@ log_format with_host '$remote_addr - $host [$time_local] '
 
 server {
     listen 80 default_server;
+    listen 443 ssl default_server;
     server_name _;
 
     access_log /var/log/nginx/invalid_host.log with_host;
+    
+    ssl_certificate /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
 
     return 444;
 }
