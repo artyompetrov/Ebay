@@ -33,6 +33,14 @@ builder.Services.AddEmailAdapter(builder.Configuration);
 builder.Services.AddChipFindAdapter();
 builder.Services.AddApplicationServices(options, connectionString);
 
+var keyStoragePath = Environment.GetEnvironmentVariable("DATA_PROTECTION_KEYS_DIR") ??
+                     Path.Join(path1: Path.GetTempPath(), path2: "data_protection_keys_dir");
+
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(keyStoragePath))
+    .SetApplicationName("EbayHelper")
+    .SetDefaultKeyLifetime(TimeSpan.FromDays(90));
+
 builder.Services.AddIdentityServer()
     .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(
         o =>
@@ -65,12 +73,7 @@ builder.Services.AddIdentityServer()
         }
     );
 
-var keyStoragePath = Environment.GetEnvironmentVariable("DATA_PROTECTION_KEYS_DIR") ??
-    Path.Join(path1: Path.GetTempPath(), path2: "data_protection_keys_dir");
 
-builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo(keyStoragePath))
-    .SetApplicationName("EbayHelper");
 
 builder.Services.AddAuthentication().AddIdentityServerJwt();
 
