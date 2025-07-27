@@ -11,10 +11,15 @@ map $http_upgrade $connection_upgrade {
   ''      close;
 }
 
+log_format with_host '$remote_addr - $host [$time_local] '
+                     '"$request" $status $body_bytes_sent '
+                     '"$http_referer" "$http_user_agent"';
+
 server {
     listen 80 default_server;
-    listen 443 default_server;
     server_name _;
+
+    access_log /var/log/nginx/invalid_host.log with_host;
 
     return 444;
 }
