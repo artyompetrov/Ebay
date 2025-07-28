@@ -580,6 +580,182 @@ export class EbayToolBackendClient {
     }
 
     /**
+     * @return Ok
+     */
+    getMeasurements(productId: string): Promise<MeasurementData[]> {
+        let url_ = this.baseUrl + "/products/{productId}/measurements/";
+        if (productId === undefined || productId === null)
+            throw new Error("The parameter 'productId' must be defined.");
+        url_ = url_.replace("{productId}", encodeURIComponent("" + productId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetMeasurements(_response);
+        });
+    }
+
+    protected processGetMeasurements(response: Response): Promise<MeasurementData[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(MeasurementData.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<MeasurementData[]>(null as any);
+    }
+
+    /**
+     * @return Ok
+     */
+    uploadMeasurement(measurementData: MeasurementDataToUpload, productId: string): Promise<void> {
+        let url_ = this.baseUrl + "/products/{productId}/measurements/";
+        if (productId === undefined || productId === null)
+            throw new Error("The parameter 'productId' must be defined.");
+        url_ = url_.replace("{productId}", encodeURIComponent("" + productId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(measurementData);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUploadMeasurement(_response);
+        });
+    }
+
+    protected processUploadMeasurement(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetailedInfo.fromJS(resultData400);
+            return throwException("InvalidMeasurement", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * @return Ok
+     */
+    deleteMeasurement(productId: string, measurementId: string): Promise<void> {
+        let url_ = this.baseUrl + "/products/{productId}/measurements/{measurementId}/";
+        if (productId === undefined || productId === null)
+            throw new Error("The parameter 'productId' must be defined.");
+        url_ = url_.replace("{productId}", encodeURIComponent("" + productId));
+        if (measurementId === undefined || measurementId === null)
+            throw new Error("The parameter 'measurementId' must be defined.");
+        url_ = url_.replace("{measurementId}", encodeURIComponent("" + measurementId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteMeasurement(_response);
+        });
+    }
+
+    protected processDeleteMeasurement(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * @return Ok
+     */
+    updateMeasurementLocation(location: string, productId: string, measurementId: string): Promise<void> {
+        let url_ = this.baseUrl + "/products/{productId}/measurements/{measurementId}/location/";
+        if (productId === undefined || productId === null)
+            throw new Error("The parameter 'productId' must be defined.");
+        url_ = url_.replace("{productId}", encodeURIComponent("" + productId));
+        if (measurementId === undefined || measurementId === null)
+            throw new Error("The parameter 'measurementId' must be defined.");
+        url_ = url_.replace("{measurementId}", encodeURIComponent("" + measurementId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(location);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateMeasurementLocation(_response);
+        });
+    }
+
+    protected processUpdateMeasurementLocation(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
      * Получить информацию о лоте
      * @return Ok
      */
@@ -1018,6 +1194,11 @@ export class EbayToolBackendClient {
     }
 }
 
+export enum ProductState {
+    New = "New",
+    Used = "Used",
+}
+
 export class ProductWithoutId implements IProductWithoutId {
     name!: string;
     searchQueries!: SearchQuery[];
@@ -1094,6 +1275,8 @@ export class ProductWithId implements IProductWithId {
     searchQueries!: SearchQuery[];
     ruSearchQueries!: RuSearchQuery[];
     productCalculationResult?: ProductCalculationResult | undefined;
+    productRegex!: string;
+    isInteresting!: boolean;
 
     constructor(data?: IProductWithId) {
         if (data) {
@@ -1125,6 +1308,8 @@ export class ProductWithId implements IProductWithId {
                     this.ruSearchQueries!.push(RuSearchQuery.fromJS(item));
             }
             this.productCalculationResult = _data["ProductCalculationResult"] ? ProductCalculationResult.fromJS(_data["ProductCalculationResult"]) : <any>undefined;
+            this.productRegex = _data["ProductRegex"];
+            this.isInteresting = _data["IsInteresting"];
         }
     }
 
@@ -1152,6 +1337,8 @@ export class ProductWithId implements IProductWithId {
                 data["RuSearchQueries"].push(item.toJSON());
         }
         data["ProductCalculationResult"] = this.productCalculationResult ? this.productCalculationResult.toJSON() : <any>undefined;
+        data["ProductRegex"] = this.productRegex;
+        data["IsInteresting"] = this.isInteresting;
         return data;
     }
 }
@@ -1164,6 +1351,8 @@ export interface IProductWithId {
     searchQueries: SearchQuery[];
     ruSearchQueries: RuSearchQuery[];
     productCalculationResult?: ProductCalculationResult | undefined;
+    productRegex: string;
+    isInteresting: boolean;
 }
 
 export class SearchQuery implements ISearchQuery {
@@ -1287,6 +1476,106 @@ export class LotInfoWithProductId implements ILotInfoWithProductId {
 export interface ILotInfoWithProductId {
     productId: string;
     lotInfo: LotInfo;
+}
+
+export class MeasurementData implements IMeasurementData {
+    measurementId!: string;
+    manufactureCode!: string;
+    location?: string | undefined;
+    productState!: ProductState;
+
+    constructor(data?: IMeasurementData) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.measurementId = _data["measurementId"];
+            this.manufactureCode = _data["manufactureCode"];
+            this.location = _data["Location"];
+            this.productState = _data["productState"];
+        }
+    }
+
+    static fromJS(data: any): MeasurementData {
+        data = typeof data === 'object' ? data : {};
+        let result = new MeasurementData();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["measurementId"] = this.measurementId;
+        data["manufactureCode"] = this.manufactureCode;
+        data["Location"] = this.location;
+        data["productState"] = this.productState;
+        return data;
+    }
+}
+
+export interface IMeasurementData {
+    measurementId: string;
+    manufactureCode: string;
+    location?: string | undefined;
+    productState: ProductState;
+}
+
+export class MeasurementDataToUpload implements IMeasurementDataToUpload {
+    measurementId!: string;
+    manufactureCode!: string;
+    productState!: ProductState;
+    file!: string;
+    location?: string | undefined;
+
+    constructor(data?: IMeasurementDataToUpload) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.measurementId = _data["measurementId"];
+            this.manufactureCode = _data["manufactureCode"];
+            this.productState = _data["productState"];
+            this.file = _data["file"];
+            this.location = _data["location"];
+        }
+    }
+
+    static fromJS(data: any): MeasurementDataToUpload {
+        data = typeof data === 'object' ? data : {};
+        let result = new MeasurementDataToUpload();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["measurementId"] = this.measurementId;
+        data["manufactureCode"] = this.manufactureCode;
+        data["productState"] = this.productState;
+        data["file"] = this.file;
+        data["location"] = this.location;
+        return data;
+    }
+}
+
+export interface IMeasurementDataToUpload {
+    measurementId: string;
+    manufactureCode: string;
+    productState: ProductState;
+    file: string;
+    location?: string | undefined;
 }
 
 export class LotInfo implements ILotInfo {
@@ -1537,6 +1826,7 @@ export class ProductCalculationResult implements IProductCalculationResult {
     revenue!: number;
     quantityTotal!: number;
     revenueAvg!: number;
+    calculationDate!: string;
 
     constructor(data?: IProductCalculationResult) {
         if (data) {
@@ -1552,6 +1842,7 @@ export class ProductCalculationResult implements IProductCalculationResult {
             this.revenue = _data["revenue"];
             this.quantityTotal = _data["quantityTotal"];
             this.revenueAvg = _data["revenueAvg"];
+            this.calculationDate = _data["calculationDate"];
         }
     }
 
@@ -1567,6 +1858,7 @@ export class ProductCalculationResult implements IProductCalculationResult {
         data["revenue"] = this.revenue;
         data["quantityTotal"] = this.quantityTotal;
         data["revenueAvg"] = this.revenueAvg;
+        data["calculationDate"] = this.calculationDate;
         return data;
     }
 }
@@ -1575,12 +1867,14 @@ export interface IProductCalculationResult {
     revenue: number;
     quantityTotal: number;
     revenueAvg: number;
+    calculationDate: string;
 }
 
 export class LotCalculationResult implements ILotCalculationResult {
     revenue!: number;
     quantityTotal!: number;
     revenueAvg!: number;
+    calculationDate!: string;
 
     constructor(data?: ILotCalculationResult) {
         if (data) {
@@ -1596,6 +1890,7 @@ export class LotCalculationResult implements ILotCalculationResult {
             this.revenue = _data["revenue"];
             this.quantityTotal = _data["quantityTotal"];
             this.revenueAvg = _data["revenueAvg"];
+            this.calculationDate = _data["calculationDate"];
         }
     }
 
@@ -1611,6 +1906,7 @@ export class LotCalculationResult implements ILotCalculationResult {
         data["revenue"] = this.revenue;
         data["quantityTotal"] = this.quantityTotal;
         data["revenueAvg"] = this.revenueAvg;
+        data["calculationDate"] = this.calculationDate;
         return data;
     }
 }
@@ -1619,6 +1915,7 @@ export interface ILotCalculationResult {
     revenue: number;
     quantityTotal: number;
     revenueAvg: number;
+    calculationDate: string;
 }
 
 export class PurchaseInfo implements IPurchaseInfo {

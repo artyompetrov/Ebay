@@ -1,0 +1,202 @@
+﻿@page "/Measurements/{ProductId:guid}"
+@using System.Text.Json
+@using Client.Clients.Generated
+@using Microsoft.AspNetCore.Authorization
+@using Newtonsoft.Json
+@attribute [Authorize]
+@inject EbayClient EbayClient
+@inject ILogger<Measurements> Logger
+
+<h3>Добавить измерение для @_product?.Name</h3>
+<script src="https://unpkg.com/html5-qrcode"></script>
+<style>
+    #reader video {
+        transform: scaleX(-1); /* зеркалирование по горизонтали */
+    }
+    #typeSelect {
+        width: 300px;
+    }
+    #monthInput {
+        width: 300px;
+    }
+</style>
+<br>
+<div id="reader" style="width: 500px;"></div>
+@if (_error != null)
+{
+    <p style="color:red">@_error</p>
+}
+
+@if (_message != null)
+{
+    <p style="color:green">@_message</p>
+}
+<br>
+<label for="typeSelect">Тип измерения:</label>
+<select id="typeSelect" class="form-control" @bind="_selectedState">
+    <option value="">-- выберите тип --</option>
+    @foreach (var state in _productStates)
+    {
+        <option value="@state">@state</option>
+    }
+</select>
+<br>
+<label for="manufactureCodeInput">Код или дата производства в формате yyyy-mm:</label>
+<input id="manufactureCodeInput" @bind="_manufactureCode" type="text" class="form-control" lang="en" />
+
+<label for="locationInput">Место хранения (необязательно):</label>
+<input id="locationInput" @bind="_location" type="text" class="form-control" lang="en" />
+<br>
+<InputFile OnChange="HandleFileSelected" accept=".zip" />
+
+@if (_measurements != null)
+{
+    <br>
+    <br>
+    <br>
+    <h3>Зарегистрированные замеры:</h3>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Название</th>
+            <th>Код</th>
+            <th>Состояние</th>
+            <th>Расположение</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+
+        @foreach (var measurement in _measurements)
+        {
+            <tr>
+                <td><NavLink href="@($"m/{measurement.MeasurementId}")" target="_blank">@measurement.MeasurementId</NavLink></td>
+                <td>@measurement.ManufactureCode</td>
+                <td>@measurement.ProductState.ToString("G")</td>
+                <td>
+                    <input type="text"
+                           class="form-control"
+                           value="@measurement.Location"
+                           @oninput="async e => await OnLocationChanged(measurement, e.Value?.ToString())"/></td>
+                <td><button class="btn btn-danger btn-sm oi oi-basket" @onclick="@(e => OnDeleteButtonClick(measurement.MeasurementId))"></button></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+<QuestionPopup @ref="_questionPopup"/>
+
+@code {
+    private ProductWithId? _product;
+    private string? _error;
+    private string? _message;
+    private ProductState? _selectedState;
+    private List<ProductState> _productStates = Enum.GetValues(typeof(ProductState)).Cast<ProductState>().ToList();
+    private ICollection<MeasurementData>? _measurements;
+    private QuestionPopup _questionPopup = null!;
+    private string? _manufactureCode;
+    private string? _location;
+
+    [Parameter]
+    public Guid ProductId { get; set; }
+    
+
+    protected async override Task OnInitializedAsync()
+    {
+        _product = await EbayClient.GetProductAsync(ProductId);
+        _measurements = await EbayClient.GetMeasurementsAsync(ProductId);
+        StateHasChanged();
+    }
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        if (_product == null) throw new NullReferenceException(nameof(_product));
+
+        try
+        {
+            _message = null;
+            _error = null;
+
+            var file = e.File;
+
+            if (!file.Name.EndsWith(value: ".zip", comparisonType: StringComparison.OrdinalIgnoreCase))
+            {
+                _error = "Разрешены только zip файлы";
+
+                return;
+            }
+
+            if (file.ContentType != "application/zip" && file.ContentType != "application/x-zip-compressed")
+            {
+                _error = $"Невалидный MIME type: {file.ContentType}";
+
+                return;
+            }
+
+            var qrCodeData = await Interop.StartQrScanner();
+
+            var id = qrCodeData.Split('/').Last();
+
+            await using var stream = file.OpenReadStream();
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+
+            await EbayClient.UploadMeasurementAsync(
+                measurementData: new MeasurementDataToUpload()
+                {
+                    File = ms.ToArray(),
+                    MeasurementId = id,
+                    ManufactureCode = _manufactureCode,
+                    ProductState = _selectedState ?? throw new InvalidOperationException("Тип измерения не выбран")
+                },
+                productId: _product.Id,
+                cancellationToken: CancellationToken.None);
+
+            _message = $"Успешно загружен {id}";
+        }
+        catch (ApiException<ValidationProblemDetailedInfo> ex)
+        {
+            _error = JsonConvert.SerializeObject(value: ex.Result);
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        
+        _measurements = await EbayClient.GetMeasurementsAsync(ProductId);
+    }
+
+    private void OnDeleteButtonClick(string measurementMeasurementId)
+    {
+        _questionPopup.AskQuestion(
+            questionText: $"Вы действительно хотите удалить измерение '{measurementMeasurementId}'?",
+            onSubmit: async () =>
+            {
+                await EbayClient.DeleteMeasurementAsync(productId: ProductId, measurementId: measurementMeasurementId);
+                await OnInitializedAsync();
+            });
+        
+    }
+
+    private async Task OnLocationChanged(MeasurementData measurement, string? newValue)
+    {
+        try
+        {
+            measurement.Location = newValue;
+
+            await EbayClient.UpdateMeasurementLocationAsync(
+                productId: ProductId,
+                measurementId: measurement.MeasurementId,
+                location: newValue);
+
+            Logger.LogInformation("Updated note for {Id}: {Note}", measurement.MeasurementId, newValue);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error updating note for {Id}", measurement.MeasurementId);
+            _error = "Ошибка при обновлении заметки";
+        }
+    }
+
+}

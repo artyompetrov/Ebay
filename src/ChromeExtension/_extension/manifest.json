@@ -7,7 +7,7 @@
   },
   "action": {
   },
-  "update_url": "https://tubessale.ddns.net/chrome_extensions/mlebgdemjnpnfgcgbbncllpniiicffbm.xml",
+  "update_url": "https://radiotubes.kz/chrome_extensions/mlebgdemjnpnfgcgbbncllpniiicffbm.xml",
   "content_scripts": [
     {
       "js": [
@@ -33,7 +33,7 @@
     "https://178.208.65.100/*",
     "https://auth.ebay.com/*",
     "https://api.ebay.com/*",
-    "https://tubessale.ddns.net/*",
+    "https://radiotubes.kz/*",
     "https://localhost:7095/*"
   ],
   "background": {
