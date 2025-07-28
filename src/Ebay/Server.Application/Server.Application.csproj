@@ -14,8 +14,8 @@
         <PackageReference Include="MassTransit" />
         <PackageReference Include="MassTransit.EntityFrameworkCore" />
         <PackageReference Include="MassTransit.SqlTransport.PostgreSQL" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server"/>
-        <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson"/>
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />
         <PackageReference Include="Npgsql.DependencyInjection" />
         <PackageReference Include="NSwag.MSBuild">
             <PrivateAssets>all</PrivateAssets>
@@ -27,20 +27,20 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore"/>
-        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore"/>
-        <PackageReference Include="Microsoft.AspNetCore.Identity.UI"/>
-        <PackageReference Include="Microsoft.AspNetCore.ApiAuthorization.IdentityServer"/>
-        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL"/>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools"/>
+        <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.UI" />
+        <PackageReference Include="Microsoft.AspNetCore.ApiAuthorization.IdentityServer" />
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\Client\Client.csproj" />
     </ItemGroup>
     <Target Name="NSwag" BeforeTargets="Build">
-        <Exec Command="$(NSwagExe_Net80) openapi2cscontroller /input:Controllers/Contracts/Ebay.yaml /classname:Ebay /namespace:Server.Controllers.Generated /output:Controllers/Generated/EbayController.cs /ControllerBaseClass:Microsoft.AspNetCore.Mvc.Controller /UseCancellationToken:true /GenerateImmutableArrayProperties:true /GenerateImmutableDictionaryProperties:true /GenerateNullableReferenceTypes:true /GenerateOptionalPropertiesAsNullable:true /ClassStyle:Record /ExcludedTypeNames:ProblemDetails,ValidationProblemDetails /RequiredPropertiesMustBeDefined:false"/>
-        <Exec Command="$(NSwagExe_Net80) openapi2tsclient /input:Controllers/Contracts/Ebay.yaml /output:../../ChromeExtension/src/clients/EbayToolBackendClient.ts /ClassName:EbayToolBackendClient"/>
+        <Exec Command="$(NSwagExe_Net80) openapi2cscontroller /input:Controllers/Contracts/Ebay.yaml /classname:Ebay /namespace:Server.Controllers.Generated /output:Controllers/Generated/EbayController.cs /ControllerBaseClass:Microsoft.AspNetCore.Mvc.Controller /UseCancellationToken:true /GenerateImmutableArrayProperties:true /GenerateImmutableDictionaryProperties:true /GenerateNullableReferenceTypes:true /GenerateOptionalPropertiesAsNullable:true /ClassStyle:Record /ExcludedTypeNames:ProblemDetails,ValidationProblemDetails /RequiredPropertiesMustBeDefined:false" />
+        <Exec Command="$(NSwagExe_Net80) openapi2tsclient /input:Controllers/Contracts/Ebay.yaml /output:../../ChromeExtension/src/clients/EbayToolBackendClient.ts /ClassName:EbayToolBackendClient" />
     </Target>
 
 </Project>
