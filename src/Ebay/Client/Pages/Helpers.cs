@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Components;
 
 namespace Client.Pages;
@@ -6,7 +6,7 @@ namespace Client.Pages;
 internal static class Helpers
 {
     public static string GetSearchLink(string query, Guid productId) => $"https://www.ebay.com/sch/i.html?_nkw={query}&LH_Sold=1&tool_productId={productId}";
-    
+
     private static readonly Regex RussianLettersRegex = new(@"\p{IsCyrillic}+", RegexOptions.Compiled);
     private static readonly Regex EnglishLettersRegex = new(@"[A-Za-z]+", RegexOptions.Compiled);
     /// <summary>
@@ -35,9 +35,9 @@ internal static class Helpers
 
         // 3. Меняем «меньшинство» через Replace
         var highlightedText = highlightEnglish
-            ? EnglishLettersRegex.Replace(text, match => 
+            ? EnglishLettersRegex.Replace(text, match =>
                 $"<span style=\"color:{color};\">{match.Value}</span>")
-            : RussianLettersRegex.Replace(text, match => 
+            : RussianLettersRegex.Replace(text, match =>
                 $"<span style=\"color:{color};\">{match.Value}</span>");
 
         return new MarkupString(highlightedText);

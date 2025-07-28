@@ -9,13 +9,15 @@ import {ProductWithId} from "../clients/EbayToolBackendClient";
 
 const chipFindRegex: RegExp = /(?:^|\.)chipfind\.ru$/i
 const avitoRegex: RegExp = /(?:^|\.)avito\.ru$/i
-const searchOnSites: RegExp[] = [
-    avitoRegex,
-    chipFindRegex
+
+
+const excludeSites: RegExp[] = [
+    /(?:^|\.)ebay\..*$/i,
+    /(?:^|\.)radiotubes\.kz$/i,
 ]
 
 export function tryGetSearchSitesProcessor() : ISiteProcessor | null {
-    if (utils.matchesAnyRegex(searchOnSites, location.host)) {
+    if (!utils.matchesAnyRegex(excludeSites, location.host)) {
 
         return new SearchSitesProcessor();
     }
@@ -27,20 +29,20 @@ class ProductWithRegex {
     regex: RegExp;
     regexString: string;
     regexFlagsString: string;
-    revenueRub: number | null;
-    isInteresting: boolean;
+    revenueRub: number | null
     
     constructor(product: EbayToolBackendClient.ProductWithId, regex: RegExp, rubRate: number) {
         this.product = product;
         this.regex = regex;
         this.regexString = regex.source;
         this.regexFlagsString = regex.flags;
-        this.revenueRub = product.productCalculationResult?.revenueAvg * rubRate
-        this.isInteresting = this.revenueRub > constants.Settings.interestingRevenueRub && product.productCalculationResult.quantityTotal >= constants.Settings.interestingCountInStatistics;
+        this.revenueRub = product.productCalculationResult?.revenueAvg * rubRate;
     }
 }
 
 class SearchSitesProcessor implements ISiteProcessor {
+    breakAfterSearchProcessor: boolean = false;
+    
     private _ebayToolBackendClient: EbayToolBackendClient.EbayToolBackendClient;
     private _allItemsCacheIdentifier = "searchSitesAllItems";
     private _targetCurrencyRate: number;
@@ -50,6 +52,8 @@ class SearchSitesProcessor implements ISiteProcessor {
     private _highlightInterestingClass:string = "highlightInteresting";
     private _foundProductIdsAttribute: string = 'data-product-ids';
     private _products: Map<string, ProductWithRegex>;
+    private _lastMousePosition: { x: number, y: number } | null = null;
+    private _tooltipId: string = 'product-price-tooltip';
 
 
     async getTargetCurrencyCached(): Promise<number> {
@@ -96,45 +100,26 @@ class SearchSitesProcessor implements ISiteProcessor {
 
     async getProductWithRegexes() : Promise<ProductWithRegex[]> {
         let products = await this._ebayToolBackendClient.getAllProducts();
-        
-        // Создаем регулярные выражения для каждого продукта
-        const productsWithRegexes: ProductWithRegex[] = [];
 
-        // Для каждого продукта создаем регулярку из его имени и поисковых запросов
-        for (const product of products) {
-            const productSearchTerms: string[] = [];
+        return  products.map(product => {
 
-            // Добавляем имя продукта
-            productSearchTerms.push(product.name);
-
-            // Добавляем поисковые запросы
-            if (product.ruSearchQueries && product.ruSearchQueries.length > 0) {
-                for (const sq of product.ruSearchQueries) {
-                    if (sq.query) {
-                        productSearchTerms.push(sq.query);
-                    }
-                }
-            }
-            productsWithRegexes.push(
-                new ProductWithRegex(
-                    product,
-                    this.createRegexPattern(productSearchTerms),
-                    this._targetCurrencyRate));
-        }
-
-        return productsWithRegexes;
+            return  new ProductWithRegex(
+                product,
+                new RegExp(product.productRegex, "ig"),
+                this._targetCurrencyRate)
+        });
     }
 
     // Функция для транслитерации текста с русского на английский
     transliterate(text: string): string {
         const map: { [key: string]: string } = {
             "а": "a", "б": "b", "в": "v", "г": "g", "д": "d", "е": "e", "ё": "yo",
-            "ж": "zh", "з": "z", "и": "i", "й": "y", "к": "k", "л": "l", "м": "m",
+            "ж": "j", "з": "z", "и": "i", "й": "y", "к": "k", "л": "l", "м": "m",
             "н": "n", "о": "o", "п": "p", "р": "r", "с": "s", "т": "t", "у": "u",
             "ф": "f", "х": "h", "ц": "c", "ч": "ch", "ш": "sh", "щ": "sh",
             "ъ": "", "ы": "y", "ь": "", "э": "e", "ю": "yu", "я": "ya",
             "А": "A", "Б": "B", "В": "V", "Г": "G", "Д": "D", "Е": "E", "Ё": "YO",
-            "Ж": "ZH", "З": "Z", "И": "I", "Й": "Y", "К": "K", "Л": "L", "М": "M",
+            "Ж": "J", "З": "Z", "И": "I", "Й": "Y", "К": "K", "Л": "L", "М": "M",
             "Н": "N", "О": "O", "П": "P", "Р": "R", "С": "S", "Т": "T", "У": "U",
             "Ф": "F", "Х": "H", "Ц": "C", "Ч": "CH", "Ш": "SH", "Щ": "SH",
             "Ъ": "", "Ы": "Y", "Ь": "", "Э": "E", "Ю": "YU", "Я": "YA",
@@ -149,13 +134,13 @@ class SearchSitesProcessor implements ISiteProcessor {
     // Создание и показ всплывающей подсказки
     createTooltip(): HTMLDivElement {
         // Удаляем существующий tooltip, если он есть
-        let existingTooltip = document.getElementById('product-price-tooltip');
+        let existingTooltip = document.getElementById(this._tooltipId);
         if (existingTooltip) {
             document.body.removeChild(existingTooltip);
         }
 
         let tooltip = document.createElement('div');
-        tooltip.id = 'product-price-tooltip';
+        tooltip.id = this._tooltipId;
         tooltip.style.cssText = `
         position: absolute;
         background-color: white;
@@ -194,9 +179,28 @@ class SearchSitesProcessor implements ISiteProcessor {
         tooltip.appendChild(closeButton);
         document.body.appendChild(tooltip);
 
-        // Добавляем возможность закрытия по щелчку на подсказку
-        tooltip.addEventListener('click', () => {
-            tooltip.style.display = 'none';
+        // Добавляем отслеживание движения мыши для автозакрытия
+        document.addEventListener('mousemove', (e) => {
+            this._lastMousePosition = { x: e.clientX, y: e.clientY };
+            
+            // Проверяем расстояние между мышью и тултипом
+            if (tooltip.style.display !== 'none') {
+                const tooltipRect = tooltip.getBoundingClientRect();
+                const tooltipCenter = {
+                    x: tooltipRect.left + tooltipRect.width / 2,
+                    y: tooltipRect.top + tooltipRect.height / 2
+                };
+                
+                const distance = Math.sqrt(
+                    Math.pow(this._lastMousePosition.x - tooltipCenter.x, 2) +
+                    Math.pow(this._lastMousePosition.y - tooltipCenter.y, 2)
+                );
+                
+                // Если расстояние больше 300 пикселей, закрываем тултип
+                if (distance > 300) {
+                    tooltip.style.display = 'none';
+                }
+            }
         });
 
         return tooltip;
@@ -254,7 +258,7 @@ class SearchSitesProcessor implements ISiteProcessor {
     }
 
     private getProductElementClass(product: ProductWithRegex) {
-        if (product.isInteresting) {
+        if (product.product.isInteresting) {
             return this._highlightInterestingClass
         } else if (!product.product.isCheckRequired) {
             return this._highlightCheckedClass
@@ -263,19 +267,31 @@ class SearchSitesProcessor implements ISiteProcessor {
         }
     }
 
-// Позиционирование tooltip с учетом границ экрана
-    positionTooltip(tooltip: HTMLElement, targetRect: DOMRect): void {
+    // Позиционирование tooltip с учетом границ экрана и положения курсора
+    positionTooltip(tooltip: HTMLElement, targetRect: DOMRect, event: MouseEvent): void {
         const tooltipWidth = 300; // максимальная ширина tooltip
+        const padding = 10; // отступ от курсора
 
-        // Проверяем, поместится ли tooltip справа от элемента
-        if (targetRect.right + tooltipWidth + 10 <= window.innerWidth) {
-            tooltip.style.left = `${targetRect.right + 10}px`;
+        // Получаем координаты курсора
+        const mouseX = event.clientX;
+        const mouseY = event.clientY;
+
+        // Проверяем, поместится ли tooltip справа от курсора
+        if (mouseX + tooltipWidth + padding <= window.innerWidth) {
+            tooltip.style.left = `${mouseX + padding}px`;
         } else {
-            // Если не помещается справа, размещаем слева
-            tooltip.style.left = `${Math.max(0, targetRect.left - tooltipWidth - 10)}px`;
+            // Если не помещается справа, размещаем слева от курсора
+            tooltip.style.left = `${Math.max(0, mouseX - tooltipWidth - padding)}px`;
         }
 
-        tooltip.style.top = `${targetRect.top + window.scrollY}px`;
+        // Проверяем, поместится ли tooltip снизу от курсора
+        const tooltipHeight = tooltip.offsetHeight || 200; // Используем примерную высоту, если элемент еще не отрендерен
+        if (mouseY + tooltipHeight + padding <= window.innerHeight) {
+            tooltip.style.top = `${mouseY + window.scrollY + padding}px`;
+        } else {
+            // Если не помещается снизу, размещаем сверху от курсора
+            tooltip.style.top = `${Math.max(0, mouseY + window.scrollY - tooltipHeight - padding)}px`;
+        }
     }
 
     // Добавляет обработчики к tooltip
@@ -298,54 +314,30 @@ class SearchSitesProcessor implements ISiteProcessor {
         });
     }
 
-    // Преобразует слово в регулярное выражение с учетом возможных вариаций написания
-    createRegexPattern(word: string[]): RegExp {
-        const processed = word.map(x => x.toLowerCase().trim()
-            .replace('(', '\\(')
-            .replace(')', '\\)')
-            .replace('/', '\\/')
-            .replace('.', ',')
-            .replace(',', '[,.]')
-            .replace(/[- ]/g, '[- ]?')
-            .replace(/[aа]/g, '[aа]')
-            .replace(/[cс]/g, '[cс]')
-            .replace(/[pр]/g, '[pр]')
-            .replace(/[eе]/g, '[eе]')
-            .replace(/[oо]/g, '[oо]')
-            .replace(/[xх]/g, '[xх]')
-            .replace(/[yу]/g, '[yу]')
-            .replace(/[bв]/g, '[bв]')
-            .replace(/[hн]/g, '[hн]')
-            .replace(/[kк]/g, '[kк]')
-            .replace(/[mм]/g, '[mм]')
-            .replace(/[tт]/g, '[tт]'));
-        
-        return new RegExp(`(?:^|\\s|\\.|\\()(${processed.join('|')})(?:$|\\s|-|,|=|\\(|\\.)`, "ig");
-    }
 
-    // Выделяет текстовый узел и добавляет обработчики событий для tooltip
-    highlightWord(
+
+    // Ищет совпадения в текстовом узле
+    findMatches(
         node: Text
-    ): void {
+    ): { matchedIds: string[], hasInteresting: boolean, hasChecked: boolean } | null {
         let parent = node.parentElement;
-        if (!parent) return;
+        if (!parent) return null;
 
         let originalText = node.textContent;
-        if (!originalText) return;
+        if (!originalText) return null;
         
-        let matchedIdsString: string | null = null;
+        let matchedIds: string[] | null = null;
         let hasInteresting = false;
         let hasChecked = false;
         for (const product of this._products.values()) {
             product.regex.lastIndex = 0;
             if (product.regex.test(originalText)) {
-                if (matchedIdsString === null) {
-                    matchedIdsString = String(product.product.id);
-                } else {
-                    matchedIdsString += ',' + product.product.id;
+                if (!matchedIds) {
+                    matchedIds = [];
                 }
+                matchedIds.push(product.product.id);
                 
-                if (product.isInteresting) {
+                if (product.product.isInteresting) {
                     hasInteresting = true;
                 }
                 if (product.product.isCheckRequired == false) {
@@ -354,21 +346,18 @@ class SearchSitesProcessor implements ISiteProcessor {
             }
         }
 
-        if (matchedIdsString !== null) {
-            if (hasInteresting) {
-                parent.classList.add(this._highlightInterestingClass);
-            } else if (hasChecked) {
-                parent.classList.add(this._highlightCheckedClass);
-            }
-            else {
-                parent.classList.add(this._highlightKnownClass);
-            }
-            parent.setAttribute(this._foundProductIdsAttribute, matchedIdsString);
-            parent.addEventListener('mouseenter', this.onMouseEnterHighlight.bind(this));
+        if (!matchedIds) {
+            return null;
         }
+
+        return {
+            matchedIds,
+            hasInteresting,
+            hasChecked
+        };
     }
     
-    highlightWords() {
+    async highlightWords() {
         console.log("highlightWords");
         
         const body = document.body;
@@ -377,21 +366,76 @@ class SearchSitesProcessor implements ISiteProcessor {
             return;
         }
 
-        const traverseNodes = (element: HTMLElement | null): void => {
+        let processedNodes = 0;
+        const traverseNodes = async (element: HTMLElement | null): Promise<void> => {
             if (!element) return;
+            
+            // Пропускаем элемент, если он уже был обработан или это тултип
+            if (element.id === this._tooltipId) {
+                return;
+            }
+
+            let allMatchedIds: Set<string> | null = null;
+            let hasInteresting = false;
+            let hasChecked = false;
+            
             let children = Array.from(element.childNodes);
             for (let i = 0; i < children.length; i++) {
                 const node = children[i];
+                
+                processedNodes++;
+                // Каждые n узлов отдаем управление основному потоку
+                if (processedNodes % 2 === 0) {
+                    await new Promise(resolve => setTimeout(resolve, 0));
+                }
+                
                 if (node.nodeType === Node.TEXT_NODE) {
-                    this.highlightWord(node as Text);
-
+                    const result = this.findMatches(node as Text);
+                    if (result) {
+                        if (!allMatchedIds) {
+                            allMatchedIds = new Set<string>();
+                        }
+                        result.matchedIds.forEach(id => allMatchedIds.add(id));
+                        hasInteresting = hasInteresting || result.hasInteresting;
+                        hasChecked = hasChecked || result.hasChecked;
+                    }
                 } else if (node.nodeType === Node.ELEMENT_NODE) {
-                    traverseNodes(node as HTMLElement);
+                    await traverseNodes(node as HTMLElement);
+                }
+            }
+
+            // Проверяем текущее состояние элемента
+            const hasExistingHighlight = element.hasAttribute(this._foundProductIdsAttribute);
+            const currentMatchedIdsString = allMatchedIds ? Array.from(allMatchedIds).join(',') : '';
+            const existingIds = hasExistingHighlight ? element.getAttribute(this._foundProductIdsAttribute) : '';
+
+            // Если состояние изменилось (включая случай, когда совпадений больше нет)
+            if (currentMatchedIdsString !== existingIds) {
+                // Сначала удаляем старую подсветку
+                if (hasExistingHighlight) {
+                    element.removeAttribute(this._foundProductIdsAttribute);
+                    element.classList.remove(this._highlightInterestingClass);
+                    element.classList.remove(this._highlightCheckedClass);
+                    element.classList.remove(this._highlightKnownClass);
+                    element.removeEventListener('mouseenter', this.onMouseEnterHighlight.bind(this));
+                }
+
+                // Добавляем новую подсветку, только если есть совпадения
+                if (allMatchedIds && allMatchedIds.size > 0) {
+                    if (hasInteresting) {
+                        element.classList.add(this._highlightInterestingClass);
+                    } else if (hasChecked) {
+                        element.classList.add(this._highlightCheckedClass);
+                    } else {
+                        element.classList.add(this._highlightKnownClass);
+                    }
+                    element.setAttribute(this._foundProductIdsAttribute, currentMatchedIdsString);
+                    element.addEventListener('mouseenter', this.onMouseEnterHighlight.bind(this));
                 }
             }
         };
 
-        traverseNodes(body);
+        await traverseNodes(body);
     }
     
 
@@ -408,19 +452,24 @@ class SearchSitesProcessor implements ISiteProcessor {
                 element.click();
                 await utils.sleep(300);
             }
-
-            let posts = document.querySelectorAll<HTMLTableCellElement>('table.post td.rr div');
-
-            posts.forEach(function (post) {
-                let plus = post.querySelector<HTMLDivElement>('div.plus');
-                let contact = post.querySelector<HTMLDivElement>('div.contact');
-
-                let contactHtml = contact?.innerHTML ?? "";
-                plus?.remove();
-                contact?.remove();
-                post.innerHTML = '<pre>' + post.innerHTML.replace(/<br\s*\/?>/g, '</pre><pre>') + '</pre><br>' + contactHtml;
-            });
         }
+
+        let posts = document.querySelectorAll<HTMLTableCellElement>('table.post');
+
+        posts.forEach(function (post) {
+            let plus = post.querySelector<HTMLDivElement>('div.plus');
+            let contact = post.querySelector<HTMLDivElement>('div.contact');
+
+            let contactHtml = contact?.innerHTML ?? "";
+            plus?.remove();
+            contact?.remove();
+
+            let targetDiv = post.querySelector<HTMLDivElement>('div[id^="R"], td.rr');
+            if (targetDiv) {
+                targetDiv.innerHTML = '<pre>' + targetDiv.innerHTML.replace(/<br\s*\/?>/g, '</pre><pre>') + '</pre><br>' + contactHtml;
+            }
+        });
+    
     }
 
     // Обработка страницы avito.ru в фоне
@@ -475,8 +524,6 @@ class SearchSitesProcessor implements ISiteProcessor {
 
     // Обработка страницы поискового сайта
     async processSitePage(): Promise<void> {
-       
-        
         if (chipFindRegex.test(location.host)) {
             await this.processChipFind();
         } else if (avitoRegex.test(location.host)) {
@@ -486,7 +533,16 @@ class SearchSitesProcessor implements ISiteProcessor {
         }
 
         this._products = await this.getAllProductsCached(null, this._allItemsCacheIdentifier);
-        this.highlightWords();
+       
+
+        const startBackgroundHighlighting = async () => {
+            while (true) {
+                await this.highlightWords();
+                await utils.sleep(2000);
+            }
+        };
+
+        let _ = startBackgroundHighlighting()
     }
     
     onMouseEnterHighlight(event: MouseEvent): void {
@@ -499,21 +555,28 @@ class SearchSitesProcessor implements ISiteProcessor {
         }
     }
 
-    private showTooltip(ids: string[], event): void {
+    private showTooltip(ids: string[], event: MouseEvent): void {
         // Создаем новое всплывающее окно
         const tooltip = this.createTooltip();
         
+        // Получаем все найденные товары и сортируем их по цене (от большей к меньшей)
+        const sortedProducts = ids
+            .map(id => this._products.get(id))
+            .filter(product => product !== undefined)
+            .sort((a, b) => {
+                const priceA = a.revenueRub || 0;
+                const priceB = b.revenueRub || 0;
+                return priceB - priceA;
+            });
+        
         // Генерируем содержимое для каждого найденного товара
         let tooltipContent = '';
-        for (const id of ids) {
-            const product = this._products.get(id);
-            if (product) {
-                tooltipContent += this.generateProductHtml(product);
-                
-                // Добавляем разделитель между товарами, кроме последнего
-                if (id !== ids[ids.length - 1]) {
-                    tooltipContent += '<hr style="margin: 0; border: 0; border-top: 1px solid #ddd;">';
-                }
+        for (const product of sortedProducts) {
+            tooltipContent += this.generateProductHtml(product);
+            
+            // Добавляем разделитель между товарами, кроме последнего
+            if (product !== sortedProducts[sortedProducts.length - 1]) {
+                tooltipContent += '<hr style="margin: 0; border: 0; border-top: 1px solid #ddd;">';
             }
         }
         
@@ -523,9 +586,9 @@ class SearchSitesProcessor implements ISiteProcessor {
         contentContainer.innerHTML = tooltipContent;
         tooltip.insertBefore(contentContainer, closeButton.nextSibling);
         
-        // Позиционируем всплывающее окно относительно элемента, вызвавшего событие
+        // Позиционируем всплывающее окно относительно курсора
         const targetElement = event.currentTarget as HTMLElement;
-        this.positionTooltip(tooltip, targetElement.getBoundingClientRect());
+        this.positionTooltip(tooltip, targetElement.getBoundingClientRect(), event);
         
         // Показываем всплывающее окно
         tooltip.style.display = 'block';
@@ -548,6 +611,7 @@ class SearchSitesProcessor implements ISiteProcessor {
         } else {
             await this.processSitePage();
         }
+
 
         // Слушаем сообщения от background скрипта
         // noinspection JSUnusedLocalSymbols

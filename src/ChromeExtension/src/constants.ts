@@ -1,13 +1,13 @@
 ﻿export const Colors = {
     lightGray: "lightgray",
     lightGreen: "rgb(166 255 166)",
-    lightPink: "lightpink",
+    lightPink: "#f6cbd2",
     lightYellow: "#e5e582"
 };
 
 export const Urls = {
-    backendUrl: `https://tubessale.ddns.net/`,
-    extensionAuthRedirectUrl: `https://tubessale.ddns.net/chrome_extensions/auth`,
+    backendUrl: `https://radiotubes.kz/`,
+    extensionAuthRedirectUrl: `https://radiotubes.kz/chrome_extensions/auth`,
     ebayAuthRedirectUrl: `https://auth2.ebay.com/oauth2/ThirdPartyAuthSucessFailure`
 };
 
@@ -30,7 +30,5 @@ export const Auth = {
 };
 
 export const Settings = {
-    extendedLogging: true,
-    interestingRevenueRub: 1000,
-    interestingCountInStatistics: 5 /*если продано от 5-ти штук на ebay для репрезентативности*/
+    extendedLogging: true
 };

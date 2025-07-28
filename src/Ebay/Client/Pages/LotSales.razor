@@ -58,7 +58,7 @@
     <div>Запросы (eBay):
     @foreach (var query in _product!.SearchQueries)
     {
-        <span><a href="@Helpers.GetSearchLink(query: query.Query, productId: _product.Id)" rel="noreferrer" target=”_blank”>@Helpers.HighlightMinorityLetters(query.Query, "red")</a>&#160;</span>
+        <span><a href="@Helpers.GetSearchLink(query: query.Query, productId: _product.Id)" rel="noreferrer" target="_blank">@Helpers.HighlightMinorityLetters(query.Query, "red")</a>&#160;</span>
     }
     </div>
 
@@ -82,6 +82,7 @@
             <th>Общая выручка (USD)</th>
             <th>Средняя выручка (USD)</th>
             <th>Средняя выручка (@WellKnown.Currencies.TargetCurrency)</th>
+            <th>Дата расчета</th>
         </tr>
         </thead>
         <tbody>
@@ -106,6 +107,7 @@
                 <td>@lot.LotCalculationResult?.Revenue.ToString("0.00")</td>
                 <td>@lot.LotCalculationResult?.RevenueAvg.ToString("0.00")</td>
                 <td>@((lot.LotCalculationResult?.RevenueAvg * _targetCurrencyRate)?.ToString("N0"))</td>
+                <td>@lot.LotCalculationResult?.CalculationDate</td>
             </tr>
         }
         </tbody>
@@ -149,7 +151,7 @@
         await _chart.SubscribeClickEvent();
     }
 
-    protected override async Task OnInitializedAsync()
+    protected async override Task OnInitializedAsync()
     {
         var productTask = EbayClient.GetProductAsync(ProductId);
         var getCurrenciesTask = GetCurrencies();
