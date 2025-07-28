@@ -4,8 +4,10 @@ updates:
     directory: "/src/Ebay"
     schedule:
       interval: "monthly"
+    security-updates-only: true
 
   - package-ecosystem: "npm"
     directory: "/src/ChromeExtension"
     schedule:
       interval: "monthly"
+    security-updates-only: true
