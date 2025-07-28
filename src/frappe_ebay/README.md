@@ -1,7 +1,0 @@
-## Ebay
-
-Ebay
-
-#### License
-
-mit

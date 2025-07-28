@@ -3,11 +3,20 @@
     "Server": {
       "commandName": "Project",
       "dotnetRunMessages": true,
-      "launchBrowser": true,
+      "launchBrowser": false,
+      "browser": "chrome",
       "inspectUri": "{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}",
       "applicationUrl": "https://localhost:7095",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ConnectionStrings__DefaultConnection": "User ID=ebay;Password=catnip0-spoil4-untrimmed;Server=localhost;Port=15432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=30;Enlist=true;Include Error Detail=true;",
+        "EbayServer__IsLocalRun": "True",
+        "EbayServer__TargetEmail": "radio-tubes@ya.ru",
+        "Smtp__Server": "smtp.yandex.ru",
+        "Smtp__Port": "587",
+        "Smtp__Login": "radio-tubes",
+        "Smtp__Password": "jthzppcjiumyovuu",
+        "Smtp__Email": "radio-tubes@ya.ru"
       }
     }
   }

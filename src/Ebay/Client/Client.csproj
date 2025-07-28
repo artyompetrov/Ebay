@@ -18,24 +18,19 @@
         </PackageReference>
         <PackageReference Include="Plotly.Blazor" />
     </ItemGroup>
-
-    <ItemGroup>
-        <TypeScriptCompile Remove="Clients\Generated\EbayClient.ts"/>
-    </ItemGroup>
-
+    
     <ItemGroup>
       <Content Update="wwwroot\js\interop.js">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
     </ItemGroup>
-
+    
     <ItemGroup>
-      <Reference Include="Microsoft.AspNetCore.Html.Abstractions">
-        <HintPath>C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.8\Microsoft.AspNetCore.Html.Abstractions.dll</HintPath>
-      </Reference>
+      <ProjectReference Include="..\Server.Client\Server.Client.csproj" />
+    </ItemGroup>
+    
+    <ItemGroup>
+      <None Remove="Properties\launchSettings.json" />
     </ItemGroup>
 
-    <Target Name="NSwag" BeforeTargets="BeforeBuild">
-        <Exec Command="$(NSwagExe_Net80) openapi2csclient /input:../Server/Controllers/Contracts/Ebay.yaml /classname:EbayClient /namespace:Client.Clients.Generated /output:Clients/Generated/EbayClient.cs /RequiredPropertiesMustBeDefined:false"/>
-    </Target>
 </Project>

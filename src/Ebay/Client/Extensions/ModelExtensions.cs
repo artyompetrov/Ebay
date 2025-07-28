@@ -7,8 +7,6 @@ namespace Client.Extensions;
 
 internal static class ModelExtensions
 {
-
-
     public static ProductWithoutId ToProductWithoutId(this ProductWithId productWithId) => new()
     {
         Name = productWithId.Name,
@@ -52,6 +50,16 @@ internal static class ModelExtensions
                     message: error);
             }
         }
+    }
+
+    public static string GetCondition(this LotInfoShort lotInfo)
+    {
+        return lotInfo.Categories.Single(x => x.Type == WellKnown.Categories.Conditions.CategoryName).Value!;
+    }
+
+    public static string GetTestState(this LotInfoShort lotInfo)
+    {
+        return lotInfo.Categories.Single(x => x.Type == WellKnown.Categories.TestState.CategoryName).Value!;
     }
 
     public record struct ValidationProblemParsed(string FieldName, IReadOnlyList<string> Errors);
