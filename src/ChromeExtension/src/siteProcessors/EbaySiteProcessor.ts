@@ -1052,8 +1052,9 @@ class EbaySiteProcessor implements ISiteProcessor {
         ]);
         
         await this.compareLotInfos(this._serverLotInfo);
+        
+        
     }
-
 
     async showAndSaveError(error: Error) {
 
@@ -1090,11 +1091,20 @@ class EbaySiteProcessor implements ISiteProcessor {
         await this.createPanel()
         try {
             await this.getDataFromPage();
+            this.openFullDescription();
             await this.hideErrorsAndEnableSubmit()
         } catch (error) {
             await this.showAndSaveError(error);
         }
         this._panel.hidden = false;
+    }
+
+
+    openFullDescription() { 
+        let button = <HTMLButtonElement>document.querySelector('div.x-item-condensed-card__message button');
+        if (button) {
+            button.click()
+        }
     }
 
     async searchPage() {
