@@ -46,9 +46,11 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
 
         // ReSharper disable IdentifierTypo
         const double скидкаНаПродажиСНеизвестнойЦеной = 0.2;
-        const double коммисияEbayВПроцентах = 0.1325;
-        const double коммиссияEbayПостояннаяВеличина = 0.1325;
-        const double коммисияPayoneerВПроцентах = 0.05; //todo уточнить
+        const double коммисияEbayFinalValueFee = 0.136;
+        const double коммисияEbayInternationalFee = 0.013;
+        const double коммиссияEbayПостояннаяВеличина = 0.4;
+        const double множительУчитывающийVat = 1.12;
+        const double коммисияPayoneerВПроцентах = 0.01;
         const double множительДляУчетаВесаУпаковки = 1.5;
 
         var общееКоличествоШтукВоВсехПродажах = 0;
@@ -70,10 +72,16 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
 
             var полнаяЦенаПродажиВДолларах = полнаяЦенаПродажиВВалютеЛота / currencyRates[lot.CurrencyId];
 
-            var выручкаСПродажиВДолларах = полнаяЦенаПродажиВДолларах
-                                           - полнаяЦенаПродажиВДолларах * коммисияEbayВПроцентах
-                                           - коммиссияEbayПостояннаяВеличина
-                                           - полнаяЦенаПродажиВДолларах * коммисияPayoneerВПроцентах
+            var ebayFinalValueFee = полнаяЦенаПродажиВДолларах * коммисияEbayFinalValueFee;
+            var ebayInternationalFee = полнаяЦенаПродажиВДолларах * коммисияEbayInternationalFee;
+            var ebayFee = (ebayFinalValueFee + ebayInternationalFee + коммиссияEbayПостояннаяВеличина) * множительУчитывающийVat;
+
+            var полнаяЦенаПродажиЗаВычетомКоммиссийEbay = полнаяЦенаПродажиВДолларах - ebayFee;
+            
+            var payoneerFee = полнаяЦенаПродажиЗаВычетомКоммиссийEbay * коммисияPayoneerВПроцентах;
+            
+            var выручкаСПродажиВДолларах = полнаяЦенаПродажиЗаВычетомКоммиссийEbay
+                                           - payoneerFee
                                            - ценаДоставкиВДоллларах;
 
             общееКоличествоШтукВоВсехПродажах += количествоШтукВПродаже;
