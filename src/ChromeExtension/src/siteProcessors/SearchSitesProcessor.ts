@@ -13,7 +13,7 @@ const avitoRegex: RegExp = /(?:^|\.)avito\.ru$/i
 
 const excludeSites: RegExp[] = [
     /(?:^|\.)ebay\..*$/i,
-    /(?:^|\.)tubessale\.ddns\.net$/i,
+    /(?:^|\.)radiotubes\.kz$/i,
 ]
 
 export function tryGetSearchSitesProcessor() : ISiteProcessor | null {
@@ -29,20 +29,20 @@ class ProductWithRegex {
     regex: RegExp;
     regexString: string;
     regexFlagsString: string;
-    revenueRub: number | null;
-    isInteresting: boolean;
+    revenueRub: number | null
     
     constructor(product: EbayToolBackendClient.ProductWithId, regex: RegExp, rubRate: number) {
         this.product = product;
         this.regex = regex;
         this.regexString = regex.source;
         this.regexFlagsString = regex.flags;
-        this.revenueRub = product.productCalculationResult?.revenueAvg * rubRate
-        this.isInteresting = this.revenueRub > constants.Settings.interestingRevenueRub && product.productCalculationResult.quantityTotal >= constants.Settings.interestingCountInStatistics;
+        this.revenueRub = product.productCalculationResult?.revenueAvg * rubRate;
     }
 }
 
 class SearchSitesProcessor implements ISiteProcessor {
+    breakAfterSearchProcessor: boolean = false;
+    
     private _ebayToolBackendClient: EbayToolBackendClient.EbayToolBackendClient;
     private _allItemsCacheIdentifier = "searchSitesAllItems";
     private _targetCurrencyRate: number;
@@ -100,33 +100,14 @@ class SearchSitesProcessor implements ISiteProcessor {
 
     async getProductWithRegexes() : Promise<ProductWithRegex[]> {
         let products = await this._ebayToolBackendClient.getAllProducts();
-        
-        // Создаем регулярные выражения для каждого продукта
-        const productsWithRegexes: ProductWithRegex[] = [];
 
-        // Для каждого продукта создаем регулярку из его имени и поисковых запросов
-        for (const product of products) {
-            const productSearchTerms: string[] = [];
+        return  products.map(product => {
 
-            // Добавляем имя продукта
-            productSearchTerms.push(product.name);
-
-            // Добавляем поисковые запросы
-            if (product.ruSearchQueries && product.ruSearchQueries.length > 0) {
-                for (const sq of product.ruSearchQueries) {
-                    if (sq.query) {
-                        productSearchTerms.push(sq.query);
-                    }
-                }
-            }
-            productsWithRegexes.push(
-                new ProductWithRegex(
-                    product,
-                    this.createRegexPattern(productSearchTerms),
-                    this._targetCurrencyRate));
-        }
-
-        return productsWithRegexes;
+            return  new ProductWithRegex(
+                product,
+                new RegExp(product.productRegex, "ig"),
+                this._targetCurrencyRate)
+        });
     }
 
     // Функция для транслитерации текста с русского на английский
@@ -277,7 +258,7 @@ class SearchSitesProcessor implements ISiteProcessor {
     }
 
     private getProductElementClass(product: ProductWithRegex) {
-        if (product.isInteresting) {
+        if (product.product.isInteresting) {
             return this._highlightInterestingClass
         } else if (!product.product.isCheckRequired) {
             return this._highlightCheckedClass
@@ -333,41 +314,7 @@ class SearchSitesProcessor implements ISiteProcessor {
         });
     }
 
-    // Преобразует слово в регулярное выражение с учетом возможных вариаций написания
-    createRegexPattern(word: string[]): RegExp {
-        const processed = word.map(x => x.toLowerCase().trim()
-            .replace('(', '\\(')
-            .replace(')', '\\)')
-            .replace('/', '\\/')
-            .replace('.', ',')
-            .replace(',', '[,.]')
-            .replace(/[- ]/g, '[- ]?')
-            .replace(/[aа]/g, '[aа]')
-            .replace(/[cс]/g, '[cс]')
-            .replace(/[pр]/g, '[pр]')
-            .replace(/[eе]/g, '[eе]')
-            .replace(/[oо]/g, '[oо]')
-            .replace(/[xх]/g, '[xх]')
-            .replace(/[yу]/g, '[yу]')
-            .replace(/[bв]/g, '[bв]')
-            .replace(/[hн]/g, '[hн]')
-            .replace(/[kк]/g, '[kк]')
-            .replace(/[mм]/g, '[mм]')
-            .replace(/[tт]/g, '[tт]')
-            .replace('0', '[- ]?[0оo][- ]?')
-            .replace('1', '[- ]?1[- ]?')
-            .replace('2', '[- ]?2[- ]?')
-            .replace('3', '[- ]?[3з][- ]?')
-            .replace('4', '[- ]?4[- ]?')
-            .replace('5', '[- ]?5[- ]?')
-            .replace('6', '[- ]?6[- ]?')
-            .replace('7', '[- ]?7[- ]?')
-            .replace('8', '[- ]?8[- ]?')
-            .replace('9', '[- ]?9[- ]?')
-        );
-        
-        return new RegExp(`(?:^|\\b|[\\s\\.,\\(\\)"\-_])(${processed.join('|')})(?:$|\\b|[\\s\\-,:;=\\(\\)\\."_])`, "ig");
-    }
+
 
     // Ищет совпадения в текстовом узле
     findMatches(
@@ -390,7 +337,7 @@ class SearchSitesProcessor implements ISiteProcessor {
                 }
                 matchedIds.push(product.product.id);
                 
-                if (product.isInteresting) {
+                if (product.product.isInteresting) {
                     hasInteresting = true;
                 }
                 if (product.product.isCheckRequired == false) {
@@ -437,8 +384,8 @@ class SearchSitesProcessor implements ISiteProcessor {
                 const node = children[i];
                 
                 processedNodes++;
-                // Каждые 30 узлов отдаем управление основному потоку
-                if (processedNodes % 30 === 0) {
+                // Каждые n узлов отдаем управление основному потоку
+                if (processedNodes % 2 === 0) {
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
                 

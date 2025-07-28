@@ -9,9 +9,3 @@ updates:
     directory: "/src/ChromeExtension"
     schedule:
       interval: "monthly"
-      
-  - package-ecosystem: "pip"
-    directory: "/src/frappe_ebay"
-    schedule:
-      interval: "monthly"
-    versioning-strategy: "increase"

@@ -52,15 +52,15 @@ class ShippingParameters {
 
 
 class LotLink {
-    constructor(id: number, link: HTMLAnchorElement, soldDate: Date) {
+    constructor(id: number, itemHtmlElement: HTMLElement, soldDate: Date) {
         this.id = id
-        this.link = link
+        this.itemHtmlElement = itemHtmlElement
         this.soldDate = soldDate
         this.color = null
     }
 
     id: number;
-    link: HTMLAnchorElement;
+    itemHtmlElement: HTMLElement;
     soldDate: Date
     importantCount: number | null
     previousColor: string | null
@@ -69,6 +69,9 @@ class LotLink {
 
 
 class EbaySiteProcessor implements ISiteProcessor {
+
+    breakAfterSearchProcessor: boolean = false;
+    
     private readonly productFieldName = "productId";
     private readonly ignoreThatLotFormId = "ignoreThatLot"
     private readonly pcsFieldName = "pcs";
@@ -84,7 +87,7 @@ class EbaySiteProcessor implements ISiteProcessor {
     private readonly categoriesDiv = "categoriesDiv"
     private readonly ignoredLotDiv = "ignoredLotDiv"
     private readonly currentProductIdParamName = "tool_productId"
-    private readonly lotNotSupported = false;
+    private _lotNotSupported = false;
     private _lotInfo = new EbayToolBackendClient.LotInfo()
     private _purchaseHistory: EbayToolBackendClient.PurchaseInfo[] | null;
     private _titleChangeDate: string | null;
@@ -390,7 +393,7 @@ class EbaySiteProcessor implements ISiteProcessor {
 
             let price = columns[1]
 
-            if (price === "Expired" || price === "Declined") {
+            if (price === "Expired" || price === "Declined" || price === "Pending") {
                 continue
             }
 
@@ -893,33 +896,43 @@ class EbaySiteProcessor implements ISiteProcessor {
 
 
     async getEbayItem(): Promise<void> {
-        let ebayItem = await this._ebayClient.getItemByLegacyId(
-            undefined,
-            this._lotInfo.lotId.toString(),
-            undefined,
-            undefined,
-            undefined,
-            this.marketplaceId);
+        let lotId = "v1|" + this._lotInfo.lotId.toString() + "|0";
+        try {
+            let item = await this._ebayClient.getItem(
+                undefined,
+                lotId,
+                undefined,
+                this.marketplaceId
+            );
 
-        let shippingCountry = this.getShippingCountry(ebayItem);
-        let zipCode = this.supportedShippingCountries.get(shippingCountry).zip ?? undefined
+            let shippingCountry = this.getShippingCountry(item);
+            let zipCode = this.supportedShippingCountries.get(shippingCountry).zip ?? undefined
 
-        let shippingHeader: string;
-        if (zipCode) {
-            shippingHeader = `contextualLocation=country%3D${shippingCountry}%2Czip%3D${zipCode}`;
-        } else {
-            shippingHeader = `contextualLocation=country%3D${shippingCountry}`;
+            let shippingHeader: string;
+            if (zipCode) {
+                shippingHeader = `contextualLocation=country%3D${shippingCountry}%2Czip%3D${zipCode}`;
+            } else {
+                shippingHeader = `contextualLocation=country%3D${shippingCountry}`;
+            }
+
+            let ebayItemWithShipping = await this._ebayClient.getItem(
+                undefined,
+                lotId,
+                shippingHeader,
+                this.marketplaceId
+            );
+
+            await this.fillLotInfo(ebayItemWithShipping, shippingCountry)
         }
-
-        let ebayItemWithShipping = await this._ebayClient.getItemByLegacyId(
-            undefined,
-            this._lotInfo.lotId.toString(),
-            undefined,
-            undefined,
-            shippingHeader,
-            this.marketplaceId);
-
-        await this.fillLotInfo(ebayItemWithShipping, shippingCountry)
+        catch (error)
+        {
+            if (error instanceof EbayClient.ApiException && error.message === "Not Found") {
+                this._lotNotSupported = true;
+                console.log("multivariant lots are not supported")
+            } else {
+                throw error;
+            }
+        }
     }
 
 
@@ -1022,6 +1035,11 @@ class EbaySiteProcessor implements ISiteProcessor {
             this.getServerLotInfo(),
         ]);
 
+        if (this._lotNotSupported) {
+            await this.ignoreThatLot();
+            return;
+        }
+
         let extractedDataByFieldName = await this.extractManualFieldsData();
 
         this.fillPurchaseHistory();
@@ -1032,14 +1050,11 @@ class EbaySiteProcessor implements ISiteProcessor {
             this.fillManualCondition(extractedDataByFieldName),
             this.fillPcs(extractedDataByFieldName),
         ]);
-
-        if (this.lotNotSupported) {
-            await this.ignoreThatLot();
-        }
-
+        
         await this.compareLotInfos(this._serverLotInfo);
+        
+        
     }
-
 
     async showAndSaveError(error: Error) {
 
@@ -1076,6 +1091,7 @@ class EbaySiteProcessor implements ISiteProcessor {
         await this.createPanel()
         try {
             await this.getDataFromPage();
+            this.openFullDescription();
             await this.hideErrorsAndEnableSubmit()
         } catch (error) {
             await this.showAndSaveError(error);
@@ -1083,12 +1099,21 @@ class EbaySiteProcessor implements ISiteProcessor {
         this._panel.hidden = false;
     }
 
+
+    openFullDescription() { 
+        let button = <HTMLButtonElement>document.querySelector('div.x-item-condensed-card__message button');
+        if (button) {
+            button.click()
+        }
+    }
+
     async searchPage() {
         console.log("SearchPage")
 
         //только на странице проданные лоты
         if (new URL(document.location.href).searchParams?.get('LH_Sold')?.trim() !== "1") return;
-
+        const linkRegex = /https:\/\/[^\/]+\/itm\/(\d+)/;
+        const soldRegex = /Sold\s.+/;
 
         let searchResults = await utils.sleepElementLoaded('ul.srp-results', document)
 
@@ -1097,10 +1122,14 @@ class EbaySiteProcessor implements ISiteProcessor {
             let links: LotLink[] = [];
             for (let li of [...searchResults.querySelectorAll('li')]) {
                 if (li.classList.contains("srp-river-answer--REWRITE_START") && li.innerText === "Results matching fewer words") break
-                if (li.classList.contains("s-item")) {
-                    let link = <HTMLAnchorElement>li.querySelector('a.s-item__link')
-                    let soldDate = new Date((<HTMLElement>li.querySelector('span.POSITIVE')).innerText.replace("Sold ", ""))
-                    links.push(new LotLink(parseInt(link.href.match(/https:\/\/[^\/]+\/itm\/(\d+)/)[1]), link, soldDate));
+                if (li.classList.contains("s-item") || li.classList.contains("s-card")) {
+                    
+                    let linkMatch = Array.from(li.querySelectorAll('a')).map(link => link.href.match(linkRegex)).find(x=>x);
+                    let soldMatch = Array.from(li.querySelectorAll('span')).map(span => span.innerText.match(soldRegex)).find(x=>x);
+                        
+                    let soldDate = new Date(soldMatch[0].replace("Sold ", ""))
+                    let lotLink = new LotLink(parseInt(linkMatch[1]), li, soldDate);
+                    links.push(lotLink);
                 }
             }
             // noinspection JSUnusedLocalSymbols
@@ -1154,7 +1183,7 @@ class EbaySiteProcessor implements ISiteProcessor {
 
                 filteredLinks.forEach(x => {
                     if (x.color !== null && x.previousColor !== x.color) {
-                        x.link.style.cssText = `background-color: ${x.color};`
+                        x.itemHtmlElement.style.cssText = `background-color: ${x.color};`
                     }
                 });
 
