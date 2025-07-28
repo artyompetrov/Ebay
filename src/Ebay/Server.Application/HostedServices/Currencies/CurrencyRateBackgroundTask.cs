@@ -1,0 +1,67 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using OpenExchangeRates;
+using Server.Application.Data;
+using Server.Application.Data.Models;
+using Server.Application.Infrastructure;
+
+namespace Server.Application.HostedServices.Currencies;
+
+public class CurrencyRateBackgroundTask : BackgroundTask
+{
+    private readonly IServiceScopeFactory _serviceScopeFactory;
+    private readonly ILogger<CurrencyRateBackgroundTask> _logger;
+    private readonly EbayServerOptions _options;
+
+    public CurrencyRateBackgroundTask(
+        IServiceScopeFactory serviceScopeFactory,
+        ILogger<CurrencyRateBackgroundTask> logger,
+        EbayServerOptions options) : base(logger)
+    {
+        _serviceScopeFactory = serviceScopeFactory;
+        _logger = logger;
+        _options = options;
+    }
+
+    public override TimeSpan UpdateTime => WellKnown.CurrencyRate.UpdateTime;
+    public override TimeSpan ErrorDelay => WellKnown.CurrencyRate.ErrorDelay;
+
+
+    protected async override Task BackgroundTaskImplementation(CancellationToken cancellationToken)
+    {
+        if (_options.IsLocalRun) return;
+
+        _logger.LogInformation("Refreshing currency rates");
+        using var scope = _serviceScopeFactory.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        var currencies = await dbContext.Currencies
+            .Select(x => new { x.CurrencyApiName, x.CurrencyEbayName })
+            .ToListAsync(cancellationToken);
+
+        using var client = new OpenExchangeRatesClient(WellKnown.CurrencyRate.AppId);
+
+        var response = await client.GetLatestRatesAsync(
+            baseCurrency: WellKnown.CurrencyRate.BaseCurrency,
+            currencies: currencies.Select(x => x.CurrencyApiName),
+            cancellationToken: cancellationToken);
+
+        if (response == null) throw new InvalidOperationException("Server returned null response");
+
+        var currencyByApiName = currencies.ToDictionary(x => x.CurrencyApiName);
+
+        var currentTime = DateTime.UtcNow;
+        foreach (var (apiCurrencyName, value) in response.Rates)
+        {
+            var currency = currencyByApiName[apiCurrencyName];
+
+            var dbProduct =
+                dbContext.Currencies.Attach(new Currency() { CurrencyEbayName = currency.CurrencyEbayName });
+            dbProduct.Entity.CurrencyRate = decimal.ToDouble(value);
+            dbProduct.Entity.LastUpdate = currentTime;
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+}
