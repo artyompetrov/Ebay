@@ -28,18 +28,18 @@ public class EbayControllerImplementation : IEbayController
     private readonly ApplicationDbContext _applicationContext;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly ShippingRatesService _shippingRatesService;
-    private readonly MeasurementRepository _measurementRepository;
+    private readonly MeasurementService _measurementService;
 
     public EbayControllerImplementation(
         ApplicationDbContext applicationContext,
         IPublishEndpoint publishEndpoint,
         ShippingRatesService shippingRatesService,
-        MeasurementRepository measurementRepository)
+        MeasurementService measurementService)
     {
         _applicationContext = applicationContext;
         _publishEndpoint = publishEndpoint;
         _shippingRatesService = shippingRatesService;
-        _measurementRepository = measurementRepository;
+        _measurementService = measurementService;
     }
 
     public async Task<ICollection<ProductWithId>> GetAllProductsAsync(CancellationToken cancellationToken)
@@ -318,7 +318,7 @@ public class EbayControllerImplementation : IEbayController
     {
         try
         {
-            await _measurementRepository.SaveMeasurement(
+            await _measurementService.SaveMeasurement(
                 measurementId: measurementData.MeasurementId,
                 measurementsFile: measurementData.File,
                 productState: measurementData.ProductState.ToDbProductState(),
@@ -340,7 +340,7 @@ public class EbayControllerImplementation : IEbayController
         string measurementId,
         CancellationToken cancellationToken)
     {
-        await _measurementRepository.DeleteMeasurement(
+        await _measurementService.DeleteMeasurement(
             productId: productId,
             measurementId: measurementId,
             cancellationToken: cancellationToken);
@@ -352,7 +352,7 @@ public class EbayControllerImplementation : IEbayController
         string measurementId,
         CancellationToken cancellationToken)
     {
-        await _measurementRepository.UpdateMeasurementLocation(
+        await _measurementService.UpdateMeasurementLocation(
             location: location,
             productId: productId,
             measurementId: measurementId,

@@ -24,7 +24,8 @@ public static class ServiceCollectionExtensions
         services.AddNpgsqlDataSource(connectionString);
         services.AddDbContext<ApplicationDbContext>(o => o.UseNpgsql());
         services.AddSingleton<ShippingRatesService>();
-        services.AddScoped<MeasurementRepository>();
+        services.AddScoped<MeasurementService>();
+        services.AddScoped<MeasurementPlotService>();
 
         services.AddScoped<IEbayController, EbayControllerImplementation>();
         services.AddDefaultIdentity<ApplicationUser>(o => o.SignIn.RequireConfirmedAccount = true)

@@ -4,8 +4,10 @@ namespace Server.Application.Infrastructure;
 
 public static class SvgMerger
 {
-    public static string MergeSvgsHorizontally(bool vertical, string? defaultFontFamily, params string[] svgXmlList)
+    public static string MergeSvgs(bool mergeVertical, params string[] svgXmlList)
     {
+        const string defaultFontFamily = "Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif";
+        
         var svgList = svgXmlList?.ToArray() ?? throw new ArgumentException("List must not be empty");
         if (svgList.Length == 0)
             throw new ArgumentException("List must not be empty");
@@ -35,7 +37,7 @@ public static class SvgMerger
         }
 
         double totalWidth, totalHeight;
-        if (!vertical)
+        if (!mergeVertical)
         {
             totalWidth = widths.Sum();
             totalHeight = heights.Max();
@@ -69,14 +71,14 @@ public static class SvgMerger
             foreach (var node in svgs[i].Elements())
             {
                 var g = new XElement(ns + "g",
-                    new XAttribute("transform", value: vertical
+                    new XAttribute("transform", value: mergeVertical
                         ? $"translate(0, {offsetY})"
                         : $"translate({offsetX}, 0)"),
                     node
                 );
                 outSvg.Add(g);
             }
-            if (!vertical)
+            if (!mergeVertical)
                 offsetX += widths[i];
             else
                 offsetY += heights[i];

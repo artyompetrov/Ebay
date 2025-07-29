@@ -10,13 +10,13 @@ namespace Server.Application.Pages;
 
 public class MeasurementPage : PageModel
 {
-    private readonly MeasurementRepository _measurementRepository;
+    private readonly MeasurementService _measurementService;
     private readonly ApplicationDbContext _applicationContext;
 
     //конструктор обязательно должен быть public
-    public MeasurementPage(MeasurementRepository measurementRepository, ApplicationDbContext applicationContext)
+    public MeasurementPage(MeasurementService measurementService, ApplicationDbContext applicationContext)
     {
-        _measurementRepository = measurementRepository;
+        _measurementService = measurementService;
         _applicationContext = applicationContext;
     }
 
@@ -24,17 +24,19 @@ public class MeasurementPage : PageModel
     public MeasurementData Measurement { get; set; } = null!;
     
 
-    public async Task<IActionResult> OnGet(string measurementId)
+    public async Task<IActionResult> OnGet(string measurementId, CancellationToken cancellationToken)
     {
-        var measurementData = await _measurementRepository.GetMeasurement(measurementId);
+        var measurementData = await _measurementService.GetMeasurements(cancellationToken, measurementId);
 
-        if (measurementData == null)
+        if (measurementData.Count != 1)
             return NotFound("Measurement not found");
+
+        var measurement = measurementData.Single();
         
         var product = await _applicationContext.Products
             .AsNoTracking()
             .Include(x => x.SearchQueries)
-            .SingleOrDefaultAsync(x => x.Id == measurementData.ProductId);
+            .SingleOrDefaultAsync(x => x.Id == measurement.ProductId);
 
         if (product == null)
         {
@@ -42,6 +44,7 @@ public class MeasurementPage : PageModel
         }
 
         Product = product;
+        Measurement = measurement;
         
         return Page();
     }

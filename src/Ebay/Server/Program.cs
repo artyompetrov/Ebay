@@ -99,8 +99,6 @@ builder.Services.AddResponseCaching();
 
 
 
-
-
 var app = builder.Build();
 
 app.Services.InitializeApplication();
