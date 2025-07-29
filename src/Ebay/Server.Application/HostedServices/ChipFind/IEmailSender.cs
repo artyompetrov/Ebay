@@ -1,4 +1,4 @@
-﻿namespace Server.Application.HostedServices.ChipFind;
+namespace Server.Application.HostedServices.ChipFind;
 
 public interface IEmailSender
 {

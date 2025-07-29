@@ -30,7 +30,7 @@ internal class NonOkHttpAnswerException : Exception
                     )
             }));
 
-    
+
     public static NonOkHttpAnswerException ValidationError400(string field, params string[] errors) => new(
         new ValidationProblemDetailedInfo(
             detail: null,

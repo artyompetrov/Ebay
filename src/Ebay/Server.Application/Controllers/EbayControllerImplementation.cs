@@ -1,12 +1,9 @@
-using System.Security.Cryptography;
-using System.Text.RegularExpressions;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Consumers;
 using Server.Application.Data;
 using Server.Application.Data.Models;
 using Server.Application.Infrastructure;
-using Server.Application.Services;
 using Server.Application.Services.LotDataExtractorService;
 using Server.Application.Services.MeasurementService;
 using Server.Controllers.Generated;
@@ -294,7 +291,7 @@ public class EbayControllerImplementation : IEbayController
         var measurements = await _applicationContext.ProductMeasurements
             .Where(x => x.ProductId == productId)
             .OrderByDescending(p => p.CreatedAt)
-            .ThenByDescending(p=>p.Id)
+            .ThenByDescending(p => p.Id)
             .Select(x => new { MeasurementId = x.Id, ManufactureDate = x.ManufactureCode, x.ProductState, x.Location })
             .ToListAsync(cancellationToken);
 

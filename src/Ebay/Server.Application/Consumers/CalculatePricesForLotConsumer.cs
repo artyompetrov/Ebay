@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using Server.Application.Data;
 using Server.Application.Data.Models;
 using Server.Application.Infrastructure;
-using Server.Application.Services;
 using Server.Application.Services.LotDataExtractorService;
 
 namespace Server.Application.Consumers;
@@ -78,9 +77,9 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
             var ebayFee = (ebayFinalValueFee + ebayInternationalFee + коммиссияEbayПостояннаяВеличина) * множительУчитывающийVat;
 
             var полнаяЦенаПродажиЗаВычетомКоммиссийEbay = полнаяЦенаПродажиВДолларах - ebayFee;
-            
+
             var payoneerFee = полнаяЦенаПродажиЗаВычетомКоммиссийEbay * коммисияPayoneerВПроцентах;
-            
+
             var выручкаСПродажиВДолларах = полнаяЦенаПродажиЗаВычетомКоммиссийEbay
                                            - payoneerFee
                                            - ценаДоставкиВДоллларах;

@@ -1,11 +1,4 @@
-using System.Collections.Concurrent;
-using System.IO.Compression;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ScottPlot;
-using ScottPlot.PlotStyles;
-using Server.Application.Data;
-using Server.Application.Infrastructure;
 using Server.Application.Services;
 using Server.Application.Services.MeasurementService;
 

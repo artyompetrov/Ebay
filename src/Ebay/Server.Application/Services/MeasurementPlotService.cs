@@ -1,8 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using ScottPlot;
 using ScottPlot.PlotStyles;
-using Server.Application.Data;
 using Server.Application.Infrastructure;
 using Server.Application.Services.MeasurementService;
 
@@ -15,7 +14,7 @@ public class MeasurementPlotService
 
     // Максимальное dI - чтобы отсечь некорректные изменения из-за compliance, в долях от максимального тока
     private const double IgnoreDI = -0.1;
-    
+
     public MeasurementPlotService(
         IMemoryCache memoryCache,
         MeasurementService.MeasurementService measurementService)
@@ -71,21 +70,21 @@ public class MeasurementPlotService
             legendVertical: legendVertical,
             width: width,
             height: height);
-        
+
         var result = SvgMerger.MergeSvgs(
             mergeVertical: mergeVertical,
             plot1,
             plot2);
         return result;
     }
-    
-    
-        private static string CreatePlot(
-        MeasurementConfig config,
-        IReadOnlyDictionary<int, MeasurementPoint[]> curves,
-        bool legendVertical,
-        int width,
-        int height)
+
+
+    private static string CreatePlot(
+    MeasurementConfig config,
+    IReadOnlyDictionary<int, MeasurementPoint[]> curves,
+    bool legendVertical,
+    int width,
+    int height)
     {
         var plt = new Plot();
         plt.SetStyle(
@@ -144,7 +143,7 @@ public class MeasurementPlotService
                 PlotPentodeScreenCurves(
                     curves: curves,
                     config: config,
-                    plot: plt, 
+                    plot: plt,
                     legendItems: legendItems);
                 break;
 
@@ -181,8 +180,8 @@ public class MeasurementPlotService
 
         foreach (var (i, values) in curves)
         {
-            var maxI = values.Select(x => x.Ia).Union(values.Select(x=>x.Is)).Max();
-            
+            var maxI = values.Select(x => x.Ia).Union(values.Select(x => x.Is)).Max();
+
             var iaValues = values.TakeWhile(x => x.dIa / maxI > IgnoreDI).Select(x => (x.Va, x.Ia)).ToList();
             var isValues = values.TakeWhile(x => x.dIs / maxI > IgnoreDI).Select(x => (x.Va, x.Is)).ToList();
 
@@ -312,8 +311,8 @@ public class MeasurementPlotService
         var maxY = 0.0;
         foreach (var (i, values) in curves)
         {
-            var maxI = values.Select(x => x.Ia).Union(values.Select(x=>x.Is)).Max();
-            
+            var maxI = values.Select(x => x.Ia).Union(values.Select(x => x.Is)).Max();
+
             var iaValues = values.TakeWhile(x => x.dIa / maxI > IgnoreDI).Select(x => (x.Va, x.Vg, x.Ia)).ToList();
             var isValues = values.TakeWhile(x => x.dIs / maxI > IgnoreDI).Select(x => (x.Va, x.Vg, x.Is)).ToList();
 
@@ -420,8 +419,8 @@ public class MeasurementPlotService
 
         foreach (var (i, values) in curves)
         {
-            var maxI = values.Select(x => x.Ia).Union(values.Select(x=>x.Is)).Max();
-            
+            var maxI = values.Select(x => x.Ia).Union(values.Select(x => x.Is)).Max();
+
             var iaValues = values.TakeWhile(x => x.dIa / maxI > IgnoreDI).Select(x => (x.Va, x.Ia)).ToList();
             var isValues = values.TakeWhile(x => x.dIs / maxI > IgnoreDI).Select(x => (x.Va, x.Is)).ToList();
 
@@ -527,7 +526,7 @@ public class MeasurementPlotService
         var maxY = 0.0;
         foreach (var (i, values) in curves)
         {
-            var maxI = values.Select(x => x.Ia).Union(values.Select(x=>x.Is)).Max();
+            var maxI = values.Select(x => x.Ia).Union(values.Select(x => x.Is)).Max();
             var iaValues = values.TakeWhile(x => x.dIa / maxI > IgnoreDI).Select(x => (x.Va, x.Vs, x.Ia)).ToList();
             var isValues = values.TakeWhile(x => x.dIs / maxI > IgnoreDI).Select(x => (x.Va, x.Vs, x.Is)).ToList();
 

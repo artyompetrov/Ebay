@@ -46,15 +46,15 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
             entity.HasIndex(e => e.HashQuickTest).IsUnique();
             entity.HasIndex(e => e.HashGridCurves).IsUnique();
         });
-        
+
         modelBuilder.Entity<ProductEmailSendHistory>()
             .HasIndex(x => x.ProductKey)
             .IsUnique();
-        
+
         modelBuilder.Entity<ProductMeasurement>()
             .Property(p => p.CreatedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
-        
+
         modelBuilder.Entity<ProductMeasurement>()
             .HasIndex(p => p.CreatedAt);
     }
@@ -83,6 +83,6 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
     public DbSet<ProductMeasurement> ProductMeasurements { get; set; } = null!;
 
     public DbSet<Currency> Currencies { get; set; } = null!;
-    
+
     public DbSet<ProductEmailSendHistory> ProductEmailSendHistory { get; set; } = null!;
 }

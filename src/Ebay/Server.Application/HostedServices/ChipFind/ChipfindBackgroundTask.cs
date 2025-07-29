@@ -122,9 +122,9 @@ public class ChipfindBackgroundTask : BackgroundTask
             .ThenBy(x => x.Id)
             .Include(x => x.RuSearchQueries)
             .ToListAsync(cancellationToken);
-        
+
         var productsArray = dbProducts.
-            Where(x=>x.GetIsInteresting())
+            Where(x => x.GetIsInteresting())
             .Select(x => new ProductIdWithRegex(ProductId: x.Id, Regex: x.GetProductRegex()))
             .ToArray();
         return productsArray;

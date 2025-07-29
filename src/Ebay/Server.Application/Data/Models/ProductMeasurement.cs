@@ -24,7 +24,7 @@ public class ProductMeasurement
 
     [MaxLength(128)]
     public required string HashQuickTest { get; set; } = null!;
-    
+
     public DateTime CreatedAt { get; set; }
 
     /// <summary>
@@ -35,7 +35,7 @@ public class ProductMeasurement
     public required string ManufactureCode { get; set; } = null!;
 
     public required ProductState ProductState { get; set; }
-    
+
     /// <summary>
     /// Местонахождение
     /// </summary>

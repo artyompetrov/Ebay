@@ -1,4 +1,4 @@
-﻿using MailKit.Security;
+using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using Server.Application.HostedServices.ChipFind;
@@ -29,7 +29,7 @@ public class EmailSender : IEmailSender
         await client.ConnectAsync(_settings.Server, _settings.Port, SecureSocketOptions.StartTls);
 
         await client.AuthenticateAsync(_settings.Login, _settings.Password);
-        
+
         await client.SendAsync(message);
 
         await client.DisconnectAsync(true);

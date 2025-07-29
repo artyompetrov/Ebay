@@ -1,11 +1,9 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
-using Server.Application.Controllers;
 using Server.Application.Data;
 using Server.Application.Data.Models;
 
@@ -33,7 +31,7 @@ public class MeasurementService
         {
             throw new MeasurementException($"Incorrect MeasurementId Format {measurementId}");
         }
-        
+
         if (!ReadMeasurementFile(
                 measurementData: measurementsFile,
                 errors: out var fileErrors,
@@ -43,9 +41,9 @@ public class MeasurementService
                 gridCurves: out var gridCurves,
                 quickTest: out var quickTest))
         {
-            throw new MeasurementException($"Errors during file parsing {string.Join(", ",fileErrors)}");
+            throw new MeasurementException($"Errors during file parsing {string.Join(", ", fileErrors)}");
         }
-        
+
         // Проверка, что измерения загружены правильно
         try
         {
@@ -69,13 +67,13 @@ public class MeasurementService
             ParseSpaceSeparatedTable(anodeCurves);
             ParseSpaceSeparatedTable(gridCurves);
             ParseAndPrettifyQuickTest(quickTest, removeSection2: false);
-            
+
             var hashAnodeCurvesConfig = ComputeEntryHashAsync(anodeCurvesConfig);
             var hashGridCurvesConfig = ComputeEntryHashAsync(gridCurvesConfig);
             var hashAnodeCurves = ComputeEntryHashAsync(anodeCurves);
             var hashGridCurves = ComputeEntryHashAsync(gridCurves);
             var hashQuickTest = ComputeEntryHashAsync(quickTest);
-        
+
             var hashes = new HashSet<string>
             {
                 hashAnodeCurvesConfig,
@@ -89,7 +87,7 @@ public class MeasurementService
             {
                 throw new MeasurementException("File duplicates");
             }
-        
+
             await _applicationContext.ProductMeasurements.AddAsync(
                 entity: new ProductMeasurement
                 {
@@ -113,7 +111,7 @@ public class MeasurementService
             throw new MeasurementException($"Errors during data validation {ex.Message}");
         }
     }
-    
+
     public async Task UpdateMeasurementLocation(
         string location,
         Guid productId,
@@ -148,7 +146,7 @@ public class MeasurementService
         var hashBytes = SHA256.HashData(bytes);
         return Convert.ToHexString(hashBytes);
     }
-    
+
     public async Task<byte[]?> GetMeasurementFile(string measurementId, CancellationToken cancellationToken)
     {
         var zipBytes = await _applicationContext.ProductMeasurements
@@ -259,7 +257,7 @@ public class MeasurementService
 
             results.Add(data);
         }
-        
+
         return results;
     }
 

@@ -7,7 +7,7 @@ public static class SvgMerger
     public static string MergeSvgs(bool mergeVertical, params string[] svgXmlList)
     {
         const string defaultFontFamily = "Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif";
-        
+
         var svgList = svgXmlList?.ToArray() ?? throw new ArgumentException("List must not be empty");
         if (svgList.Length == 0)
             throw new ArgumentException("List must not be empty");

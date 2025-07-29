@@ -10,7 +10,7 @@ internal static class WellKnown
         /// Сумма выручки за штуку от которой интересно работать с товаром
         /// </summary>
         public static int RevenueUsd = 12;
-        
+
         /// <summary>
         /// Количество штук на ebay продано минимум, для репрезентативности
         /// </summary>

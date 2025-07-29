@@ -1,4 +1,4 @@
-﻿namespace Server.Application.Data;
+namespace Server.Application.Data;
 
 public class ProductEmailSendHistory
 {

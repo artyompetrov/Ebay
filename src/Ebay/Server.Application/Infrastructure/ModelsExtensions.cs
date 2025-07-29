@@ -1,5 +1,4 @@
 using Server.Application.Data.Models;
-using Server.Application.Services;
 using Server.Application.Services.LotDataExtractorService;
 using Server.Controllers.Generated;
 using ApiCurrency = Server.Controllers.Generated.Currency;
@@ -31,7 +30,7 @@ internal static class ModelsExtensions
         isCheckRequired: dbProduct.IsCheckRequired,
         weight: dbProduct.Weight,
         productCalculationResult: dbProduct.ProductCalculationResult.ToApiLotCalculationResult(),
-        productRegex:dbProduct.GetProductRegex().ToString(),
+        productRegex: dbProduct.GetProductRegex().ToString(),
         isInteresting: dbProduct.GetIsInteresting()
     );
 
