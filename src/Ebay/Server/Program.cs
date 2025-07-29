@@ -1,19 +1,16 @@
 using Duende.IdentityServer.Models;
-using MassTransit;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
-using Server;
-using Server.Controllers;
-using Server.Controllers.Generated;
-using Server.Data;
-using Server.Data.Models;
-using Server.HostedServices;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
 using Serilog;
-using Server.Consumers;
-using Server.Services;
+using Server;
+using Server.Adapters.ChipFind;
+using Server.Adapters.Smtp;
+using Server.Application;
+using Server.Application.Data;
+using Server.Application.Data.Models;
 using Secret = Duende.IdentityServer.Models.Secret;
 
 IdentityModelEventSource.ShowPII = true;
@@ -29,18 +26,24 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 
 // Add services to the container.
+var options = new EbayServerOptions();
+builder.Configuration.Bind("EbayServer", options);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new NullReferenceException("Connection string cannot be null");
-builder.Services.AddNpgsqlDataSource(connectionString);
-builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql());
-builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-builder.Services.AddSingleton<ShippingRatesService>();
-builder.Services.AddScoped<IEbayController, EbayControllerImplementation>();
-builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddEntityFrameworkStores<ApplicationDbContext>();
+builder.Services.AddEmailAdapter(builder.Configuration);
+builder.Services.AddChipFindAdapter();
+builder.Services.AddApplicationServices(options, connectionString);
+
+var keyStoragePath = Environment.GetEnvironmentVariable("DATA_PROTECTION_KEYS_DIR") ??
+                     Path.Join(path1: Path.GetTempPath(), path2: "data_protection_keys_dir");
+
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(keyStoragePath))
+    .SetApplicationName("EbayHelper")
+    .SetDefaultKeyLifetime(TimeSpan.FromDays(90));
 
 builder.Services.AddIdentityServer()
     .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(
-        options =>
+        o =>
         {
             var domain = Environment.GetEnvironmentVariable("DOMAIN") ?? "localhost";
 
@@ -53,13 +56,13 @@ builder.Services.AddIdentityServer()
                 $"chrome-extension://{WellKnown.ChromeExtension.Id}",
                 "https://" + domain
             ];
-            options.Clients.Add(spaClient);
+            o.Clients.Add(spaClient);
 
-            options.Clients.Add(
+            o.Clients.Add(
                 new Duende.IdentityServer.Models.Client
                 {
                     ClientId = WellKnown.Authorization.PythonClientId,
-                    ClientSecrets = new List<Secret> { new(WellKnown.Authorization.AuthToken.Sha256()) },
+                    ClientSecrets = new List<Secret> { new(WellKnown.Authorization.ClientSecret.Sha256()) },
                     AllowedGrantTypes = GrantTypes.ClientCredentials,
                     AllowedScopes =
                     {
@@ -70,83 +73,29 @@ builder.Services.AddIdentityServer()
         }
     );
 
-var keyStoragePath = Environment.GetEnvironmentVariable("DATA_PROTECTION_KEYS_DIR") ??
-    Path.Join(path1: Path.GetTempPath(), path2: "data_protection_keys_dir");
 
-builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo(keyStoragePath))
-    .SetApplicationName("EbayHelper");
 
 builder.Services.AddAuthentication().AddIdentityServerJwt();
 
-builder.Services.AddControllersWithViews(option => { option.Filters.Add<ErrorFilter>(); })
-    .AddNewtonsoftJson();
-builder.Services.AddRazorPages();
 builder.Services.AddLogging(
-    options =>
+    o =>
     {
-        options.AddSimpleConsole(
+        o.AddSimpleConsole(
             c =>
             {
                 c.TimestampFormat = "[yyyy-MM-dd HH:mm:ss] ";
                 c.UseUtcTimestamp = true;
             });
     });
-builder.Services.AddHostedService<CurrencyRateHostedService>();
-
-
-builder.Services.AddOptions<SqlTransportOptions>()
-    .Configure(options =>
-    {
-        options.ConnectionString = connectionString;
-    });
-
-builder.Services.AddPostgresMigrationHostedService(x =>
-{
-    x.CreateDatabase = false;
-    x.CreateInfrastructure = true;
-});
-builder.Services.AddMassTransit(
-    x =>
-    {
-        x.AddConsumer<CalculatePricesForAllConsumer>();
-        x.AddConsumer<CalculatePricesForProductConsumer>();
-        x.AddConsumer<CalculatePricesForLotConsumer>();
-        x.AddConsumer<CalculateTotalAveragePriceForProductConsumer>(
-            c => c.Options<BatchOptions>(o =>
-            {
-                o.ConcurrencyLimit = 1;
-                o.MessageLimit = 100;
-            }));
-        x.AddEntityFrameworkOutbox<ApplicationDbContext>(
-            o =>
-            {
-                o.UsePostgres();
-                o.UseBusOutbox();
-            });
-
-        x.AddSqlMessageScheduler();
-
-        x.UsingPostgres(
-            (context, cfg) =>
-            {
-                cfg.UseSqlMessageScheduler();
-
-                cfg.ConfigureEndpoints(context);
-            });
-
-    });
 
 var app = builder.Build();
 
+builder.Services.AddResponseCaching();
+
+app.Services.InitializeApplication();
+
 app.UseSerilogRequestLogging();
 
-// Migrate DB
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    dbContext.Database.Migrate();
-}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -162,16 +111,13 @@ else
 }
 
 app.UseHttpsRedirection();
-
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
-
 app.UseRouting();
-
+app.UseResponseCaching();
 app.UseAuthentication();
 app.UseIdentityServer();
 app.UseAuthorization();
-
 app.MapRazorPages();
 app.MapControllers();
 app.MapFallbackToFile("index.html");
