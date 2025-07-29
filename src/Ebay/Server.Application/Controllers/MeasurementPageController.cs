@@ -43,7 +43,13 @@ public class MeasurementPageController : ControllerBase
         string measurementId,
         CancellationToken cancellationToken)
     {
-        var result = await _measurementPlotService.PlotForMeasurementId(measurementId, cancellationToken);
+        var result = await _measurementPlotService.PlotForMeasurementId(
+            measurementId: measurementId,
+            cancellationToken: cancellationToken,
+            mergeVertical: true,
+            legendVertical: true,
+            width: 800,
+            height: 500);
 
         if (result == null)
             return NotFound("Measurement not found");

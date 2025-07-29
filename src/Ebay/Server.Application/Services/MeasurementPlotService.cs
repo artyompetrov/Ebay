@@ -12,62 +12,25 @@ public class MeasurementPlotService
 {
     private readonly IMemoryCache _memoryCache;
     private readonly MeasurementService.MeasurementService _measurementService;
-    private readonly ApplicationDbContext _applicationDbContext;
 
     // Максимальное dI - чтобы отсечь некорректные изменения из-за compliance, в долях от максимального тока
     private const double IgnoreDI = -0.1;
     
     public MeasurementPlotService(
         IMemoryCache memoryCache,
-        MeasurementService.MeasurementService measurementService,
-        ApplicationDbContext applicationDbContext)
+        MeasurementService.MeasurementService measurementService)
     {
         _memoryCache = memoryCache;
         _measurementService = measurementService;
-        _applicationDbContext = applicationDbContext;
-    }
-
-    //todo это не нужно
-    public async Task<string?> PlotForProductId(Guid productId, CancellationToken cancellationToken)
-    {
-        var measurementIds = await _applicationDbContext.ProductMeasurements
-            .Where(x => x.ProductId == productId)
-            .Select(x => x.Id)
-            .ToArrayAsync(cancellationToken);
-
-        var plots = new List<string>();
-        
-        foreach (var measurementId in measurementIds)
-        {
-            var plot = await PlotForMeasurementId(
-                measurementId: measurementId,
-                cancellationToken: cancellationToken,
-                mergeVertical: false,
-                legendVertical: true,
-                width: 600,
-                height: 400);
-
-            if (plot != null)
-            {
-                plots.Add(plot);
-            }
-           
-        }
-        
-        var result = SvgMerger.MergeSvgs(
-            mergeVertical: true,
-            svgXmlList: plots.ToArray());
-
-        return result;
     }
 
     public Task<string?> PlotForMeasurementId(
         string measurementId,
         CancellationToken cancellationToken,
-        bool mergeVertical = true,
-        bool legendVertical = true,
-        int width = 800,
-        int height = 500
+        bool mergeVertical,
+        bool legendVertical,
+        int width,
+        int height
     )
     {
         var cacheKey = $"measurementPlot_{mergeVertical}_{legendVertical}_{width}_{height}_{measurementId}";
