@@ -1,5 +1,5 @@
 // ReSharper disable InconsistentNaming
-namespace Server.Application.Services.MeasurementService;
+namespace Server.Application.Services.Measurement;
 
 public record MeasurementPoint(
     double Ia,

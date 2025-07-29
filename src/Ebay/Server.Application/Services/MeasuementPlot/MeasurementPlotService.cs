@@ -1,26 +1,28 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using ScottPlot;
 using ScottPlot.PlotStyles;
 using Server.Application.Infrastructure;
-using Server.Application.Services.MeasurementService;
+using Server.Application.Services.Measurement;
 
-namespace Server.Application.Services;
+namespace Server.Application.Services.MeasuementPlot;
 
 public class MeasurementPlotService
 {
     private readonly IMemoryCache _memoryCache;
-    private readonly MeasurementService.MeasurementService _measurementService;
+    private readonly MeasurementService _measurementService;
+
+    private readonly DatabaseConcurrentAccessSemaphore _semaphore;
 
     // Максимальное dI - чтобы отсечь некорректные изменения из-за compliance, в долях от максимального тока
     private const double IgnoreDI = -0.1;
 
     public MeasurementPlotService(
         IMemoryCache memoryCache,
-        MeasurementService.MeasurementService measurementService)
+        MeasurementService measurementService, DatabaseConcurrentAccessSemaphore semaphore)
     {
         _memoryCache = memoryCache;
         _measurementService = measurementService;
+        _semaphore = semaphore;
     }
 
     public Task<string?> PlotForMeasurementId(
@@ -28,34 +30,52 @@ public class MeasurementPlotService
         CancellationToken cancellationToken,
         bool mergeVertical,
         bool legendVertical,
+        bool addQuickTest,
         int width,
         int height
     )
     {
-        var cacheKey = $"measurementPlot_{mergeVertical}_{legendVertical}_{width}_{height}_{measurementId}";
+        var cacheKey = $"measurementPlot_{mergeVertical}_{legendVertical}_{width}_{height}_{addQuickTest}_{measurementId}";
 
         return _memoryCache.GetOrCreateAsync(
             key: cacheKey,
             async entry =>
             {
-                var measurement = await _measurementService.GetMeasurements(
-                    cancellationToken: cancellationToken,
-                    measurementId);
+                await _semaphore.Semaphore.WaitAsync(cancellationToken);
+                try
+                {
+                    var measurement = await _measurementService.GetMeasurements(
+                        cancellationToken: cancellationToken,
+                        measurementId);
 
-                if (measurement.Count != 1)
-                    return null;
+                    if (measurement == null)
+                        return null;
 
-                return CreateMergedPlot(
-                    mergeVertical: mergeVertical,
-                    legendVertical: legendVertical,
-                    width: width,
-                    height: height,
-                    measurement: measurement.Single());
-            }
+                    return CreateMergedPlot(
+                        mergeVertical: mergeVertical,
+                        legendVertical: legendVertical,
+                        width: width,
+                        height: height,
+                        addQuickTest: addQuickTest,
+                        measurement: measurement);
+
+                }
+                finally
+                {
+                    _semaphore.Semaphore.Release();
+                }
+            },
+            createOptions: new MemoryCacheEntryOptions { Size = 1 }
         );
     }
 
-    private static string CreateMergedPlot(bool mergeVertical, bool legendVertical, int width, int height, MeasurementData measurement)
+    private static string CreateMergedPlot(
+        bool mergeVertical,
+        bool legendVertical,
+        int width,
+        int height,
+        bool addQuickTest,
+        MeasurementData measurement)
     {
         var plot1 = CreatePlot(
             curves: measurement.AnodeCurves,
@@ -71,13 +91,35 @@ public class MeasurementPlotService
             width: width,
             height: height);
 
+        var quickTestSvg = addQuickTest ? QuickTestSvg(measurement) : null;
+
         var result = SvgMerger.MergeSvgs(
             mergeVertical: mergeVertical,
-            plot1,
-            plot2);
+            new SvgMerger.Svg(quickTestSvg, false),
+            new SvgMerger.Svg(plot1, true),
+            new SvgMerger.Svg(plot2, true));
+
         return result;
     }
 
+    private static string QuickTestSvg(MeasurementData measurement)
+    {
+        var lines = System.Security.SecurityElement
+            .Escape(measurement.QuickTest)
+            .Split('\n');
+        var lineHight = 16;
+        var tspans = string.Join("\n", values: lines.Skip(1).Select((line, i) =>
+            $"""<tspan x="20" y="{lineHight + i * lineHight}">{line.Split('\t')[0]}</tspan>"""));
+            
+        var quickTestSvg = $"""
+                            <svg width="200" height="{lineHight + lines.Length * lineHight}" xmlns="http://www.w3.org/2000/svg">
+                                <text font-size="14" fill="black" xml:space="preserve" font-family="monospace">
+                                    {tspans}
+                                </text>
+                            </svg>
+                            """;
+        return quickTestSvg;
+    }
 
     private static string CreatePlot(
     MeasurementConfig config,

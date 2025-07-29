@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace Server.Application.Services.LotDataExtractorService;
+namespace Server.Application.Services.LotDataExtractor;
 
 internal abstract class ExtractorBase
 {

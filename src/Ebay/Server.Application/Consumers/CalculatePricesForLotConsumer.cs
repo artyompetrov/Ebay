@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using Server.Application.Data;
 using Server.Application.Data.Models;
 using Server.Application.Infrastructure;
-using Server.Application.Services.LotDataExtractorService;
+using Server.Application.Services.LotDataExtractor;
 
 namespace Server.Application.Consumers;
 

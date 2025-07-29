@@ -1,0 +1,64 @@
+﻿@page "/ebay_description/{productId}"
+@model Server.Application.Pages.EbayLotDescriptionPage
+
+@{
+    Layout = null;
+    var baseUrl = $"{Request.Scheme}://{Request.Host}";
+}
+
+<h2>@Model.Product.SearchQueries.First() (@Model.Product.Name)</h2>
+
+<h3>📦 Shipping & Handling:</h3>
+<p>Origin: Shipped from <strong>Kazakhstan</strong></p>
+<p>Worldwide shipping available via <strong>KazPost</strong></p>
+<p>Secure packaging with anti-shock materials to prevent damage</p>
+<p>Tracking number provided within <strong>3–5 business days</strong></p>
+
+<h3>🕐 Estimated delivery time:</h3>
+<p>Approximate delivery time — <strong>25 to 35 days</strong>, depending on the destination.</p>
+
+<h3>Thank you for choosing us! Check out our other lots.</h3>
+
+@if (Model.Product.ProductMeasurementIds.Count > 0)
+{
+    <br/>
+    <h2>📈 Tested Vacuum Tube — Measurement Results Below</h2>
+    <p>This vacuum tube has been professionally tested using a <strong>uTracer 3+</strong> tube tester — a trusted tool among audiophiles and engineers.</p>
+    <p>Each tested tube comes in a labeled box with a barcode sticker. By scanning the barcode, you can access the detailed test results for that specific tube.</p>
+    
+    <h3>📐 High-Quality Vector Graphs (SVG)</h3>
+    <p>The test graphs are provided in <strong>SVG vector format</strong>. You can right-click on any graph and open it in a new tab to zoom in without losing clarity.</p>
+    
+    <h3>🔍 Choosing a Specific Tube</h3>
+   
+    <p>If you're purchasing from a batch of tested tubes:</p>
+    <p><strong>After purchase, please message me with the number of the tube you want</strong> (each graph is labeled).</p>
+    <p>If no number is provided within 24 hours, a tube will be selected and shipped randomly.</p>
+    <br/>
+
+    <style>
+    th, td {
+        border: 1px solid #ccc;
+        padding: 8px;
+        text-align: center;
+    }
+
+    th {
+        background-color: #f5f5f5;
+    }
+    </style>
+    
+    <table >
+        <tr>
+            <th>Measurement #</th>
+            <th>Curves</th>
+        </tr>
+        @foreach (var id in Model.Product.ProductMeasurementIds)
+        {
+            <tr>
+                <td>@id</td>
+                <td><img src="@($"{baseUrl}/m/{id}/ebay_curves")" alt="@id"/></td>
+            </tr>
+        }
+    </table>
+}

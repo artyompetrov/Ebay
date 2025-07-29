@@ -4,11 +4,13 @@ namespace Server.Application.Infrastructure;
 
 public static class SvgMerger
 {
-    public static string MergeSvgs(bool mergeVertical, params string[] svgXmlList)
+    public record Svg(string? SvgXml, bool ReplaceFont);
+    
+    public static string MergeSvgs(bool mergeVertical, params Svg[] svg)
     {
         const string defaultFontFamily = "Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif";
 
-        var svgList = svgXmlList?.ToArray() ?? throw new ArgumentException("List must not be empty");
+        var svgList = svg.Where(x=>x!=null).Select(x=>x!).ToArray() ?? throw new ArgumentException("List must not be empty");
         if (svgList.Length == 0)
             throw new ArgumentException("List must not be empty");
 
@@ -18,14 +20,19 @@ public static class SvgMerger
 
         foreach (var svgXml in svgList)
         {
-            var svgElem = XElement.Parse(svgXml);
+            if (svgXml.SvgXml == null)
+                continue;
+            
+            var svgElem = XElement.Parse(svgXml.SvgXml);
 
+            
             // Удаляем все font-family у <text>
-            if (!string.IsNullOrWhiteSpace(defaultFontFamily))
+            if (svgXml.ReplaceFont)
             {
                 foreach (var textElem in svgElem.Descendants().Where(e => e.Name.LocalName == "text"))
                 {
                     textElem.Attribute("font-family")?.Remove();
+                    textElem.SetAttributeValue("font-family", defaultFontFamily);
                 }
             }
 
@@ -54,16 +61,6 @@ public static class SvgMerger
             new XAttribute("height", totalHeight),
             new XAttribute("xmlns", ns)
         );
-
-        // Добавляем CSS для font-family, если задано
-        if (!string.IsNullOrWhiteSpace(defaultFontFamily))
-        {
-            var style = new XElement(ns + "style",
-                new XAttribute("type", "text/css"),
-                $"text {{ font-family: {defaultFontFamily}; }}"
-            );
-            outSvg.AddFirst(style);
-        }
 
         double offsetX = 0, offsetY = 0;
         for (var i = 0; i < svgs.Count; i++)

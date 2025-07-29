@@ -1,6 +1,6 @@
 using Server.Application.Data.Models;
 
-namespace Server.Application.Services.MeasurementService;
+namespace Server.Application.Services.Measurement;
 
 public record MeasurementData(
     Guid ProductId,

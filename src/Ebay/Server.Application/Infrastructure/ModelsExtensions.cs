@@ -1,5 +1,5 @@
 using Server.Application.Data.Models;
-using Server.Application.Services.LotDataExtractorService;
+using Server.Application.Services.LotDataExtractor;
 using Server.Controllers.Generated;
 using ApiCurrency = Server.Controllers.Generated.Currency;
 using DbCurrency = Server.Application.Data.Models.Currency;

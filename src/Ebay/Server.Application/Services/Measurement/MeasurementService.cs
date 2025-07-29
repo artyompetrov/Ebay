@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Server.Application.Data;
 using Server.Application.Data.Models;
 
-namespace Server.Application.Services.MeasurementService;
+namespace Server.Application.Services.Measurement;
 
 public class MeasurementService
 {
@@ -210,55 +210,50 @@ public class MeasurementService
     }
 
 
-    public async Task<IReadOnlyCollection<MeasurementData>> GetMeasurements(
+    public async Task<MeasurementData?> GetMeasurements(
         CancellationToken cancellationToken,
-        params string[] measurementIds)
+        string measurementId)
     {
-        var results = new List<MeasurementData>();
-
-        var measurements = await _applicationContext.ProductMeasurements
+        var measurement = await _applicationContext.ProductMeasurements
             .AsNoTracking()
-            .Where(m => measurementIds.Contains(m.Id))
-            .ToListAsync(cancellationToken);
+            .Where(m => m.Id == measurementId)
+            .SingleOrDefaultAsync(cancellationToken);
 
-        foreach (var measurement in measurements)
+        if (measurement == null)
+            return null;
+        if (!ReadMeasurementFile(
+                measurementData: measurement.Measurements,
+                errors: out var fileErrors,
+                anodeCurvesConfig: out var anodeCurvesConfig,
+                gridCurvesConfig: out var gridCurvesConfig,
+                anodeCurves: out var anodeCurves,
+                gridCurves: out var gridCurves,
+                quickTest: out var quickTest))
         {
-            if (!ReadMeasurementFile(
-                    measurementData: measurement.Measurements,
-                    errors: out var fileErrors,
-                    anodeCurvesConfig: out var anodeCurvesConfig,
-                    gridCurvesConfig: out var gridCurvesConfig,
-                    anodeCurves: out var anodeCurves,
-                    gridCurves: out var gridCurves,
-                    quickTest: out var quickTest))
-            {
-                continue; // пропускаем повреждённые
-            }
-
-            var anodeCurvesConfigParsed = ParseMeasurementConfigTable(anodeCurvesConfig);
-            var gridCurvesConfigParsed = ParseMeasurementConfigTable(gridCurvesConfig);
-
-            var removeSection2 = anodeCurvesConfigParsed.MeasurementType == MeasurementType.TriodeAnodeCurves ||
-                                 gridCurvesConfigParsed.MeasurementType == MeasurementType.TriodeGridCurves;
-
-            var quickTestParsed = ParseAndPrettifyQuickTest(quickTest, removeSection2);
-
-            var data = new MeasurementData(
-                ProductId: measurement.ProductId,
-                MeasurementId: measurement.Id,
-                ManufactureCode: measurement.ManufactureCode,
-                ProductState: measurement.ProductState,
-                AnodeCurvesConfig: anodeCurvesConfigParsed,
-                GridCurvesConfig: gridCurvesConfigParsed,
-                AnodeCurves: ParseSpaceSeparatedTable(anodeCurves),
-                GridCurves: ParseSpaceSeparatedTable(gridCurves),
-                QuickTest: quickTestParsed
-            );
-
-            results.Add(data);
+            return null;
         }
 
-        return results;
+        var anodeCurvesConfigParsed = ParseMeasurementConfigTable(anodeCurvesConfig);
+        var gridCurvesConfigParsed = ParseMeasurementConfigTable(gridCurvesConfig);
+
+        var removeSection2 = anodeCurvesConfigParsed.MeasurementType == MeasurementType.TriodeAnodeCurves ||
+                             gridCurvesConfigParsed.MeasurementType == MeasurementType.TriodeGridCurves;
+
+        var quickTestParsed = ParseAndPrettifyQuickTest(quickTest, removeSection2);
+
+        var data = new MeasurementData(
+            ProductId: measurement.ProductId,
+            MeasurementId: measurement.Id,
+            ManufactureCode: measurement.ManufactureCode,
+            ProductState: measurement.ProductState,
+            AnodeCurvesConfig: anodeCurvesConfigParsed,
+            GridCurvesConfig: gridCurvesConfigParsed,
+            AnodeCurves: ParseSpaceSeparatedTable(anodeCurves),
+            GridCurves: ParseSpaceSeparatedTable(gridCurves),
+            QuickTest: quickTestParsed
+        );
+        
+        return data;
     }
 
 

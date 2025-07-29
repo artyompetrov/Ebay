@@ -91,7 +91,7 @@ builder.Services.AddLogging(
 
 builder.Services.AddMemoryCache(options =>
 {
-    options.SizeLimit = 1000;
+    options.SizeLimit = 10000;
 });
 
 builder.Services.AddResponseCaching();

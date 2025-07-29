@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Data;
 using Server.Application.Data.Models;
-using Server.Application.Services.MeasurementService;
+using Server.Application.Services.Measurement;
 
 namespace Server.Application.Pages;
 
@@ -12,7 +12,7 @@ public class MeasurementPage : PageModel
     private readonly MeasurementService _measurementService;
     private readonly ApplicationDbContext _applicationContext;
 
-    //конструктор обязательно должен быть public
+//конструктор обязательно должен быть public
     public MeasurementPage(MeasurementService measurementService, ApplicationDbContext applicationContext)
     {
         _measurementService = measurementService;
@@ -27,15 +27,13 @@ public class MeasurementPage : PageModel
     {
         var measurementData = await _measurementService.GetMeasurements(cancellationToken, measurementId);
 
-        if (measurementData.Count != 1)
+        if (measurementData == null)
             return NotFound("Measurement not found");
-
-        var measurement = measurementData.Single();
-
+        
         var product = await _applicationContext.Products
             .AsNoTracking()
             .Include(x => x.SearchQueries)
-            .SingleOrDefaultAsync(x => x.Id == measurement.ProductId);
+            .SingleOrDefaultAsync(x => x.Id == measurementData.ProductId);
 
         if (product == null)
         {
@@ -43,7 +41,7 @@ public class MeasurementPage : PageModel
         }
 
         Product = product;
-        Measurement = measurement;
+        Measurement = measurementData;
 
         return Page();
     }

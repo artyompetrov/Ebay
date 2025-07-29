@@ -2,7 +2,7 @@ using System.Text.RegularExpressions;
 using Server.Application.Infrastructure;
 using Server.Controllers.Generated;
 
-namespace Server.Application.Services.LotDataExtractorService;
+namespace Server.Application.Services.LotDataExtractor;
 
 internal class PcsExtractor : ExtractorBase, IExtractor
 {

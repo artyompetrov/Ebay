@@ -1,4 +1,4 @@
-namespace Server.Application.Services.MeasurementService;
+namespace Server.Application.Services.Measurement;
 
 public enum MeasurementType
 {

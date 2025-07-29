@@ -1,4 +1,4 @@
-namespace Server.Application.Services.LotDataExtractorService;
+namespace Server.Application.Services.LotDataExtractor;
 
 [Flags]
 internal enum ExtractFrom
