@@ -1,4 +1,4 @@
-namespace Server.Application.Services;
+namespace Server.Application.Services.LotDataExtractorService;
 
 internal record struct ExtractionResult(ExtractFrom ExtractedFrom, string Extractor, string Match)
 {

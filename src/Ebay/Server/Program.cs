@@ -88,14 +88,23 @@ builder.Services.AddLogging(
             });
     });
 
-var app = builder.Build();
+
+builder.Services.AddMemoryCache(options =>
+{
+    options.SizeLimit = 1000;
+});
 
 builder.Services.AddResponseCaching();
 
+
+
+
+
+
+var app = builder.Build();
+
 app.Services.InitializeApplication();
-
 app.UseSerilogRequestLogging();
-
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

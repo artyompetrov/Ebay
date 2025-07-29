@@ -1,7 +1,7 @@
 using Server.Application.Infrastructure;
 using Server.Controllers.Generated;
 
-namespace Server.Application.Services;
+namespace Server.Application.Services.LotDataExtractorService;
 
 public class ShippingRatesService
 {

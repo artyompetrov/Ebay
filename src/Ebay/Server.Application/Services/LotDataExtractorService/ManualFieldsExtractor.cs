@@ -1,6 +1,6 @@
 using Server.Controllers.Generated;
 
-namespace Server.Application.Services;
+namespace Server.Application.Services.LotDataExtractorService;
 
 internal static class ManualFieldsExtractor
 {

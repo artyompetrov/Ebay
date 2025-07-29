@@ -5,6 +5,7 @@ using Server.Application.Data;
 using Server.Application.Data.Models;
 using Server.Application.Infrastructure;
 using Server.Application.Services;
+using Server.Application.Services.LotDataExtractorService;
 
 namespace Server.Application.Consumers;
 

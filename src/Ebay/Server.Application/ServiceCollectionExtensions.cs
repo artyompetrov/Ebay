@@ -8,6 +8,8 @@ using Server.Application.Data.Models;
 using Server.Application.HostedServices.ChipFind;
 using Server.Application.HostedServices.Currencies;
 using Server.Application.Services;
+using Server.Application.Services.LotDataExtractorService;
+using Server.Application.Services.MeasurementService;
 using Server.Controllers.Generated;
 
 namespace Server.Application;
@@ -22,6 +24,7 @@ public static class ServiceCollectionExtensions
         services.AddNpgsqlDataSource(connectionString);
         services.AddDbContext<ApplicationDbContext>(o => o.UseNpgsql());
         services.AddSingleton<ShippingRatesService>();
+        services.AddScoped<MeasurementRepository>();
 
         services.AddScoped<IEbayController, EbayControllerImplementation>();
         services.AddDefaultIdentity<ApplicationUser>(o => o.SignIn.RequireConfirmedAccount = true)

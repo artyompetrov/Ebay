@@ -2,7 +2,7 @@ using System.Text.RegularExpressions;
 using Server.Application.Infrastructure;
 using Server.Controllers.Generated;
 
-namespace Server.Application.Services;
+namespace Server.Application.Services.LotDataExtractorService;
 
 internal class ConditionExtractor : ExtractorBase, IExtractor
 {

@@ -1,6 +1,6 @@
 using LotDataToExtract = Server.Controllers.Generated.LotDataToExtract;
 
-namespace Server.Application.Services;
+namespace Server.Application.Services.LotDataExtractorService;
 
 internal interface IExtractor
 {

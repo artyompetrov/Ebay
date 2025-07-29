@@ -4,60 +4,45 @@ using Microsoft.EntityFrameworkCore;
 using Server.Application.Data;
 using Server.Application.Data.Models;
 using Server.Application.Infrastructure;
+using Server.Application.Services.MeasurementService;
 
 namespace Server.Application.Pages;
 
 public class MeasurementPage : PageModel
 {
+    private readonly MeasurementRepository _measurementRepository;
     private readonly ApplicationDbContext _applicationContext;
 
     //конструктор обязательно должен быть public
-    public MeasurementPage(ApplicationDbContext applicationContext)
+    public MeasurementPage(MeasurementRepository measurementRepository, ApplicationDbContext applicationContext)
     {
+        _measurementRepository = measurementRepository;
         _applicationContext = applicationContext;
     }
 
-    internal ProductMeasurement Measurement { get; private set; } = null!;
-    public string QuickTest { get; private set; } = null!;
-    public MeasurementHelper.MeasurementConfig AnodeCurvesConfig { get; private set; } = null!;
-
-    public MeasurementHelper.MeasurementConfig GridCurvesConfig { get; private set; } = null!;
+    public Product Product { get; set; } = null!;
+    public MeasurementData Measurement { get; set; } = null!;
+    
 
     public async Task<IActionResult> OnGet(string measurementId)
     {
-        var measurement = await _applicationContext.ProductMeasurements
+        var measurementData = await _measurementRepository.GetMeasurement(measurementId);
+
+        if (measurementData == null)
+            return NotFound("Measurement not found");
+        
+        var product = await _applicationContext.Products
             .AsNoTracking()
-            .Include(x => x.Product)
-            .ThenInclude(x => x.SearchQueries)
-            .SingleOrDefaultAsync(x => x.Id == measurementId);
+            .Include(x => x.SearchQueries)
+            .SingleOrDefaultAsync(x => x.Id == measurementData.ProductId);
 
-        if (measurement == null)
+        if (product == null)
         {
-            return NotFound("Measurement not found");
+            return NotFound("Product not found");
         }
 
-        Measurement = measurement;
-
-        if (!MeasurementHelper.ReadMeasurementFile(
-                measurementData: Measurement.Measurements,
-                errors: out var fileErrors,
-                anodeCurvesConfig: out var anodeCurvesConfig,
-                gridCurvesConfig: out var gridCurvesConfig,
-                anodeCurves: out var anodeCurves,
-                gridCurves: out var gridCurves,
-                quickTest: out var quickTest))
-        {
-            return NotFound("Measurement not found");
-        }
-
-        AnodeCurvesConfig = MeasurementHelper.ParseMeasurementConfigTable(anodeCurvesConfig);
-        GridCurvesConfig = MeasurementHelper.ParseMeasurementConfigTable(gridCurvesConfig);
-
-        var removeSection2 = AnodeCurvesConfig.MeasurementType == MeasurementHelper.MeasurementType.TriodeAnodeCurves ||
-                             GridCurvesConfig.MeasurementType == MeasurementHelper.MeasurementType.TriodeGridCurves;
-
-        QuickTest = MeasurementHelper.ParseAndPrettifyQuickTest(quickTest, removeSection2);
-
+        Product = product;
+        
         return Page();
     }
 }

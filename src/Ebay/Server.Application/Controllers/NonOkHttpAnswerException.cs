@@ -30,6 +30,22 @@ internal class NonOkHttpAnswerException : Exception
                     )
             }));
 
+    
+    public static NonOkHttpAnswerException ValidationError400(string field, params string[] errors) => new(
+        new ValidationProblemDetailedInfo(
+            detail: null,
+            instance: null,
+            status: 400,
+            title: null,
+            type: nameof(ValidationProblemDetailedInfo),
+            errors: new Errors2
+            {
+                AdditionalProperties = new Dictionary<string, object>
+                {
+                    { field, errors }
+                }
+            }));
+
 
     public static NonOkHttpAnswerException NotFound400() => new(
         new NotFoundProblemDetailedInfo(

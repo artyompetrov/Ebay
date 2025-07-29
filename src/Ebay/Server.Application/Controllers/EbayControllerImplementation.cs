@@ -7,6 +7,8 @@ using Server.Application.Data;
 using Server.Application.Data.Models;
 using Server.Application.Infrastructure;
 using Server.Application.Services;
+using Server.Application.Services.LotDataExtractorService;
+using Server.Application.Services.MeasurementService;
 using Server.Controllers.Generated;
 using ClientErrorInfo = Server.Controllers.Generated.ClientErrorInfo;
 using Currency = Server.Controllers.Generated.Currency;
@@ -15,6 +17,7 @@ using LotInfo = Server.Controllers.Generated.LotInfo;
 using LotInfoShort = Server.Controllers.Generated.LotInfoShort;
 using LotInfoWithProductId = Server.Controllers.Generated.LotInfoWithProductId;
 using LotState = Server.Controllers.Generated.LotState;
+using MeasurementData = Server.Controllers.Generated.MeasurementData;
 using ProductWithId = Server.Controllers.Generated.ProductWithId;
 using ProductWithoutId = Server.Controllers.Generated.ProductWithoutId;
 
@@ -25,15 +28,18 @@ public class EbayControllerImplementation : IEbayController
     private readonly ApplicationDbContext _applicationContext;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly ShippingRatesService _shippingRatesService;
+    private readonly MeasurementRepository _measurementRepository;
 
     public EbayControllerImplementation(
         ApplicationDbContext applicationContext,
         IPublishEndpoint publishEndpoint,
-        ShippingRatesService shippingRatesService)
+        ShippingRatesService shippingRatesService,
+        MeasurementRepository measurementRepository)
     {
         _applicationContext = applicationContext;
         _publishEndpoint = publishEndpoint;
         _shippingRatesService = shippingRatesService;
+        _measurementRepository = measurementRepository;
     }
 
     public async Task<ICollection<ProductWithId>> GetAllProductsAsync(CancellationToken cancellationToken)
@@ -305,116 +311,27 @@ public class EbayControllerImplementation : IEbayController
         return result;
     }
 
-
     public async Task UploadMeasurementAsync(
         MeasurementDataToUpload measurementData,
         Guid productId,
         CancellationToken cancellationToken)
     {
-        var errors = new List<(string key, string[] value)>();
-
-        if (!Regex.IsMatch(measurementData.MeasurementId, "^[A-Z0-9]+$"))
-        {
-            errors.Add((nameof(measurementData.MeasurementId), ["Invalid measurementId"]));
-        }
-
-        if (errors.Count > 0)
-        {
-            throw NonOkHttpAnswerException.ValidationError400(errors);
-        }
-
-        if (!MeasurementHelper.ReadMeasurementFile(
-                measurementData: measurementData.File,
-                errors: out var fileErrors,
-                anodeCurvesConfig: out var anodeCurvesConfig,
-                gridCurvesConfig: out var gridCurvesConfig,
-                anodeCurves: out var anodeCurves,
-                gridCurves: out var gridCurves,
-                quickTest: out var quickTest))
-        {
-            errors.Add((nameof(measurementData.File), fileErrors.ToArray()));
-            throw NonOkHttpAnswerException.ValidationError400(errors);
-        }
-
-        ValidateMeasurementFiles(
-            anodeCurvesConfig: anodeCurvesConfig,
-            gridCurvesConfig: gridCurvesConfig,
-            anodeCurves: anodeCurves,
-            gridCurves: gridCurves,
-            quickTest: quickTest,
-            errors: errors);
-
-        var hashAnodeCurvesConfig = ComputeEntryHashAsync(anodeCurvesConfig);
-        var hashGridCurvesConfig = ComputeEntryHashAsync(gridCurvesConfig);
-        var hashAnodeCurves = ComputeEntryHashAsync(anodeCurves);
-        var hashGridCurves = ComputeEntryHashAsync(gridCurves);
-        var hashQuickTest = ComputeEntryHashAsync(quickTest);
-
-        var hashes = new HashSet<string>
-        {
-            hashAnodeCurvesConfig,
-            hashGridCurvesConfig,
-            hashAnodeCurves,
-            hashGridCurves,
-            hashQuickTest
-        };
-
-        if (hashes.Count != 5)
-        {
-            errors.Add((nameof(measurementData.File), ["File duplicates"]));
-            throw NonOkHttpAnswerException.ValidationError400(errors);
-        }
-
-        await _applicationContext.ProductMeasurements.AddAsync(
-            entity: new ProductMeasurement
-            {
-                Id = measurementData.MeasurementId,
-                ProductId = productId,
-                MeasurementState = MeasurementState.Created,
-                ProductState = measurementData.ProductState.ToDbProductState(),
-                Measurements = measurementData.File,
-                HashAnodeCurves = hashAnodeCurves ?? throw new NullReferenceException(nameof(hashAnodeCurves)),
-                HashGridCurves = hashGridCurves ?? throw new NullReferenceException(nameof(hashGridCurves)),
-                HashQuickTest = hashQuickTest ?? throw new NullReferenceException(nameof(hashQuickTest)),
-                ManufactureCode = measurementData.ManufactureCode,
-                Location = measurementData.Location
-            },
-            cancellationToken: cancellationToken);
-
-        await _applicationContext.SaveChangesAsync(cancellationToken);
-    }
-
-    private static void ValidateMeasurementFiles(byte[] anodeCurvesConfig, byte[] gridCurvesConfig, byte[] anodeCurves,
-        byte[] gridCurves, byte[] quickTest, List<(string key, string[] value)> errors)
-    {
-        // Проверка, что измерения загружены правильно
         try
         {
-            var anodeConfig = MeasurementHelper.ParseMeasurementConfigTable(anodeCurvesConfig);
-            var gridConfig = MeasurementHelper.ParseMeasurementConfigTable(gridCurvesConfig);
-
-            if (anodeConfig.MeasurementType != MeasurementHelper.MeasurementType.TriodeAnodeCurves &&
-                anodeConfig.MeasurementType != MeasurementHelper.MeasurementType.DoubleTriodeAnodeCurves &&
-                anodeConfig.MeasurementType != MeasurementHelper.MeasurementType.PentodeAnodeCurves)
-            {
-                throw new InvalidOperationException("AnodeCurves expected");
-            }
-
-            if (gridConfig.MeasurementType != MeasurementHelper.MeasurementType.TriodeGridCurves &&
-                gridConfig.MeasurementType != MeasurementHelper.MeasurementType.DoubleTriodeGridCurves &&
-                gridConfig.MeasurementType != MeasurementHelper.MeasurementType.PentodeScreenCurves)
-            {
-                throw new InvalidOperationException("Grid or screen curves expected");
-            }
-
-            MeasurementHelper.ParseSpaceSeparatedTable(anodeCurves);
-            MeasurementHelper.ParseSpaceSeparatedTable(gridCurves);
-            MeasurementHelper.ParseAndPrettifyQuickTest(quickTest, removeSection2: false);
+            await _measurementRepository.SaveMeasurement(
+                measurementId: measurementData.MeasurementId,
+                measurementsFile: measurementData.File,
+                productState: measurementData.ProductState.ToDbProductState(),
+                manufactureCode: measurementData.ManufactureCode,
+                location: measurementData.Location,
+                productId: productId,
+                cancellationToken: cancellationToken);
         }
-        catch (Exception ex)
+        catch (MeasurementException measurementException)
         {
-            errors.Add((nameof(MeasurementDataToUpload.File), [ex.ToString()]));
-            throw NonOkHttpAnswerException.ValidationError400(errors);
+            throw NonOkHttpAnswerException.ValidationError400(
+                field: nameof(measurementData),
+                measurementException.Message);
         }
     }
 
@@ -423,11 +340,10 @@ public class EbayControllerImplementation : IEbayController
         string measurementId,
         CancellationToken cancellationToken)
     {
-        _applicationContext.ProductMeasurements.RemoveRange(
-            _applicationContext.ProductMeasurements.Where(x =>
-                x.ProductId == productId && x.Id == measurementId.ToString()));
-
-        await _applicationContext.SaveChangesAsync(cancellationToken);
+        await _measurementRepository.DeleteMeasurement(
+            productId: productId,
+            measurementId: measurementId,
+            cancellationToken: cancellationToken);
     }
 
     public async Task UpdateMeasurementLocationAsync(
@@ -436,27 +352,13 @@ public class EbayControllerImplementation : IEbayController
         string measurementId,
         CancellationToken cancellationToken)
     {
-        
-        var measurement = await _applicationContext.ProductMeasurements
-            .Where(m => m.ProductId == productId && m.Id == measurementId)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        if (measurement == null)
-        {
-            throw new InvalidOperationException("Measurement not found.");
-        }
-
-        measurement.Location = location;
-
-        await _applicationContext.SaveChangesAsync(cancellationToken);
-        
+        await _measurementRepository.UpdateMeasurementLocation(
+            location: location,
+            productId: productId,
+            measurementId: measurementId,
+            cancellationToken: cancellationToken);
     }
 
-    private static string ComputeEntryHashAsync(byte[] bytes)
-    {
-        var hashBytes = SHA256.HashData(bytes);
-        return Convert.ToHexString(hashBytes);
-    }
     public async Task<LotInfoWithProductId> GetLotInfoAsync(
         long lotId,
         CancellationToken cancellationToken

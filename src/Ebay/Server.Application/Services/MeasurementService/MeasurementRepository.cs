@@ -1,13 +1,261 @@
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO.Compression;
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using Server.Application.Controllers;
+using Server.Application.Data;
+using Server.Application.Data.Models;
 
-namespace Server.Application.Infrastructure;
+namespace Server.Application.Services.MeasurementService;
 
-public static class MeasurementHelper
+public class MeasurementRepository
 {
-    public static bool ReadMeasurementFile(
+    private readonly IMemoryCache _cache;
+    private readonly ApplicationDbContext _applicationContext;
+
+    public MeasurementRepository(IMemoryCache cache, ApplicationDbContext applicationContext)
+    {
+        _cache = cache;
+        _applicationContext = applicationContext;
+    }
+
+    public async Task SaveMeasurement(
+        string measurementId,
+        byte[] measurementsFile,
+        ProductState productState,
+        string manufactureCode,
+        string? location,
+        Guid productId,
+        CancellationToken cancellationToken)
+    {
+        if (!Regex.IsMatch(measurementId, "^[A-Z0-9]+$"))
+        {
+            throw new MeasurementException($"Incorrect MeasurementId Format {measurementId}");
+        }
+        
+        if (!ReadMeasurementFile(
+                measurementData: measurementsFile,
+                errors: out var fileErrors,
+                anodeCurvesConfig: out var anodeCurvesConfig,
+                gridCurvesConfig: out var gridCurvesConfig,
+                anodeCurves: out var anodeCurves,
+                gridCurves: out var gridCurves,
+                quickTest: out var quickTest))
+        {
+            throw new MeasurementException($"Errors during file parsing {string.Join(", ",fileErrors)}");
+        }
+        
+        // Проверка, что измерения загружены правильно
+        try
+        {
+            var anodeConfig = ParseMeasurementConfigTable(anodeCurvesConfig);
+            var gridConfig = ParseMeasurementConfigTable(gridCurvesConfig);
+
+            if (anodeConfig.MeasurementType != MeasurementType.TriodeAnodeCurves &&
+                anodeConfig.MeasurementType != MeasurementType.DoubleTriodeAnodeCurves &&
+                anodeConfig.MeasurementType != MeasurementType.PentodeAnodeCurves)
+            {
+                throw new MeasurementException("AnodeCurves expected");
+            }
+
+            if (gridConfig.MeasurementType != MeasurementType.TriodeGridCurves &&
+                gridConfig.MeasurementType != MeasurementType.DoubleTriodeGridCurves &&
+                gridConfig.MeasurementType != MeasurementType.PentodeScreenCurves)
+            {
+                throw new MeasurementException("Grid or screen curves expected");
+            }
+
+            ParseSpaceSeparatedTable(anodeCurves);
+            ParseSpaceSeparatedTable(gridCurves);
+            ParseAndPrettifyQuickTest(quickTest, removeSection2: false);
+            
+            var hashAnodeCurvesConfig = ComputeEntryHashAsync(anodeCurvesConfig);
+            var hashGridCurvesConfig = ComputeEntryHashAsync(gridCurvesConfig);
+            var hashAnodeCurves = ComputeEntryHashAsync(anodeCurves);
+            var hashGridCurves = ComputeEntryHashAsync(gridCurves);
+            var hashQuickTest = ComputeEntryHashAsync(quickTest);
+        
+            var hashes = new HashSet<string>
+            {
+                hashAnodeCurvesConfig,
+                hashGridCurvesConfig,
+                hashAnodeCurves,
+                hashGridCurves,
+                hashQuickTest
+            };
+
+            if (hashes.Count != 5)
+            {
+                throw new MeasurementException("File duplicates");
+            }
+        
+            await _applicationContext.ProductMeasurements.AddAsync(
+                entity: new ProductMeasurement
+                {
+                    Id = measurementId,
+                    ProductId = productId,
+                    MeasurementState = MeasurementState.Created,
+                    ProductState = productState,
+                    Measurements = measurementsFile,
+                    HashAnodeCurves = hashAnodeCurves ?? throw new NullReferenceException(nameof(hashAnodeCurves)),
+                    HashGridCurves = hashGridCurves ?? throw new NullReferenceException(nameof(hashGridCurves)),
+                    HashQuickTest = hashQuickTest ?? throw new NullReferenceException(nameof(hashQuickTest)),
+                    ManufactureCode = manufactureCode,
+                    Location = location
+                },
+                cancellationToken: cancellationToken);
+
+            await _applicationContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            throw new MeasurementException($"Errors during data validation {ex.Message}");
+        }
+    }
+    
+    public async Task UpdateMeasurementLocation(
+        string location,
+        Guid productId,
+        string measurementId,
+        CancellationToken cancellationToken)
+    {
+        var measurement = await _applicationContext.ProductMeasurements
+            .Where(m => m.ProductId == productId && m.Id == measurementId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (measurement == null)
+        {
+            throw new InvalidOperationException("Measurement not found.");
+        }
+
+        measurement.Location = location;
+
+        await _applicationContext.SaveChangesAsync(cancellationToken);
+    }
+    
+    public async Task DeleteMeasurement(Guid productId, string measurementId, CancellationToken cancellationToken)
+    {
+        _applicationContext.ProductMeasurements.RemoveRange(
+            _applicationContext.ProductMeasurements.Where(x =>
+                x.ProductId == productId && x.Id == measurementId));
+
+        await _applicationContext.SaveChangesAsync(cancellationToken);
+    }
+    
+    private static string ComputeEntryHashAsync(byte[] bytes)
+    {
+        var hashBytes = SHA256.HashData(bytes);
+        return Convert.ToHexString(hashBytes);
+    }
+    
+    public async Task<byte[]?> GetMeasurementFile(string measurementId, CancellationToken cancellationToken)
+    {
+        var zipBytes = await _applicationContext.ProductMeasurements
+            .AsNoTracking()
+            .Where(x => x.Id == measurementId)
+            .Select(x => x.Measurements)
+            .SingleOrDefaultAsync(cancellationToken: cancellationToken);
+
+        if (zipBytes == null)
+            return null;
+
+        if (!ReadMeasurementFile(
+                measurementData: zipBytes,
+                errors: out var fileErrors,
+                anodeCurvesConfig: out var anodeCurvesConfig,
+                gridCurvesConfig: out var gridCurvesConfig,
+                anodeCurves: out var anodeCurves,
+                gridCurves: out var gridCurves,
+                quickTest: out var quickTest))
+        {
+            return null;
+        }
+
+        var config = ParseMeasurementConfigTable(gridCurvesConfig);
+
+        var gridFileName = config.MeasurementType switch
+        {
+            MeasurementType.TriodeGridCurves => "grid_curves",
+            MeasurementType.DoubleTriodeGridCurves => "grid_curves",
+            MeasurementType.PentodeScreenCurves => "screen_curves",
+            _ => throw new ArgumentOutOfRangeException()
+        };
+
+        using var zipStream = new MemoryStream();
+        using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, leaveOpen: true))
+        {
+
+            await SaveFileToZipArchive(
+                archive: archive,
+                fileName: "anode_curves_measurement_config.uts",
+                content: anodeCurvesConfig);
+            await SaveFileToZipArchive(
+                archive: archive,
+                fileName: $"{gridFileName}_measurement_config.uts",
+                content: gridCurvesConfig);
+            await SaveFileToZipArchive(archive: archive, fileName: "anode_curves.utd", content: anodeCurves);
+            await SaveFileToZipArchive(archive: archive, fileName: $"{gridFileName}.utd", content: gridCurves);
+            await SaveFileToZipArchive(archive: archive, fileName: "quick_test.txt", content: quickTest);
+        }
+
+        zipStream.Position = 0;
+
+        return zipStream.ToArray();
+    }
+
+    private async static Task SaveFileToZipArchive(ZipArchive archive, string fileName, byte[] content)
+    {
+        var entry = archive.CreateEntry(fileName);
+        await using var entryStream = entry.Open();
+        entryStream.Write(content, 0, content.Length);
+    }
+
+    public async Task<MeasurementData?> GetMeasurement(string measurementId)
+    {
+        var measurement = await _applicationContext.ProductMeasurements
+            .AsNoTracking()
+            .SingleOrDefaultAsync(x => x.Id == measurementId);
+
+        if (measurement == null)
+            return null;
+
+        if (!ReadMeasurementFile(
+                measurementData: measurement.Measurements,
+                errors: out var fileErrors,
+                anodeCurvesConfig: out var anodeCurvesConfig,
+                gridCurvesConfig: out var gridCurvesConfig,
+                anodeCurves: out var anodeCurves,
+                gridCurves: out var gridCurves,
+                quickTest: out var quickTest))
+        {
+            throw new InvalidOperationException("Unable to parse measurement");
+        }
+
+        var anodeCurvesConfigParsed = ParseMeasurementConfigTable(anodeCurvesConfig);
+        var gridCurvesConfigParsed = ParseMeasurementConfigTable(gridCurvesConfig);
+
+        var removeSection2 = anodeCurvesConfigParsed.MeasurementType == MeasurementType.TriodeAnodeCurves ||
+                             gridCurvesConfigParsed.MeasurementType == MeasurementType.TriodeGridCurves;
+
+        var quickTestParsed = ParseAndPrettifyQuickTest(quickTest, removeSection2);
+
+        return new MeasurementData(
+            ProductId: measurement.ProductId,
+            MeasurementId: measurementId,
+            ManufactureCode: measurement.ManufactureCode,
+            ProductState: measurement.ProductState,
+            AnodeCurvesConfig: anodeCurvesConfigParsed,
+            GridCurvesConfig: gridCurvesConfigParsed,
+            AnodeCurves: ParseSpaceSeparatedTable(anodeCurves),
+            GridCurves: ParseSpaceSeparatedTable(gridCurves),
+            QuickTest: quickTestParsed);
+    }
+
+
+    private static bool ReadMeasurementFile(
         byte[] measurementData,
         [NotNullWhen(false)] out List<string>? errors,
         [NotNullWhen(true)] out byte[]? anodeCurvesConfig,
@@ -98,7 +346,7 @@ public static class MeasurementHelper
     }
 
 
-    public static Dictionary<int, MeasurementPoint[]> ParseSpaceSeparatedTable(byte[] data)
+    private static Dictionary<int, MeasurementPoint[]> ParseSpaceSeparatedTable(byte[] data)
     {
         var stringData = System.Text.Encoding.UTF8.GetString(data);
 
@@ -184,7 +432,7 @@ public static class MeasurementHelper
     }
 
 
-    public static MeasurementConfig ParseMeasurementConfigTable(byte[] data)
+    private static MeasurementConfig ParseMeasurementConfigTable(byte[] data)
     {
         var lineRegex = new Regex(@"^([+-]?\d+)\s+(.*)$", RegexOptions.Compiled);
 
@@ -207,15 +455,12 @@ public static class MeasurementHelper
         }
 
         return new MeasurementConfig(
-            MeasurementType: GetMeasurementType(measurementType: config["measurement type"]!.Value, y2AxisVariable: config["Y2 axis variable"]!.Value),
+            MeasurementType: GetMeasurementType(
+                measurementType: config["measurement type"]!.Value,
+                y2AxisVariable: config["Y2 axis variable"]!.Value),
             Pmax: config["Pmax"]!.Value
         );
     }
-
-
-    /// <param name="Pmax">Максимальная мощность мВт</param>
-    public record MeasurementConfig(MeasurementType MeasurementType, int Pmax);
-
 
     private static MeasurementType GetMeasurementType(int measurementType, int y2AxisVariable)
     {
@@ -250,17 +495,7 @@ public static class MeasurementHelper
         };
     }
 
-    public enum MeasurementType
-    {
-        TriodeAnodeCurves,
-        TriodeGridCurves,
-        DoubleTriodeAnodeCurves,
-        DoubleTriodeGridCurves,
-        PentodeAnodeCurves,
-        PentodeScreenCurves,
-    }
-
-    public static string ParseAndPrettifyQuickTest(byte[] quickTest, bool removeSection2)
+    private static string ParseAndPrettifyQuickTest(byte[] quickTest, bool removeSection2)
     {
         var quickTestOriginal = System.Text.Encoding.UTF8.GetString(quickTest);
 

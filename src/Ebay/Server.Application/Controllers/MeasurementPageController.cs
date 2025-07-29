@@ -5,6 +5,7 @@ using ScottPlot;
 using ScottPlot.PlotStyles;
 using Server.Application.Data;
 using Server.Application.Infrastructure;
+using Server.Application.Services.MeasurementService;
 
 namespace Server.Application.Controllers;
 
@@ -12,70 +13,25 @@ namespace Server.Application.Controllers;
 [Route("/m/")]
 public class MeasurementPageController : ControllerBase
 {
+    private readonly MeasurementRepository _measurementRepository;
+
     // Максимальное dI - чтобы отсечь некорректные изменения из-за compliance, в долях от максимального тока
     private const double IgnoreDI = -0.1;
-    private readonly ApplicationDbContext _applicationContext;
 
-    public MeasurementPageController(ApplicationDbContext applicationContext)
+    public MeasurementPageController(MeasurementRepository measurementRepository)
     {
-        _applicationContext = applicationContext;
+        _measurementRepository = measurementRepository;
     }
 
     [HttpGet("{measurementId}/download")]
-    public async Task<IActionResult> DownloadZip(string measurementId)
+    public async Task<IActionResult> DownloadZip(string measurementId, CancellationToken cancellationToken)
     {
-        var zipBytes = await _applicationContext.ProductMeasurements
-            .AsNoTracking()
-            .Where(x => x.Id == measurementId)
-            .Select(x => x.Measurements)
-            .SingleOrDefaultAsync();
+        var file = await _measurementRepository.GetMeasurementFile(measurementId, cancellationToken);
 
-        if (zipBytes == null)
+        if (file == null)
             return NotFound();
 
-        if (!MeasurementHelper.ReadMeasurementFile(
-                measurementData: zipBytes,
-                errors: out var fileErrors,
-                anodeCurvesConfig: out var anodeCurvesConfig,
-                gridCurvesConfig: out var gridCurvesConfig,
-                anodeCurves: out var anodeCurves,
-                gridCurves: out var gridCurves,
-                quickTest: out var quickTest))
-        {
-            return NotFound();
-        }
-
-        var config = MeasurementHelper.ParseMeasurementConfigTable(gridCurvesConfig);
-
-        var gridFileName = config.MeasurementType switch
-        {
-            MeasurementHelper.MeasurementType.TriodeGridCurves => "grid_curves",
-            MeasurementHelper.MeasurementType.DoubleTriodeGridCurves => "grid_curves",
-            MeasurementHelper.MeasurementType.PentodeScreenCurves => "screen_curves",
-            _ => throw new ArgumentOutOfRangeException()
-        };
-
-        using var zipStream = new MemoryStream();
-        using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, leaveOpen: true))
-        {
-
-            await SaveFileToZipArchive(archive: archive, fileName: "anode_curves_measurement_config.uts", content: anodeCurvesConfig);
-            await SaveFileToZipArchive(archive: archive, fileName: $"{gridFileName}_measurement_config.uts", content: gridCurvesConfig);
-            await SaveFileToZipArchive(archive: archive, fileName: "anode_curves.utd", content: anodeCurves);
-            await SaveFileToZipArchive(archive: archive, fileName: $"{gridFileName}.utd", content: gridCurves);
-            await SaveFileToZipArchive(archive: archive, fileName: "quick_test.txt", content: quickTest);
-        }
-
-        zipStream.Position = 0;
-
-        return File(zipStream.ToArray(), "application/zip", $"{measurementId}.zip");
-    }
-
-    private async static Task SaveFileToZipArchive(ZipArchive archive, string fileName, byte[] content)
-    {
-        var entry = archive.CreateEntry(fileName);
-        await using var entryStream = entry.Open();
-        entryStream.Write(content, 0, content.Length);
+        return File(file, "application/zip", $"{measurementId}.zip");
     }
 
 #if !DEBUG
@@ -89,36 +45,20 @@ public class MeasurementPageController : ControllerBase
         [FromQuery] int width = 800,
         [FromQuery] int height = 500)
     {
-        var measurements = await _applicationContext.ProductMeasurements
-            .AsNoTracking()
-            .Where(x => x.Id == measurementId)
-            .Select(x => x.Measurements)
-            .SingleOrDefaultAsync();
+        var measurements = await _measurementRepository.GetMeasurement(measurementId);
 
         if (measurements == null) return NotFound();
 
-        if (!MeasurementHelper.ReadMeasurementFile(
-                measurementData: measurements,
-                errors: out var fileErrors,
-                anodeCurvesConfig: out var anodeCurvesConfig,
-                gridCurvesConfig: out var gridCurvesConfig,
-                anodeCurves: out var anodeCurves,
-                gridCurves: out var gridCurves,
-                quickTest: out var quickTest))
-        {
-            return Problem();
-        }
-
         var plot1 = CreatePlot(
-            measurementData: anodeCurves,
-            measurementConfig: anodeCurvesConfig,
+            curves: measurements.AnodeCurves,
+            config: measurements.AnodeCurvesConfig,
             vertical: vertical,
             width: width,
             height: height);
 
         var plot2 = CreatePlot(
-            measurementData: gridCurves,
-            measurementConfig: gridCurvesConfig,
+            curves: measurements.GridCurves,
+            config: measurements.GridCurvesConfig,
             vertical: vertical,
             width: width,
             height: height);
@@ -134,8 +74,8 @@ public class MeasurementPageController : ControllerBase
     }
 
     private static string CreatePlot(
-        byte[] measurementData,
-        byte[] measurementConfig,
+        MeasurementConfig config,
+        IReadOnlyDictionary<int, MeasurementPoint[]> curves,
         bool vertical,
         int width,
         int height)
@@ -149,54 +89,56 @@ public class MeasurementPageController : ControllerBase
                 LegendBackgroundColor = new Color(red: 0, green: 0, blue: 0, alpha: 0),
                 LegendOutlineColor = new Color(red: 0, green: 0, blue: 0)
             });
-        var anodeCurvesPoints = MeasurementHelper.ParseSpaceSeparatedTable(measurementData);
         var legendItems = new List<LegendItem>();
 
-        var config = MeasurementHelper.ParseMeasurementConfigTable(measurementConfig);
 
         switch (config.MeasurementType)
         {
-            case MeasurementHelper.MeasurementType.TriodeAnodeCurves:
+            case MeasurementType.TriodeAnodeCurves:
                 PlotTriodeAnodeCurves(
-                    data: anodeCurvesPoints,
-                    measurementConfig: config,
+                    curves: curves,
+                    config: config,
                     plotSecondCurve: false,
                     plot: plt,
                     legendItems: legendItems);
                 break;
-            case MeasurementHelper.MeasurementType.TriodeGridCurves:
+            case MeasurementType.TriodeGridCurves:
                 PlotTriodeGridCurves(
-                    data: anodeCurvesPoints,
-                    measurementConfig: config,
+                    curves: curves,
+                    config: config,
                     plotSecondCurve: false,
                     plot: plt,
                     legendItems: legendItems);
                 break;
-            case MeasurementHelper.MeasurementType.DoubleTriodeAnodeCurves:
+            case MeasurementType.DoubleTriodeAnodeCurves:
                 PlotTriodeAnodeCurves(
-                    data: anodeCurvesPoints,
-                    measurementConfig: config,
+                    curves: curves,
+                    config: config,
                     plotSecondCurve: true,
                     plot: plt,
                     legendItems: legendItems);
                 break;
-            case MeasurementHelper.MeasurementType.DoubleTriodeGridCurves:
+            case MeasurementType.DoubleTriodeGridCurves:
                 PlotTriodeGridCurves(
-                    data: anodeCurvesPoints,
-                    measurementConfig: config,
+                    curves: curves,
+                    config: config,
                     plotSecondCurve: true,
                     plot: plt,
                     legendItems: legendItems);
                 break;
-            case MeasurementHelper.MeasurementType.PentodeAnodeCurves:
+            case MeasurementType.PentodeAnodeCurves:
                 PlotPentodeAnodeCurves(
-                    data: anodeCurvesPoints,
-                    measurementConfig: config,
+                    curves: curves,
+                    config: config,
                     plot: plt,
                     legendItems: legendItems);
                 break;
-            case MeasurementHelper.MeasurementType.PentodeScreenCurves:
-                PlotPentodeScreenCurves(data: anodeCurvesPoints, config: config, plot: plt, legendItems: legendItems);
+            case MeasurementType.PentodeScreenCurves:
+                PlotPentodeScreenCurves(
+                    curves: curves,
+                    config: config,
+                    plot: plt, 
+                    legendItems: legendItems);
                 break;
 
             default:
@@ -212,13 +154,13 @@ public class MeasurementPageController : ControllerBase
     }
 
     private static void PlotTriodeAnodeCurves(
-    Dictionary<int, MeasurementPoint[]> data,
-    MeasurementHelper.MeasurementConfig measurementConfig,
+        MeasurementConfig config,
+        IReadOnlyDictionary<int, MeasurementPoint[]> curves,
     bool plotSecondCurve,
     Plot plot,
     List<LegendItem> legendItems)
     {
-        double PowerLimit(double v) => measurementConfig.Pmax / v;
+        double PowerLimit(double v) => config.Pmax / v;
 
         var maxX = 0.0;
         var maxY = 0.0;
@@ -230,7 +172,7 @@ public class MeasurementPageController : ControllerBase
         var lineWidth = 1;
         var markerSize = 5;
 
-        foreach (var (i, values) in data)
+        foreach (var (i, values) in curves)
         {
             var maxI = values.Select(x => x.Ia).Union(values.Select(x=>x.Is)).Max();
             
@@ -297,7 +239,7 @@ public class MeasurementPageController : ControllerBase
         legendItems.Add(
             new LegendItem
             {
-                LabelText = $"MaxP = {measurementConfig.Pmax / 1000.0:F1}W",
+                LabelText = $"MaxP = {config.Pmax / 1000.0:F1}W",
                 LineColor = func.LineColor,
                 LineWidth = func.LineWidth,
             });
@@ -344,8 +286,8 @@ public class MeasurementPageController : ControllerBase
     }
 
     private static void PlotTriodeGridCurves(
-        Dictionary<int, MeasurementPoint[]> data,
-        MeasurementHelper.MeasurementConfig measurementConfig,
+        MeasurementConfig config,
+        IReadOnlyDictionary<int, MeasurementPoint[]> curves,
         bool plotSecondCurve,
         Plot plot,
         List<LegendItem> legendItems)
@@ -357,11 +299,11 @@ public class MeasurementPageController : ControllerBase
         var lineWidth = 1;
         var markerSize = 5;
 
-        double PowerLimit(double v) => measurementConfig.Pmax / v;
+        double PowerLimit(double v) => config.Pmax / v;
 
         var minX = 0.0;
         var maxY = 0.0;
-        foreach (var (i, values) in data)
+        foreach (var (i, values) in curves)
         {
             var maxI = values.Select(x => x.Ia).Union(values.Select(x=>x.Is)).Max();
             
@@ -452,12 +394,12 @@ public class MeasurementPageController : ControllerBase
     }
 
     private static void PlotPentodeAnodeCurves(
-        Dictionary<int, MeasurementPoint[]> data,
-        MeasurementHelper.MeasurementConfig measurementConfig,
+        MeasurementConfig config,
+        IReadOnlyDictionary<int, MeasurementPoint[]> curves,
         Plot plot,
         List<LegendItem> legendItems)
     {
-        double PowerLimit(double v) => measurementConfig.Pmax / v;
+        double PowerLimit(double v) => config.Pmax / v;
 
         var maxX = 0.0;
         var maxY = 0.0;
@@ -469,7 +411,7 @@ public class MeasurementPageController : ControllerBase
         var lineWidth = 1;
         var markerSize = 5;
 
-        foreach (var (i, values) in data)
+        foreach (var (i, values) in curves)
         {
             var maxI = values.Select(x => x.Ia).Union(values.Select(x=>x.Is)).Max();
             
@@ -526,7 +468,7 @@ public class MeasurementPageController : ControllerBase
         legendItems.Add(
             new LegendItem
             {
-                LabelText = $"MaxP = {measurementConfig.Pmax / 1000.0:F1}W",
+                LabelText = $"MaxP = {config.Pmax / 1000.0:F1}W",
                 LineColor = func.LineColor,
                 LineWidth = func.LineWidth,
             });
@@ -561,8 +503,8 @@ public class MeasurementPageController : ControllerBase
     }
 
     private static void PlotPentodeScreenCurves(
-        Dictionary<int, MeasurementPoint[]> data,
-        MeasurementHelper.MeasurementConfig config,
+        MeasurementConfig config,
+        IReadOnlyDictionary<int, MeasurementPoint[]> curves,
         Plot plot,
         List<LegendItem> legendItems)
     {
@@ -576,7 +518,7 @@ public class MeasurementPageController : ControllerBase
         double PowerLimit(double v) => config.Pmax / v;
         var maxX = 0.0;
         var maxY = 0.0;
-        foreach (var (i, values) in data)
+        foreach (var (i, values) in curves)
         {
             var maxI = values.Select(x => x.Ia).Union(values.Select(x=>x.Is)).Max();
             var iaValues = values.TakeWhile(x => x.dIa / maxI > IgnoreDI).Select(x => (x.Va, x.Vs, x.Ia)).ToList();

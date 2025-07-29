@@ -1,5 +1,6 @@
 using Server.Application;
 using Server.Application.Services;
+using Server.Application.Services.LotDataExtractorService;
 using LotDataToExtract = Server.Controllers.Generated.LotDataToExtract;
 
 namespace Tests;
