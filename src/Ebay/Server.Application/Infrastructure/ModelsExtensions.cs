@@ -76,7 +76,7 @@ internal static class ModelsExtensions
             pcs: lot.Pcs,
             currency: lot.CurrencyId,
             price: lot.Price,
-            purchaseHistory: lot.Purchases.OrderByDescending(x => x.Date).Select(x => x.ToApiPurchaseInfo()).ToList(),
+            purchaseHistory: lot.Purchases.OrderByDescending(x => x.Date).Select(x => x.ToApiPurchaseInfo(lot.TitleChangeDate)).ToList(),
             seller: lot.Seller,
             titleChangeDate: lot.TitleChangeDate.ToString(WellKnown.Formats.TimeFormat),
             shipping: lot.Shipping,
@@ -98,7 +98,7 @@ internal static class ModelsExtensions
         pcs: lot.Pcs,
         currency: lot.CurrencyId,
         price: lot.Price,
-        purchaseHistory: lot.Purchases.OrderByDescending(x => x.Date).Select(x => x.ToApiPurchaseInfo()).ToList(),
+        purchaseHistory: lot.Purchases.OrderByDescending(x => x.Date).Select(x => x.ToApiPurchaseInfo(lot.TitleChangeDate)).ToList(),
         seller: lot.Seller,
         shipping: lot.Shipping,
         titleChangeDate: lot.TitleChangeDate.ToString(WellKnown.Formats.TimeFormat),
@@ -119,11 +119,12 @@ internal static class ModelsExtensions
         quantityTotal: lotCalculationResult.QuantityTotal, revenue: lotCalculationResult.Revenue, revenueAvg: lotCalculationResult.RevenueAvg
     );
 
-    public static PurchaseInfo ToApiPurchaseInfo(this Purchase purchase) => new(
+    public static PurchaseInfo ToApiPurchaseInfo(this Purchase purchase, DateTime titleChangeDate) => new(
         date: purchase.Date.ToString(WellKnown.Formats.TimeFormat),
         price: purchase.Price,
         quantity: purchase.Quantity,
-        purchaseCalculationResult: purchase.PurchaseCalculationResult.ToApiPurchaseCalculationResult()
+        purchaseCalculationResult: purchase.PurchaseCalculationResult.ToApiPurchaseCalculationResult(),
+        isRecent: titleChangeDate < purchase.Date
     );
 
     public static Lot ToDbLot(this LotInfo lotInfo, Guid productId, DateTime updateDate) =>

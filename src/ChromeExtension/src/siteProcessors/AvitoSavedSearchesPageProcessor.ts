@@ -1,6 +1,6 @@
 ﻿import { ISiteProcessor } from './ISiteProcessor';
 import {ClientsFactory} from "../clients/ClientsFactory";
-import {ProductWithId} from "../clients/EbayToolBackendClient";
+import {ProductWithId} from "../clients/Generated/EbayToolBackendClient";
 import * as constants from '../constants';
 
 export function tryGetAvitoSavedSearchesProcessor() : ISiteProcessor | null {

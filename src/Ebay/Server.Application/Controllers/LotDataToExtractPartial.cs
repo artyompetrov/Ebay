@@ -2,6 +2,7 @@
 
 using Server.Application.Infrastructure;
 
+// ReSharper disable once CheckNamespace
 namespace Server.Controllers.Generated;
 
 /// <summary>

@@ -14,3 +14,4 @@ node_modules/
 /deploy/mount/
 /deploy/server.env
 /src/ChromeExtension/_extension/build/
+**/Generated/**
