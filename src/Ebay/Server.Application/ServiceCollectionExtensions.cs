@@ -7,6 +7,7 @@ using Server.Application.Data;
 using Server.Application.Data.Models;
 using Server.Application.HostedServices.ChipFind;
 using Server.Application.HostedServices.Currencies;
+using Server.Application.Infrastructure;
 using Server.Application.Services;
 using Server.Application.Services.LotDataExtractor;
 using Server.Application.Services.MeasuementPlot;
@@ -30,6 +31,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ShippingRatesService>();
         services.AddSingleton(new DatabaseConcurrentAccessSemaphore(
                 maxConcurrent: new Npgsql.NpgsqlConnectionStringBuilder(connectionString).MaxPoolSize / 2));
+        services.AddScoped<DbCache>();
         services.AddScoped<MeasurementService>();
         services.AddScoped<MeasurementPlotService>();
 

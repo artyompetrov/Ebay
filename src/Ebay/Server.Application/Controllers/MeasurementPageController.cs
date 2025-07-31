@@ -58,7 +58,7 @@ public class MeasurementPageController : ControllerBase
     [ResponseCache(Duration = 60 /*с*/ * 60 /*м*/ * 24 /*ч*/)]
 #endif
     [HttpGet("/m/{measurementId}/curves")]
-    public async Task<IActionResult> GetGurves(
+    public async Task<IActionResult> GetCurves(
         string measurementId,
         CancellationToken cancellationToken)
     {

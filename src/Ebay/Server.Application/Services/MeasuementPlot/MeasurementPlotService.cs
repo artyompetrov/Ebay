@@ -8,21 +8,18 @@ namespace Server.Application.Services.MeasuementPlot;
 
 public class MeasurementPlotService
 {
-    private readonly IMemoryCache _memoryCache;
+    private readonly DbCache _cache;
     private readonly MeasurementService _measurementService;
-
-    private readonly DatabaseConcurrentAccessSemaphore _semaphore;
 
     // Максимальное dI - чтобы отсечь некорректные изменения из-за compliance, в долях от максимального тока
     private const double IgnoreDI = -0.1;
 
     public MeasurementPlotService(
-        IMemoryCache memoryCache,
-        MeasurementService measurementService, DatabaseConcurrentAccessSemaphore semaphore)
+        DbCache cache,
+        MeasurementService measurementService)
     {
-        _memoryCache = memoryCache;
+        _cache = cache;
         _measurementService = measurementService;
-        _semaphore = semaphore;
     }
 
     public Task<string?> PlotForMeasurementId(
@@ -35,37 +32,30 @@ public class MeasurementPlotService
         int height
     )
     {
-        var cacheKey = $"measurementPlot_{mergeVertical}_{legendVertical}_{width}_{height}_{addQuickTest}_{measurementId}";
+        var cacheKey =
+            $"measurementPlot_{mergeVertical}_{legendVertical}_{width}_{height}_{addQuickTest}_{measurementId}";
 
-        return _memoryCache.GetOrCreateAsync(
+        return _cache.GetOrCreateAsync(
             key: cacheKey,
-            async entry =>
+            async () =>
             {
-                await _semaphore.Semaphore.WaitAsync(cancellationToken);
-                try
-                {
-                    var measurement = await _measurementService.GetMeasurements(
-                        cancellationToken: cancellationToken,
-                        measurementId);
+                var measurement = await _measurementService.GetMeasurements(
+                    cancellationToken: cancellationToken,
+                    measurementId);
 
-                    if (measurement == null)
-                        return null;
+                if (measurement == null)
+                    return null;
 
-                    return CreateMergedPlot(
-                        mergeVertical: mergeVertical,
-                        legendVertical: legendVertical,
-                        width: width,
-                        height: height,
-                        addQuickTest: addQuickTest,
-                        measurement: measurement);
-
-                }
-                finally
-                {
-                    _semaphore.Semaphore.Release();
-                }
+                return CreateMergedPlot(
+                    mergeVertical: mergeVertical,
+                    legendVertical: legendVertical,
+                    width: width,
+                    height: height,
+                    addQuickTest: addQuickTest,
+                    measurement: measurement);
             },
-            createOptions: new MemoryCacheEntryOptions { Size = 1 }
+            ttl: TimeSpan.FromDays(30 * 12),
+            cancellationToken: cancellationToken
         );
     }
 
