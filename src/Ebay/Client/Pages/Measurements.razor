@@ -55,21 +55,22 @@
 <br>
 <InputFile OnChange="HandleFileSelected" accept=".zip" />
 
-<label for="stateFilter">Фильтр по статусу:</label>
-<select id="stateFilter" class="form-control" @bind="_selectedMeasurementState" @onchange="async _ => await UpdateMeasurementsAsync()">
-    <option value="">-- все --</option>
-    @foreach (var state in _measurementStates)
-    {
-        <option value="@state">@GetMeasurementStateEmoji(state) @state.ToString("G")</option>
-    }
-</select>
-
 @if (_measurements != null)
 {
     <br>
     <br>
     <br>
     <h3>Зарегистрированные замеры:</h3>
+    <label for="stateFilter">Фильтр по статусу:</label>
+    <select id="stateFilter" class="form-control" @onchange="OnFilterChanged">
+        <option value="">-- все --</option>
+        @foreach (var state in _measurementStates)
+        {
+            <option value="@state" selected="@(_selectedMeasurementState == state)">
+                @GetMeasurementStateEmoji(state) @state.ToString("G")
+            </option>
+        }
+    </select>
     <table class="table">
         <thead>
         <tr>
@@ -95,7 +96,9 @@
                             @onchange="async e => await OnMeasurementStateChanged(measurement, Enum.Parse<MeasurementState>(e.Value!.ToString()!))">
                         @foreach (var state in _measurementStates)
                         {
-                            <option value="@state" selected="@(state == measurement.MeasurementState)">@GetMeasurementStateEmoji(state) @state.ToString("G")</option>
+                            <option value="@state" selected="@(state == measurement.MeasurementState)">
+                                @GetMeasurementStateEmoji(state) @state.ToString("G")
+                            </option>
                         }
                     </select>
                 </td>
@@ -103,7 +106,8 @@
                     <input type="text"
                            class="form-control"
                            value="@measurement.Location"
-                           @oninput="async e => await OnLocationChanged(measurement, e.Value?.ToString())"/></td>
+                           @oninput="async e => await OnLocationChanged(measurement, e.Value?.ToString())" />
+                </td>
                 <td><button class="btn btn-danger btn-sm oi oi-basket" @onclick="@(e => OnDeleteButtonClick(measurement.MeasurementId))"></button></td>
             </tr>
         }
@@ -128,9 +132,8 @@
 
     [Parameter]
     public Guid ProductId { get; set; }
-    
 
-    protected async override Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
         _product = await EbayClient.GetProductAsync(ProductId);
         await UpdateMeasurementsAsync();
@@ -138,8 +141,17 @@
 
     private async Task UpdateMeasurementsAsync()
     {
-        _measurements = await EbayClient.GetMeasurementsAsync(ProductId, _selectedMeasurementState);
+        _measurements = await EbayClient.GetMeasurementsAsync(_selectedMeasurementState, ProductId);
         StateHasChanged();
+    }
+
+    private async Task OnFilterChanged(ChangeEventArgs e)
+    {
+        _selectedMeasurementState = string.IsNullOrWhiteSpace(e.Value?.ToString())
+            ? null
+            : Enum.Parse<MeasurementState>(e.Value!.ToString()!);
+
+        await UpdateMeasurementsAsync();
     }
 
     private async Task HandleFileSelected(InputFileChangeEventArgs e)
@@ -153,22 +165,19 @@
 
             var file = e.File;
 
-            if (!file.Name.EndsWith(value: ".zip", comparisonType: StringComparison.OrdinalIgnoreCase))
+            if (!file.Name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
             {
                 _error = "Разрешены только zip файлы";
-
                 return;
             }
 
             if (file.ContentType != "application/zip" && file.ContentType != "application/x-zip-compressed")
             {
                 _error = $"Невалидный MIME type: {file.ContentType}";
-
                 return;
             }
 
             var qrCodeData = await Interop.StartQrScanner();
-
             var id = qrCodeData.Split('/').Last();
 
             await using var stream = file.OpenReadStream();
@@ -176,40 +185,39 @@
             await stream.CopyToAsync(ms);
 
             await EbayClient.UploadMeasurementAsync(
-                measurementData: new MeasurementDataToUpload()
+                measurementData: new MeasurementDataToUpload
                 {
                     File = ms.ToArray(),
                     MeasurementId = id,
                     ManufactureCode = _manufactureCode,
                     ProductState = _selectedState ?? throw new InvalidOperationException("Тип измерения не выбран")
                 },
-                productId: _product.Id,
-                cancellationToken: CancellationToken.None);
+                _product.Id,
+                CancellationToken.None);
 
             _message = $"Успешно загружен {id}";
         }
         catch (ApiException<ValidationProblemDetailedInfo> ex)
         {
-            _error = JsonConvert.SerializeObject(value: ex.Result);
+            _error = JsonConvert.SerializeObject(ex.Result);
         }
         catch (Exception ex)
         {
             _error = ex.Message;
         }
-        
+
         await UpdateMeasurementsAsync();
     }
 
     private void OnDeleteButtonClick(string measurementMeasurementId)
     {
         _questionPopup.AskQuestion(
-            questionText: $"Вы действительно хотите удалить измерение '{measurementMeasurementId}'?",
-            onSubmit: async () =>
+            $"Вы действительно хотите удалить измерение '{measurementMeasurementId}'?",
+            async () =>
             {
-                await EbayClient.DeleteMeasurementAsync(productId: ProductId, measurementId: measurementMeasurementId);
+                await EbayClient.DeleteMeasurementAsync(ProductId, measurementMeasurementId);
                 await UpdateMeasurementsAsync();
             });
-        
     }
 
     private async Task OnLocationChanged(MeasurementData measurement, string? newValue)
@@ -217,12 +225,7 @@
         try
         {
             measurement.Location = newValue;
-
-            await EbayClient.UpdateMeasurementLocationAsync(
-                productId: ProductId,
-                measurementId: measurement.MeasurementId,
-                location: newValue);
-
+            await EbayClient.UpdateMeasurementLocationAsync(newValue, ProductId, measurement.MeasurementId);
             Logger.LogInformation("Updated note for {Id}: {Note}", measurement.MeasurementId, newValue);
         }
         catch (Exception ex)
@@ -237,12 +240,7 @@
         try
         {
             measurement.MeasurementState = newState;
-
-            await EbayClient.UpdateMeasurementStateAsync(
-                state: newState,
-                productId: ProductId,
-                measurementId: measurement.MeasurementId);
-
+            await EbayClient.UpdateMeasurementStateAsync(newState, ProductId, measurement.MeasurementId);
             Logger.LogInformation("Updated state for {Id}: {State}", measurement.MeasurementId, newState);
         }
         catch (Exception ex)
@@ -262,5 +260,4 @@
             _ => string.Empty
         };
     }
-
 }
