@@ -35,6 +35,10 @@ jobs:
         working-directory: ./src/Ebay
         run: dotnet restore 
 
+      - name: Generate Code
+        working-directory: ./src/Ebay
+        run: dotnet msbuild -t:BeforeBuild
+      
       - name: Build .NET
         working-directory: ./src/Ebay
         run: dotnet build --no-restore --configuration Release
