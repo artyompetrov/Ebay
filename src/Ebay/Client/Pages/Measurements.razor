@@ -82,9 +82,12 @@
                         {
                             string emoji = state switch
                             {
-                                MeasurementState.Created => "\uD83D\uDD34", // red circle
-                                MeasurementState.Selling => "\u2705", // white check mark
-                                MeasurementState.Sold => "\uD83D\uDD13", // lock
+                                // New measurement that is not on sale yet
+                                MeasurementState.Created => "\uD83C\uDD95", // NEW button
+                                // Item is currently being sold on eBay
+                                MeasurementState.Selling => "\uD83D\uDED2", // shopping cart
+                                // Measurement has already been sold
+                                MeasurementState.Sold => "\u2705", // check mark
                                 _ => string.Empty
                             };
                             <option value="@state" selected="@(state == measurement.MeasurementState)">@emoji @state.ToString("G")</option>
