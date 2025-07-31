@@ -7,7 +7,13 @@
 @inject EbayClient EbayClient
 @inject ILogger<Measurements> Logger
 
-<h3>Добавить измерение для @_product?.Name</h3>
+@if (_product != null)
+{
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <h3 style="margin: 0">Добавить измерение для @_product.Name</h3>
+        <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{_product.Id}")" target="_blank">Описание для eBay</NavLink>
+    </div>
+}
 <script src="https://unpkg.com/html5-qrcode"></script>
 <style>
     #reader video {
