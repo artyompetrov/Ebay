@@ -222,6 +222,12 @@ paths:
         format: guid
     get:
       operationId: GetMeasurements
+      parameters:
+        - name: measurementState
+          in: query
+          required: false
+          schema:
+            $ref: '#/definitions/MeasurementState'
       responses:
         200:
           description: Ok

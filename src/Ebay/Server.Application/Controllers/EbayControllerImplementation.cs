@@ -286,14 +286,30 @@ public class EbayControllerImplementation : IEbayController
     }
 
     public async Task<ICollection<MeasurementData>> GetMeasurementsAsync(
+        MeasurementState? measurementState,
         Guid productId,
         CancellationToken cancellationToken)
     {
-        var measurements = await _applicationContext.ProductMeasurements
-            .Where(x => x.ProductId == productId)
+
+        var query = _applicationContext.ProductMeasurements
+            .Where(x => x.ProductId == productId);
+
+        if (measurementState.HasValue)
+        {
+            query = query.Where(x => x.MeasurementState == measurementState.Value.ToDbMeasurementState());
+        }
+
+        var measurements = await query
             .OrderByDescending(p => p.CreatedAt)
             .ThenByDescending(p => p.Id)
-            .Select(x => new { MeasurementId = x.Id, ManufactureDate = x.ManufactureCode, x.ProductState, x.Location, x.MeasurementState })
+            .Select(x => new
+            {
+                MeasurementId = x.Id,
+                ManufactureDate = x.ManufactureCode,
+                x.ProductState,
+                x.Location,
+                x.MeasurementState
+            })
             .ToListAsync(cancellationToken);
 
         var result = measurements
