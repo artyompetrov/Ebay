@@ -55,6 +55,15 @@
 <br>
 <InputFile OnChange="HandleFileSelected" accept=".zip" />
 
+<label for="stateFilter">Фильтр по статусу:</label>
+<select id="stateFilter" class="form-control" @bind="_selectedMeasurementState" @onchange="async _ => await UpdateMeasurementsAsync()">
+    <option value="">-- все --</option>
+    @foreach (var state in _measurementStates)
+    {
+        <option value="@state">@GetMeasurementStateEmoji(state) @state.ToString("G")</option>
+    }
+</select>
+
 @if (_measurements != null)
 {
     <br>
@@ -86,17 +95,7 @@
                             @onchange="async e => await OnMeasurementStateChanged(measurement, Enum.Parse<MeasurementState>(e.Value!.ToString()!))">
                         @foreach (var state in _measurementStates)
                         {
-                            string emoji = state switch
-                            {
-                                // New measurement that is not on sale yet
-                                MeasurementState.Created => "\uD83C\uDD95", // NEW button
-                                // Item is currently being sold on eBay
-                                MeasurementState.Selling => "\uD83D\uDED2", // shopping cart
-                                // Measurement has already been sold
-                                MeasurementState.Sold => "\u2705", // check mark
-                                _ => string.Empty
-                            };
-                            <option value="@state" selected="@(state == measurement.MeasurementState)">@emoji @state.ToString("G")</option>
+                            <option value="@state" selected="@(state == measurement.MeasurementState)">@GetMeasurementStateEmoji(state) @state.ToString("G")</option>
                         }
                     </select>
                 </td>
@@ -121,6 +120,7 @@
     private ProductState? _selectedState;
     private List<ProductState> _productStates = Enum.GetValues(typeof(ProductState)).Cast<ProductState>().ToList();
     private List<MeasurementState> _measurementStates = Enum.GetValues(typeof(MeasurementState)).Cast<MeasurementState>().ToList();
+    private MeasurementState? _selectedMeasurementState;
     private ICollection<MeasurementData>? _measurements;
     private QuestionPopup _questionPopup = null!;
     private string? _manufactureCode;
@@ -133,7 +133,12 @@
     protected async override Task OnInitializedAsync()
     {
         _product = await EbayClient.GetProductAsync(ProductId);
-        _measurements = await EbayClient.GetMeasurementsAsync(ProductId);
+        await UpdateMeasurementsAsync();
+    }
+
+    private async Task UpdateMeasurementsAsync()
+    {
+        _measurements = await EbayClient.GetMeasurementsAsync(ProductId, _selectedMeasurementState);
         StateHasChanged();
     }
 
@@ -192,7 +197,7 @@
             _error = ex.Message;
         }
         
-        _measurements = await EbayClient.GetMeasurementsAsync(ProductId);
+        await UpdateMeasurementsAsync();
     }
 
     private void OnDeleteButtonClick(string measurementMeasurementId)
@@ -202,7 +207,7 @@
             onSubmit: async () =>
             {
                 await EbayClient.DeleteMeasurementAsync(productId: ProductId, measurementId: measurementMeasurementId);
-                await OnInitializedAsync();
+                await UpdateMeasurementsAsync();
             });
         
     }
@@ -245,6 +250,17 @@
             Logger.LogError(ex, "Error updating state for {Id}", measurement.MeasurementId);
             _error = "Ошибка при обновлении статуса";
         }
+    }
+
+    private static string GetMeasurementStateEmoji(MeasurementState state)
+    {
+        return state switch
+        {
+            MeasurementState.Created => "\uD83C\uDD95",
+            MeasurementState.Selling => "\uD83D\uDED2",
+            MeasurementState.Sold => "\u2705",
+            _ => string.Empty
+        };
     }
 
 }

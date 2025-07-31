@@ -11,7 +11,7 @@ public class MeasurementPageTest : ExplicitTestsBase
 
         foreach (var productWithId in allProducts)
         {
-            var measurements = BackendClient.GetMeasurementsAsync(productWithId.Id).GetAwaiter().GetResult();
+            var measurements = BackendClient.GetMeasurementsAsync(productWithId.Id, null).GetAwaiter().GetResult();
 
             foreach (var measurement in measurements)
             {
