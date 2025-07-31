@@ -1,10 +1,9 @@
-using Microsoft.Extensions.Caching.Memory;
 using ScottPlot;
 using ScottPlot.PlotStyles;
 using Server.Application.Infrastructure;
 using Server.Application.Services.Measurement;
 
-namespace Server.Application.Services.MeasuementPlot;
+namespace Server.Application.Services.MeasurementPlot;
 
 public class MeasurementPlotService
 {
@@ -100,7 +99,7 @@ public class MeasurementPlotService
         var lineHight = 16;
         var tspans = string.Join("\n", values: lines.Skip(1).Select((line, i) =>
             $"""<tspan x="20" y="{lineHight + i * lineHight}">{line.Split('\t')[0]}</tspan>"""));
-            
+
         var quickTestSvg = $"""
                             <svg width="200" height="{lineHight + lines.Length * lineHight}" xmlns="http://www.w3.org/2000/svg">
                                 <text font-size="14" fill="black" xml:space="preserve" font-family="monospace">

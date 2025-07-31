@@ -85,6 +85,6 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
     public DbSet<Currency> Currencies { get; set; } = null!;
 
     public DbSet<ProductEmailSendHistory> ProductEmailSendHistory { get; set; } = null!;
-    
+
     public DbSet<CacheEntry> CacheEntries { get; set; } = null!;
 }

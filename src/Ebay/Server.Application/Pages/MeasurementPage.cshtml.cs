@@ -12,7 +12,7 @@ public class MeasurementPage : PageModel
     private readonly MeasurementService _measurementService;
     private readonly ApplicationDbContext _applicationContext;
 
-//конструктор обязательно должен быть public
+    //конструктор обязательно должен быть public
     public MeasurementPage(MeasurementService measurementService, ApplicationDbContext applicationContext)
     {
         _measurementService = measurementService;
@@ -29,7 +29,7 @@ public class MeasurementPage : PageModel
 
         if (measurementData == null)
             return NotFound("Measurement not found");
-        
+
         var product = await _applicationContext.Products
             .AsNoTracking()
             .Include(x => x.SearchQueries)

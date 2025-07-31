@@ -1,8 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Data;
-using Server.Application.Data.Models;
 
 namespace Server.Application.Pages;
 
@@ -28,7 +27,7 @@ public class EbayLotDescriptionPage : PageModel
 
         var product = await _applicationContext.Products
             .Include(x => x.ProductMeasurements)
-            .Where(x =>x.Id == productId)
+            .Where(x => x.Id == productId)
             .Select(x => new ProductWithMeasurementsDto(
                 x.Name,
                 x.SearchQueries.Select(m => m.Query).ToList(),
@@ -40,9 +39,9 @@ public class EbayLotDescriptionPage : PageModel
         {
             return NotFound();
         }
-        
+
         Product = product;
-        
+
         return Page();
     }
 }

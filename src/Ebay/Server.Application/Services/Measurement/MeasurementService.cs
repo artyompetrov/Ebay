@@ -252,7 +252,7 @@ public class MeasurementService
             GridCurves: ParseSpaceSeparatedTable(gridCurves),
             QuickTest: quickTestParsed
         );
-        
+
         return data;
     }
 

@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using Server.Application.Services;
-using Server.Application.Services.MeasuementPlot;
 using Server.Application.Services.Measurement;
+using Server.Application.Services.MeasurementPlot;
 
 namespace Server.Application.Controllers;
 
@@ -27,7 +26,7 @@ public class MeasurementPageController : ControllerBase
 
         return File(file, "application/zip", $"{measurementId}.zip");
     }
-    
+
 #if !DEBUG
     // Только в релизе используем кеширование
     [ResponseCache(Duration = 60 /*с*/ * 60 /*м*/ * 24 /*ч*/)]

@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Server.Application.Data.Models;
 
@@ -10,7 +10,7 @@ public class CacheEntry
 
     [Required]
     public string Value { get; set; } = null!;
-    
+
     [Required]
     public DateTime ExpiresAt { get; set; }
 }

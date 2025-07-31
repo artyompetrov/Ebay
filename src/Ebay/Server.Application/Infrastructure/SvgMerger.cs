@@ -5,12 +5,12 @@ namespace Server.Application.Infrastructure;
 public static class SvgMerger
 {
     public record Svg(string? SvgXml, bool ReplaceFont);
-    
+
     public static string MergeSvgs(bool mergeVertical, params Svg[] svg)
     {
         const string defaultFontFamily = "Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif";
 
-        var svgList = svg.Where(x=>x!=null).Select(x=>x!).ToArray() ?? throw new ArgumentException("List must not be empty");
+        var svgList = svg.Where(x => x != null).Select(x => x!).ToArray() ?? throw new ArgumentException("List must not be empty");
         if (svgList.Length == 0)
             throw new ArgumentException("List must not be empty");
 
@@ -22,10 +22,10 @@ public static class SvgMerger
         {
             if (svgXml.SvgXml == null)
                 continue;
-            
+
             var svgElem = XElement.Parse(svgXml.SvgXml);
 
-            
+
             // Удаляем все font-family у <text>
             if (svgXml.ReplaceFont)
             {
