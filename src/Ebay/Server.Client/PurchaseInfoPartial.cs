@@ -1,3 +1,4 @@
+// ReSharper disable once CheckNamespace
 namespace Client.Clients.Generated;
 
 public partial class PurchaseInfo

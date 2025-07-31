@@ -38,9 +38,12 @@
     <ItemGroup>
       <ProjectReference Include="..\Client\Client.csproj" />
     </ItemGroup>
-    <Target Name="NSwag" BeforeTargets="Build">
+
+    <ItemGroup>
+      <Folder Include="Controllers\Generated\" />
+    </ItemGroup>
+    <Target Name="NSwag" BeforeTargets="CoreCompile">
         <Exec Command="$(NSwagExe_Net80) openapi2cscontroller /input:Controllers/Contracts/Ebay.yaml /classname:Ebay /namespace:Server.Controllers.Generated /output:Controllers/Generated/EbayController.cs /ControllerBaseClass:Microsoft.AspNetCore.Mvc.Controller /UseCancellationToken:true /GenerateImmutableArrayProperties:true /GenerateImmutableDictionaryProperties:true /GenerateNullableReferenceTypes:true /GenerateOptionalPropertiesAsNullable:true /ClassStyle:Record /ExcludedTypeNames:ProblemDetails,ValidationProblemDetails /RequiredPropertiesMustBeDefined:false" />
-        <Exec Command="mkdir -p ../../ChromeExtension/src/clients/Generated" />
         <Exec Command="$(NSwagExe_Net80) openapi2tsclient /input:Controllers/Contracts/Ebay.yaml /output:../../ChromeExtension/src/clients/Generated/EbayToolBackendClient.ts /ClassName:EbayToolBackendClient" />
     </Target>
 
