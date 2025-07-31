@@ -15,3 +15,4 @@ node_modules/
 /deploy/server.env
 /src/ChromeExtension/_extension/build/
 **/Generated/**
+!src/ChromeExtension/src/clients/Generated/EbayClient.ts
