@@ -814,9 +814,17 @@ definitions:
         minLength: 1
       purchaseCalculationResult:
         $ref: '#/definitions/PurchaseCalculationResult'
+      isRecent:
+        type: boolean
+        description: |
+          является ли покупка актуальной - некоторые продавцы меняют название лота для сохранения статистики
+          Нам такие записи учитывать не интересно
+          данное поле актуально только для запросов на чтение (при запросах на запись игнориуется) 
+          TODO По идее надо разделять структуры на запись и чтение 
     required:
       - quantity
       - date
+      - isRecent
   
   PurchaseCalculationResult:
     type: object

@@ -332,10 +332,6 @@
     {
         var lots = await EbayClient.GetLotsAsync(
             productId: ProductId);
-        foreach (var lotInfoShort in lots)
-        {
-            lotInfoShort.SetIsRecentToPurchases();
-        }
 
         return lots;
     }
