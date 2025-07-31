@@ -5,6 +5,7 @@ COPY Ebay Ebay
 RUN dotnet restore "Ebay/Server/Server.csproj"
 WORKDIR "/src/Ebay/Server"
 ARG BUILD_VERSION="0.0.0.1"
+RUN dotnet msbuild -t:BeforeBuild
 RUN dotnet publish "Server.csproj" -c Release -o /app/publish /p:UseAppHost=false /p:Version=$BUILD_VERSION
 RUN apt-get update && apt-get install -y fontconfig fonts-liberation && fc-cache -f -v
 
