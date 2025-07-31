@@ -292,7 +292,7 @@ public class EbayControllerImplementation : IEbayController
             .Where(x => x.ProductId == productId)
             .OrderByDescending(p => p.CreatedAt)
             .ThenByDescending(p => p.Id)
-            .Select(x => new { MeasurementId = x.Id, ManufactureDate = x.ManufactureCode, x.ProductState, x.Location })
+            .Select(x => new { MeasurementId = x.Id, ManufactureDate = x.ManufactureCode, x.ProductState, x.Location, x.MeasurementState })
             .ToListAsync(cancellationToken);
 
         var result = measurements
@@ -300,7 +300,8 @@ public class EbayControllerImplementation : IEbayController
                     manufactureCode: x.ManufactureDate,
                     measurementId: x.MeasurementId,
                     productState: x.ProductState.ToApiProductState(),
-                    location: x.Location
+                    location: x.Location,
+                    measurementState: x.MeasurementState.ToApiMeasurementState()
                 )
 
             ).ToList();

@@ -7,6 +7,8 @@ using DbLotCalculationResult = Server.Application.Data.Models.LotCalculationResu
 using DbProduct = Server.Application.Data.Models.Product;
 using DbProductCalculationResult = Server.Application.Data.Models.ProductCalculationResult;
 using DbProductState = Server.Application.Data.Models.ProductState;
+using DbMeasurementState = Server.Application.Data.Models.MeasurementState;
+using ApiMeasurementState = Server.Controllers.Generated.MeasurementState;
 using DbPurchaseCalculationResult = Server.Application.Data.Models.PurchaseCalculationResult;
 using DbRuSearchQuery = Server.Application.Data.Models.RuSearchQuery;
 using DbSearchQuery = Server.Application.Data.Models.SearchQuery;
@@ -206,6 +208,28 @@ internal static class ModelsExtensions
             ProductState.New => DbProductState.New,
             ProductState.Used => DbProductState.Used,
             _ => throw new ArgumentOutOfRangeException(nameof(productState), productState, null)
+        };
+    }
+
+    public static ApiMeasurementState ToApiMeasurementState(this DbMeasurementState state)
+    {
+        return state switch
+        {
+            DbMeasurementState.Created => ApiMeasurementState.Created,
+            DbMeasurementState.Selling => ApiMeasurementState.Selling,
+            DbMeasurementState.Sold => ApiMeasurementState.Sold,
+            _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
+        };
+    }
+
+    public static DbMeasurementState ToDbMeasurementState(this ApiMeasurementState state)
+    {
+        return state switch
+        {
+            ApiMeasurementState.Created => DbMeasurementState.Created,
+            ApiMeasurementState.Selling => DbMeasurementState.Selling,
+            ApiMeasurementState.Sold => DbMeasurementState.Sold,
+            _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
         };
     }
 }
