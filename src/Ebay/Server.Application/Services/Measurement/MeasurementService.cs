@@ -161,6 +161,15 @@ public class MeasurementService
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task<MeasurementState?> GetMeasurementState(string measurementId, CancellationToken cancellationToken)
+    {
+        return await _applicationContext.ProductMeasurements
+            .AsNoTracking()
+            .Where(x => x.Id == measurementId)
+            .Select(x => (MeasurementState?)x.MeasurementState)
+            .SingleOrDefaultAsync(cancellationToken);
+    }
+
     private static string ComputeEntryHashAsync(byte[] bytes)
     {
         var hashBytes = SHA256.HashData(bytes);

@@ -2,6 +2,7 @@ using ScottPlot;
 using ScottPlot.PlotStyles;
 using Server.Application.Infrastructure;
 using Server.Application.Services.Measurement;
+using Server.Application.Data.Models;
 
 namespace Server.Application.Services.MeasurementPlot;
 
@@ -21,20 +22,31 @@ public class MeasurementPlotService
         _measurementService = measurementService;
     }
 
-    public Task<string?> PlotForMeasurementId(
+    public async Task<string?> PlotForMeasurementId(
         string measurementId,
         CancellationToken cancellationToken,
         bool mergeVertical,
         bool legendVertical,
         bool addQuickTest,
         int width,
-        int height
+        int height,
+        bool sellingOnly
     )
     {
+        if (sellingOnly)
+        {
+            var state = await _measurementService.GetMeasurementState(measurementId, cancellationToken);
+            if (state == null)
+                return null;
+
+            if (state != MeasurementState.Selling)
+                return StatusSvg(state.Value);
+        }
+        
         var cacheKey =
             $"measurementPlot_{mergeVertical}_{legendVertical}_{width}_{height}_{addQuickTest}_{measurementId}";
 
-        return _cache.GetOrCreateAsync(
+        return await _cache.GetOrCreateAsync(
             key: cacheKey,
             async () =>
             {
@@ -630,5 +642,14 @@ public class MeasurementPlotService
         plot.XLabel("Vscreen (V)");
         plot.YLabel("I (mA)");
         plot.Title("Screen curves");
+    }
+
+    private static string StatusSvg(MeasurementState state)
+    {
+        return $"""
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="40">
+    <text x="10" y="25" font-size="24" fill="black">{state}</text>
+</svg>
+""";
     }
 }
