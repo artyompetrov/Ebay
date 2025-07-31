@@ -138,6 +138,11 @@ namespace Server.Controllers.Generated
 
         System.Threading.Tasks.Task UpdateMeasurementLocationAsync(string location, System.Guid productId, string measurementId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
+
+        /// <returns>Ok</returns>
+
+        System.Threading.Tasks.Task UpdateMeasurementStateAsync(MeasurementState state, System.Guid productId, string measurementId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+
         /// <summary>
         /// Получить информацию о лоте
         /// </summary>
@@ -369,6 +374,14 @@ namespace Server.Controllers.Generated
         {
 
             return _implementation.UpdateMeasurementLocationAsync(location, productId, measurementId, cancellationToken);
+        }
+
+        /// <returns>Ok</returns>
+        [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.Route("products/{productId}/measurements/{measurementId}/state/")]
+        public System.Threading.Tasks.Task UpdateMeasurementState([Microsoft.AspNetCore.Mvc.FromBody] MeasurementState state, System.Guid productId, string measurementId, System.Threading.CancellationToken cancellationToken)
+        {
+
+            return _implementation.UpdateMeasurementStateAsync(state, productId, measurementId, cancellationToken);
         }
 
         /// <summary>

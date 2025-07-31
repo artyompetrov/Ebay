@@ -15,6 +15,7 @@ using LotInfoShort = Server.Controllers.Generated.LotInfoShort;
 using LotInfoWithProductId = Server.Controllers.Generated.LotInfoWithProductId;
 using LotState = Server.Controllers.Generated.LotState;
 using MeasurementData = Server.Controllers.Generated.MeasurementData;
+using MeasurementState = Server.Controllers.Generated.MeasurementState;
 using ProductWithId = Server.Controllers.Generated.ProductWithId;
 using ProductWithoutId = Server.Controllers.Generated.ProductWithoutId;
 
@@ -352,6 +353,19 @@ public class EbayControllerImplementation : IEbayController
     {
         await _measurementService.UpdateMeasurementLocation(
             location: location,
+            productId: productId,
+            measurementId: measurementId,
+            cancellationToken: cancellationToken);
+    }
+
+    public async Task UpdateMeasurementStateAsync(
+        MeasurementState state,
+        Guid productId,
+        string measurementId,
+        CancellationToken cancellationToken)
+    {
+        await _measurementService.UpdateMeasurementState(
+            state: state.ToDbMeasurementState(),
             productId: productId,
             measurementId: measurementId,
             cancellationToken: cancellationToken);
