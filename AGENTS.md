@@ -26,3 +26,12 @@
       - `/Tests`: Тесты запускаемые вручную. проекты толком тестами не покрыт, эти тесты для валидации продакшен базы вручную
 - `/deploy`: docker-compose обвязка для запуска проекта
 - `/tests`: Test files that OpenAI Codex should maintain and extend
+
+# Как работает кодогенерация в этом проекте
+`/Server.Application/Controllers/Contracts/Ebay.yaml` Основной контракт приложения 
+кодогенерация осуществляется через msbuild таргеты NSWag,
+чтобы выполнить кодогенерацию надо выполнить следующие команды
+cd /src/Ebay/
+dotnet msbuild -t:BeforeBuild
+
+после чего будут сгенерированны cs Client и Controller и ts client
