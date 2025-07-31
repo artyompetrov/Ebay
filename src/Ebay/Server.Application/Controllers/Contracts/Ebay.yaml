@@ -287,6 +287,30 @@ paths:
         200:
           description: Ok
 
+  /products/{productId}/measurements/{measurementId}/state/:
+    parameters:
+      - name: productId
+        in: path
+        required: true
+        type: string
+        format: guid
+      - name: measurementId
+        in: path
+        required: true
+        type: string
+        maxLength: 100
+    post:
+      operationId: UpdateMeasurementState
+      parameters:
+        - name: state
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/MeasurementState'
+      responses:
+        200:
+          description: Ok
+
   /lots/{lotId}/:
     parameters:
       - name: lotId

@@ -132,6 +132,26 @@ public class MeasurementService
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task UpdateMeasurementState(
+        MeasurementState state,
+        Guid productId,
+        string measurementId,
+        CancellationToken cancellationToken)
+    {
+        var measurement = await _applicationContext.ProductMeasurements
+            .Where(m => m.ProductId == productId && m.Id == measurementId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (measurement == null)
+        {
+            throw new InvalidOperationException("Measurement not found.");
+        }
+
+        measurement.MeasurementState = state;
+
+        await _applicationContext.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task DeleteMeasurement(Guid productId, string measurementId, CancellationToken cancellationToken)
     {
         _applicationContext.ProductMeasurements.RemoveRange(

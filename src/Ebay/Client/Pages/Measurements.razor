@@ -74,7 +74,16 @@
                 <td><NavLink href="@($"m/{measurement.MeasurementId}")" target="_blank">@measurement.MeasurementId</NavLink></td>
                 <td>@measurement.ManufactureCode</td>
                 <td>@measurement.ProductState.ToString("G")</td>
-                <td>@measurement.MeasurementState.ToString("G")</td>
+                <td>
+                    <select class="form-select"
+                            value="@measurement.MeasurementState"
+                            @onchange="async e => await OnMeasurementStateChanged(measurement, Enum.Parse<MeasurementState>(e.Value!.ToString()!))">
+                        @foreach (var state in _measurementStates)
+                        {
+                            <option value="@state" selected="@(state == measurement.MeasurementState)">@state.ToString("G")</option>
+                        }
+                    </select>
+                </td>
                 <td>
                     <input type="text"
                            class="form-control"
@@ -95,6 +104,7 @@
     private string? _message;
     private ProductState? _selectedState;
     private List<ProductState> _productStates = Enum.GetValues(typeof(ProductState)).Cast<ProductState>().ToList();
+    private List<MeasurementState> _measurementStates = Enum.GetValues(typeof(MeasurementState)).Cast<MeasurementState>().ToList();
     private ICollection<MeasurementData>? _measurements;
     private QuestionPopup _questionPopup = null!;
     private string? _manufactureCode;
@@ -198,6 +208,26 @@
         {
             Logger.LogError(ex, "Error updating note for {Id}", measurement.MeasurementId);
             _error = "Ошибка при обновлении заметки";
+        }
+    }
+
+    private async Task OnMeasurementStateChanged(MeasurementData measurement, MeasurementState newState)
+    {
+        try
+        {
+            measurement.MeasurementState = newState;
+
+            await EbayClient.UpdateMeasurementStateAsync(
+                state: newState,
+                productId: ProductId,
+                measurementId: measurement.MeasurementId);
+
+            Logger.LogInformation("Updated state for {Id}: {State}", measurement.MeasurementId, newState);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error updating state for {Id}", measurement.MeasurementId);
+            _error = "Ошибка при обновлении статуса";
         }
     }
 
