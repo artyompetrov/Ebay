@@ -22,7 +22,7 @@ public class MeasurementPlotService
         _measurementService = measurementService;
     }
 
-    public Task<string?> PlotForMeasurementId(
+    public async Task<string?> PlotForMeasurementId(
         string measurementId,
         CancellationToken cancellationToken,
         bool mergeVertical,
@@ -33,23 +33,23 @@ public class MeasurementPlotService
         bool sellingOnly
     )
     {
+        if (sellingOnly)
+        {
+            var state = await _measurementService.GetMeasurementState(measurementId, cancellationToken);
+            if (state == null)
+                return null;
+
+            if (state != MeasurementState.Selling)
+                return StatusSvg(state.Value);
+        }
+        
         var cacheKey =
             $"measurementPlot_{mergeVertical}_{legendVertical}_{width}_{height}_{addQuickTest}_{sellingOnly}_{measurementId}";
 
-        return _cache.GetOrCreateAsync(
+        return await _cache.GetOrCreateAsync(
             key: cacheKey,
             async () =>
             {
-                if (sellingOnly)
-                {
-                    var state = await _measurementService.GetMeasurementState(measurementId, cancellationToken);
-                    if (state == null)
-                        return null;
-
-                    if (state != MeasurementState.Selling)
-                        return StatusSvg(state.Value);
-                }
-
                 var measurement = await _measurementService.GetMeasurements(
                     cancellationToken: cancellationToken,
                     measurementId);
@@ -647,8 +647,8 @@ public class MeasurementPlotService
     private static string StatusSvg(MeasurementState state)
     {
         return $"""
-<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"200\" height=\"40\">
-    <text x=\"10\" y=\"25\" font-size=\"24\" fill=\"black\">{state}</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="40">
+    <text x="10" y="25" font-size="24" fill="black">{state}</text>
 </svg>
 """;
     }
