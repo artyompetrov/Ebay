@@ -43,7 +43,8 @@ public class MeasurementPageController : ControllerBase
             legendVertical: true,
             addQuickTest: true,
             width: 550,
-            height: 350);
+            height: 350,
+            sellingOnly: true);
 
         if (result == null)
             return NotFound("Measurement not found");
@@ -68,7 +69,8 @@ public class MeasurementPageController : ControllerBase
             legendVertical: true,
             addQuickTest: false,
             width: 800,
-            height: 500);
+            height: 500,
+            sellingOnly: false);
 
         if (result == null)
             return NotFound("Measurement not found");

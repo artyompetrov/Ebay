@@ -80,7 +80,14 @@
                             @onchange="async e => await OnMeasurementStateChanged(measurement, Enum.Parse<MeasurementState>(e.Value!.ToString()!))">
                         @foreach (var state in _measurementStates)
                         {
-                            <option value="@state" selected="@(state == measurement.MeasurementState)">@state.ToString("G")</option>
+                            string emoji = state switch
+                            {
+                                MeasurementState.Created => "\uD83D\uDD34", // red circle
+                                MeasurementState.Selling => "\u2705", // white check mark
+                                MeasurementState.Sold => "\uD83D\uDD13", // lock
+                                _ => string.Empty
+                            };
+                            <option value="@state" selected="@(state == measurement.MeasurementState)">@emoji @state.ToString("G")</option>
                         }
                     </select>
                 </td>
