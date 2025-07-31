@@ -44,7 +44,7 @@ public class MeasurementPlotService
         }
         
         var cacheKey =
-            $"measurementPlot_{mergeVertical}_{legendVertical}_{width}_{height}_{addQuickTest}_{sellingOnly}_{measurementId}";
+            $"measurementPlot_{mergeVertical}_{legendVertical}_{width}_{height}_{addQuickTest}_{measurementId}";
 
         return await _cache.GetOrCreateAsync(
             key: cacheKey,
