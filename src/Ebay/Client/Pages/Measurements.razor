@@ -61,6 +61,7 @@
             <th>Название</th>
             <th>Код</th>
             <th>Состояние</th>
+            <th>Статус</th>
             <th>Расположение</th>
             <th></th>
         </tr>
@@ -73,6 +74,7 @@
                 <td><NavLink href="@($"m/{measurement.MeasurementId}")" target="_blank">@measurement.MeasurementId</NavLink></td>
                 <td>@measurement.ManufactureCode</td>
                 <td>@measurement.ProductState.ToString("G")</td>
+                <td>@measurement.MeasurementState.ToString("G")</td>
                 <td>
                     <input type="text"
                            class="form-control"

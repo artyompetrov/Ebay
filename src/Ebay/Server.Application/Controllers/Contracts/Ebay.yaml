@@ -433,6 +433,13 @@ definitions:
     enum:
       - New
       - Used
+
+  MeasurementState:
+    type: string
+    enum:
+      - Created
+      - Selling
+      - Sold
       
   ProductWithoutId:
     type: object
@@ -551,10 +558,13 @@ definitions:
         type: string
       productState:
         $ref: '#/definitions/ProductState'
+      measurementState:
+        $ref: '#/definitions/MeasurementState'
     required:
       - measurementId
       - manufactureCode
       - productState
+      - measurementState
 
   MeasurementDataToUpload:
     type: object
