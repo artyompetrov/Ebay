@@ -1,5 +1,5 @@
-﻿import * as EbayClient from "../clients/EbayClient"
-import * as EbayToolBackendClient from "../clients/EbayToolBackendClient";
+﻿import * as EbayClient from "./Generated/EbayClient"
+import * as EbayToolBackendClient from "./Generated/EbayToolBackendClient";
 import * as constants from '../constants';
 import {generateCodeVerifier, OAuth2Client} from "@badgateway/oauth2-client";
 import {fetchResource} from "../infrastructure/Utils";

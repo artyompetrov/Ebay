@@ -1,11 +1,11 @@
-import * as EbayToolBackendClient from "../clients/EbayToolBackendClient";
+import * as EbayToolBackendClient from "../clients/Generated/EbayToolBackendClient";
 import * as utils from "../infrastructure/Utils";
 import * as constants from '../constants';
 import { ISiteProcessor } from './ISiteProcessor';
 // noinspection SpellCheckingInspection
 import {v4 as uuidv4} from "uuid";
 import {ClientsFactory} from "../clients/ClientsFactory";
-import {ProductWithId} from "../clients/EbayToolBackendClient";
+import {ProductWithId} from "../clients/Generated/EbayToolBackendClient";
 
 const chipFindRegex: RegExp = /(?:^|\.)chipfind\.ru$/i
 const avitoRegex: RegExp = /(?:^|\.)avito\.ru$/i

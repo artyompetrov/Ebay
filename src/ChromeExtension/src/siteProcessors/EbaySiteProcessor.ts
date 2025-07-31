@@ -1,5 +1,5 @@
-﻿import * as EbayClient from "../clients/EbayClient"
-import * as EbayToolBackendClient from "../clients/EbayToolBackendClient";
+﻿import * as EbayClient from "../clients/Generated/EbayClient"
+import * as EbayToolBackendClient from "../clients/Generated/EbayToolBackendClient";
 import * as utils from "../infrastructure/Utils";
 import * as constants from '../constants';
 import { ISiteProcessor } from './ISiteProcessor';
