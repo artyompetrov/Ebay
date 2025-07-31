@@ -740,6 +740,21 @@ export class EbayToolBackendClient {
         });
     }
 
+    protected processUpdateMeasurementLocation(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
     /**
      * @return Ok
      */
@@ -769,21 +784,6 @@ export class EbayToolBackendClient {
     }
 
     protected processUpdateMeasurementState(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    protected processUpdateMeasurementLocation(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -1532,6 +1532,7 @@ export class MeasurementData implements IMeasurementData {
     manufactureCode!: string;
     location?: string | undefined;
     productState!: ProductState;
+    measurementState!: MeasurementState;
 
     constructor(data?: IMeasurementData) {
         if (data) {
@@ -1548,6 +1549,7 @@ export class MeasurementData implements IMeasurementData {
             this.manufactureCode = _data["manufactureCode"];
             this.location = _data["Location"];
             this.productState = _data["productState"];
+            this.measurementState = _data["measurementState"];
         }
     }
 
@@ -1564,6 +1566,7 @@ export class MeasurementData implements IMeasurementData {
         data["manufactureCode"] = this.manufactureCode;
         data["Location"] = this.location;
         data["productState"] = this.productState;
+        data["measurementState"] = this.measurementState;
         return data;
     }
 }
@@ -1573,6 +1576,7 @@ export interface IMeasurementData {
     manufactureCode: string;
     location?: string | undefined;
     productState: ProductState;
+    measurementState: MeasurementState;
 }
 
 export class MeasurementDataToUpload implements IMeasurementDataToUpload {

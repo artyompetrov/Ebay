@@ -1545,6 +1545,9 @@ namespace Client.Clients.Generated
             if (measurementId == null)
                 throw new System.ArgumentNullException("measurementId");
 
+            if (state == null)
+                throw new System.ArgumentNullException("state");
+
             var client_ = _httpClient;
             var disposeClient_ = false;
             try

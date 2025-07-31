@@ -139,6 +139,7 @@ namespace Server.Controllers.Generated
         System.Threading.Tasks.Task UpdateMeasurementLocationAsync(string location, System.Guid productId, string measurementId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
 
 
+
         /// <returns>Ok</returns>
 
         System.Threading.Tasks.Task UpdateMeasurementStateAsync(MeasurementState state, System.Guid productId, string measurementId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
@@ -685,7 +686,7 @@ namespace Server.Controllers.Generated
     {
         [Newtonsoft.Json.JsonConstructor]
 
-        public MeasurementData(string? @location, string @manufactureCode, string @measurementId, ProductState @productState, MeasurementState @measurementState)
+        public MeasurementData(string? @location, string @manufactureCode, string @measurementId, MeasurementState @measurementState, ProductState @productState)
 
         {
 
@@ -696,6 +697,7 @@ namespace Server.Controllers.Generated
             this.Location = @location;
 
             this.ProductState = @productState;
+
             this.MeasurementState = @measurementState;
 
         }    [Newtonsoft.Json.JsonProperty("measurementId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
