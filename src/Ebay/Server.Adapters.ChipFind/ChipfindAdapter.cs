@@ -42,7 +42,7 @@ public class ChipfindAdapter : IChipfindAdapter
                 options: RegexOptions.IgnoreCase);
 
             var items = plainText
-                .Split(separator: ['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
+                .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(x => x.Trim())
                 .Where(x => !string.IsNullOrEmpty(x))
                 .ToArray();

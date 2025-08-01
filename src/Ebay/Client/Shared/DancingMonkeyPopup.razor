@@ -1,0 +1,38 @@
+@if (_visible)
+{
+    <div class="modal fade show" tabindex="-1" role="dialog" style="display: block;">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Сюрприз!</h5>
+                </div>
+                <div class="modal-body text-center">
+                    <div class="monkey">🐒</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" @onclick="Close">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+<style>
+    .monkey {
+        font-size: 4rem;
+        animation: dance 1s infinite alternate;
+    }
+
+    @@keyframes dance {
+        0% { transform: rotate(-10deg) translateX(-10px); }
+        100% { transform: rotate(10deg) translateX(10px); }
+    }
+</style>
+
+@code {
+    private bool _visible = true;
+
+    public void Show() => _visible = true;
+    private void Close() => _visible = false;
+}
