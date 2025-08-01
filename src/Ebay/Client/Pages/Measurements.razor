@@ -52,6 +52,9 @@
 
 <label for="locationInput">Место хранения (необязательно):</label>
 <input id="locationInput" @bind="_location" type="text" class="form-control" lang="en" />
+
+<label for="batchIdInput">Batch ID (необязательно):</label>
+<input id="batchIdInput" @bind="_batchId" type="text" class="form-control" lang="en" />
 <br>
 <InputFile OnChange="HandleFileSelected" accept=".zip" />
 
@@ -79,6 +82,7 @@
             <th>Состояние</th>
             <th>Статус</th>
             <th>Расположение</th>
+            <th>Batch ID</th>
             <th></th>
         </tr>
         </thead>
@@ -108,6 +112,12 @@
                            value="@measurement.Location"
                            @oninput="async e => await OnLocationChanged(measurement, e.Value?.ToString())" />
                 </td>
+                <td>
+                    <input type="text"
+                           class="form-control"
+                           value="@measurement.BatchId"
+                           @oninput="async e => await OnBatchIdChanged(measurement, e.Value?.ToString())" />
+                </td>
                 <td><button class="btn btn-danger btn-sm oi oi-basket" @onclick="@(e => OnDeleteButtonClick(measurement.MeasurementId))"></button></td>
             </tr>
         }
@@ -129,6 +139,7 @@
     private QuestionPopup _questionPopup = null!;
     private string? _manufactureCode;
     private string? _location;
+    private string? _batchId;
 
     [Parameter]
     public Guid ProductId { get; set; }
@@ -190,7 +201,9 @@
                     File = ms.ToArray(),
                     MeasurementId = id,
                     ManufactureCode = _manufactureCode,
-                    ProductState = _selectedState ?? throw new InvalidOperationException("Тип измерения не выбран")
+                    ProductState = _selectedState ?? throw new InvalidOperationException("Тип измерения не выбран"),
+                    Location = _location,
+                    BatchId = _batchId
                 },
                 _product.Id,
                 CancellationToken.None);
@@ -232,6 +245,21 @@
         {
             Logger.LogError(ex, "Error updating note for {Id}", measurement.MeasurementId);
             _error = "Ошибка при обновлении заметки";
+        }
+    }
+
+    private async Task OnBatchIdChanged(MeasurementData measurement, string? newValue)
+    {
+        try
+        {
+            measurement.BatchId = newValue;
+            await EbayClient.UpdateMeasurementBatchIdAsync(newValue, ProductId, measurement.MeasurementId);
+            Logger.LogInformation("Updated batch for {Id}: {Batch}", measurement.MeasurementId, newValue);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error updating batch for {Id}", measurement.MeasurementId);
+            _error = "Ошибка при обновлении batch id";
         }
     }
 
