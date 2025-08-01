@@ -42,7 +42,8 @@ cd /workspace/Ebay/src/Ebay/ && dotnet msbuild -t:BeforeBuild
 Если у тебя проект не билдается - надо исправить билд.
 
 # Миграция БД
-Миграции БД не пишем вручную - генерируем миграции через entity framework, пример
-dotnet ef migrations add MigrationName
 Миграции находятся в проекте Server.Application в папке migrations
 Также обрати внимание на файл ApplicationDbContext.cs при изменении схемы БД.
+Миграции БД не пишем вручную - генерируем миграции через entity framework, пример запуска кодогенератора миграций
+cd /workspace/Ebay/src/Ebay/ && dotnet ef migrations add NewMigration --project Server.Application --startup-project Server
+
