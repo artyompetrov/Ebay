@@ -293,6 +293,30 @@ paths:
         200:
           description: Ok
 
+  /products/{productId}/measurements/{measurementId}/batch/:
+    parameters:
+      - name: productId
+        in: path
+        required: true
+        type: string
+        format: guid
+      - name: measurementId
+        in: path
+        required: true
+        type: string
+        maxLength: 100
+    post:
+      operationId: UpdateMeasurementBatchId
+      parameters:
+        - name: batchId
+          in: body
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+
   /products/{productId}/measurements/{measurementId}/state/:
     parameters:
       - name: productId
@@ -586,6 +610,8 @@ definitions:
         example: '2024-11'
       Location:
         type: string
+      BatchId:
+        type: string
       productState:
         $ref: '#/definitions/ProductState'
       measurementState:
@@ -612,6 +638,8 @@ definitions:
         type: string
         format: binary
       location:
+        type: string
+      batchId:
         type: string
     required:
       - measurementId

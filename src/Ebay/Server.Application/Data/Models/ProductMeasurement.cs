@@ -42,4 +42,11 @@ public class ProductMeasurement
 
     [MaxLength(200)]
     public required string? Location { get; set; }
+
+    /// <summary>
+    /// Batch identifier
+    /// </summary>
+
+    [MaxLength(100)]
+    public string? BatchId { get; set; }
 }

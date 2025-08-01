@@ -24,6 +24,7 @@ public class MeasurementService
         ProductState productState,
         string manufactureCode,
         string? location,
+        string? batchId,
         Guid productId,
         CancellationToken cancellationToken)
     {
@@ -100,7 +101,8 @@ public class MeasurementService
                     HashGridCurves = hashGridCurves ?? throw new NullReferenceException(nameof(hashGridCurves)),
                     HashQuickTest = hashQuickTest ?? throw new NullReferenceException(nameof(hashQuickTest)),
                     ManufactureCode = manufactureCode,
-                    Location = location
+                    Location = location,
+                    BatchId = batchId
                 },
                 cancellationToken: cancellationToken);
 
@@ -128,6 +130,26 @@ public class MeasurementService
         }
 
         measurement.Location = location;
+
+        await _applicationContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task UpdateMeasurementBatchId(
+        string? batchId,
+        Guid productId,
+        string measurementId,
+        CancellationToken cancellationToken)
+    {
+        var measurement = await _applicationContext.ProductMeasurements
+            .Where(m => m.ProductId == productId && m.Id == measurementId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (measurement == null)
+        {
+            throw new InvalidOperationException("Measurement not found.");
+        }
+
+        measurement.BatchId = batchId;
 
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
@@ -383,9 +405,9 @@ public class MeasurementService
 
         var lines = stringData
             .Replace(oldChar: ',', newChar: '.')
-            .Split(separator: ['\r', '\n'], options: StringSplitOptions.RemoveEmptyEntries);
+            .Split(separator: new[] { '\r', '\n' }, options: StringSplitOptions.RemoveEmptyEntries);
 
-        var header = lines[0].Split(separator: ["  "], options: StringSplitOptions.RemoveEmptyEntries)
+        var header = lines[0].Split(separator: new[] { "  " }, options: StringSplitOptions.RemoveEmptyEntries)
             .Select(x => x.Trim()).ToArray();
 
         var idxCurve = Array.IndexOf(array: header, value: "Curve");
@@ -407,7 +429,7 @@ public class MeasurementService
 
 
         var rows = lines.Skip(1)
-            .Select(l => l.Split(separator: ["  "], options: StringSplitOptions.RemoveEmptyEntries))
+            .Select(l => l.Split(separator: new[] { "  " }, options: StringSplitOptions.RemoveEmptyEntries))
             .Select(parts =>
             {
                 var currentCurve = int.Parse(parts[idxCurve]);

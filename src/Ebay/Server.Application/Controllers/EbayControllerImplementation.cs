@@ -308,6 +308,7 @@ public class EbayControllerImplementation : IEbayController
                 ManufactureDate = x.ManufactureCode,
                 x.ProductState,
                 x.Location,
+                x.BatchId,
                 x.MeasurementState
             })
             .ToListAsync(cancellationToken);
@@ -318,6 +319,7 @@ public class EbayControllerImplementation : IEbayController
                     measurementId: x.MeasurementId,
                     productState: x.ProductState.ToApiProductState(),
                     location: x.Location,
+                    batchId: x.BatchId,
                     measurementState: x.MeasurementState.ToApiMeasurementState()
                 )
 
@@ -339,6 +341,7 @@ public class EbayControllerImplementation : IEbayController
                 productState: measurementData.ProductState.ToDbProductState(),
                 manufactureCode: measurementData.ManufactureCode,
                 location: measurementData.Location,
+                batchId: measurementData.BatchId,
                 productId: productId,
                 cancellationToken: cancellationToken);
         }
@@ -369,6 +372,19 @@ public class EbayControllerImplementation : IEbayController
     {
         await _measurementService.UpdateMeasurementLocation(
             location: location,
+            productId: productId,
+            measurementId: measurementId,
+            cancellationToken: cancellationToken);
+    }
+
+    public async Task UpdateMeasurementBatchIdAsync(
+        string? batchId,
+        Guid productId,
+        string measurementId,
+        CancellationToken cancellationToken)
+    {
+        await _measurementService.UpdateMeasurementBatchId(
+            batchId: batchId,
             productId: productId,
             measurementId: measurementId,
             cancellationToken: cancellationToken);
