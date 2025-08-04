@@ -43,6 +43,9 @@ services:
       - Smtp__Login=${SMTP_LOGIN}
       - Smtp__Password=${SMTP_PASSWORD}
       - Smtp__Email=${EMAIL}
+      - CLIENT_ID=${CLIENT_ID}
+      - AUTH_SCOPE=${AUTH_SCOPE}
+      - AUTH_CLIENT_SECRET=${AUTH_CLIENT_SECRET}
       - RESTORE=${RESTORE:-false}
     networks:
       - internal_network

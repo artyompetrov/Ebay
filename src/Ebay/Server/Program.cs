@@ -36,6 +36,13 @@ builder.Services.AddApplicationServices(options, connectionString);
 var keyStoragePath = Environment.GetEnvironmentVariable("DATA_PROTECTION_KEYS_DIR") ??
                      Path.Join(path1: Path.GetTempPath(), path2: "data_protection_keys_dir");
 
+var clientId = Environment.GetEnvironmentVariable(WellKnown.Authorization.ClientId)
+              ?? throw new NullReferenceException("CLIENT_ID is not set");
+var scope = Environment.GetEnvironmentVariable(WellKnown.Authorization.Scope)
+           ?? throw new NullReferenceException("AUTH_SCOPE is not set");
+var clientSecret = Environment.GetEnvironmentVariable(WellKnown.Authorization.ClientSecret)
+                  ?? throw new NullReferenceException("AUTH_CLIENT_SECRET is not set");
+
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(keyStoragePath))
     .SetApplicationName("EbayHelper")
@@ -61,12 +68,12 @@ builder.Services.AddIdentityServer()
             o.Clients.Add(
                 new Duende.IdentityServer.Models.Client
                 {
-                    ClientId = WellKnown.Authorization.PythonClientId,
-                    ClientSecrets = new List<Secret> { new(WellKnown.Authorization.ClientSecret.Sha256()) },
+                    ClientId = clientId,
+                    ClientSecrets = new List<Secret> { new(clientSecret.Sha256()) },
                     AllowedGrantTypes = GrantTypes.ClientCredentials,
                     AllowedScopes =
                     {
-                        WellKnown.Authorization.Scope
+                        scope
                     }
                 }
             );
