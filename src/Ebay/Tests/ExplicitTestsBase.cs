@@ -31,6 +31,13 @@ public abstract class ExplicitTestsBase
         var url = $"{baseAddress}/connect/token";
         HttpClient = new HttpClient();
 
+        var clientId = Environment.GetEnvironmentVariable(WellKnown.Authorization.ClientId)
+                       ?? throw new NullReferenceException("CLIENT_ID is not set");
+        var clientSecret = Environment.GetEnvironmentVariable(WellKnown.Authorization.ClientSecret)
+                           ?? throw new NullReferenceException("AUTH_CLIENT_SECRET is not set");
+        var scope = Environment.GetEnvironmentVariable(WellKnown.Authorization.Scope)
+                   ?? throw new NullReferenceException("AUTH_SCOPE is not set");
+
         using var res = HttpClient.SendAsync(
                 new HttpRequestMessage(method: HttpMethod.Post, requestUri: url)
                 {
@@ -38,9 +45,9 @@ public abstract class ExplicitTestsBase
                         new List<KeyValuePair<string, string>>
                         {
                             new(key: "grant_type", value: "client_credentials"),
-                            new(key: "client_id", value: WellKnown.Authorization.PythonClientId),
-                            new(key: "client_secret", value: WellKnown.Authorization.ClientSecret),
-                            new(key: "scope", value: WellKnown.Authorization.Scope),
+                            new(key: "client_id", value: clientId),
+                            new(key: "client_secret", value: clientSecret),
+                            new(key: "scope", value: scope),
                         }
                     )
                 }
