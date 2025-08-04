@@ -4,6 +4,7 @@ import shutil
 import subprocess
 from datetime import datetime
 import time
+from typing import Optional
 from requests.auth import HTTPBasicAuth
 from getpass import getpass
 from pathlib import Path
@@ -11,15 +12,22 @@ from urllib.parse import urlencode
 import re
 
 # Конфигурационные переменные
-from_host = "radiotubes.kz"
+from_host: Optional[str] = os.getenv("REMOTE_PG_HOST")
 to_host = "localhost"
 backup_path_folder = r"C:\Users\APETROV\files\yandex.disk\YandexDisk\Backups\Ebay"
 
 pg_password = "catnip0-spoil4-untrimmed"
+remote_pg_password: Optional[str] = os.getenv("REMOTE_PG_PASSWORD")
+
+if from_host is None:
+    raise EnvironmentError("REMOTE_PG_HOST environment variable is required")
+
+if remote_pg_password is None:
+    raise EnvironmentError("REMOTE_PG_PASSWORD environment variable is required")
 
 # далее бекап
 
-os.environ["PGPASSWORD"] = pg_password
+os.environ["PGPASSWORD"] = remote_pg_password
 
 backup_path = os.path.join(backup_path_folder, datetime.now().strftime('%Y-%m-%d-%H-%M-%S'))
 Path(backup_path).mkdir(parents=True, exist_ok=True)
@@ -63,6 +71,9 @@ subprocess.run(["docker-compose", "-f", "./deploy/docker-compose.yaml", "--env-f
 print("!!! starting containers with RESTORE option")
 subprocess.run(["docker-compose", "-f", "./deploy/docker-compose.yaml", "--env-file", "./deploy/localhost.env", "up", "-d"], env={"RESTORE": "true"})
 time.sleep(5)
+
+# Переключаем пароль для локальной базы данных
+os.environ["PGPASSWORD"] = pg_password
 
 # Удаление локальных баз данных
 print("!!! dropping local databases")

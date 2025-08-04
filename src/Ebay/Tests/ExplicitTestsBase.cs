@@ -1,3 +1,4 @@
+using System;
 using System.Net.Http.Headers;
 using Client.Clients.Generated;
 using Newtonsoft.Json.Linq;
@@ -8,7 +9,9 @@ namespace Tests;
 public abstract class ExplicitTestsBase
 {
     protected static HttpClient HttpClient = null!;
-    protected const string Server = "radiotubes.kz";
+    protected static readonly string Server =
+        Environment.GetEnvironmentVariable("REMOTE_PG_HOST") ??
+        throw new InvalidOperationException("REMOTE_PG_HOST environment variable is required");
     protected static EbayClient BackendClient = null!;
 
     static ExplicitTestsBase()
