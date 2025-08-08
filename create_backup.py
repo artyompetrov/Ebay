@@ -12,17 +12,17 @@ from urllib.parse import urlencode
 import re
 
 # Конфигурационные переменные
-from_host: Optional[str] = os.getenv("EBAY_HELPER_REMOTE_HOST")
+from_host: Optional[str] = os.getenv("EBAY_HELPER_BACKEND_DOMAIN")
 if from_host is None:
-    raise EnvironmentError("EBAY_HELPER_REMOTE_HOST environment variable is required")
+    raise EnvironmentError("EBAY_HELPER_BACKEND_DOMAIN environment variable is required")
     
 to_host = "localhost"
 backup_path_folder = r"C:\Users\APETROV\files\yandex.disk\YandexDisk\Backups\Ebay"
 
 pg_password = "catnip0-spoil4-untrimmed"
-remote_pg_password: Optional[str] = os.getenv("EBAY_HELPER_REMOTE_PG_PASSWORD")
+remote_pg_password: Optional[str] = os.getenv("EBAY_HELPER_PG_PASSWORD")
 if remote_pg_password is None:
-    raise EnvironmentError("EBAY_HELPER_REMOTE_PG_PASSWORD environment variable is required")
+    raise EnvironmentError("EBAY_HELPER_PG_PASSWORD environment variable is required")
 
 # далее бекап
 
