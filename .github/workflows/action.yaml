@@ -14,8 +14,8 @@ env:
   DOTNET_IMAGE_NAME: ${{ github.actor }}/ebay:latest
 
 jobs:
-  build_dotnet:
-    name: Build .NET Docker Image
+  build_docker:
+    name: Build Docker Image
     runs-on: ubuntu-latest
 
     steps:
@@ -32,11 +32,12 @@ jobs:
         with:
           name: dotnet-image
           path: image.tar
+          retention-days: 5
 
-  publish_dotnet:
-    name: Push .NET Docker Image
+  publish_docker:
+    name: Push Docker Image
     runs-on: ubuntu-latest
-    needs: build_dotnet
+    needs: build_docker
     if: github.ref == 'refs/heads/main'  # Запускается только на ветке main
 
     steps:
@@ -57,9 +58,9 @@ jobs:
         run: docker push ${{ env.REGISTRY }}/${{ env.DOTNET_IMAGE_NAME }}
 
   deploy:
-    name: Deploy
+    name: Deploy Docker Image
     runs-on: ubuntu-latest
-    needs: [ publish_dotnet ]
+    needs: [ publish_docker ]
     if: github.ref == 'refs/heads/main'  # Запускается только на ветке main
 
     steps:
