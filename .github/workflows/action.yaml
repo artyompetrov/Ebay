@@ -11,11 +11,11 @@ concurrency:
 
 env:
   REGISTRY: ghcr.io
-  DOTNET_IMAGE_NAME: ${{ github.actor }}/ebay:latest
+  EBAY_HELPER_IMAGE_NAME: ${{ github.actor }}/ebay:latest
 
 jobs:
   build_docker:
-    name: Build Docker Image
+    name: Build Ebay Helper Docker Image
     runs-on: ubuntu-latest
 
     steps:
@@ -24,8 +24,8 @@ jobs:
       - name: Build Docker Image
         run: |
           BUILD_VERSION=$(date +'%y%m.%d.%H.%M%S' | sed 's/\.0*/./g')
-          docker build -f ./src/dotnet.Dockerfile --build-arg BUILD_VERSION="$BUILD_VERSION" --build-arg EBAY_HELPER_BACKEND_DOMAIN="${{ secrets.EBAY_HELPER_BACKEND_DOMAIN }}" --build-arg EBAY_CLIENT_ID="${{ secrets.EBAY_CLIENT_ID }}" --build-arg EBAY_CLIENT_SECRET="${{ secrets.EBAY_CLIENT_SECRET }}" --build-arg EBAY_REDIRECT_URI_CODE="${{ secrets.EBAY_REDIRECT_URI_CODE }}" --tag ${{ env.REGISTRY }}/${{ env.DOTNET_IMAGE_NAME }} ./src/
-          docker save ${{ env.REGISTRY }}/${{ env.DOTNET_IMAGE_NAME }} -o image.tar
+          docker build -f ./src/ebay_helper.Dockerfile --build-arg BUILD_VERSION="$BUILD_VERSION" --build-arg EBAY_HELPER_BACKEND_DOMAIN="${{ secrets.EBAY_HELPER_BACKEND_DOMAIN }}" --build-arg EBAY_CLIENT_ID="${{ secrets.EBAY_CLIENT_ID }}" --build-arg EBAY_CLIENT_SECRET="${{ secrets.EBAY_CLIENT_SECRET }}" --build-arg EBAY_REDIRECT_URI_CODE="${{ secrets.EBAY_REDIRECT_URI_CODE }}" --tag ${{ env.REGISTRY }}/${{ env.EBAY_HELPER_IMAGE_NAME }} ./src/
+          docker save ${{ env.REGISTRY }}/${{ env.EBAY_HELPER_IMAGE_NAME }} -o image.tar
 
       - name: Upload Image Artifact
         uses: actions/upload-artifact@v4
@@ -35,7 +35,7 @@ jobs:
           retention-days: 5
 
   publish_docker:
-    name: Push Docker Image
+    name: Push Ebay Helper Docker Image
     runs-on: ubuntu-latest
     needs: build_docker
     if: github.ref == 'refs/heads/main'  # Запускается только на ветке main
@@ -55,7 +55,7 @@ jobs:
         run: echo ${{ secrets.PAT }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
 
       - name: Push Docker Image
-        run: docker push ${{ env.REGISTRY }}/${{ env.DOTNET_IMAGE_NAME }}
+        run: docker push ${{ env.REGISTRY }}/${{ env.EBAY_HELPER_IMAGE_NAME }}
 
   deploy:
     name: Deploy Docker Image
