@@ -37,11 +37,11 @@ var keyStoragePath = Environment.GetEnvironmentVariable("DATA_PROTECTION_KEYS_DI
                      Path.Join(path1: Path.GetTempPath(), path2: "data_protection_keys_dir");
 
 var clientId = Environment.GetEnvironmentVariable(WellKnown.Authorization.ClientId)
-               ?? throw new NullReferenceException($"{WellKnown.Authorization.ClientId} is not set");
+               ?? "client_id";
 var scope = Environment.GetEnvironmentVariable(WellKnown.Authorization.Scope)
-           ?? throw new NullReferenceException($"{WellKnown.Authorization.Scope} is not set");
+           ?? "scope";
 var clientSecret = Environment.GetEnvironmentVariable(WellKnown.Authorization.ClientSecret)
-                  ?? throw new NullReferenceException($"{WellKnown.Authorization.ClientSecret} is not set");
+                  ?? "secret";
 
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(keyStoragePath))
