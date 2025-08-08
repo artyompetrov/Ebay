@@ -37,6 +37,10 @@ cd /workspace/Ebay/src/Ebay/ && dotnet msbuild -t:BeforeBuild
 
 после чего будут сгенерированны cs Client и Controller и ts client
 
+# Билд проекта
+C# - `cd /workspace/Ebay/src/Ebay/ && dotnet build`
+ChromeExtension - `cd /workspace/Ebay/src/ChromeExtension/ && npm run build`
+
 # Присылай Pull request только если получается успешно сбилдать проект
 После завершения кодирования проверяй что у тебя билдается как C# проект так и Chrome расширение.
 Если у тебя проект не билдается - надо исправить билд.
