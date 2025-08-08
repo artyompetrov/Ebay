@@ -1,7 +1,7 @@
 ﻿# Project Agents.md Guide for OpenAI Codex
 
 # О проекте
-Мы разрабатываем приложение, помогающае анализировать стоимость товаров на ebay, для последующей их закупки на сайтах типа avito.ru chipfind.ru и других.
+Мы разрабатываем приложение, помогающее анализировать стоимость товаров на ebay, для последующей их закупки на сайтах типа avito.ru chipfind.ru и других.
 
 Приложение состоит из нескольких частей:
 1. Серверная часть, которая запускается внутри docker (используется docker-compose)
@@ -34,7 +34,7 @@
 чтобы выполнить кодогенерацию надо выполнить следующую команду
 cd /workspace/Ebay/src/Ebay/ && dotnet msbuild -t:BeforeBuild
 
-после чего будут сгенерированны cs Client и Controller и ts client
+после чего будут сгенерированы cs Client и Controller и ts client
 
 # Билд проекта
 C# - `cd /workspace/Ebay/src/Ebay/ && dotnet build`
