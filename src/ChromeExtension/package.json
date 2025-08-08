@@ -16,8 +16,8 @@
         "webpack-cli": "^6.0.1"
     },
     "scripts": {
-  "manifest": "envsubst '$BACKEND_DOMAIN' < _extension/manifest.json.template > _extension/manifest.json",
-  "build": "npm run manifest && webpack --config webpack.config.js"
+        "manifest": "node generateManifest.js",
+        "build": "npm run manifest && webpack --config webpack.config.js"
     },
     "keywords": [],
     "author": "",
