@@ -14,8 +14,13 @@ FROM node:18-alpine AS build_crome_extension
 WORKDIR /src
 COPY ChromeExtension .
 COPY --from=build_dotnet /src/ChromeExtension .
+ARG BACKEND_DOMAIN
+ARG EBAY_CLIENT_ID
+ARG EBAY_CLIENT_SECRET
+ARG EBAY_REDIRECT_URI_CODE
+RUN apk add --no-cache gettext
 RUN npm install
-RUN npm run build
+RUN BACKEND_DOMAIN=$BACKEND_DOMAIN EBAY_CLIENT_ID=$EBAY_CLIENT_ID EBAY_CLIENT_SECRET=$EBAY_CLIENT_SECRET EBAY_REDIRECT_URI_CODE=$EBAY_REDIRECT_URI_CODE npm run build
 ARG BUILD_VERSION="0.0.0.1"
 RUN node updateVersion.js $BUILD_VERSION
 RUN mkdir -p /app/publish/ && \
