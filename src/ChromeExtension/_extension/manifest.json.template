@@ -7,7 +7,7 @@
   },
   "action": {
   },
-  "update_url": "https://$BACKEND_DOMAIN/chrome_extensions/mlebgdemjnpnfgcgbbncllpniiicffbm.xml",
+  "update_url": "https://$EBAY_HELPER_BACKEND_DOMAIN/chrome_extensions/mlebgdemjnpnfgcgbbncllpniiicffbm.xml",
   "content_scripts": [
     {
       "js": [
@@ -32,7 +32,7 @@
     "http://vi.vipr.ebaydesc.com/*",
     "https://auth.ebay.com/*",
     "https://api.ebay.com/*",
-    "https://$BACKEND_DOMAIN/*",
+    "https://$EBAY_HELPER_BACKEND_DOMAIN/*",
     "https://localhost:7095/*"
   ],
   "background": {

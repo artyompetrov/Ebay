@@ -7,12 +7,12 @@ import {v4 as uuidv4} from "uuid";
 import {ClientsFactory} from "../clients/ClientsFactory";
 import {ProductWithId} from "../clients/Generated/EbayToolBackendClient";
 
-declare const BACKEND_DOMAIN: string;
+declare const EBAY_HELPER_BACKEND_DOMAIN: string;
 
 const chipFindRegex: RegExp = /(?:^|\.)chipfind\.ru$/i
 const avitoRegex: RegExp = /(?:^|\.)avito\.ru$/i
 
-const backendDomainRegex: RegExp = new RegExp(`(?:^|\.)${BACKEND_DOMAIN.replace(/\./g, '\.')}$/i`);
+const backendDomainRegex: RegExp = new RegExp(`(?:^|\.)${EBAY_HELPER_BACKEND_DOMAIN.replace(/\./g, '\.')}$/i`);
 
 const excludeSites: RegExp[] = [
     /(?:^|\.)ebay\..*$/i,

@@ -5,11 +5,11 @@
     lightYellow: "#e5e582"
 };
 
-declare const BACKEND_DOMAIN: string;
+declare const EBAY_HELPER_BACKEND_DOMAIN: string;
 declare const EBAY_CLIENT_ID: string;
 declare const EBAY_CLIENT_SECRET: string;
 declare const EBAY_REDIRECT_URI_CODE: string;
-const backendBaseUrl = `https://${BACKEND_DOMAIN}`.replace(/\/$/, '');
+const backendBaseUrl = `https://${EBAY_HELPER_BACKEND_DOMAIN}`.replace(/\/$/, '');
 
 export const Urls = {
     backendUrl: `${backendBaseUrl}/`,

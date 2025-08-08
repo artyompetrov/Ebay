@@ -47,3 +47,6 @@ cd /workspace/Ebay/src/Ebay/ && dotnet msbuild -t:BeforeBuild
 Миграции БД не пишем вручную - генерируем миграции через entity framework, пример запуска кодогенератора миграций
 cd /workspace/Ebay/src/Ebay/ && dotnet ef migrations add NewMigration --project Server.Application --startup-project Server
 
+# CI CD
+Проект использует Github CI CD. Не забывай верифицировать `.github/workflows/action.yaml` на корректность если изменялись параметры билда.
+
