@@ -54,7 +54,7 @@ jobs:
 
       - name: Build Node.js Modules
         working-directory: ./src/ChromeExtension
-        run: npm run build --backend-domain ${{ secrets.BACKEND_DOMAIN }} --ebay-client-id ${{ secrets.EBAY_CLIENT_ID }} --ebay-client-secret ${{ secrets.EBAY_CLIENT_SECRET }} --ebay-redirect-uri-code ${{ secrets.EBAY_REDIRECT_URI_CODE }}
+        run: BACKEND_DOMAIN=${{ secrets.BACKEND_DOMAIN }} EBAY_CLIENT_ID=${{ secrets.EBAY_CLIENT_ID }} EBAY_CLIENT_SECRET=${{ secrets.EBAY_CLIENT_SECRET }} EBAY_REDIRECT_URI_CODE=${{ secrets.EBAY_REDIRECT_URI_CODE }} npm run build
 
   publish_dotnet:
     name: Publish .NET Docker Image

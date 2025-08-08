@@ -20,7 +20,7 @@ ARG EBAY_CLIENT_SECRET
 ARG EBAY_REDIRECT_URI_CODE
 RUN apk add --no-cache gettext
 RUN npm install
-RUN npm run build --backend-domain $BACKEND_DOMAIN --ebay-client-id $EBAY_CLIENT_ID --ebay-client-secret $EBAY_CLIENT_SECRET --ebay-redirect-uri-code $EBAY_REDIRECT_URI_CODE
+RUN BACKEND_DOMAIN=$BACKEND_DOMAIN EBAY_CLIENT_ID=$EBAY_CLIENT_ID EBAY_CLIENT_SECRET=$EBAY_CLIENT_SECRET EBAY_REDIRECT_URI_CODE=$EBAY_REDIRECT_URI_CODE npm run build
 ARG BUILD_VERSION="0.0.0.1"
 RUN node updateVersion.js $BUILD_VERSION
 RUN mkdir -p /app/publish/ && \

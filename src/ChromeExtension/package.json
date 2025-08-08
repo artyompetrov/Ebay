@@ -16,8 +16,8 @@
         "webpack-cli": "^6.0.1"
     },
     "scripts": {
-  "manifest": "BACKEND_DOMAIN=${npm_config_backend_domain} envsubst '$BACKEND_DOMAIN' < _extension/manifest.json.template > _extension/manifest.json",
-  "build": "npm run manifest && BACKEND_DOMAIN=${npm_config_backend_domain} EBAY_CLIENT_ID=${npm_config_ebay_client_id} EBAY_CLIENT_SECRET=${npm_config_ebay_client_secret} EBAY_REDIRECT_URI_CODE=${npm_config_ebay_redirect_uri_code} webpack --config webpack.config.js"
+  "manifest": "envsubst '$BACKEND_DOMAIN' < _extension/manifest.json.template > _extension/manifest.json",
+  "build": "npm run manifest && webpack --config webpack.config.js"
     },
     "keywords": [],
     "author": "",
