@@ -14,8 +14,13 @@ FROM node:18-alpine AS build_crome_extension
 WORKDIR /src
 COPY ChromeExtension .
 COPY --from=build_dotnet /src/ChromeExtension .
+ARG BACKEND_DOMAIN
+ARG EBAY_CLIENT_ID
+ARG EBAY_CLIENT_SECRET
+ARG EBAY_REDIRECT_URI_CODE
+RUN apk add --no-cache gettext
 RUN npm install
-RUN npm run build
+RUN npm run build --backend-domain $BACKEND_DOMAIN --ebay-client-id $EBAY_CLIENT_ID --ebay-client-secret $EBAY_CLIENT_SECRET --ebay-redirect-uri-code $EBAY_REDIRECT_URI_CODE
 ARG BUILD_VERSION="0.0.0.1"
 RUN node updateVersion.js $BUILD_VERSION
 RUN mkdir -p /app/publish/ && \

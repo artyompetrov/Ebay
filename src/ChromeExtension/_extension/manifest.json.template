@@ -7,7 +7,7 @@
   },
   "action": {
   },
-  "update_url": "https://radiotubes.kz/chrome_extensions/mlebgdemjnpnfgcgbbncllpniiicffbm.xml",
+  "update_url": "https://$BACKEND_DOMAIN/chrome_extensions/mlebgdemjnpnfgcgbbncllpniiicffbm.xml",
   "content_scripts": [
     {
       "js": [
@@ -33,7 +33,7 @@
     "https://178.208.65.100/*",
     "https://auth.ebay.com/*",
     "https://api.ebay.com/*",
-    "https://radiotubes.kz/*",
+    "https://$BACKEND_DOMAIN/*",
     "https://localhost:7095/*"
   ],
   "background": {
