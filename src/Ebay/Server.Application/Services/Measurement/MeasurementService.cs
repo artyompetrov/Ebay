@@ -24,7 +24,7 @@ public class MeasurementService
         ProductState productState,
         string manufactureCode,
         string? location,
-        string? batchId,
+        string? matchId,
         Guid productId,
         CancellationToken cancellationToken)
     {
@@ -102,7 +102,7 @@ public class MeasurementService
                     HashQuickTest = hashQuickTest ?? throw new NullReferenceException(nameof(hashQuickTest)),
                     ManufactureCode = manufactureCode,
                     Location = location,
-                    BatchId = batchId
+                    MatchId = matchId
                 },
                 cancellationToken: cancellationToken);
 
@@ -134,7 +134,7 @@ public class MeasurementService
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task UpdateMeasurementBatchId(
+    public async Task UpdateMeasurementMatchId(
         string? batchId,
         Guid productId,
         string measurementId,
@@ -149,7 +149,7 @@ public class MeasurementService
             throw new InvalidOperationException("Measurement not found.");
         }
 
-        measurement.BatchId = batchId;
+        measurement.MatchId = batchId;
 
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }

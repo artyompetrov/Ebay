@@ -304,22 +304,22 @@ public class EbayControllerImplementation : IEbayController
             .ThenByDescending(p => p.Id)
             .Select(x => new
             {
-                MeasurementId = x.Id,
-                ManufactureDate = x.ManufactureCode,
+                x.Id,
+                x.ManufactureCode,
                 x.ProductState,
                 x.Location,
-                x.BatchId,
+                x.MatchId,
                 x.MeasurementState
             })
             .ToListAsync(cancellationToken);
 
         var result = measurements
             .Select(x => new MeasurementData(
-                    manufactureCode: x.ManufactureDate,
-                    measurementId: x.MeasurementId,
+                    manufactureCode: x.ManufactureCode,
+                    measurementId: x.Id,
                     productState: x.ProductState.ToApiProductState(),
                     location: x.Location,
-                    batchId: x.BatchId,
+                    matchId: x.MatchId,
                     measurementState: x.MeasurementState.ToApiMeasurementState()
                 )
 
@@ -341,7 +341,7 @@ public class EbayControllerImplementation : IEbayController
                 productState: measurementData.ProductState.ToDbProductState(),
                 manufactureCode: measurementData.ManufactureCode,
                 location: measurementData.Location,
-                batchId: measurementData.BatchId,
+                matchId: measurementData.MatchId,
                 productId: productId,
                 cancellationToken: cancellationToken);
         }
@@ -377,13 +377,13 @@ public class EbayControllerImplementation : IEbayController
             cancellationToken: cancellationToken);
     }
 
-    public async Task UpdateMeasurementBatchIdAsync(
+    public async Task UpdateMeasurementMatchIdAsync(
         string? batchId,
         Guid productId,
         string measurementId,
         CancellationToken cancellationToken)
     {
-        await _measurementService.UpdateMeasurementBatchId(
+        await _measurementService.UpdateMeasurementMatchId(
             batchId: batchId,
             productId: productId,
             measurementId: measurementId,

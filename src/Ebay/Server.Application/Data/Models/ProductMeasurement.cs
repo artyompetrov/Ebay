@@ -42,11 +42,10 @@ public class ProductMeasurement
 
     [MaxLength(200)]
     public required string? Location { get; set; }
-
+    
     /// <summary>
-    /// Batch identifier
+    /// Идентификатор подобранного набора
     /// </summary>
-
     [MaxLength(100)]
-    public string? BatchId { get; set; }
+    public string? MatchId { get; set; }
 }

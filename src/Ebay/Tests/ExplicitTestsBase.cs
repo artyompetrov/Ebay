@@ -10,8 +10,8 @@ public abstract class ExplicitTestsBase
 {
     protected static HttpClient HttpClient = null!;
     protected static readonly string Server =
-        Environment.GetEnvironmentVariable("REMOTE_PG_HOST") ??
-        throw new InvalidOperationException("REMOTE_PG_HOST environment variable is required");
+        Environment.GetEnvironmentVariable("EBAY_HELPER_REMOTE_HOST") ??
+        throw new InvalidOperationException("EBAY_HELPER_REMOTE_HOST environment variable is required");
     protected static EbayClient BackendClient = null!;
 
     static ExplicitTestsBase()

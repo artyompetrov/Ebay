@@ -293,7 +293,7 @@ paths:
         200:
           description: Ok
 
-  /products/{productId}/measurements/{measurementId}/batch/:
+  /products/{productId}/measurements/{measurementId}/match/:
     parameters:
       - name: productId
         in: path
@@ -306,9 +306,9 @@ paths:
         type: string
         maxLength: 100
     post:
-      operationId: UpdateMeasurementBatchId
+      operationId: UpdateMeasurementMatchId
       parameters:
-        - name: batchId
+        - name: matchId
           in: body
           required: true
           schema:
@@ -608,9 +608,9 @@ definitions:
         type: string
         minLength: 1
         example: '2024-11'
-      Location:
+      location:
         type: string
-      BatchId:
+      matchId:
         type: string
       productState:
         $ref: '#/definitions/ProductState'
@@ -639,7 +639,7 @@ definitions:
         format: binary
       location:
         type: string
-      batchId:
+      matchId:
         type: string
     required:
       - measurementId

@@ -53,8 +53,8 @@
 <label for="locationInput">Место хранения (необязательно):</label>
 <input id="locationInput" @bind="_location" type="text" class="form-control" lang="en" />
 
-<label for="batchIdInput">Batch ID (необязательно):</label>
-<input id="batchIdInput" @bind="_batchId" type="text" class="form-control" lang="en" />
+<label for="matchIdInput">Match ID (необязательно):</label>
+<input id="matchIdInput" @bind="_matchId" type="text" class="form-control" lang="en" />
 <br>
 <InputFile OnChange="HandleFileSelected" accept=".zip" />
 
@@ -82,7 +82,7 @@
             <th>Состояние</th>
             <th>Статус</th>
             <th>Расположение</th>
-            <th>Batch ID</th>
+            <th>Match ID</th>
             <th></th>
         </tr>
         </thead>
@@ -115,8 +115,8 @@
                 <td>
                     <input type="text"
                            class="form-control"
-                           value="@measurement.BatchId"
-                           @oninput="async e => await OnBatchIdChanged(measurement, e.Value?.ToString())" />
+                           value="@measurement.MatchId"
+                           @oninput="async e => await OnMatchIdChanged(measurement, e.Value?.ToString())" />
                 </td>
                 <td><button class="btn btn-danger btn-sm oi oi-basket" @onclick="@(e => OnDeleteButtonClick(measurement.MeasurementId))"></button></td>
             </tr>
@@ -139,7 +139,7 @@
     private QuestionPopup _questionPopup = null!;
     private string? _manufactureCode;
     private string? _location;
-    private string? _batchId;
+    private string? _matchId;
 
     [Parameter]
     public Guid ProductId { get; set; }
@@ -203,7 +203,7 @@
                     ManufactureCode = _manufactureCode,
                     ProductState = _selectedState ?? throw new InvalidOperationException("Тип измерения не выбран"),
                     Location = _location,
-                    BatchId = _batchId
+                    MatchId = _matchId
                 },
                 _product.Id,
                 CancellationToken.None);
@@ -248,18 +248,18 @@
         }
     }
 
-    private async Task OnBatchIdChanged(MeasurementData measurement, string? newValue)
+    private async Task OnMatchIdChanged(MeasurementData measurement, string? newValue)
     {
         try
         {
-            measurement.BatchId = newValue;
-            await EbayClient.UpdateMeasurementBatchIdAsync(newValue, ProductId, measurement.MeasurementId);
-            Logger.LogInformation("Updated batch for {Id}: {Batch}", measurement.MeasurementId, newValue);
+            measurement.MatchId = newValue;
+            await EbayClient.UpdateMeasurementMatchIdAsync(newValue, ProductId, measurement.MeasurementId);
+            Logger.LogInformation("Updated Match Id for {Id}: {Match}", measurement.MeasurementId, newValue);
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error updating batch for {Id}", measurement.MeasurementId);
-            _error = "Ошибка при обновлении batch id";
+            Logger.LogError(ex, "Error updating match id for {Id}", measurement.MeasurementId);
+            _error = "Ошибка при обновлении match id";
         }
     }
 

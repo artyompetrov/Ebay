@@ -16,7 +16,10 @@
         "Smtp__Port": "587",
         "Smtp__Login": "radio-tubes",
         "Smtp__Password": "jthzppcjiumyovuu",
-        "Smtp__Email": "radio-tubes@ya.ru"
+        "Smtp__Email": "radio-tubes@ya.ru",
+        "CLIENT_ID": "",
+        "AUTH_SCOPE": "",
+        "AUTH_CLIENT_SECRET": ""
       }
     }
   }
