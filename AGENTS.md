@@ -32,23 +32,22 @@
 `/Server.Application/Controllers/Contracts/Ebay.yaml` Основной контракт приложения
 кодогенерация осуществляется через msbuild таргеты NSWag,
 чтобы выполнить кодогенерацию надо выполнить следующую команду
-cd /workspace/Ebay/src/Ebay/ && dotnet msbuild -t:BeforeBuild
-
-после чего будут сгенерированы cs Client и Controller и ts client
+`cd /workspace/Ebay/src/Ebay/ && dotnet msbuild -t:BeforeBuild`
+после чего будут сгенерированы C# Client и Controller и TypeScript client
 
 # Билд проекта
-C# - `cd /workspace/Ebay/src/Ebay/ && dotnet build`
+C# - `cd /workspace/Ebay/src/Ebay/ && dotnet build` (если менялись контракты, нужно сначала выполнить таргет BeforeBuild, как написано выше)
 ChromeExtension - `cd /workspace/Ebay/src/ChromeExtension/ && npm run build`
 
 # Присылай Pull request только если получается успешно сбилдать проект
-После завершения кодирования проверяй что у тебя билдается как C# проект так и Chrome расширение.
-Если у тебя проект не билдается - надо исправить билд.
+После завершения кодирования проверяй что у тебя билдается как C# проект, так и Chrome расширение.
+Если проект не билдается - надо исправить билд перед созданием Pull request.
 
 # Миграция БД
 Миграции находятся в проекте Server.Application в папке migrations
 Также обрати внимание на файл ApplicationDbContext.cs при изменении схемы БД.
 Миграции БД не пишем вручную - генерируем миграции через entity framework, пример запуска кодогенератора миграций
-cd /workspace/Ebay/src/Ebay/ && dotnet ef migrations add NewMigration --project Server.Application --startup-project Server
+cd /workspace/Ebay/src/Ebay/ && dotnet ef migrations add NewMigrationName --project Server.Application --startup-project Server
 
 # CI CD
 Проект использует Github CI CD. Не забывай верифицировать `.github/workflows/action.yaml` на корректность если изменялись параметры билда.
