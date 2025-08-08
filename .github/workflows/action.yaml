@@ -14,65 +14,47 @@ env:
   DOTNET_IMAGE_NAME: ${{ github.actor }}/ebay:latest
 
 jobs:
-  test_dotnet:
-    name: Run .NET Tests
+  build_dotnet:
+    name: Build .NET Docker Image
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+      - name: Build Docker Image
+        run: |
+          BUILD_VERSION=$(date +'%y%m.%d.%H.%M%S' | sed 's/\.0*/./g')
+          docker build -f ./src/dotnet.Dockerfile --build-arg BUILD_VERSION="$BUILD_VERSION" --build-arg EBAY_HELPER_BACKEND_DOMAIN="${{ secrets.EBAY_HELPER_BACKEND_DOMAIN }}" --build-arg EBAY_CLIENT_ID="${{ secrets.EBAY_CLIENT_ID }}" --build-arg EBAY_CLIENT_SECRET="${{ secrets.EBAY_CLIENT_SECRET }}" --build-arg EBAY_REDIRECT_URI_CODE="${{ secrets.EBAY_REDIRECT_URI_CODE }}" --tag ${{ env.REGISTRY }}/${{ env.DOTNET_IMAGE_NAME }} ./src/
+          docker save ${{ env.REGISTRY }}/${{ env.DOTNET_IMAGE_NAME }} -o image.tar
+
+      - name: Upload Image Artifact
+        uses: actions/upload-artifact@v3
         with:
-          dotnet-version: '8.0.x'
-          
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18.x'
-      
-      - name: Restore .NET Dependencies
-        working-directory: ./src/Ebay
-        run: dotnet restore 
-
-      - name: Generate Code
-        working-directory: ./src/Ebay
-        run: dotnet msbuild -t:BeforeBuild
-      
-      - name: Build .NET
-        working-directory: ./src/Ebay
-        run: dotnet build --no-restore --configuration Release
-
-# ходит на продакшн в момент билда
-#      - name: Run .NET Tests
-#        working-directory: ./src/Ebay
-#        run: dotnet test --no-build --filter "TestCategory!=ExplicitOnly" --verbosity normal --configuration Release
-
-      - name: Install Node.js Dependencies
-        working-directory: ./src/ChromeExtension
-        run: npm install
-
-      - name: Build Node.js Modules
-        working-directory: ./src/ChromeExtension
-        run: EBAY_HELPER_BACKEND_DOMAIN=${{ secrets.EBAY_HELPER_BACKEND_DOMAIN }} EBAY_CLIENT_ID=${{ secrets.EBAY_CLIENT_ID }} EBAY_CLIENT_SECRET=${{ secrets.EBAY_CLIENT_SECRET }} EBAY_REDIRECT_URI_CODE=${{ secrets.EBAY_REDIRECT_URI_CODE }} npm run build
+          name: dotnet-image
+          path: image.tar
 
   publish_dotnet:
-    name: Publish .NET Docker Image
+    name: Push .NET Docker Image
     runs-on: ubuntu-latest
-    needs: test_dotnet
+    needs: build_dotnet
     if: github.ref == 'refs/heads/main'  # Запускается только на ветке main
 
     steps:
       - uses: actions/checkout@v3
 
+      - name: Download Image Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: dotnet-image
+
+      - name: Load Docker Image
+        run: docker load -i image.tar
+
       - name: Login to GitHub Container Registry
         run: echo ${{ secrets.PAT }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
 
-      - name: Build and Push Docker Image
-        run: |
-          BUILD_VERSION=$(date +'%y%m.%d.%H.%M%S' | sed 's/\.0*/./g')
-          docker build -f ./src/dotnet.Dockerfile --build-arg BUILD_VERSION="$BUILD_VERSION" --build-arg EBAY_HELPER_BACKEND_DOMAIN="${{ secrets.EBAY_HELPER_BACKEND_DOMAIN }}" --build-arg EBAY_CLIENT_ID="${{ secrets.EBAY_CLIENT_ID }}" --build-arg EBAY_CLIENT_SECRET="${{ secrets.EBAY_CLIENT_SECRET }}" --build-arg EBAY_REDIRECT_URI_CODE="${{ secrets.EBAY_REDIRECT_URI_CODE }}" --tag ${{ env.REGISTRY }}/${{ env.DOTNET_IMAGE_NAME }} ./src/
-          docker push ${{ env.REGISTRY }}/${{ env.DOTNET_IMAGE_NAME }}
+      - name: Push Docker Image
+        run: docker push ${{ env.REGISTRY }}/${{ env.DOTNET_IMAGE_NAME }}
 
   deploy:
     name: Deploy
@@ -93,3 +75,4 @@ jobs:
 
       - name: Cleanup SSH
         run: rm -rf ~/.ssh
+
