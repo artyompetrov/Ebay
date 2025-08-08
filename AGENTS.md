@@ -7,7 +7,7 @@
 1. Серверная часть, которая запускается внутри docker (используется docker-compose)
 2. Клиентская часть, которая представляет собой Blazor web assembly приложение.
 3. Chrome extension, которая добавляется в браузер и позволяет просматривать страницы ebay, парсить их и сохранять в базу данных по api сервера.
-4. В качестве БД используется Posgresql - нужно учитывать ее синтаксис при написании sql запросов
+4. В качестве БД используется Postgres - нужно учитывать ее синтаксис при написании sql запросов
 5. В проекте используется кодогенерация клиентов и controller-ов из openapi контракта
 
 # Code style
@@ -19,12 +19,14 @@
 
 ## Project Structure for OpenAI Codex Navigation
 
+- `.github/workflows/action.yaml` - настройки github CI
 - `/src`: исходный код
     - `/ChromeExtension`: Хром расширение
     - `/Ebay`: C# проект
       - `/Client`: Фронтенд на blazor webassembly
       - `/Server.*`: Серверные сборки (проект чуть-чуть разбит на порты и адаптеры, но не до конца)
       - `/Tests`: Тесты запускаемые вручную. проекты толком тестами не покрыт, эти тесты для валидации продакшен базы вручную
+    - `ebay_helper.Dockerfile` - Докер файл, который осуществляет сборку решения в единый контейнер, подлежащий развертыванию.
 - `/deploy`: docker-compose обвязка для запуска проекта
 - `/tests`: Test files that OpenAI Codex should maintain and extend
 
@@ -49,6 +51,6 @@ ChromeExtension - `cd /workspace/Ebay/src/ChromeExtension/ && npm run build`
 Миграции БД не пишем вручную - генерируем миграции через entity framework, пример запуска кодогенератора миграций
 cd /workspace/Ebay/src/Ebay/ && dotnet ef migrations add NewMigrationName --project Server.Application --startup-project Server
 
-# CI CD
-Проект использует Github CI CD. Не забывай верифицировать `.github/workflows/action.yaml` на корректность если изменялись параметры билда.
-
+# Сборка в docker и CI CD
+Проект собирается в Docker при помощи Github CI CD.
+Не забывай верифицировать `src/ebay_helper.Dockerfile` и `.github/workflows/action.yaml` на корректность если изменялись параметры билда.
