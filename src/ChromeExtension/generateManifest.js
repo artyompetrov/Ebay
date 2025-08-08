@@ -7,11 +7,7 @@ if (!backendDomain) {
   process.exit(1);
 }
 
-const version = process.env.BUILD_VERSION || process.env.npm_package_version;
-if (!version) {
-  console.error('Version not set');
-  process.exit(1);
-}
+const version = process.env.BUILD_VERSION || "0.0.0.1"
 
 const templatePath = path.join(__dirname, '_extension', 'manifest.json.template');
 const outputPath = path.join(__dirname, '_extension', 'manifest.json');
