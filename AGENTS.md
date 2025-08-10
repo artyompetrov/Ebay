@@ -17,6 +17,9 @@
 
 Старайся не копировать лишний раз код - переиспользуй уже существующие методы, расширяй их при необходимости (код с кучей копипасты очень сложно будет поддерживать).
 
+## Настройки сборки
+- Файл `src/Ebay/Directory.Build.props` включает проверки на nullable reference types, implicit usings и рассматривает предупреждения как ошибки. Убедитесь, что проекты .NET собираются без предупреждений.
+
 ## Project Structure for OpenAI Codex Navigation
 
 - `.github/workflows/action.yaml` - настройки github CI
@@ -54,3 +57,7 @@ cd /workspace/Ebay/src/Ebay/ && dotnet ef migrations add NewMigrationName --proj
 # Сборка в docker и CI CD
 Проект собирается в Docker при помощи Github CI CD.
 Не забывай верифицировать `src/ebay_helper.Dockerfile` и `.github/workflows/action.yaml` на корректность если изменялись параметры билда.
+
+
+# Иконки
+На UI используются иконки из коллекции https://icones.js.org/collection/oi или emoji
