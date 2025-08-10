@@ -14,6 +14,7 @@ using LotInfo = Server.Controllers.Generated.LotInfo;
 using LotInfoShort = Server.Controllers.Generated.LotInfoShort;
 using LotInfoWithProductId = Server.Controllers.Generated.LotInfoWithProductId;
 using LotState = Server.Controllers.Generated.LotState;
+using FindMatchParameters = Server.Controllers.Generated.FindMatchParameters;
 using MeasurementData = Server.Controllers.Generated.MeasurementData;
 using MeasurementState = Server.Controllers.Generated.MeasurementState;
 using ProductWithId = Server.Controllers.Generated.ProductWithId;
@@ -401,6 +402,14 @@ public class EbayControllerImplementation : IEbayController
             productId: productId,
             measurementId: measurementId,
             cancellationToken: cancellationToken);
+    }
+
+    public Task FindMatchedMeasurementsAsync(
+        FindMatchParameters findMatchParameters,
+        Guid productId,
+        CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
     }
 
     public async Task<LotInfoWithProductId> GetLotInfoAsync(

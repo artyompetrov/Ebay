@@ -63,6 +63,30 @@
     <br>
     <br>
     <br>
+    <div>
+        <div class="mb-2">
+            <label>Количество элементов в комплекте:</label>
+            <input type="number" min="2" class="form-control" style="width: 100px;" @bind="_matchCount" />
+        </div>
+        <div class="mb-2">
+            <label>Статусы для подбора:</label>
+            <div>
+                @foreach (var state in _measurementStates.Where(s => s != MeasurementState.Sold))
+                {
+                    <label class="me-2">
+                        <input type="checkbox" checked="@_statesToMatch.Contains(state)" @onchange="e => OnMatchStateChanged(state, e)" />
+                        @GetMeasurementStateEmoji(state) @state.ToString("G")
+                    </label>
+                }
+            </div>
+        </div>
+        <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="includeExisting" @bind="_includeExisting" />
+            <label class="form-check-label" for="includeExisting">учитывать в подборе измерения, что уже включены в существующую пару</label>
+        </div>
+        <button class="btn btn-primary btn-sm" @onclick="OnFindMatchedClick">Подобрать</button>
+    </div>
+    <br>
     <h3>Зарегистрированные замеры:</h3>
     <label for="stateFilter">Фильтр по статусу:</label>
     <select id="stateFilter" class="form-control" @onchange="OnFilterChanged">
@@ -140,6 +164,9 @@
     private string? _manufactureCode;
     private string? _location;
     private string? _matchId;
+    private HashSet<MeasurementState> _statesToMatch = new();
+    private int _matchCount = 2;
+    private bool _includeExisting;
 
     [Parameter]
     public Guid ProductId { get; set; }
@@ -147,6 +174,7 @@
     protected override async Task OnInitializedAsync()
     {
         _product = await EbayClient.GetProductAsync(ProductId);
+        _statesToMatch = _measurementStates.Where(s => s != MeasurementState.Sold).ToHashSet();
         await UpdateMeasurementsAsync();
     }
 
@@ -261,6 +289,39 @@
             Logger.LogError(ex, "Error updating match id for {Id}", measurement.MeasurementId);
             _error = "Ошибка при обновлении match id";
         }
+    }
+
+    private void OnMatchStateChanged(MeasurementState state, ChangeEventArgs e)
+    {
+        var selected = e.Value as bool? == true;
+        if (selected)
+        {
+            _statesToMatch.Add(state);
+        }
+        else
+        {
+            _statesToMatch.Remove(state);
+        }
+    }
+
+    private void OnFindMatchedClick()
+    {
+        if (_product == null) throw new NullReferenceException(nameof(_product));
+
+        _questionPopup.AskQuestion(
+            questionText: "Подобрать комплект?",
+            async () =>
+            {
+                await EbayClient.FindMatchedMeasurementsAsync(
+                    new FindMatchParameters
+                    {
+                        MatchCount = _matchCount,
+                        MeasurementStates = _statesToMatch.ToList(),
+                        IncludeExisting = _includeExisting
+                    },
+                    _product.Id);
+                await UpdateMeasurementsAsync();
+            });
     }
 
     private async Task OnMeasurementStateChanged(MeasurementData measurement, MeasurementState newState)
