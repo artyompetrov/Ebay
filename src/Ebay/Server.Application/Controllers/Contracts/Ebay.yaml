@@ -224,7 +224,7 @@ paths:
       operationId: GetMeasurements
       parameters:
         - name: measurementState
-          in: query
+          in: body
           required: false
           schema:
             $ref: '#/definitions/MeasurementState'
