@@ -28,17 +28,20 @@ public class EbayControllerImplementation : IEbayController
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly ShippingRatesService _shippingRatesService;
     private readonly MeasurementService _measurementService;
+    private readonly MatchedMeasurementService _matchedMeasurementService;
 
     public EbayControllerImplementation(
         ApplicationDbContext applicationContext,
         IPublishEndpoint publishEndpoint,
         ShippingRatesService shippingRatesService,
-        MeasurementService measurementService)
+        MeasurementService measurementService,
+        MatchedMeasurementService matchedMeasurementService)
     {
         _applicationContext = applicationContext;
         _publishEndpoint = publishEndpoint;
         _shippingRatesService = shippingRatesService;
         _measurementService = measurementService;
+        _matchedMeasurementService = matchedMeasurementService;
     }
 
     public async Task<ICollection<ProductWithId>> GetAllProductsAsync(CancellationToken cancellationToken)
@@ -291,40 +294,25 @@ public class EbayControllerImplementation : IEbayController
         Guid productId,
         CancellationToken cancellationToken)
     {
+        IReadOnlyCollection<Data.Models.MeasurementState> measurementStates = measurementState.HasValue
+            ? new[] { measurementState.Value.ToDbMeasurementState() }
+            : Enum.GetValues<Data.Models.MeasurementState>();
 
-        var query = _applicationContext.ProductMeasurements
-            .Where(x => x.ProductId == productId);
-
-        if (measurementState.HasValue)
-        {
-            query = query.Where(x => x.MeasurementState == measurementState.Value.ToDbMeasurementState());
-        }
-
-        var measurements = await query
-            .OrderByDescending(p => p.CreatedAt)
-            .ThenByDescending(p => p.Id)
-            .Select(x => new
-            {
-                x.Id,
-                x.ManufactureCode,
-                x.ProductState,
-                x.Location,
-                x.MatchId,
-                x.MeasurementState
-            })
-            .ToListAsync(cancellationToken);
+        var measurements = await _measurementService.GetMeasurementInfos(
+            productId: productId,
+            measurementStates: measurementStates,
+            includeMeasurementsWithMatchId: true,
+            cancellationToken: cancellationToken);
 
         var result = measurements
             .Select(x => new MeasurementData(
-                    manufactureCode: x.ManufactureCode,
-                    measurementId: x.Id,
-                    productState: x.ProductState.ToApiProductState(),
-                    location: x.Location,
-                    matchId: x.MatchId,
-                    measurementState: x.MeasurementState.ToApiMeasurementState()
-                )
-
-            ).ToList();
+                manufactureCode: x.ManufactureCode,
+                measurementId: x.Id,
+                productState: x.ProductState.ToApiProductState(),
+                location: x.Location,
+                matchId: x.MatchId,
+                measurementState: x.MeasurementState.ToApiMeasurementState()))
+            .ToList();
 
         return result;
     }
@@ -409,7 +397,14 @@ public class EbayControllerImplementation : IEbayController
         Guid productId,
         CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        return _matchedMeasurementService.FindMatchedMeasurementsAsync(
+            productId: productId,
+            matchCount: findMatchParameters.MatchCount,
+            measurementStates: findMatchParameters.MeasurementStates
+                .Select(s => s.ToDbMeasurementState())
+                .ToArray(),
+            includeMeasurementsWithMatchId: findMatchParameters.IncludeExisting,
+            cancellationToken: cancellationToken);
     }
 
     public async Task<LotInfoWithProductId> GetLotInfoAsync(
