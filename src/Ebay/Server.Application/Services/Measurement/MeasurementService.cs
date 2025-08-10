@@ -306,7 +306,7 @@ public class MeasurementService
     }
 
 
-    public async Task<MeasurementData?> GetMeasurements(
+    public async Task<MeasurementData?> GetMeasurement(
         CancellationToken cancellationToken,
         string measurementId)
     {

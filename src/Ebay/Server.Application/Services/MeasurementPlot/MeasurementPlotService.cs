@@ -50,7 +50,7 @@ public class MeasurementPlotService
             key: cacheKey,
             async () =>
             {
-                var measurement = await _measurementService.GetMeasurements(
+                var measurement = await _measurementService.GetMeasurement(
                     cancellationToken: cancellationToken,
                     measurementId);
 

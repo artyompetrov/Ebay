@@ -27,7 +27,7 @@ public class MatchedMeasurementService
         var measurements = new List<MeasurementData>(measurementIds.Count);
         foreach (var id in measurementIds)
         {
-            var measurement = await _measurementService.GetMeasurements(
+            var measurement = await _measurementService.GetMeasurement(
                 cancellationToken: cancellationToken,
                 measurementId: id);
 
