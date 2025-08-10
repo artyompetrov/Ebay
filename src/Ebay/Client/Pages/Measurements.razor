@@ -20,18 +20,19 @@
     }
 </style>
 
-@if (_measurements != null)
+@if (_product != null)
 {
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <h3 style="margin: 0">Измерения для @_product.Name</h3>
+        <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{_product.Id}")" target="_blank">Описание для eBay</NavLink>
+    </div>
+}
+<br>
+
+
     <div class="row">
         <div class="col-md-6 pe-4 border-end border-secondary">
-            @if (_product != null)
-            {
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <h3 style="margin: 0">Добавить измерение для @_product.Name</h3>
-                    <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{_product.Id}")" target="_blank">Описание для eBay</NavLink>
-                </div>
-            }
-            <br>
+            <h4>Добавить замер</h4>
             <div id="reader" style="width: 500px;"></div>
             @if (_error != null)
             {
@@ -64,9 +65,10 @@
             <InputFile OnChange="HandleFileSelected" accept=".zip" />
         </div>
         <div class="col-md-6 ps-4">
+            <h4>Подбор комплектов</h4>
             <div class="mb-2">
                 <label>Количество элементов в комплекте:</label>
-                <input type="number" min="2" class="form-control" style="width: 100px;" @bind="_matchCount" />
+                <input type="number" min="2" class="form-control" style="width: 100px;" @bind="_matchCount"/>
             </div>
             <div class="mb-2">
                 <label>Статусы для подбора:</label>
@@ -81,14 +83,17 @@
                 </div>
             </div>
             <div class="form-check mb-2">
-                <input class="form-check-input" type="checkbox" id="includeExisting" @bind="_includeExisting" />
-                <label class="form-check-label" for="includeExisting">учитывать в подборе измерения, что уже включены в существующую пару</label>
+                <input class="form-check-input" type="checkbox" id="includeExisting" @bind="_includeExisting"/>
+                <label class="form-check-label" for="includeExisting">учитывать в подборе измерения, что уже включены в существующий комплект?</label>
             </div>
             <button class="btn btn-primary btn-sm" @onclick="OnFindMatchedClick">Подобрать</button>
         </div>
     </div>
-    <br>
-    <h3>Зарегистрированные замеры:</h3>
+<br>
+
+@if (_measurements != null)
+{
+<h3>Зарегистрированные замеры:</h3>
     <label for="stateFilter">Фильтр по статусу:</label>
     <select id="stateFilter" class="form-control" @onchange="OnFilterChanged">
         <option value="">-- все --</option>
@@ -172,7 +177,7 @@
     [Parameter]
     public Guid ProductId { get; set; }
 
-    protected override async Task OnInitializedAsync()
+    protected async override Task OnInitializedAsync()
     {
         _product = await EbayClient.GetProductAsync(ProductId);
         _statesToMatch = _measurementStates
@@ -316,7 +321,7 @@
             async () =>
             {
                 await EbayClient.FindMatchedMeasurementsAsync(
-                    new FindMatchParameters
+                    findMatchParameters: new FindMatchParameters
                     {
                         MatchCount = _matchCount,
                         MeasurementStates = _statesToMatch.ToList(),
