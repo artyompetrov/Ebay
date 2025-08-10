@@ -192,6 +192,51 @@ public class MeasurementService
             .SingleOrDefaultAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyCollection<string>> GetMeasurementIds(
+        Guid productId,
+        IReadOnlyCollection<MeasurementState> measurementStates,
+        bool includeMeasurementsWithMatchId,
+        CancellationToken cancellationToken)
+    {
+        var measurementsQuery = _applicationContext.ProductMeasurements
+            .AsNoTracking()
+            .Where(m => m.ProductId == productId)
+            .Where(m => measurementStates.Contains(m.MeasurementState));
+
+        if (!includeMeasurementsWithMatchId)
+        {
+            measurementsQuery = measurementsQuery.Where(m => m.MatchId == null);
+        }
+
+        return await measurementsQuery
+            .OrderBy(m => m.Id)
+            .Select(m => m.Id)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyCollection<MeasurementInfo>> GetMeasurementInfos(
+        Guid productId,
+        IReadOnlyCollection<MeasurementState> measurementStates,
+        CancellationToken cancellationToken)
+    {
+        var measurements = await _applicationContext.ProductMeasurements
+            .AsNoTracking()
+            .Where(m => m.ProductId == productId)
+            .Where(m => measurementStates.Contains(m.MeasurementState))
+            .OrderByDescending(p => p.CreatedAt)
+            .ThenByDescending(p => p.Id)
+            .Select(m => new MeasurementInfo(
+                m.Id,
+                m.ManufactureCode,
+                m.ProductState,
+                m.Location,
+                m.MatchId,
+                m.MeasurementState))
+            .ToListAsync(cancellationToken);
+
+        return measurements;
+    }
+
     private static string ComputeEntryHashAsync(byte[] bytes)
     {
         var hashBytes = SHA256.HashData(bytes);
