@@ -31,7 +31,6 @@
       - `/Tests`: Тесты запускаемые вручную. проекты толком тестами не покрыт, эти тесты для валидации продакшен базы вручную
     - `ebay_helper.Dockerfile` - Докер файл, который осуществляет сборку решения в единый контейнер, подлежащий развертыванию.
 - `/deploy`: docker-compose обвязка для запуска проекта
-- `/tests`: Test files that OpenAI Codex should maintain and extend
 
 # Как работает кодогенерация в этом проекте
 `/Server.Application/Controllers/Contracts/Ebay.yaml` Основной контракт приложения
