@@ -217,18 +217,12 @@ public class MeasurementService
     public async Task<IReadOnlyCollection<MeasurementInfo>> GetMeasurementInfos(
         Guid productId,
         IReadOnlyCollection<MeasurementState> measurementStates,
-        bool includeMeasurementsWithMatchId,
         CancellationToken cancellationToken)
     {
-        var measurementIds = await GetMeasurementIds(
-            productId: productId,
-            measurementStates: measurementStates,
-            includeMeasurementsWithMatchId: includeMeasurementsWithMatchId,
-            cancellationToken: cancellationToken);
-
         var measurements = await _applicationContext.ProductMeasurements
             .AsNoTracking()
-            .Where(m => measurementIds.Contains(m.Id))
+            .Where(m => m.ProductId == productId)
+            .Where(m => measurementStates.Contains(m.MeasurementState))
             .OrderByDescending(p => p.CreatedAt)
             .ThenByDescending(p => p.Id)
             .Select(m => new MeasurementInfo(

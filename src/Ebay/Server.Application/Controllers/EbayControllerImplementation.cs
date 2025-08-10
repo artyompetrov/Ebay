@@ -301,7 +301,6 @@ public class EbayControllerImplementation : IEbayController
         var measurements = await _measurementService.GetMeasurementInfos(
             productId: productId,
             measurementStates: measurementStates,
-            includeMeasurementsWithMatchId: true,
             cancellationToken: cancellationToken);
 
         var result = measurements
