@@ -136,7 +136,6 @@ public class MeasurementPlotService
             legendItems.Add(
                 new LegendItem
                 {
-                    //todo grid
                     LabelText = $"{curves.SteppingVariableName} = {curveSet.VSteppingValue:N0}",
                     LineColor = scatter1.Color,
                     LinePattern = LinePattern.Solid,
