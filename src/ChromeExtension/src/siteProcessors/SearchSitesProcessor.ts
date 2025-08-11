@@ -12,7 +12,10 @@ declare const EBAY_HELPER_BACKEND_DOMAIN: string;
 const chipFindRegex: RegExp = /(?:^|\.)chipfind\.ru$/i
 const avitoRegex: RegExp = /(?:^|\.)avito\.ru$/i
 
-const backendDomainRegex: RegExp = new RegExp(`(?:^|\.)${EBAY_HELPER_BACKEND_DOMAIN.replace(/\./g, '\.')}$/i`);
+const backendDomainRegex = new RegExp(
+    `(?:^|\\.)${EBAY_HELPER_BACKEND_DOMAIN.replace(/\./g, '\\.')}($|/)`,
+    'i'
+);
 
 const excludeSites: RegExp[] = [
     /(?:^|\.)ebay\..*$/i,
