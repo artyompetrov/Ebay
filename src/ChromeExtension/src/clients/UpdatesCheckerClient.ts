@@ -43,7 +43,7 @@ export async function  checkForUpdates(): Promise<boolean> {
 
     if (isNewerVersion(currentVersion, remoteVersion)) {
         let alertMessage = `Ebay Helper extension New version available: ${remoteVersion}`
-        if (currentVersion === "0") {
+        if (currentVersion === "0.0.0.1") {
             // Локальный дебаг
             console.log("Alerting " + alertMessage)
 
