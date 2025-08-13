@@ -3,13 +3,14 @@
 public abstract class GridOrScreenCurvesBase : MeasurementTypeBase
 {
     protected GridOrScreenCurvesBase(
-        int pmax,
+        double pmaxWatt,
         Dictionary<int, MeasurementPoint[]> measurementPoints,
         Func<MeasurementPoint, double> variableSelector) : base(
-        pmax: pmax,
+        pmaxWatt: pmaxWatt,
         measurementPoints: measurementPoints,
         variableSelector: variableSelector,
-        steppingVariableSelector:  m => m.Va)
+        steppingVariableSelector:  m => m.Va,
+        takeMeasurementPointsWhile: (x, maxI) => x.dIa / maxI > IgnoreDi && x.dIs / maxI > IgnoreDi)
     {
     }
     

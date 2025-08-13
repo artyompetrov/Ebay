@@ -555,11 +555,11 @@ public class MeasurementService
         return GetMeasurementType(
             measurementType: config["measurement type"]!.Value,
             y2AxisVariable: config["Y2 axis variable"]!.Value,
-            pmax: config["Pmax"]!.Value,
+            pmaxWatt: config["Pmax"]!.Value / 1000.0,
             measurementPoints: ParseSpaceSeparatedTable(measurementBytes));
     }
 
-    private static MeasurementTypeBase GetMeasurementType(int measurementType, int y2AxisVariable, int pmax, Dictionary<int, MeasurementPoint[]> measurementPoints)
+    private static MeasurementTypeBase GetMeasurementType(int measurementType, int y2AxisVariable, double pmaxWatt, Dictionary<int, MeasurementPoint[]> measurementPoints)
     {
         return measurementType switch
         {
@@ -567,27 +567,27 @@ public class MeasurementService
             1 => y2AxisVariable switch
             {
                 // второго графика нет
-                0 => new TriodeGridCurves(pmax, measurementPoints),
+                0 => new TriodeGridCurves(pmaxWatt, measurementPoints),
                 // Is
-                2 => new DoubleTriodeGridCurves(pmax, measurementPoints),
+                2 => new DoubleTriodeGridCurves(pmaxWatt, measurementPoints),
                 _ => throw new ArgumentOutOfRangeException(nameof(y2AxisVariable))
             },
 
             // I(Va, Vg) with Vs, Vh Constant
-            2 =>  new PentodeAnodeCurves(pmax, measurementPoints),
+            2 =>  new PentodeAnodeCurves(pmaxWatt, measurementPoints),
 
             // I(Va=Vs, Vg) with Vh Constant
             4 => y2AxisVariable switch
             {
                 // второго графика нет
-                0 => new TriodeAnodeCurves(pmax, measurementPoints),
+                0 => new TriodeAnodeCurves(pmaxWatt, measurementPoints),
                 // Is
-                2 => new DoubleTriodeAnodeCurves(pmax, measurementPoints),
+                2 => new DoubleTriodeAnodeCurves(pmaxWatt, measurementPoints),
                 _ => throw new ArgumentOutOfRangeException(nameof(y2AxisVariable))
             },
 
             // I(Vs, Vg) with Va, Vh Constant
-            5 => new PentodeScreenCurves(pmax, measurementPoints),
+            5 => new PentodeScreenCurves(pmaxWatt, measurementPoints),
             _ => throw new ArgumentOutOfRangeException(nameof(measurementType))
         };
     }

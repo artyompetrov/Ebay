@@ -5,8 +5,8 @@ namespace Server.Application.Services.Measurement.MeasurementTypes;
 
 public class DoubleTriodeGridCurves : GridCurvesBase
 {
-    public DoubleTriodeGridCurves(int pmax, Dictionary<int, MeasurementPoint[]> measurementPoints) : base(
-        pmax: pmax,
+    public DoubleTriodeGridCurves(double pmaxWatt, Dictionary<int, MeasurementPoint[]> measurementPoints) : base(
+        pmaxWatt: pmaxWatt,
         measurementPoints: measurementPoints)
     {
     }

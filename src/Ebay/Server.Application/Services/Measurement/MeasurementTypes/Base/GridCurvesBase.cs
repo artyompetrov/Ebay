@@ -4,9 +4,9 @@
 public abstract class GridCurvesBase : GridOrScreenCurvesBase
 {
     protected GridCurvesBase(
-        int pmax,
+        double pmaxWatt,
         Dictionary<int, MeasurementPoint[]> measurementPoints) : base(
-        pmax: pmax,
+        pmaxWatt: pmaxWatt,
         measurementPoints: measurementPoints,
         variableSelector:  m => m.Vg)
     {

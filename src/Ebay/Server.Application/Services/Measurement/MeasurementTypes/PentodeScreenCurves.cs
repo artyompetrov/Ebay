@@ -5,7 +5,7 @@ namespace Server.Application.Services.Measurement.MeasurementTypes;
 
 public class PentodeScreenCurves : ScreenCurvesBase
 {
-    public PentodeScreenCurves(int pmax, Dictionary<int, MeasurementPoint[]> measurementPoints) : base(pmax, measurementPoints)
+    public PentodeScreenCurves(double pmaxWatt, Dictionary<int, MeasurementPoint[]> measurementPoints) : base(pmaxWatt, measurementPoints)
     {
     }
 

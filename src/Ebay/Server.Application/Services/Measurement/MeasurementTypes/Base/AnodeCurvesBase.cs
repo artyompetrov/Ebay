@@ -5,12 +5,14 @@ namespace Server.Application.Services.Measurement.MeasurementTypes.Base;
 public abstract class AnodeCurvesBase : MeasurementTypeBase
 {
     protected AnodeCurvesBase(
-        int pmax,
-        Dictionary<int, MeasurementPoint[]> measurementPoints) : base(
-        pmax: pmax,
+        double pmaxWatt,
+        Dictionary<int, MeasurementPoint[]> measurementPoints,
+        Func<MeasurementPoint, double, bool> takeMeasurementPointsWhile) : base(
+        pmaxWatt: pmaxWatt,
         measurementPoints: measurementPoints,
         variableSelector:  m => m.Va,
-        steppingVariableSelector:  m => m.Vg)
+        steppingVariableSelector:  m => m.Vg, 
+        takeMeasurementPointsWhile: takeMeasurementPointsWhile)
     {
     }
 

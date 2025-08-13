@@ -3,8 +3,9 @@
 public abstract class ScreenCurvesBase : GridOrScreenCurvesBase
 {
     protected ScreenCurvesBase(
-        int pmax,
-        Dictionary<int, MeasurementPoint[]> measurementPoints) : base(pmax, measurementPoints, m => m.Vs)
+        double pmaxWatt,
+        Dictionary<int, MeasurementPoint[]> measurementPoints) :
+        base(pmaxWatt, measurementPoints, m => m.Vs)
     {
     }
 

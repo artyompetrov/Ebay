@@ -182,14 +182,14 @@ public class MeasurementPlotService
 
         if (curves.PlotPmax)
         {
-            var func = plt.Add.Function(curves.PowerLimit);
+            var func = plt.Add.Function(curves.MaxI);
             func.MinX = 0.1;
             func.LineColor = new Color(255, 0, 0);
             func.LineWidth = 3;
             legendItems.Add(
                 new LegendItem
                 {
-                    LabelText = $"MaxP = {curves.Pmax / 1000.0:F1}W",
+                    LabelText = $"MaxP = {curves.PmaxWatt:F1}W",
                     LineColor = func.LineColor,
                     LineWidth = func.LineWidth,
                 });
