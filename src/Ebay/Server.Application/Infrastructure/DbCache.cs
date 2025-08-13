@@ -34,8 +34,10 @@ public class DbCache
 
             if (entry is not null && entry.ExpiresAt > DateTime.UtcNow)
             {
+#if !DEBUG
                 return JsonSerializer.Deserialize<T>(entry.Value, jsonOptions) ??
                        throw new InvalidOperationException("Deserialization failed");
+#endif
             }
 
             // Create new value
