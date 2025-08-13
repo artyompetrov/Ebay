@@ -251,6 +251,25 @@ paths:
           schema:
             $ref: '#/definitions/ValidationProblemDetailedInfo'
 
+  /products/{productId}/measurements/find_matched/:
+    parameters:
+      - name: productId
+        in: path
+        required: true
+        type: string
+        format: guid
+    post:
+      operationId: FindMatchedMeasurements
+      parameters:
+        - name: findMatchParameters
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/FindMatchParameters'
+      responses:
+        200:
+          description: Ok
+
   /products/{productId}/measurements/{measurementId}/:
     parameters:
       - name: productId
@@ -646,6 +665,25 @@ definitions:
       - manufactureCode
       - productState
       - file
+
+  FindMatchParameters:
+    type: object
+    properties:
+      matchCount:
+        type: integer
+        minimum: 2
+        default: 2
+      measurementStates:
+        type: array
+        items:
+          $ref: '#/definitions/MeasurementState'
+      includeExisting:
+        type: boolean
+        default: false
+    required:
+      - matchCount
+      - measurementStates
+      - includeExisting
 
   LotInfo:
     type: object

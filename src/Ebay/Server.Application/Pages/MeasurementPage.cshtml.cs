@@ -25,7 +25,7 @@ public class MeasurementPage : PageModel
 
     public async Task<IActionResult> OnGet(string measurementId, CancellationToken cancellationToken)
     {
-        var measurementData = await _measurementService.GetMeasurements(cancellationToken, measurementId);
+        var measurementData = await _measurementService.GetMeasurement(cancellationToken, measurementId);
 
         if (measurementData == null)
             return NotFound("Measurement not found");

@@ -32,6 +32,7 @@ public static class ServiceCollectionExtensions
                 maxConcurrent: new Npgsql.NpgsqlConnectionStringBuilder(connectionString).MaxPoolSize / 2));
         services.AddScoped<DbCache>();
         services.AddScoped<MeasurementService>();
+        services.AddScoped<MatchedMeasurementService>();
         services.AddScoped<MeasurementPlotService>();
 
         services.AddScoped<IEbayController, EbayControllerImplementation>();

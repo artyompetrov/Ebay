@@ -1,4 +1,5 @@
 using Server.Application.Data.Models;
+using Server.Application.Services.Measurement.MeasurementTypes.Base;
 
 namespace Server.Application.Services.Measurement;
 
@@ -7,8 +8,6 @@ public record MeasurementData(
     string MeasurementId,
     string ManufactureCode,
     ProductState ProductState,
-    MeasurementConfig AnodeCurvesConfig,
-    MeasurementConfig GridCurvesConfig,
-    IReadOnlyDictionary<int, MeasurementPoint[]> AnodeCurves,
-    IReadOnlyDictionary<int, MeasurementPoint[]> GridCurves,
+    AnodeCurvesBase AnodeCurves,
+    GridOrScreenCurvesBase GridOrScreenCurves,
     string QuickTest);

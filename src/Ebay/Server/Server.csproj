@@ -3,7 +3,6 @@
     <PropertyGroup>
         <UserSecretsId>Server-9A4AB6A1-13E5-44E4-8252-FA741476F495</UserSecretsId>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-        <TargetFramework>net8.0</TargetFramework>
         <RootNamespace>Server</RootNamespace>
     </PropertyGroup>
 

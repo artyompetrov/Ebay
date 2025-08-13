@@ -1,9 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
         <RazorCompileOnBuild>true</RazorCompileOnBuild>
         <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
     </PropertyGroup>

@@ -7,13 +7,6 @@
 @inject EbayClient EbayClient
 @inject ILogger<Measurements> Logger
 
-@if (_product != null)
-{
-    <div style="display: flex; align-items: center; gap: 10px;">
-        <h3 style="margin: 0">Добавить измерение для @_product.Name</h3>
-        <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{_product.Id}")" target="_blank">Описание для eBay</NavLink>
-    </div>
-}
 <script src="https://unpkg.com/html5-qrcode"></script>
 <style>
     #reader video {
@@ -26,44 +19,81 @@
         width: 300px;
     }
 </style>
-<br>
-<div id="reader" style="width: 500px;"></div>
-@if (_error != null)
-{
-    <p style="color:red">@_error</p>
-}
 
-@if (_message != null)
+@if (_product != null)
 {
-    <p style="color:green">@_message</p>
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <h3 style="margin: 0">Измерения для @_product.Name</h3>
+        <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{_product.Id}")" target="_blank">Описание для eBay</NavLink>
+    </div>
 }
 <br>
-<label for="typeSelect">Тип измерения:</label>
-<select id="typeSelect" class="form-control" @bind="_selectedState">
-    <option value="">-- выберите тип --</option>
-    @foreach (var state in _productStates)
-    {
-        <option value="@state">@state</option>
-    }
-</select>
-<br>
-<label for="manufactureCodeInput">Код или дата производства в формате yyyy-mm:</label>
-<input id="manufactureCodeInput" @bind="_manufactureCode" type="text" class="form-control" lang="en" />
 
-<label for="locationInput">Место хранения (необязательно):</label>
-<input id="locationInput" @bind="_location" type="text" class="form-control" lang="en" />
 
-<label for="matchIdInput">Match ID (необязательно):</label>
-<input id="matchIdInput" @bind="_matchId" type="text" class="form-control" lang="en" />
+    <div class="row">
+        <div class="col-md-6 pe-4 border-end border-secondary">
+            <h4>Добавить замер</h4>
+            <div id="reader" style="width: 500px;"></div>
+            @if (_error != null)
+            {
+                <p style="color:red">@_error</p>
+            }
+
+            @if (_message != null)
+            {
+                <p style="color:green">@_message</p>
+            }
+            <br>
+            <label for="typeSelect">Тип измерения:</label>
+            <select id="typeSelect" class="form-control" @bind="_selectedState">
+                <option value="">-- выберите тип --</option>
+                @foreach (var state in _productStates)
+                {
+                    <option value="@state">@state</option>
+                }
+            </select>
+            <br>
+            <label for="manufactureCodeInput">Код или дата производства в формате yyyy-mm:</label>
+            <input id="manufactureCodeInput" @bind="_manufactureCode" type="text" class="form-control" lang="en" />
+
+            <label for="locationInput">Место хранения (необязательно):</label>
+            <input id="locationInput" @bind="_location" type="text" class="form-control" lang="en" />
+
+            <label for="matchIdInput">Match ID (необязательно):</label>
+            <input id="matchIdInput" @bind="_matchId" type="text" class="form-control" lang="en" />
+            <br>
+            <InputFile OnChange="HandleFileSelected" accept=".zip" />
+        </div>
+        <div class="col-md-6 ps-4">
+            <h4>Подбор комплектов</h4>
+            <div class="mb-2">
+                <label>Количество элементов в комплекте:</label>
+                <input type="number" min="2" class="form-control" style="width: 100px;" @bind="_matchCount"/>
+            </div>
+            <div class="mb-2">
+                <label>Статусы для подбора:</label>
+                <div>
+                    @foreach (var state in _measurementStates.Where(s => s != MeasurementState.Sold))
+                    {
+                        <label class="me-2">
+                            <input type="checkbox" checked="@_statesToMatch.Contains(state)" @onchange="e => OnMatchStateChanged(state, e)" />
+                            @GetMeasurementStateEmoji(state) @state.ToString("G")
+                        </label>
+                    }
+                </div>
+            </div>
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="includeExisting" @bind="_includeExisting"/>
+                <label class="form-check-label" for="includeExisting">учитывать в подборе измерения, что уже включены в существующий комплект?</label>
+            </div>
+            <button class="btn btn-primary btn-sm" @onclick="OnFindMatchedClick">Подобрать</button>
+        </div>
+    </div>
 <br>
-<InputFile OnChange="HandleFileSelected" accept=".zip" />
 
 @if (_measurements != null)
 {
-    <br>
-    <br>
-    <br>
-    <h3>Зарегистрированные замеры:</h3>
+<h3>Зарегистрированные замеры:</h3>
     <label for="stateFilter">Фильтр по статусу:</label>
     <select id="stateFilter" class="form-control" @onchange="OnFilterChanged">
         <option value="">-- все --</option>
@@ -140,13 +170,19 @@
     private string? _manufactureCode;
     private string? _location;
     private string? _matchId;
+    private HashSet<MeasurementState> _statesToMatch = new();
+    private int _matchCount = 2;
+    private bool _includeExisting;
 
     [Parameter]
     public Guid ProductId { get; set; }
 
-    protected override async Task OnInitializedAsync()
+    protected async override Task OnInitializedAsync()
     {
         _product = await EbayClient.GetProductAsync(ProductId);
+        _statesToMatch = _measurementStates
+            .Where(s => s != MeasurementState.Sold && s != MeasurementState.Selling)
+            .ToHashSet();
         await UpdateMeasurementsAsync();
     }
 
@@ -261,6 +297,39 @@
             Logger.LogError(ex, "Error updating match id for {Id}", measurement.MeasurementId);
             _error = "Ошибка при обновлении match id";
         }
+    }
+
+    private void OnMatchStateChanged(MeasurementState state, ChangeEventArgs e)
+    {
+        var selected = e.Value as bool? == true;
+        if (selected)
+        {
+            _statesToMatch.Add(state);
+        }
+        else
+        {
+            _statesToMatch.Remove(state);
+        }
+    }
+
+    private void OnFindMatchedClick()
+    {
+        if (_product == null) throw new NullReferenceException(nameof(_product));
+
+        _questionPopup.AskQuestion(
+            questionText: "Подобрать комплект?",
+            async () =>
+            {
+                await EbayClient.FindMatchedMeasurementsAsync(
+                    findMatchParameters: new FindMatchParameters
+                    {
+                        MatchCount = _matchCount,
+                        MeasurementStates = _statesToMatch.ToList(),
+                        IncludeExisting = _includeExisting
+                    },
+                    _product.Id);
+                await UpdateMeasurementsAsync();
+            });
     }
 
     private async Task OnMeasurementStateChanged(MeasurementData measurement, MeasurementState newState)

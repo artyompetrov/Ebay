@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Data;
@@ -26,14 +27,17 @@ public class DbCache
         await _semaphore.Semaphore.WaitAsync(cancellationToken);
         try
         {
+            var keyWithVersion = $"{key}_{Assembly.GetExecutingAssembly().GetName().Version}";
 
             var entry = await _context.Set<CacheEntry>()
-                .FirstOrDefaultAsync(x => x.Key == key);
+                .FirstOrDefaultAsync(x => x.Key == keyWithVersion);
 
             if (entry is not null && entry.ExpiresAt > DateTime.UtcNow)
             {
+#if !DEBUG
                 return JsonSerializer.Deserialize<T>(entry.Value, jsonOptions) ??
                        throw new InvalidOperationException("Deserialization failed");
+#endif
             }
 
             // Create new value
@@ -43,7 +47,7 @@ public class DbCache
 
             if (entry is null)
             {
-                _context.Add(new CacheEntry { Key = key, Value = json, ExpiresAt = expiresAt });
+                _context.Add(new CacheEntry { Key = keyWithVersion, Value = json, ExpiresAt = expiresAt });
             }
             else
             {

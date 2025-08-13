@@ -6,6 +6,8 @@ using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Data;
 using Server.Application.Data.Models;
+using Server.Application.Services.Measurement.MeasurementTypes;
+using Server.Application.Services.Measurement.MeasurementTypes.Base;
 
 namespace Server.Application.Services.Measurement;
 
@@ -28,7 +30,7 @@ public class MeasurementService
         Guid productId,
         CancellationToken cancellationToken)
     {
-        if (!Regex.IsMatch(measurementId, "^[A-Z0-9]+$"))
+        if (!Regex.IsMatch(input: measurementId, pattern: "^[A-Z0-9]+$"))
         {
             throw new MeasurementException($"Incorrect MeasurementId Format {measurementId}");
         }
@@ -42,32 +44,32 @@ public class MeasurementService
                 gridCurves: out var gridCurves,
                 quickTest: out var quickTest))
         {
-            throw new MeasurementException($"Errors during file parsing {string.Join(", ", fileErrors)}");
+            throw new MeasurementException($"Errors during file parsing {string.Join(separator: ", ", values: fileErrors)}");
         }
 
         // Проверка, что измерения загружены правильно
         try
         {
-            var anodeConfig = ParseMeasurementConfigTable(anodeCurvesConfig);
-            var gridConfig = ParseMeasurementConfigTable(gridCurvesConfig);
+            var anodeConfig = ParseMeasurementConfigTable(configBytes: anodeCurvesConfig, measurementBytes: anodeCurves);
+            var gridConfig = ParseMeasurementConfigTable(configBytes: gridCurvesConfig, measurementBytes: gridCurves);
 
-            if (anodeConfig.MeasurementType != MeasurementType.TriodeAnodeCurves &&
-                anodeConfig.MeasurementType != MeasurementType.DoubleTriodeAnodeCurves &&
-                anodeConfig.MeasurementType != MeasurementType.PentodeAnodeCurves)
+            if (anodeConfig is not TriodeAnodeCurves &&
+                anodeConfig is not DoubleTriodeAnodeCurves &&
+                anodeConfig is not PentodeAnodeCurves)
             {
                 throw new MeasurementException("AnodeCurves expected");
             }
 
-            if (gridConfig.MeasurementType != MeasurementType.TriodeGridCurves &&
-                gridConfig.MeasurementType != MeasurementType.DoubleTriodeGridCurves &&
-                gridConfig.MeasurementType != MeasurementType.PentodeScreenCurves)
+            if (gridConfig is not TriodeGridCurves &&
+                gridConfig is not DoubleTriodeGridCurves &&
+                gridConfig is not PentodeScreenCurves)
             {
                 throw new MeasurementException("Grid or screen curves expected");
             }
 
             ParseSpaceSeparatedTable(anodeCurves);
             ParseSpaceSeparatedTable(gridCurves);
-            ParseAndPrettifyQuickTest(quickTest, removeSection2: false);
+            ParseAndPrettifyQuickTest(quickTest: quickTest, removeSection2: false);
 
             var hashAnodeCurvesConfig = ComputeEntryHashAsync(anodeCurvesConfig);
             var hashGridCurvesConfig = ComputeEntryHashAsync(gridCurvesConfig);
@@ -192,6 +194,51 @@ public class MeasurementService
             .SingleOrDefaultAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyCollection<string>> GetMeasurementIds(
+        Guid productId,
+        IReadOnlyCollection<MeasurementState> measurementStates,
+        bool includeMeasurementsWithMatchId,
+        CancellationToken cancellationToken)
+    {
+        var measurementsQuery = _applicationContext.ProductMeasurements
+            .AsNoTracking()
+            .Where(m => m.ProductId == productId)
+            .Where(m => measurementStates.Contains(m.MeasurementState));
+
+        if (!includeMeasurementsWithMatchId)
+        {
+            measurementsQuery = measurementsQuery.Where(m => m.MatchId == null);
+        }
+
+        return await measurementsQuery
+            .OrderBy(m => m.Id)
+            .Select(m => m.Id)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyCollection<MeasurementInfo>> GetMeasurementInfos(
+        Guid productId,
+        IReadOnlyCollection<MeasurementState> measurementStates,
+        CancellationToken cancellationToken)
+    {
+        var measurements = await _applicationContext.ProductMeasurements
+            .AsNoTracking()
+            .Where(m => m.ProductId == productId)
+            .Where(m => measurementStates.Contains(m.MeasurementState))
+            .OrderByDescending(p => p.CreatedAt)
+            .ThenByDescending(p => p.Id)
+            .Select(m => new MeasurementInfo(
+                m.Id,
+                m.ManufactureCode,
+                m.ProductState,
+                m.Location,
+                m.MatchId,
+                m.MeasurementState))
+            .ToListAsync(cancellationToken);
+
+        return measurements;
+    }
+
     private static string ComputeEntryHashAsync(byte[] bytes)
     {
         var hashBytes = SHA256.HashData(bytes);
@@ -221,18 +268,18 @@ public class MeasurementService
             return null;
         }
 
-        var config = ParseMeasurementConfigTable(gridCurvesConfig);
+        var config = ParseMeasurementConfigTable(configBytes: gridCurvesConfig, measurementBytes: gridCurves);
 
-        var gridFileName = config.MeasurementType switch
+        var gridFileName = config switch
         {
-            MeasurementType.TriodeGridCurves => "grid_curves",
-            MeasurementType.DoubleTriodeGridCurves => "grid_curves",
-            MeasurementType.PentodeScreenCurves => "screen_curves",
+            TriodeGridCurves => "grid_curves",
+            DoubleTriodeGridCurves => "grid_curves",
+            PentodeScreenCurves => "screen_curves",
             _ => throw new ArgumentOutOfRangeException()
         };
 
         using var zipStream = new MemoryStream();
-        using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, leaveOpen: true))
+        using (var archive = new ZipArchive(stream: zipStream, mode: ZipArchiveMode.Create, leaveOpen: true))
         {
 
             await SaveFileToZipArchive(
@@ -261,7 +308,7 @@ public class MeasurementService
     }
 
 
-    public async Task<MeasurementData?> GetMeasurements(
+    public async Task<MeasurementData?> GetMeasurement(
         CancellationToken cancellationToken,
         string measurementId)
     {
@@ -284,11 +331,11 @@ public class MeasurementService
             return null;
         }
 
-        var anodeCurvesConfigParsed = ParseMeasurementConfigTable(anodeCurvesConfig);
-        var gridCurvesConfigParsed = ParseMeasurementConfigTable(gridCurvesConfig);
+        var anodeCurvesConfigParsed = ParseMeasurementConfigTable(anodeCurvesConfig, anodeCurves);
+        var gridCurvesConfigParsed = ParseMeasurementConfigTable(gridCurvesConfig, gridCurves);
 
-        var removeSection2 = anodeCurvesConfigParsed.MeasurementType == MeasurementType.TriodeAnodeCurves ||
-                             gridCurvesConfigParsed.MeasurementType == MeasurementType.TriodeGridCurves;
+        var removeSection2 = anodeCurvesConfigParsed is TriodeAnodeCurves ||
+                             gridCurvesConfigParsed is TriodeGridCurves;
 
         var quickTestParsed = ParseAndPrettifyQuickTest(quickTest, removeSection2);
 
@@ -297,10 +344,8 @@ public class MeasurementService
             MeasurementId: measurement.Id,
             ManufactureCode: measurement.ManufactureCode,
             ProductState: measurement.ProductState,
-            AnodeCurvesConfig: anodeCurvesConfigParsed,
-            GridCurvesConfig: gridCurvesConfigParsed,
-            AnodeCurves: ParseSpaceSeparatedTable(anodeCurves),
-            GridCurves: ParseSpaceSeparatedTable(gridCurves),
+            AnodeCurves: anodeCurvesConfigParsed as AnodeCurvesBase ?? throw new InvalidOperationException($"{nameof(AnodeCurvesBase)} is expected"),
+            GridOrScreenCurves: gridCurvesConfigParsed as GridOrScreenCurvesBase ?? throw new InvalidOperationException($"{nameof(GridOrScreenCurvesBase)} is expected"),
             QuickTest: quickTestParsed
         );
 
@@ -485,11 +530,11 @@ public class MeasurementService
     }
 
 
-    private static MeasurementConfig ParseMeasurementConfigTable(byte[] data)
+    private static MeasurementTypeBase ParseMeasurementConfigTable(byte[] configBytes, byte[] measurementBytes)
     {
-        var lineRegex = new Regex(@"^([+-]?\d+)\s+(.*)$", RegexOptions.Compiled);
+        var lineRegex = new Regex(pattern: @"^([+-]?\d+)\s+(.*)$", options: RegexOptions.Compiled);
 
-        var stringData = System.Text.Encoding.UTF8.GetString(data);
+        var stringData = System.Text.Encoding.UTF8.GetString(configBytes);
 
         var config = new Dictionary<string, int?>();
         var lines = stringData.Split('\n').Select(x => x.Trim());
@@ -507,15 +552,14 @@ public class MeasurementService
             config[comment] = value;
         }
 
-        return new MeasurementConfig(
-            MeasurementType: GetMeasurementType(
-                measurementType: config["measurement type"]!.Value,
-                y2AxisVariable: config["Y2 axis variable"]!.Value),
-            Pmax: config["Pmax"]!.Value
-        );
+        return GetMeasurementType(
+            measurementType: config["measurement type"]!.Value,
+            y2AxisVariable: config["Y2 axis variable"]!.Value,
+            pmaxWatt: config["Pmax"]!.Value / 1000.0,
+            measurementPoints: ParseSpaceSeparatedTable(measurementBytes));
     }
 
-    private static MeasurementType GetMeasurementType(int measurementType, int y2AxisVariable)
+    private static MeasurementTypeBase GetMeasurementType(int measurementType, int y2AxisVariable, double pmaxWatt, Dictionary<int, MeasurementPoint[]> measurementPoints)
     {
         return measurementType switch
         {
@@ -523,27 +567,27 @@ public class MeasurementService
             1 => y2AxisVariable switch
             {
                 // второго графика нет
-                0 => MeasurementType.TriodeGridCurves,
+                0 => new TriodeGridCurves(pmaxWatt, measurementPoints),
                 // Is
-                2 => MeasurementType.DoubleTriodeGridCurves,
+                2 => new DoubleTriodeGridCurves(pmaxWatt, measurementPoints),
                 _ => throw new ArgumentOutOfRangeException(nameof(y2AxisVariable))
             },
 
             // I(Va, Vg) with Vs, Vh Constant
-            2 => MeasurementType.PentodeAnodeCurves,
+            2 => new PentodeAnodeCurves(pmaxWatt, measurementPoints),
 
             // I(Va=Vs, Vg) with Vh Constant
             4 => y2AxisVariable switch
             {
                 // второго графика нет
-                0 => MeasurementType.TriodeAnodeCurves,
+                0 => new TriodeAnodeCurves(pmaxWatt, measurementPoints),
                 // Is
-                2 => MeasurementType.DoubleTriodeAnodeCurves,
+                2 => new DoubleTriodeAnodeCurves(pmaxWatt, measurementPoints),
                 _ => throw new ArgumentOutOfRangeException(nameof(y2AxisVariable))
             },
 
             // I(Vs, Vg) with Va, Vh Constant
-            5 => MeasurementType.PentodeScreenCurves,
+            5 => new PentodeScreenCurves(pmaxWatt, measurementPoints),
             _ => throw new ArgumentOutOfRangeException(nameof(measurementType))
         };
     }
