@@ -1,4 +1,3 @@
-using System;
 using System.Net.Http.Headers;
 using Client.Clients.Generated;
 using Newtonsoft.Json.Linq;

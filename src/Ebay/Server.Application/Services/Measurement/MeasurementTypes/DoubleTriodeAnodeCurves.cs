@@ -1,5 +1,3 @@
-﻿using Microsoft.AspNetCore.Mvc.TagHelpers.Cache;
-using ScottPlot;
 using Server.Application.Services.Measurement.MeasurementTypes.Base;
 
 namespace Server.Application.Services.Measurement.MeasurementTypes;

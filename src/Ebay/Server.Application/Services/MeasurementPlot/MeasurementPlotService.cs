@@ -1,8 +1,8 @@
 using ScottPlot;
 using ScottPlot.PlotStyles;
+using Server.Application.Data.Models;
 using Server.Application.Infrastructure;
 using Server.Application.Services.Measurement;
-using Server.Application.Data.Models;
 using Server.Application.Services.Measurement.MeasurementTypes.Base;
 
 namespace Server.Application.Services.MeasurementPlot;
@@ -11,7 +11,7 @@ public class MeasurementPlotService
 {
     private readonly DbCache _cache;
     private readonly MeasurementService _measurementService;
-    
+
     public MeasurementPlotService(
         DbCache cache,
         MeasurementService measurementService)
@@ -40,7 +40,7 @@ public class MeasurementPlotService
             if (state != MeasurementState.Selling)
                 return StatusSvg(state.Value);
         }
-        
+
         var cacheKey =
             $"measurementPlot_{mergeVertical}_{legendVertical}_{width}_{height}_{addQuickTest}_{measurementId}";
 
@@ -146,7 +146,7 @@ public class MeasurementPlotService
             {
                 var scatter2 = plt.Add.Scatter(
                     curveSet.V.Zip(curveSet.I2)
-                        .Select(x =>  new Coordinates(x: x.First, y: x.Second)).ToList());
+                        .Select(x => new Coordinates(x: x.First, y: x.Second)).ToList());
                 scatter2.LinePattern = section2LinePattern;
                 scatter2.MarkerShape = section2MarkerShape;
                 scatter2.Color = scatter1.Color;
@@ -199,7 +199,7 @@ public class MeasurementPlotService
         plt.XLabel(curves.XLabel);
         plt.YLabel(curves.YLabel);
         plt.Title(curves.CurveTitle);
-        
+
         plt.Legend.ManualItems = legendItems;
         plt.Legend.ShadowColor = new Color(red: 0, green: 0, blue: 0, alpha: 0);
 

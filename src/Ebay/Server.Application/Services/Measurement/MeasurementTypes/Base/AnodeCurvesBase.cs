@@ -1,5 +1,3 @@
-﻿using ScottPlot;
-
 namespace Server.Application.Services.Measurement.MeasurementTypes.Base;
 
 public abstract class AnodeCurvesBase : MeasurementTypeBase
@@ -10,8 +8,8 @@ public abstract class AnodeCurvesBase : MeasurementTypeBase
         Func<MeasurementPoint, double, bool> takeMeasurementPointsWhile) : base(
         pmaxWatt: pmaxWatt,
         measurementPoints: measurementPoints,
-        variableSelector:  m => m.Va,
-        steppingVariableSelector:  m => m.Vg, 
+        variableSelector: m => m.Va,
+        steppingVariableSelector: m => m.Vg,
         takeMeasurementPointsWhile: takeMeasurementPointsWhile)
     {
     }
@@ -21,6 +19,6 @@ public abstract class AnodeCurvesBase : MeasurementTypeBase
     public override string CurveTitle => "Anode curves";
 
     public override string XLabel => "Vanode (V)";
-    
+
     public override string SteppingVariableName => "Vgrid";
 }

@@ -1,4 +1,4 @@
-﻿namespace Server.Application.Services.Measurement.MeasurementTypes.Base;
+namespace Server.Application.Services.Measurement.MeasurementTypes.Base;
 
 public abstract class ScreenCurvesBase : GridOrScreenCurvesBase
 {

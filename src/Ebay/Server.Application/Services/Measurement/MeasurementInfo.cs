@@ -9,4 +9,3 @@ public record MeasurementInfo(
     string? Location,
     string? MatchId,
     MeasurementState MeasurementState);
-

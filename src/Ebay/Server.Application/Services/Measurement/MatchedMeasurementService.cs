@@ -41,4 +41,3 @@ public class MatchedMeasurementService
         // `matchCount` and loaded `measurements`.
     }
 }
-

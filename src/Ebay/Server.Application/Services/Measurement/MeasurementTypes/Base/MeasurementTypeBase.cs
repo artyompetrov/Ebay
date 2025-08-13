@@ -1,6 +1,3 @@
-﻿using ScottPlot;
-using ScottPlot.PlotStyles;
-
 namespace Server.Application.Services.Measurement.MeasurementTypes.Base;
 
 public abstract class MeasurementTypeBase
@@ -20,7 +17,7 @@ public abstract class MeasurementTypeBase
         Func<MeasurementPoint, double, bool> takeMeasurementPointsWhile)
     {
         PmaxWatt = pmaxWatt;
-        
+
         var minX = 0.0;
         var maxX = 0.0;
         var maxY = 0.0;
@@ -71,8 +68,8 @@ public abstract class MeasurementTypeBase
         MaxY = maxY;
         CurveSets = curves;
     }
-    
-        
+
+
     /// <summary>
     /// Максимальный ток, для точек, находящихся под кривой допустимой нагрузки
     /// </summary>
@@ -81,36 +78,36 @@ public abstract class MeasurementTypeBase
         var belowPmaxValuesMaxI = values.Where(x => MaxI(x.V) > x.I).Select(x => x.I)
             .Append(0.0)
             .Max();
-        
+
         var abovePmaxValues = values.Where(x => MaxI(x.V) < x.I).Select(x => x.I)
             .ToList();
 
         var lineMaxY = abovePmaxValues.Count == 0 ? belowPmaxValuesMaxI : Math.Max(belowPmaxValuesMaxI, abovePmaxValues.Min());
         return lineMaxY;
     }
-    
+
     // Максимальное dI - чтобы отсечь некорректные изменения из-за compliance, в долях от максимального тока
     protected const double IgnoreDi = -0.1;
 
     public IReadOnlyCollection<CurveSet> CurveSets { get; }
-    
+
     public abstract string Curve1Name { get; }
-    
+
     /// <summary>
     /// Если Null, то только измеряется только один ток
     /// </summary>
     public abstract string? Curve2Name { get; }
-    
+
     public bool HasSecondCurve => Curve2Name != null;
-    
+
     public abstract string XLabel { get; }
-    
+
     public string YLabel => "I (mA)";
 
     public abstract string CurveTitle { get; }
-    
+
     public double PmaxWatt { get; }
-    
+
     public abstract bool PlotPmax { get; }
 
     /// <summary>
@@ -118,9 +115,9 @@ public abstract class MeasurementTypeBase
     /// </summary>
     public double MaxI(double v) => PmaxWatt * 1000.0 / v;
 
-    public  double MinX { get; }
-    public  double MaxX { get; }
-    public  double MaxY { get; }
+    public double MinX { get; }
+    public double MaxX { get; }
+    public double MaxY { get; }
 
     public abstract string SteppingVariableName { get; }
 

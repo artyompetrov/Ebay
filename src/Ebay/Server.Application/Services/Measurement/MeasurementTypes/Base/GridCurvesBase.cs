@@ -1,4 +1,4 @@
-﻿namespace Server.Application.Services.Measurement.MeasurementTypes.Base;
+namespace Server.Application.Services.Measurement.MeasurementTypes.Base;
 
 
 public abstract class GridCurvesBase : GridOrScreenCurvesBase
@@ -8,7 +8,7 @@ public abstract class GridCurvesBase : GridOrScreenCurvesBase
         Dictionary<int, MeasurementPoint[]> measurementPoints) : base(
         pmaxWatt: pmaxWatt,
         measurementPoints: measurementPoints,
-        variableSelector:  m => m.Vg)
+        variableSelector: m => m.Vg)
     {
     }
 
@@ -16,6 +16,6 @@ public abstract class GridCurvesBase : GridOrScreenCurvesBase
 
 
     public override string XLabel => "Vgrid (V)";
-    
-   
+
+
 }

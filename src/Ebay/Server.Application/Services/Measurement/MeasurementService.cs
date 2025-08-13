@@ -574,7 +574,7 @@ public class MeasurementService
             },
 
             // I(Va, Vg) with Vs, Vh Constant
-            2 =>  new PentodeAnodeCurves(pmaxWatt, measurementPoints),
+            2 => new PentodeAnodeCurves(pmaxWatt, measurementPoints),
 
             // I(Va=Vs, Vg) with Vh Constant
             4 => y2AxisVariable switch

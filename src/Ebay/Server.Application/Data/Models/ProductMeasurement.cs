@@ -42,7 +42,7 @@ public class ProductMeasurement
 
     [MaxLength(200)]
     public required string? Location { get; set; }
-    
+
     /// <summary>
     /// Идентификатор подобранного набора
     /// </summary>

@@ -1,4 +1,4 @@
-﻿namespace Server.Application.Services.Measurement.MeasurementTypes.Base;
+namespace Server.Application.Services.Measurement.MeasurementTypes.Base;
 
 public abstract class GridOrScreenCurvesBase : MeasurementTypeBase
 {
@@ -9,12 +9,12 @@ public abstract class GridOrScreenCurvesBase : MeasurementTypeBase
         pmaxWatt: pmaxWatt,
         measurementPoints: measurementPoints,
         variableSelector: variableSelector,
-        steppingVariableSelector:  m => m.Va,
+        steppingVariableSelector: m => m.Va,
         takeMeasurementPointsWhile: (x, maxI) => x.dIa / maxI > IgnoreDi && x.dIs / maxI > IgnoreDi)
     {
     }
-    
+
     public override bool PlotPmax => false;
-    
+
     public override string SteppingVariableName => "Vanode";
 }
