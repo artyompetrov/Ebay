@@ -288,14 +288,17 @@ public class EbayControllerImplementation : IEbayController
         await _publishEndpoint.Publish(new CalculatePricesForProduct(productId), cancellationToken);
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
-
+    
     public async Task<ICollection<MeasurementData>> GetMeasurementsAsync(
         MeasurementState? measurementState,
         Guid productId,
         CancellationToken cancellationToken)
     {
-        IReadOnlyCollection<Data.Models.MeasurementState> measurementStates = measurementState.HasValue
-            ? new[] { measurementState.Value.ToDbMeasurementState() }
+        MeasurementState? apiMeasurementState = measurementState.HasValue
+            ? (MeasurementState)(int)measurementState.Value
+            : null;
+        IReadOnlyCollection<Data.Models.MeasurementState> measurementStates = apiMeasurementState.HasValue
+            ? new[] { apiMeasurementState.Value.ToDbMeasurementState() }
             : Enum.GetValues<Data.Models.MeasurementState>();
 
         var measurements = await _measurementService.GetMeasurementInfos(
