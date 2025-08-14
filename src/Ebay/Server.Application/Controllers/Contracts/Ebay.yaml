@@ -224,14 +224,11 @@ paths:
       operationId: GetMeasurements
       parameters:
         - name: measurementState
+          # noinspection YAMLSchemaValidation
           in: query
           required: false
-          type: string
-          x-csharp-type: MeasurementState
-          enum:
-            - Created
-            - Selling
-            - Sold
+          schema:
+            $ref: '#/definitions/MeasurementState'
       responses:
         200:
           description: Ok

@@ -190,7 +190,7 @@
     {
         _measurements = await EbayClient.GetMeasurementsAsync(
             _selectedMeasurementState.HasValue
-                ? (MeasurementState2?)(MeasurementState2)_selectedMeasurementState.Value
+                ? _selectedMeasurementState.Value
                 : null,
             ProductId);
         StateHasChanged();
