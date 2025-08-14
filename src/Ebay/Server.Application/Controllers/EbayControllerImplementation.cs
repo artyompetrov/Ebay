@@ -17,6 +17,7 @@ using LotInfoWithProductId = Server.Controllers.Generated.LotInfoWithProductId;
 using LotState = Server.Controllers.Generated.LotState;
 using MeasurementData = Server.Controllers.Generated.MeasurementData;
 using MeasurementState = Server.Controllers.Generated.MeasurementState;
+using MeasurementState2 = Server.Controllers.Generated.MeasurementState2;
 using ProductWithId = Server.Controllers.Generated.ProductWithId;
 using ProductWithoutId = Server.Controllers.Generated.ProductWithoutId;
 
@@ -290,12 +291,15 @@ public class EbayControllerImplementation : IEbayController
     }
 
     public async Task<ICollection<MeasurementData>> GetMeasurementsAsync(
-        MeasurementState? measurementState,
+        MeasurementState2? measurementState,
         Guid productId,
         CancellationToken cancellationToken)
     {
-        IReadOnlyCollection<Data.Models.MeasurementState> measurementStates = measurementState.HasValue
-            ? new[] { measurementState.Value.ToDbMeasurementState() }
+        MeasurementState? apiMeasurementState = measurementState.HasValue
+            ? (MeasurementState)(int)measurementState.Value
+            : null;
+        IReadOnlyCollection<Data.Models.MeasurementState> measurementStates = apiMeasurementState.HasValue
+            ? new[] { apiMeasurementState.Value.ToDbMeasurementState() }
             : Enum.GetValues<Data.Models.MeasurementState>();
 
         var measurements = await _measurementService.GetMeasurementInfos(

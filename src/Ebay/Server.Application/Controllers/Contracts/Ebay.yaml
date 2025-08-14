@@ -224,10 +224,14 @@ paths:
       operationId: GetMeasurements
       parameters:
         - name: measurementState
-          in: body
+          in: query
           required: false
-          schema:
-            $ref: '#/definitions/MeasurementState'
+          type: string
+          x-csharp-type: MeasurementState
+          enum:
+            - Created
+            - Selling
+            - Sold
       responses:
         200:
           description: Ok
