@@ -224,7 +224,8 @@ paths:
       operationId: GetMeasurements
       parameters:
         - name: measurementState
-          in: body
+          # noinspection YAMLSchemaValidation
+          in: query
           required: false
           schema:
             $ref: '#/definitions/MeasurementState'
