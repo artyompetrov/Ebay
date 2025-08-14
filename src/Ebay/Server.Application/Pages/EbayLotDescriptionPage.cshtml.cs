@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +20,6 @@ public class EbayLotDescriptionPage : PageModel
     public ProductWithMeasurementsDto Product { get; set; } = null!;
 
     public record ProductWithMeasurementsDto(
-        string Name,
         List<string> SearchQueries,
         List<string> ProductMeasurementIds
     );
@@ -29,7 +29,6 @@ public class EbayLotDescriptionPage : PageModel
         var product = await _applicationContext.Products
             .Where(x => x.Id == productId)
             .Select(x => new ProductWithMeasurementsDto(
-                x.Name,
                 x.SearchQueries.Select(m => m.Query).ToList(),
                 x.ProductMeasurements
                     .Where(pm => pm.MeasurementState == MeasurementState.Selling)

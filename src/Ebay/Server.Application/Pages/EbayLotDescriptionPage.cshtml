@@ -6,7 +6,7 @@
     var baseUrl = $"{Request.Scheme}://{Request.Host}";
 }
 
-<h2>@Model.Product.SearchQueries.First() (@Model.Product.Name)</h2>
+<h2 style="text-align: center; "> @Model.Product.SearchQueries.First()</h2>
 
 <h3>📦 Shipping & Handling:</h3>
 <p>Origin: Shipped from <strong>Kazakhstan</strong></p>
@@ -22,7 +22,7 @@
 @if (Model.Product.ProductMeasurementIds.Count > 0)
 {
     <br/>
-    <h2>📈 Tested Vacuum Tube — Measurement Results Below</h2>
+    <h2 style="text-align: center;">📈 Tested Vacuum Tube — Measurement Results Below</h2>
     <p>This vacuum tube has been professionally tested using a <strong>uTracer 3+</strong> tube tester — a trusted tool among audiophiles and engineers.</p>
     <p>Each tested tube comes in a labeled box with a barcode sticker. By scanning the barcode, you can access the detailed test results for that specific tube.</p>
     
@@ -37,15 +37,21 @@
     <br/>
 
     <style>
-    th, td {
-        border: 1px solid #ccc;
-        padding: 8px;
-        text-align: center;
-    }
-
-    th {
-        background-color: #f5f5f5;
-    }
+        table {
+            margin: 0 auto;
+            border-collapse: collapse;
+        }
+    
+    
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+    
+        th {
+            background-color: #f5f5f5;
+        }
     </style>
     
     <table >
