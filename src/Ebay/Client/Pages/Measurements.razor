@@ -1,4 +1,3 @@
-﻿@page "/Measurements/{ProductId:guid}"
 @using System.Text.Json
 @using Client.Clients.Generated
 @using Microsoft.AspNetCore.Authorization
@@ -19,16 +18,6 @@
         width: 300px;
     }
 </style>
-
-@if (_product != null)
-{
-    <div style="display: flex; align-items: center; gap: 10px;">
-        <h3 style="margin: 0">Измерения для @_product.Name</h3>
-        <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{_product.Id}")" target="_blank">Описание для eBay</NavLink>
-    </div>
-}
-<br>
-
 
     <div class="row">
         <div class="col-md-6 pe-4 border-end border-secondary">
@@ -158,7 +147,6 @@
 <QuestionPopup @ref="_questionPopup"/>
 
 @code {
-    private ProductWithId? _product;
     private string? _error;
     private string? _message;
     private ProductState? _selectedState;
@@ -175,14 +163,19 @@
     private bool _includeExisting;
 
     [Parameter]
-    public Guid ProductId { get; set; }
+    public ProductWithId Product { get; set; } = null!;
 
-    protected async override Task OnInitializedAsync()
+    private Guid ProductId => Product.Id;
+
+    protected override async Task OnParametersSetAsync()
     {
-        _product = await EbayClient.GetProductAsync(ProductId);
-        _statesToMatch = _measurementStates
-            .Where(s => s != MeasurementState.Sold && s != MeasurementState.Selling)
-            .ToHashSet();
+        if (_statesToMatch.Count == 0)
+        {
+            _statesToMatch = _measurementStates
+                .Where(s => s != MeasurementState.Sold && s != MeasurementState.Selling)
+                .ToHashSet();
+        }
+
         await UpdateMeasurementsAsync();
     }
 
@@ -207,8 +200,6 @@
 
     private async Task HandleFileSelected(InputFileChangeEventArgs e)
     {
-        if (_product == null) throw new NullReferenceException(nameof(_product));
-
         try
         {
             _message = null;
@@ -245,7 +236,7 @@
                     Location = _location,
                     MatchId = _matchId
                 },
-                _product.Id,
+                Product.Id,
                 CancellationToken.None);
 
             _message = $"Успешно загружен {id}";
@@ -318,8 +309,6 @@
 
     private void OnFindMatchedClick()
     {
-        if (_product == null) throw new NullReferenceException(nameof(_product));
-
         _questionPopup.AskQuestion(
             questionText: "Подобрать комплект?",
             async () =>
@@ -331,7 +320,7 @@
                         MeasurementStates = _statesToMatch.ToList(),
                         IncludeExisting = _includeExisting
                     },
-                    _product.Id);
+                    Product.Id);
                 await UpdateMeasurementsAsync();
             });
     }

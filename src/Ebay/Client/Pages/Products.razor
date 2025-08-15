@@ -32,12 +32,10 @@
 <table id="productTable" class="table">
     <thead>
     <tr>
-        <th></th>
         <th @onclick="@(() => SortTable(nameof(ProductWithId.IsCheckRequired)))"><span class="sort-icon">@GetSortIcon(nameof(ProductWithId.IsCheckRequired))</span></th>
-        <th></th>
         <th @onclick="@(() => SortTable(nameof(ProductWithId.Name)))">
-            Название 
-            <button class="btn btn-primary btn-sm" @onclick:stopPropagation="true" @onclick="@(() => _productPopupComponent.ShowCreate())">Добавить</button>
+            Название
+            <button class="btn btn-primary btn-sm" @onclick:stopPropagation="true" @onclick="StartCreateProduct">Добавить</button>
             <span class="sort-icon">@GetSortIcon(nameof(ProductWithId.Name))</span>
         </th>
         <th>
@@ -61,17 +59,13 @@
         <th>
             Дата расчета
         </th>
-        <th></th>
     </tr>
     </thead>
 
     <tbody>
-    @foreach (var product in _sortedProducts)
+    @foreach (var product in SortedProducts)
     {
         <tr>
-            <td>
-                <button class="btn btn-primary btn-sm oi oi-pencil" @onclick="@(e => _productPopupComponent.ShowEdit(product))"></button>
-            </td>
             <td>
                 @if (product.IsCheckRequired)
                 {
@@ -79,10 +73,7 @@
                 }
             </td>
             <td>
-                <NavLink class="btn btn-info btn-sm oi oi-pulse" href="@($"Measurements/{product.Id}")" target="_blank"></NavLink>
-            </td>
-            <td>
-                <NavLink href="@($"LotSales/{product.Id}")" target="_blank">@Helpers.HighlightMinorityLetters(product.Name, "red")</NavLink>
+                <NavLink href="@($"Product/{product.Id}")" target="_blank">@Helpers.HighlightMinorityLetters(product.Name, "red")</NavLink>
             </td>
             <td>
                 @foreach (var query in product.RuSearchQueries)
@@ -116,29 +107,46 @@
                 <td></td>
                 <td></td>
             }
-            <td>
-                <button class="btn btn-danger btn-sm oi oi-basket" @onclick="@(e => OnDeleteButtonClick(product))"></button>
-            </td>
         </tr>
     }
     </tbody>
 </table>
 
-<ProductPopup @ref="_productPopupComponent" OnSuccess="LoadActualProductList"/>
+@if (_showProductModal)
+{
+    <div class="modal fade show" tabindex="-1" role="dialog" style="display: block;">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(_productProperties?.WindowHeader)</h5>
+                </div>
+                <div class="modal-body">
+                    <ProductProperties @ref="_productProperties" OnSuccess="OnProductSaved" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CancelProduct" data-dismiss="modal">Отмена</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
 <QuestionPopup @ref="_questionPopup"/>
 
 @code {
-    private ProductPopup _productPopupComponent = null!;
+    private ProductProperties _productProperties = null!;
+    private bool _showProductModal;
     private QuestionPopup _questionPopup = null!;
     private double _targetCurrencyRate;
 
     private ICollection<ProductWithId> _products = new List<ProductWithId>();
-    private IEnumerable<ProductWithId> _sortedProducts => ApplySorting(_products);
+    private IEnumerable<ProductWithId> SortedProducts => ApplySorting(_products);
 
     private string _sortColumn = string.Empty;
     private bool _sortAscending = true;
 
-    protected override async Task OnInitializedAsync()
+    protected async override Task OnInitializedAsync()
     {
         await Task.WhenAll(LoadActualProductList(), GetCurrencies());
     }
@@ -148,17 +156,6 @@
         var currencies = await EbayClient.GetCurrenciesAsync();
         var dict = currencies.ToDictionary(keySelector: x => x.EbayName, elementSelector: x => x.Rate);
         _targetCurrencyRate = dict[WellKnown.Currencies.TargetCurrency];
-    }
-
-    private void OnDeleteButtonClick(ProductWithId product)
-    {
-        _questionPopup.AskQuestion(
-            questionText: $"Вы действительно хотите удалить товар '{product.Name}'?",
-            async () =>
-            {
-                await EbayClient.DeleteProductAsync(product.Id);
-                await LoadActualProductList();
-            });
     }
 
     private void UpdateAllPrices()
@@ -249,5 +246,24 @@
                 await EbayClient.MarkProductAsCheckedAsync(product.Id);
                 await LoadActualProductList();
             });
+    }
+
+    private async Task StartCreateProduct()
+    {
+        _showProductModal = true;
+        await Task.Yield();
+        _productProperties.StartCreate();
+    }
+
+    private Task OnProductSaved()
+    {
+        _showProductModal = false;
+        return LoadActualProductList();
+    }
+
+    private void CancelProduct()
+    {
+        _productProperties.Reset();
+        _showProductModal = false;
     }
 }

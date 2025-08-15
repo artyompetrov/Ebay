@@ -1,0 +1,182 @@
+@using Client.Extensions
+@using Client.Clients.Generated
+@inject EbayClient EbayClient
+
+@if (_product != null)
+{
+    <EditForm EditContext="@_editContext">
+        @FormFields
+        <div class="mt-3">
+            <button class="btn btn-primary" @onclick="OnSave" type="button">Сохранить</button>
+        </div>
+    </EditForm>
+}
+
+@code {
+
+    private ProductWithoutId? _product;
+    private Guid? _id;
+    private ActionType _actionType;
+    private string _oldName = null!;
+    private EditContext _editContext = null!;
+    private ValidationMessageStore _validationMessageStore = null!;
+
+    [Parameter]
+    [EditorRequired]
+    public Func<Task> OnSuccess { get; set; } = null!;
+
+    [Parameter]
+    public ProductWithId? Product { get; set; }
+
+    public string? WindowHeader => _product != null ? GetWindowHeader() : null;
+
+    protected override void OnParametersSet()
+    {
+        if (Product != null && (_id != Product.Id))
+        {
+            StartEdit(Product);
+        }
+    }
+
+    public void StartCreate()
+    {
+        _actionType = ActionType.Create;
+        _product = new ProductWithoutId { Weight = 0, SearchQueries = new List<SearchQuery> { new() { Id = Guid.NewGuid() } }, RuSearchQueries = new List<RuSearchQuery>() };
+        _editContext = new EditContext(_product);
+        _validationMessageStore = new ValidationMessageStore(_editContext);
+        StateHasChanged();
+    }
+
+    public void StartEdit(ProductWithId product)
+    {
+        _actionType = ActionType.Edit;
+        _id = product.Id;
+        _oldName = product.Name;
+        _product = product.ToProductWithoutId();
+        _editContext = new EditContext(_product);
+        _validationMessageStore = new ValidationMessageStore(_editContext);
+        StateHasChanged();
+    }
+
+    private async Task OnSave()
+    {
+        if (_product == null) throw new InvalidOperationException($"{nameof(_product)} expected to be not null");
+        try
+        {
+            _validationMessageStore?.Clear();
+
+            switch (_actionType)
+            {
+                case ActionType.Create:
+                    await EbayClient.CreateProductAsync(_product);
+                    break;
+                case ActionType.Edit:
+                    if (_id == null) throw new InvalidOperationException($"{nameof(_id)} expected to be not null");
+                    await EbayClient.UpdateProductAsync(product: _product, id: _id.Value);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            await OnSuccess();
+            _product = null;
+        }
+        catch (ApiException<ValidationProblemDetailedInfo> validationError)
+        {
+            validationError.FillValidationMessageStore(validationMessageStore: _validationMessageStore ?? throw new NullReferenceException(nameof(_validationMessageStore)),
+                model: _product ?? throw new NullReferenceException($"{nameof(_product)} expected to be not null"));
+        }
+    }
+
+    public void Reset() => _product = null;
+
+    private string GetWindowHeader()
+    {
+        return _actionType switch
+        {
+            ActionType.Create => "Создать новый продукт",
+            ActionType.Edit => $"Редактировать продукт '{_oldName}'",
+            _ => throw new ArgumentOutOfRangeException(nameof(_actionType))
+        };
+    }
+
+    internal enum ActionType
+    {
+        Create = 1,
+        Edit
+    }
+
+    private void AddRuSearchQuery()
+    {
+        if (_product == null) throw new InvalidOperationException($"{nameof(_product)} expected to be not null");
+        _product.RuSearchQueries.Add(new RuSearchQuery() { Id = Guid.NewGuid() });
+    }
+
+    private void AddSearchQuery()
+    {
+        if (_product == null) throw new InvalidOperationException($"{nameof(_product)} expected to be not null");
+        _product.SearchQueries.Add(new SearchQuery() { Id = Guid.NewGuid() });
+    }
+
+    private void RemoveRuSearchQuery(RuSearchQuery query)
+    {
+        if (_product == null) throw new InvalidOperationException($"{nameof(_product)} expected to be not null");
+        _product.RuSearchQueries.Remove(query);
+    }
+
+    private void RemoveSearchQuery(SearchQuery query)
+    {
+        if (_product == null) throw new InvalidOperationException($"{nameof(_product)} expected to be not null");
+        _product.SearchQueries.Remove(query);
+    }
+
+    private RenderFragment FormFields => @<div>
+        <div class="form-group">
+            <label for="name">Название товара</label>
+            <InputText id="name" @bind-Value="_product!.Name" class="form-control" />
+            <ValidationMessage For="@(() => _product!.Name)" />
+        </div>
+
+        <div class="form-group">
+            <label for="weight">Вес без упаковки (грамм)</label>
+            <InputNumber id="weight" @bind-Value="_product!.Weight" class="form-control" />
+            <ValidationMessage For="@(() => _product!.Weight)" />
+        </div>
+        <hr />
+        @{
+            var ruSearchQueryNumber = 1;
+        }
+        @foreach (var query in _product!.RuSearchQueries)
+        {
+            <div class="form-group">
+                <label for="@($"ruSearchQuery_{ruSearchQueryNumber}")">Дополнительное имя</label>
+                <InputText id="@($"ruSearchQuery_{ruSearchQueryNumber}")" @bind-Value="query.Query" class="form-control" />
+                @if (ruSearchQueryNumber > 0)
+                {
+                    <button class="btn btn-primary btn-sm" @onclick="() => RemoveRuSearchQuery(query)">Удалить</button>
+                }
+            </div>
+            ruSearchQueryNumber++;
+        }
+        <br />
+        <button class="btn btn-primary btn-sm" @onclick="AddRuSearchQuery">Добавить дополнительное имя</button>
+        <hr />
+        @{
+            var searchQueryNumber = 1;
+        }
+        @foreach (var query in _product!.SearchQueries)
+        {
+            <div class="form-group">
+                <label for="@($"searchQuery_{searchQueryNumber}")">Поисковый запрос ebay</label>
+                <InputText id="@($"searchQuery_{searchQueryNumber}")" @bind-Value="query.Query" class="form-control" />
+                @if (searchQueryNumber > 1)
+                {
+                    <button class="btn btn-primary btn-sm" @onclick="() => RemoveSearchQuery(query)">Удалить</button>
+                }
+            </div>
+            searchQueryNumber++;
+        }
+        <br />
+        <button class="btn btn-primary btn-sm" @onclick="AddSearchQuery">Добавить поисковый запрос ebay</button>
+    </div>;
+}

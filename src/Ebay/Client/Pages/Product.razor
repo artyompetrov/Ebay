@@ -1,0 +1,99 @@
+@page "/Product/{ProductId:guid}/{Tab?}"
+@using Microsoft.AspNetCore.Authorization
+@using System.Threading.Tasks
+@attribute [Authorize]
+@using Client.Clients.Generated
+@inject EbayClient EbayClient
+@inject NavigationManager NavigationManager
+
+@if (_product == null)
+{
+    <p>Загрузка...</p>
+}
+else
+{
+    <h3>@_product.Name</h3>
+    <div class="mb-3" style="display: flex; align-items: center; gap: 10px;">
+        <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}")" target="_blank">Описание для eBay</NavLink>
+        <button class="btn btn-danger btn-sm oi oi-basket" @onclick="OnDeleteClick"></button>
+    </div>
+
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <a class="nav-link @(GetTabClass(TabKind.LotSales))" href="javascript:void(0)" @onclick="() => Activate(TabKind.LotSales)">Продажи на Ebay</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(GetTabClass(TabKind.Measurements))" href="javascript:void(0)" @onclick="() => Activate(TabKind.Measurements)">Измерения</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(GetTabClass(TabKind.Parameters))" href="javascript:void(0)" @onclick="() => Activate(TabKind.Parameters)">Параметры</a>
+        </li>
+    </ul>
+
+    if (_activeTab == TabKind.LotSales)
+    {
+        <LotSales Product="_product"/>
+    }
+    else if (_activeTab == TabKind.Measurements)
+    {
+        <Measurements Product="_product"/>
+    }
+    else if (_activeTab == TabKind.Parameters)
+    {
+        <ProductProperties Product="_product" OnSuccess="OnProductUpdated"/>
+    }
+}
+
+<QuestionPopup @ref="_questionPopup" />
+
+@code {
+    [Parameter]
+    public Guid ProductId { get; set; }
+
+    [Parameter]
+    public string? Tab { get; set; }
+
+    private ProductWithId? _product;
+    private QuestionPopup _questionPopup = null!;
+
+    private enum TabKind
+    {
+        LotSales,
+        Measurements,
+        Parameters
+    }
+
+    private TabKind _activeTab;
+
+    protected async override Task OnParametersSetAsync()
+    {
+        _activeTab = Tab switch
+        {
+            { } t when t.Equals(nameof(TabKind.Measurements), StringComparison.OrdinalIgnoreCase) => TabKind.Measurements,
+            { } t when t.Equals(nameof(TabKind.Parameters), StringComparison.OrdinalIgnoreCase) => TabKind.Parameters,
+            _ => TabKind.LotSales
+        };
+
+        _product = await EbayClient.GetProductAsync(ProductId);
+    }
+
+    private void Activate(TabKind tab) => _activeTab = tab;
+
+    private string GetTabClass(TabKind tab) => _activeTab == tab ? "active" : string.Empty;
+
+    private async Task OnProductUpdated()
+    {
+        await OnParametersSetAsync();
+    }
+
+    private void OnDeleteClick()
+    {
+        var name = _product?.Name;
+        var question = name != null ? $"Вы действительно хотите удалить товар '{name}'?" : "Вы действительно хотите удалить товар?";
+        _questionPopup.AskQuestion(question, async () =>
+        {
+            await EbayClient.DeleteProductAsync(ProductId);
+            NavigationManager.NavigateTo("/");
+        });
+    }
+}
