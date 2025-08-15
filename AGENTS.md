@@ -59,4 +59,4 @@ cd /workspace/Ebay/src/Ebay/ && dotnet ef migrations add NewMigrationName --proj
 
 
 # Иконки
-На UI используются иконки из коллекции https://icones.js.org/collection/oi или emoji
+На UI используются иконки из коллекции https://icones.js.org/collection/oi https://github.com/iconic/open-iconic или emoji 
