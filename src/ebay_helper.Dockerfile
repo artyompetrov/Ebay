@@ -6,7 +6,7 @@ RUN dotnet restore "Ebay/Server/Server.csproj"
 WORKDIR "/src/Ebay/"
 RUN dotnet msbuild -t:BeforeBuild
 WORKDIR "/src/Ebay/Server"
-ARG BUILD_VERSION="0.0.0.1"
+ARG BUILD_VERSION="1.0.0.0"
 RUN dotnet publish "Server.csproj" -c Release -o /app/publish /p:UseAppHost=false /p:Version=$BUILD_VERSION
 RUN apt-get update && apt-get install -y fontconfig fonts-liberation && fc-cache -f -v
 
@@ -18,7 +18,7 @@ ARG EBAY_HELPER_BACKEND_DOMAIN
 ARG EBAY_CLIENT_ID
 ARG EBAY_CLIENT_SECRET
 ARG EBAY_REDIRECT_URI_CODE
-ARG BUILD_VERSION="0.0.0.1"
+ARG BUILD_VERSION="1.0.0.0"
 RUN npm install
 RUN EBAY_HELPER_BACKEND_DOMAIN=$EBAY_HELPER_BACKEND_DOMAIN EBAY_CLIENT_ID=$EBAY_CLIENT_ID EBAY_CLIENT_SECRET=$EBAY_CLIENT_SECRET EBAY_REDIRECT_URI_CODE=$EBAY_REDIRECT_URI_CODE BUILD_VERSION=$BUILD_VERSION npm run build
 RUN mkdir -p /app/publish/ && \
