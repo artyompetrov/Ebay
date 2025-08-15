@@ -22,7 +22,7 @@
 
 ## Project Structure for OpenAI Codex Navigation
 
-- `.github/workflows/action.yaml` - настройки github CI
+- `.github/workflows/*.yaml` - настройки github CI
 - `/src`: исходный код
     - `/ChromeExtension`: Хром расширение
     - `/Ebay`: C# проект
@@ -55,7 +55,7 @@ cd /workspace/Ebay/src/Ebay/ && dotnet ef migrations add NewMigrationName --proj
 
 # Сборка в docker и CI CD
 Проект собирается в Docker при помощи Github CI CD.
-Не забывай верифицировать `src/ebay_helper.Dockerfile` и `.github/workflows/action.yaml` на корректность если изменялись параметры билда.
+Не забывай верифицировать `src/ebay_helper.Dockerfile` и `.github/workflows/*.yaml` на корректность если изменялись параметры билда.
 
 
 # Иконки
