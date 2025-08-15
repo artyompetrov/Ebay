@@ -1,4 +1,4 @@
-@using System.Reflection
+﻿@using System.Reflection
 @inherits LayoutComponentBase
 
 <div class="page">
@@ -22,6 +22,6 @@
         Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? string.Empty;
 
     private string SidebarCssClass =>
-        AssemblyVersion == "1.0.0.0" ? "sidebar sidebar-local" : "sidebar";
+        AssemblyVersion == "1.0.0.0" ? "sidebar sidebar-local" : "sidebar sidebar-global";
 }
 

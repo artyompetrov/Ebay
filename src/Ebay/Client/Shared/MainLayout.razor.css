@@ -8,12 +8,12 @@ main {
     flex: 1;
 }
 
-.sidebar {
+.sidebar-global {
     background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
 }
 
 .sidebar-local {
-    background: #8b0000;
+    background-image: linear-gradient(180deg, rgb(109 19 52) 0%, #7d123d 70%);
 }
 
 .top-row {
