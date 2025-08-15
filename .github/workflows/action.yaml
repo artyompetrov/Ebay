@@ -25,42 +25,17 @@ jobs:
         run: |
           BUILD_VERSION=$(date +'%y%m.%d.%H.%M%S' | sed 's/\.0*/./g')
           docker build -f ./src/ebay_helper.Dockerfile --build-arg BUILD_VERSION="$BUILD_VERSION" --build-arg EBAY_HELPER_BACKEND_DOMAIN="${{ secrets.EBAY_HELPER_BACKEND_DOMAIN }}" --build-arg EBAY_CLIENT_ID="${{ secrets.EBAY_CLIENT_ID }}" --build-arg EBAY_CLIENT_SECRET="${{ secrets.EBAY_CLIENT_SECRET }}" --build-arg EBAY_REDIRECT_URI_CODE="${{ secrets.EBAY_REDIRECT_URI_CODE }}" --tag ${{ env.REGISTRY }}/${{ env.EBAY_HELPER_IMAGE_NAME }} ./src/
-          docker save ${{ env.REGISTRY }}/${{ env.EBAY_HELPER_IMAGE_NAME }} -o image.tar
 
-      - name: Upload Image Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ebay-helper-image
-          path: image.tar
-          retention-days: 1
-
-  publish_docker:
-    name: Push Ebay Helper Docker Image
-    runs-on: ubuntu-latest
-    needs: build_docker
-    if: github.ref == 'refs/heads/main'  # Запускается только на ветке main
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Download Image Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ebay-helper-image
-          path: .
-      - name: Load Docker Image
-        run: docker load -i image.tar
-
-      - name: Login to GitHub Container Registry
-        run: echo ${{ secrets.PAT }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
-
-      - name: Push Docker Image
-        run: docker push ${{ env.REGISTRY }}/${{ env.EBAY_HELPER_IMAGE_NAME }}
+      - name: Publish Docker Image
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo ${{ secrets.PAT }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+          docker push ${{ env.REGISTRY }}/${{ env.EBAY_HELPER_IMAGE_NAME }}
 
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    needs: [ publish_docker ]
+    needs: [ build_docker ]
     if: github.ref == 'refs/heads/main'  # Запускается только на ветке main
 
     steps:
