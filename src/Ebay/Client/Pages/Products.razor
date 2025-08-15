@@ -63,7 +63,7 @@
     </thead>
 
     <tbody>
-    @foreach (var product in _sortedProducts)
+    @foreach (var product in SortedProducts)
     {
         <tr>
             <td>
@@ -141,12 +141,12 @@
     private double _targetCurrencyRate;
 
     private ICollection<ProductWithId> _products = new List<ProductWithId>();
-    private IEnumerable<ProductWithId> _sortedProducts => ApplySorting(_products);
+    private IEnumerable<ProductWithId> SortedProducts => ApplySorting(_products);
 
     private string _sortColumn = string.Empty;
     private bool _sortAscending = true;
 
-    protected override async Task OnInitializedAsync()
+    protected async override Task OnInitializedAsync()
     {
         await Task.WhenAll(LoadActualProductList(), GetCurrencies());
     }

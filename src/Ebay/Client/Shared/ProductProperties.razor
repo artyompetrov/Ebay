@@ -28,8 +28,7 @@
     [Parameter]
     public ProductWithId? Product { get; set; }
 
-    public string? WindowHeader => _product != null ? GetWindowHeader(_actionType, _product) : null;
-    public string? ProductName => _product?.Name;
+    public string? WindowHeader => _product != null ? GetWindowHeader() : null;
 
     protected override void OnParametersSet()
     {
@@ -91,7 +90,7 @@
 
     public void Reset() => _product = null;
 
-    private string GetWindowHeader(ActionType actionType, ProductWithoutId product)
+    private string GetWindowHeader()
     {
         return _actionType switch
         {

@@ -40,7 +40,7 @@ else
     }
     else if (_activeTab == TabKind.Parameters)
     {
-        <ProductProperties Product="_product" OnSuccess="OnProductUpdated" @ref="_productProperties"/>
+        <ProductProperties Product="_product" OnSuccess="OnProductUpdated"/>
     }
 }
 
@@ -54,7 +54,6 @@ else
     public string? Tab { get; set; }
 
     private ProductWithId? _product;
-    private ProductProperties _productProperties = null!;
     private QuestionPopup _questionPopup = null!;
 
     private enum TabKind
@@ -66,7 +65,7 @@ else
 
     private TabKind _activeTab;
 
-    protected override async Task OnParametersSetAsync()
+    protected async override Task OnParametersSetAsync()
     {
         _activeTab = Tab switch
         {
@@ -84,7 +83,7 @@ else
 
     private async Task OnProductUpdated()
     {
-        _product = await EbayClient.GetProductAsync(ProductId);
+        await OnParametersSetAsync();
     }
 
     private void OnDeleteClick()
