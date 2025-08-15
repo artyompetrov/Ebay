@@ -32,7 +32,6 @@ jobs:
         with:
           name: ebay-helper-image
           path: image.tar
-          retention-days: 5
 
   publish_docker:
     name: Push Ebay Helper Docker Image
