@@ -32,7 +32,7 @@
 
     protected override void OnParametersSet()
     {
-        if (Product != null && (_id != Product.Id || _product == null))
+        if (Product != null && _id != Product.Id)
         {
             StartEdit(Product);
         }
@@ -47,7 +47,7 @@
         StateHasChanged();
     }
 
-    public void StartEdit(ProductWithId product)
+    private void StartEdit(ProductWithId product)
     {
         _actionType = ActionType.Edit;
         _id = product.Id;
@@ -79,7 +79,6 @@
             }
 
             await OnSuccess();
-            _product = null;
         }
         catch (ApiException<ValidationProblemDetailedInfo> validationError)
         {
