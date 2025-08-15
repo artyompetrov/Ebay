@@ -26,17 +26,16 @@
     public Func<Task> OnSuccess { get; set; } = null!;
 
     [Parameter]
-    public Guid? ProductId { get; set; }
+    public ProductWithId? Product { get; set; }
 
     public string? WindowHeader => _product != null ? GetWindowHeader(_actionType, _product) : null;
     public string? ProductName => _product?.Name;
 
-    protected override async Task OnParametersSetAsync()
+    protected override void OnParametersSet()
     {
-        if (ProductId.HasValue && (_id != ProductId))
+        if (Product != null && (_id != Product.Id))
         {
-            var product = await EbayClient.GetProductAsync(ProductId.Value);
-            StartEdit(product);
+            StartEdit(Product);
         }
     }
 

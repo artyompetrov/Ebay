@@ -23,17 +23,21 @@
     </li>
 </ul>
 
-@if (_activeTab == TabKind.LotSales)
+@if (_product == null)
 {
-    <LotSales ProductId="ProductId" />
+    <p>Загрузка...</p>
+}
+else if (_activeTab == TabKind.LotSales)
+{
+    <LotSales Product="_product" />
 }
 else if (_activeTab == TabKind.Measurements)
 {
-    <Measurements ProductId="ProductId" />
+    <Measurements Product="_product" />
 }
 else if (_activeTab == TabKind.Parameters)
 {
-    <ProductProperties ProductId="ProductId" OnSuccess="OnProductUpdated" @ref="_productProperties" />
+    <ProductProperties Product="_product" OnSuccess="OnProductUpdated" @ref="_productProperties" />
 }
 
 <QuestionPopup @ref="_questionPopup" />
@@ -45,6 +49,7 @@ else if (_activeTab == TabKind.Parameters)
     [Parameter]
     public string? Tab { get; set; }
 
+    private ProductWithId? _product;
     private ProductProperties _productProperties = null!;
     private QuestionPopup _questionPopup = null!;
 
@@ -57,7 +62,7 @@ else if (_activeTab == TabKind.Parameters)
 
     private TabKind _activeTab;
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
         _activeTab = Tab switch
         {
@@ -65,6 +70,8 @@ else if (_activeTab == TabKind.Parameters)
             { } t when t.Equals(nameof(TabKind.Parameters), StringComparison.OrdinalIgnoreCase) => TabKind.Parameters,
             _ => TabKind.LotSales
         };
+
+        _product = await EbayClient.GetProductAsync(ProductId);
     }
 
     private void Activate(TabKind tab) => _activeTab = tab;
@@ -73,12 +80,12 @@ else if (_activeTab == TabKind.Parameters)
 
     private async Task OnProductUpdated()
     {
-        await Task.CompletedTask;
+        _product = await EbayClient.GetProductAsync(ProductId);
     }
 
     private void OnDeleteClick()
     {
-        var name = _productProperties.ProductName;
+        var name = _product?.Name;
         var question = name != null ? $"Вы действительно хотите удалить товар '{name}'?" : "Вы действительно хотите удалить товар?";
         _questionPopup.AskQuestion(question, async () =>
         {

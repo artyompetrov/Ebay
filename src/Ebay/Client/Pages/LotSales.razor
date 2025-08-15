@@ -30,33 +30,33 @@
     }
 </style>
 
-@if (_lots != null && _product != null)
+@if (_lots != null && Product != null)
 {
-    <PageTitle>Продажи товара @Helpers.HighlightMinorityLetters(@_product.Name, "red")</PageTitle>
-    
+    <PageTitle>Продажи товара @Helpers.HighlightMinorityLetters(@Product.Name, "red")</PageTitle>
+
     <div style="display: flex; align-items: center; gap: 10px;">
-        <h4>Статистика @_product.Name</h4>
+        <h4>Статистика @Product.Name</h4>
         <button class="btn btn-primary btn-sm" @onclick="UpdateAllPrices">Пересчитать цены</button>
-        @if (_product.IsCheckRequired)
+        @if (Product.IsCheckRequired)
         {
-            <button class="btn btn-warning btn-sm" @onclick="@(e => MarkAsChecked(_product))">Отметить как проверенный</button>
+            <button class="btn btn-warning btn-sm" @onclick="@(e => MarkAsChecked(Product))">Отметить как проверенный</button>
         }
     </div>
-    @if (_product.Weight == 0)
+    @if (Product.Weight == 0)
     {
         <h5 class="text-danger">Вес без упаковки не задан, для правильного расчета нужно задать вес <a class="link" href="@($"/Product/{ProductId}/Parameters")">Указать вес без упаковки</a></h5>
     }
     else
     {
-        <div>Вес без упаковки: @_product?.Weight</div>
+        <div>Вес без упаковки: @Product.Weight</div>
     }
 
-    <div>Продано штук: @(_product?.ProductCalculationResult?.QuantityTotal)</div>
-    <div>Средняя выручка с одной штуки: @((_product?.ProductCalculationResult?.RevenueAvg * _targetCurrencyRate)?.ToString("#"))  @WellKnown.Currencies.TargetCurrency</div>
+    <div>Продано штук: @(Product.ProductCalculationResult?.QuantityTotal)</div>
+    <div>Средняя выручка с одной штуки: @((Product.ProductCalculationResult?.RevenueAvg * _targetCurrencyRate)?.ToString("#"))  @WellKnown.Currencies.TargetCurrency</div>
     <div>Запросы (eBay):
-    @foreach (var query in _product!.SearchQueries)
+    @foreach (var query in Product!.SearchQueries)
     {
-        <span><a href="@Helpers.GetSearchLink(query: query.Query, productId: _product.Id)" rel="noreferrer" target="_blank">@Helpers.HighlightMinorityLetters(query.Query, "red")</a>&#160;</span>
+        <span><a href="@Helpers.GetSearchLink(query: query.Query, productId: Product.Id)" rel="noreferrer" target="_blank">@Helpers.HighlightMinorityLetters(query.Query, "red")</a>&#160;</span>
     }
     </div>
 
@@ -117,7 +117,6 @@
 @code {
 
     private PlotlyChart _chart = null!;
-    private ProductWithId? _product;
     private ICollection<LotInfoShort>? _lots;
     private QuestionPopup _questionPopup = null!;
 
@@ -126,10 +125,11 @@
     IList<ITrace> _data = new List<ITrace>();
     private Dictionary<string, double> _currencyRates = null!;
     private double _targetCurrencyRate;
-    private const string Worldwide = "Worldwide";
 
     [Parameter]
-    public Guid ProductId { get; set; }
+    public ProductWithId Product { get; set; } = null!;
+
+    private Guid ProductId => Product.Id;
 
     private void GraphClickAction(IEnumerable<EventDataPoint> eventData)
     {
@@ -147,19 +147,14 @@
         await _chart.SubscribeClickEvent();
     }
 
-    protected async override Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
-        var productTask = EbayClient.GetProductAsync(ProductId);
-        var getCurrenciesTask = GetCurrencies();
-        var getShippingRatesTask = EbayClient.GetShippingRatesAsync();
-        await Task.WhenAll(productTask, getCurrenciesTask, getShippingRatesTask);
+        if (Product == null) return;
 
-        _product = productTask.Result;
-        _currencyRates = getCurrenciesTask.Result;
+        _currencyRates = await GetCurrencies();
         _targetCurrencyRate = _currencyRates[WellKnown.Currencies.TargetCurrency];
 
         await UpdateData();
-        StateHasChanged();
     }
 
     private void UpdateAllPrices()
@@ -187,8 +182,6 @@
 
     private async Task UpdateData()
     {
-        if (_product == null) throw new NullReferenceException(nameof(_product));
-
         _lots = await GetLots();
         if (_lots.Count == 0) return;
 
@@ -215,7 +208,7 @@
 
         _layout = new()
         {
-            Title = new() { Text = $"Продажи {_product.Name}" },
+            Title = new() { Text = $"Продажи {Product.Name}" },
             Margin = new Margin { R = 0, L = 0 },
             XAxis = new List<XAxis>() { new() { Title = new() { Text = $"Цена за штуку ({WellKnown.Currencies.TargetCurrency})" } } },
             YAxis = new List<YAxis>() { new() { MinAllowed = 0, Title = new() { Text = "Кол-во штук в продаже" } } },
@@ -224,8 +217,8 @@
                 new()
                 {
                     Type = TypeEnum.Line,
-                    X0 = _product.ProductCalculationResult.RevenueAvg * _targetCurrencyRate,
-                    X1 = _product.ProductCalculationResult.RevenueAvg * _targetCurrencyRate,
+                    X0 = Product.ProductCalculationResult.RevenueAvg * _targetCurrencyRate,
+                    X1 = Product.ProductCalculationResult.RevenueAvg * _targetCurrencyRate,
                     XRef = "x",
                     YRef = "paper",
                     Y0 = 0,
@@ -243,6 +236,7 @@
             async () =>
             {
                 await EbayClient.MarkProductAsCheckedAsync(product.Id);
+                product.IsCheckRequired = false;
                 await UpdatePage();
             });
     }
@@ -337,57 +331,5 @@
         var currencies = await EbayClient.GetCurrenciesAsync();
         return currencies.ToDictionary(keySelector: x => x.EbayName, elementSelector: x => x.Rate);
     }
-
-    private static Dictionary<string, List<ShippingRateInner>> GetShippingRates(
-        ICollection<ShippingType> shippingRates,
-        Dictionary<string, double> currencies)
-    {
-        var rates = new Dictionary<string, List<ShippingRateInner>>();
-
-        foreach (var shippingRate in shippingRates)
-        {
-            foreach (var shippingRateRate in shippingRate.Rates)
-            {
-                if (shippingRateRate == null) throw new NullReferenceException(nameof(shippingRate));
-
-                foreach (var rate in shippingRateRate.Rates)
-                {
-                    if (shippingRateRate.SpecifiedCountries == null)
-                    {
-                        rates.AppendOrCreateNewCollection(
-                            key: Worldwide,
-                            value: new ShippingRateInner(
-                                WeightFrom: rate.MinWeight,
-                                WeightTo: rate.MaxWeight,
-                                PriceDollar: rate.Price / currencies[shippingRate.Currency]));
-                    }
-                    else
-                    {
-                        foreach (var specifiedCountry in shippingRateRate.SpecifiedCountries)
-                        {
-                            if (rate == null!) throw new NullReferenceException(nameof(rate));
-
-                            rates.AppendOrCreateNewCollection(
-                                key: specifiedCountry,
-                                value: new ShippingRateInner(
-                                    WeightFrom: rate.MinWeight,
-                                    WeightTo: rate.MaxWeight,
-                                    PriceDollar: rate.Price / currencies[shippingRate.Currency]));
-                        }
-                    }
-                }
-            }
-        }
-
-        return rates;
-    }
-
-    private record struct ShippingRateInner(int WeightFrom, int WeightTo, double PriceDollar)
-    {
-        public override string ToString()
-        {
-            return $"{WeightFrom}-{WeightTo} : {PriceDollar}";
-        }
-    };
 
 }
