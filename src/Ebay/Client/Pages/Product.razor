@@ -83,7 +83,7 @@ else
 
     private async Task OnProductUpdated()
     {
-        await OnParametersSetAsync();
+        _product = await EbayClient.GetProductAsync(ProductId);
     }
 
     private void OnDeleteClick()

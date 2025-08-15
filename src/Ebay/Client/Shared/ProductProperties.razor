@@ -32,7 +32,7 @@
 
     protected override void OnParametersSet()
     {
-        if (Product != null && (_id != Product.Id))
+        if (Product != null && (_id != Product.Id || _product == null))
         {
             StartEdit(Product);
         }
