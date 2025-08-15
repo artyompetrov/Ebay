@@ -16,3 +16,4 @@ node_modules/
 /src/ChromeExtension/_extension/build/
 /src/ChromeExtension/_extension/manifest.json
 **/Generated/**
+megalinter-reports/
