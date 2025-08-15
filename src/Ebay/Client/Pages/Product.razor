@@ -1,0 +1,48 @@
+@page "/Product/{ProductId:guid}/{Tab?}"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+        <a class="nav-link @(GetTabClass(TabKind.LotSales))" href="javascript:void(0)" @onclick="() => Activate(TabKind.LotSales)">Продажи</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(GetTabClass(TabKind.Measurements))" href="javascript:void(0)" @onclick="() => Activate(TabKind.Measurements)">Измерения</a>
+    </li>
+</ul>
+
+@if (_activeTab == TabKind.LotSales)
+{
+    <LotSales ProductId="ProductId" />
+}
+else if (_activeTab == TabKind.Measurements)
+{
+    <Measurements ProductId="ProductId" />
+}
+
+@code {
+    [Parameter]
+    public Guid ProductId { get; set; }
+
+    [Parameter]
+    public string? Tab { get; set; }
+
+    private enum TabKind
+    {
+        LotSales,
+        Measurements
+    }
+
+    private TabKind _activeTab;
+
+    protected override void OnParametersSet()
+    {
+        _activeTab = Tab?.Equals(nameof(TabKind.Measurements), StringComparison.OrdinalIgnoreCase) == true
+            ? TabKind.Measurements
+            : TabKind.LotSales;
+    }
+
+    private void Activate(TabKind tab) => _activeTab = tab;
+
+    private string GetTabClass(TabKind tab) => _activeTab == tab ? "active" : string.Empty;
+}
