@@ -6,38 +6,42 @@
 @inject EbayClient EbayClient
 @inject NavigationManager NavigationManager
 
-<div class="mb-3" style="display: flex; align-items: center; gap: 10px;">
-    <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}")" target="_blank">Описание для eBay</NavLink>
-    <button class="btn btn-danger btn-sm oi oi-basket" @onclick="OnDeleteClick"></button>
-</div>
-
-<ul class="nav nav-tabs mb-3">
-    <li class="nav-item">
-        <a class="nav-link @(GetTabClass(TabKind.LotSales))" href="javascript:void(0)" @onclick="() => Activate(TabKind.LotSales)">Продажи</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link @(GetTabClass(TabKind.Measurements))" href="javascript:void(0)" @onclick="() => Activate(TabKind.Measurements)">Измерения</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link @(GetTabClass(TabKind.Parameters))" href="javascript:void(0)" @onclick="() => Activate(TabKind.Parameters)">Параметры</a>
-    </li>
-</ul>
-
 @if (_product == null)
 {
     <p>Загрузка...</p>
 }
-else if (_activeTab == TabKind.LotSales)
+else
 {
-    <LotSales Product="_product" />
-}
-else if (_activeTab == TabKind.Measurements)
-{
-    <Measurements Product="_product" />
-}
-else if (_activeTab == TabKind.Parameters)
-{
-    <ProductProperties Product="_product" OnSuccess="OnProductUpdated" @ref="_productProperties" />
+    <h3>@_product.Name</h3>
+    <div class="mb-3" style="display: flex; align-items: center; gap: 10px;">
+        <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}")" target="_blank">Описание для eBay</NavLink>
+        <button class="btn btn-danger btn-sm oi oi-basket" @onclick="OnDeleteClick"></button>
+    </div>
+
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <a class="nav-link @(GetTabClass(TabKind.LotSales))" href="javascript:void(0)" @onclick="() => Activate(TabKind.LotSales)">Продажи на Ebay</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(GetTabClass(TabKind.Measurements))" href="javascript:void(0)" @onclick="() => Activate(TabKind.Measurements)">Измерения</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(GetTabClass(TabKind.Parameters))" href="javascript:void(0)" @onclick="() => Activate(TabKind.Parameters)">Параметры</a>
+        </li>
+    </ul>
+
+    if (_activeTab == TabKind.LotSales)
+    {
+        <LotSales Product="_product"/>
+    }
+    else if (_activeTab == TabKind.Measurements)
+    {
+        <Measurements Product="_product"/>
+    }
+    else if (_activeTab == TabKind.Parameters)
+    {
+        <ProductProperties Product="_product" OnSuccess="OnProductUpdated" @ref="_productProperties"/>
+    }
 }
 
 <QuestionPopup @ref="_questionPopup" />

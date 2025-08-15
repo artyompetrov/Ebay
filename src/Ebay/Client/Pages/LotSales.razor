@@ -30,12 +30,9 @@
     }
 </style>
 
-@if (_lots != null && Product != null)
+@if (_lots != null)
 {
-    <PageTitle>Продажи товара @Helpers.HighlightMinorityLetters(@Product.Name, "red")</PageTitle>
-
     <div style="display: flex; align-items: center; gap: 10px;">
-        <h4>Статистика @Product.Name</h4>
         <button class="btn btn-primary btn-sm" @onclick="UpdateAllPrices">Пересчитать цены</button>
         @if (Product.IsCheckRequired)
         {
@@ -44,7 +41,7 @@
     </div>
     @if (Product.Weight == 0)
     {
-        <h5 class="text-danger">Вес без упаковки не задан, для правильного расчета нужно задать вес <a class="link" href="@($"/Product/{ProductId}/Parameters")">Указать вес без упаковки</a></h5>
+        <h5 class="text-danger">Вес без упаковки не задан, для правильного расчета нужно задать вес</h5>
     }
     else
     {
@@ -129,8 +126,6 @@
     [Parameter]
     public ProductWithId Product { get; set; } = null!;
 
-    private Guid ProductId => Product.Id;
-
     private void GraphClickAction(IEnumerable<EventDataPoint> eventData)
     {
         var point = eventData.First();
@@ -147,10 +142,8 @@
         await _chart.SubscribeClickEvent();
     }
 
-    protected override async Task OnParametersSetAsync()
+    protected async override Task OnParametersSetAsync()
     {
-        if (Product == null) return;
-
         _currencyRates = await GetCurrencies();
         _targetCurrencyRate = _currencyRates[WellKnown.Currencies.TargetCurrency];
 
@@ -159,7 +152,7 @@
 
     private void UpdateAllPrices()
     {
-        _questionPopup.AskQuestion(questionText: "Пересчитать цены?", async () => { await EbayClient.CalculatePricesForProductAsync(ProductId, CancellationToken.None); });
+        _questionPopup.AskQuestion(questionText: "Пересчитать цены?", async () => { await EbayClient.CalculatePricesForProductAsync(Product.Id, CancellationToken.None); });
     }
 
     private async Task UpdatePage()
@@ -265,7 +258,7 @@
     }
 
 
-    private string GetLinkToLot(LotInfoShort lot) => $"https://www.ebay.com/itm/{lot.LotId}?tool_productId={ProductId}";
+    private string GetLinkToLot(LotInfoShort lot) => $"https://www.ebay.com/itm/{lot.LotId}?tool_productId={Product.Id}";
 
     private static string GetLotLinkId(long lotId) => $"tr_lot_id_{lotId}";
 
@@ -321,7 +314,7 @@
     private async Task<ICollection<LotInfoShort>> GetLots()
     {
         var lots = await EbayClient.GetLotsAsync(
-            productId: ProductId);
+            productId: Product.Id);
 
         return lots;
     }
