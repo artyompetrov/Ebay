@@ -19,6 +19,7 @@ using MeasurementData = Server.Controllers.Generated.MeasurementData;
 using MeasurementState = Server.Controllers.Generated.MeasurementState;
 using ProductWithId = Server.Controllers.Generated.ProductWithId;
 using ProductWithoutId = Server.Controllers.Generated.ProductWithoutId;
+using ProductPage = Server.Controllers.Generated.ProductPage;
 
 namespace Server.Application.Controllers;
 
@@ -56,6 +57,50 @@ public class EbayControllerImplementation : IEbayController
             .ToListAsync(cancellationToken);
 
         return dbProducts.Select(x => x.ToApiProduct()).ToList();
+    }
+
+    public async Task<ProductPage> GetProductsPageAsync(
+        int page,
+        int pageSize,
+        string sortBy,
+        bool isAscending,
+        CancellationToken cancellationToken)
+    {
+        IQueryable<DbProduct> query = _applicationContext.Products
+            .AsNoTracking()
+            .Include(x => x.SearchQueries)
+            .Include(x => x.RuSearchQueries)
+            .Include(x => x.ProductCalculationResult);
+
+        query = sortBy switch
+        {
+            nameof(ProductWithId.IsCheckRequired) => isAscending
+                ? query.OrderBy(x => x.IsCheckRequired).ThenBy(x => x.Id)
+                : query.OrderByDescending(x => x.IsCheckRequired).ThenBy(x => x.Id),
+            nameof(ProductWithId.Weight) => isAscending
+                ? query.OrderBy(x => x.Weight).ThenBy(x => x.Id)
+                : query.OrderByDescending(x => x.Weight).ThenBy(x => x.Id),
+            "QuantityTotal" => isAscending
+                ? query.OrderBy(x => x.ProductCalculationResult!.QuantityTotal).ThenBy(x => x.Id)
+                : query.OrderByDescending(x => x.ProductCalculationResult!.QuantityTotal).ThenBy(x => x.Id),
+            "RevenueAvg" => isAscending
+                ? query.OrderBy(x => x.ProductCalculationResult!.RevenueAvg).ThenBy(x => x.Id)
+                : query.OrderByDescending(x => x.ProductCalculationResult!.RevenueAvg).ThenBy(x => x.Id),
+            _ => isAscending
+                ? query.OrderBy(x => x.Name).ThenBy(x => x.Id)
+                : query.OrderByDescending(x => x.Name).ThenBy(x => x.Id)
+        };
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var dbProducts = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return new ProductPage(
+            items: dbProducts.Select(x => x.ToApiProduct()).ToList(),
+            totalCount: totalCount);
     }
 
     public async Task<Guid> CreateProductAsync(

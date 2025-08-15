@@ -39,6 +39,35 @@ paths:
           description: 'Error'
           schema:
             $ref: '#/definitions/ValidationProblemDetailedInfo'
+
+  /products/paged:
+    get:
+      operationId: GetProductsPage
+      summary: List products with pagination
+      parameters:
+        - name: page
+          in: query
+          required: true
+          type: integer
+          minimum: 1
+        - name: pageSize
+          in: query
+          required: true
+          type: integer
+          minimum: 1
+        - name: sortBy
+          in: query
+          required: true
+          type: string
+        - name: isAscending
+          in: query
+          required: true
+          type: boolean
+      responses:
+        200:
+          description: 'OK'
+          schema:
+            $ref: '#/definitions/ProductPage'
   
   /products/{id}:
     parameters:
@@ -577,7 +606,21 @@ definitions:
       - IsCheckRequired
       - ProductRegex
       - IsInteresting
-  
+
+  ProductPage:
+    type: object
+    properties:
+      items:
+        type: array
+        items:
+          $ref: '#/definitions/ProductWithId'
+      totalCount:
+        type: integer
+        minimum: 0
+    required:
+      - items
+      - totalCount
+
   SearchQuery:
     type: object
     properties:

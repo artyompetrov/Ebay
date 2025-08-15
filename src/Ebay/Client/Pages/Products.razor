@@ -66,7 +66,7 @@
     </thead>
 
     <tbody>
-    @foreach (var product in _sortedProducts)
+    @foreach (var product in _products)
     {
         <tr>
             <td>
@@ -124,6 +124,12 @@
     </tbody>
 </table>
 
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <button class="btn btn-secondary btn-sm" disabled="@(_currentPage == 0)" @onclick="PrevPage">Назад</button>
+    <span>Страница @_currentPageDisplay из @_totalPages</span>
+    <button class="btn btn-secondary btn-sm" disabled="@(_currentPage >= _totalPages - 1)" @onclick="NextPage">Вперёд</button>
+</div>
+
 <ProductPopup @ref="_productPopupComponent" OnSuccess="LoadActualProductList"/>
 <QuestionPopup @ref="_questionPopup"/>
 
@@ -133,9 +139,14 @@
     private double _targetCurrencyRate;
 
     private ICollection<ProductWithId> _products = new List<ProductWithId>();
-    private IEnumerable<ProductWithId> _sortedProducts => ApplySorting(_products);
+    private int _totalCount;
 
-    private string _sortColumn = string.Empty;
+    private int _currentPage;
+    private const int _pageSize = 50;
+    private int _totalPages => (int)Math.Ceiling((double)_totalCount / _pageSize);
+    private int _currentPageDisplay => _totalPages == 0 ? 0 : _currentPage + 1;
+
+    private string _sortColumn = nameof(ProductWithId.Name);
     private bool _sortAscending = true;
 
     protected override async Task OnInitializedAsync()
@@ -166,13 +177,25 @@
         _questionPopup.AskQuestion(questionText: "Пересчитать цены для всех?", async () => { await EbayClient.CalculatePricesForAllAsync(CancellationToken.None); });
     }
 
-    private async Task LoadActualProductList()
+    private async Task LoadPage(bool reset = false)
     {
-        _products = await EbayClient.GetAllProductsAsync();
+        if (reset)
+            _currentPage = 0;
+
+        var result = await EbayClient.GetProductsPageAsync(
+            page: _currentPage + 1,
+            pageSize: _pageSize,
+            sortBy: ToApiSortColumn(_sortColumn),
+            isAscending: _sortAscending);
+
+        _products = result.Items;
+        _totalCount = result.TotalCount;
         StateHasChanged();
     }
 
-    private void SortTable(string columnName)
+    private Task LoadActualProductList() => LoadPage(reset: true);
+
+    private async Task SortTable(string columnName)
     {
         if (_sortColumn == columnName)
         {
@@ -184,7 +207,7 @@
             _sortAscending = true;
         }
 
-        StateHasChanged();
+        await LoadPage(reset: true);
     }
 
     private string GetSortIcon(string columnName)
@@ -195,49 +218,28 @@
         return _sortAscending ? "↑" : "↓";
     }
 
-    private IEnumerable<ProductWithId> ApplySorting(IEnumerable<ProductWithId> products)
+    private static string ToApiSortColumn(string columnName) => columnName switch
     {
-        if (string.IsNullOrEmpty(_sortColumn))
-            return products;
+        "RevenueAvgTarget" => "RevenueAvg",
+        _ => columnName
+    };
 
-        var result = products.ToList();
-
-        switch (_sortColumn)
+    private async Task NextPage()
+    {
+        if (_currentPage < _totalPages - 1)
         {
-            case nameof(ProductWithId.Name):
-                result = _sortAscending
-                    ? result.OrderBy(p => p.Name).ToList()
-                    : result.OrderByDescending(p => p.Name).ToList();
-                break;
-                
-            case nameof(ProductWithId.IsCheckRequired):
-                result = _sortAscending
-                    ? result.OrderBy(p => p.IsCheckRequired).ToList()
-                    : result.OrderByDescending(p => p.IsCheckRequired).ToList();
-                break;
-
-            case nameof(ProductWithId.Weight):
-                result = _sortAscending
-                    ? result.OrderBy(p => p.Weight).ToList()
-                    : result.OrderByDescending(p => p.Weight).ToList();
-                break;
-
-            case nameof(ProductWithId.ProductCalculationResult.QuantityTotal):
-                result = _sortAscending
-                    ? result.OrderBy(p => p.ProductCalculationResult?.QuantityTotal ?? 0).ToList()
-                    : result.OrderByDescending(p => p.ProductCalculationResult?.QuantityTotal ?? 0).ToList();
-                break;
-                
-            case "RevenueAvgTarget":
-                result = _sortAscending
-                    ? result.OrderBy(p => (p.ProductCalculationResult?.RevenueAvg ?? 0) * _targetCurrencyRate).ToList()
-                    : result.OrderByDescending(p => (p.ProductCalculationResult?.RevenueAvg ?? 0) * _targetCurrencyRate).ToList();
-                break;
-
-            default: throw new InvalidOperationException(_sortColumn);
+            _currentPage++;
+            await LoadPage();
         }
+    }
 
-        return result;
+    private async Task PrevPage()
+    {
+        if (_currentPage > 0)
+        {
+            _currentPage--;
+            await LoadPage();
+        }
     }
 
     private void MarkAsChecked(ProductWithId product)
