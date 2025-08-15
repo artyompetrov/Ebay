@@ -42,6 +42,7 @@ else
     {
         <ProductProperties Product="_product" OnSuccess="OnProductUpdated"/>
     }
+    
 }
 
 <QuestionPopup @ref="_questionPopup" />
@@ -83,7 +84,8 @@ else
 
     private async Task OnProductUpdated()
     {
-        await OnParametersSetAsync();
+        _product = await EbayClient.GetProductAsync(ProductId);
+        StateHasChanged();
     }
 
     private void OnDeleteClick()
