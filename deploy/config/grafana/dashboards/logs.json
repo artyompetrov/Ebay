@@ -1,0 +1,25 @@
+{
+  "annotations": {"list": []},
+  "panels": [
+    {
+      "datasource": {"type": "loki", "uid": "loki"},
+      "fieldConfig": {"defaults": {}, "overrides": []},
+      "gridPos": {"h": 24, "w": 24, "x": 0, "y": 0},
+      "id": 1,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "showLabels": true,
+        "prettifyLogMessage": true
+      },
+      "targets": [
+        {"expr": "{service_name=\"ebay-helper\"}"}
+      ],
+      "title": "Ebay Helper Logs",
+      "type": "logs"
+    }
+  ],
+  "schemaVersion": 38,
+  "title": "Ebay Logs",
+  "version": 1
+}

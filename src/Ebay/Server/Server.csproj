@@ -12,5 +12,4 @@
       <ProjectReference Include="..\Server.Application\Server.Application.csproj" />
     </ItemGroup>
 
-
 </Project>

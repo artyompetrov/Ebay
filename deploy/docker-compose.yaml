@@ -21,6 +21,7 @@ services:
     image: ghcr.io/artyompetrov/ebay:latest
     depends_on:
       - ebay_postgres
+      - otel-collector
     restart: unless-stopped
     volumes:
       - ${NETCORE_CERTIFICATE}:/certs/cert.pfx:ro
@@ -47,6 +48,9 @@ services:
       - AUTH_SCOPE=${AUTH_SCOPE}
       - AUTH_CLIENT_SECRET=${AUTH_CLIENT_SECRET}
       - RESTORE=${RESTORE:-false}
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      - OTEL_SERVICE_NAME=ebay-helper
     networks:
       - internal_network
     entrypoint:
@@ -92,6 +96,56 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - internal_network
+
+  otel-collector:
+    container_name: otel-collector
+    image: otel/opentelemetry-collector:0.102.0
+    restart: unless-stopped
+    depends_on:
+      - loki
+      - tempo
+    command: ["--config", "/etc/otelcol/config.yaml"]
+    volumes:
+      - ./config/otel-collector.yaml:/etc/otelcol/config.yaml
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+    networks:
+      - internal_network
+
+  loki:
+    container_name: loki
+    image: grafana/loki:2.9.0
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    networks:
+      - internal_network
+
+  tempo:
+    container_name: tempo
+    image: grafana/tempo:2.4.1
+    command: ["-config.file=/etc/tempo/config.yml"]
+    ports:
+      - "3200:3200"
+    networks:
+      - internal_network
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:10.4.2
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./config/grafana/provisioning:/etc/grafana/provisioning
+      - ./config/grafana/dashboards:/var/lib/grafana/dashboards
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+    networks:
+      - internal_network
+    depends_on:
+      - loki
+      - tempo
 
 networks:
   internal_network:
