@@ -1,13 +1,14 @@
-﻿@inherits LayoutComponentBase
+@using System.Reflection
+@inherits LayoutComponentBase
 
 <div class="page">
-    <div class="sidebar">
-        <NavMenu/>
+    <div class="@SidebarCssClass">
+        <NavMenu />
     </div>
 
     <main>
         <div class="top-row px-4 auth">
-            <LoginDisplay/>
+            <LoginDisplay />
         </div>
 
         <article class="content px-4">
@@ -15,3 +16,12 @@
         </article>
     </main>
 </div>
+
+@code {
+    private static readonly string AssemblyVersion =
+        Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? string.Empty;
+
+    private string SidebarCssClass =>
+        AssemblyVersion == "1.0.0.0" ? "sidebar sidebar-local" : "sidebar";
+}
+
