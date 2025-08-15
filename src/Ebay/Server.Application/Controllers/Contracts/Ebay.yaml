@@ -213,6 +213,23 @@ paths:
           200:
             description: Ok
 
+  /products/{productId}/sellers/:
+    parameters:
+      - name: productId
+        in: path
+        required: true
+        type: string
+        format: guid
+    get:
+      operationId: GetProductSellers
+      responses:
+        200:
+          description: Ok
+          schema:
+            type: array
+            items:
+              type: string
+
   /products/{productId}/measurements/:
     parameters:
       - name: productId

@@ -26,6 +26,10 @@
         <h3 style="margin: 0">Измерения для @_product.Name</h3>
         <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{_product.Id}")" target="_blank">Описание для eBay</NavLink>
     </div>
+    @if (_sellers?.Count > 0)
+    {
+        <p>Продавцы: @string.Join(", ", _sellers)</p>
+    }
 }
 <br>
 
@@ -173,6 +177,7 @@
     private HashSet<MeasurementState> _statesToMatch = new();
     private int _matchCount = 2;
     private bool _includeExisting;
+    private ICollection<string>? _sellers;
 
     [Parameter]
     public Guid ProductId { get; set; }
@@ -180,6 +185,7 @@
     protected async override Task OnInitializedAsync()
     {
         _product = await EbayClient.GetProductAsync(ProductId);
+        _sellers = await EbayClient.GetProductSellersAsync(ProductId);
         _statesToMatch = _measurementStates
             .Where(s => s != MeasurementState.Sold && s != MeasurementState.Selling)
             .ToHashSet();

@@ -288,6 +288,26 @@ public class EbayControllerImplementation : IEbayController
         await _publishEndpoint.Publish(new CalculatePricesForProduct(productId), cancellationToken);
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task<ICollection<string>> GetProductSellersAsync(
+        Guid productId,
+        CancellationToken cancellationToken)
+    {
+        var productIdSuffix = "_" + productId.ToString().ToLower();
+
+        var productKeys = await _applicationContext.ProductEmailSendHistory
+            .AsNoTracking()
+            .Where(x => x.ProductKey.EndsWith(productIdSuffix))
+            .Select(x => x.ProductKey)
+            .ToListAsync(cancellationToken);
+
+        var sellers = productKeys
+            .Select(k => k.Substring(0, k.Length - productIdSuffix.Length))
+            .Distinct()
+            .ToList();
+
+        return sellers;
+    }
     
     public async Task<ICollection<MeasurementData>> GetMeasurementsAsync(
         MeasurementState? measurementState,
