@@ -4,37 +4,12 @@
 
 @if (_product != null)
 {
-    if (Inline)
-    {
-        <EditForm EditContext="@_editContext">
-            @FormFields
-            <div class="mt-3">
-                <button class="btn btn-primary" @onclick="@OnSave" type="button">Сохранить</button>
-            </div>
-        </EditForm>
-    }
-    else
-    {
-        <div class="modal fade show" tabindex="-1" role="dialog" style="display: block;">
-            <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">@GetWindowHeader(actionType: _actionType, product: _product)</h5>
-                    </div>
-                    <EditForm EditContext="@_editContext">
-                        <div class="modal-body">
-                            @FormFields
-                        </div>
-                        <div class="modal-footer">
-                            <button class="btn btn-primary" @onclick="@OnSave" type="button">Сохранить</button>
-                            <button type="button" class="btn btn-secondary" @onclick="@OnCancel" data-dismiss="modal">Отмена</button>
-                        </div>
-                    </EditForm>
-                </div>
-            </div>
+    <EditForm EditContext="@_editContext">
+        @FormFields
+        <div class="mt-3">
+            <button class="btn btn-primary" @onclick="OnSave" type="button">Сохранить</button>
         </div>
-        <div class="modal-backdrop fade show"></div>
-    }
+    </EditForm>
 }
 
 @code {
@@ -53,19 +28,19 @@
     [Parameter]
     public Guid? ProductId { get; set; }
 
-    [Parameter]
-    public bool Inline { get; set; }
+    public string? WindowHeader => _product != null ? GetWindowHeader(_actionType, _product) : null;
+    public string? ProductName => _product?.Name;
 
     protected override async Task OnParametersSetAsync()
     {
-        if (Inline && ProductId.HasValue && (_id != ProductId))
+        if (ProductId.HasValue && (_id != ProductId))
         {
             var product = await EbayClient.GetProductAsync(ProductId.Value);
-            ShowEdit(product);
+            StartEdit(product);
         }
     }
 
-    public void ShowCreate()
+    public void StartCreate()
     {
         _actionType = ActionType.Create;
         _product = new ProductWithoutId { Weight = 0, SearchQueries = new List<SearchQuery> { new() { Id = Guid.NewGuid() } }, RuSearchQueries = new List<RuSearchQuery>() };
@@ -74,7 +49,7 @@
         StateHasChanged();
     }
 
-    public void ShowEdit(ProductWithId product)
+    public void StartEdit(ProductWithId product)
     {
         _actionType = ActionType.Edit;
         _id = product.Id;
@@ -90,7 +65,7 @@
         if (_product == null) throw new InvalidOperationException($"{nameof(_product)} expected to be not null");
         try
         {
-            _validationMessageStore.Clear();
+            _validationMessageStore?.Clear();
 
             switch (_actionType)
             {
@@ -106,25 +81,16 @@
             }
 
             await OnSuccess();
-            if (!Inline)
-            {
-                _product = null;
-            }
+            _product = null;
         }
         catch (ApiException<ValidationProblemDetailedInfo> validationError)
         {
-            validationError.FillValidationMessageStore(validationMessageStore: _validationMessageStore,
+            validationError.FillValidationMessageStore(validationMessageStore: _validationMessageStore ?? throw new NullReferenceException(nameof(_validationMessageStore)),
                 model: _product ?? throw new NullReferenceException($"{nameof(_product)} expected to be not null"));
         }
     }
 
-    private void OnCancel()
-    {
-        if (!Inline)
-        {
-            _product = null;
-        }
-    }
+    public void Reset() => _product = null;
 
     private string GetWindowHeader(ActionType actionType, ProductWithoutId product)
     {

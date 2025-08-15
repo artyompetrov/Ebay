@@ -2,6 +2,14 @@
 @using Microsoft.AspNetCore.Authorization
 @using System.Threading.Tasks
 @attribute [Authorize]
+@using Client.Clients.Generated
+@inject EbayClient EbayClient
+@inject NavigationManager NavigationManager
+
+<div class="mb-3" style="display: flex; align-items: center; gap: 10px;">
+    <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}")" target="_blank">Описание для eBay</NavLink>
+    <button class="btn btn-danger btn-sm oi oi-basket" @onclick="OnDeleteClick"></button>
+</div>
 
 <ul class="nav nav-tabs mb-3">
     <li class="nav-item">
@@ -25,8 +33,10 @@ else if (_activeTab == TabKind.Measurements)
 }
 else if (_activeTab == TabKind.Parameters)
 {
-    <ProductPopup ProductId="ProductId" Inline="true" OnSuccess="OnProductUpdated" />
+    <ProductProperties ProductId="ProductId" OnSuccess="OnProductUpdated" @ref="_productProperties" />
 }
+
+<QuestionPopup @ref="_questionPopup" />
 
 @code {
     [Parameter]
@@ -34,6 +44,9 @@ else if (_activeTab == TabKind.Parameters)
 
     [Parameter]
     public string? Tab { get; set; }
+
+    private ProductProperties _productProperties = null!;
+    private QuestionPopup _questionPopup = null!;
 
     private enum TabKind
     {
@@ -58,5 +71,19 @@ else if (_activeTab == TabKind.Parameters)
 
     private string GetTabClass(TabKind tab) => _activeTab == tab ? "active" : string.Empty;
 
-    private Task OnProductUpdated() => Task.CompletedTask;
+    private async Task OnProductUpdated()
+    {
+        await Task.CompletedTask;
+    }
+
+    private void OnDeleteClick()
+    {
+        var name = _productProperties.ProductName;
+        var question = name != null ? $"Вы действительно хотите удалить товар '{name}'?" : "Вы действительно хотите удалить товар?";
+        _questionPopup.AskQuestion(question, async () =>
+        {
+            await EbayClient.DeleteProductAsync(ProductId);
+            NavigationManager.NavigateTo("/");
+        });
+    }
 }

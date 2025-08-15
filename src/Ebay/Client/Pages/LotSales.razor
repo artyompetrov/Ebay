@@ -36,7 +36,6 @@
     
     <div style="display: flex; align-items: center; gap: 10px;">
         <h4>Статистика @_product.Name</h4>
-        <a class="btn btn-primary btn-sm" href="@($"/Product/{ProductId}/Parameters")">Редактировать</a>
         <button class="btn btn-primary btn-sm" @onclick="UpdateAllPrices">Пересчитать цены</button>
         @if (_product.IsCheckRequired)
         {

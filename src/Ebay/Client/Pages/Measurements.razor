@@ -21,10 +21,7 @@
 
 @if (_product != null)
 {
-    <div style="display: flex; align-items: center; gap: 10px;">
-        <h3 style="margin: 0">Измерения для @_product.Name</h3>
-        <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{_product.Id}")" target="_blank">Описание для eBay</NavLink>
-    </div>
+    <h3 style="margin: 0">Измерения для @_product.Name</h3>
 }
 <br>
 
