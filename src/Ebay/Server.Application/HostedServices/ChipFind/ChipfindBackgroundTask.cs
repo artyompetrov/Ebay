@@ -78,13 +78,20 @@ public class ChipfindBackgroundTask : BackgroundTask
 
             foreach (var product in matchesWithProducts)
             {
-                var record = await applicationDbContext.ProductEmailSendHistory
-                    .FirstOrDefaultAsync(
+                var record = applicationDbContext.ProductEmailSendHistory
+                    .Local
+                    .FirstOrDefault(
                         e =>
                             e.ProductId == product.ProductId &&
                             e.Seller == saleAdvertisement.Seller &&
-                            e.Marketplace == WellKnown.ChipFind.Marketplace,
-                        cancellationToken);
+                            e.Marketplace == WellKnown.ChipFind.Marketplace)
+                    ?? await applicationDbContext.ProductEmailSendHistory
+                        .FirstOrDefaultAsync(
+                            e =>
+                                e.ProductId == product.ProductId &&
+                                e.Seller == saleAdvertisement.Seller &&
+                                e.Marketplace == WellKnown.ChipFind.Marketplace,
+                            cancellationToken);
 
                 if (record is null)
                 {
