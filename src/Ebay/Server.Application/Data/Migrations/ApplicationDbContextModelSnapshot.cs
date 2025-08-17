@@ -858,6 +858,10 @@ namespace Server.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("Marketplace")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uuid");
 
@@ -869,7 +873,7 @@ namespace Server.Data.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.HasIndex("ProductId", "Seller")
+                    b.HasIndex("ProductId", "Seller", "Marketplace")
                         .IsUnique();
 
                     b.ToTable("SaleAdvertisements", (string)null);

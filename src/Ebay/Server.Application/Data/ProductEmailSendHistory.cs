@@ -14,5 +14,7 @@ public class ProductEmailSendHistory
 
     public string Link { get; set; } = null!;
 
+    public string Marketplace { get; set; } = null!;
+
     public DateTime CreatedAt { get; set; }
 }

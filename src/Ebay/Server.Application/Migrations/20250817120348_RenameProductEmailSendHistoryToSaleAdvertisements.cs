@@ -41,9 +41,17 @@ namespace Server.Application.Migrations
                 type: "text",
                 nullable: true);
 
+            migrationBuilder.AddColumn<string>(
+                name: "Marketplace",
+                table: "SaleAdvertisements",
+                type: "text",
+                nullable: true);
+
             migrationBuilder.Sql(@"UPDATE ""SaleAdvertisements"" SET ""Seller"" = split_part(""ProductKey"", '_', 1), ""ProductId"" = split_part(""ProductKey"", '_', 2)::uuid");
 
             migrationBuilder.Sql(@"UPDATE ""SaleAdvertisements"" SET ""Link"" = '' WHERE ""Link"" IS NULL");
+
+            migrationBuilder.Sql(@"UPDATE ""SaleAdvertisements"" SET ""Marketplace"" = 'Chipfind'");
 
             migrationBuilder.DropColumn(
                 name: "ProductKey",
@@ -76,6 +84,15 @@ namespace Server.Application.Migrations
                 oldType: "text",
                 oldNullable: true);
 
+            migrationBuilder.AlterColumn<string>(
+                name: "Marketplace",
+                table: "SaleAdvertisements",
+                type: "text",
+                nullable: false,
+                oldClrType: typeof(string),
+                oldType: "text",
+                oldNullable: true);
+
             migrationBuilder.AddPrimaryKey(
                 name: "PK_SaleAdvertisements",
                 table: "SaleAdvertisements",
@@ -87,9 +104,9 @@ namespace Server.Application.Migrations
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SaleAdvertisements_ProductId_Seller",
+                name: "IX_SaleAdvertisements_ProductId_Seller_Marketplace",
                 table: "SaleAdvertisements",
-                columns: new[] { "ProductId", "Seller" },
+                columns: new[] { "ProductId", "Seller", "Marketplace" },
                 unique: true);
 
             migrationBuilder.AddForeignKey(
@@ -117,7 +134,7 @@ namespace Server.Application.Migrations
                 table: "SaleAdvertisements");
 
             migrationBuilder.DropIndex(
-                name: "IX_SaleAdvertisements_ProductId_Seller",
+                name: "IX_SaleAdvertisements_ProductId_Seller_Marketplace",
                 table: "SaleAdvertisements");
 
             migrationBuilder.AddColumn<string>(
@@ -138,6 +155,10 @@ namespace Server.Application.Migrations
 
             migrationBuilder.DropColumn(
                 name: "Seller",
+                table: "SaleAdvertisements");
+
+            migrationBuilder.DropColumn(
+                name: "Marketplace",
                 table: "SaleAdvertisements");
 
             migrationBuilder.AlterColumn<string>(

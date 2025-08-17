@@ -182,7 +182,8 @@ public class EbayControllerImplementation : IEbayController
             .Select(x => new SaleAdvertisement(
                 createdAt: x.CreatedAt,
                 link: x.Link,
-                seller: x.Seller))
+                seller: x.Seller,
+                marketplace: x.Marketplace))
             .ToList();
     }
 

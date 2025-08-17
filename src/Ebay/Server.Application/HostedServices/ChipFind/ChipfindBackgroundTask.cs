@@ -76,31 +76,36 @@ public class ChipfindBackgroundTask : BackgroundTask
 
             foreach (var product in matchesWithProducts)
             {
-                var exists = await applicationDbContext.ProductEmailSendHistory
-                    .AnyAsync(
-                        e => e.ProductId == product.ProductId && e.Seller == saleAdvertisement.Seller,
-                        cancellationToken: cancellationToken);
+                var record = await applicationDbContext.ProductEmailSendHistory
+                    .FirstOrDefaultAsync(
+                        e =>
+                            e.ProductId == product.ProductId &&
+                            e.Seller == saleAdvertisement.Seller &&
+                            e.Marketplace == WellKnown.ChipFind.Marketplace,
+                        cancellationToken);
 
-                if (exists)
+                if (record is null)
                 {
-                    // Уже уведомляли об этом продукте
-                    continue;
+                    applicationDbContext.ProductEmailSendHistory.Add(
+                        new ProductEmailSendHistory
+                        {
+                            ProductId = product.ProductId,
+                            Seller = saleAdvertisement.Seller,
+                            Link = saleAdvertisement.Link.ToString(),
+                            CreatedAt = saleAdvertisement.Date,
+                            Marketplace = WellKnown.ChipFind.Marketplace
+                        });
+                    newAds.Add(saleAdvertisementItem);
                 }
-
-                applicationDbContext.ProductEmailSendHistory.Add(
-                    new ProductEmailSendHistory
-                    {
-                        ProductId = product.ProductId,
-                        Seller = saleAdvertisement.Seller,
-                        Link = saleAdvertisement.Link.ToString(),
-                        CreatedAt = saleAdvertisement.Date
-                    });
-
-                await applicationDbContext.SaveChangesAsync(cancellationToken);
-
-                newAds.Add(saleAdvertisementItem);
+                else
+                {
+                    record.Link = saleAdvertisement.Link.ToString();
+                    record.CreatedAt = saleAdvertisement.Date;
+                }
             }
         }
+
+        await applicationDbContext.SaveChangesAsync(cancellationToken);
 
         if (newAds.Count > 0)
         {

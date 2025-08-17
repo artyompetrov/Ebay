@@ -40,6 +40,7 @@ internal static class WellKnown
     {
         public static TimeSpan UpdateTime = TimeSpan.FromMinutes(20);
         public static TimeSpan ErrorDelay = TimeSpan.FromMinutes(5);
+        public static string Marketplace = "Chipfind";
     }
 
     public static class Categories

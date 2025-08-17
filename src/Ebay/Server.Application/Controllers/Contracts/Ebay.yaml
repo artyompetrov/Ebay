@@ -1181,12 +1181,15 @@ definitions:
         type: string
       link:
         type: string
+      marketplace:
+        type: string
       createdAt:
         type: string
         format: date-time
     required:
       - seller
       - link
+      - marketplace
       - createdAt
 
 
