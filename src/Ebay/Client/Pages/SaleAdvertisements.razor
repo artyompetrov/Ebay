@@ -17,6 +17,7 @@ else
         <thead>
             <tr>
                 <th>Продавец</th>
+                <th>Маркетплейс</th>
                 <th>Ссылка</th>
                 <th>Дата</th>
             </tr>
@@ -26,6 +27,7 @@ else
             {
                 <tr>
                     <td>@ad.Seller</td>
+                    <td>@ad.Marketplace</td>
                     <td>
                         @if (!string.IsNullOrWhiteSpace(ad.Link))
                         {

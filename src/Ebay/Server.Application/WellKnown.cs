@@ -45,7 +45,7 @@ internal static class WellKnown
 
     public static class SaleAdvertisements
     {
-        public static TimeSpan UpdateTime = TimeSpan.FromHours(1);
+        public static TimeSpan UpdateTime = TimeSpan.FromDays(1);
         public static TimeSpan ErrorDelay = TimeSpan.FromMinutes(5);
         /// <summary>
         /// Время через которое не обновлявшиеся объявления о продаже считаются устаревшими и удаляются
