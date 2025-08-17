@@ -53,6 +53,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
             entity.HasIndex(e => e.ProductId);
             entity.HasIndex(e => new { e.ProductId, e.Seller, e.Marketplace }).IsUnique();
             entity.HasIndex(e => e.CreatedAt);
+            entity.Property(e => e.IsAmbiguous).HasDefaultValue(false);
         });
 
         modelBuilder.Entity<ProductMeasurement>()
