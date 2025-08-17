@@ -13,6 +13,17 @@ paths:
     get:
       operationId: GetAllProducts
       summary: List all products
+      parameters:
+        - name: pageNumber
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: pageSize
+          in: query
+          required: false
+          type: integer
+          format: int32
       responses:
         200:
           description: 'OK'

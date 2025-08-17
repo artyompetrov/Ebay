@@ -1,4 +1,5 @@
 ﻿import * as constants from "../constants";
+import {EbayToolBackendClient, ProductWithId} from "../clients/Generated/EbayToolBackendClient";
 
 export function getMax(array: number[]) {
     let largest = 0;
@@ -130,4 +131,20 @@ export async function fetchResource(input: RequestInfo, init: RequestInit): Prom
             }
         });
     });
+}
+
+export async function fetchAllProducts(client: EbayToolBackendClient, pageSize: number = 100): Promise<ProductWithId[]> {
+    const result: ProductWithId[] = [];
+    let page = 1;
+
+    while (true) {
+        const pageData = await client.getAllProducts(page, pageSize);
+        if (pageData.length === 0) {
+            break;
+        }
+        result.push(...pageData);
+        page++;
+    }
+
+    return result;
 }

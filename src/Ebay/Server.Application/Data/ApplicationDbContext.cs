@@ -26,12 +26,16 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
                 v => JsonSerializer.Deserialize<LotCalculationResult?>(v, (JsonSerializerOptions?)null)
             ));
 
-        modelBuilder.Entity<Product>()
-            .Property(o => o.ProductCalculationResult)
-            .HasConversion(new ValueConverter<ProductCalculationResult?, string>(
-                v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
-                v => JsonSerializer.Deserialize<ProductCalculationResult?>(v, (JsonSerializerOptions?)null)
-            ));
+        modelBuilder.Entity<Product>(entity =>
+        {
+            entity.Property(o => o.ProductCalculationResult)
+                .HasConversion(new ValueConverter<ProductCalculationResult?, string>(
+                    v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<ProductCalculationResult?>(v, (JsonSerializerOptions?)null)
+                ));
+
+            entity.HasIndex(e => new { e.Name, e.Id });
+        });
 
         modelBuilder.Entity<Purchase>()
             .Property(o => o.PurchaseCalculationResult)

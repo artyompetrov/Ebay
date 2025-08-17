@@ -1,3 +1,5 @@
+using Client.Clients.Generated;
+
 namespace Tests;
 
 [Category("ExplicitOnly")]
@@ -7,7 +9,18 @@ public class MeasurementPageTest : ExplicitTestsBase
 {
     private static IEnumerable<TestCaseData> GetMeasurements()
     {
-        var allProducts = BackendClient.GetAllProductsAsync().GetAwaiter().GetResult();
+        var allProducts = new List<ProductWithId>();
+        var page = 1;
+        const int pageSize = 100;
+        while (true)
+        {
+            var productsPage = BackendClient.GetAllProductsAsync(page, pageSize).GetAwaiter().GetResult();
+            if (productsPage.Count == 0)
+                break;
+
+            allProducts.AddRange(productsPage);
+            page++;
+        }
 
         foreach (var productWithId in allProducts)
         {

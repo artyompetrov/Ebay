@@ -112,6 +112,32 @@
     </tbody>
 </table>
 
+<nav>
+    <ul class="pagination justify-content-center">
+        <li class="page-item @( _pageNumber == 1 ? "disabled" : null)">
+            <button class="page-link" @onclick="PrevPage">Назад</button>
+        </li>
+        @foreach (var pageIndex in Enumerable.Range(1, _totalPages))
+        {
+            if (pageIndex == _pageNumber)
+            {
+                <li class="page-item active" aria-current="page">
+                    <span class="page-link">@pageIndex</span>
+                </li>
+            }
+            else
+            {
+                <li class="page-item">
+                    <button class="page-link" @onclick="(() => GoToPage(pageIndex))">@pageIndex</button>
+                </li>
+            }
+        }
+        <li class="page-item @( !_hasNextPage ? "disabled" : null)">
+            <button class="page-link" @onclick="NextPage">Вперед</button>
+        </li>
+    </ul>
+</nav>
+
 @if (_showProductModal)
 {
     <div class="modal fade show" tabindex="-1" role="dialog" style="display: block;">
@@ -140,6 +166,11 @@
     private QuestionPopup _questionPopup = null!;
     private double _targetCurrencyRate;
 
+    private int _pageNumber = 1;
+    private bool _hasNextPage;
+    private int _totalPages = 1;
+    private const int PageSize = 50;
+
     private ICollection<ProductWithId> _products = new List<ProductWithId>();
     private IEnumerable<ProductWithId> SortedProducts => ApplySorting(_products);
 
@@ -165,8 +196,37 @@
 
     private async Task LoadActualProductList()
     {
-        _products = await EbayClient.GetAllProductsAsync();
+        _products = await EbayClient.GetAllProductsAsync(_pageNumber, PageSize);
+        _hasNextPage = _products.Count == PageSize;
+        _totalPages = _hasNextPage ? Math.Max(_totalPages, _pageNumber + 1) : Math.Max(_totalPages, _pageNumber);
         StateHasChanged();
+    }
+
+    private async Task NextPage()
+    {
+        if (!_hasNextPage)
+            return;
+
+        _pageNumber++;
+        await LoadActualProductList();
+    }
+
+    private async Task PrevPage()
+    {
+        if (_pageNumber == 1)
+            return;
+
+        _pageNumber--;
+        await LoadActualProductList();
+    }
+
+    private Task GoToPage(int page)
+    {
+        if (page == _pageNumber)
+            return Task.CompletedTask;
+
+        _pageNumber = page;
+        return LoadActualProductList();
     }
 
     private void SortTable(string columnName)

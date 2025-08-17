@@ -2,6 +2,7 @@
 import {ClientsFactory} from "../clients/ClientsFactory";
 import {ProductWithId} from "../clients/Generated/EbayToolBackendClient";
 import * as constants from '../constants';
+import * as utils from "../infrastructure/Utils";
 
 export function tryGetAvitoSavedSearchesProcessor() : ISiteProcessor | null {
     let currentPage = location.protocol + '//' + location.host + location.pathname
@@ -22,7 +23,7 @@ class AvitoSavedSearchesPageProcessor implements ISiteProcessor {
             const ebayToolBackendClient = await new ClientsFactory().getEbayToolBackendClient();
 
             const interestingProducts = [...
-                (await ebayToolBackendClient.getAllProducts())
+                (await utils.fetchAllProducts(ebayToolBackendClient))
                     .filter(x=> x.isInteresting)
                     .sort((a, b) => b.productCalculationResult.revenueAvg - a.productCalculationResult.revenueAvg)
                     .map(x=> new ProductWithRegex(x, new RegExp(x.productRegex, "ig")))];
