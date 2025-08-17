@@ -872,7 +872,7 @@ namespace Server.Data.Migrations
                     b.HasIndex("ProductId", "Seller")
                         .IsUnique();
 
-                    b.ToTable("ProductEmailSendHistory");
+                    b.ToTable("SaleAdvertisements", (string)null);
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxMessage", b =>

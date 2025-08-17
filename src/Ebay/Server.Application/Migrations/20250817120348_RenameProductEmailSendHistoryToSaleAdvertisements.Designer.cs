@@ -13,8 +13,8 @@ using Server.Application.Data;
 namespace Server.Application.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250816104743_AddSaleAdvertisements")]
-    partial class AddSaleAdvertisements
+    [Migration("20250817120348_RenameProductEmailSendHistoryToSaleAdvertisements")]
+    partial class RenameProductEmailSendHistoryToSaleAdvertisements
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -875,7 +875,7 @@ namespace Server.Application.Migrations
                     b.HasIndex("ProductId", "Seller")
                         .IsUnique();
 
-                    b.ToTable("ProductEmailSendHistory");
+                    b.ToTable("SaleAdvertisements", (string)null);
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxMessage", b =>

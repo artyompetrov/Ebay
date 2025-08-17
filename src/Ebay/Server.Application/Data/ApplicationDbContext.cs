@@ -49,6 +49,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
 
         modelBuilder.Entity<ProductEmailSendHistory>(entity =>
         {
+            entity.ToTable("SaleAdvertisements");
             entity.HasIndex(e => e.ProductId);
             entity.HasIndex(e => new { e.ProductId, e.Seller }).IsUnique();
         });
