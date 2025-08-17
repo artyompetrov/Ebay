@@ -27,7 +27,7 @@ RUN mkdir -p /app/publish/ && \
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 COPY --from=build_dotnet /app/publish .
-ARG BUILD_VERSION="0.0.0.1"
+ARG BUILD_VERSION="1.0.0.0"
 COPY --from=build_crome_extension /app/publish/mlebgdemjnpnfgcgbbncllpniiicffbm_${BUILD_VERSION}.crx /app/wwwroot/chrome_extensions/
 
 COPY --from=build_dotnet /usr/share/fonts /usr/share/fonts
