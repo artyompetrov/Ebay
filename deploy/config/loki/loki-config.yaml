@@ -29,6 +29,9 @@ ingester:
   wal:
     enabled: true
     dir: /var/lib/loki/wal
+  lifecycler:
+    ring:
+      replication_factor: 1   # <-- ключевая строка для single-node
 
 compactor:
   working_directory: /var/lib/loki/compactor
