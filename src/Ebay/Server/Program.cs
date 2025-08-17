@@ -77,6 +77,7 @@ builder.Services.AddIdentityServer()
 builder.Services.AddAuthentication().AddIdentityServerJwt();
 
 builder.Logging.ClearProviders();
+//todo надо удалить 
 AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
 
 builder.Logging.SetMinimumLevel(LogLevel.Trace);
