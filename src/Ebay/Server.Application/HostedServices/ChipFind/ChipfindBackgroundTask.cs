@@ -57,8 +57,6 @@ public class ChipfindBackgroundTask : BackgroundTask
                 products: products,
                 applicationDbContext: applicationDbContext);
         }
-
-        await RemoveStaleAdvertisements(applicationDbContext, cancellationToken);
     }
 
     private async Task ProcessAdvertisement(
@@ -121,23 +119,6 @@ public class ChipfindBackgroundTask : BackgroundTask
 
             await Task.Delay(millisecondsDelay: DelayAfterSendMilliseconds, cancellationToken: cancellationToken);
         }
-
-        transaction.Complete();
-    }
-
-    private static async Task RemoveStaleAdvertisements(
-        ApplicationDbContext applicationDbContext,
-        CancellationToken cancellationToken)
-    {
-        using var transaction = TransactionScopeFactory.Create();
-
-        var staleThreshold = DateTime.UtcNow - WellKnown.ChipFind.RemoveAdvertisementAfter;
-
-        await applicationDbContext.ProductEmailSendHistory
-            .Where(e =>
-                e.Marketplace == WellKnown.ChipFind.Marketplace &&
-                e.CreatedAt < staleThreshold)
-            .ExecuteDeleteAsync(cancellationToken);
 
         transaction.Complete();
     }

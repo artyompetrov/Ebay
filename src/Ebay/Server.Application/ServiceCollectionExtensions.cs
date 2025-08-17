@@ -6,6 +6,7 @@ using Server.Application.Controllers;
 using Server.Application.Data;
 using Server.Application.Data.Models;
 using Server.Application.HostedServices.ChipFind;
+using Server.Application.HostedServices.SaleAdvertisements;
 using Server.Application.HostedServices.Currencies;
 using Server.Application.Infrastructure;
 using Server.Application.Services.LotDataExtractor;
@@ -41,6 +42,7 @@ public static class ServiceCollectionExtensions
 
         services.AddHostedService<CurrencyRateBackgroundTask>();
         services.AddHostedService<ChipfindBackgroundTask>();
+        services.AddHostedService<SaleAdvertisementCleanupBackgroundTask>();
 
         services.AddOptions<SqlTransportOptions>()
             .Configure(o => { o.ConnectionString = connectionString; });
