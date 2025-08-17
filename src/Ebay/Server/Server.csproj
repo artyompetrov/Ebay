@@ -6,11 +6,16 @@
         <RootNamespace>Server</RootNamespace>
     </PropertyGroup>
 
-    <ItemGroup>
+  <ItemGroup>
       <ProjectReference Include="..\Server.Adapters.ChipFind\Server.Adapters.ChipFind.csproj" />
       <ProjectReference Include="..\Server.Adapters.Smtp\Server.Adapters.Smtp.csproj" />
       <ProjectReference Include="..\Server.Application\Server.Application.csproj" />
-    </ItemGroup>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+  </ItemGroup>
 
 
 </Project>

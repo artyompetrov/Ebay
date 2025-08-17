@@ -93,6 +93,38 @@ services:
     networks:
       - internal_network
 
+  loki:
+    container_name: loki
+    image: grafana/loki:2.9.10
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+      - "4317:4317"
+      - "4318:4318"
+    volumes:
+      - ./config/loki-config.yaml:/etc/loki/local-config.yaml
+      - loki_data:/tmp/loki
+    networks:
+      - internal_network
+    restart: unless-stopped
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:10.4.2
+    depends_on:
+      - loki
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${PG_PASSWORD}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - internal_network
+    restart: unless-stopped
+
 networks:
   internal_network:
     driver: bridge
@@ -101,3 +133,5 @@ volumes:
   redis_queue_data:
   ebay_helper_keys:
   portainer_data:
+  loki_data:
+  grafana_data:
