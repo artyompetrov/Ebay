@@ -13,7 +13,7 @@ using Server.Application.Data;
 using Server.Application.Data.Models;
 using Secret = Duende.IdentityServer.Models.Secret;
 
-IdentityModelEventSource.ShowPII = true;
+//IdentityModelEventSource.ShowPII = true;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -77,12 +77,10 @@ builder.Services.AddIdentityServer()
 builder.Services.AddAuthentication().AddIdentityServerJwt();
 
 builder.Logging.ClearProviders();
-builder.Logging.AddSimpleConsole(
-    c =>
-    {
-        c.TimestampFormat = "[yyyy-MM-dd HH:mm:ss] ";
-        c.UseUtcTimestamp = true;
-    });
+AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
+
+builder.Logging.SetMinimumLevel(LogLevel.Trace);
+
 builder.Logging.AddOpenTelemetry(o =>
 {
     o.IncludeScopes = true;
@@ -91,8 +89,7 @@ builder.Logging.AddOpenTelemetry(o =>
     o.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("EbayHelper"));
     o.AddOtlpExporter(otlp =>
     {
-        otlp.Endpoint = new Uri("http://ebay_loki:3100/otlp");
-        otlp.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
+        otlp.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
     });
 });
 
