@@ -56,4 +56,3 @@ limits_config:
         - action: index_label
           attributes:
             - service.name
-    severity_text_as_label: false
