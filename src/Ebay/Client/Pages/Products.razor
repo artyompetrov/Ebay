@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using System.Text.RegularExpressions
+@using System.Linq
 @using Client.Clients.Generated
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
@@ -9,6 +10,14 @@
 <div style="display: flex; align-items: center; gap: 10px;">
     <h2>Перечень товаров</h2>
     <button class="btn btn-primary btn-sm" @onclick="UpdateAllPrices">Пересчитать цены</button>
+</div>
+<div class="d-flex align-items-center gap-2 mb-2">
+    <button class="btn btn-secondary btn-sm" @onclick="PrevPage" disabled="_currentPage == 1">&#x2039;</button>
+    @foreach (var page in Enumerable.Range(1, _maxKnownPage))
+    {
+        <button class="btn btn-sm @(page == _currentPage ? "btn-primary" : "btn-secondary")" @onclick="(() => GoToPage(page))">@(page)</button>
+    }
+    <button class="btn btn-secondary btn-sm" @onclick="NextPage" disabled="!_hasNextPage">&#x203A;</button>
 </div>
 <style>
     #productTable th {
@@ -143,6 +152,12 @@
     private ICollection<ProductWithId> _products = new List<ProductWithId>();
     private IEnumerable<ProductWithId> SortedProducts => ApplySorting(_products);
 
+    private int _currentPage = 1;
+    private const int DefaultPageSize = 50;
+    private int _pageSize = DefaultPageSize;
+    private int _maxKnownPage = 1;
+    private bool _hasNextPage;
+
     private string _sortColumn = string.Empty;
     private bool _sortAscending = true;
 
@@ -165,8 +180,43 @@
 
     private async Task LoadActualProductList()
     {
-        _products = await EbayClient.GetAllProductsAsync();
+        _products = await EbayClient.GetAllProductsAsync(
+            _currentPage == 1 ? null : _currentPage,
+            _pageSize == DefaultPageSize ? null : _pageSize);
+
+        _hasNextPage = _products.Count == _pageSize;
+        _maxKnownPage = _hasNextPage
+            ? Math.Max(_maxKnownPage, _currentPage + 1)
+            : Math.Max(_maxKnownPage, _currentPage);
+
         StateHasChanged();
+    }
+
+    private async Task NextPage()
+    {
+        if (_hasNextPage)
+        {
+            _currentPage++;
+            await LoadActualProductList();
+        }
+    }
+
+    private async Task PrevPage()
+    {
+        if (_currentPage > 1)
+        {
+            _currentPage--;
+            await LoadActualProductList();
+        }
+    }
+
+    private async Task GoToPage(int page)
+    {
+        if (page == _currentPage)
+            return;
+
+        _currentPage = page;
+        await LoadActualProductList();
     }
 
     private void SortTable(string columnName)

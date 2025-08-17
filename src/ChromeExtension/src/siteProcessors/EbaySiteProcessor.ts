@@ -657,7 +657,7 @@ class EbaySiteProcessor implements ISiteProcessor {
 
     async getAllProductsCached(productId: string | null) {
         let cached = await utils.getCachedDataOrFallback(this._allItemsCacheIdentifier, async () => {
-                return await this._ebayToolBackendClient.getAllProducts();
+                return await this._ebayToolBackendClient.getAllProducts(1, 1000);
             },
             60 * 60)
 
@@ -667,7 +667,7 @@ class EbaySiteProcessor implements ISiteProcessor {
             utils.removeFromCache(this._allItemsCacheIdentifier);
 
             return await utils.getCachedDataOrFallback(this._allItemsCacheIdentifier, async () => {
-                    return await this._ebayToolBackendClient.getAllProducts();
+                    return await this._ebayToolBackendClient.getAllProducts(1, 1000);
                 },
                 60 * 60);
         }

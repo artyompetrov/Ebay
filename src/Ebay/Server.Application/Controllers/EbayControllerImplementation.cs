@@ -44,13 +44,20 @@ public class EbayControllerImplementation : IEbayController
         _matchedMeasurementService = matchedMeasurementService;
     }
 
-    public async Task<ICollection<ProductWithId>> GetAllProductsAsync(CancellationToken cancellationToken)
-
+    public async Task<ICollection<ProductWithId>> GetAllProductsAsync(
+        int pageNumber = 1,
+        int pageSize = 50,
+        CancellationToken cancellationToken = default)
     {
+        var page = pageNumber <= 0 ? 1 : pageNumber;
+        var size = pageSize <= 0 ? 50 : pageSize;
+
         var dbProducts = await _applicationContext.Products
             .AsNoTracking()
             .OrderBy(x => x.Name)
             .ThenBy(x => x.Id)
+            .Skip((page - 1) * size)
+            .Take(size)
             .Include(x => x.SearchQueries)
             .Include(x => x.RuSearchQueries)
             .ToListAsync(cancellationToken);

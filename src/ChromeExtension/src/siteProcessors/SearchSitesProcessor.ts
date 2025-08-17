@@ -105,7 +105,7 @@ class SearchSitesProcessor implements ISiteProcessor {
     }
 
     async getProductWithRegexes() : Promise<ProductWithRegex[]> {
-        let products = await this._ebayToolBackendClient.getAllProducts();
+        let products = await this._ebayToolBackendClient.getAllProducts(1, 1000);
 
         return  products.map(product => {
 

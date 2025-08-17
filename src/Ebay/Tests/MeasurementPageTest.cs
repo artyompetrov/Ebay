@@ -7,7 +7,7 @@ public class MeasurementPageTest : ExplicitTestsBase
 {
     private static IEnumerable<TestCaseData> GetMeasurements()
     {
-        var allProducts = BackendClient.GetAllProductsAsync().GetAwaiter().GetResult();
+        var allProducts = BackendClient.GetAllProductsAsync(1, int.MaxValue).GetAwaiter().GetResult();
 
         foreach (var productWithId in allProducts)
         {

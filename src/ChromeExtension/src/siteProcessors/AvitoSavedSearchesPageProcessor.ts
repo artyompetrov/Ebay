@@ -22,7 +22,7 @@ class AvitoSavedSearchesPageProcessor implements ISiteProcessor {
             const ebayToolBackendClient = await new ClientsFactory().getEbayToolBackendClient();
 
             const interestingProducts = [...
-                (await ebayToolBackendClient.getAllProducts())
+                (await ebayToolBackendClient.getAllProducts(1, 1000))
                     .filter(x=> x.isInteresting)
                     .sort((a, b) => b.productCalculationResult.revenueAvg - a.productCalculationResult.revenueAvg)
                     .map(x=> new ProductWithRegex(x, new RegExp(x.productRegex, "ig")))];

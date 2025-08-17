@@ -32,6 +32,8 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
                 v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
                 v => JsonSerializer.Deserialize<ProductCalculationResult?>(v, (JsonSerializerOptions?)null)
             ));
+        modelBuilder.Entity<Product>()
+            .HasIndex(p => p.Name);
 
         modelBuilder.Entity<Purchase>()
             .Property(o => o.PurchaseCalculationResult)
