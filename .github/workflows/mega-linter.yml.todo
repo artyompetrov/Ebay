@@ -1,6 +1,7 @@
 # MegaLinter GitHub Action configuration file
 # More info at https://megalinter.io
 ---
+#TODO настроить линтер
 name: MegaLinter
 
 # Trigger mega-linter at every push
