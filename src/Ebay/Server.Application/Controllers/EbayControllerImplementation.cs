@@ -19,6 +19,7 @@ using MeasurementData = Server.Controllers.Generated.MeasurementData;
 using MeasurementState = Server.Controllers.Generated.MeasurementState;
 using ProductWithId = Server.Controllers.Generated.ProductWithId;
 using ProductWithoutId = Server.Controllers.Generated.ProductWithoutId;
+using SaleAdvertisement = Server.Controllers.Generated.SaleAdvertisement;
 
 namespace Server.Application.Controllers;
 
@@ -156,6 +157,34 @@ public class EbayControllerImplementation : IEbayController
         dbProduct.Entity.LastCheckTime = DateTime.UtcNow;
 
         await _applicationContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<ICollection<SaleAdvertisement>> GetSaleAdvertisementsAsync(
+        Guid productId,
+        CancellationToken cancellationToken)
+    {
+        var exist = await _applicationContext.Products
+            .AsNoTracking()
+            .AnyAsync(x => x.Id == productId, cancellationToken);
+
+        if (exist == false)
+        {
+            throw NonOkHttpAnswerException.NotFound400();
+        }
+
+        var ads = await _applicationContext.ProductEmailSendHistory
+            .AsNoTracking()
+            .Where(x => x.ProductId == productId)
+            .OrderByDescending(x => x.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        return ads
+            .Select(x => new SaleAdvertisement(
+                createdAt: x.CreatedAt,
+                link: x.Link,
+                seller: x.Seller,
+                marketplace: x.Marketplace))
+            .ToList();
     }
 
 

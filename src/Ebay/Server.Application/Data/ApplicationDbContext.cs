@@ -47,9 +47,13 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
             entity.HasIndex(e => e.HashGridCurves).IsUnique();
         });
 
-        modelBuilder.Entity<ProductEmailSendHistory>()
-            .HasIndex(x => x.ProductKey)
-            .IsUnique();
+        modelBuilder.Entity<ProductEmailSendHistory>(entity =>
+        {
+            entity.ToTable("SaleAdvertisements");
+            entity.HasIndex(e => e.ProductId);
+            entity.HasIndex(e => new { e.ProductId, e.Seller, e.Marketplace }).IsUnique();
+            entity.HasIndex(e => e.CreatedAt);
+        });
 
         modelBuilder.Entity<ProductMeasurement>()
             .Property(p => p.CreatedAt)
