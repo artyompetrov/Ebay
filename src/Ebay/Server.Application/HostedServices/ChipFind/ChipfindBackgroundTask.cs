@@ -68,6 +68,7 @@ public class ChipfindBackgroundTask : BackgroundTask
         using var transaction = TransactionScopeFactory.Create();
 
         var newAds = new HashSet<string>();
+        var processedProductIds = new HashSet<Guid>();
         foreach (var saleAdvertisementItem in saleAdvertisement.Items)
         {
             var matchesWithProducts = products
@@ -76,6 +77,7 @@ public class ChipfindBackgroundTask : BackgroundTask
 
             foreach (var product in matchesWithProducts)
             {
+                processedProductIds.Add(product.ProductId);
                 var record = await applicationDbContext.ProductEmailSendHistory
                     .FirstOrDefaultAsync(
                         e =>
@@ -102,6 +104,23 @@ public class ChipfindBackgroundTask : BackgroundTask
                     record.Link = saleAdvertisement.Link.ToString();
                     record.CreatedAt = saleAdvertisement.Date;
                 }
+            }
+        }
+
+        await applicationDbContext.SaveChangesAsync(cancellationToken);
+
+        var staleThreshold = DateTime.UtcNow - WellKnown.ChipFind.RemoveAdvertisementAfter;
+        foreach (var productId in processedProductIds)
+        {
+            var staleAds = await applicationDbContext.ProductEmailSendHistory
+                .Where(e =>
+                    e.ProductId == productId &&
+                    e.Marketplace == WellKnown.ChipFind.Marketplace &&
+                    e.CreatedAt < staleThreshold)
+                .ToListAsync(cancellationToken);
+            if (staleAds.Count > 0)
+            {
+                applicationDbContext.ProductEmailSendHistory.RemoveRange(staleAds);
             }
         }
 

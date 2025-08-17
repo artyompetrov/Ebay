@@ -26,7 +26,12 @@ else
             {
                 <tr>
                     <td>@ad.Seller</td>
-                    <td><a href="@ad.Link" target="_blank">ссылка</a></td>
+                    <td>
+                        @if (!string.IsNullOrWhiteSpace(ad.Link))
+                        {
+                            <a href="@ad.Link" target="_blank">ссылка</a>
+                        }
+                    </td>
                     <td>@ad.CreatedAt</td>
                 </tr>
             }
