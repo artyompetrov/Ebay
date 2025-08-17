@@ -1,40 +1,19 @@
 auth_enabled: false
 
 server:
-  http_listen_port: 3100
   http_listen_address: 0.0.0.0
+  http_listen_port: 3100
   grpc_listen_port: 9095
 
-limits_config:
-  allow_structured_metadata: true
-  retention_period: 30d
-
-# <<< общий ring через memberlist (заменяет consul)
 common:
   path_prefix: /var/lib/loki
+  storage:
+    filesystem:
+      chunks_directory: /var/lib/loki/chunks
+      rules_directory: /var/lib/loki/rules
   ring:
     kvstore:
-      store: memberlist
-
-# memberlist без кластера
-memberlist:
-  join_members: []
-
-# (не обязательно, но ок) ring именно для scheduler'а
-query_scheduler:
-  scheduler_ring:
-    kvstore:
-      store: memberlist
-
-# выключаем usage analytics, чтобы модуль не тянул ring
-analytics:
-  reporting_enabled: false
-
-# WAL в том же томе
-ingester:
-  wal:
-    enabled: true
-    dir: /var/lib/loki/wal
+      store: inmemory
 
 schema_config:
   configs:
@@ -46,15 +25,24 @@ schema_config:
         prefix: index_
         period: 24h
 
-storage_config:
-  filesystem:
-    directory: /var/lib/loki/chunks
-  tsdb_shipper:
-    active_index_directory: /var/lib/loki/index
-    cache_location: /var/lib/loki/tsdb-cache
-    # cache_ttl: 24h
+ingester:
+  wal:
+    enabled: true
+    dir: /var/lib/loki/wal
 
 compactor:
   working_directory: /var/lib/loki/compactor
+  shared_store: filesystem
   retention_enabled: true
-  delete_request_store: filesystem
+
+ruler:
+  storage:
+    type: local
+    local:
+      directory: /var/lib/loki/rules
+
+limits_config:
+  allow_structured_metadata: true
+  ingestion_rate_mb: 10
+  ingestion_burst_size_mb: 20
+  retention_period: 30d
