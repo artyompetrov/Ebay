@@ -33,8 +33,7 @@ ingester:
 compactor:
   working_directory: /var/lib/loki/compactor
   retention_enabled: true
-  # (опционально) если планируете delete-запросы:
-  # delete_request_store: filesystem
+  delete_request_store: filesystem
 
 ruler:
   storage:
