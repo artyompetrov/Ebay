@@ -67,7 +67,7 @@ public class ChipfindBackgroundTask : BackgroundTask
     {
         using var transaction = TransactionScopeFactory.Create();
 
-        var newInterestitngAds = new HashSet<string>();
+        var newInterestitngAds = new HashSet<(bool IsAmbiguous, string Ad)>();
         foreach (var saleAdvertisementItem in saleAdvertisement.Items)
         {
             var matchesWithProducts = products
@@ -101,7 +101,7 @@ public class ChipfindBackgroundTask : BackgroundTask
 
                     if (product.IsInteresting)
                     {
-                        newInterestitngAds.Add(saleAdvertisementItem);
+                        newInterestitngAds.Add((IsAmbiguous: isAmbiguous, Ad: saleAdvertisementItem));
                     }
                 }
                 else
@@ -117,7 +117,7 @@ public class ChipfindBackgroundTask : BackgroundTask
 
         if (newInterestitngAds.Count > 0)
         {
-            var newItems = string.Join("<br>", newInterestitngAds);
+            var newItems = string.Join("<br>", values: newInterestitngAds.Select(x=> x.IsAmbiguous ? "[Возможно тут неточность] " : "" + x.Ad));
             var emailBody = $"<a href=\"{saleAdvertisement.Link}\">ссылка</a><br><br>{newItems}";
             var emailTopic = $"{saleAdvertisement.Title} [{saleAdvertisement.Seller}]";
             _logger.LogInformation(emailTopic);
