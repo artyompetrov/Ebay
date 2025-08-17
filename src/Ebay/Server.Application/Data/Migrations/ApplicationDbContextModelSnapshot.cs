@@ -876,6 +876,8 @@ namespace Server.Data.Migrations
                     b.HasIndex("ProductId", "Seller", "Marketplace")
                         .IsUnique();
 
+                    b.HasIndex("Marketplace", "CreatedAt");
+
                     b.ToTable("SaleAdvertisements", (string)null);
                 });
 

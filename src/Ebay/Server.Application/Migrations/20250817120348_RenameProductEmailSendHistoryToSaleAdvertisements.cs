@@ -109,6 +109,11 @@ namespace Server.Application.Migrations
                 columns: new[] { "ProductId", "Seller", "Marketplace" },
                 unique: true);
 
+            migrationBuilder.CreateIndex(
+                name: "IX_SaleAdvertisements_Marketplace_CreatedAt",
+                table: "SaleAdvertisements",
+                columns: new[] { "Marketplace", "CreatedAt" });
+
             migrationBuilder.AddForeignKey(
                 name: "FK_SaleAdvertisements_Products_ProductId",
                 table: "SaleAdvertisements",
@@ -135,6 +140,10 @@ namespace Server.Application.Migrations
 
             migrationBuilder.DropIndex(
                 name: "IX_SaleAdvertisements_ProductId_Seller_Marketplace",
+                table: "SaleAdvertisements");
+
+            migrationBuilder.DropIndex(
+                name: "IX_SaleAdvertisements_Marketplace_CreatedAt",
                 table: "SaleAdvertisements");
 
             migrationBuilder.AddColumn<string>(
