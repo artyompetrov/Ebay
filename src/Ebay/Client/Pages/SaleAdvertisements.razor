@@ -1,0 +1,47 @@
+@using Client.Clients.Generated
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inject EbayClient EbayClient
+
+@if (_ads == null)
+{
+    <p>Загрузка...</p>
+}
+else if (_ads.Count == 0)
+{
+    <p>Нет данных</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Продавец</th>
+                <th>Ссылка</th>
+                <th>Дата</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var ad in _ads)
+            {
+                <tr>
+                    <td>@ad.Seller</td>
+                    <td><a href="@ad.Link" target="_blank">ссылка</a></td>
+                    <td>@ad.CreatedAt</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    [Parameter]
+    public ProductWithId Product { get; set; } = null!;
+
+    private ICollection<SaleAdvertisement> _ads = null!;
+
+    protected async override Task OnParametersSetAsync()
+    {
+        _ads = await EbayClient.GetSaleAdvertisementsAsync(Product.Id);
+    }
+}

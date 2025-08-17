@@ -199,7 +199,29 @@ paths:
           description: 'NotFound'
           schema:
             $ref: '#/definitions/NotFoundProblemDetailedInfo'
-            
+
+  /products/{productId}/sale_advertisements/:
+    parameters:
+      - name: productId
+        in: path
+        required: true
+        type: string
+        format: guid
+    get:
+      operationId: GetSaleAdvertisements
+      summary: Get sale advertisements for product
+      responses:
+        200:
+          description: Ok
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/SaleAdvertisement'
+        404:
+          description: 'NotFound'
+          schema:
+            $ref: '#/definitions/NotFoundProblemDetailedInfo'
+
   /products/{productId}/calculate_prices/:
     parameters:
       - name: productId
@@ -1151,6 +1173,21 @@ definitions:
     required:
       - itemsInPurchase
       - profitPerPcs
+
+  SaleAdvertisement:
+    type: object
+    properties:
+      seller:
+        type: string
+      link:
+        type: string
+      createdAt:
+        type: string
+        format: date-time
+    required:
+      - seller
+      - link
+      - createdAt
 
 
       # далее ошибки

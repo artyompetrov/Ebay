@@ -76,10 +76,10 @@ public class ChipfindBackgroundTask : BackgroundTask
 
             foreach (var product in matchesWithProducts)
             {
-                var productKey = $"{saleAdvertisement.Seller}_{product.ProductId}".ToLower();
-
                 var exists = await applicationDbContext.ProductEmailSendHistory
-                    .AnyAsync(e => e.ProductKey == productKey, cancellationToken: cancellationToken);
+                    .AnyAsync(
+                        e => e.ProductId == product.ProductId && e.Seller == saleAdvertisement.Seller,
+                        cancellationToken: cancellationToken);
 
                 if (exists)
                 {
@@ -88,7 +88,13 @@ public class ChipfindBackgroundTask : BackgroundTask
                 }
 
                 applicationDbContext.ProductEmailSendHistory.Add(
-                    new ProductEmailSendHistory { ProductKey = productKey, CreatedAt = saleAdvertisement.Date });
+                    new ProductEmailSendHistory
+                    {
+                        ProductId = product.ProductId,
+                        Seller = saleAdvertisement.Seller,
+                        Link = saleAdvertisement.Link.ToString(),
+                        CreatedAt = saleAdvertisement.Date
+                    });
 
                 await applicationDbContext.SaveChangesAsync(cancellationToken);
 
