@@ -117,7 +117,7 @@ public class ChipfindBackgroundTask : BackgroundTask
 
         if (newInterestitngAds.Count > 0)
         {
-            var newItems = string.Join("<br>", values: newInterestitngAds.Select(x=> x.IsAmbiguous ? "[Возможно тут неточность] " : "" + x.Ad));
+            var newItems = string.Join("<br>", values: newInterestitngAds.Select(x=> x.IsAmbiguous ? "[Нашлось несколько товаров] " : "" + x.Ad));
             var emailBody = $"<a href=\"{saleAdvertisement.Link}\">ссылка</a><br><br>{newItems}";
             var emailTopic = $"{saleAdvertisement.Title} [{saleAdvertisement.Seller}]";
             _logger.LogInformation(emailTopic);
