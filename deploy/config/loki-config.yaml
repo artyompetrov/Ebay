@@ -3,24 +3,8 @@ auth_enabled: false
 server:
   http_listen_port: 3100
 
-otel:
-  enabled: true
-  protocols:
-    grpc:
-      endpoint: 0.0.0.0:4317
-    http:
-      endpoint: 0.0.0.0:4318
-
-ingester:
-  lifecycler:
-    address: 127.0.0.1
-    ring:
-      kvstore:
-        store: inmemory
-      replication_factor: 1
-    final_sleep: 0s
-  chunk_idle_period: 1h
-  chunk_retain_period: 30s
+limits_config:
+  allow_structured_metadata: true
 
 schema_config:
   configs:
@@ -34,14 +18,7 @@ schema_config:
 
 storage_config:
   filesystem:
-    directory: /tmp/loki
+    directory: /var/lib/loki/chunks
   boltdb_shipper:
-    active_index_directory: /tmp/loki/index
+    active_index_directory: /var/lib/loki/index
     shared_store: filesystem
-    cache_location: /tmp/loki/boltdb-cache
-
-ruler:
-  storage:
-    type: local
-    local:
-      directory: /tmp/loki/rules

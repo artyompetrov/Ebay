@@ -84,13 +84,18 @@ builder.Logging.AddSimpleConsole(
         c.TimestampFormat = "[yyyy-MM-dd HH:mm:ss] ";
         c.UseUtcTimestamp = true;
     });
-builder.Logging.AddOpenTelemetry(
-    options =>
+builder.Logging.AddOpenTelemetry(o =>
+{
+    o.IncludeScopes = true;
+    o.IncludeFormattedMessage = true;
+    o.ParseStateValues = true;
+    o.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("EbayHelper"));
+    o.AddOtlpExporter(otlp =>
     {
-        options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("EbayHelper"));
-        options.IncludeFormattedMessage = true;
-        options.AddOtlpExporter(o => o.Endpoint = new Uri("http://loki:4317"));
+        otlp.Endpoint = new Uri("http://loki:3100/otlp");
+        otlp.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
     });
+});
 
 builder.Services.AddResponseCaching();
 
