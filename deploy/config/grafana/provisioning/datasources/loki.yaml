@@ -3,5 +3,5 @@ datasources:
   - name: Loki
     type: loki
     access: proxy
-    url: http://loki:3100
+    url: http://ebay_loki:3100
     isDefault: true

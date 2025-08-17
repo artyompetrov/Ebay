@@ -92,7 +92,7 @@ builder.Logging.AddOpenTelemetry(o =>
     o.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("EbayHelper"));
     o.AddOtlpExporter(otlp =>
     {
-        otlp.Endpoint = new Uri("http://loki:3100/otlp");
+        otlp.Endpoint = new Uri("http://ebay_loki:3100/otlp");
         otlp.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
     });
 });

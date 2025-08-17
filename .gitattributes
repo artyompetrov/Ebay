@@ -2,3 +2,4 @@
 dockerfile eol=lf
 *.dockerfile eol=lf
 *.yaml eol=lf
+*.sh eol=lf

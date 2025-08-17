@@ -6,6 +6,10 @@ upstream ebayportainer {
   server ebay_portainer:9000 fail_timeout=0;
 }
 
+upstream ebaygrafana {
+  server ebay_grafana:3000 fail_timeout=0;
+}
+
 map $http_upgrade $connection_upgrade {
   default upgrade;
   ''      close;
@@ -17,90 +21,143 @@ log_format with_host '$remote_addr - $host [$time_local] '
 
 server {
     listen 80 default_server;
-    listen 443 ssl default_server;
-    listen 9443 ssl default_server;
-    
+    listen 443 ssl http2 default_server;
+    listen 9443 ssl http2 default_server;
+
     server_name _;
 
     access_log /var/log/nginx/invalid_host.log with_host;
-    
-    ssl_certificate /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+
+    ssl_certificate     /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
 
     return 444;
 }
 
+# HTTP: выдаём ACME-челленджи, остальное редиректим на HTTPS
 server {
     listen 80;
     server_name ${DOMAIN};
 
-    location /.well-known/acme-challenge/ {
+    location ^~ /.well-known/acme-challenge/ {
         root /var/www/certbot;
+        try_files $uri =404;
     }
-    return 301 https://$host$request_uri;
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
 }
 
+# 443 → ebayhelper (HTTPS upstream)
 server {
-    listen 443 ssl;
+    listen 443 ssl http2;
     server_name ${DOMAIN};
-    
-    ssl_certificate /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+
+    ssl_certificate     /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
     ssl_session_timeout 30m;
-    ssl_protocols TLSv1.2;
-    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
-    ssl_prefer_server_ciphers off;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    # ssl_ciphers ...  # можно опустить, дефолта достаточно
 
     location / {
         proxy_pass         https://ebayhelper;
-        proxy_redirect     off;
         proxy_http_version 1.1;
+
+        # HTTPS upstream: SNI и (при необходимости) отключение проверки
+        proxy_ssl_server_name on;
+
         proxy_cache_bypass $http_upgrade;
         proxy_set_header   Upgrade $http_upgrade;
-        proxy_set_header   Connection keep-alive;
+        proxy_set_header   Connection $connection_upgrade;
+
         proxy_set_header   Host $host;
         proxy_set_header   X-Real-IP $remote_addr;
         proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header   X-Forwarded-Proto $scheme;
-        proxy_set_header   X-Forwarded-Host $server_name:443;
+        proxy_set_header   X-Forwarded-Host $host;
+
+        proxy_read_timeout  600s;
+        proxy_send_timeout  600s;
+
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains";
     }
 }
 
+# 8443 → Grafana (HTTP upstream)
 server {
-    listen 9443 ssl;
+    listen 8443 ssl http2;
     server_name ${DOMAIN};
-    ssl_certificate /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+
+    ssl_certificate     /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
     ssl_session_timeout 30m;
-    ssl_protocols TLSv1.2;
-    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
-    ssl_prefer_server_ciphers off;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    location / {
+        proxy_pass         http://ebaygrafana;
+        proxy_http_version 1.1;
+
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header   Upgrade $http_upgrade;
+        proxy_set_header   Connection $connection_upgrade;
+
+        proxy_set_header   Host $host;
+        proxy_set_header   X-Real-IP $remote_addr;
+        proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+        proxy_set_header   X-Forwarded-Host $host;
+
+        proxy_read_timeout  600s;
+        proxy_send_timeout  600s;
+
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains";
+    }
+}
+
+# 9443 → Portainer (HTTP upstream)
+server {
+    listen 9443 ssl http2;
+    server_name ${DOMAIN};
+
+    ssl_certificate     /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
+    ssl_session_timeout 30m;
+    ssl_protocols TLSv1.2 TLSv1.3;
 
     location / {
         proxy_pass         http://ebayportainer;
-        proxy_redirect     off;
         proxy_http_version 1.1;
+
         proxy_cache_bypass $http_upgrade;
         proxy_set_header   Upgrade $http_upgrade;
-        proxy_set_header   Connection keep-alive;
+        proxy_set_header   Connection $connection_upgrade;
+
         proxy_set_header   Host $host;
         proxy_set_header   X-Real-IP $remote_addr;
         proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header   X-Forwarded-Proto $scheme;
-        proxy_set_header   X-Forwarded-Host $server_name:9000;
+        proxy_set_header   X-Forwarded-Host $host;
+
+        proxy_read_timeout  600s;
+        proxy_send_timeout  600s;
+
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains";
     }
-    
+
     location /api/websocket {
         proxy_pass         http://ebayportainer;
         proxy_http_version 1.1;
+
         proxy_set_header   Upgrade $http_upgrade;
         proxy_set_header   Connection "upgrade";
         proxy_set_header   Host $host;
-        proxy_set_header   X-Real-IP $remote_addr;
         proxy_set_header   Origin $scheme://$http_host;
+        proxy_set_header   X-Real-IP $remote_addr;
         proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header   X-Forwarded-Proto $scheme;
+
+        proxy_read_timeout  600s;
+        proxy_send_timeout  600s;
     }
 }
