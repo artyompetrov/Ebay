@@ -21,7 +21,6 @@
         </PackageReference>
         <PackageReference Include="OpenExchangeRates.NET" />
         <PackageReference Include="ScottPlot" />
-        <PackageReference Include="Serilog.AspNetCore" />
     </ItemGroup>
 
     <ItemGroup>

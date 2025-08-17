@@ -2,7 +2,6 @@ using Duende.IdentityServer.Models;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
