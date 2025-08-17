@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Server.Application.Migrations
 {
     /// <inheritdoc />
-    public partial class RenameProductEmailSendHistoryToSaleAdvertisements : Migration
+    public partial class SaleAdvertisements : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -110,9 +110,9 @@ namespace Server.Application.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_SaleAdvertisements_Marketplace_CreatedAt",
+                name: "IX_SaleAdvertisements_CreatedAt",
                 table: "SaleAdvertisements",
-                columns: new[] { "Marketplace", "CreatedAt" });
+                column: "CreatedAt");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_SaleAdvertisements_Products_ProductId",
@@ -143,7 +143,7 @@ namespace Server.Application.Migrations
                 table: "SaleAdvertisements");
 
             migrationBuilder.DropIndex(
-                name: "IX_SaleAdvertisements_Marketplace_CreatedAt",
+                name: "IX_SaleAdvertisements_CreatedAt",
                 table: "SaleAdvertisements");
 
             migrationBuilder.AddColumn<string>(

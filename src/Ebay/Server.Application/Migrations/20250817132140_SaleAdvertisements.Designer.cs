@@ -13,8 +13,8 @@ using Server.Application.Data;
 namespace Server.Application.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250817131259_RemoveMarketplaceFromSaleAdsDateIndex")]
-    partial class RemoveMarketplaceFromSaleAdsDateIndex
+    [Migration("20250817132140_SaleAdvertisements")]
+    partial class SaleAdvertisements
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
