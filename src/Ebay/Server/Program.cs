@@ -88,10 +88,7 @@ builder.Logging.AddOpenTelemetry(o =>
     o.IncludeFormattedMessage = true;
     o.ParseStateValues = true;
     o.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("EbayHelper"));
-    o.AddOtlpExporter(otlp =>
-    {
-        otlp.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
-    });
+    o.AddOtlpExporter();
 });
 
 builder.Services.AddResponseCaching();
