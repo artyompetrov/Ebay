@@ -181,9 +181,10 @@ public class EbayControllerImplementation : IEbayController
         return ads
             .Select(x => new SaleAdvertisement(
                 createdAt: x.CreatedAt,
+                isAmbiguous: x.IsAmbiguous,
                 link: x.Link,
-                seller: x.Seller,
-                marketplace: x.Marketplace))
+                marketplace: x.Marketplace,
+                seller: x.Seller))
             .ToList();
     }
 

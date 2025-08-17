@@ -1186,11 +1186,14 @@ definitions:
       createdAt:
         type: string
         format: date-time
+      isAmbiguous:
+        type: boolean
     required:
       - seller
       - link
       - marketplace
       - createdAt
+      - isAmbiguous
 
 
       # далее ошибки

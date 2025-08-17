@@ -16,5 +16,7 @@ public class ProductEmailSendHistory
 
     public string Marketplace { get; set; } = null!;
 
+    public bool IsAmbiguous { get; set; }
+
     public DateTime CreatedAt { get; set; }
 }

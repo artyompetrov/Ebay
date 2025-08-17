@@ -74,6 +74,8 @@ public class ChipfindBackgroundTask : BackgroundTask
                 .Where(x => x.Regex.IsMatch(saleAdvertisementItem))
                 .ToList();
 
+            var isAmbiguous = matchesWithProducts.Count > 1;
+
             foreach (var product in matchesWithProducts)
             {
                 var record = await applicationDbContext.ProductEmailSendHistory
@@ -93,7 +95,8 @@ public class ChipfindBackgroundTask : BackgroundTask
                             Seller = saleAdvertisement.Seller,
                             Link = saleAdvertisement.Link.ToString(),
                             CreatedAt = saleAdvertisement.Date,
-                            Marketplace = WellKnown.ChipFind.Marketplace
+                            Marketplace = WellKnown.ChipFind.Marketplace,
+                            IsAmbiguous = isAmbiguous
                         });
 
                     if (product.IsInteresting)
@@ -105,6 +108,7 @@ public class ChipfindBackgroundTask : BackgroundTask
                 {
                     record.Link = saleAdvertisement.Link.ToString();
                     record.CreatedAt = saleAdvertisement.Date;
+                    record.IsAmbiguous = isAmbiguous;
                 }
             }
         }
