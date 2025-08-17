@@ -34,7 +34,7 @@ public class ChipfindBackgroundTask : BackgroundTask
     public override TimeSpan UpdateTime => WellKnown.ChipFind.UpdateTime;
     public override TimeSpan ErrorDelay => WellKnown.ChipFind.ErrorDelay;
 
-    private record ProductIdWithRegex(Guid ProductId, Regex Regex);
+    private record ProductInner(Guid ProductId, Regex Regex, bool IsInteresting);
 
     protected async override Task BackgroundTaskImplementation(CancellationToken cancellationToken)
     {
@@ -43,7 +43,7 @@ public class ChipfindBackgroundTask : BackgroundTask
         using var scope = _serviceScopeFactory.CreateScope();
         var applicationDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-        var products = await GetInterestingProductIdsWithRegexes(
+        var products = await GetProducts(
             cancellationToken: cancellationToken,
             applicationDbContext: applicationDbContext);
 
@@ -62,12 +62,12 @@ public class ChipfindBackgroundTask : BackgroundTask
     private async Task ProcessAdvertisement(
         CancellationToken cancellationToken,
         SaleAdvertisement saleAdvertisement,
-        IReadOnlyCollection<ProductIdWithRegex> products,
+        IReadOnlyCollection<ProductInner> products,
         ApplicationDbContext applicationDbContext)
     {
         using var transaction = TransactionScopeFactory.Create();
 
-        var newAds = new HashSet<string>();
+        var newInterestitngAds = new HashSet<string>();
         foreach (var saleAdvertisementItem in saleAdvertisement.Items)
         {
             var matchesWithProducts = products
@@ -95,7 +95,11 @@ public class ChipfindBackgroundTask : BackgroundTask
                             CreatedAt = saleAdvertisement.Date,
                             Marketplace = WellKnown.ChipFind.Marketplace
                         });
-                    newAds.Add(saleAdvertisementItem);
+
+                    if (product.IsInteresting)
+                    {
+                        newInterestitngAds.Add(saleAdvertisementItem);
+                    }
                 }
                 else
                 {
@@ -107,14 +111,16 @@ public class ChipfindBackgroundTask : BackgroundTask
 
         await applicationDbContext.SaveChangesAsync(cancellationToken);
 
-        if (newAds.Count > 0)
+        if (newInterestitngAds.Count > 0)
         {
-            var newItems = string.Join("<br>", newAds);
+            var newItems = string.Join("<br>", newInterestitngAds);
             var emailBody = $"<a href=\"{saleAdvertisement.Link}\">ссылка</a><br><br>{newItems}";
-
+            var emailTopic = $"{saleAdvertisement.Title} [{saleAdvertisement.Seller}]";
+            _logger.LogInformation(emailTopic);
+            _logger.LogDebug(emailBody);
             await _emailSender.Send(
                 targetAddress: _ebayServerOptions.TargetEmail,
-                topic: $"{saleAdvertisement.Title} [{saleAdvertisement.Seller}]",
+                topic: emailTopic,
                 messageText: emailBody);
 
             await Task.Delay(millisecondsDelay: DelayAfterSendMilliseconds, cancellationToken: cancellationToken);
@@ -123,7 +129,7 @@ public class ChipfindBackgroundTask : BackgroundTask
         transaction.Complete();
     }
 
-    private async static Task<IReadOnlyCollection<ProductIdWithRegex>> GetInterestingProductIdsWithRegexes(
+    private async static Task<IReadOnlyCollection<ProductInner>> GetProducts(
         ApplicationDbContext applicationDbContext,
         CancellationToken cancellationToken)
     {
@@ -134,10 +140,12 @@ public class ChipfindBackgroundTask : BackgroundTask
             .Include(x => x.RuSearchQueries)
             .ToListAsync(cancellationToken);
 
-        var productsArray = dbProducts.
-            Where(x => x.GetIsInteresting())
-            .Select(x => new ProductIdWithRegex(ProductId: x.Id, Regex: x.GetProductRegex()))
+        var productsArray = dbProducts.Select(x => new ProductInner(
+                ProductId: x.Id,
+                Regex: x.GetProductRegex(),
+                IsInteresting: x.GetIsInteresting()))
             .ToArray();
+        
         return productsArray;
     }
 }
