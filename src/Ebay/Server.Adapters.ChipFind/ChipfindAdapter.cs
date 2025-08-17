@@ -1,12 +1,19 @@
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using HtmlAgilityPack;
+using Microsoft.Extensions.Logging;
 using Server.Application.HostedServices.ChipFind;
 
 namespace Server.Adapters.ChipFind;
 
 public class ChipfindAdapter : IChipfindAdapter
 {
+    private readonly ILogger<ChipfindAdapter> _logger;
+
+    public ChipfindAdapter(ILogger<ChipfindAdapter> logger)
+    {
+        _logger = logger;
+    }
 
     public async Task<IReadOnlyCollection<SaleAdvertisement>> GetRecentSaleAdvertisements(
         CancellationToken cancellationToken)
@@ -54,6 +61,12 @@ public class ChipfindAdapter : IChipfindAdapter
             var title = matchingResult.Groups[1].Value.Trim();
             var seller = matchingResult.Groups[2].Value.Trim();
 
+
+            if (items.Any(x => x.Length > 1000))
+            {
+                _logger.LogWarning("Suspicious huge items in adveritsement: {description}",description);
+            }
+            
             result.Add(
                 new SaleAdvertisement(
                     Title: title,
