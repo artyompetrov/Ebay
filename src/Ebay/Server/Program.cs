@@ -4,7 +4,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
-using Serilog;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Resources;
 using Server;
 using Server.Adapters.ChipFind;
 using Server.Adapters.Smtp;
@@ -16,14 +17,6 @@ using Secret = Duende.IdentityServer.Models.Secret;
 IdentityModelEventSource.ShowPII = true;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Настройка Serilog
-Log.Logger = new LoggerConfiguration()
-    .ReadFrom.Configuration(builder.Configuration)
-    .Enrich.FromLogContext()
-    .CreateLogger();
-
-builder.Host.UseSerilog();
 
 // Add services to the container.
 var options = new EbayServerOptions();
@@ -84,17 +77,25 @@ builder.Services.AddIdentityServer()
 
 builder.Services.AddAuthentication().AddIdentityServerJwt();
 
-builder.Services.AddLogging(
-    o =>
+builder.Logging.ClearProviders();
+builder.Logging.AddSimpleConsole(
+    c =>
     {
-        o.AddSimpleConsole(
-            c =>
-            {
-                c.TimestampFormat = "[yyyy-MM-dd HH:mm:ss] ";
-                c.UseUtcTimestamp = true;
-            });
+        c.TimestampFormat = "[yyyy-MM-dd HH:mm:ss] ";
+        c.UseUtcTimestamp = true;
     });
-
+builder.Logging.AddOpenTelemetry(o =>
+{
+    o.IncludeScopes = true;
+    o.IncludeFormattedMessage = true;
+    o.ParseStateValues = true;
+    o.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("EbayHelper"));
+    o.AddOtlpExporter(otlp =>
+    {
+        otlp.Endpoint = new Uri("http://ebay_loki:3100/otlp");
+        otlp.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
+    });
+});
 
 builder.Services.AddResponseCaching();
 
@@ -104,7 +105,6 @@ builder.Services.AddResponseCaching();
 var app = builder.Build();
 
 app.Services.InitializeApplication();
-app.UseSerilogRequestLogging();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

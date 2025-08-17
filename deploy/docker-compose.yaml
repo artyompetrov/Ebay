@@ -68,8 +68,7 @@ services:
       - "80:80"
       - "443:443"
       - "9443:9443"
-      - "8080:8080"
-      - "8081:8081"
+      - "8443:8443"
     volumes:
       - ./mount/nginx/logs/:/var/log/nginx/
       - ./mount/nginx/certs/:/etc/letsencrypt/
@@ -79,7 +78,7 @@ services:
       - EMAIL=${EMAIL}
     networks:
       - internal_network
-    restart: unless-stopped
+    restart: no
 
   ebay_portainer:
     container_name: ebay_portainer
@@ -93,6 +92,34 @@ services:
     networks:
       - internal_network
 
+  ebay_loki:
+    container_name: ebay_loki
+    image: grafana/loki:3.4.2
+    command: -config.file=/etc/loki/loki.yaml
+    volumes:
+      - ./config/loki/loki-config.yaml:/etc/loki/loki.yaml:ro
+      - ./mount/loki/:/var/lib/loki
+    networks:
+      - internal_network
+    restart: unless-stopped
+
+  ebay_grafana:
+    container_name: ebay_grafana
+    image: grafana/grafana:10.4.2
+    depends_on:
+      - ebay_loki
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${PG_PASSWORD}
+      GF_SERVER_ROOT_URL: https://${DOMAIN}:8443/
+      GF_SERVER_DOMAIN: ${DOMAIN}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - internal_network
+    restart: unless-stopped
+
 networks:
   internal_network:
     driver: bridge
@@ -101,3 +128,5 @@ volumes:
   redis_queue_data:
   ebay_helper_keys:
   portainer_data:
+  loki_data:
+  grafana_data:
