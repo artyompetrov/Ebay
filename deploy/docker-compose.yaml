@@ -117,6 +117,7 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: ${PG_PASSWORD}
       GF_SERVER_ROOT_URL: https://${DOMAIN}:8443/
       GF_SERVER_DOMAIN: ${DOMAIN}
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /etc/grafana/provisioning/dashboards/json/loki.json
     volumes:
       - grafana_data:/var/lib/grafana
       - ./config/grafana/provisioning:/etc/grafana/provisioning
