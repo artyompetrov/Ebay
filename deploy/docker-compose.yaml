@@ -19,6 +19,7 @@ services:
   ebay_helper:
     container_name: ebay_helper
     image: ghcr.io/artyompetrov/ebay:latest
+    build: ../src/
     depends_on:
       - ebay_postgres
     restart: unless-stopped
@@ -65,6 +66,7 @@ services:
 
   ebay_nginx:
     container_name: ebay_nginx
+    image: ghcr.io/artyompetrov/nginx:latest
     build: ./build/nginx
     ports:
       - "80:80"
