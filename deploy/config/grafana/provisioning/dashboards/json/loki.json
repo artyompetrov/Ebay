@@ -89,7 +89,7 @@
             "uid": "000000042"
           },
           "editorMode": "code",
-          "expr": "sum(count_over_time(({service_name=\"$service_name\", log_level=~\"$log_level\"} |~ \"(?i)$searchable_pattern\")[$__interval])) by (log_level)",
+          "expr": "sum(count_over_time(({service_name=\"$service_name\", level=~\"$level\"} |~ \"(?i)$searchable_pattern\")[$__interval])) by (level)",
           "hide": false,
           "legendFormat": "{{stream}}",
           "queryType": "range",
@@ -175,7 +175,7 @@
             "uid": "000000042"
           },
           "editorMode": "code",
-          "expr": "sum(count_over_time(({service_name=~\"$service_name\", log_level=~\"$log_level\"} |~ \"(?i)$searchable_pattern\")[$__interval]))",
+          "expr": "sum(count_over_time(({service_name=~\"$service_name\", level=~\"$level\"} |~ \"(?i)$searchable_pattern\")[$__interval]))",
           "hide": false,
           "queryType": "range",
           "refId": "A"
@@ -250,7 +250,7 @@
             "uid": "000000042"
           },
           "editorMode": "code",
-          "expr": "sum(count_over_time(({service_name=\"$service_name\", log_level=~\"$log_level\"} |~ \"(?i)$searchable_pattern\")[$__interval])) * 100 / sum(count_over_time(({service_name=\"$service_name\"})[$__interval]))",
+          "expr": "sum(count_over_time(({service_name=\"$service_name\", level=~\"$level\"} |~ \"(?i)$searchable_pattern\")[$__interval])) * 100 / sum(count_over_time(({service_name=\"$service_name\"})[$__interval]))",
           "hide": false,
           "queryType": "range",
           "refId": "A"
@@ -289,7 +289,7 @@
             "uid": "000000042"
           },
           "editorMode": "code",
-          "expr": "{service_name=\"$service_name\", log_level=~\"$log_level\"} |~ \"(?i)$searchable_pattern\"",
+          "expr": "{service_name=\"$service_name\", level=~\"$level\"} |~ \"(?i)$searchable_pattern\"",
           "hide": false,
           "queryType": "range",
           "refId": "A"
@@ -309,9 +309,9 @@
     "list": [
       {
         "current": {
-          "selected": true,
+          "selected": false,
           "text": "ebay_helper",
-          "value": "ebay_helper"
+          "value": "ebay_helpe"
         },
         "datasource": {
           "type": "loki",
@@ -339,12 +339,12 @@
       {
         "allValue": ".*",
         "current": {
-          "selected": false,
+          "selected": true,
           "text": [
-            "Information"
+            "All"
           ],
           "value": [
-            "Information"
+            "$__all"
           ]
         },
         "datasource": {
@@ -356,10 +356,10 @@
         "includeAll": true,
         "label": "Log level",
         "multi": true,
-        "name": "log_level",
+        "name": "level",
         "options": [],
         "query": {
-          "label": "log_level",
+          "label": "level",
           "refId": "LokiVariableQueryEditor-VariableQuery",
           "stream": "",
           "type": 1

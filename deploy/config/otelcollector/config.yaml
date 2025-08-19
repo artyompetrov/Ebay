@@ -11,11 +11,11 @@ processors:
     log_statements:
       - context: log
         statements:
-          - set(resource.attributes["log_level"], severity_text)
+          - set(resource.attributes["level"], severity_text)
             where severity_text != nil
           
-          - set(resource.attributes["log_level"], "Information")
-            where resource.attributes["log_level"] == nil
+          - set(resource.attributes["level"], "Information")
+            where resource.attributes["level"] == nil
   batch: {}
 
 exporters:
