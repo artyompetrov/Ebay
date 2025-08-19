@@ -29,7 +29,7 @@ public class MeasurementPageController : ControllerBase
 
 #if !DEBUG
     // Только в релизе используем кеширование
-    [ResponseCache(Duration = 60 /*с*/ * 60 /*м*/ * 24 /*ч*/)]
+    [ResponseCache(Duration = 60 /*с*/ * 20 /*м*/)]
 #endif
     [HttpGet("/m/{measurementId}/ebay_curves")]
     public async Task<IActionResult> GetEbayCurves(
@@ -43,7 +43,7 @@ public class MeasurementPageController : ControllerBase
             legendVertical: true,
             addQuickTest: true,
             width: 550,
-            height: 350,
+            height: 400,
             sellingOnly: true);
 
         if (result == null)
