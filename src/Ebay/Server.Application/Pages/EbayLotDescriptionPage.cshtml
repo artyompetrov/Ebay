@@ -1,13 +1,31 @@
 ﻿@page "/ebay_description/{productId}"
+@using Server.Application.Data.Models
+@using Server.Application.Pages
 @model Server.Application.Pages.EbayLotDescriptionPage
 
 @{
     Layout = null;
     var baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+    static string GetName(EbayLotDescriptionPage model)
+    {
+        var name = model.Product.SearchQueries.First();
+
+        if (model.State == ProductState.New)
+        {
+            name += ", NEW";
+        }
+
+        if (model.Product.ProductMeasurementIds.Count > 0)
+        {
+            name += ", uTracer3+ TESTED";
+        }
+
+        return name;
+    }
 }
 
-<h2 style="text-align: center; "> @Model.Product.SearchQueries.First()</h2>
-<p style="text-align: center;"><b>Condition:</b> @Model.State</p>
+<h2 style="text-align: center; ">@GetName(Model)</h2>
 
 <h3>📦 Shipping & Handling:</h3>
 <p>Origin: Shipped from <strong>Kazakhstan</strong></p>
