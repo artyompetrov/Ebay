@@ -16,7 +16,7 @@ processors:
             where severity_number != nil and severity_number <= 4
           - set(resource.attributes["level"], "DEBUG")
             where severity_number >= 5 and severity_number <= 8
-          - set(resource.attributes["level"], "INFO")
+          - set(resource.attributes["level"], "INFOz")
             where severity_number >= 9 and severity_number <= 12
           - set(resource.attributes["level"], "WARN")
             where severity_number >= 13 and severity_number <= 16
