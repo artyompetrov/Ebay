@@ -59,11 +59,6 @@ subprocess.run([
     "ebay"
 ])
 
-# Остановка сервиса ebay_helper перед управлением контейнерами
-print("!!! stopping ebay_helper")
-subprocess.run(["docker", "container", "stop", "ebay_helper"], check=False)
-time.sleep(5)
-
 # Остановка контейнеров
 print("!!! stopping containers")
 subprocess.run(["docker-compose", "-f", "./deploy/docker-compose.yaml", "--env-file", "./deploy/localhost.env", "down", "-v"])
@@ -78,6 +73,11 @@ time.sleep(5)
 
 # Переключаем пароль для локальной базы данных
 os.environ["PGPASSWORD"] = pg_password
+
+# Остановка сервиса ebay_helper перед удалением локальных баз данных
+print("!!! stopping ebay_helper")
+subprocess.run(["docker", "container", "stop", "ebay_helper"], check=False)
+time.sleep(5)
 
 # Удаление локальных баз данных
 print("!!! dropping local databases")
