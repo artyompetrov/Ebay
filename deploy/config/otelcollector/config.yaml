@@ -11,19 +11,23 @@ processors:
     log_statements:
       - context: log
         statements:
-          - set(resource.attributes["level"], "TEST")
-          - set(resource.attributes["level"], "TRACE")
-            where severity_number != nil and severity_number <= 4
-          - set(resource.attributes["level"], "DEBUG")
-            where severity_number >= 5 and severity_number <= 8
-          - set(resource.attributes["level"], "INFOz")
-            where severity_number >= 9 and severity_number <= 12
-          - set(resource.attributes["level"], "WARN")
-            where severity_number >= 13 and severity_number <= 16
-          - set(resource.attributes["level"], "ERROR")
-            where severity_number >= 17 and severity_number <= 20
-          - set(resource.attributes["level"], "FATAL")
-            where severity_number >= 21
+          - set(attributes["level"], "TRACE")
+            where severity_number == 1
+
+          - set(attributes["level"], "DEBUG")
+            where severity_number == 5
+
+          - set(attributes["level"], "INFO")
+            where severity_number == 9
+
+          - set(attributes["level"], "WARN")
+            where severity_number == 13
+
+          - set(attributes["level"], "ERROR")
+            where severity_number == 17
+
+          - set(attributes["level"], "FATAL")
+            where severity_number == 21
   batch: {}
 
 exporters:
