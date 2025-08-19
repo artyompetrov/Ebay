@@ -289,7 +289,7 @@
             "uid": "000000042"
           },
           "editorMode": "code",
-          "expr": "{service_name=\"$service_name\", log_level=~\"$log_level\"} |~ \"(?i)$searchable_pattern\" | label_format level=log_level",
+          "expr": "{service_name=\"$service_name\", log_level=~\"$log_level\"} |~ \"(?i)$searchable_pattern\"",
           "hide": false,
           "queryType": "range",
           "refId": "A"
@@ -341,10 +341,10 @@
         "current": {
           "selected": true,
           "text": [
-            "Information"
+            "Warning"
           ],
           "value": [
-            "Information"
+            "Warning"
           ]
         },
         "datasource": {
