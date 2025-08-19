@@ -64,7 +64,7 @@ public class ChipfindAdapter : IChipfindAdapter
 
             if (items.Any(x => x.Length > 1000))
             {
-                _logger.LogWarning("Suspicious huge items in adveritsement: {description}",description);
+                _logger.LogWarning("Suspicious huge items in adveritsement: {description}", description.Substring(0,1000));
             }
             
             result.Add(
