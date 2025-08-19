@@ -76,10 +76,10 @@ resharper_place_field_attribute_on_same_line = false
 resharper_use_indent_from_vs = false
 
 # ReSharper inspection severities
-resharper_arguments_style_literal_highlighting = suggestion
-resharper_arguments_style_named_expression_highlighting = suggestion
-resharper_arguments_style_other_highlighting = suggestion
-resharper_arguments_style_string_literal_highlighting = suggestion
+resharper_arguments_style_literal_highlighting = hint
+resharper_arguments_style_named_expression_highlighting = hint
+resharper_arguments_style_other_highlighting = hint
+resharper_arguments_style_string_literal_highlighting = hint
 resharper_arrange_method_or_operator_body_highlighting = suggestion
 resharper_arrange_redundant_parentheses_highlighting = hint
 resharper_arrange_this_qualifier_highlighting = hint
