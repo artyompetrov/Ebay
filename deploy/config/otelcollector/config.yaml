@@ -11,6 +11,7 @@ processors:
     log_statements:
       - context: log
         statements:
+          - set(resource.attributes["level"], "TEST")
           - set(resource.attributes["level"], "TRACE")
             where severity_number != nil and severity_number <= 4
           - set(resource.attributes["level"], "DEBUG")
