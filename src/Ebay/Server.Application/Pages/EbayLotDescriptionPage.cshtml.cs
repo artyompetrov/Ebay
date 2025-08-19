@@ -19,19 +19,22 @@ public class EbayLotDescriptionPage : PageModel
 
     public ProductWithMeasurementsDto Product { get; set; } = null!;
 
+    public ProductState State { get; set; }
+
     public record ProductWithMeasurementsDto(
         List<string> SearchQueries,
         List<string> ProductMeasurementIds
     );
-    public async Task<IActionResult> OnGet(Guid productId, CancellationToken cancellationToken)
+    public async Task<IActionResult> OnGet(Guid productId, ProductState state, CancellationToken cancellationToken)
     {
+        State = state;
 
         var product = await _applicationContext.Products
             .Where(x => x.Id == productId)
             .Select(x => new ProductWithMeasurementsDto(
                 x.SearchQueries.Select(m => m.Query).ToList(),
                 x.ProductMeasurements
-                    .Where(pm => pm.MeasurementState == MeasurementState.Selling)
+                    .Where(pm => pm.MeasurementState == MeasurementState.Selling && pm.ProductState == state)
                     .Select(m => m.Id)
                     .ToList()
             ))
