@@ -74,6 +74,11 @@ time.sleep(5)
 # Переключаем пароль для локальной базы данных
 os.environ["PGPASSWORD"] = pg_password
 
+# Остановка сервиса ebay_helper перед удалением локальных баз данных
+print("!!! stopping ebay_helper")
+subprocess.run(["docker", "container", "stop", "ebay_helper"], check=False)
+time.sleep(5)
+
 # Удаление локальных баз данных
 print("!!! dropping local databases")
 subprocess.run([
