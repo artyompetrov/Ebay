@@ -339,12 +339,12 @@
       {
         "allValue": ".*",
         "current": {
-          "selected": true,
+          "selected": false,
           "text": [
-            "Warning"
+            "Information"
           ],
           "value": [
-            "Warning"
+            "Information"
           ]
         },
         "datasource": {
