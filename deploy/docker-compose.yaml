@@ -115,7 +115,7 @@ services:
       retries: 10
 
   ebay_otelcollector:
-    image: otel/opentelemetry-collector-contrib:0.101.0
+    image: otel/opentelemetry-collector-contrib:0.132.0
     container_name: ebay_otelcollector
     networks:
       - internal_network
