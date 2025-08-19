@@ -7,7 +7,7 @@ if (!backendDomain) {
   process.exit(1);
 }
 
-const version = process.env.BUILD_VERSION || "0.0.0.1"
+const version = process.env.BUILD_VERSION || "1.0.0.0"
 
 const templatePath = path.join(__dirname, '_extension', 'manifest.json.template');
 const outputPath = path.join(__dirname, '_extension', 'manifest.json');

@@ -13,7 +13,7 @@ const chipFindRegex: RegExp = /(?:^|\.)chipfind\.ru$/i
 const avitoRegex: RegExp = /(?:^|\.)avito\.ru$/i
 
 const backendDomainRegex = new RegExp(
-    `(?:^|\\.)${EBAY_HELPER_BACKEND_DOMAIN.replace(/\./g, '\\.')}($|/)`,
+    `(?:^|\\.)${EBAY_HELPER_BACKEND_DOMAIN.replace(/\./g, '\\.')}(?::\\d+)?($|/)`,
     'i'
 );
 
