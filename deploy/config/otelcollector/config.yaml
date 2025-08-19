@@ -11,8 +11,18 @@ processors:
     log_statements:
       - context: log
         statements:
-          - set(resource.attributes["level"], severity_text)
-            where severity_text != nil
+          - set(resource.attributes["level"], "TRACE")
+            where log.severity_number != nil and log.severity_number <= 4
+          - set(resource.attributes["level"], "DEBUG")
+            where log.severity_number >= 5 and log.severity_number <= 8
+          - set(resource.attributes["level"], "INFO")
+            where log.severity_number >= 9 and log.severity_number <= 12
+          - set(resource.attributes["level"], "WARN")
+            where log.severity_number >= 13 and log.severity_number <= 16
+          - set(resource.attributes["level"], "ERROR")
+            where log.severity_number >= 17 and log.severity_number <= 20
+          - set(resource.attributes["level"], "FATAL")
+            where log.severity_number >= 21
   batch: {}
 
 exporters:
