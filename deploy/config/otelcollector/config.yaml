@@ -1,0 +1,32 @@
+﻿receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+      grpc:
+        endpoint: 0.0.0.0:4317
+
+processors:
+  transform:
+    log_statements:
+      - context: log
+        statements:
+          - set(resource.attributes["log_level"], severity_text)
+            where severity_text != nil
+          
+          - set(resource.attributes["log_level"], "Information")
+            where resource.attributes["log_level"] == nil
+  batch: {}
+
+exporters:
+  otlphttp/loki:
+    endpoint: http://ebay_loki:3100/otlp
+  debug:
+    verbosity: detailed
+
+service:
+  pipelines:
+    logs:
+      receivers: [otlp]
+      processors: [transform, batch]
+      exporters: [debug, otlphttp/loki]

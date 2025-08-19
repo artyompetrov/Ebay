@@ -22,6 +22,7 @@ services:
     build: ../src/
     depends_on:
       - ebay_postgres
+      - ebay_otelcollector
     restart: unless-stopped
     volumes:
       - ${NETCORE_CERTIFICATE}:/certs/cert.pfx:ro
@@ -37,8 +38,9 @@ services:
       - ASPNETCORE_IdentityServer__Key__Type=File
       - ASPNETCORE_ConnectionStrings__DefaultConnection=User ID=ebay;Password=${PG_PASSWORD};Server=ebay_postgres;Port=5432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=60;Enlist=true;
       - DATA_PROTECTION_KEYS_DIR=/app/DataProtection-Keys/
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://ebay_loki:3100/otlp
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://ebay_otelcollector:4318
       - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+      - OTEL_SERVICE_NAME=ebay_helper
       - EbayServer__IsLocalRun=${LOCAL_RUN:-true}
       - EbayServer__TargetEmail=${EMAIL}
       - Smtp__Server=${SMTP_SERVER}
@@ -106,6 +108,22 @@ services:
     networks:
       - internal_network
     restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:3100/ready" ]
+      interval: 10s
+      timeout: 2s
+      retries: 10
+
+  ebay_otelcollector:
+    image: otel/opentelemetry-collector-contrib:0.132.0
+    container_name: ebay_otelcollector
+    networks:
+      - internal_network
+    restart: unless-stopped
+    depends_on:
+      - ebay_loki
+    volumes:
+      - ./config/otelcollector/config.yaml:/etc/otelcol-contrib/config.yaml:ro
 
   ebay_grafana:
     container_name: ebay_grafana
