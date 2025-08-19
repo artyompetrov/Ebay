@@ -219,7 +219,7 @@ public class MeasurementPlotService
             $"""<tspan x="20" y="{lineHight + i * lineHight}">{line.Split('\t')[0]}</tspan>"""));
 
         var quickTestSvg = $"""
-                            <svg width="200" height="{lineHight + lines.Length * lineHight}" xmlns="http://www.w3.org/2000/svg">
+                            <svg width="180" height="{lineHight + lines.Length * lineHight}" xmlns="http://www.w3.org/2000/svg">
                                 <text font-size="14" fill="black" xml:space="preserve" font-family="monospace">
                                     {tspans}
                                 </text>
