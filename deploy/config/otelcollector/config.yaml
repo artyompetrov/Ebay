@@ -13,9 +13,6 @@ processors:
         statements:
           - set(resource.attributes["level"], severity_text)
             where severity_text != nil
-          
-          - set(resource.attributes["level"], "Information")
-            where resource.attributes["level"] == nil
   batch: {}
 
 exporters:
