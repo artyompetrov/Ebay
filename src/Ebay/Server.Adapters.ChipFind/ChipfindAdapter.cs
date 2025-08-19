@@ -70,7 +70,7 @@ public class ChipfindAdapter : IChipfindAdapter
             result.Add(
                 new SaleAdvertisement(
                     Title: title,
-                    Seller: seller,
+                    Seller: seller.ToLower(),
                     Date: DateTime.Parse(pubDate).ToUniversalTime(),
                     Link: new Uri(link),
                     Items: items,
