@@ -16,7 +16,7 @@
             name += ", NEW";
         }
 
-        if (model.Product.ProductMeasurementIds.Count > 0)
+        if (model.Product.Measurements.Count > 0)
         {
             name += ", uTracer3+ TESTED";
         }
@@ -38,7 +38,7 @@
 
 <h3>Thank you for choosing us! Check out our other lots.</h3>
 
-@if (Model.Product.ProductMeasurementIds.Count > 0)
+@if (Model.Product.Measurements.Count > 0)
 {
     <br/>
     <h2 style="text-align: center;">📈 Tested Vacuum Tube — Measurement Results Below</h2>
@@ -76,13 +76,15 @@
     <table >
         <tr>
             <th>Measurement #</th>
+            <th>Code or date</th>
             <th>Curves</th>
         </tr>
-        @foreach (var id in Model.Product.ProductMeasurementIds)
+        @foreach (var meas in Model.Product.Measurements)
         {
             <tr>
-                <td>@id</td>
-                <td><img src="@($"{baseUrl}/m/{id}/ebay_curves")" alt="@id"/></td>
+                <td>@meas.MeasurementId</td>
+                <td>@meas.ManufactureCode</td>
+                <td><img src="@($"{baseUrl}/m/{meas.MeasurementId}/ebay_curves")" alt="@meas.MeasurementId"/></td>
             </tr>
         }
     </table>
