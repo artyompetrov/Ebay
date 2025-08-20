@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using Server.Application.Data;
 using Server.Application.Data.Models;
 
@@ -10,11 +11,13 @@ public class DbCache
 {
     private readonly ApplicationDbContext _context;
     private readonly DatabaseConcurrentAccessSemaphore _semaphore;
+    private readonly string _version;
 
     public DbCache(ApplicationDbContext context, DatabaseConcurrentAccessSemaphore semaphore)
     {
         _context = context;
         _semaphore = semaphore;
+        _version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0";
     }
 
     public async Task<T?> GetOrCreateAsync<T>(
@@ -27,10 +30,8 @@ public class DbCache
         await _semaphore.Semaphore.WaitAsync(cancellationToken);
         try
         {
-            var keyWithVersion = $"{key}_{Assembly.GetExecutingAssembly().GetName().Version}";
-
             var entry = await _context.Set<CacheEntry>()
-                .FirstOrDefaultAsync(x => x.Key == keyWithVersion);
+                .FirstOrDefaultAsync(x => x.Key == key && x.Version == _version, cancellationToken);
 
             if (entry is not null && entry.ExpiresAt > DateTime.UtcNow)
             {
@@ -47,7 +48,7 @@ public class DbCache
 
             if (entry is null)
             {
-                _context.Add(new CacheEntry { Key = keyWithVersion, Value = json, ExpiresAt = expiresAt });
+                _context.Add(new CacheEntry { Key = key, Version = _version, Value = json, ExpiresAt = expiresAt });
             }
             else
             {
@@ -56,12 +57,19 @@ public class DbCache
                 _context.Update(entry);
             }
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
             return value;
         }
         finally
         {
             _semaphore.Semaphore.Release();
         }
+    }
+
+    public Task RemoveOldVersionsAsync(CancellationToken cancellationToken)
+    {
+        return _context.Set<CacheEntry>()
+            .Where(x => x.Version != _version)
+            .ExecuteDeleteAsync(cancellationToken);
     }
 }

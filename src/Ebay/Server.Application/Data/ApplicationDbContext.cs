@@ -56,6 +56,11 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
             entity.Property(e => e.IsAmbiguous).HasDefaultValue(false);
         });
 
+        modelBuilder.Entity<CacheEntry>(entity =>
+        {
+            entity.HasKey(e => new { e.Key, e.Version });
+        });
+
         modelBuilder.Entity<ProductMeasurement>()
             .Property(p => p.CreatedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
