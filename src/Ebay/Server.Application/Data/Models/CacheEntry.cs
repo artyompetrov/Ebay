@@ -4,9 +4,12 @@ namespace Server.Application.Data.Models;
 
 public class CacheEntry
 {
-    [Key]
     [MaxLength(500)]
     public string Key { get; set; } = null!;
+
+    [MaxLength(50)]
+    [Required]
+    public string Version { get; set; } = null!;
 
     [Required]
     public string Value { get; set; } = null!;

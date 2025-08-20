@@ -1,6 +1,7 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading;
 using Server.Application.Consumers;
 using Server.Application.Controllers;
 using Server.Application.Data;
@@ -91,11 +92,12 @@ public static class ServiceCollectionExtensions
     public static void InitializeApplication(this IServiceProvider serviceProvider)
     {
         // Migrate DB
-        using (var scope = serviceProvider.CreateScope())
-        {
-            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            dbContext.Database.Migrate();
-        }
+        using var scope = serviceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        dbContext.Database.Migrate();
+
+        var dbCache = scope.ServiceProvider.GetRequiredService<DbCache>();
+        dbCache.RemoveOldVersionsAsync(CancellationToken.None).GetAwaiter().GetResult();
     }
 
 }
