@@ -84,7 +84,6 @@ public static class ServiceCollectionExtensions
         services.AddControllersWithViews(options =>
             {
                 options.Filters.Add<ErrorFilter>();
-                options.Conventions.Add(new ProductPassportAllowAnonymousConvention());
             })
             .AddApplicationPart(appAssembly)
             .AddNewtonsoftJson();

@@ -22,7 +22,6 @@ using ProductWithoutId = Server.Controllers.Generated.ProductWithoutId;
 using SaleAdvertisement = Server.Controllers.Generated.SaleAdvertisement;
 using ProductPassportInfo = Server.Controllers.Generated.ProductPassportInfo;
 using ProductPassportUpload = Server.Controllers.Generated.ProductPassportUpload;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Server.Application.Controllers;
 
@@ -83,28 +82,6 @@ public class EbayControllerImplementation : IEbayController
 
         await _applicationContext.ProductPassports.AddAsync(entity, cancellationToken);
         await _applicationContext.SaveChangesAsync(cancellationToken);
-    }
-
-    public async Task<FileResult> GetProductPassportAsync(
-        Guid productId,
-        Guid passportId,
-        CancellationToken cancellationToken)
-    {
-        var passport = await _applicationContext.ProductPassports
-            .AsNoTracking()
-            .SingleOrDefaultAsync(
-                predicate: x => x.ProductId == productId && x.Id == passportId,
-                cancellationToken: cancellationToken);
-
-        if (passport == null)
-        {
-            throw NonOkHttpAnswerException.NotFound400();
-        }
-
-        return new FileContentResult(passport.Content, passport.ContentType)
-        {
-            FileDownloadName = passport.FileName
-        };
     }
 
     public async Task DeleteProductPassportAsync(

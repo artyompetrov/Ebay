@@ -275,16 +275,6 @@ paths:
         required: true
         type: string
         format: guid
-    get:
-      operationId: GetProductPassport
-      produces:
-        - application/octet-stream
-      responses:
-        200:
-          description: Ok
-          schema:
-            type: string
-            format: binary
     delete:
       operationId: DeleteProductPassport
       responses:
