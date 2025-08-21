@@ -20,6 +20,9 @@ using MeasurementState = Server.Controllers.Generated.MeasurementState;
 using ProductWithId = Server.Controllers.Generated.ProductWithId;
 using ProductWithoutId = Server.Controllers.Generated.ProductWithoutId;
 using SaleAdvertisement = Server.Controllers.Generated.SaleAdvertisement;
+using ProductPassportInfo = Server.Controllers.Generated.ProductPassportInfo;
+using ProductPassportUpload = Server.Controllers.Generated.ProductPassportUpload;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Server.Application.Controllers;
 
@@ -43,6 +46,65 @@ public class EbayControllerImplementation : IEbayController
         _shippingRatesService = shippingRatesService;
         _measurementService = measurementService;
         _matchedMeasurementService = matchedMeasurementService;
+    }
+
+    public async Task<ICollection<ProductPassportInfo>> GetProductPassportsAsync(
+        Guid productId,
+        CancellationToken cancellationToken)
+    {
+        return await _applicationContext.ProductPassports
+            .AsNoTracking()
+            .Where(x => x.ProductId == productId)
+            .OrderBy(x => x.Order)
+            .Select(x => new ProductPassportInfo(x.FileName, x.Id, x.Order))
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task UploadProductPassportAsync(
+        ProductPassportUpload passport,
+        Guid productId,
+        CancellationToken cancellationToken)
+    {
+        var order = passport.Order ??
+            ((await _applicationContext.ProductPassports
+                .Where(x => x.ProductId == productId)
+                .Select(x => (int?)x.Order)
+                .MaxAsync(cancellationToken)) ?? -1) + 1;
+
+        var entity = new ProductPassport
+        {
+            Id = Guid.NewGuid(),
+            ProductId = productId,
+            FileName = passport.FileName,
+            ContentType = passport.ContentType,
+            Order = order,
+            Content = passport.File
+        };
+
+        await _applicationContext.ProductPassports.AddAsync(entity, cancellationToken);
+        await _applicationContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<FileResult> GetProductPassportAsync(
+        Guid productId,
+        Guid passportId,
+        CancellationToken cancellationToken)
+    {
+        var passport = await _applicationContext.ProductPassports
+            .AsNoTracking()
+            .SingleOrDefaultAsync(
+                predicate: x => x.ProductId == productId && x.Id == passportId,
+                cancellationToken: cancellationToken);
+
+        if (passport == null)
+        {
+            throw NonOkHttpAnswerException.NotFound400();
+        }
+
+        return new FileContentResult(passport.Content, passport.ContentType)
+        {
+            FileDownloadName = passport.FileName
+        };
     }
 
     public async Task<ICollection<ProductWithId>> GetAllProductsAsync(CancellationToken cancellationToken)

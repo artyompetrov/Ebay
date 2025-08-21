@@ -235,6 +235,57 @@ paths:
           200:
             description: Ok
 
+  /products/{productId}/passports/:
+    parameters:
+      - name: productId
+        in: path
+        required: true
+        type: string
+        format: guid
+    get:
+      operationId: GetProductPassports
+      responses:
+        200:
+          description: Ok
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ProductPassportInfo'
+    post:
+      operationId: UploadProductPassport
+      parameters:
+        - name: passport
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ProductPassportUpload'
+      responses:
+        200:
+          description: Ok
+
+  /products/{productId}/passports/{passportId}/:
+    parameters:
+      - name: productId
+        in: path
+        required: true
+        type: string
+        format: guid
+      - name: passportId
+        in: path
+        required: true
+        type: string
+        format: guid
+    get:
+      operationId: GetProductPassport
+      produces:
+        - application/octet-stream
+      responses:
+        200:
+          description: Ok
+          schema:
+            type: string
+            format: binary
+
   /products/{productId}/measurements/:
     parameters:
       - name: productId
@@ -687,6 +738,38 @@ definitions:
       - measurementId
       - manufactureCode
       - productState
+      - file
+
+  ProductPassportInfo:
+    type: object
+    properties:
+      id:
+        type: string
+        format: guid
+      fileName:
+        type: string
+      order:
+        type: integer
+    required:
+      - id
+      - fileName
+      - order
+
+  ProductPassportUpload:
+    type: object
+    properties:
+      fileName:
+        type: string
+      contentType:
+        type: string
+      order:
+        type: integer
+      file:
+        type: string
+        format: binary
+    required:
+      - fileName
+      - contentType
       - file
 
   FindMatchParameters:
