@@ -217,10 +217,7 @@ class SearchSitesProcessor implements ISiteProcessor {
         if (!product) return '';
 
         const ruNames = product.product.ruSearchQueries?.map(q => q.query) ?? [];
-        const searchNamesEscaped = [product.product.name, ...ruNames]
-            .join(', ')
-            .replace(/&/g, '&amp;')
-            .replace(/"/g, '&quot;');
+        const searchNamesEscaped = utils.escapeHtml([product.product.name, ...ruNames].join(', '));
 
         // Формируем заголовок с именем продукта
         const productHeader = `

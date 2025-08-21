@@ -78,6 +78,16 @@ export function redirectWithoutReferer(url: string) {
     window.open(url, '_self', 'noopener,noreferrer');
 }
 
+export function escapeHtml(str: string): string {
+    return str.replace(/[&<>"']/g, (match) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    }[match] as string));
+}
+
 
 // Вспомогательная функция для проверки соответствия регулярному выражению
 export function matchesAnyRegex(regexSet: RegExp[], value: string): boolean {
