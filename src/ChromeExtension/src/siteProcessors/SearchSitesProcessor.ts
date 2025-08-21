@@ -223,7 +223,7 @@ class SearchSitesProcessor implements ISiteProcessor {
         const productHeader = `
         <strong style="font-size: 16px; color: #0000aa;">
             <a href="${constants.Urls.backendUrl}Product/${product.product.id}" target="_blank" style="color: #0000aa; text-decoration: none; border-bottom: 1px dotted #0000aa;" title="${searchNamesEscaped}" alt="${searchNamesEscaped}">
-                ${product.product.name}
+                ${utils.escapeHtml(product.product.name)}
             </a>
         </strong>
     `;
