@@ -216,10 +216,16 @@ class SearchSitesProcessor implements ISiteProcessor {
     generateProductHtml(product: ProductWithRegex): string {
         if (!product) return '';
 
+        const ruNames = product.product.ruSearchQueries?.map(q => q.query) ?? [];
+        const searchNamesEscaped = [product.product.name, ...ruNames]
+            .join(', ')
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;');
+
         // Формируем заголовок с именем продукта
         const productHeader = `
         <strong style="font-size: 16px; color: #0000aa;">
-            <a href="${constants.Urls.backendUrl}LotSales/${product.product.id}" target="_blank" style="color: #0000aa; text-decoration: none; border-bottom: 1px dotted #0000aa;">
+            <a href="${constants.Urls.backendUrl}Product/${product.product.id}" target="_blank" style="color: #0000aa; text-decoration: none; border-bottom: 1px dotted #0000aa;" title="${searchNamesEscaped}" alt="${searchNamesEscaped}">
                 ${product.product.name}
             </a>
         </strong>
