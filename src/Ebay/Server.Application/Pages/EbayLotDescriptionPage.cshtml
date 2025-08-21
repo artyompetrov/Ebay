@@ -96,9 +96,9 @@
     <input type="checkbox" id="passport-toggle" class="passport-toggle" />
     <label for="passport-toggle" class="passport-label">📄 Product passport (click to expand)</label>
     <div class="passport-content">
-        @foreach (var passport in Model.Product.Passports.OrderBy(p => p.Order))
+        @foreach (var passport in Model.Product.Passports)
         {
-            <img src="@($"{baseUrl}/api/ebay/v1/products/{Model.ProductId}/passports/{passport.Id}")" alt="@passport.FileName" />
+            <img src="@($"{baseUrl}/products/{Model.ProductId}/passports/{passport.Id}")" alt="@passport.FileName" />
         }
     </div>
     <style>

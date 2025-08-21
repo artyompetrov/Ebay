@@ -81,7 +81,7 @@
                 <h2 style="text-align: center">Passport:</h2>
                 @foreach (var passport in Model.Product.Passports.OrderBy(x => x.Order))
                 {
-                    <img src="/api/ebay/v1/products/@Model.Product.Id/passports/@passport.Id" alt="@passport.FileName" />
+                    <img src="/products/@Model.Product.Id/passports/@passport.Id" alt="@passport.FileName" />
                 }
             </td>
         </tr>

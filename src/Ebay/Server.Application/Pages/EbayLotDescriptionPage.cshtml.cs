@@ -36,8 +36,7 @@ public class EbayLotDescriptionPage : PageModel
 
     public record PassportDto(
         Guid Id,
-        string FileName,
-        int Order
+        string FileName
     );
 
     public async Task<IActionResult> OnGet(Guid productId, ProductState state, CancellationToken cancellationToken)
@@ -55,7 +54,7 @@ public class EbayLotDescriptionPage : PageModel
                     .ToList(),
                 x.Passports
                     .OrderBy(p => p.Order)
-                    .Select(p => new PassportDto(p.Id, p.FileName, p.Order))
+                    .Select(p => new PassportDto(p.Id, p.FileName))
                     .ToList()
             ))
             .SingleOrDefaultAsync(cancellationToken);
