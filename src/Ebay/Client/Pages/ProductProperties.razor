@@ -8,9 +8,6 @@
 {
     <EditForm EditContext="@_editContext">
         @FormFields
-        <div class="mt-3">
-            <button class="btn btn-primary" @onclick="OnSave" type="button">Сохранить</button>
-        </div>
     </EditForm>
 }
 
@@ -203,73 +200,81 @@
 
     private string GetPassportUrl(Guid passportId) => $"{EbayClient.BaseUrl}products/{_id}/passports/{passportId}";
 
-    private RenderFragment FormFields => @<div>
-        <div class="form-group">
-            <label for="name">Название товара</label>
-            <InputText id="name" @bind-Value="_product!.Name" class="form-control" />
-            <ValidationMessage For="@(() => _product!.Name)" />
-        </div>
+    private RenderFragment FormFields => @<div class="row">
+        <div class="col-md-6 pe-4 border-end border-secondary">
+            <h4>Параметры</h4>
+            <div class="form-group">
+                <label for="name">Название товара</label>
+                <InputText id="name" @bind-Value="_product!.Name" class="form-control" />
+                <ValidationMessage For="@(() => _product!.Name)" />
+            </div>
 
-        <div class="form-group">
-            <label for="weight">Вес без упаковки (грамм)</label>
-            <InputNumber id="weight" @bind-Value="_product!.Weight" class="form-control" />
-            <ValidationMessage For="@(() => _product!.Weight)" />
+            <div class="form-group">
+                <label for="weight">Вес без упаковки (грамм)</label>
+                <InputNumber id="weight" @bind-Value="_product!.Weight" class="form-control" />
+                <ValidationMessage For="@(() => _product!.Weight)" />
+            </div>
+            <hr />
+            @{
+                var ruSearchQueryNumber = 1;
+            }
+            @foreach (var query in _product!.RuSearchQueries)
+            {
+                <div class="form-group">
+                    <label for="@($"ruSearchQuery_{ruSearchQueryNumber}")">Дополнительное имя</label>
+                    <InputText id="@($"ruSearchQuery_{ruSearchQueryNumber}")" @bind-Value="query.Query" class="form-control" />
+                    @if (ruSearchQueryNumber > 0)
+                    {
+                        <button class="btn btn-primary btn-sm" @onclick="() => RemoveRuSearchQuery(query)">Удалить</button>
+                    }
+                </div>
+                ruSearchQueryNumber++;
+            }
+            <br />
+            <button class="btn btn-primary btn-sm" @onclick="AddRuSearchQuery">Добавить дополнительное имя</button>
+            <hr />
+            @{
+                var searchQueryNumber = 1;
+            }
+            @foreach (var query in _product!.SearchQueries)
+            {
+                <div class="form-group">
+                    <label for="@($"searchQuery_{searchQueryNumber}")">Поисковый запрос ebay</label>
+                    <InputText id="@($"searchQuery_{searchQueryNumber}")" @bind-Value="query.Query" class="form-control" />
+                    @if (searchQueryNumber > 1)
+                    {
+                        <button class="btn btn-primary btn-sm" @onclick="() => RemoveSearchQuery(query)">Удалить</button>
+                    }
+                </div>
+                searchQueryNumber++;
+            }
+            <br />
+            <button class="btn btn-primary btn-sm" @onclick="AddSearchQuery">Добавить поисковый запрос ebay</button>
+            <hr />
+            <div class="mt-3">
+                <button class="btn btn-primary" @onclick="OnSave" type="button">Сохранить</button>
+            </div>
         </div>
-        <hr />
-        @{
-            var ruSearchQueryNumber = 1;
-        }
-        @foreach (var query in _product!.RuSearchQueries)
-        {
+        <div class="col-md-6 ps-4">
+            <h4>Паспорта</h4>
             <div class="form-group">
-                <label for="@($"ruSearchQuery_{ruSearchQueryNumber}")">Дополнительное имя</label>
-                <InputText id="@($"ruSearchQuery_{ruSearchQueryNumber}")" @bind-Value="query.Query" class="form-control" />
-                @if (ruSearchQueryNumber > 0)
-                {
-                    <button class="btn btn-primary btn-sm" @onclick="() => RemoveRuSearchQuery(query)">Удалить</button>
+                @{
+                    var minOrder = _passports.Count > 0 ? _passports.Min(p => p.Order) : 0;
+                    var maxOrder = _passports.Count > 0 ? _passports.Max(p => p.Order) : 0;
                 }
+                <div>
+                    @foreach (var passport in _passports.OrderBy(p => p.Order))
+                    {
+                        <div class="mb-1">
+                            <a href="@GetPassportUrl(passport.Id)" target="_blank">@passport.FileName</a>
+                            <button class="btn btn-primary btn-sm ms-2" @onclick="() => MovePassport(passport, -1)" disabled="@(passport.Order == minOrder)">↑</button>
+                            <button class="btn btn-primary btn-sm ms-1" @onclick="() => MovePassport(passport, 1)" disabled="@(passport.Order == maxOrder)">↓</button>
+                            <button class="btn btn-danger btn-sm ms-1" @onclick="() => DeletePassport(passport.Id)">Удалить</button>
+                        </div>
+                    }
+                </div>
+                <InputFile OnChange="OnPassportSelected" multiple accept="image/*" />
             </div>
-            ruSearchQueryNumber++;
-        }
-        <br />
-        <button class="btn btn-primary btn-sm" @onclick="AddRuSearchQuery">Добавить дополнительное имя</button>
-        <hr />
-        @{
-            var searchQueryNumber = 1;
-        }
-        @foreach (var query in _product!.SearchQueries)
-        {
-            <div class="form-group">
-                <label for="@($"searchQuery_{searchQueryNumber}")">Поисковый запрос ebay</label>
-                <InputText id="@($"searchQuery_{searchQueryNumber}")" @bind-Value="query.Query" class="form-control" />
-                @if (searchQueryNumber > 1)
-                {
-                    <button class="btn btn-primary btn-sm" @onclick="() => RemoveSearchQuery(query)">Удалить</button>
-                }
-            </div>
-            searchQueryNumber++;
-        }
-        <br />
-        <button class="btn btn-primary btn-sm" @onclick="AddSearchQuery">Добавить поисковый запрос ebay</button>
-        <hr />
-        @{
-            var minOrder = _passports.Count > 0 ? _passports.Min(p => p.Order) : 0;
-            var maxOrder = _passports.Count > 0 ? _passports.Max(p => p.Order) : 0;
-        }
-        <div class="form-group">
-            <label>Паспорта</label>
-            <div>
-                @foreach (var passport in _passports.OrderBy(p => p.Order))
-                {
-                    <div class="mb-1">
-                        <a href="@GetPassportUrl(passport.Id)" target="_blank">@passport.FileName</a>
-                        <button class="btn btn-primary btn-sm ms-2" @onclick="() => MovePassport(passport, -1)" disabled="@(passport.Order == minOrder)">↑</button>
-                        <button class="btn btn-primary btn-sm ms-1" @onclick="() => MovePassport(passport, 1)" disabled="@(passport.Order == maxOrder)">↓</button>
-                        <button class="btn btn-danger btn-sm ms-1" @onclick="() => DeletePassport(passport.Id)">Удалить</button>
-                    </div>
-                }
-            </div>
-            <InputFile OnChange="OnPassportSelected" multiple accept="image/*" />
         </div>
     </div>;
 }
