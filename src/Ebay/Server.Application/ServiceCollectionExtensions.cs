@@ -81,7 +81,10 @@ public static class ServiceCollectionExtensions
         });
         services.AddDatabaseDeveloperPageExceptionFilter();
 
-        services.AddControllersWithViews(option => { option.Filters.Add<ErrorFilter>(); })
+        services.AddControllersWithViews(options =>
+            {
+                options.Filters.Add<ErrorFilter>();
+            })
             .AddApplicationPart(appAssembly)
             .AddNewtonsoftJson();
 

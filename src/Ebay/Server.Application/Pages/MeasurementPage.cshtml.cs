@@ -33,6 +33,7 @@ public class MeasurementPage : PageModel
         var product = await _applicationContext.Products
             .AsNoTracking()
             .Include(x => x.SearchQueries)
+            .Include(x => x.Passports)
             .SingleOrDefaultAsync(x => x.Id == measurementData.ProductId);
 
         if (product == null)

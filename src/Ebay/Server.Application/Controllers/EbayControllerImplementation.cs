@@ -20,6 +20,8 @@ using MeasurementState = Server.Controllers.Generated.MeasurementState;
 using ProductWithId = Server.Controllers.Generated.ProductWithId;
 using ProductWithoutId = Server.Controllers.Generated.ProductWithoutId;
 using SaleAdvertisement = Server.Controllers.Generated.SaleAdvertisement;
+using ProductPassportInfo = Server.Controllers.Generated.ProductPassportInfo;
+using ProductPassportUpload = Server.Controllers.Generated.ProductPassportUpload;
 
 namespace Server.Application.Controllers;
 
@@ -43,6 +45,117 @@ public class EbayControllerImplementation : IEbayController
         _shippingRatesService = shippingRatesService;
         _measurementService = measurementService;
         _matchedMeasurementService = matchedMeasurementService;
+    }
+
+    public async Task<ICollection<ProductPassportInfo>> GetProductPassportsAsync(
+        Guid productId,
+        CancellationToken cancellationToken)
+    {
+        return await _applicationContext.ProductPassports
+            .AsNoTracking()
+            .Where(x => x.ProductId == productId)
+            .OrderBy(x => x.Order)
+            .Select(x => new ProductPassportInfo(x.FileName, x.Id, x.Order))
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task UploadProductPassportAsync(
+        ProductPassportUpload passport,
+        Guid productId,
+        CancellationToken cancellationToken)
+    {
+        var order = passport.Order ??
+            ((await _applicationContext.ProductPassports
+                .Where(x => x.ProductId == productId)
+                .Select(x => (int?)x.Order)
+                .MaxAsync(cancellationToken)) ?? -1) + 1;
+
+        var entity = new ProductPassport
+        {
+            Id = Guid.NewGuid(),
+            ProductId = productId,
+            FileName = passport.FileName,
+            ContentType = passport.ContentType,
+            Order = order,
+            Content = passport.File
+        };
+
+        await _applicationContext.ProductPassports.AddAsync(entity, cancellationToken);
+        await _applicationContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task DeleteProductPassportAsync(
+        Guid productId,
+        Guid passportId,
+        CancellationToken cancellationToken)
+    {
+        var passport = await _applicationContext.ProductPassports
+            .SingleOrDefaultAsync(x => x.ProductId == productId && x.Id == passportId, cancellationToken);
+
+        if (passport == null)
+        {
+            throw NonOkHttpAnswerException.NotFound400();
+        }
+
+        var order = passport.Order;
+
+        _applicationContext.ProductPassports.Remove(passport);
+
+        var passportsToUpdate = await _applicationContext.ProductPassports
+            .Where(x => x.ProductId == productId && x.Order > order)
+            .ToListAsync(cancellationToken);
+
+        foreach (var p in passportsToUpdate)
+        {
+            p.Order--;
+        }
+
+        await _applicationContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task UpdateProductPassportAsync(
+        ProductPassportUpdate passport,
+        Guid productId,
+        Guid passportId,
+        CancellationToken cancellationToken)
+    {
+        var entity = await _applicationContext.ProductPassports
+            .SingleOrDefaultAsync(x => x.ProductId == productId && x.Id == passportId, cancellationToken);
+
+        if (entity == null)
+        {
+            throw NonOkHttpAnswerException.NotFound400();
+        }
+
+        if (entity.Order == passport.Order)
+        {
+            return;
+        }
+
+        var minOrder = Math.Min(entity.Order, passport.Order);
+        var maxOrder = Math.Max(entity.Order, passport.Order);
+
+        var affected = await _applicationContext.ProductPassports
+            .Where(x => x.ProductId == productId && x.Id != passportId && x.Order >= minOrder && x.Order <= maxOrder)
+            .ToListAsync(cancellationToken);
+
+        if (passport.Order < entity.Order)
+        {
+            foreach (var p in affected)
+            {
+                p.Order++;
+            }
+        }
+        else
+        {
+            foreach (var p in affected)
+            {
+                p.Order--;
+            }
+        }
+
+        entity.Order = passport.Order;
+        await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<ICollection<ProductWithId>> GetAllProductsAsync(CancellationToken cancellationToken)

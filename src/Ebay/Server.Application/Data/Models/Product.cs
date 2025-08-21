@@ -24,5 +24,7 @@ public sealed class Product
 
     public List<ProductMeasurement> ProductMeasurements { get; set; } = null!;
 
+    public List<ProductPassport> Passports { get; set; } = null!;
+
     public ProductCalculationResult? ProductCalculationResult { get; set; }
 }

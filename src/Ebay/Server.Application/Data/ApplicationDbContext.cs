@@ -67,6 +67,11 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
 
         modelBuilder.Entity<ProductMeasurement>()
             .HasIndex(p => p.CreatedAt);
+
+        modelBuilder.Entity<ProductPassport>(entity =>
+        {
+            entity.HasIndex(e => new { e.ProductId, e.Order });
+        });
     }
 
     public ApplicationDbContext(
@@ -91,6 +96,8 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
     public DbSet<ClientError> ClientErrors { get; set; } = null!;
 
     public DbSet<ProductMeasurement> ProductMeasurements { get; set; } = null!;
+
+    public DbSet<ProductPassport> ProductPassports { get; set; } = null!;
 
     public DbSet<Currency> Currencies { get; set; } = null!;
 

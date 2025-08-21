@@ -1,5 +1,6 @@
 ﻿@page "/m/{measurementId}"
 @model Server.Application.Pages.MeasurementPage
+@using System.Linq
 
 @{
     Layout = null;
@@ -73,6 +74,18 @@
             <img src="/m/@Model.Measurement.MeasurementId/curves?height=600&width=1200" alt="Curves">
         </td>
     </tr>
+    @if (Model.Product.Passports.Any())
+    {
+        <tr>
+            <td>
+                <h2 style="text-align: center">Passport:</h2>
+                @foreach (var passport in Model.Product.Passports.OrderBy(x => x.Order))
+                {
+                    <img src="/products/@Model.Product.Id/passports/@passport.Id" alt="@passport.FileName" />
+                }
+            </td>
+        </tr>
+    }
 </table>
 @await Html.PartialAsync("_Metrics")
 </body>
