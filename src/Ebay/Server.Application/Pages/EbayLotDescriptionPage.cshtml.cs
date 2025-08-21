@@ -21,19 +21,29 @@ public class EbayLotDescriptionPage : PageModel
 
     public ProductState State { get; set; }
 
+    public Guid ProductId { get; set; }
+
     public record ProductWithMeasurementsDto(
         List<string> SearchQueries,
-        List<MeasurementIdWithManufactureCode> Measurements
+        List<MeasurementIdWithManufactureCode> Measurements,
+        List<PassportDto> Passports
     );
-    
+
     public record MeasurementIdWithManufactureCode(
         string MeasurementId,
         string ManufactureCode
     );
-    
+
+    public record PassportDto(
+        Guid Id,
+        string FileName,
+        int Order
+    );
+
     public async Task<IActionResult> OnGet(Guid productId, ProductState state, CancellationToken cancellationToken)
     {
         State = state;
+        ProductId = productId;
 
         var product = await _applicationContext.Products
             .Where(x => x.Id == productId)
@@ -42,6 +52,10 @@ public class EbayLotDescriptionPage : PageModel
                 x.ProductMeasurements
                     .Where(pm => pm.MeasurementState == MeasurementState.Selling && pm.ProductState == state)
                     .Select(m => new MeasurementIdWithManufactureCode(m.Id, m.ManufactureCode))
+                    .ToList(),
+                x.Passports
+                    .OrderBy(p => p.Order)
+                    .Select(p => new PassportDto(p.Id, p.FileName, p.Order))
                     .ToList()
             ))
             .SingleOrDefaultAsync(cancellationToken);

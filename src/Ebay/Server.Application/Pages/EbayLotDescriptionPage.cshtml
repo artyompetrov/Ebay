@@ -89,3 +89,22 @@
         }
     </table>
 }
+
+@if (Model.Product.Passports.Count > 0)
+{
+    <p>You can view the passport scans by expanding the section below.</p>
+    <input type="checkbox" id="passport-toggle" class="passport-toggle" />
+    <label for="passport-toggle" class="passport-label">📄 Product passport (click to expand)</label>
+    <div class="passport-content">
+        @foreach (var passport in Model.Product.Passports.OrderBy(p => p.Order))
+        {
+            <img src="@($"{baseUrl}/api/ebay/v1/products/{Model.ProductId}/passports/{passport.Id}")" alt="@passport.FileName" />
+        }
+    </div>
+    <style>
+        .passport-toggle { display: none; }
+        .passport-label { cursor: pointer; color: #0063d1; text-decoration: underline; }
+        .passport-toggle:not(:checked) + .passport-label + .passport-content { display: none; }
+        .passport-content img { max-width: 100%; height: auto; display: block; margin: 10px auto; }
+    </style>
+}
