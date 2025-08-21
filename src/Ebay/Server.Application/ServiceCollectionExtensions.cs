@@ -1,6 +1,7 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 using Server.Application.Consumers;
 using Server.Application.Controllers;
 using Server.Application.Data;
@@ -26,7 +27,7 @@ public static class ServiceCollectionExtensions
         var appAssembly = typeof(ServiceCollectionExtensions).Assembly;
 
         services.AddSingleton(options);
-        services.AddNpgsqlDataSource(connectionString);
+        services.AddNpgsqlDataSource(connectionString, b => b.UseTelemetry());
         services.AddDbContext<ApplicationDbContext>(o => o.UseNpgsql());
         services.AddSingleton<ShippingRatesService>();
         services.AddSingleton(new DatabaseConcurrentAccessSemaphore(

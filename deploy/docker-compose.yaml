@@ -75,6 +75,7 @@ services:
       - "443:443"
       - "9443:9443"
       - "8443:8443"
+      - "16686:16686"
     volumes:
       - ./mount/nginx/logs/:/var/log/nginx/
       - ./mount/nginx/certs/:/etc/letsencrypt/
@@ -114,6 +115,13 @@ services:
       timeout: 2s
       retries: 10
 
+  ebay_jaeger:
+    container_name: ebay_jaeger
+    image: jaegertracing/all-in-one:1.59
+    networks:
+      - internal_network
+    restart: unless-stopped
+
   ebay_otelcollector:
     image: otel/opentelemetry-collector-contrib:0.117.0
     container_name: ebay_otelcollector
@@ -122,6 +130,7 @@ services:
     restart: unless-stopped
     depends_on:
       - ebay_loki
+      - ebay_jaeger
     volumes:
       - ./config/otelcollector/config.yaml:/etc/otelcol-contrib/config.yaml:ro
 

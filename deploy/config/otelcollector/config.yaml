@@ -33,6 +33,8 @@ processors:
 exporters:
   otlphttp/loki:
     endpoint: http://ebay_loki:3100/otlp
+  otlphttp/jaeger:
+    endpoint: http://ebay_jaeger:4318
   debug:
     verbosity: detailed
 
@@ -42,3 +44,7 @@ service:
       receivers: [otlp]
       processors: [transform, batch]
       exporters: [debug, otlphttp/loki]
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug, otlphttp/jaeger]

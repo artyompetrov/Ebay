@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.IdentityModel.Logging;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Server;
 using Server.Adapters.ChipFind;
 using Server.Adapters.Smtp;
@@ -87,6 +88,16 @@ builder.Logging.AddOpenTelemetry(o =>
     o.ParseStateValues = true;
     o.AddOtlpExporter();
 });
+
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(r => r.AddService(builder.Environment.ApplicationName))
+    .WithTracing(t =>
+    {
+        t.AddAspNetCoreInstrumentation();
+        t.AddHttpClientInstrumentation();
+        t.AddNpgsql();
+        t.AddOtlpExporter();
+    });
 
 builder.Services.AddResponseCaching();
 
