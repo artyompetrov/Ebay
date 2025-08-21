@@ -176,6 +176,9 @@ server {
     ssl_session_timeout 30m;
     ssl_protocols TLSv1.2 TLSv1.3;
 
+    auth_basic "Restricted";
+    auth_basic_user_file /etc/nginx/jaeger.htpasswd;
+
     location / {
         proxy_pass         http://ebayjaeger;
         proxy_http_version 1.1;

@@ -79,6 +79,7 @@ services:
     volumes:
       - ./mount/nginx/logs/:/var/log/nginx/
       - ./mount/nginx/certs/:/etc/letsencrypt/
+      - ./config/nginx/jaeger.htpasswd:/etc/nginx/jaeger.htpasswd:ro
     environment:
       - DOMAIN=${DOMAIN}
       - SELF_SIGNED_CERTIFICATE=${LOCAL_RUN}
