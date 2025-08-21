@@ -107,6 +107,80 @@ public class EbayControllerImplementation : IEbayController
         };
     }
 
+    public async Task DeleteProductPassportAsync(
+        Guid productId,
+        Guid passportId,
+        CancellationToken cancellationToken)
+    {
+        var passport = await _applicationContext.ProductPassports
+            .SingleOrDefaultAsync(x => x.ProductId == productId && x.Id == passportId, cancellationToken);
+
+        if (passport == null)
+        {
+            throw NonOkHttpAnswerException.NotFound400();
+        }
+
+        var order = passport.Order;
+
+        _applicationContext.ProductPassports.Remove(passport);
+
+        var passportsToUpdate = await _applicationContext.ProductPassports
+            .Where(x => x.ProductId == productId && x.Order > order)
+            .ToListAsync(cancellationToken);
+
+        foreach (var p in passportsToUpdate)
+        {
+            p.Order--;
+        }
+
+        await _applicationContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task UpdateProductPassportAsync(
+        ProductPassportUpdate passport,
+        Guid productId,
+        Guid passportId,
+        CancellationToken cancellationToken)
+    {
+        var entity = await _applicationContext.ProductPassports
+            .SingleOrDefaultAsync(x => x.ProductId == productId && x.Id == passportId, cancellationToken);
+
+        if (entity == null)
+        {
+            throw NonOkHttpAnswerException.NotFound400();
+        }
+
+        if (entity.Order == passport.Order)
+        {
+            return;
+        }
+
+        var minOrder = Math.Min(entity.Order, passport.Order);
+        var maxOrder = Math.Max(entity.Order, passport.Order);
+
+        var affected = await _applicationContext.ProductPassports
+            .Where(x => x.ProductId == productId && x.Id != passportId && x.Order >= minOrder && x.Order <= maxOrder)
+            .ToListAsync(cancellationToken);
+
+        if (passport.Order < entity.Order)
+        {
+            foreach (var p in affected)
+            {
+                p.Order++;
+            }
+        }
+        else
+        {
+            foreach (var p in affected)
+            {
+                p.Order--;
+            }
+        }
+
+        entity.Order = passport.Order;
+        await _applicationContext.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task<ICollection<ProductWithId>> GetAllProductsAsync(CancellationToken cancellationToken)
 
     {

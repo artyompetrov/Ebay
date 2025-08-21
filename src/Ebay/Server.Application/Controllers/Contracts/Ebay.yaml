@@ -285,6 +285,22 @@ paths:
           schema:
             type: string
             format: binary
+    delete:
+      operationId: DeleteProductPassport
+      responses:
+        200:
+          description: Ok
+    put:
+      operationId: UpdateProductPassport
+      parameters:
+        - name: passport
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ProductPassportUpdate'
+      responses:
+        200:
+          description: Ok
 
   /products/{productId}/measurements/:
     parameters:
@@ -771,6 +787,14 @@ definitions:
       - fileName
       - contentType
       - file
+
+  ProductPassportUpdate:
+    type: object
+    properties:
+      order:
+        type: integer
+    required:
+      - order
 
   FindMatchParameters:
     type: object

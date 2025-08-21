@@ -1,5 +1,7 @@
 @using Client.Extensions
 @using Client.Clients.Generated
+@using System.IO
+@using System.Linq
 @inject EbayClient EbayClient
 
 @if (_product != null)
@@ -20,6 +22,7 @@
     private string _oldName = null!;
     private EditContext _editContext = null!;
     private ValidationMessageStore _validationMessageStore = null!;
+    private List<ProductPassportInfo> _passports = new();
 
     [Parameter]
     [EditorRequired]
@@ -30,11 +33,11 @@
 
     public string? WindowHeader => _product != null ? GetWindowHeader() : null;
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
         if (Product != null && _id != Product.Id)
         {
-            StartEdit(Product);
+            await StartEditAsync(Product);
         }
     }
 
@@ -47,7 +50,7 @@
         StateHasChanged();
     }
 
-    private void StartEdit(ProductWithId product)
+    private async Task StartEditAsync(ProductWithId product)
     {
         _actionType = ActionType.Edit;
         _id = product.Id;
@@ -55,6 +58,7 @@
         _product = product.ToProductWithoutId();
         _editContext = new EditContext(_product);
         _validationMessageStore = new ValidationMessageStore(_editContext);
+        await LoadPassportsAsync();
         StateHasChanged();
     }
 
@@ -129,6 +133,76 @@
         _product.SearchQueries.Remove(query);
     }
 
+    private async Task LoadPassportsAsync()
+    {
+        if (_id == null)
+        {
+            _passports = new List<ProductPassportInfo>();
+            return;
+        }
+
+        var passports = await EbayClient.GetProductPassportsAsync(_id.Value);
+        _passports = passports.OrderBy(x => x.Order).ToList();
+    }
+
+    private async Task OnPassportSelected(InputFileChangeEventArgs e)
+    {
+        if (_id == null)
+            return;
+
+        foreach (var file in e.GetMultipleFiles())
+        {
+            await using var stream = file.OpenReadStream(long.MaxValue);
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+
+            await EbayClient.UploadProductPassportAsync(
+                new ProductPassportUpload
+                {
+                    File = ms.ToArray(),
+                    FileName = file.Name,
+                    ContentType = file.ContentType
+                },
+                _id.Value);
+        }
+
+        await LoadPassportsAsync();
+    }
+
+    private async Task DeletePassport(Guid passportId)
+    {
+        if (_id == null)
+            return;
+
+        await EbayClient.DeleteProductPassportAsync(_id.Value, passportId);
+        await LoadPassportsAsync();
+    }
+
+    private async Task MovePassport(ProductPassportInfo passport, int delta)
+    {
+        if (_id == null)
+            return;
+
+        var newOrder = passport.Order + delta;
+        var swap = _passports.FirstOrDefault(p => p.Order == newOrder);
+        if (swap != null)
+        {
+            await EbayClient.UpdateProductPassportAsync(
+                new ProductPassportUpdate { Order = passport.Order },
+                _id.Value,
+                swap.Id);
+        }
+
+        await EbayClient.UpdateProductPassportAsync(
+            new ProductPassportUpdate { Order = newOrder },
+            _id.Value,
+            passport.Id);
+
+        await LoadPassportsAsync();
+    }
+
+    private string GetPassportUrl(Guid passportId) => $"{EbayClient.BaseUrl}products/{_id}/passports/{passportId}";
+
     private RenderFragment FormFields => @<div>
         <div class="form-group">
             <label for="name">Название товара</label>
@@ -177,5 +251,25 @@
         }
         <br />
         <button class="btn btn-primary btn-sm" @onclick="AddSearchQuery">Добавить поисковый запрос ebay</button>
+        <hr />
+        @{
+            var minOrder = _passports.Count > 0 ? _passports.Min(p => p.Order) : 0;
+            var maxOrder = _passports.Count > 0 ? _passports.Max(p => p.Order) : 0;
+        }
+        <div class="form-group">
+            <label>Паспорта</label>
+            <div>
+                @foreach (var passport in _passports.OrderBy(p => p.Order))
+                {
+                    <div class="mb-1">
+                        <a href="@GetPassportUrl(passport.Id)" target="_blank">@passport.FileName</a>
+                        <button class="btn btn-primary btn-sm ms-2" @onclick="() => MovePassport(passport, -1)" disabled="@(passport.Order == minOrder)">↑</button>
+                        <button class="btn btn-primary btn-sm ms-1" @onclick="() => MovePassport(passport, 1)" disabled="@(passport.Order == maxOrder)">↓</button>
+                        <button class="btn btn-danger btn-sm ms-1" @onclick="() => DeletePassport(passport.Id)">Удалить</button>
+                    </div>
+                }
+            </div>
+            <InputFile OnChange="OnPassportSelected" multiple accept="image/*" />
+        </div>
     </div>;
 }
