@@ -221,13 +221,13 @@ public class MeasurementPlotService
     {
         var pmaxWatt = Math.Max(pmaxWatt1, pmaxWatt2);
         var quickTestSvg = $"""
-                           <svg xmlns="http://www.w3.org/2000/svg" width="950" height="60">
-                               <text x="10" y="25" font-size="14" font-family="monospace" fill="black">
-                                   <tspan x="10" dy="0">uTracer 3+ range (Anode/Screen: 0..400V@600mA, Grid: 0..–50V) is not sufficient to cover the full operating range of this high-power tube ({pmaxWatt:F1}W).</tspan>
-                                   <tspan x="10" dy="22">That's why the maximum load line is not visible on the graph, but you can still evaluate tube health.</tspan>
-                               </text>
-                           </svg>
-                           """;
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="60">
+                                <text x="10" y="25" font-size="14" font-family="monospace">
+                                    <tspan x="10" dy="0"><tspan fill="orange">⚠</tspan><tspan fill="black"> uTracer 3+ range (Anode/Screen: 0..400V@600mA, Grid: 0..–50V) is not sufficient to cover the full operating range of this high-power tube ({pmaxWatt:F1}W).</tspan></tspan>
+                                    <tspan x="10" dy="22" fill="black">That's why the maximum load line is not visible on the graph, but you can still evaluate tube health.</tspan>
+                                </text>
+                            </svg>
+                            """;
         return quickTestSvg;
     }
     
