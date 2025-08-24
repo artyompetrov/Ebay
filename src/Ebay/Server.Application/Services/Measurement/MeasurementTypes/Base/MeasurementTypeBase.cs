@@ -23,7 +23,7 @@ public abstract class MeasurementTypeBase
         var maxY = 0.0;
 
         var curves = new List<CurveSet>();
-
+        HasValuesAbovePmax = false;
         foreach (var (_, values) in measurementPoints)
         {
             var maxI = values.Select(x => x.Ia).Union(values.Select(x => x.Is)).Max();
@@ -52,10 +52,15 @@ public abstract class MeasurementTypeBase
                     HasSecondCurve ? valuesWithoutNonCompliant.Select(x => (V: x.Va, I: x.Is)) : [])
                 .ToList();
 
-            var lineMaxY = GetMaxI(iValues);
+            var (lineMaxY, hasValuesAbovePmax) = GetMaxI(iValues);
             if (lineMaxY > maxY)
             {
                 maxY = lineMaxY;
+            }
+
+            if (hasValuesAbovePmax)
+            {
+                HasValuesAbovePmax = true;
             }
 
             var vSteppingValue = values.Select(steppingVariableSelector).Average();
@@ -73,7 +78,7 @@ public abstract class MeasurementTypeBase
     /// <summary>
     /// Максимальный ток, для точек, находящихся под кривой допустимой нагрузки
     /// </summary>
-    private double GetMaxI(List<(double V, double I)> values)
+    private GetMaxIAnalysis GetMaxI(List<(double V, double I)> values)
     {
         var belowPmaxValuesMaxI = values.Where(x => MaxI(x.V) > x.I).Select(x => x.I)
             .Append(0.0)
@@ -82,9 +87,16 @@ public abstract class MeasurementTypeBase
         var abovePmaxValues = values.Where(x => MaxI(x.V) < x.I).Select(x => x.I)
             .ToList();
 
-        var lineMaxY = abovePmaxValues.Count == 0 ? belowPmaxValuesMaxI : Math.Max(belowPmaxValuesMaxI, abovePmaxValues.Min());
-        return lineMaxY;
+        var lineMaxY = abovePmaxValues.Count == 0
+            ? belowPmaxValuesMaxI
+            : Math.Max(belowPmaxValuesMaxI, abovePmaxValues.Min());
+        
+        return new GetMaxIAnalysis(
+            MaxI: lineMaxY,
+            HasValuesAbovePmax: abovePmaxValues.Count > 0);
     }
+
+    private record GetMaxIAnalysis(double MaxI, bool HasValuesAbovePmax);
 
     // Максимальное dI - чтобы отсечь некорректные изменения из-за compliance, в долях от максимального тока
     protected const double IgnoreDi = -0.1;
@@ -103,6 +115,8 @@ public abstract class MeasurementTypeBase
     public abstract string XLabel { get; }
 
     public string YLabel => "I (mA)";
+    
+    public bool HasValuesAbovePmax { get; }
 
     public abstract string CurveTitle { get; }
 
