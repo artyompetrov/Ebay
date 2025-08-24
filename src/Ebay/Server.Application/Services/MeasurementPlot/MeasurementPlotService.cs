@@ -221,15 +221,23 @@ public class MeasurementPlotService
     {
         var pmaxWatt = Math.Max(pmaxWatt1, pmaxWatt2);
         var quickTestSvg = $"""
-                            <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="60">
-                                <text x="10" y="25" font-size="14" font-family="monospace">
-                                    <tspan x="10" dy="0"><tspan fill="orange">⚠</tspan><tspan fill="black"> uTracer 3+ range (Anode/Screen: 0..400V@600mA, Grid: 0..–50V) is not sufficient to cover the full operating range of this high-power tube ({pmaxWatt:F1}W).</tspan></tspan>
-                                    <tspan x="10" dy="22" fill="black">That's why the maximum load line is not visible on the graph, but you can still evaluate tube health.</tspan>
-                                </text>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="950" height="24">
+                              <!-- маленький жёлтый треугольник -->
+                              <polygon points="5,20 12,6 19,20" fill="yellow" stroke="black" stroke-width="1"/>
+                              <!-- восклицательный знак -->
+                              <text x="12" y="18" text-anchor="middle" font-size="12" font-family="monospace" fill="black">!</text>
+
+                              <!-- весь текст в одну строку -->
+                              <text x="28" y="17" font-size="12" font-family="monospace" fill="black">
+                                uTracer 3+ range (Anode/Screen: 0..400V@600mA, Grid: 0..–50V) is not sufficient to cover full operating range of this high-power tube ({pmaxWatt:F1}W). That's why the maximum load line is not visible. But you can still evaluate tube health.
+                              </text>
                             </svg>
                             """;
         return quickTestSvg;
     }
+
+
+
     
     private static string QuickTestSvg(MeasurementData measurement)
     {
