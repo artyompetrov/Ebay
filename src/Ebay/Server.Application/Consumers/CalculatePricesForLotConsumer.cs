@@ -113,7 +113,7 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
         {
             Revenue = общаяВыручкаВДолларах,
             QuantityTotal = общееКоличествоШтукВоВсехПродажах,
-            ListingPriceSumm = 777,
+            ListingPriceSumm = общаяПолнаяЦенаПродажиВДолларахЗаВычетомДоставки,
             CalculationDate = currentDate
         };
 

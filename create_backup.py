@@ -147,4 +147,9 @@ print("!!! starting containers")
 subprocess.run(["docker-compose", "-f", "./deploy/docker-compose.yaml", "--env-file", "./deploy/localhost.env", "up", "-d"])
 time.sleep(5)
 
+# Остановка сервиса ebay_helper перед удалением локальных баз данных
+print("!!! stopping ebay_helper")
+subprocess.run(["docker", "container", "stop", "ebay_helper"], check=False)
+time.sleep(5)
+
 print("Backup files are in folder:", backup_path)

@@ -111,7 +111,7 @@ internal static class ModelsExtensions
         quantityTotal: productCalculationResult.QuantityTotal,
         revenue: productCalculationResult.Revenue,
         revenueAvg: productCalculationResult.RevenueAvg,
-        calculationDate: productCalculationResult.CalculationDate.ToString("dd-MM-yy hh:mm"),
+        calculationDate: productCalculationResult.CalculationDate.ToString("dd-MM-yy"),
         listingPriceAvg: productCalculationResult.ListingPriceAvg
     );
 
@@ -119,7 +119,7 @@ internal static class ModelsExtensions
         quantityTotal: lotCalculationResult.QuantityTotal,
         revenue: lotCalculationResult.Revenue,
         revenueAvg: lotCalculationResult.RevenueAvg,
-        calculationDate: lotCalculationResult.CalculationDate.ToString("dd-MM-yy hh:mm"),
+        calculationDate: lotCalculationResult.CalculationDate.ToString("dd-MM-yy"),
         listingPriceAvg:  lotCalculationResult.ListingPriceAvg
     );
 
