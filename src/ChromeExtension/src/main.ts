@@ -27,6 +27,7 @@ async function getMatchingSiteProcessors(): Promise<ISiteProcessor[]> {
             break;
         case Mode.Seller:
             processors = [
+                tryGetAuthPageProcessor(),
                 tryGetEbayShippingRateTableSiteProcessor()
             ];
             break;

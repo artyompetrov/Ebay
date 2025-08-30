@@ -56,11 +56,13 @@ public class ShippingRatesService
             new("Бахрейн", "BHR", "BH"),
             new("Исландия", "ISL", "IS"),
             new("Испания", "ESP", "ES"),
+            new("Андора", "AND", "AD"),
             new("Италия", "ITA", "IT"),
             new("Нидерланды", "NLD", "NL"),
             new("Бельгия", "BEL", "BE"),
             new("Болгария", "BGR", "BG"),
             new("Норвегия", "NOR", "NO"),
+            new("Шпицберген и Ян-Майен", "SJM", "SJ"),
             new("Босния и Герцеговина", "BIH", "BA"),
             new("Катар", "QAT", "QA"),
             new("Турция", "TUR", "TR"),
@@ -77,6 +79,7 @@ public class ShippingRatesService
             new("Южная Корея", "KOR", "KR"),
             new("Венгрия", "HUN", "HU"),
             new("Франция", "FRA", "FR"),
+            new("Монако", "MCO", "MC"),
             new("Хорватия", "HRV", "HR"),
             new("Кувейт", "KWT", "KW"),
             new("Польша", "POL", "PL"),
@@ -92,6 +95,7 @@ public class ShippingRatesService
             new("Люксембург", "LUX", "LU"),
             new("Саудовская Аравия", "SAU", "SA"),
             new("Германия", "DEU", "DE"),
+            new("Лихтенштейн", "LIE", "LI"),
             new("Эстония", "EST", "EE"),
             new("Гибралтар", "GIB", "GI"),
             new("Греция", "GRC", "GR"),
@@ -102,6 +106,8 @@ public class ShippingRatesService
         var zone4Countries = new List<ShippingCountry>
         {
             new("США", "USA", "US"),
+            new("Пуэрто-Рико", "PRI", "PR"),
+            new("Виргинские Острова (США)", "VIR", "VI"),
             new("Афганистан", "AFG", "AF"),
             new("Мьянма", "MMR", "MM"),
             new("Таиланд", "THA", "TH"),
@@ -247,6 +253,8 @@ public class ShippingRatesService
             new("Сен-Пьер и Микелон", "SPM", "PM"),
             new("Ямайка", "JAM", "JM"),
             new("Сент-Китс и Невис", "KNA", "KN"),
+            new("Западная Сахара", "ESH", "EH"),
+            
         };
 
         _rates =
@@ -257,15 +265,14 @@ public class ShippingRatesService
                 rates: new List<ShippingRates>
                 {
                     new(
-                        postZone: -1,
+                        postZone: null,
                         rates:
                         [
                             new(minWeight: 0, maxWeight: 500, price: 8_960),
                             new(minWeight: 500, maxWeight: 1000, price: 15_400),
                             new(minWeight: 1000, maxWeight: 2000, price: 27_462)
                         ],
-                        specifiedCountries: zone1Countries.Union(zone2Countries).Union(zone3Countries)
-                            .Union(zone4Countries).Union(zone5Countries).ToList()
+                        specifiedCountries: null
                     )
                 }
             ),

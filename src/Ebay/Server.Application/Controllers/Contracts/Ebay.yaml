@@ -1225,8 +1225,6 @@ definitions:
         minLength: 1
     required:
       - rates
-      - specifiedCountries
-      - postZone
   
   ShippingCountry:
     type: object
