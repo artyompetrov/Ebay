@@ -33,18 +33,16 @@ async function getMatchingSiteProcessors(): Promise<ISiteProcessor[]> {
 }
 
 export async function run() {
+    const actualVersion = await UpdatesCheckerClient.checkForUpdates();
+    if (!actualVersion) return;
+
     const processors = await getMatchingSiteProcessors();
-
     if (processors.length > 0) {
-        const actualVersion = await UpdatesCheckerClient.checkForUpdates();
+        for (const processor of processors) {
+            await processor.run();
 
-        if (actualVersion) {
-            for (const processor of processors) {
-                await processor.run();
-
-                if (processor.breakAfterSearchProcessor) {
-                    break;
-                }
+            if (processor.breakAfterSearchProcessor) {
+                break;
             }
         }
     } else {
