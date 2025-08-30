@@ -35,7 +35,7 @@ public class ShippingRatesService
                 currency: WellKnown.Currencies.KZT,
                 rates: new List<ShippingRates>
                 {
-                    new( // 3
+                    new( // зона 3
                         rates: new List<ShippingRate>
                         {
                             new(minWeight: 0, maxWeight: 2000, price: 16_950),
@@ -69,7 +69,7 @@ public class ShippingRatesService
                             "LV"
                         }
                     ),
-                    new( //4
+                    new( // зона 4
                         rates: new List<ShippingRate>
                         {
                             new(minWeight: 0, maxWeight: 2000, price: 17_175),
@@ -90,7 +90,7 @@ public class ShippingRatesService
                         ).ToList(),
                         specifiedCountries: new List<string> { "US", }
                     ),
-                    new( //5
+                    new( // зона 5
                         rates: new List<ShippingRate>
                         {
                             new(minWeight: 0, maxWeight: 2000, price: 19_800),
