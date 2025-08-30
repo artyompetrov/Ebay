@@ -35,6 +35,7 @@
     "https://$EBAY_HELPER_BACKEND_DOMAIN/*",
     "https://localhost:7095/*"
   ],
+  "options_page": "options.html",
   "background": {
     "service_worker": "background.js"
   }

@@ -6,6 +6,14 @@ import {fetchResource} from "../infrastructure/Utils";
 import {FetchWrapperCustom} from "./FetchWrapperCustom";
 
 export class ClientsFactory {
+    async getEbaySettings(): Promise<{ clientId: string; clientSecret: string; redirectUriCode: string }> {
+        const {ebay_client_id, ebay_client_secret, ebay_redirect_uri_code} = await chrome.storage.local.get(["ebay_client_id", "ebay_client_secret", "ebay_redirect_uri_code"]);
+        return {
+            clientId: ebay_client_id ?? "",
+            clientSecret: ebay_client_secret ?? "",
+            redirectUriCode: ebay_redirect_uri_code ?? ""
+        };
+    }
     async saveCodeVerifier() {
         let codeVerifier = (await chrome.storage.local.get(["code_verifier"]))?.code_verifier;
 
@@ -29,13 +37,14 @@ export class ClientsFactory {
 
     async getEbayOAuth2Client(): Promise<OAuth2Client> {
         await this.saveCodeVerifier();
-        
+        const settings = await this.getEbaySettings();
+
         return new OAuth2Client({
             server: constants.Auth.Ebay.Server,
-            clientId: constants.Auth.Ebay.ClientId,
+            clientId: settings.clientId,
             tokenEndpoint: constants.Auth.Ebay.TokenEndpoint,
             authorizationEndpoint: constants.Auth.Ebay.AuthorizationEndpoint,
-            clientSecret: constants.Auth.Ebay.ClientSecret,
+            clientSecret: settings.clientSecret,
             fetch: fetchResource
         })
     }
@@ -50,9 +59,10 @@ export class ClientsFactory {
     
     async getEbayClient(): Promise<EbayClient.EbayClient> {
         await chrome.storage.local.set({return_page: document.location.href});
+        const settings = await this.getEbaySettings();
 
         return new EbayClient.EbayClient("https://api.ebay.com/buy/browse/v1",
-            this.getAuthorizeFetch(await this.getEbayOAuth2Client(), constants.Auth.Ebay.Scope, "ebayTokenStore", constants.Auth.Ebay.RedirectUriCode));
+            this.getAuthorizeFetch(await this.getEbayOAuth2Client(), constants.Auth.Ebay.Scope, "ebayTokenStore", settings.redirectUriCode));
 
     }
 

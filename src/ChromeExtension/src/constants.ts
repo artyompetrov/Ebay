@@ -6,9 +6,6 @@
 };
 
 declare const EBAY_HELPER_BACKEND_DOMAIN: string;
-declare const EBAY_CLIENT_ID: string;
-declare const EBAY_CLIENT_SECRET: string;
-declare const EBAY_REDIRECT_URI_CODE: string;
 const backendBaseUrl = `https://${EBAY_HELPER_BACKEND_DOMAIN}`.replace(/\/$/, '');
 
 export const Urls = {
@@ -20,12 +17,9 @@ export const Urls = {
 export const Auth = {
     Ebay: {
         Server: "https://auth.ebay.com/",
-        ClientId: EBAY_CLIENT_ID,
         TokenEndpoint: 'https://api.ebay.com/identity/v1/oauth2/token',
         AuthorizationEndpoint: "/oauth2/authorize",
-        ClientSecret: EBAY_CLIENT_SECRET,
         Scope: "https://api.ebay.com/oauth/api_scope",
-        RedirectUriCode: EBAY_REDIRECT_URI_CODE,
     },
     Backend: {
         TokenEndpoint: '/connect/token',

@@ -13,6 +13,7 @@ export function tryGetAuthPageProcessor() : ISiteProcessor | null {
     return null;
 }
 
+
 class AuthPageProcessor implements ISiteProcessor {
     breakAfterSearchProcessor: boolean = true;
     async run(): Promise<void> {
@@ -58,6 +59,7 @@ class AuthPageProcessor implements ISiteProcessor {
         console.log("ebayApiAuthPage")
         let clientsFactory = new ClientsFactory();
         let ebayOAuth2Client = await clientsFactory.getEbayOAuth2Client();
+        const settings = await clientsFactory.getEbaySettings();
         let url = new URL(document.location.href)
         if (url.searchParams.has("code")) {
 
@@ -68,7 +70,7 @@ class AuthPageProcessor implements ISiteProcessor {
             let oauth2Token = await oAuth2Client.authorizationCode.getTokenFromCodeRedirect(
                 document.location.href,
                 {
-                    redirectUri: constants.Auth.Ebay.RedirectUriCode,
+                    redirectUri: settings.redirectUriCode,
                     codeVerifier
                 }
             );

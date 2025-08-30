@@ -15,12 +15,9 @@ WORKDIR /src
 COPY ChromeExtension .
 COPY --from=build_dotnet /src/ChromeExtension .
 ARG EBAY_HELPER_BACKEND_DOMAIN="localhost"
-ARG EBAY_CLIENT_ID="client_id"
-ARG EBAY_CLIENT_SECRET="client_secret"
-ARG EBAY_REDIRECT_URI_CODE="redirect_uri_code"
 ARG BUILD_VERSION="1.0.0.0"
 RUN npm install
-RUN EBAY_HELPER_BACKEND_DOMAIN=$EBAY_HELPER_BACKEND_DOMAIN EBAY_CLIENT_ID=$EBAY_CLIENT_ID EBAY_CLIENT_SECRET=$EBAY_CLIENT_SECRET EBAY_REDIRECT_URI_CODE=$EBAY_REDIRECT_URI_CODE BUILD_VERSION=$BUILD_VERSION npm run build
+RUN EBAY_HELPER_BACKEND_DOMAIN=$EBAY_HELPER_BACKEND_DOMAIN BUILD_VERSION=$BUILD_VERSION npm run build
 RUN mkdir -p /app/publish/ && \
     npx crx3 _extension --keyPath=./key.pem --crxPath=/app/publish/mlebgdemjnpnfgcgbbncllpniiicffbm_${BUILD_VERSION}.crx
 
