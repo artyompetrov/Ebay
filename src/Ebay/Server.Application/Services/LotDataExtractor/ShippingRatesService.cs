@@ -114,7 +114,7 @@ public class ShippingRatesService
             new("Гуам", "GUM", "GU"),
             new("Маршалловы Острова", "MHL", "MH"),
             new("Палау", "PLW", "PW"),
-            new("Американское Самоа", "ASA", "AS"),
+            new("Американское Самоа", "ASM", "AS"),
             new("Пуэрто-Рико", "PRI", "PR"),
             new("Виргинские Острова (США)", "VIR", "VI"),
             new("Афганистан", "AFG", "AF"),
