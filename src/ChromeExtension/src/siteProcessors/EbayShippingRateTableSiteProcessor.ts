@@ -5,7 +5,7 @@ import {ClientsFactory} from "../clients/ClientsFactory";
 export function tryGetEbayShippingRateTableSiteProcessor() : ISiteProcessor | null {
     let currentPage = location.protocol + '//' + location.host + location.pathname
 
-    if (currentPage === "https://www.ebay.com/ship/rt") {
+    if (currentPage.startsWith("https://www.ebay.com/ship/rt/")) {
 
         return new EbayShippingRateTableSiteProcessor();
     }
@@ -20,34 +20,50 @@ class EbayShippingRateTableSiteProcessor implements ISiteProcessor {
 
         let clientsFactory = new ClientsFactory();
         let backendClient = await clientsFactory.getEbayToolBackendClient();
-        
+
         let shippingTypes = await backendClient.getShippingRates();
 
         const zoneByCountryCode = new Map<string, number>();
-        
-        for (let shippingType of shippingTypes)
-        {
+
+        for (let shippingType of shippingTypes) {
             for (let shippingRate of shippingType.rates) {
-                if (!shippingRate.postZone) {continue;}
-                
+                if (!shippingRate.postZone) {
+                    continue;
+                }
+
                 for (let counry of shippingRate.specifiedCountries) {
                     zoneByCountryCode.set(counry.threeLetterCode, shippingRate.postZone)
                 }
             }
         }
-        
-        if (value === "CREATE_INTERNATIONAL_RATE_TABLE") {
-            for (let countryCheckboxDiv of document.querySelectorAll<HTMLDivElement>('div #myModal .level2.checkbox')) {
-                let label = countryCheckboxDiv.querySelector('label')
-                let countryCode = label.getAttribute('for');
-                
-                if (zoneByCountryCode.has(countryCode)) {
-                    label.innerText = label.innerText + " (" + zoneByCountryCode.get(countryCode) + ")";
+
+
+        for (let countryCheckboxDiv of document.querySelectorAll<HTMLDivElement>('div #myModal .level2.checkbox')) {
+            let label = countryCheckboxDiv.querySelector('label')
+            let countryCode = label.getAttribute('for');
+
+            if (zoneByCountryCode.has(countryCode)) {
+                label.innerText = label.innerText + " (" + zoneByCountryCode.get(countryCode) + ")";
+            } else {
+                label.innerText = label.innerText + " (not found)";
+            }
+
+        }
+
+        for (let region of document.querySelectorAll<HTMLTableCellElement>('td.regionsCellStyle')) {
+            let foundRegions = new Set<number>
+            for (var code of region.querySelector(':scope > span').textContent.split(',')) {
+                if (zoneByCountryCode.has(code)) {
+                    foundRegions.add(zoneByCountryCode.get(code))
                 }
-                else {
-                    label.innerText = label.innerText + " (not found)";
-                }
-                
+            }
+            if (foundRegions.size > 0) {
+                const br = document.createElement("br");
+                const span = document.createElement("b");
+                span.innerText = "Found regions: " + Array.from(foundRegions).join(", ");
+
+                region.appendChild(br);
+                region.appendChild(span);
             }
         }
     }
