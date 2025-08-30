@@ -12,47 +12,247 @@ public class ShippingRatesService
 
     public ShippingRatesService()
     {
-        var zone2Countries = new List<string>
+
+        // не интересно
+        var zone1Countries = new HashSet<string>
         {
-            "AZ","AM","BY","GE","KG","MD","RU","TJ","TM","UZ"
+            "TJ", // Таджикистан
+            "TM", // Туркменистан
+            "UZ", // Узбекистан
+            "KG", // Кыргызстан
         };
 
-        var zone3Countries = new List<string>
+        // не интересно
+        var zone2Countries = new HashSet<string>
         {
-            // Europe
-            "AD","AL","AT","AX","BA","BE","BG","CH","CY","CZ","DE","DK","EE","ES","FI","FR","GB","GI","GR","HR","HU","IE","IL","IS","IT","LI","LT","LU","LV","MC","ME","MK","MT","NL","NO","PL","PT","RO","RS","SE","SI","SK","SM","UA","VA",
-            // North Africa & Middle East
-            "DZ","EG","LY","MA","TN","JO",
-            // West & Central Africa
-            "BJ","BF","BI","CM","CG","CF","TD","CI","GN","GW","NE","TG"
+            "AZ", // Азербайджан
+            "MD", // Молдова
+            "BY", // Беларусь
+            "UA", // Украина
+            "RU", // Россия
         };
 
-        var zone4Countries = new List<string> { "US", "CA" };
-
-        var zone5Countries = new List<string>
+        var zone3Countries = new HashSet<string>
         {
-            "AE","AF","AG","AI","AO","AR","AS","AU","AW","BB",
-            "BD","BH","BL","BM","BN","BO","BQ","BR","BS","BT",
-            "BW","BZ","CC","CD","CK","CL","CN","CO","CR","CU",
-            "CV","CW","CX","DG","DJ","DM","DO","EA","EC","EH",
-            "ER","ET","FJ","FK","FM","FO","GA","GD","GF","GG",
-            "GH","GL","GM","GP","GQ","GT","GU","GY","HK","HN",
-            "HT","IC","ID","IM","IN","IO","IQ","IR","JE","JM",
-            "JP","KE","KH","KI","KM","KN","KP","KR","KW","KY",
-            "LA","LB","LC","LK","LR","LS","MF","MG","MH","ML",
-            "MM","MN","MO","MP","MQ","MR","MS","MU","MV","MW",
-            "MX","MY","MZ","NA","NC","NF","NG","NI","NP","NR",
-            "NU","NZ","OM","PA","PE","PF","PG","PH","PK","PM",
-            "PN","PR","PS","PW","PY","QA","RE","RW","SA","SB",
-            "SC","SD","SG","SH","SJ","SL","SN","SO","SR","SS",
-            "ST","SV","SX","SY","SZ","TC","TH","TK","TL","TO",
-            "TR","TT","TV","TW","TZ","UG","UM","UY","VC","VE",
-            "VG","VI","VN","VU","WF","WS","XK","YE","YT","ZA",
-            "ZM","ZW",
+            "GE", // Грузия
+            "AT", // Австрия
+            "DK", // Дания
+            "RS", // Сербия
+            "AL", // Албания
+            "MT", // Мальта
+            "SY", // Сирия
+            "SK", // Словакия
+            "SI", // Словения
+            "YE", // Йемен
+            "IL", // Израиль
+            "AM", // Армения
+            "IN", // Индия
+            "MN", // Монголия
+            "JO", // Иордания
+            "IQ", // Ирак
+            "IR", // Иран
+            "IE", // Ирландия
+            "NP", // Непал
+            "BH", // Бахрейн
+            "IS", // Исландия
+            "ES", // Испания
+            "IT", // Италия
+            "NL", // Нидерланды
+            "BE", // Бельгия
+            "BG", // Болгария
+            "NO", // Норвегия
+            "BA", // Босния и Герцеговина
+            "QA", // Катар
+            "TR", // Турция
+            "CY", // Кипр
+            "AE", // Объединённые Арабские Эмираты
+            "CN", // Китай
+            "AX", // Аландские о-ва
+            "OM", // Оман
+            "PS", // Палестина
+            "VA", // Ватикан
+            "KP", // Корея Северная
+            "FI", // Финляндия
+            "GB", // Великобритания
+            "KR", // Корея Южная
+            "HU", // Венгрия
+            "FR", // Франция
+            "HR", // Хорватия
+            "KW", // Кувейт
+            "PL", // Польша
+            "ME", // Черногория
+            "PT", // Португалия
+            "CZ", // Чехия
+            "LV", // Латвия
+            "CH", // Швейцария
+            "RO", // Румыния
+            "SE", // Швеция
+            "LB", // Ливан
+            "LT", // Литва
+            "LU", // Люксембург
+            "SA", // Саудовская Аравия
+            "DE", // Германия
+            "EE", // Эстония
+            "GI", // Гибралтар
+            "GR", // Греция
+            "MK", // Северная Македония
+            "JP", // Япония
         };
 
-        _rates = new List<ShippingType>
+        var zone4Countries = new HashSet<string>
         {
+            "US", // США
+            "AF", // Афганистан
+            "MM", // Мьянма (Бирма)
+            "TH", // Таиланд
+            "BD", // Бангладеш
+            "KH", // Камбоджа
+            "CA", // Канада
+            "BT", // Бутан
+            "PK", // Пакистан
+            "VN", // Вьетнам
+            "LA", // Лаос
+            "HK", // Гонконг (Китай)
+            "MO", // Макао (Китай)
+        };
+
+        var zone5Countries = new HashSet<string>
+        {
+            "AU", // Австралия
+            "MW", // Малави
+            "VC", // Сент-Винсент и Гренадины
+            "MY", // Малайзия
+            "LC", // Сент-Люсия
+            "DJ", // Джибути
+            "ML", // Мали
+            "DM", // Доминика
+            "MV", // Мальдивы
+            "SG", // Сингапур
+            "DZ", // Алжир
+            "DO", // Доминиканская Республика
+            "AI", // Ангилья
+            "EG", // Египет
+            "MA", // Марокко
+            "AO", // Ангола
+            "ZM", // Замбия
+            "MQ", // Мартиника
+            "AG", // Антигуа и Барбуда
+            "ZW", // Зимбабве
+            "MX", // Мексика
+            "SO", // Сомали
+            "AN", // Нидерландские Антиллы (устар., заменены на BQ, CW, SX)
+            "MZ", // Мозамбик
+            "SD", // Судан
+            "AR", // Аргентина
+            "SR", // Суринам
+            "AW", // Аруба
+            "ID", // Индонезия
+            "MS", // Монтсеррат
+            "SL", // Сьерра-Леоне
+            "BS", // Багамы
+            "NA", // Намибия
+            "NR", // Науру
+            "TZ", // Танзания
+            "BB", // Барбадос
+            "TL", // Тимор-Лешти
+            "NE", // Нигер
+            "TG", // Того
+            "NG", // Нигерия
+            "TO", // Тонга
+            "BZ", // Белиз
+            "TT", // Тринидад и Тобаго
+            "CV", // Кабо-Верде
+            "NI", // Никарагуа
+            "SH", // Тристан-да-Кунья (входит в SH)
+            "BJ", // Бенин
+            "KY", // Каймановы острова
+            "NZ", // Новая Зеландия
+            "TV", // Тувалу
+            "BM", // Бермуды
+            "NC", // Новая Каледония
+            "TN", // Тунис
+            "CM", // Камерун
+            "BO", // Боливия
+            "AC", // о. Вознесения (часть SH)
+            "TC", // Туркс и Кайкос
+            "KM", // Коморы
+            "BW", // Ботсвана
+            "KE", // Кения
+            "SH", // о. Святой Елены
+            "UG", // Уганда
+            "BR", // Бразилия
+            "SB", // Соломоновы острова
+            "BN", // Бруней
+            "KI", // Кирибати
+            "BF", // Буркина-Фасо
+            "WF", // Уоллис и Футуна
+            "BI", // Бурунди
+            "CO", // Колумбия
+            "UY", // Уругвай
+            "CG", // Конго
+            "FJ", // Фиджи
+            "VU", // Вануату
+            "CD", // Конго (ДРК)
+            "PH", // Филиппины
+            "PA", // Панама
+            "PG", // Папуа — Новая Гвинея
+            "FK", // Фолклендские острова
+            "CR", // Коста-Рика
+            "PY", // Парагвай
+            "VE", // Венесуэла
+            "CI", // Кот-д’Ивуар
+            "PE", // Перу
+            "VG", // Виргинские острова (Брит.)
+            "CU", // Куба
+            "PN", // Питкэрн
+            "CF", // Центральноафриканская Республика
+            "PF", // Французская Полинезия
+            "TD", // Чад
+            "GA", // Габон
+            "GY", // Гайана
+            "CW", // Кюрасао
+            "GF", // Французская Гвиана
+            "RE", // Реюньон
+            "CL", // Чили
+            "HT", // Гаити
+            "CL", // Чили — о. Пасхи (тот же код, входит в CL)
+            "GM", // Гамбия
+            "LS", // Лесото
+            "RW", // Руанда
+            "GH", // Гана
+            "LR", // Либерия
+            "GP", // Гваделупа
+            "SV", // Сальвадор
+            "LK", // Шри-Ланка
+            "GT", // Гватемала
+            "LY", // Ливия
+            "WS", // Самоа
+            "EC", // Эквадор
+            "GN", // Гвинея
+            "ST", // Сан-Томе и Принсипи
+            "GQ", // Экваториальная Гвинея
+            "GW", // Гвинея-Бисау
+            "ER", // Эритрея
+            "MU", // Маврикий
+            "SZ", // Свазиленд (ныне Eswatini, код остался SZ)
+            "MR", // Мавритания
+            "SC", // Сейшелы
+            "ET", // Эфиопия
+            "HN", // Гондурас
+            "MG", // Мадагаскар
+            "SN", // Сенегал
+            "ZA", // ЮАР
+            "YT", // Майотта
+            "MF", // Сен-Мартен
+            "SS", // Южный Судан
+            "GD", // Гренада
+            "PM", // Сен-Пьер и Микелон
+            "JM", // Ямайка
+            "KN", // Сент-Китс и Невис
+        };
+
+        _rates =
+        [
             new(
                 name: "Мелкий пакет авиа",
                 currency: WellKnown.Currencies.KZT,
@@ -69,19 +269,14 @@ public class ShippingRatesService
                     )
                 }
             ),
+
             new(
                 name: "Посылка авиа",
                 currency: WellKnown.Currencies.KZT,
-                rates: new List<ShippingRates>
-                {
-                    new( // зона 2
-                        rates: new List<ShippingRate>
-                        {
-                            new(minWeight: 0, maxWeight: 0, price: 0),
-                        },
-                        specifiedCountries: zone2Countries
-                    ),
-                    new( // зона 3
+                rates:
+                [
+                    // зона 3
+                    new(
                         rates: new List<ShippingRate>
                         {
                             new(minWeight: 0, maxWeight: 2000, price: 16_950),
@@ -100,9 +295,11 @@ public class ShippingRatesService
                                 price: 71_400 + (x - 9) * 6_600
                             ))
                         ).ToList(),
-                        specifiedCountries: zone3Countries
+                        specifiedCountries: zone3Countries.ToList()
                     ),
-                    new( // зона 4
+    
+                    // зона 4
+                    new(
                         rates: new List<ShippingRate>
                         {
                             new(minWeight: 0, maxWeight: 2000, price: 17_175),
@@ -121,9 +318,11 @@ public class ShippingRatesService
                                 price: 87_150 + (x - 9) * 7_920
                             ))
                         ).ToList(),
-                        specifiedCountries: zone4Countries
+                        specifiedCountries: zone4Countries.ToList()
                     ),
-                    new( // зона 5
+
+                    // зона 5
+                    new(
                         rates: new List<ShippingRate>
                         {
                             new(minWeight: 0, maxWeight: 2000, price: 19_800),
@@ -142,11 +341,12 @@ public class ShippingRatesService
                                 price: 120_600 + (x - 9) * 11_325
                             ))
                         ).ToList(),
-                        specifiedCountries: zone5Countries
+                        specifiedCountries: zone5Countries.ToList()
                     )
-                }
-            ),
-        };
+                ]
+            )
+
+        ];
 
         _shippingRatesDictionary = GetShippingRatesDictionaryInner();
     }
