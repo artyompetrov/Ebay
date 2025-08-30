@@ -6,6 +6,7 @@ import { ISiteProcessor } from './ISiteProcessor';
 import {v4 as uuidv4} from "uuid";
 import {ClientsFactory} from "../clients/ClientsFactory";
 import {ProductWithId} from "../clients/Generated/EbayToolBackendClient";
+import {Mode} from '../mode';
 
 declare const EBAY_HELPER_BACKEND_DOMAIN: string;
 
@@ -22,9 +23,12 @@ const excludeSites: RegExp[] = [
     backendDomainRegex,
 ];
 
-export function tryGetSearchSitesProcessor() : ISiteProcessor | null {
-    if (!utils.matchesAnyRegex(excludeSites, location.host)) {
+export function tryGetSearchSitesProcessor(mode: Mode | undefined) : ISiteProcessor | null {
+    if (mode !== Mode.Supplier) {
+        return null;
+    }
 
+    if (!utils.matchesAnyRegex(excludeSites, location.host)) {
         return new SearchSitesProcessor();
     }
     return null;
