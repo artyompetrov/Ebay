@@ -30,6 +30,11 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
 
     public async Task Consume(ConsumeContext<CalculatePricesForLot> context)
     {
+
+        _logger.LogInformation(
+            "Calculation started for {LotId}",
+            context.Message.LotId);
+
         var currentDate = DateTime.UtcNow;
         using var transaction = TransactionScopeFactory.Create();
 
@@ -55,12 +60,13 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
 
         var общееКоличествоШтукВоВсехПродажах = 0;
         var общаяВыручкаВДолларах = 0.0;
+        var общаяПолнаяЦенаПродажиВДолларахЗаВычетомДоставки = 0.0;
 
         foreach (var purchase in lot.Purchases)
         {
             var количествоШтукВПродаже = lot.Pcs * purchase.Quantity;
 
-            var ценаДоставкиВДоллларах = GetShippingPrice(
+            var рассчетнаяЦенаДоставкиВДоллларахИзКазахстана = GetShippingPrice(
                 shippingCountry: lot.ShippingCountry,
                 weight: product.Weight * количествоШтукВПродаже * множительДляУчетаВесаУпаковки,
                 currencyRates: currencyRates);
@@ -74,7 +80,8 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
 
             var ebayFinalValueFee = полнаяЦенаПродажиВДолларах * коммисияEbayFinalValueFee;
             var ebayInternationalFee = полнаяЦенаПродажиВДолларах * коммисияEbayInternationalFee;
-            var ebayFee = (ebayFinalValueFee + ebayInternationalFee + коммиссияEbayПостояннаяВеличина) * множительУчитывающийVat;
+            var ebayFee = (ebayFinalValueFee + ebayInternationalFee + коммиссияEbayПостояннаяВеличина) *
+                          множительУчитывающийVat;
 
             var полнаяЦенаПродажиЗаВычетомКоммиссийEbay = полнаяЦенаПродажиВДолларах - ebayFee;
 
@@ -82,17 +89,23 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
 
             var выручкаСПродажиВДолларах = полнаяЦенаПродажиЗаВычетомКоммиссийEbay
                                            - payoneerFee
-                                           - ценаДоставкиВДоллларах;
+                                           - рассчетнаяЦенаДоставкиВДоллларахИзКазахстана;
+
+            var полнаяЦенаПродажиВДолларахЗаВычетомДоставки =
+                полнаяЦенаПродажиВДолларах - рассчетнаяЦенаДоставкиВДоллларахИзКазахстана;
 
             общееКоличествоШтукВоВсехПродажах += количествоШтукВПродаже;
             общаяВыручкаВДолларах += выручкаСПродажиВДолларах;
+            общаяПолнаяЦенаПродажиВДолларахЗаВычетомДоставки += полнаяЦенаПродажиВДолларахЗаВычетомДоставки;
 
             purchase.PurchaseCalculationResult = new PurchaseCalculationResult
             {
                 Revenue = выручкаСПродажиВДолларах,
                 QuantityTotal = количествоШтукВПродаже,
+                ListingPrice = полнаяЦенаПродажиВДолларахЗаВычетомДоставки,
                 CalculationDate = currentDate
             };
+
         }
 
 
@@ -100,8 +113,10 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
         {
             Revenue = общаяВыручкаВДолларах,
             QuantityTotal = общееКоличествоШтукВоВсехПродажах,
+            ListingPriceSumm = 777,
             CalculationDate = currentDate
         };
+
 
         await _publishEndpoint.Publish(
             new CalculateTotalAveragePriceForProduct(lot.ProductId),

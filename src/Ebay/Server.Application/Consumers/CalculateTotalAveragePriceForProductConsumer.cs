@@ -26,6 +26,7 @@ public class CalculateTotalAveragePriceForProductConsumer : IConsumer<Batch<Calc
                 .ToListAsync(context.CancellationToken);
 
             var revenue = 0.0;
+            var listingPrice = 0.0;
             var quantityTotal = 0;
 
             var dateTime = DateTime.UtcNow;
@@ -33,6 +34,7 @@ public class CalculateTotalAveragePriceForProductConsumer : IConsumer<Batch<Calc
             {
                 if (lotCalculationResult == null) throw new NullReferenceException(nameof(lotCalculationResults));
                 revenue += lotCalculationResult.Revenue;
+                listingPrice += lotCalculationResult.ListingPriceSumm;
                 quantityTotal += lotCalculationResult.QuantityTotal;
 
                 if (dateTime > lotCalculationResult.CalculationDate)
@@ -46,7 +48,8 @@ public class CalculateTotalAveragePriceForProductConsumer : IConsumer<Batch<Calc
             {
                 Revenue = revenue,
                 QuantityTotal = quantityTotal,
-                CalculationDate = dateTime
+                CalculationDate = dateTime,
+                ListingPriceSumm = listingPrice
             };
 
             await _applicationDbContext.SaveChangesAsync(context.CancellationToken);

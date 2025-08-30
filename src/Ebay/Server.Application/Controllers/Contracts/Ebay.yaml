@@ -963,12 +963,17 @@ definitions:
       revenueAvg:
         type: number
         minimum: 0.00
+      listingPriceAvg:
+        description: Цена листинга за вычетом наших цен доставки (по этой цене надо выставлять)
+        type: number
+        minimum: 0.00
       calculationDate:
         type: string
     required:
       - revenue
       - quantityTotal
       - revenueAvg
+      - listingPriceAvg
       - calculationDate
 
   LotCalculationResult:
@@ -983,12 +988,17 @@ definitions:
       revenueAvg:
         type: number
         minimum: 0.00
+      listingPriceAvg:
+        description: Цена листинга за вычетом наших цен доставки (по этой цене надо выставлять)
+        type: number
+        minimum: 0.00
       calculationDate:
         type: string
     required:
       - revenue
       - quantityTotal
       - revenueAvg
+      - listingPriceAvg
       - calculationDate
 
   PurchaseInfo:
@@ -1030,10 +1040,15 @@ definitions:
       revenueAvg:
         type: number
         minimum: 0.00
+      listingPriceAvg:
+        description: Цена листинга за вычетом наших цен доставки (по этой цене надо выставлять)
+        type: number
+        minimum: 0.00
     required:
       - revenue
       - quantityTotal
       - revenueAvg
+      - listingPriceAvg
   
   CategoryValue:
     type: object

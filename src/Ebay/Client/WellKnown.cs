@@ -24,6 +24,7 @@ internal class WellKnown
 
     public static class Currencies
     {
+        public const string USD = "USD";
         public const string TargetCurrency = "RUB";
     }
 }

@@ -108,15 +108,26 @@ internal static class ModelsExtensions
     );
 
     public static ProductCalculationResult? ToApiLotCalculationResult(this DbProductCalculationResult? productCalculationResult) => productCalculationResult == null ? null : new(
-        quantityTotal: productCalculationResult.QuantityTotal, revenue: productCalculationResult.Revenue, revenueAvg: productCalculationResult.RevenueAvg, calculationDate: productCalculationResult.CalculationDate.ToString("dd-MM-yy")
+        quantityTotal: productCalculationResult.QuantityTotal,
+        revenue: productCalculationResult.Revenue,
+        revenueAvg: productCalculationResult.RevenueAvg,
+        calculationDate: productCalculationResult.CalculationDate.ToString("dd-MM-yy hh:mm"),
+        listingPriceAvg: productCalculationResult.ListingPriceAvg
     );
 
     public static LotCalculationResult? ToApiLotCalculationResult(this DbLotCalculationResult? lotCalculationResult) => lotCalculationResult == null ? null : new(
-        quantityTotal: lotCalculationResult.QuantityTotal, revenue: lotCalculationResult.Revenue, revenueAvg: lotCalculationResult.RevenueAvg, calculationDate: lotCalculationResult.CalculationDate.ToString("dd-MM-yy")
+        quantityTotal: lotCalculationResult.QuantityTotal,
+        revenue: lotCalculationResult.Revenue,
+        revenueAvg: lotCalculationResult.RevenueAvg,
+        calculationDate: lotCalculationResult.CalculationDate.ToString("dd-MM-yy hh:mm"),
+        listingPriceAvg:  lotCalculationResult.ListingPriceAvg
     );
 
     public static PurchaseCalculationResult? ToApiPurchaseCalculationResult(this DbPurchaseCalculationResult? lotCalculationResult) => lotCalculationResult == null ? null : new(
-        quantityTotal: lotCalculationResult.QuantityTotal, revenue: lotCalculationResult.Revenue, revenueAvg: lotCalculationResult.RevenueAvg
+        quantityTotal: lotCalculationResult.QuantityTotal,
+        revenue: lotCalculationResult.Revenue,
+        revenueAvg: lotCalculationResult.RevenueAvg,
+        listingPriceAvg:  lotCalculationResult.ListingPriceAvg
     );
 
     public static PurchaseInfo ToApiPurchaseInfo(this Purchase purchase, DateTime titleChangeDate) => new(

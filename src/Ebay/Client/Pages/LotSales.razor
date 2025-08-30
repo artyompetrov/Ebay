@@ -49,7 +49,8 @@
     }
 
     <div>Продано штук: @(Product.ProductCalculationResult?.QuantityTotal)</div>
-    <div>Средняя выручка с одной штуки: @((Product.ProductCalculationResult?.RevenueAvg * _targetCurrencyRate)?.ToString("#"))  @WellKnown.Currencies.TargetCurrency</div>
+    <div>Средняя выручка с одной штуки: @((Product.ProductCalculationResult?.RevenueAvg * _targetCurrencyRate)?.ToString("F1"))  @WellKnown.Currencies.TargetCurrency</div>
+    <div>Расчетная цена лота на ebay за штуку: @((Product.ProductCalculationResult?.ListingPriceAvg)?.ToString("F1"))  @WellKnown.Currencies.USD</div>
     <div>Запросы (eBay):
     @foreach (var query in Product!.SearchQueries)
     {
@@ -74,9 +75,10 @@
             <th>Валюта</th>
             <th>Продаж лота</th>
             <th>Продано штук всего</th>
-            <th>Общая выручка (USD)</th>
-            <th>Средняя выручка (USD)</th>
-            <th>Средняя выручка (@WellKnown.Currencies.TargetCurrency)</th>
+            <th>Общая выручка (@WellKnown.Currencies.USD)</th>
+            <th>Общая выручка за штуку (@WellKnown.Currencies.USD)</th>
+            <th style="background-color:#e0f7fa;">Расчетная цена листинга за штуку (@WellKnown.Currencies.USD)</th>
+            <th style="background-color:#e0f7fa;">Средняя выручка (@WellKnown.Currencies.TargetCurrency)</th>
             <th>Дата расчета</th>
         </tr>
         </thead>
@@ -99,9 +101,10 @@
                 <td>@lot.Currency</td>
                 <td>@GetPurchaseHistorySummary(purchaseInfos: lot.PurchaseHistory)</td>
                 <td>@lot.LotCalculationResult?.QuantityTotal</td>
-                <td>@lot.LotCalculationResult?.Revenue.ToString("0.00")</td>
-                <td>@lot.LotCalculationResult?.RevenueAvg.ToString("0.00")</td>
-                <td>@((lot.LotCalculationResult?.RevenueAvg * _targetCurrencyRate)?.ToString("N0"))</td>
+                <td>@lot.LotCalculationResult?.Revenue.ToString("F1")</td>
+                <td>@lot.LotCalculationResult?.RevenueAvg.ToString("F1")</td>
+                <td>@lot.LotCalculationResult?.ListingPriceAvg.ToString("F1")</td>
+                <td>@((lot.LotCalculationResult?.RevenueAvg * _targetCurrencyRate)?.ToString("F1"))</td>
                 <td>@lot.LotCalculationResult?.CalculationDate</td>
             </tr>
         }

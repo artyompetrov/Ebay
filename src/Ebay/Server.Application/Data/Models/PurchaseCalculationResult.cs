@@ -19,6 +19,10 @@ public class PurchaseCalculationResult
     /// </summary>
     public DateTime CalculationDate { get; set; }
 
+    /// <summary>
+    /// Цена листинга
+    /// </summary>
+    public double ListingPrice { get; set; }
 
     /// <summary>
     /// Средняя выручка для продажи
@@ -30,6 +34,19 @@ public class PurchaseCalculationResult
         {
             if (QuantityTotal == 0.0) return 0.0;
             return Revenue / QuantityTotal;
+        }
+    }
+    
+    /// <summary>
+    /// Средняя цена листинга
+    /// </summary>
+    [JsonIgnore]
+    public double ListingPriceAvg
+    {
+        get
+        {
+            if (QuantityTotal == 0.0) return 0.0;
+            return ListingPrice / QuantityTotal;
         }
     }
 }

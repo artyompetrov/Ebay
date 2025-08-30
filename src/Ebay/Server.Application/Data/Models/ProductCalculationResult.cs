@@ -18,6 +18,12 @@ public class ProductCalculationResult
     /// Дата расчета (равно меньшему из всех дочерних расчетов)
     /// </summary>
     public DateTime CalculationDate { get; set; }
+    
+    
+    /// <summary>
+    /// суммарная цена листингов
+    /// </summary>
+    public double ListingPriceSumm { get; set; }
 
     /// <summary>
     /// Средняя выручка для продукта
@@ -29,6 +35,19 @@ public class ProductCalculationResult
         {
             if (QuantityTotal == 0.0) return 0.0;
             return Revenue / QuantityTotal;
+        }
+    }
+    
+    /// <summary>
+    /// Средняя цена листинга для продукта
+    /// </summary>
+    [JsonIgnore]
+    public double ListingPriceAvg
+    {
+        get
+        {
+            if (QuantityTotal == 0.0) return 0.0;
+            return ListingPriceSumm / QuantityTotal;
         }
     }
 }
