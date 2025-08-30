@@ -85,7 +85,9 @@
         <tbody>
         @foreach (var lot in _lots)
         {
-            <tr>
+            // индикация некорректного расчета
+            var style = (lot.LotCalculationResult?.QuantityTotal ?? 0) == 0 ? "background-color: pink" : "";
+            <tr style="@style">
                 <td>
                     <a id="@GetLotLinkId(lot.LotId)" href="@GetLinkToLot(lot)" rel="noreferrer" target="_blank">@lot.Name</a>
                 </td>
