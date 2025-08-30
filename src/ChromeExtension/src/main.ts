@@ -5,16 +5,30 @@ import {tryGetAuthPageProcessor} from "./siteProcessors/AuthPageProcessor";
 import {tryGetSearchSitesProcessor} from "./siteProcessors/SearchSitesProcessor";
 import {tryGetAvitoSavedSearchesProcessor} from "./siteProcessors/AvitoSavedSearchesPageProcessor";
 import {Mode} from './mode';
+import {tryGetEbayShippingRateTableSiteProcessor} from "./siteProcessors/EbayShippingRateTableSiteProcessor";
 
 async function getMatchingSiteProcessors(): Promise<ISiteProcessor[]> {
     const {mode} = await chrome.storage.local.get(['mode']);
     const currentMode = mode as Mode | undefined;
-    const processors = [
-        tryGetAvitoSavedSearchesProcessor(currentMode),
-        tryGetAuthPageProcessor(),
-        tryGetEbaySiteProcessor(currentMode),
-        tryGetSearchSitesProcessor(currentMode)
-    ];
+
+    let processors: ISiteProcessor[]
+    switch(mode) {
+        case Mode.Supplier:
+            processors = [
+                tryGetAvitoSavedSearchesProcessor(),
+                tryGetAuthPageProcessor(),
+                tryGetEbaySiteProcessor(),
+                tryGetSearchSitesProcessor(),
+                tryGetEbayShippingRateTableSiteProcessor()
+            ];
+            break;
+        case Mode.Seller:
+            processors = [
+                tryGetEbayShippingRateTableSiteProcessor()
+            ];
+            break;
+    }
+    
     return processors.filter((processor) => processor !== null);
 }
 

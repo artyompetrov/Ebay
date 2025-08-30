@@ -23,11 +23,7 @@ const excludeSites: RegExp[] = [
     backendDomainRegex,
 ];
 
-export function tryGetSearchSitesProcessor(mode: Mode | undefined) : ISiteProcessor | null {
-    if (mode !== Mode.Supplier) {
-        return null;
-    }
-
+export function tryGetSearchSitesProcessor() : ISiteProcessor | null {
     if (!utils.matchesAnyRegex(excludeSites, location.host)) {
         return new SearchSitesProcessor();
     }

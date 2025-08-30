@@ -8,11 +8,7 @@ import {Mode} from '../mode';
 
 const ebaySiteRegex: RegExp =  /(?:^|\.)ebay\.com$/i;
 
-export function tryGetEbaySiteProcessor(mode: Mode | undefined) : ISiteProcessor | null {
-    if (mode !== Mode.Supplier) {
-        return null;
-    }
-
+export function tryGetEbaySiteProcessor() : ISiteProcessor | null {
     const currentPage = location.protocol + '//' + location.host + location.pathname;
     if (ebaySiteRegex.test(location.host) && currentPage !== constants.Urls.ebayAuthRedirectUrl) {
         return new EbaySiteProcessor();
