@@ -15,8 +15,14 @@ class EbayShippingRateTableSiteProcessor implements ISiteProcessor {
     breakAfterSearchProcessor: boolean = true;
 
     async run(): Promise<void> {
-        var value = (<HTMLSelectElement>(await utils.sleepElementLoaded("#createRateTables", document))).value;
-        alert(value);
+        let value = (<HTMLSelectElement>(await utils.sleepElementLoaded("#createRateTables", document))).value;
+        
+        if (value === "CREATE_INTERNATIONAL_RATE_TABLE") {
+            for (let countryCheckboxDiv of document.querySelectorAll<HTMLDivElement>('div #myModal .level2.checkbox')) {
+                let countryCode = countryCheckboxDiv.querySelector('label').getAttribute('for');
+                countryCheckboxDiv.innerText = countryCheckboxDiv.innerText + " (" + countryCode + ")";
+            }
+        }
     }
 
 }

@@ -9,10 +9,13 @@ import {tryGetEbayShippingRateTableSiteProcessor} from "./siteProcessors/EbayShi
 
 async function getMatchingSiteProcessors(): Promise<ISiteProcessor[]> {
     const {mode} = await chrome.storage.local.get(['mode']);
-    const currentMode = mode as Mode | undefined;
+    let currentMode = mode as Mode;
+    if (!currentMode) {
+        currentMode = Mode.NotSelected
+    }
 
     let processors: ISiteProcessor[]
-    switch(mode) {
+    switch(currentMode) {
         case Mode.Supplier:
             processors = [
                 tryGetAvitoSavedSearchesProcessor(),
@@ -26,6 +29,9 @@ async function getMatchingSiteProcessors(): Promise<ISiteProcessor[]> {
             processors = [
                 tryGetEbayShippingRateTableSiteProcessor()
             ];
+            break;
+        case Mode.NotSelected:
+            processors = [];
             break;
     }
     

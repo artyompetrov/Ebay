@@ -1212,11 +1212,12 @@ definitions:
   ShippingRates:
     type: object
     properties:
+      postZone:
+        type: integer
       specifiedCountries:
         type: array
         items:
-          type: string
-          minLength: 1
+          $ref: '#/definitions/ShippingCountry'
       rates:
         type: array
         items:
@@ -1224,6 +1225,29 @@ definitions:
         minLength: 1
     required:
       - rates
+      - specifiedCountries
+      - postZone
+  
+  ShippingCountry:
+    type: object
+    properties:
+       twoLetterCode:
+         type: string
+         description: Используется в Api ebay
+         maxLength: 2
+         minLength: 2
+       threeLetterCode:
+         type: string
+         description: Используется на странице shipping rate table
+         maxLength: 2
+         minLength: 2
+       nameRu:
+         type: string
+         minLength: 1
+    required:
+      - twoLetterCode
+      - threeLetterCode
+      - nameRu
   
   ShippingRate:
     type: object
