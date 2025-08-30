@@ -12,6 +12,45 @@ public class ShippingRatesService
 
     public ShippingRatesService()
     {
+        var zone2Countries = new List<string>
+        {
+            "AZ","AM","BY","GE","KG","MD","RU","TJ","TM","UZ"
+        };
+
+        var zone3Countries = new List<string>
+        {
+            // Europe
+            "AD","AL","AT","AX","BA","BE","BG","CH","CY","CZ","DE","DK","EE","ES","FI","FR","GB","GI","GR","HR","HU","IE","IL","IS","IT","LI","LT","LU","LV","MC","ME","MK","MT","NL","NO","PL","PT","RO","RS","SE","SI","SK","SM","UA","VA",
+            // North Africa & Middle East
+            "DZ","EG","LY","MA","TN","JO",
+            // West & Central Africa
+            "BJ","BF","BI","CM","CG","CF","TD","CI","GN","GW","NE","TG"
+        };
+
+        var zone4Countries = new List<string> { "US", "CA" };
+
+        var zone5Countries = new List<string>
+        {
+            "AE","AF","AG","AI","AO","AR","AS","AU","AW","BB",
+            "BD","BH","BL","BM","BN","BO","BQ","BR","BS","BT",
+            "BW","BZ","CC","CD","CK","CL","CN","CO","CR","CU",
+            "CV","CW","CX","DG","DJ","DM","DO","EA","EC","EH",
+            "ER","ET","FJ","FK","FM","FO","GA","GD","GF","GG",
+            "GH","GL","GM","GP","GQ","GT","GU","GY","HK","HN",
+            "HT","IC","ID","IM","IN","IO","IQ","IR","JE","JM",
+            "JP","KE","KH","KI","KM","KN","KP","KR","KW","KY",
+            "LA","LB","LC","LK","LR","LS","MF","MG","MH","ML",
+            "MM","MN","MO","MP","MQ","MR","MS","MU","MV","MW",
+            "MX","MY","MZ","NA","NC","NF","NG","NI","NP","NR",
+            "NU","NZ","OM","PA","PE","PF","PG","PH","PK","PM",
+            "PN","PR","PS","PW","PY","QA","RE","RW","SA","SB",
+            "SC","SD","SG","SH","SJ","SL","SN","SO","SR","SS",
+            "ST","SV","SX","SY","SZ","TC","TH","TK","TL","TO",
+            "TR","TT","TV","TW","TZ","UG","UM","UY","VC","VE",
+            "VG","VI","VN","VU","WF","WS","XK","YE","YT","ZA",
+            "ZM","ZW",
+        };
+
         _rates = new List<ShippingType>
         {
             new(
@@ -35,6 +74,13 @@ public class ShippingRatesService
                 currency: WellKnown.Currencies.KZT,
                 rates: new List<ShippingRates>
                 {
+                    new( // зона 2
+                        rates: new List<ShippingRate>
+                        {
+                            new(minWeight: 0, maxWeight: 0, price: 0),
+                        },
+                        specifiedCountries: zone2Countries
+                    ),
                     new( // зона 3
                         rates: new List<ShippingRate>
                         {
@@ -54,20 +100,7 @@ public class ShippingRatesService
                                 price: 71_400 + (x - 9) * 6_600
                             ))
                         ).ToList(),
-                        specifiedCountries: new List<string>()
-                        {
-                            "DE",
-                            "IT",
-                            "FR",
-                            "GB",
-                            "PL",
-                            "RO",
-                            "SK",
-                            "EE",
-                            "LT",
-                            "BG",
-                            "LV"
-                        }
+                        specifiedCountries: zone3Countries
                     ),
                     new( // зона 4
                         rates: new List<ShippingRate>
@@ -88,7 +121,7 @@ public class ShippingRatesService
                                 price: 87_150 + (x - 9) * 7_920
                             ))
                         ).ToList(),
-                        specifiedCountries: new List<string> { "US", }
+                        specifiedCountries: zone4Countries
                     ),
                     new( // зона 5
                         rates: new List<ShippingRate>
@@ -109,7 +142,7 @@ public class ShippingRatesService
                                 price: 120_600 + (x - 9) * 11_325
                             ))
                         ).ToList(),
-                        specifiedCountries: new List<string> { "AU", }
+                        specifiedCountries: zone5Countries
                     )
                 }
             ),
