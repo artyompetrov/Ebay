@@ -13,6 +13,7 @@ function save() {
     const clientSecret = (document.getElementById('clientSecret') as HTMLInputElement).value;
     const redirectUriCode = (document.getElementById('redirectUriCode') as HTMLInputElement).value;
     const mode = (document.getElementById('mode') as HTMLSelectElement).value as Mode;
+    
     chrome.storage.local.set({
         ebay_client_id: clientId,
         ebay_client_secret: clientSecret,

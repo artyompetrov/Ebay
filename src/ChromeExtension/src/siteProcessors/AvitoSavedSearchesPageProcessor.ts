@@ -8,6 +8,7 @@ export function tryGetAvitoSavedSearchesProcessor(mode: Mode | undefined) : ISit
     if (mode !== Mode.Supplier) {
         return null;
     }
+    
     const currentPage = location.protocol + '//' + location.host + location.pathname;
 
     if (currentPage === "https://www.avito.ru/autosearch") {

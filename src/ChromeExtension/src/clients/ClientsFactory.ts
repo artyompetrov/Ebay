@@ -7,12 +7,24 @@ import {FetchWrapperCustom} from "./FetchWrapperCustom";
 
 export class ClientsFactory {
     async getEbaySettings(): Promise<{ clientId: string; clientSecret: string; redirectUriCode: string }> {
-        const {ebay_client_id, ebay_client_secret, ebay_redirect_uri_code} = await chrome.storage.local.get(["ebay_client_id", "ebay_client_secret", "ebay_redirect_uri_code"]);
-        return {
-            clientId: ebay_client_id ?? "",
-            clientSecret: ebay_client_secret ?? "",
-            redirectUriCode: ebay_redirect_uri_code ?? ""
-        };
+        const {
+            ebay_client_id,
+            ebay_client_secret,
+            ebay_redirect_uri_code
+        } = await chrome.storage.local.get(["ebay_client_id", "ebay_client_secret", "ebay_redirect_uri_code"]);
+        
+        if (ebay_client_id && ebay_client_secret && ebay_redirect_uri_code) {
+            return {
+                clientId: ebay_client_id,
+                clientSecret: ebay_client_secret,
+                redirectUriCode: ebay_redirect_uri_code
+            };
+        }
+        
+        else {
+            alert("Missing ebay api credentials");
+            throw new Error("Missing ebay api credentials");
+        }
     }
     async saveCodeVerifier() {
         let codeVerifier = (await chrome.storage.local.get(["code_verifier"]))?.code_verifier;
