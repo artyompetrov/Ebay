@@ -4,13 +4,17 @@ import * as utils from "../infrastructure/Utils";
 import * as constants from '../constants';
 import { ISiteProcessor } from './ISiteProcessor';
 import {ClientsFactory} from "../clients/ClientsFactory";
+import {Mode} from '../mode';
 
 const ebaySiteRegex: RegExp =  /(?:^|\.)ebay\.com$/i;
 
-export function tryGetEbaySiteProcessor() : ISiteProcessor | null {
-    let currentPage = location.protocol + '//' + location.host + location.pathname
+export function tryGetEbaySiteProcessor(mode: Mode | undefined) : ISiteProcessor | null {
+    if (mode !== Mode.Supplier) {
+        return null;
+    }
+
+    const currentPage = location.protocol + '//' + location.host + location.pathname;
     if (ebaySiteRegex.test(location.host) && currentPage !== constants.Urls.ebayAuthRedirectUrl) {
-        
         return new EbaySiteProcessor();
     }
     return null;

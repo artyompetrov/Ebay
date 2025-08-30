@@ -26,7 +26,7 @@ jobs:
       - name: Build Docker Images
         run: |
           BUILD_VERSION=$(date +'%y%m.%d.%H.%M%S' | sed 's/\.0*/./g')
-          docker build -f ./src/Dockerfile --build-arg BUILD_VERSION="$BUILD_VERSION" --build-arg EBAY_HELPER_BACKEND_DOMAIN="${{ secrets.EBAY_HELPER_BACKEND_DOMAIN }}" --build-arg EBAY_CLIENT_ID="${{ secrets.EBAY_CLIENT_ID }}" --build-arg EBAY_CLIENT_SECRET="${{ secrets.EBAY_CLIENT_SECRET }}" --build-arg EBAY_REDIRECT_URI_CODE="${{ secrets.EBAY_REDIRECT_URI_CODE }}" --tag ${{ env.REGISTRY }}/${{ env.EBAY_HELPER_IMAGE_NAME }} ./src/
+          docker build -f ./src/Dockerfile --build-arg BUILD_VERSION="$BUILD_VERSION" --build-arg EBAY_HELPER_BACKEND_DOMAIN="${{ secrets.EBAY_HELPER_BACKEND_DOMAIN }}" --tag ${{ env.REGISTRY }}/${{ env.EBAY_HELPER_IMAGE_NAME }} ./src/
           docker build -f ./deploy/build/nginx/Dockerfile --tag ${{ env.REGISTRY }}/${{ env.EBAY_NGINX_IMAGE_NAME }} ./deploy/build/nginx/
 
       - name: Publish Docker Images

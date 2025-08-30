@@ -2,9 +2,14 @@
 import {ClientsFactory} from "../clients/ClientsFactory";
 import {ProductWithId} from "../clients/Generated/EbayToolBackendClient";
 import * as constants from '../constants';
+import {Mode} from '../mode';
 
-export function tryGetAvitoSavedSearchesProcessor() : ISiteProcessor | null {
-    let currentPage = location.protocol + '//' + location.host + location.pathname
+export function tryGetAvitoSavedSearchesProcessor(mode: Mode | undefined) : ISiteProcessor | null {
+    if (mode !== Mode.Supplier) {
+        return null;
+    }
+    
+    const currentPage = location.protocol + '//' + location.host + location.pathname;
 
     if (currentPage === "https://www.avito.ru/autosearch") {
 
