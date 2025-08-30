@@ -303,7 +303,7 @@ public class ShippingRatesService
                                 price: 71_400 + (x - 9) * 6_600
                             ))
                         ).ToList(),
-                        specifiedCountries: zone3Countries
+                        specifiedCountries: zone3Countries.Union(zone1Countries).Union(zone2Countries).ToList() // тут зона 1 и 2, т.к. актуализировать тарифы для 1 и 2 зоны не хочется
                     ),
 
                     // зона 4
