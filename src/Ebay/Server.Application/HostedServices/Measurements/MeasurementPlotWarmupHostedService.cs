@@ -5,6 +5,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Server.Application.Consumers;
 using Server.Application.Data;
+using Server.Application.Infrastructure;
 
 namespace Server.Application.HostedServices.Measurements;
 
@@ -32,11 +33,16 @@ public class MeasurementPlotWarmupHostedService : IHostedService
             .Select(m => m.Id)
             .ToListAsync(cancellationToken);
 
-        foreach (var id in measurementIds)
+        foreach (var batch in measurementIds.Batch(500))
         {
-            await publishEndpoint.Publish(new CalculateEbayCurvesForMeasurement(id), cancellationToken);
-        }
+            foreach (var id in batch)
+            {
+                await publishEndpoint.Publish(new CalculateEbayCurvesForMeasurement(id), cancellationToken);
+            }
 
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        
         _logger.LogInformation("Published {Count} measurement plot warmup commands", measurementIds.Count);
     }
 
