@@ -16,6 +16,7 @@
     <ItemGroup>
       <ProjectReference Include="..\Client\Client.csproj" />
       <ProjectReference Include="..\Server\Server.csproj" />
+      <ProjectReference Include="..\Server.Adapters.ChipFind\Server.Adapters.ChipFind.csproj" />
     </ItemGroup>
 
 </Project>

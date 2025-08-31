@@ -8,6 +8,7 @@ public static class ServiceCollectionExtensions
     public static void AddChipFindAdapter(
         this IServiceCollection services)
     {
+        services.AddHttpClient();
         services.AddSingleton<IChipfindAdapter, ChipfindAdapter>();
     }
 }
