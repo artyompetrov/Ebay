@@ -11,7 +11,7 @@ COPY Ebay/Server.Adapters.ChipFind/*.csproj Ebay/Server.Adapters.ChipFind/
 COPY Ebay/Server.Application/*.csproj Ebay/Server.Application/
 COPY Ebay/Server.Client/*.csproj Ebay/Server.Client/
 COPY Ebay/Tests/*.csproj Ebay/Tests/
-RUN dotnet restore "Ebay/Server/Server.csproj"
+RUN dotnet restore "Ebay/Ebay.sln"
 # Копируем остальной исходный код
 COPY Ebay/ Ebay/
 WORKDIR "/src/Ebay/"
