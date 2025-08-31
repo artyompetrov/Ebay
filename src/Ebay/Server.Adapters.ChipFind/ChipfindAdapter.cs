@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
+using System.Net.Http;
 using Server.Application.HostedServices.ChipFind;
 
 namespace Server.Adapters.ChipFind;
@@ -9,10 +10,12 @@ namespace Server.Adapters.ChipFind;
 public class ChipfindAdapter : IChipfindAdapter
 {
     private readonly ILogger<ChipfindAdapter> _logger;
+    private readonly IHttpClientFactory _httpClientFactory;
 
-    public ChipfindAdapter(ILogger<ChipfindAdapter> logger)
+    public ChipfindAdapter(ILogger<ChipfindAdapter> logger, IHttpClientFactory httpClientFactory)
     {
         _logger = logger;
+        _httpClientFactory = httpClientFactory;
     }
 
     public async Task<IReadOnlyCollection<SaleAdvertisement>> GetRecentSaleAdvertisements(
@@ -20,7 +23,7 @@ public class ChipfindAdapter : IChipfindAdapter
     {
         var url = "https://www.chipfind.ru/market/sale_full.xml";
 
-        using var httpClient = new HttpClient();
+        var httpClient = _httpClientFactory.CreateClient("chipfind");
         var xmlContent = await httpClient.GetStringAsync(url, cancellationToken);
 
         var xdoc = XDocument.Parse(xmlContent);
@@ -42,11 +45,14 @@ public class ChipfindAdapter : IChipfindAdapter
 
             PreNodesAsNewLines(doc);
 
-            var plainText = Regex.Replace(
-                input: doc.DocumentNode.InnerText,
+            var htmlWithLineBreaks = Regex.Replace(
+                input: doc.DocumentNode.InnerHtml,
                 pattern: @"<br\s*/?>",
                 replacement: "\n",
                 options: RegexOptions.IgnoreCase);
+
+            var plainText = Regex.Replace(htmlWithLineBreaks, "<.*?>", string.Empty);
+            plainText = HtmlEntity.DeEntitize(plainText);
 
             var items = plainText
                 .Split(separator: new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
