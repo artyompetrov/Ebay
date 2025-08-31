@@ -1,6 +1,8 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Server.Application.Consumers;
 using Server.Application.Controllers;
 using Server.Application.Data;
@@ -29,7 +31,13 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton(options);
         services.AddNpgsqlDataSource(connectionString);
-        services.AddDbContext<ApplicationDbContext>(o => o.UseNpgsql());
+        services.AddDbContext<ApplicationDbContext>(o =>
+        {
+            o.UseNpgsql();
+            o.ConfigureWarnings(w => w.Log(
+                (RelationalEventId.CommandExecuting, LogLevel.Trace),
+                (RelationalEventId.CommandExecuted, LogLevel.Trace)));
+        });
         services.AddSingleton<ShippingRatesService>();
         services.AddSingleton(new DatabaseConcurrentAccessSemaphore(
                 maxConcurrent: new Npgsql.NpgsqlConnectionStringBuilder(connectionString).MaxPoolSize / 2));
