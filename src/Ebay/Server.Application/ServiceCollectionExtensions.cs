@@ -1,14 +1,15 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using System.Threading;
 using Server.Application.Consumers;
 using Server.Application.Controllers;
 using Server.Application.Data;
 using Server.Application.Data.Models;
 using Server.Application.HostedServices.ChipFind;
-using Server.Application.HostedServices.SaleAdvertisements;
 using Server.Application.HostedServices.Currencies;
+using Server.Application.HostedServices.DbCache;
+using Server.Application.HostedServices.Measurements;
+using Server.Application.HostedServices.SaleAdvertisements;
 using Server.Application.Infrastructure;
 using Server.Application.Services.LotDataExtractor;
 using Server.Application.Services.Measurement;
@@ -58,6 +59,10 @@ public static class ServiceCollectionExtensions
             x.AddConsumer<CalculatePricesForAllConsumer>();
             x.AddConsumer<CalculatePricesForProductConsumer>();
             x.AddConsumer<CalculatePricesForLotConsumer>();
+            x.AddConsumer<CalculateEbayCurvesForMeasurementConsumer>(c =>
+            {
+                c.UseConcurrencyLimit(10);
+            });
             x.AddConsumer<CalculateTotalAveragePriceForProductConsumer>(c => c.Options<BatchOptions>(o =>
             {
                 o.ConcurrencyLimit = 1;
@@ -79,6 +84,8 @@ public static class ServiceCollectionExtensions
             });
 
         });
+        services.AddHostedService<DbCacheCleanupHostedService>();
+        services.AddHostedService<MeasurementPlotWarmupHostedService>();
         services.AddDatabaseDeveloperPageExceptionFilter();
 
         services.AddControllersWithViews(options =>
@@ -98,9 +105,6 @@ public static class ServiceCollectionExtensions
         using var scope = serviceProvider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         dbContext.Database.Migrate();
-
-        var dbCache = scope.ServiceProvider.GetRequiredService<DbCache>();
-        dbCache.RemoveOldVersionsAsync(CancellationToken.None).GetAwaiter().GetResult();
     }
 
 }
