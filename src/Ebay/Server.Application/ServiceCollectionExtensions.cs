@@ -1,15 +1,15 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using System.Threading;
 using Server.Application.Consumers;
 using Server.Application.Controllers;
 using Server.Application.Data;
 using Server.Application.Data.Models;
 using Server.Application.HostedServices.ChipFind;
-using Server.Application.HostedServices.SaleAdvertisements;
 using Server.Application.HostedServices.Currencies;
+using Server.Application.HostedServices.DbCache;
 using Server.Application.HostedServices.Measurements;
+using Server.Application.HostedServices.SaleAdvertisements;
 using Server.Application.Infrastructure;
 using Server.Application.Services.LotDataExtractor;
 using Server.Application.Services.Measurement;
@@ -81,6 +81,7 @@ public static class ServiceCollectionExtensions
             });
 
         });
+        services.AddHostedService<DbCacheCleanupHostedService>();
         services.AddHostedService<MeasurementPlotWarmupHostedService>();
         services.AddDatabaseDeveloperPageExceptionFilter();
 
@@ -102,8 +103,6 @@ public static class ServiceCollectionExtensions
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         dbContext.Database.Migrate();
 
-        var dbCache = scope.ServiceProvider.GetRequiredService<DbCache>();
-        dbCache.RemoveOldVersionsAsync(CancellationToken.None).GetAwaiter().GetResult();
     }
 
 }
