@@ -213,7 +213,7 @@ public class ShippingRatesService
             new("Филиппины", "PHL", "PH"),
             new("Микронезия", "FSM", "FM"),
             new("Панама", "PAN", "PA"),
-            new("Папуа — Новая Гвинея", "PNG", "PG"),
+            new("Папуа - Новая Гвинея", "PNG", "PG"),
             new("Фолклендские острова", "FLK", "FK"),
             new("Коста-Рика", "CRI", "CR"),
             new("Парагвай", "PRY", "PY"),
@@ -309,14 +309,9 @@ public class ShippingRatesService
                             new(minWeight: 7000, maxWeight: 8000, price: 57_900),
                             new(minWeight: 8000, maxWeight: 9000, price: 64_875),
                             new(minWeight: 9000, maxWeight: 10000, price: 71_400),
-                        }.Concat(
-                            Enumerable.Range(10, 30).Select(x => new ShippingRate(
-                                minWeight: x * 1000,
-                                maxWeight: (x + 1) * 1000,
-                                price: 71_400 + (x - 9) * 6_600
-                            ))
-                        ).ToList(),
-                        specifiedCountries: zone3Countries.Union(zone1Countries).Union(zone2Countries).ToList() // тут зона 1 и 2, т.к. актуализировать тарифы для 1 и 2 зоны не хочется
+                        }.Concat(CalculateForBigParcels(71_400, 6_600)).ToList(),
+                        // тут зона 1 и 2, т.к. актуализировать тарифы для 1 и 2 зоны не хочется
+                        specifiedCountries: zone3Countries.Union(zone1Countries).Union(zone2Countries).ToList()
                     ),
 
                     // зона 4
@@ -333,13 +328,7 @@ public class ShippingRatesService
                             new(minWeight: 7000, maxWeight: 8000, price: 70_200),
                             new(minWeight: 8000, maxWeight: 9000, price: 78_450),
                             new(minWeight: 9000, maxWeight: 10000, price: 87_150),
-                        }.Concat(
-                            Enumerable.Range(10, 30).Select(x => new ShippingRate(
-                                minWeight: x * 1000,
-                                maxWeight: (x + 1) * 1000,
-                                price: 87_150 + (x - 9) * 7_920
-                            ))
-                        ).ToList(),
+                        }.Concat(CalculateForBigParcels(87_150, 7_920)).ToList(),
                         specifiedCountries: zone4Countries
                     ),
 
@@ -357,13 +346,7 @@ public class ShippingRatesService
                             new(minWeight: 7000, maxWeight: 8000, price: 95_700),
                             new(minWeight: 8000, maxWeight: 9000, price: 108_300),
                             new(minWeight: 9000, maxWeight: 10000, price: 120_600),
-                        }.Concat(
-                            Enumerable.Range(10, 30).Select(x => new ShippingRate(
-                                minWeight: x * 1000,
-                                maxWeight: (x + 1) * 1000,
-                                price: 120_600 + (x - 9) * 11_325
-                            ))
-                        ).ToList(),
+                        }.Concat(CalculateForBigParcels(120_600, 11_325)).ToList(),
                         specifiedCountries: zone5Countries
                     )
                 ]
@@ -374,6 +357,14 @@ public class ShippingRatesService
         _shippingRatesDictionary = GetShippingRatesDictionaryInner();
     }
 
+    private static IEnumerable<ShippingRate> CalculateForBigParcels(int lastValueInTable, int eachAdditional)
+    {
+        return Enumerable.Range(10, 30).Select(x => new ShippingRate(
+            minWeight: x * 1000,
+            maxWeight: (x + 1) * 1000,
+            price: lastValueInTable + (x - 9) * eachAdditional
+        ));
+    }
 
     public const string Worldwide = "Worldwide";
 
