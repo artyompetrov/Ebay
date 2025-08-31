@@ -1,8 +1,19 @@
-﻿FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim AS build_dotnet
+FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim AS build_dotnet
 WORKDIR /src
-#тут была оптимизация разбивки по слоям - сначала рестор потом билд, но я ее убрал
-COPY Ebay Ebay
+# Сначала копируем файлы проектов для использования кэша слоёв при restore
+COPY Ebay/*.sln Ebay/
+COPY Ebay/*.props Ebay/
+COPY Ebay/nuget.config Ebay/
+COPY Ebay/Client/*.csproj Ebay/Client/
+COPY Ebay/Server/*.csproj Ebay/Server/
+COPY Ebay/Server.Adapters.Smtp/*.csproj Ebay/Server.Adapters.Smtp/
+COPY Ebay/Server.Adapters.ChipFind/*.csproj Ebay/Server.Adapters.ChipFind/
+COPY Ebay/Server.Application/*.csproj Ebay/Server.Application/
+COPY Ebay/Server.Client/*.csproj Ebay/Server.Client/
+COPY Ebay/Tests/*.csproj Ebay/Tests/
 RUN dotnet restore "Ebay/Server/Server.csproj"
+# Копируем остальной исходный код
+COPY Ebay/ Ebay/
 WORKDIR "/src/Ebay/"
 RUN dotnet msbuild -t:BeforeBuild
 WORKDIR "/src/Ebay/Server"
