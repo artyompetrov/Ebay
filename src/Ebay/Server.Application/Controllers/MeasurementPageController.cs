@@ -36,15 +36,7 @@ public class MeasurementPageController : ControllerBase
         string measurementId,
         CancellationToken cancellationToken)
     {
-        var result = await _measurementPlotService.PlotForMeasurementId(
-            measurementId: measurementId,
-            cancellationToken: cancellationToken,
-            mergeVertical: false,
-            legendVertical: true,
-            addQuickTest: true,
-            width: 550,
-            height: 400,
-            sellingOnly: true);
+        var result = await _measurementPlotService.PlotForEbay(measurementId, cancellationToken);
 
         if (result == null)
             return NotFound("Measurement not found");

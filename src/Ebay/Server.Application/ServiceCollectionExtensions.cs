@@ -59,7 +59,10 @@ public static class ServiceCollectionExtensions
             x.AddConsumer<CalculatePricesForAllConsumer>();
             x.AddConsumer<CalculatePricesForProductConsumer>();
             x.AddConsumer<CalculatePricesForLotConsumer>();
-            x.AddConsumer<CalculateEbayCurvesForMeasurementConsumer>();
+            x.AddConsumer<CalculateEbayCurvesForMeasurementConsumer>(c =>
+            {
+                c.UseConcurrencyLimit(10);
+            });
             x.AddConsumer<CalculateTotalAveragePriceForProductConsumer>(c => c.Options<BatchOptions>(o =>
             {
                 o.ConcurrencyLimit = 1;
@@ -102,7 +105,6 @@ public static class ServiceCollectionExtensions
         using var scope = serviceProvider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         dbContext.Database.Migrate();
-
     }
 
 }

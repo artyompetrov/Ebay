@@ -20,6 +20,21 @@ public class MeasurementPlotService
         _measurementService = measurementService;
     }
 
+    /// <summary>
+    /// Отдельный метод для Ebay требуется для возможности предварительного прогрева на старте
+    /// иначе прогрев происходит при первом заходе покупателя после передеплоя
+    /// </summary>
+    public Task<string?> PlotForEbay(string measurementId, CancellationToken cancellationToken) =>
+        PlotForMeasurementId(
+            measurementId: measurementId,
+            cancellationToken: cancellationToken,
+            mergeVertical: false,
+            legendVertical: true,
+            addQuickTest: true,
+            width: 550,
+            height: 400,
+            sellingOnly: true);
+
     public async Task<string?> PlotForMeasurementId(
         string measurementId,
         CancellationToken cancellationToken,
