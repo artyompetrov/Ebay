@@ -81,6 +81,8 @@ builder.Logging.ClearProviders();
 
 builder.Logging.AddConsole();
 builder.Logging.SetMinimumLevel(LogLevel.Trace);
+builder.Logging.AddFilter("Npgsql.Command", LogLevel.Trace);
+builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Trace);
 
 builder.Logging.AddOpenTelemetry(o =>
 {

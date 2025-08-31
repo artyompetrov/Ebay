@@ -31,12 +31,16 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton(options);
         services.AddNpgsqlDataSource(connectionString);
-        services.AddDbContext<ApplicationDbContext>(o =>
+        services.AddDbContext<ApplicationDbContext>((sp, o) =>
         {
             o.UseNpgsql();
             o.ConfigureWarnings(w => w.Log(
                 (RelationalEventId.CommandExecuting, LogLevel.Trace),
                 (RelationalEventId.CommandExecuted, LogLevel.Trace)));
+            var logger = sp.GetRequiredService<ILoggerFactory>().CreateLogger("Npgsql.Command");
+            o.LogTo(message => logger.LogTrace(message),
+                new[] { DbLoggerCategory.Database.Command.Name },
+                LogLevel.Trace);
         });
         services.AddSingleton<ShippingRatesService>();
         services.AddSingleton(new DatabaseConcurrentAccessSemaphore(
