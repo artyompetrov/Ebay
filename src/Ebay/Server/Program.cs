@@ -55,7 +55,7 @@ builder.Services.AddIdentityServer()
                 $"chrome-extension://{WellKnown.ChromeExtension.Id}",
                 "https://" + domain
             ];
-            spaClient.AccessTokenLifetime = (int)TimeSpan.FromDays(7).TotalSeconds;
+            spaClient.AccessTokenLifetime = (int)TimeSpan.FromDays(30).TotalSeconds;
             o.Clients.Add(spaClient);
 
             o.Clients.Add(
