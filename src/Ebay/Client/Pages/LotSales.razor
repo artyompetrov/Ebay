@@ -46,6 +46,7 @@
     else
     {
         <div>Вес без упаковки: @Product.Weight</div>
+        <div>Вес в относительных единицах (для shipping rate table): @Product.CalculatedEbayWeight lbs</div>
     }
 
     <div>Продано штук: @(Product.ProductCalculationResult?.QuantityTotal)</div>

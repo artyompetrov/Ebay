@@ -633,6 +633,10 @@ definitions:
       Weight:
         type: integer
         minimum: 0
+      CalculatedEbayWeight:
+        description: Вес в условных единицах для ebay, нужен для shipping rate table (принято, что  1 lb = 100г)
+        type: integer
+        minimum: 0
       SearchQueries:
         type: array
         items:
@@ -653,6 +657,7 @@ definitions:
       - SearchQueries
       - RuSearchQueries
       - Weight
+      - CalculatedEbayWeight
       - IsCheckRequired
       - ProductRegex
       - IsInteresting

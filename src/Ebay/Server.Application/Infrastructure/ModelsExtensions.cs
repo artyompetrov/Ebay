@@ -33,7 +33,8 @@ internal static class ModelsExtensions
         weight: dbProduct.Weight,
         productCalculationResult: dbProduct.ProductCalculationResult.ToApiLotCalculationResult(),
         productRegex: dbProduct.GetProductRegex().ToString(),
-        isInteresting: dbProduct.GetIsInteresting()
+        isInteresting: dbProduct.GetIsInteresting(),
+        calculatedEbayWeight: dbProduct.GetCalculatedEbayWeight()
     );
 
     public static SearchQuery ToApiSearchQuery(this DbSearchQuery searchQuery) =>

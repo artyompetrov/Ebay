@@ -47,6 +47,7 @@ internal static class WellKnown
     {
         public static TimeSpan UpdateTime = TimeSpan.FromDays(1);
         public static TimeSpan ErrorDelay = TimeSpan.FromMinutes(5);
+
         /// <summary>
         /// Время через которое не обновлявшиеся объявления о продаже считаются устаревшими и удаляются
         /// </summary>
@@ -74,5 +75,14 @@ internal static class WellKnown
         }
     }
 
-
+    public static class Ebay
+    {
+        public const double скидкаНаПродажиСНеизвестнойЦеной = 0.2;
+        public const double коммисияEbayFinalValueFee = 0.136;
+        public const double коммисияEbayInternationalFee = 0.013;
+        public const double коммиссияEbayПостояннаяВеличина = 0.4;
+        public const double множительУчитывающийVat = 1.12;
+        public const double коммисияPayoneerВПроцентах = 0.01;
+        public const double множительДляУчетаВесаУпаковки = 1.5;
+    }
 }

@@ -50,13 +50,7 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
             throw new InvalidOperationException($"Product with {lot.ProductId} not found");
 
         // ReSharper disable IdentifierTypo
-        const double скидкаНаПродажиСНеизвестнойЦеной = 0.2;
-        const double коммисияEbayFinalValueFee = 0.136;
-        const double коммисияEbayInternationalFee = 0.013;
-        const double коммиссияEbayПостояннаяВеличина = 0.4;
-        const double множительУчитывающийVat = 1.12;
-        const double коммисияPayoneerВПроцентах = 0.01;
-        const double множительДляУчетаВесаУпаковки = 1.5;
+
 
         var общееКоличествоШтукВоВсехПродажах = 0;
         var общаяВыручкаВДолларах = 0.0;
@@ -68,24 +62,24 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
 
             var рассчетнаяЦенаДоставкиВДоллларахИзКазахстана = GetShippingPrice(
                 shippingCountry: lot.ShippingCountry,
-                weight: product.Weight * количествоШтукВПродаже * множительДляУчетаВесаУпаковки,
+                weight: product.Weight * количествоШтукВПродаже * WellKnown.Ebay.множительДляУчетаВесаУпаковки,
                 currencyRates: currencyRates);
 
-            var ценаЛотаВВалютеЛота = purchase.Price ?? lot.Price * (1.0 - скидкаНаПродажиСНеизвестнойЦеной);
+            var ценаЛотаВВалютеЛота = purchase.Price ?? lot.Price * (1.0 - WellKnown.Ebay.скидкаНаПродажиСНеизвестнойЦеной);
             var ценаДоставкиВВалютеЛота = lot.Shipping + lot.ShippingAdditional * (purchase.Quantity - 1);
 
             var полнаяЦенаПродажиВВалютеЛота = ценаЛотаВВалютеЛота * purchase.Quantity + ценаДоставкиВВалютеЛота;
 
             var полнаяЦенаПродажиВДолларах = полнаяЦенаПродажиВВалютеЛота / currencyRates[lot.CurrencyId];
 
-            var ebayFinalValueFee = полнаяЦенаПродажиВДолларах * коммисияEbayFinalValueFee;
-            var ebayInternationalFee = полнаяЦенаПродажиВДолларах * коммисияEbayInternationalFee;
-            var ebayFee = (ebayFinalValueFee + ebayInternationalFee + коммиссияEbayПостояннаяВеличина) *
-                          множительУчитывающийVat;
+            var ebayFinalValueFee = полнаяЦенаПродажиВДолларах * WellKnown.Ebay.коммисияEbayFinalValueFee;
+            var ebayInternationalFee = полнаяЦенаПродажиВДолларах * WellKnown.Ebay.коммисияEbayInternationalFee;
+            var ebayFee = (ebayFinalValueFee + ebayInternationalFee + WellKnown.Ebay.коммиссияEbayПостояннаяВеличина) *
+                          WellKnown.Ebay.множительУчитывающийVat;
 
             var полнаяЦенаПродажиЗаВычетомКоммиссийEbay = полнаяЦенаПродажиВДолларах - ebayFee;
 
-            var payoneerFee = полнаяЦенаПродажиЗаВычетомКоммиссийEbay * коммисияPayoneerВПроцентах;
+            var payoneerFee = полнаяЦенаПродажиЗаВычетомКоммиссийEbay * WellKnown.Ebay.коммисияPayoneerВПроцентах;
 
             var выручкаСПродажиВДолларах = полнаяЦенаПродажиЗаВычетомКоммиссийEbay
                                            - payoneerFee

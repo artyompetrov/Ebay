@@ -94,4 +94,10 @@ public static class ProductExtensions
     public static bool GetIsInteresting(this Product product) =>
         product.ProductCalculationResult?.RevenueAvg > WellKnown.IsInteresting.RevenueUsd &&
         product.ProductCalculationResult?.QuantityTotal >= WellKnown.IsInteresting.RelevantStatistics;
+
+    /// <summary>
+    /// Вес в относительных единицах для расчета стоимости доставки на ebay
+    /// </summary>
+    public static int GetCalculatedEbayWeight(this Product product) =>
+        (int)Math.Ceiling(product.Weight * WellKnown.Ebay.множительДляУчетаВесаУпаковки / 100.0);
 }
