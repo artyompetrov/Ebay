@@ -18,7 +18,7 @@ processors:
           - set(attributes["level"], "ERROR") where severity_number == 17
           - set(attributes["level"], "FATAL") where severity_number == 21
 
-          - set(resource.attributes["level"], attributes["level"]) where attributes["level"] != nil
+          - set(resource.attributes["log_level"], attributes["level"]) where attributes["level"] != nil
   batch: {}
 
 exporters:

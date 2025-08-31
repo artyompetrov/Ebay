@@ -57,4 +57,4 @@ limits_config:
         - action: index_label
           attributes:
             - service.name
-            - level
+            - log_level
