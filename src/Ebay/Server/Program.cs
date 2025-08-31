@@ -78,9 +78,8 @@ builder.Services.AddIdentityServer()
 builder.Services.AddAuthentication().AddIdentityServerJwt();
 
 builder.Logging.ClearProviders();
-#if DEBUG
+
 builder.Logging.AddConsole();
-#endif
 builder.Logging.SetMinimumLevel(LogLevel.Trace);
 
 builder.Logging.AddOpenTelemetry(o =>
