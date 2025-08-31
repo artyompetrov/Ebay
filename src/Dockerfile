@@ -23,12 +23,11 @@ RUN apt-get update && apt-get install -y fontconfig fonts-liberation && fc-cache
 
 FROM node:18-alpine AS build_chrome_extension
 WORKDIR /src
-ENV NODE_ENV=development
 COPY ChromeExtension .
 COPY --from=build_dotnet /src/ChromeExtension .
 ARG EBAY_HELPER_BACKEND_DOMAIN="localhost"
 ARG BUILD_VERSION="1.0.0.0"
-RUN npm ci
+RUN npm ci --include=dev
 RUN EBAY_HELPER_BACKEND_DOMAIN=$EBAY_HELPER_BACKEND_DOMAIN BUILD_VERSION=$BUILD_VERSION npm run build
 RUN mkdir -p /app/publish/ && \
     npx crx3 _extension --keyPath=./key.pem --crxPath=/app/publish/mlebgdemjnpnfgcgbbncllpniiicffbm_${BUILD_VERSION}.crx
