@@ -9,6 +9,7 @@ using Server.Application.Data.Models;
 using Server.Application.HostedServices.ChipFind;
 using Server.Application.HostedServices.SaleAdvertisements;
 using Server.Application.HostedServices.Currencies;
+using Server.Application.HostedServices.Measurements;
 using Server.Application.Infrastructure;
 using Server.Application.Services.LotDataExtractor;
 using Server.Application.Services.Measurement;
@@ -58,6 +59,7 @@ public static class ServiceCollectionExtensions
             x.AddConsumer<CalculatePricesForAllConsumer>();
             x.AddConsumer<CalculatePricesForProductConsumer>();
             x.AddConsumer<CalculatePricesForLotConsumer>();
+            x.AddConsumer<CalculateEbayCurvesForMeasurementConsumer>();
             x.AddConsumer<CalculateTotalAveragePriceForProductConsumer>(c => c.Options<BatchOptions>(o =>
             {
                 o.ConcurrencyLimit = 1;
@@ -79,6 +81,7 @@ public static class ServiceCollectionExtensions
             });
 
         });
+        services.AddHostedService<MeasurementPlotWarmupHostedService>();
         services.AddDatabaseDeveloperPageExceptionFilter();
 
         services.AddControllersWithViews(options =>
