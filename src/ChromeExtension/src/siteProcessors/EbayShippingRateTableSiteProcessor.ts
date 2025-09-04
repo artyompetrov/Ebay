@@ -5,7 +5,8 @@ import {ClientsFactory} from "../clients/ClientsFactory";
 export function tryGetEbayShippingRateTableSiteProcessor() : ISiteProcessor | null {
     let currentPage = location.protocol + '//' + location.host + location.pathname
 
-    if (currentPage.startsWith("https://www.ebay.com/ship/rt/")) {
+    if ((/^https:\/\/www\.ebay\.(de|com)\/ship\/rt(?:[/?]|$)/.test(currentPage)))
+    {
 
         return new EbayShippingRateTableSiteProcessor();
     }

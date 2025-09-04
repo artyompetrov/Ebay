@@ -16,6 +16,7 @@ public class ShippingRatesService
         // не интересно
         var zone1Countries = new List<ShippingCountry>
         {
+            new("Казахстан", "KAZ", "KZ"),
             new("Таджикистан", "TJK", "TJ"),
             new("Туркменистан", "TKM", "TM"),
             new("Узбекистан", "UZB", "UZ"),
@@ -110,7 +111,7 @@ public class ShippingRatesService
 
         var zone4Countries = new List<ShippingCountry>
         {
-            new("США", "USA", "US"),
+            new("США", "_US", "US"),
             new("Гуам", "GUM", "GU"),
             new("Маршалловы Острова", "MHL", "MH"),
             new("Палау", "PLW", "PW"),
