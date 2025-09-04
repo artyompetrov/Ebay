@@ -31,7 +31,8 @@ public class EbayLotDescriptionPage : PageModel
 
     public record MeasurementIdWithManufactureCode(
         string MeasurementId,
-        string ManufactureCode
+        string ManufactureCode,
+        ProductState ProductState
     );
 
     public record PassportDto(
@@ -50,7 +51,7 @@ public class EbayLotDescriptionPage : PageModel
                 x.SearchQueries.Select(m => m.Query).ToList(),
                 x.ProductMeasurements
                     .Where(pm => pm.MeasurementState == MeasurementState.Selling && pm.ProductState == state)
-                    .Select(m => new MeasurementIdWithManufactureCode(m.Id, m.ManufactureCode))
+                    .Select(m => new MeasurementIdWithManufactureCode(m.Id, m.ManufactureCode, m.ProductState))
                     .ToList(),
                 x.Passports
                     .OrderBy(p => p.Order)

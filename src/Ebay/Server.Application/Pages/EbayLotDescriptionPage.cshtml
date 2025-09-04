@@ -75,15 +75,19 @@
     
     <table >
         <tr>
-            <th>Measurement #</th>
-            <th>Code or date</th>
+            <th>Tube #</th>
             <th>Curves</th>
         </tr>
         @foreach (var meas in Model.Product.Measurements)
         {
             <tr>
-                <td>@meas.MeasurementId</td>
-                <td>@meas.ManufactureCode</td>
+                <td>
+                    #@meas.MeasurementId
+                    <br/><br/>
+                    @meas.ManufactureCode
+                    <br/><br/>
+                    @meas.ProductState
+                </td>
                 <td><img src="@($"{baseUrl}/m/{meas.MeasurementId}/ebay_curves")" alt="@meas.MeasurementId"/></td>
             </tr>
         }
