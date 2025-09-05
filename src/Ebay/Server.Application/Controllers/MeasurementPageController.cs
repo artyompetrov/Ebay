@@ -68,7 +68,7 @@ public class MeasurementPageController : ControllerBase
             try
             {
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(token);
-                cts.CancelAfter(TimeSpan.FromSeconds(1));
+                cts.CancelAfter(TimeSpan.FromSeconds(5));
                 location = await _geoIpService.GetLocationAsync(realIp, cts.Token);
             }
             catch (Exception ex)
