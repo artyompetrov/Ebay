@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Server.Application.Services.GeoIp;
 using Server.Application.Services.Measurement;
 using Server.Application.Services.MeasurementPlot;
 using System.Linq;
@@ -11,15 +12,18 @@ public class MeasurementPageController : ControllerBase
 {
     private readonly MeasurementService _measurementService;
     private readonly MeasurementPlotService _measurementPlotService;
+    private readonly GeoIpService _geoIpService;
     private readonly ILogger<MeasurementPageController> _logger;
 
     public MeasurementPageController(
         MeasurementService measurementService,
         MeasurementPlotService measurementPlotService,
+        GeoIpService geoIpService,
         ILogger<MeasurementPageController> logger)
     {
         _measurementService = measurementService;
         _measurementPlotService = measurementPlotService;
+        _geoIpService = geoIpService;
         _logger = logger;
     }
 
@@ -44,8 +48,15 @@ public class MeasurementPageController : ControllerBase
         CancellationToken cancellationToken)
     {
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-        var headers = string.Join(Environment.NewLine, Request.Headers.Select(h => $"{h.Key}: {h.Value}"));
-        _logger.LogInformation("GetEbayCurves requested. IP: {IpAddress}.\nHeaders: {Headers}", ipAddress, headers);
+        var xRealIp = Request.Headers["X-Real-IP"].FirstOrDefault();
+        var userAgent = Request.Headers["User-Agent"].ToString();
+        var region = await _geoIpService.GetRegionAsync(xRealIp, cancellationToken);
+        _logger.LogInformation(
+            "GetEbayCurves requested. IP: {IpAddress}. X-Real-IP: {XRealIp}. Region: {Region}. UserAgent: {UserAgent}",
+            ipAddress,
+            xRealIp,
+            region,
+            userAgent);
 
         var result = await _measurementPlotService.PlotForEbay(measurementId, cancellationToken);
 
