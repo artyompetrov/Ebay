@@ -14,6 +14,7 @@ using Server.Application.Infrastructure;
 using Server.Application.Services.LotDataExtractor;
 using Server.Application.Services.Measurement;
 using Server.Application.Services.MeasurementPlot;
+using Server.Application.Services.GeoIp;
 using Server.Controllers.Generated;
 
 namespace Server.Application;
@@ -37,6 +38,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<MeasurementService>();
         services.AddScoped<MatchedMeasurementService>();
         services.AddScoped<MeasurementPlotService>();
+        services.AddHttpClient<GeoIpService>(c =>
+        {
+            c.Timeout = TimeSpan.FromSeconds(2);
+        });
 
         services.AddScoped<IEbayController, EbayControllerImplementation>();
         services.AddDefaultIdentity<ApplicationUser>(o => o.SignIn.RequireConfirmedAccount = true)
