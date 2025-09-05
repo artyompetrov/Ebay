@@ -17,7 +17,7 @@ public class GeoIpService
         _logger = logger;
     }
 
-    public async Task<GeoIpLocation?> GetLocationAsync(string? ip, CancellationToken cancellationToken)
+    private async Task<GeoIpLocation?> GetLocationAsync(string? ip, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(ip))
             return null;
@@ -45,5 +45,33 @@ public class GeoIpService
         }
     }
 
+    public void LogRequest(string prefix, string? realIp, string ua, CancellationToken token)
+    {
+        _ = LogRequestAsyncInternal(prefix, realIp, ua, token);
+    }
+    
+    private async Task LogRequestAsyncInternal(string prefix, string? realIp, string ua, CancellationToken token)
+    {
+        GeoIpLocation? location = null;
+
+        try
+        {
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(token);
+            cts.CancelAfter(TimeSpan.FromSeconds(5));
+            location = await GetLocationAsync(realIp, cts.Token);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "GeoIP lookup failed for {XRealIp}", realIp);
+        }
+
+        _logger.LogInformation(
+            message: prefix + " X-Real-IP: {XRealIp}. Country: {Country}. City: {City}. UserAgent: {UserAgent}",
+            realIp,
+            location?.Country,
+            location?.City,
+            ua);
+    }
+    
     private sealed record IpApiResponse(string? Country, string? City);
 }
