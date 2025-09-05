@@ -1,4 +1,5 @@
 ﻿@page "/ebay_description/{productId}"
+@using System.Net
 @using Server.Application.Data.Models
 @using Server.Application.Pages
 @model Server.Application.Pages.EbayLotDescriptionPage
@@ -88,7 +89,7 @@
                     <br/><br/>
                     @meas.ProductState
                 </td>
-                <td><img src="@($"{baseUrl}/m/{meas.MeasurementId}/ebay_curves")" alt="@meas.MeasurementId"/></td>
+                <td><img src="@($"{baseUrl}/m/{meas.MeasurementId}/ebay_curves?product={WebUtility.UrlEncode(GetName(Model))}")" alt="@meas.MeasurementId"/></td>
             </tr>
         }
     </table>

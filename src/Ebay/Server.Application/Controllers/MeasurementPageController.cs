@@ -45,12 +45,13 @@ public class MeasurementPageController : ControllerBase
     [HttpGet("/m/{measurementId}/ebay_curves")]
     public async Task<IActionResult> GetEbayCurves(
         string measurementId,
+        string? product,
         CancellationToken cancellationToken)
     {
         var xRealIp = Request.Headers["X-Real-IP"].FirstOrDefault();
         var userAgent = Request.Headers["User-Agent"].ToString();
 
-        await _geoIpService.LogRequest("GetEbayCurves requested", xRealIp, userAgent, cancellationToken);
+        await _geoIpService.LogRequest($"GetEbayCurves for product {product} requested", xRealIp, userAgent, cancellationToken);
 
         var result = await _measurementPlotService.PlotForEbay(measurementId, cancellationToken);
 
