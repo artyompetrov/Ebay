@@ -50,14 +50,8 @@ public class MeasurementPageController : ControllerBase
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
         var xRealIp = Request.Headers["X-Real-IP"].FirstOrDefault();
         var userAgent = Request.Headers["User-Agent"].ToString();
-        var location = await _geoIpService.GetLocationAsync(xRealIp, cancellationToken);
-        _logger.LogInformation(
-            "GetEbayCurves requested. IP: {IpAddress}. X-Real-IP: {XRealIp}. Country: {Country}. City: {City}. UserAgent: {UserAgent}",
-            ipAddress,
-            xRealIp,
-            location?.Country,
-            location?.City,
-            userAgent);
+
+        _ = LogRequestAsync(ipAddress, xRealIp, userAgent, cancellationToken);
 
         var result = await _measurementPlotService.PlotForEbay(measurementId, cancellationToken);
 
@@ -66,6 +60,30 @@ public class MeasurementPageController : ControllerBase
 
         var response = Content(result, "image/svg+xml");
         return response;
+
+        async Task LogRequestAsync(string? ip, string? realIp, string ua, CancellationToken token)
+        {
+            GeoIpLocation? location = null;
+
+            try
+            {
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(token);
+                cts.CancelAfter(TimeSpan.FromSeconds(1));
+                location = await _geoIpService.GetLocationAsync(realIp, cts.Token);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "GeoIP lookup failed for {XRealIp}", realIp);
+            }
+
+            _logger.LogInformation(
+                "GetEbayCurves requested. IP: {IpAddress}. X-Real-IP: {XRealIp}. Country: {Country}. City: {City}. UserAgent: {UserAgent}",
+                ip,
+                realIp,
+                location?.Country,
+                location?.City,
+                ua);
+        }
     }
 
 #if !DEBUG

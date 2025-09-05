@@ -33,6 +33,11 @@ public class GeoIpService
 
             return new GeoIpLocation(response.Country, response.City);
         }
+        catch (OperationCanceledException)
+        {
+            _logger.LogWarning("GeoIP lookup timed out for {Ip}", ip);
+            return null;
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get location for {Ip}", ip);

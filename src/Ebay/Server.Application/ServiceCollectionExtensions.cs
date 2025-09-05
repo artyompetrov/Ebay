@@ -38,7 +38,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<MeasurementService>();
         services.AddScoped<MatchedMeasurementService>();
         services.AddScoped<MeasurementPlotService>();
-        services.AddHttpClient<GeoIpService>();
+        services.AddHttpClient<GeoIpService>(c =>
+        {
+            c.Timeout = TimeSpan.FromSeconds(2);
+        });
 
         services.AddScoped<IEbayController, EbayControllerImplementation>();
         services.AddDefaultIdentity<ApplicationUser>(o => o.SignIn.RequireConfirmedAccount = true)
