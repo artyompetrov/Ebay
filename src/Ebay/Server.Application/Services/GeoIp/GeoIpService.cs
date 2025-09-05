@@ -1,5 +1,6 @@
 using System.Net.Http;
 using System.Net.Http.Json;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
 namespace Server.Application.Services.GeoIp;
@@ -10,11 +11,13 @@ public class GeoIpService
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<GeoIpService> _logger;
+    private readonly IMemoryCache _cache;
 
-    public GeoIpService(HttpClient httpClient, ILogger<GeoIpService> logger)
+    public GeoIpService(HttpClient httpClient, ILogger<GeoIpService> logger, IMemoryCache cache)
     {
         _httpClient = httpClient;
         _logger = logger;
+        _cache = cache;
     }
 
     private async Task<GeoIpLocation?> GetLocationAsync(string? ip, CancellationToken cancellationToken)
@@ -47,6 +50,14 @@ public class GeoIpService
 
     public void LogRequest(string prefix, string? realIp, string ua, CancellationToken token)
     {
+        if (!string.IsNullOrWhiteSpace(realIp))
+        {
+            if (_cache.TryGetValue(realIp, out _))
+                return;
+
+            _cache.Set(realIp, true, TimeSpan.FromDays(1));
+        }
+
         _ = LogRequestAsyncInternal(prefix, realIp, ua, token);
     }
     
