@@ -50,12 +50,13 @@ public class MeasurementPageController : ControllerBase
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
         var xRealIp = Request.Headers["X-Real-IP"].FirstOrDefault();
         var userAgent = Request.Headers["User-Agent"].ToString();
-        var region = await _geoIpService.GetRegionAsync(xRealIp, cancellationToken);
+        var location = await _geoIpService.GetLocationAsync(xRealIp, cancellationToken);
         _logger.LogInformation(
-            "GetEbayCurves requested. IP: {IpAddress}. X-Real-IP: {XRealIp}. Region: {Region}. UserAgent: {UserAgent}",
+            "GetEbayCurves requested. IP: {IpAddress}. X-Real-IP: {XRealIp}. Country: {Country}. City: {City}. UserAgent: {UserAgent}",
             ipAddress,
             xRealIp,
-            region,
+            location?.Country,
+            location?.City,
             userAgent);
 
         var result = await _measurementPlotService.PlotForEbay(measurementId, cancellationToken);

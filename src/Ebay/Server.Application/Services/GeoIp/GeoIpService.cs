@@ -4,6 +4,8 @@ using Microsoft.Extensions.Logging;
 
 namespace Server.Application.Services.GeoIp;
 
+public sealed record GeoIpLocation(string? Country, string? City);
+
 public class GeoIpService
 {
     private readonly HttpClient _httpClient;
@@ -15,7 +17,7 @@ public class GeoIpService
         _logger = logger;
     }
 
-    public async Task<string?> GetRegionAsync(string? ip, CancellationToken cancellationToken)
+    public async Task<GeoIpLocation?> GetLocationAsync(string? ip, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(ip))
             return null;
@@ -23,16 +25,20 @@ public class GeoIpService
         try
         {
             var response = await _httpClient.GetFromJsonAsync<IpApiResponse>(
-                $"http://ip-api.com/json/{ip}?fields=countryCode",
+                $"http://ip-api.com/json/{ip}?fields=country,city",
                 cancellationToken);
-            return response?.CountryCode;
+
+            if (response == null)
+                return null;
+
+            return new GeoIpLocation(response.Country, response.City);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to get region for {Ip}", ip);
+            _logger.LogError(ex, "Failed to get location for {Ip}", ip);
             return null;
         }
     }
 
-    private sealed record IpApiResponse(string? CountryCode);
+    private sealed record IpApiResponse(string? Country, string? City);
 }
