@@ -44,8 +44,8 @@ public class MeasurementPageController : ControllerBase
         CancellationToken cancellationToken)
     {
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-        var headers = string.Join("; ", Request.Headers.Select(h => $"{h.Key}: {h.Value}"));
-        _logger.LogInformation("GetEbayCurves requested. IP: {IpAddress}. Headers: {Headers}", ipAddress, headers);
+        var headers = string.Join(Environment.NewLine, Request.Headers.Select(h => $"{h.Key}: {h.Value}"));
+        _logger.LogInformation("GetEbayCurves requested. IP: {IpAddress}.\nHeaders: {Headers}", ipAddress, headers);
 
         var result = await _measurementPlotService.PlotForEbay(measurementId, cancellationToken);
 
