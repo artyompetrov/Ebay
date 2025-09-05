@@ -12,6 +12,7 @@ public class GeoIpService
     private readonly HttpClient _httpClient;
     private readonly ILogger<GeoIpService> _logger;
     private readonly IMemoryCache _cache;
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
 
     public GeoIpService(HttpClient httpClient, ILogger<GeoIpService> logger, IMemoryCache cache)
     {
@@ -48,19 +49,32 @@ public class GeoIpService
         }
     }
 
-    public void LogRequest(string prefix, string? realIp, string ua, CancellationToken token)
+    public async Task LogRequest(
+        string prefix,
+        string? realIp,
+        string ua,
+        CancellationToken token)
     {
-        if (!string.IsNullOrWhiteSpace(realIp))
+        await _semaphore.WaitAsync(token);
+        try
         {
-            if (_cache.TryGetValue(realIp, out _))
+
+            var key = $"{prefix}_{realIp}_{ua}";
+
+            if (_cache.TryGetValue(key, out _))
                 return;
 
-            _cache.Set(realIp, true, TimeSpan.FromDays(1));
-        }
+            _cache.Set(key, true, TimeSpan.FromDays(1));
 
-        _ = LogRequestAsyncInternal(prefix, realIp, ua, token);
+            _ = LogRequestAsyncInternal(prefix, realIp, ua, token);
+
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
     }
-    
+
     private async Task LogRequestAsyncInternal(string prefix, string? realIp, string ua, CancellationToken token)
     {
         GeoIpLocation? location = null;
