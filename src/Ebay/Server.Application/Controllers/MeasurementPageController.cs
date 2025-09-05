@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Server.Application.Services.Measurement;
 using Server.Application.Services.MeasurementPlot;
+using System.Linq;
 
 namespace Server.Application.Controllers;
 
@@ -9,11 +11,16 @@ public class MeasurementPageController : ControllerBase
 {
     private readonly MeasurementService _measurementService;
     private readonly MeasurementPlotService _measurementPlotService;
+    private readonly ILogger<MeasurementPageController> _logger;
 
-    public MeasurementPageController(MeasurementService measurementService, MeasurementPlotService measurementPlotService)
+    public MeasurementPageController(
+        MeasurementService measurementService,
+        MeasurementPlotService measurementPlotService,
+        ILogger<MeasurementPageController> logger)
     {
         _measurementService = measurementService;
         _measurementPlotService = measurementPlotService;
+        _logger = logger;
     }
 
     [HttpGet("/m/{measurementId}/download")]
@@ -36,6 +43,10 @@ public class MeasurementPageController : ControllerBase
         string measurementId,
         CancellationToken cancellationToken)
     {
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var headers = string.Join("; ", Request.Headers.Select(h => $"{h.Key}: {h.Value}"));
+        _logger.LogInformation("GetEbayCurves requested. IP: {IpAddress}. Headers: {Headers}", ipAddress, headers);
+
         var result = await _measurementPlotService.PlotForEbay(measurementId, cancellationToken);
 
         if (result == null)
