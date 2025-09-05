@@ -1,5 +1,6 @@
 using System.Net.Http;
 using System.Net.Http.Json;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
 namespace Server.Application.Services.GeoIp;
@@ -10,11 +11,14 @@ public class GeoIpService
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<GeoIpService> _logger;
+    private readonly IMemoryCache _cache;
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
 
-    public GeoIpService(HttpClient httpClient, ILogger<GeoIpService> logger)
+    public GeoIpService(HttpClient httpClient, ILogger<GeoIpService> logger, IMemoryCache cache)
     {
         _httpClient = httpClient;
         _logger = logger;
+        _cache = cache;
     }
 
     private async Task<GeoIpLocation?> GetLocationAsync(string? ip, CancellationToken cancellationToken)
@@ -45,11 +49,32 @@ public class GeoIpService
         }
     }
 
-    public void LogRequest(string prefix, string? realIp, string ua, CancellationToken token)
+    public async Task LogRequest(
+        string prefix,
+        string? realIp,
+        string ua,
+        CancellationToken token)
     {
-        _ = LogRequestAsyncInternal(prefix, realIp, ua, token);
+        await _semaphore.WaitAsync(token);
+        try
+        {
+
+            var key = $"{prefix}_{realIp}_{ua}";
+
+            if (_cache.TryGetValue(key, out _))
+                return;
+
+            _cache.Set(key, true, TimeSpan.FromDays(1));
+
+            _ = LogRequestAsyncInternal(prefix, realIp, ua, token);
+
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
     }
-    
+
     private async Task LogRequestAsyncInternal(string prefix, string? realIp, string ua, CancellationToken token)
     {
         GeoIpLocation? location = null;
