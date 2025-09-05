@@ -50,7 +50,7 @@ public class MeasurementPageController : ControllerBase
         var xRealIp = Request.Headers["X-Real-IP"].FirstOrDefault();
         var userAgent = Request.Headers["User-Agent"].ToString();
 
-        _geoIpService.LogRequest("GetEbayCurves requested", xRealIp, userAgent, cancellationToken);
+        await _geoIpService.LogRequest("GetEbayCurves requested", xRealIp, userAgent, cancellationToken);
 
         var result = await _measurementPlotService.PlotForEbay(measurementId, cancellationToken);
 
