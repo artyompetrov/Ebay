@@ -1,6 +1,6 @@
 namespace Server.Application.Services.Measurement.MeasurementTypes.Base;
 
-
+[Obsolete("возможно неактуально")]
 public abstract class GridCurvesBase : GridOrScreenCurvesBase
 {
     protected GridCurvesBase(

@@ -2,6 +2,7 @@ using Server.Application.Services.Measurement.MeasurementTypes.Base;
 
 namespace Server.Application.Services.Measurement.MeasurementTypes;
 
+[Obsolete("возможно неактуально")]
 public class TriodeGridCurves : GridCurvesBase
 {
     public TriodeGridCurves(double pmaxWatt, Dictionary<int, MeasurementPoint[]> measurementPoints) : base(pmaxWatt, measurementPoints)

@@ -4,5 +4,6 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <WarningsNotAsErrors>CS0612,CS0618</WarningsNotAsErrors>
     </PropertyGroup>
 </Project>

@@ -2,7 +2,6 @@ namespace Server.Application.Services.Measurement.MeasurementTypes.Base;
 
 public abstract class MeasurementTypeBase
 {
-
     /// <param name="pmaxWatt">Максимальная мощность замера в ваттах</param>
     /// <param name="measurementPoints">Данные замера</param>
     /// <param name="variableSelector">Функция селектор для выбора переменной изменяющейся плавно</param>

@@ -39,9 +39,7 @@ public class MeasurementService
                 measurementData: measurementsFile,
                 errors: out var fileErrors,
                 anodeCurvesConfig: out var anodeCurvesConfig,
-                gridCurvesConfig: out var gridCurvesConfig,
                 anodeCurves: out var anodeCurves,
-                gridCurves: out var gridCurves,
                 quickTest: out var quickTest))
         {
             throw new MeasurementException($"Errors during file parsing {string.Join(separator: ", ", values: fileErrors)}");
@@ -50,43 +48,36 @@ public class MeasurementService
         // Проверка, что измерения загружены правильно
         try
         {
-            var anodeConfig = ParseMeasurementConfigTable(configBytes: anodeCurvesConfig, measurementBytes: anodeCurves);
-            var gridConfig = ParseMeasurementConfigTable(configBytes: gridCurvesConfig, measurementBytes: gridCurves);
+            var config = ParseMeasurementConfigTable(configBytes: anodeCurvesConfig, measurementBytes: anodeCurves);
 
-            if (anodeConfig is not TriodeAnodeCurves &&
-                anodeConfig is not DoubleTriodeAnodeCurves &&
-                anodeConfig is not PentodeAnodeCurves)
+            if (config.SteppingVariableCount < 9)
+            {
+                throw new MeasurementException("At least 9 stepping variables is expected");
+            }
+
+            if (config.MeasurementType is not TriodeAnodeCurves &&
+                config.MeasurementType is not DoubleTriodeAnodeCurves &&
+                config.MeasurementType is not PentodeAnodeCurves)
             {
                 throw new MeasurementException("AnodeCurves expected");
             }
 
-            if (gridConfig is not TriodeGridCurves &&
-                gridConfig is not DoubleTriodeGridCurves &&
-                gridConfig is not PentodeScreenCurves)
-            {
-                throw new MeasurementException("Grid or screen curves expected");
-            }
-
             ParseSpaceSeparatedTable(anodeCurves);
-            ParseSpaceSeparatedTable(gridCurves);
             ParseAndPrettifyQuickTest(quickTest: quickTest, removeSection2: false);
 
             var hashAnodeCurvesConfig = ComputeEntryHashAsync(anodeCurvesConfig);
-            var hashGridCurvesConfig = ComputeEntryHashAsync(gridCurvesConfig);
             var hashAnodeCurves = ComputeEntryHashAsync(anodeCurves);
-            var hashGridCurves = ComputeEntryHashAsync(gridCurves);
+
             var hashQuickTest = ComputeEntryHashAsync(quickTest);
 
             var hashes = new HashSet<string>
             {
                 hashAnodeCurvesConfig,
-                hashGridCurvesConfig,
                 hashAnodeCurves,
-                hashGridCurves,
                 hashQuickTest
             };
 
-            if (hashes.Count != 5)
+            if (hashes.Count != 3)
             {
                 throw new MeasurementException("File duplicates");
             }
@@ -100,7 +91,7 @@ public class MeasurementService
                     ProductState = productState,
                     Measurements = measurementsFile,
                     HashAnodeCurves = hashAnodeCurves ?? throw new NullReferenceException(nameof(hashAnodeCurves)),
-                    HashGridCurves = hashGridCurves ?? throw new NullReferenceException(nameof(hashGridCurves)),
+                    HashGridCurves = hashAnodeCurves ?? throw new NullReferenceException(nameof(hashAnodeCurves)),
                     HashQuickTest = hashQuickTest ?? throw new NullReferenceException(nameof(hashQuickTest)),
                     ManufactureCode = manufactureCode,
                     Location = location,
@@ -256,7 +247,7 @@ public class MeasurementService
         if (zipBytes == null)
             return null;
 
-        if (!ReadMeasurementFile(
+        if (!ReadMeasurementFileObsolete(
                 measurementData: zipBytes,
                 errors: out var fileErrors,
                 anodeCurvesConfig: out var anodeCurvesConfig,
@@ -268,7 +259,7 @@ public class MeasurementService
             return null;
         }
 
-        var config = ParseMeasurementConfigTable(configBytes: gridCurvesConfig, measurementBytes: gridCurves);
+        var config = ParseMeasurementConfigTable(configBytes: gridCurvesConfig, measurementBytes: gridCurves).MeasurementType;
 
         var gridFileName = config switch
         {
@@ -319,7 +310,7 @@ public class MeasurementService
 
         if (measurement == null)
             return null;
-        if (!ReadMeasurementFile(
+        if (!ReadMeasurementFileObsolete(
                 measurementData: measurement.Measurements,
                 errors: out var fileErrors,
                 anodeCurvesConfig: out var anodeCurvesConfig,
@@ -331,8 +322,8 @@ public class MeasurementService
             return null;
         }
 
-        var anodeCurvesConfigParsed = ParseMeasurementConfigTable(anodeCurvesConfig, anodeCurves);
-        var gridCurvesConfigParsed = ParseMeasurementConfigTable(gridCurvesConfig, gridCurves);
+        var anodeCurvesConfigParsed = ParseMeasurementConfigTable(anodeCurvesConfig, anodeCurves).MeasurementType;
+        var gridCurvesConfigParsed = ParseMeasurementConfigTable(gridCurvesConfig, gridCurves).MeasurementType;
 
         var removeSection2 = anodeCurvesConfigParsed is TriodeAnodeCurves ||
                              gridCurvesConfigParsed is TriodeGridCurves;
@@ -352,8 +343,68 @@ public class MeasurementService
         return data;
     }
 
-
+    
     private static bool ReadMeasurementFile(
+        byte[] measurementData,
+        [NotNullWhen(false)] out List<string>? errors,
+        [NotNullWhen(true)] out byte[]? anodeCurvesConfig,
+        [NotNullWhen(true)] out byte[]? anodeCurves,
+        [NotNullWhen(true)] out byte[]? quickTest)
+    {
+        errors = [];
+        anodeCurves = [];
+        quickTest = [];
+        anodeCurvesConfig = [];
+
+        using var inputMemoryStream = new MemoryStream(measurementData);
+        using var archive = new ZipArchive(inputMemoryStream, ZipArchiveMode.Read, leaveOpen: true);
+        var fileCount = 0;
+        foreach (var entry in archive.Entries)
+        {
+            var fileName = entry.Name;
+
+            if (string.IsNullOrEmpty(fileName))
+            {
+                errors.Add($"No folders allowed, but found {entry.FullName}");
+                continue;
+            }
+
+            fileCount++;
+
+            if (fileName.EndsWith("anode_curves.uts.utd", StringComparison.Ordinal))
+            {
+                anodeCurves = GetBytes(entry);
+            }
+            else if (fileName.EndsWith(".txt", StringComparison.Ordinal))
+            {
+                quickTest = GetBytes(entry);
+            }
+            else if (fileName.EndsWith("anode_curves.uts", StringComparison.Ordinal))
+            {
+                anodeCurvesConfig = GetBytes(entry);
+            }
+            else
+            {
+                errors.Add($"unsupported filename {entry.FullName}");
+            }
+        }
+
+        if (fileCount != 3)
+        {
+            errors.Add("exactly 3 files expected");
+        }
+
+        if (errors.Count <= 0) return true;
+
+
+        anodeCurves = null;
+        quickTest = null;
+        anodeCurvesConfig = null;
+        return false;
+    }
+
+    [Obsolete]
+    private static bool ReadMeasurementFileObsolete(
         byte[] measurementData,
         [NotNullWhen(false)] out List<string>? errors,
         [NotNullWhen(true)] out byte[]? anodeCurvesConfig,
@@ -530,9 +581,10 @@ public class MeasurementService
     }
 
 
-    private static MeasurementTypeBase ParseMeasurementConfigTable(byte[] configBytes, byte[] measurementBytes)
+    private static MeasurementConfigTableParseResult ParseMeasurementConfigTable(byte[] configBytes, byte[] measurementBytes)
     {
         var lineRegex = new Regex(pattern: @"^([+-]?\d+)\s+(.*)$", options: RegexOptions.Compiled);
+        var doubleSpaceRegex = new Regex(@"\s{2,}", RegexOptions.Compiled);
 
         var stringData = System.Text.Encoding.UTF8.GetString(configBytes);
 
@@ -547,16 +599,20 @@ public class MeasurementService
                 continue;
 
             var value = int.Parse(match.Groups[1].Value);
-            var comment = match.Groups[2].Value.Trim();
+            var comment = doubleSpaceRegex.Replace(match.Groups[2].Value.Trim(), " ");
 
             config[comment] = value;
         }
+        
+        var steppingVariableCount =  config.Keys.Count(x => x.StartsWith("stepping variable"));
 
-        return GetMeasurementType(
+        var measurementType = GetMeasurementType(
             measurementType: config["measurement type"]!.Value,
             y2AxisVariable: config["Y2 axis variable"]!.Value,
             pmaxWatt: config["Pmax"]!.Value / 1000.0,
             measurementPoints: ParseSpaceSeparatedTable(measurementBytes));
+        
+        return new MeasurementConfigTableParseResult(measurementType, steppingVariableCount);
     }
 
     private static MeasurementTypeBase GetMeasurementType(int measurementType, int y2AxisVariable, double pmaxWatt, Dictionary<int, MeasurementPoint[]> measurementPoints)
