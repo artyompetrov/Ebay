@@ -13,4 +13,9 @@ public class TriodeAnodeCurves : AnodeCurvesBase
 
     public override string Curve1Name => "Section 1";
     public override string? Curve2Name => null;
+    
+    public override GridCurvesBase ConvertToGridCurves() =>
+        new TriodeGridCurves(
+            pmaxWatt: PmaxWatt,
+            measurementPoints: GetGridCurvesFromAnodeCurves(MeasurementPoints));
 }

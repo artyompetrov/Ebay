@@ -2,4 +2,4 @@
 
 namespace Server.Application.Services.Measurement;
 
-public record MeasurementConfigTableParseResult(MeasurementTypeBase MeasurementType, int SteppingVariableCount);
+public record MeasurementConfigTableParseResult(MeasurementTypeBase? MeasurementType, int SteppingVariableCount);

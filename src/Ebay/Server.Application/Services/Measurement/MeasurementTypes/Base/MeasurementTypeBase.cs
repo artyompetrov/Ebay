@@ -2,6 +2,8 @@ namespace Server.Application.Services.Measurement.MeasurementTypes.Base;
 
 public abstract class MeasurementTypeBase
 {
+    protected readonly Dictionary<int, MeasurementPoint[]> MeasurementPoints;
+
     /// <param name="pmaxWatt">Максимальная мощность замера в ваттах</param>
     /// <param name="measurementPoints">Данные замера</param>
     /// <param name="variableSelector">Функция селектор для выбора переменной изменяющейся плавно</param>
@@ -11,11 +13,17 @@ public abstract class MeasurementTypeBase
     protected MeasurementTypeBase(
         double pmaxWatt,
         Dictionary<int, MeasurementPoint[]> measurementPoints,
-        Func<MeasurementPoint, double> variableSelector,
-        Func<MeasurementPoint, double> steppingVariableSelector,
-        Func<MeasurementPoint, double, bool> takeMeasurementPointsWhile)
+        Func<MeasurementPointWithDelta, double> variableSelector,
+        Func<MeasurementPointWithDelta, double> steppingVariableSelector,
+        Func<MeasurementPointWithDelta, double, bool> takeMeasurementPointsWhile)
     {
         PmaxWatt = pmaxWatt;
+
+        MeasurementPoints = measurementPoints;
+        
+        var measurementPointsWithDelta = measurementPoints.ToDictionary(
+            x=>x.Key,
+            y=> ToMeasurementPointWithDelta(y.Value));
 
         var minX = 0.0;
         var maxX = 0.0;
@@ -23,7 +31,7 @@ public abstract class MeasurementTypeBase
 
         var curves = new List<CurveSet>();
         HasValuesAbovePmax = false;
-        foreach (var (_, values) in measurementPoints)
+        foreach (var (_, values) in measurementPointsWithDelta)
         {
             var maxI = values.Select(x => x.Ia).Union(values.Select(x => x.Is)).Max();
 
@@ -71,6 +79,77 @@ public abstract class MeasurementTypeBase
         MaxX = maxX;
         MaxY = maxY;
         CurveSets = curves;
+    }
+
+
+    private MeasurementPointWithDelta[] ToMeasurementPointWithDelta(MeasurementPoint[] measurementPoints)
+    {
+        var previousIa = 0.0;
+        var previousIs = 0.0;
+        var previousVg = 0.0;
+        var previousVa = 0.0;
+        var previousVs = 0.0;
+        var previousVf = 0.0;
+
+        var result = new MeasurementPointWithDelta[measurementPoints.Length];
+
+        for (var idx = 0; idx < measurementPoints.Length; idx++)
+        {
+            var currentValue = measurementPoints[idx];
+
+            result[idx] = new MeasurementPointWithDelta(
+                measurementPoints[idx],
+                dIa: currentValue.Ia - previousIa,
+                dIs: currentValue.Is - previousIs,
+                dVg: currentValue.Vg - previousVg,
+                dVa: currentValue.Va - previousVa,
+                dVs: currentValue.Vs - previousVs,
+                dVf: currentValue.Vf - previousVf
+            );
+            
+            previousIa = currentValue.Ia;
+            previousIs = currentValue.Is;
+            previousVg = currentValue.Vg;
+            previousVa = currentValue.Va;
+            previousVs = currentValue.Vs;
+            previousVf = currentValue.Vf;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Транспонирует матрицу анодной характеристики, чтобы получить сеточную
+    /// </summary>
+    protected Dictionary<int, MeasurementPoint[]> GetGridCurvesFromAnodeCurves(Dictionary<int, MeasurementPoint[]> anodeCurves)
+    {
+        // Определяем максимальную длину массива (чтобы знать количество "столбцов")
+        var maxCols = anodeCurves.Values.Max(arr => arr.Length);
+
+        // Создаем новую матрицу (транспонированную)
+        var transposed = new Dictionary<int, MeasurementPoint[]>();
+
+        for (int col = 0; col < maxCols; col++)
+        {
+            var newRow = new List<MeasurementPoint>();
+
+            foreach (var row in anodeCurves.OrderByDescending(kv => kv.Key)) // порядок по ключам
+            {
+                if (col < row.Value.Length) // проверяем, что элемент есть
+                    newRow.Add(row.Value[col]);
+            }
+
+            transposed[col + 1] = newRow.ToArray(); // "+1", чтобы ключи шли с 1
+        }
+        
+        var result =  transposed
+            // берем последние двадцать точек, т.к. первые десять точек в области низких напряжений
+            .TakeLast(20)
+            // берем каждый пятый ряд - потому что все 30 рядов нам не интересны
+            .Where((item, index) => index % 5 == 0)
+            .ToDictionary(x=>x.Key, x=>x.Value);
+
+        return result;
     }
 
 

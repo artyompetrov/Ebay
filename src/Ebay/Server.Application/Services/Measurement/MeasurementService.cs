@@ -39,10 +39,17 @@ public class MeasurementService
                 measurementData: measurementsFile,
                 errors: out var fileErrors,
                 anodeCurvesConfig: out var anodeCurvesConfig,
+                gridCurvesConfig: out var gridCurvesConfig,
                 anodeCurves: out var anodeCurves,
+                gridCurves: out var gridCurves,
                 quickTest: out var quickTest))
         {
             throw new MeasurementException($"Errors during file parsing {string.Join(separator: ", ", values: fileErrors)}");
+        }
+
+        if (gridCurvesConfig != null || gridCurves != null)
+        {
+            throw new MeasurementException($"Grid curves saving is obsolete");
         }
 
         // Проверка, что измерения загружены правильно
@@ -91,7 +98,6 @@ public class MeasurementService
                     ProductState = productState,
                     Measurements = measurementsFile,
                     HashAnodeCurves = hashAnodeCurves ?? throw new NullReferenceException(nameof(hashAnodeCurves)),
-                    HashGridCurves = hashAnodeCurves ?? throw new NullReferenceException(nameof(hashAnodeCurves)),
                     HashQuickTest = hashQuickTest ?? throw new NullReferenceException(nameof(hashQuickTest)),
                     ManufactureCode = manufactureCode,
                     Location = location,
@@ -247,28 +253,18 @@ public class MeasurementService
         if (zipBytes == null)
             return null;
 
-        if (!ReadMeasurementFileObsolete(
+        if (!ReadMeasurementFile(
                 measurementData: zipBytes,
-                errors: out var fileErrors,
+                errors: out _,
                 anodeCurvesConfig: out var anodeCurvesConfig,
-                gridCurvesConfig: out var gridCurvesConfig,
+                gridCurvesConfig: out  _,
                 anodeCurves: out var anodeCurves,
-                gridCurves: out var gridCurves,
+                gridCurves: out _,
                 quickTest: out var quickTest))
         {
             return null;
         }
-
-        var config = ParseMeasurementConfigTable(configBytes: gridCurvesConfig, measurementBytes: gridCurves).MeasurementType;
-
-        var gridFileName = config switch
-        {
-            TriodeGridCurves => "grid_curves",
-            DoubleTriodeGridCurves => "grid_curves",
-            PentodeScreenCurves => "screen_curves",
-            _ => throw new ArgumentOutOfRangeException()
-        };
-
+        
         using var zipStream = new MemoryStream();
         using (var archive = new ZipArchive(stream: zipStream, mode: ZipArchiveMode.Create, leaveOpen: true))
         {
@@ -277,12 +273,7 @@ public class MeasurementService
                 archive: archive,
                 fileName: "anode_curves_measurement_config.uts",
                 content: anodeCurvesConfig);
-            await SaveFileToZipArchive(
-                archive: archive,
-                fileName: $"{gridFileName}_measurement_config.uts",
-                content: gridCurvesConfig);
             await SaveFileToZipArchive(archive: archive, fileName: "anode_curves.utd", content: anodeCurves);
-            await SaveFileToZipArchive(archive: archive, fileName: $"{gridFileName}.utd", content: gridCurves);
             await SaveFileToZipArchive(archive: archive, fileName: "quick_test.txt", content: quickTest);
         }
 
@@ -310,23 +301,34 @@ public class MeasurementService
 
         if (measurement == null)
             return null;
-        if (!ReadMeasurementFileObsolete(
+        if (!ReadMeasurementFile(
                 measurementData: measurement.Measurements,
                 errors: out var fileErrors,
-                anodeCurvesConfig: out var anodeCurvesConfig,
-                gridCurvesConfig: out var gridCurvesConfig,
-                anodeCurves: out var anodeCurves,
-                gridCurves: out var gridCurves,
+                anodeCurvesConfig: out var anodeCurvesConfigBytes,
+                gridCurvesConfig: out var gridCurvesConfigBytes,
+                anodeCurves: out var anodeCurvesBytes,
+                gridCurves: out var gridCurvesBytes,
                 quickTest: out var quickTest))
         {
             return null;
         }
 
-        var anodeCurvesConfigParsed = ParseMeasurementConfigTable(anodeCurvesConfig, anodeCurves).MeasurementType;
-        var gridCurvesConfigParsed = ParseMeasurementConfigTable(gridCurvesConfig, gridCurves).MeasurementType;
+        var anodeCurves =
+            ParseMeasurementConfigTable(anodeCurvesConfigBytes, anodeCurvesBytes).MeasurementType as AnodeCurvesBase ??
+            throw new InvalidOperationException($"{nameof(AnodeCurvesBase)} is expected");
 
-        var removeSection2 = anodeCurvesConfigParsed is TriodeAnodeCurves ||
-                             gridCurvesConfigParsed is TriodeGridCurves;
+        GridCurvesBase? gridCurves = null;
+
+        if (gridCurvesConfigBytes != null && gridCurvesBytes != null)
+        {
+            // старые замеры у которых были сняты grid curves
+            gridCurves = ParseMeasurementConfigTable(gridCurvesConfigBytes, gridCurvesBytes).MeasurementType as GridCurvesBase;
+        }
+
+        // сеточных замеров нет, есть только анодные, вычисляем сеточные из анодных замеров
+        gridCurves ??= anodeCurves.ConvertToGridCurves();
+
+        var removeSection2 = anodeCurves is TriodeAnodeCurves;
 
         var quickTestParsed = ParseAndPrettifyQuickTest(quickTest, removeSection2);
 
@@ -335,90 +337,33 @@ public class MeasurementService
             MeasurementId: measurement.Id,
             ManufactureCode: measurement.ManufactureCode,
             ProductState: measurement.ProductState,
-            AnodeCurves: anodeCurvesConfigParsed as AnodeCurvesBase ?? throw new InvalidOperationException($"{nameof(AnodeCurvesBase)} is expected"),
-            GridOrScreenCurves: gridCurvesConfigParsed as GridOrScreenCurvesBase ?? throw new InvalidOperationException($"{nameof(GridOrScreenCurvesBase)} is expected"),
+            AnodeCurves: anodeCurves,
+            GridCurves: gridCurves,
             QuickTest: quickTestParsed
         );
 
         return data;
     }
 
-    
+
+    /// <param name="gridCurvesConfig">Параметры актуальны только для части старых замеров</param>
+    /// <param name="gridCurves">Параметры актуальны только для части старых замеров</param>
+    /// <returns></returns>
     private static bool ReadMeasurementFile(
         byte[] measurementData,
         [NotNullWhen(false)] out List<string>? errors,
         [NotNullWhen(true)] out byte[]? anodeCurvesConfig,
+        out byte[]? gridCurvesConfig,
         [NotNullWhen(true)] out byte[]? anodeCurves,
+        out byte[]? gridCurves,
         [NotNullWhen(true)] out byte[]? quickTest)
     {
         errors = [];
         anodeCurves = [];
         quickTest = [];
         anodeCurvesConfig = [];
-
-        using var inputMemoryStream = new MemoryStream(measurementData);
-        using var archive = new ZipArchive(inputMemoryStream, ZipArchiveMode.Read, leaveOpen: true);
-        var fileCount = 0;
-        foreach (var entry in archive.Entries)
-        {
-            var fileName = entry.Name;
-
-            if (string.IsNullOrEmpty(fileName))
-            {
-                errors.Add($"No folders allowed, but found {entry.FullName}");
-                continue;
-            }
-
-            fileCount++;
-
-            if (fileName.EndsWith("anode_curves.uts.utd", StringComparison.Ordinal))
-            {
-                anodeCurves = GetBytes(entry);
-            }
-            else if (fileName.EndsWith(".txt", StringComparison.Ordinal))
-            {
-                quickTest = GetBytes(entry);
-            }
-            else if (fileName.EndsWith("anode_curves.uts", StringComparison.Ordinal))
-            {
-                anodeCurvesConfig = GetBytes(entry);
-            }
-            else
-            {
-                errors.Add($"unsupported filename {entry.FullName}");
-            }
-        }
-
-        if (fileCount != 3)
-        {
-            errors.Add("exactly 3 files expected");
-        }
-
-        if (errors.Count <= 0) return true;
-
-
-        anodeCurves = null;
-        quickTest = null;
-        anodeCurvesConfig = null;
-        return false;
-    }
-
-    [Obsolete]
-    private static bool ReadMeasurementFileObsolete(
-        byte[] measurementData,
-        [NotNullWhen(false)] out List<string>? errors,
-        [NotNullWhen(true)] out byte[]? anodeCurvesConfig,
-        [NotNullWhen(true)] out byte[]? gridCurvesConfig,
-        [NotNullWhen(true)] out byte[]? anodeCurves,
-        [NotNullWhen(true)] out byte[]? gridCurves,
-        [NotNullWhen(true)] out byte[]? quickTest)
-    {
-        errors = [];
-        anodeCurves = [];
-        gridCurves = [];
-        quickTest = [];
-        anodeCurvesConfig = [];
-        gridCurvesConfig = [];
+        gridCurvesConfig = null;
+        gridCurves = null;
 
         using var inputMemoryStream = new MemoryStream(measurementData);
         using var archive = new ZipArchive(inputMemoryStream, ZipArchiveMode.Read, leaveOpen: true);
@@ -445,6 +390,8 @@ public class MeasurementService
                   неправильные названия остались в zip файлах)*/
                  fileName.EndsWith("plate_curves.uts.utd", StringComparison.Ordinal))
             {
+                //замер grid curves вообще теперь не делается
+                //grid curves актуально только для старых замеров, где точность anode curves недостаточная
                 gridCurves = GetBytes(entry);
             }
             else if (fileName.EndsWith(".txt", StringComparison.Ordinal))
@@ -469,9 +416,9 @@ public class MeasurementService
             }
         }
 
-        if (fileCount != 5)
+        if (fileCount != 5 && fileCount != 3)
         {
-            errors.Add("exactly 5 files expected");
+            errors.Add("exactly 5 or 3 files expected");
         }
 
         if (errors.Count <= 0) return true;
@@ -513,33 +460,13 @@ public class MeasurementService
         var idxVa = Array.IndexOf(array: header, value: "Va (V)");
         var idxVs = Array.IndexOf(array: header, value: "Vs (V)");
         var idxVf = Array.IndexOf(array: header, value: "Vf (V)");
-
-        var previousIa = 0.0;
-        var previousIs = 0.0;
-        var previousVg = 0.0;
-        var previousVa = 0.0;
-        var previousVs = 0.0;
-        var previousVf = 0.0;
-
-        var previousCurve = 0;
-
+        
 
         var rows = lines.Skip(1)
             .Select(l => l.Split(separator: new[] { "  " }, options: StringSplitOptions.RemoveEmptyEntries))
             .Select(parts =>
             {
                 var currentCurve = int.Parse(parts[idxCurve]);
-                if (previousCurve != currentCurve)
-                {
-                    previousIa = 0.0;
-                    previousIs = 0.0;
-                    previousVg = 0.0;
-                    previousVa = 0.0;
-                    previousVs = 0.0;
-                    previousVf = 0.0;
-
-                    previousCurve = currentCurve;
-                }
 
                 var currentIa = double.Parse(s: parts[idxIa], provider: CultureInfo.InvariantCulture);
                 var currentIs = double.Parse(s: parts[idxIs], provider: CultureInfo.InvariantCulture);
@@ -557,22 +484,10 @@ public class MeasurementService
                         Vg: currentVg,
                         Va: currentVa,
                         Vs: currentVs,
-                        Vf: currentVf,
-                        dIa: currentIa - previousIa,
-                        dIs: currentIs - previousIs,
-                        dVg: currentVg - previousVg,
-                        dVa: currentVa - previousVa,
-                        dVs: currentVs - previousVs,
-                        dVf: currentVf - previousVf
+                        Vf: currentVf
                     )
                 };
-
-                previousIa = currentIa;
-                previousIs = currentIs;
-                previousVg = currentVg;
-                previousVa = currentVa;
-                previousVs = currentVs;
-                previousVf = currentVf;
+                
                 return result;
             }).ToList();
 
@@ -615,11 +530,11 @@ public class MeasurementService
         return new MeasurementConfigTableParseResult(measurementType, steppingVariableCount);
     }
 
-    private static MeasurementTypeBase GetMeasurementType(int measurementType, int y2AxisVariable, double pmaxWatt, Dictionary<int, MeasurementPoint[]> measurementPoints)
+    private static MeasurementTypeBase? GetMeasurementType(int measurementType, int y2AxisVariable, double pmaxWatt, Dictionary<int, MeasurementPoint[]> measurementPoints)
     {
         return measurementType switch
         {
-            // I(Vg, Va) with Vs, Vh Constant
+            // I(Vg, Va) with Vs, Vh Constant - этот замер больше не делается, для сохранения обратной совместимости только оставил
             1 => y2AxisVariable switch
             {
                 // второго графика нет
@@ -643,8 +558,8 @@ public class MeasurementService
             },
 
             // I(Vs, Vg) with Va, Vh Constant
-            5 => new PentodeScreenCurves(pmaxWatt, measurementPoints),
-            _ => throw new ArgumentOutOfRangeException(nameof(measurementType))
+            5 => null, //ранее были замеры по screen curves - но в них нет практического смысла, отказался от них
+            _ => throw new ArgumentOutOfRangeException(nameof(measurementType), $"Value: {measurementType}")
         };
     }
 

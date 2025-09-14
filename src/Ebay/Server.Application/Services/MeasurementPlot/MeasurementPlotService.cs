@@ -98,7 +98,7 @@ public class MeasurementPlotService
             height: height);
 
         var plot2 = CreatePlot(
-            curves: measurement.GridOrScreenCurves,
+            curves: measurement.GridCurves,
             legendVertical: legendVertical,
             width: width,
             height: height);
@@ -111,12 +111,12 @@ public class MeasurementPlotService
             new SvgMerger.Svg(plot1, true),
             new SvgMerger.Svg(plot2, true));
 
-        if (!measurement.AnodeCurves.HasValuesAbovePmax && !measurement.GridOrScreenCurves.HasValuesAbovePmax)
+        if (!measurement.AnodeCurves.HasValuesAbovePmax && !measurement.GridCurves.HasValuesAbovePmax)
         {
             result = SvgMerger.MergeSvgs(
                 mergeVertical: true,
                 new SvgMerger.Svg(result, true),
-                new SvgMerger.Svg(NotEnoughTesterRangeSvg(measurement.AnodeCurves.PmaxWatt, measurement.GridOrScreenCurves.PmaxWatt), true));
+                new SvgMerger.Svg(NotEnoughTesterRangeSvg(measurement.AnodeCurves.PmaxWatt, measurement.GridCurves.PmaxWatt), true));
         }
         
 

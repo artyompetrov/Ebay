@@ -14,4 +14,8 @@ public class PentodeAnodeCurves : AnodeCurvesBase
 
     public override string Curve1Name => "Ianode";
     public override string? Curve2Name => "Iscreen";
+
+    public override GridCurvesBase ConvertToGridCurves() => new PentodeGridCurves(
+        pmaxWatt: PmaxWatt,
+        measurementPoints: GetGridCurvesFromAnodeCurves(MeasurementPoints));
 }

@@ -17,10 +17,6 @@ public class ProductMeasurement
     public required byte[] Measurements { get; set; } = null!;
 
     [MaxLength(128)]
-    [Obsolete]
-    public string HashGridCurves { get; set; } = null!;
-
-    [MaxLength(128)]
     public required string HashAnodeCurves { get; set; } = null!;
 
     [MaxLength(128)]

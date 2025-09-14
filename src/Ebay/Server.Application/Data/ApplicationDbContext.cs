@@ -44,7 +44,6 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
         {
             entity.HasIndex(e => e.HashAnodeCurves).IsUnique();
             entity.HasIndex(e => e.HashQuickTest).IsUnique();
-            entity.HasIndex(e => e.HashGridCurves).IsUnique();
         });
 
         modelBuilder.Entity<ProductEmailSendHistory>(entity =>

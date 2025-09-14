@@ -5,7 +5,7 @@ public abstract class AnodeCurvesBase : MeasurementTypeBase
     protected AnodeCurvesBase(
         double pmaxWatt,
         Dictionary<int, MeasurementPoint[]> measurementPoints,
-        Func<MeasurementPoint, double, bool> takeMeasurementPointsWhile) : base(
+        Func<MeasurementPointWithDelta, double, bool> takeMeasurementPointsWhile) : base(
         pmaxWatt: pmaxWatt,
         measurementPoints: measurementPoints,
         variableSelector: m => m.Va,
@@ -21,4 +21,9 @@ public abstract class AnodeCurvesBase : MeasurementTypeBase
     public override string XLabel => "Vanode (V)";
 
     public override string SteppingVariableName => "Vgrid";
+    
+    /// <summary>
+    /// Функция, которая вычисляет сеточные характеристики из анодных
+    /// </summary>
+    public abstract GridCurvesBase ConvertToGridCurves();
 }

@@ -9,5 +9,5 @@ public record MeasurementData(
     string ManufactureCode,
     ProductState ProductState,
     AnodeCurvesBase AnodeCurves,
-    GridOrScreenCurvesBase GridOrScreenCurves,
+    GridCurvesBase GridCurves,
     string QuickTest);
