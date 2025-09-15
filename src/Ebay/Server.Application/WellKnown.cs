@@ -85,4 +85,12 @@ internal static class WellKnown
         public const double коммисияPayoneerВПроцентах = 0.01;
         public const double множительДляУчетаВесаУпаковки = 1.5;
     }
+
+    public static class DbCache
+    {
+        /// <summary>
+        /// Версия кеша - для сброса кеша при изменении логики расчетов
+        /// </summary>
+        public const string Version = "1";
+    }
 }

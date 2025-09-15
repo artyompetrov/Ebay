@@ -1,4 +1,5 @@
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Server.Application.Services.MeasurementPlot;
 
@@ -20,8 +21,14 @@ public class CalculateEbayCurvesForMeasurementConsumer : IConsumer<CalculateEbay
     public async Task Consume(ConsumeContext<CalculateEbayCurvesForMeasurement> context)
     {
         _logger.LogInformation("Warm-up for {MeasurementId}",  context.Message.MeasurementId);
-        
-        await _measurementPlotService.PlotForEbay(context.Message.MeasurementId, context.CancellationToken);
+        try
+        {
+            await _measurementPlotService.PlotForEbay(context.Message.MeasurementId, context.CancellationToken);
+        }
+        catch (DbUpdateException ex)
+        {
+            _logger.LogWarning(ex, "Error while updating measurement cache entry");
+        }
     }
 }
 

@@ -39,17 +39,16 @@ public class MeasurementService
                 measurementData: measurementsFile,
                 errors: out var fileErrors,
                 anodeCurvesConfig: out var anodeCurvesConfig,
-                gridCurvesConfig: out var gridCurvesConfig,
                 anodeCurves: out var anodeCurves,
-                gridCurves: out var gridCurves,
-                quickTest: out var quickTest))
+                quickTest: out var quickTest,
+                fileCount: out var fileCount))
         {
             throw new MeasurementException($"Errors during file parsing {string.Join(separator: ", ", values: fileErrors)}");
         }
 
-        if (gridCurvesConfig != null || gridCurves != null)
+        if (fileCount != 3)
         {
-            throw new MeasurementException($"Grid curves saving is obsolete");
+            throw new MeasurementException($"Exactly 3 files is expected but was {fileCount}");
         }
 
         // Проверка, что измерения загружены правильно
@@ -257,10 +256,9 @@ public class MeasurementService
                 measurementData: zipBytes,
                 errors: out _,
                 anodeCurvesConfig: out var anodeCurvesConfig,
-                gridCurvesConfig: out  _,
                 anodeCurves: out var anodeCurves,
-                gridCurves: out _,
-                quickTest: out var quickTest))
+                quickTest: out var quickTest,
+                fileCount: out _))
         {
             return null;
         }
@@ -305,28 +303,19 @@ public class MeasurementService
                 measurementData: measurement.Measurements,
                 errors: out var fileErrors,
                 anodeCurvesConfig: out var anodeCurvesConfigBytes,
-                gridCurvesConfig: out var gridCurvesConfigBytes,
                 anodeCurves: out var anodeCurvesBytes,
-                gridCurves: out var gridCurvesBytes,
-                quickTest: out var quickTest))
+                quickTest: out var quickTest,
+                fileCount: out var fileCount
+                ))
         {
             return null;
         }
-
+        
         var anodeCurves =
             ParseMeasurementConfigTable(anodeCurvesConfigBytes, anodeCurvesBytes).MeasurementType as AnodeCurvesBase ??
             throw new InvalidOperationException($"{nameof(AnodeCurvesBase)} is expected");
 
-        GridCurvesBase? gridCurves = null;
-
-        if (gridCurvesConfigBytes != null && gridCurvesBytes != null)
-        {
-            // старые замеры у которых были сняты grid curves
-            gridCurves = ParseMeasurementConfigTable(gridCurvesConfigBytes, gridCurvesBytes).MeasurementType as GridCurvesBase;
-        }
-
-        // сеточных замеров нет, есть только анодные, вычисляем сеточные из анодных замеров
-        gridCurves ??= anodeCurves.ConvertToGridCurves();
+        var gridCurves = anodeCurves.ConvertToGridCurves();
 
         var removeSection2 = anodeCurves is TriodeAnodeCurves;
 
@@ -344,30 +333,23 @@ public class MeasurementService
 
         return data;
     }
-
-
-    /// <param name="gridCurvesConfig">Параметры актуальны только для части старых замеров</param>
-    /// <param name="gridCurves">Параметры актуальны только для части старых замеров</param>
-    /// <returns></returns>
+    
     private static bool ReadMeasurementFile(
         byte[] measurementData,
         [NotNullWhen(false)] out List<string>? errors,
         [NotNullWhen(true)] out byte[]? anodeCurvesConfig,
-        out byte[]? gridCurvesConfig,
         [NotNullWhen(true)] out byte[]? anodeCurves,
-        out byte[]? gridCurves,
-        [NotNullWhen(true)] out byte[]? quickTest)
+        [NotNullWhen(true)] out byte[]? quickTest,
+        out int fileCount)
     {
         errors = [];
         anodeCurves = [];
-        quickTest = [];
         anodeCurvesConfig = [];
-        gridCurvesConfig = null;
-        gridCurves = null;
-
+        quickTest = [];
+        
         using var inputMemoryStream = new MemoryStream(measurementData);
         using var archive = new ZipArchive(inputMemoryStream, ZipArchiveMode.Read, leaveOpen: true);
-        var fileCount = 0;
+        fileCount = 0;
         foreach (var entry in archive.Entries)
         {
             var fileName = entry.Name;
@@ -391,8 +373,6 @@ public class MeasurementService
                  fileName.EndsWith("plate_curves.uts.utd", StringComparison.Ordinal))
             {
                 //замер grid curves вообще теперь не делается
-                //grid curves актуально только для старых замеров, где точность anode curves недостаточная
-                gridCurves = GetBytes(entry);
             }
             else if (fileName.EndsWith(".txt", StringComparison.Ordinal))
             {
@@ -408,7 +388,7 @@ public class MeasurementService
                   неправильные названия остались в zip файлах)*/
                  fileName.EndsWith("plate_curves.uts", StringComparison.Ordinal))
             {
-                gridCurvesConfig = GetBytes(entry);
+                //замер grid curves вообще теперь не делается
             }
             else
             {
@@ -425,10 +405,8 @@ public class MeasurementService
 
 
         anodeCurves = null;
-        gridCurves = null;
         quickTest = null;
         anodeCurvesConfig = null;
-        gridCurvesConfig = null;
         return false;
     }
 

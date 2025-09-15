@@ -1,7 +1,5 @@
-using System.Reflection;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 using Server.Application.Data;
 using Server.Application.Data.Models;
 
@@ -11,13 +9,11 @@ public class DbCache
 {
     private readonly ApplicationDbContext _context;
     private readonly DatabaseConcurrentAccessSemaphore _semaphore;
-    private readonly string _version;
 
     public DbCache(ApplicationDbContext context, DatabaseConcurrentAccessSemaphore semaphore)
     {
         _context = context;
         _semaphore = semaphore;
-        _version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0";
     }
 
     public async Task<T?> GetOrCreateAsync<T>(
@@ -31,14 +27,12 @@ public class DbCache
         try
         {
             var entry = await _context.Set<CacheEntry>()
-                .FirstOrDefaultAsync(x => x.Key == key && x.Version == _version, cancellationToken);
+                .FirstOrDefaultAsync(x => x.Key == key && x.Version == WellKnown.DbCache.Version, cancellationToken);
 
             if (entry is not null && entry.ExpiresAt > DateTime.UtcNow)
             {
-#if !DEBUG
                 return JsonSerializer.Deserialize<T>(entry.Value, jsonOptions) ??
                        throw new InvalidOperationException("Deserialization failed");
-#endif
             }
 
             // Create new value
@@ -48,7 +42,7 @@ public class DbCache
 
             if (entry is null)
             {
-                _context.Add(new CacheEntry { Key = key, Version = _version, Value = json, ExpiresAt = expiresAt });
+                _context.Add(new CacheEntry { Key = key, Version = WellKnown.DbCache.Version, Value = json, ExpiresAt = expiresAt });
             }
             else
             {
@@ -69,7 +63,7 @@ public class DbCache
     public Task RemoveOldVersionsAsync(CancellationToken cancellationToken)
     {
         return _context.Set<CacheEntry>()
-            .Where(x => x.Version != _version)
+            .Where(x => x.Version != WellKnown.DbCache.Version)
             .ExecuteDeleteAsync(cancellationToken);
     }
 }

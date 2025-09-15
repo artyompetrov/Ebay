@@ -39,6 +39,9 @@ public abstract class MeasurementTypeBase
                 .TakeWhile(x => takeMeasurementPointsWhile(x, maxI))
                 .ToList();
 
+            if (valuesWithoutNonCompliant.Count == 0)
+                continue;
+            
             var vValues = valuesWithoutNonCompliant.Select(variableSelector).ToList();
             var i1Values = valuesWithoutNonCompliant.Select(x => x.Ia).ToList();
             var i2Values = HasSecondCurve ? valuesWithoutNonCompliant.Select(x => x.Is).ToList() : null;
