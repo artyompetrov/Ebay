@@ -2,7 +2,7 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Data;
 
-namespace Server.Application.Consumers;
+namespace Server.Application.Consumers.PriceCalculator;
 
 public class CalculatePricesForAllConsumer : IConsumer<CalculatePricesForAll>
 {

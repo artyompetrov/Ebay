@@ -6,7 +6,7 @@ using Server.Application.Data.Models;
 using Server.Application.Infrastructure;
 using Server.Application.Services.LotDataExtractor;
 
-namespace Server.Application.Consumers;
+namespace Server.Application.Consumers.PriceCalculator;
 
 public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
 {

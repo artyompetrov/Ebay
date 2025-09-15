@@ -1,3 +1,5 @@
+using MassTransit;
+using Server.Application.Consumers.MatchedPairs;
 using Server.Application.Data.Models;
 
 namespace Server.Application.Services.Measurement;
@@ -5,10 +7,15 @@ namespace Server.Application.Services.Measurement;
 public class MatchedMeasurementService
 {
     private readonly MeasurementService _measurementService;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public MatchedMeasurementService(MeasurementService measurementService)
+    public MatchedMeasurementService(
+        MeasurementService measurementService,
+        IPublishEndpoint publishEndpoint
+    )
     {
         _measurementService = measurementService;
+        _publishEndpoint = publishEndpoint;
     }
 
     public async Task FindMatchedMeasurementsAsync(
@@ -24,20 +31,19 @@ public class MatchedMeasurementService
             includeMeasurementsWithMatchId: includeMeasurementsWithMatchId,
             cancellationToken: cancellationToken);
 
-        var measurements = new List<MeasurementData>(measurementIds.Count);
-        foreach (var id in measurementIds)
+        foreach (var measurementId1 in measurementIds)
         {
-            var measurement = await _measurementService.GetMeasurement(
-                cancellationToken: cancellationToken,
-                measurementId: id);
-
-            if (measurement != null)
+            foreach (var measurementId2 in measurementIds)
             {
-                measurements.Add(measurement);
+                if (measurementId1 != measurementId2)
+                {
+                    await _publishEndpoint.Publish(
+                        message: new CalculateMatchedPair(
+                            MeasurementId1: measurementId1,
+                            MeasurementId2: measurementId2),
+                        cancellationToken: cancellationToken);
+                }
             }
         }
-
-        // TODO: Implement matching algorithm in subsequent tasks using
-        // `matchCount` and loaded `measurements`.
     }
 }

@@ -2,6 +2,9 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Application.Consumers;
+using Server.Application.Consumers.EbayCurvesCacheWarmUp;
+using Server.Application.Consumers.MatchedPairs;
+using Server.Application.Consumers.PriceCalculator;
 using Server.Application.Controllers;
 using Server.Application.Data;
 using Server.Application.Data.Models;
@@ -68,6 +71,10 @@ public static class ServiceCollectionExtensions
             x.AddConsumer<CalculateEbayCurvesForMeasurementConsumer>(c =>
             {
                 c.UseConcurrencyLimit(10);
+            });
+            x.AddConsumer<MatchedPairsCalculator>(c =>
+            {
+                c.UseConcurrencyLimit(1);
             });
             x.AddConsumer<CalculateTotalAveragePriceForProductConsumer>(c => c.Options<BatchOptions>(o =>
             {

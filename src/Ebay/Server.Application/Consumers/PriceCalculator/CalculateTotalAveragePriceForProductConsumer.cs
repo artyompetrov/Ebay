@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Server.Application.Data;
 using Server.Application.Data.Models;
 
-namespace Server.Application.Consumers;
+namespace Server.Application.Consumers.PriceCalculator;
 
 public class CalculateTotalAveragePriceForProductConsumer : IConsumer<Batch<CalculateTotalAveragePriceForProduct>>
 {

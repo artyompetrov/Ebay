@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Server.Application.Data;
 
-namespace Server.Application.Consumers;
+namespace Server.Application.Consumers.PriceCalculator;
 
 public class CalculatePricesForProductConsumer : IConsumer<CalculatePricesForProduct>
 {

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Server.Application.Services.MeasurementPlot;
 
-namespace Server.Application.Consumers;
+namespace Server.Application.Consumers.EbayCurvesCacheWarmUp;
 
 public class CalculateEbayCurvesForMeasurementConsumer : IConsumer<CalculateEbayCurvesForMeasurement>
 {
