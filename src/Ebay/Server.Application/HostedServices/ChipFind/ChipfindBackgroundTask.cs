@@ -124,7 +124,7 @@ public class ChipfindBackgroundTask : BackgroundTask
 
         if (newInterestitngAds.Count > 0)
         {
-            var newItems = string.Join("<br>", values: newInterestitngAds.Select(x=> x.IsAmbiguous ? "[Нашлось несколько товаров] " : "" + x.Ad));
+            var newItems = string.Join("<br>", values: newInterestitngAds.Select(x => x.IsAmbiguous ? "[Нашлось несколько товаров] " : "" + x.Ad));
             var emailBody = $"<a href=\"{saleAdvertisement.Link}\">ссылка</a><br><br>{newItems}";
             var emailTopic = $"{saleAdvertisement.Title} [{saleAdvertisement.Seller}]";
             _logger.LogInformation(emailTopic);
@@ -156,7 +156,7 @@ public class ChipfindBackgroundTask : BackgroundTask
                 Regex: x.GetProductRegex(),
                 IsInteresting: x.GetIsInteresting()))
             .ToArray();
-        
+
         return productsArray;
     }
 }

@@ -11,10 +11,10 @@ using Server.Application.HostedServices.DbCache;
 using Server.Application.HostedServices.Measurements;
 using Server.Application.HostedServices.SaleAdvertisements;
 using Server.Application.Infrastructure;
+using Server.Application.Services.GeoIp;
 using Server.Application.Services.LotDataExtractor;
 using Server.Application.Services.Measurement;
 using Server.Application.Services.MeasurementPlot;
-using Server.Application.Services.GeoIp;
 using Server.Controllers.Generated;
 
 namespace Server.Application;

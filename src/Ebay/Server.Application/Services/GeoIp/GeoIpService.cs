@@ -1,4 +1,3 @@
-using System.Net.Http;
 using System.Net.Http.Json;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -97,6 +96,6 @@ public class GeoIpService
             location?.City,
             ua);
     }
-    
+
     private sealed record IpApiResponse(string? Country, string? City);
 }

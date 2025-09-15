@@ -268,7 +268,7 @@ public class ShippingRatesService
             new("Ямайка", "JAM", "JM"),
             new("Сент-Китс и Невис", "KNA", "KN"),
             new("Западная Сахара", "ESH", "EH"),
-            
+
         };
 
         _rates =

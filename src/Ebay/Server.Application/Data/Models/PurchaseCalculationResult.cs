@@ -36,7 +36,7 @@ public class PurchaseCalculationResult
             return Revenue / QuantityTotal;
         }
     }
-    
+
     /// <summary>
     /// Средняя цена листинга
     /// </summary>

@@ -56,6 +56,11 @@ public class MeasurementService
         {
             var config = ParseMeasurementConfigTable(configBytes: anodeCurvesConfig, measurementBytes: anodeCurves);
 
+            if (config.NumberOfIntervals < 30)
+            {
+                throw new MeasurementException("At least 30 intervals is expected");
+            }
+
             if (config.SteppingVariableCount < 9)
             {
                 throw new MeasurementException("At least 9 stepping variables is expected");
@@ -262,7 +267,7 @@ public class MeasurementService
         {
             return null;
         }
-        
+
         using var zipStream = new MemoryStream();
         using (var archive = new ZipArchive(stream: zipStream, mode: ZipArchiveMode.Create, leaveOpen: true))
         {
@@ -310,7 +315,7 @@ public class MeasurementService
         {
             return null;
         }
-        
+
         var anodeCurves =
             ParseMeasurementConfigTable(anodeCurvesConfigBytes, anodeCurvesBytes).MeasurementType as AnodeCurvesBase ??
             throw new InvalidOperationException($"{nameof(AnodeCurvesBase)} is expected");
@@ -333,7 +338,7 @@ public class MeasurementService
 
         return data;
     }
-    
+
     private static bool ReadMeasurementFile(
         byte[] measurementData,
         [NotNullWhen(false)] out List<string>? errors,
@@ -346,7 +351,7 @@ public class MeasurementService
         anodeCurves = [];
         anodeCurvesConfig = [];
         quickTest = [];
-        
+
         using var inputMemoryStream = new MemoryStream(measurementData);
         using var archive = new ZipArchive(inputMemoryStream, ZipArchiveMode.Read, leaveOpen: true);
         fileCount = 0;
@@ -438,7 +443,7 @@ public class MeasurementService
         var idxVa = Array.IndexOf(array: header, value: "Va (V)");
         var idxVs = Array.IndexOf(array: header, value: "Vs (V)");
         var idxVf = Array.IndexOf(array: header, value: "Vf (V)");
-        
+
 
         var rows = lines.Skip(1)
             .Select(l => l.Split(separator: new[] { "  " }, options: StringSplitOptions.RemoveEmptyEntries))
@@ -465,7 +470,7 @@ public class MeasurementService
                         Vf: currentVf
                     )
                 };
-                
+
                 return result;
             }).ToList();
 
@@ -474,7 +479,9 @@ public class MeasurementService
     }
 
 
-    private static MeasurementConfigTableParseResult ParseMeasurementConfigTable(byte[] configBytes, byte[] measurementBytes)
+    private static MeasurementConfigTableParseResult ParseMeasurementConfigTable(
+        byte[] configBytes,
+        byte[] measurementBytes)
     {
         var lineRegex = new Regex(pattern: @"^([+-]?\d+)\s+(.*)$", options: RegexOptions.Compiled);
         var doubleSpaceRegex = new Regex(@"\s{2,}", RegexOptions.Compiled);
@@ -496,16 +503,20 @@ public class MeasurementService
 
             config[comment] = value;
         }
-        
-        var steppingVariableCount =  config.Keys.Count(x => x.StartsWith("stepping variable"));
+
+        var steppingVariableCount = config["number of stepping variables"]!.Value;
+        var numberOfIntervals = config["Variable 1 number of intervals"]!.Value;
 
         var measurementType = GetMeasurementType(
             measurementType: config["measurement type"]!.Value,
             y2AxisVariable: config["Y2 axis variable"]!.Value,
             pmaxWatt: config["Pmax"]!.Value / 1000.0,
             measurementPoints: ParseSpaceSeparatedTable(measurementBytes));
-        
-        return new MeasurementConfigTableParseResult(measurementType, steppingVariableCount);
+
+        return new MeasurementConfigTableParseResult(
+            MeasurementType: measurementType,
+            SteppingVariableCount: steppingVariableCount,
+            NumberOfIntervals: numberOfIntervals);
     }
 
     private static MeasurementTypeBase? GetMeasurementType(int measurementType, int y2AxisVariable, double pmaxWatt, Dictionary<int, MeasurementPoint[]> measurementPoints)

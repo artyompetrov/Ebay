@@ -1,4 +1,4 @@
-﻿using Server.Application.Services.Measurement.MeasurementTypes.Base;
+using Server.Application.Services.Measurement.MeasurementTypes.Base;
 
 namespace Server.Application.Services.Measurement.MeasurementTypes;
 

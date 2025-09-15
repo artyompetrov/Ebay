@@ -20,7 +20,7 @@ public class CalculateEbayCurvesForMeasurementConsumer : IConsumer<CalculateEbay
 
     public async Task Consume(ConsumeContext<CalculateEbayCurvesForMeasurement> context)
     {
-        _logger.LogInformation("Warm-up for {MeasurementId}",  context.Message.MeasurementId);
+        _logger.LogInformation("Warm-up for {MeasurementId}", context.Message.MeasurementId);
         try
         {
             await _measurementPlotService.PlotForEbay(context.Message.MeasurementId, context.CancellationToken);

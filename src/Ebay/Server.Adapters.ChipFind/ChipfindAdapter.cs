@@ -2,7 +2,6 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
-using System.Net.Http;
 using Server.Application.HostedServices.ChipFind;
 
 namespace Server.Adapters.ChipFind;
@@ -70,9 +69,9 @@ public class ChipfindAdapter : IChipfindAdapter
 
             if (items.Any(x => x.Length > 1000))
             {
-                _logger.LogWarning("Suspicious huge items in adveritsement: {description}", description.Substring(0,1000));
+                _logger.LogWarning("Suspicious huge items in adveritsement: {description}", description.Substring(0, 1000));
             }
-            
+
             result.Add(
                 new SaleAdvertisement(
                     Title: title,

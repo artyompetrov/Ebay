@@ -1,4 +1,4 @@
-﻿namespace Server.Application.Infrastructure;
+namespace Server.Application.Infrastructure;
 
 public static class EnumerableExtensions
 {

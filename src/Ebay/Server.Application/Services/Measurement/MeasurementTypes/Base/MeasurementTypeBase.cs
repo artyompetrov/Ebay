@@ -20,10 +20,10 @@ public abstract class MeasurementTypeBase
         PmaxWatt = pmaxWatt;
 
         MeasurementPoints = measurementPoints;
-        
+
         var measurementPointsWithDelta = measurementPoints.ToDictionary(
-            x=>x.Key,
-            y=> ToMeasurementPointWithDelta(y.Value));
+            x => x.Key,
+            y => ToMeasurementPointWithDelta(y.Value));
 
         var minX = 0.0;
         var maxX = 0.0;
@@ -41,7 +41,7 @@ public abstract class MeasurementTypeBase
 
             if (valuesWithoutNonCompliant.Count == 0)
                 continue;
-            
+
             var vValues = valuesWithoutNonCompliant.Select(variableSelector).ToList();
             var i1Values = valuesWithoutNonCompliant.Select(x => x.Ia).ToList();
             var i2Values = HasSecondCurve ? valuesWithoutNonCompliant.Select(x => x.Is).ToList() : null;
@@ -109,7 +109,7 @@ public abstract class MeasurementTypeBase
                 dVs: currentValue.Vs - previousVs,
                 dVf: currentValue.Vf - previousVf
             );
-            
+
             previousIa = currentValue.Ia;
             previousIs = currentValue.Is;
             previousVg = currentValue.Vg;
@@ -132,7 +132,7 @@ public abstract class MeasurementTypeBase
         // Создаем новую матрицу (транспонированную)
         var transposed = new Dictionary<int, MeasurementPoint[]>();
 
-        for (int col = 0; col < maxCols; col++)
+        for (var col = 0; col < maxCols; col++)
         {
             var newRow = new List<MeasurementPoint>();
 
@@ -144,13 +144,13 @@ public abstract class MeasurementTypeBase
 
             transposed[col + 1] = newRow.ToArray(); // "+1", чтобы ключи шли с 1
         }
-        
-        var result =  transposed
+
+        var result = transposed
             // берем последние двадцать точек, т.к. первые десять точек в области низких напряжений
             .TakeLast(20)
             // берем каждый пятый ряд - потому что все 30 рядов нам не интересны
             .Where((item, index) => index % 5 == 0)
-            .ToDictionary(x=>x.Key, x=>x.Value);
+            .ToDictionary(x => x.Key, x => x.Value);
 
         return result;
     }
@@ -171,7 +171,7 @@ public abstract class MeasurementTypeBase
         var lineMaxY = abovePmaxValues.Count == 0
             ? belowPmaxValuesMaxI
             : Math.Max(belowPmaxValuesMaxI, abovePmaxValues.Min());
-        
+
         return new GetMaxIAnalysis(
             MaxI: lineMaxY,
             HasValuesAbovePmax: abovePmaxValues.Count > 0);
@@ -196,7 +196,7 @@ public abstract class MeasurementTypeBase
     public abstract string XLabel { get; }
 
     public string YLabel => "I (mA)";
-    
+
     public bool HasValuesAbovePmax { get; }
 
     public abstract string CurveTitle { get; }

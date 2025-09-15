@@ -18,8 +18,8 @@ public class ProductCalculationResult
     /// Дата расчета (равно меньшему из всех дочерних расчетов)
     /// </summary>
     public DateTime CalculationDate { get; set; }
-    
-    
+
+
     /// <summary>
     /// суммарная цена листингов
     /// </summary>
@@ -37,7 +37,7 @@ public class ProductCalculationResult
             return Revenue / QuantityTotal;
         }
     }
-    
+
     /// <summary>
     /// Средняя цена листинга для продукта
     /// </summary>

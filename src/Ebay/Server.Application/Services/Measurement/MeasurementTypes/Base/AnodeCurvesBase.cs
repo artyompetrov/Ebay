@@ -21,7 +21,7 @@ public abstract class AnodeCurvesBase : MeasurementTypeBase
     public override string XLabel => "Vanode (V)";
 
     public override string SteppingVariableName => "Vgrid";
-    
+
     /// <summary>
     /// Функция, которая вычисляет сеточные характеристики из анодных
     /// </summary>

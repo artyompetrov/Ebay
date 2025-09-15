@@ -9,11 +9,13 @@ public class DbCache
 {
     private readonly ApplicationDbContext _context;
     private readonly DatabaseConcurrentAccessSemaphore _semaphore;
+    private readonly EbayServerOptions _options;
 
-    public DbCache(ApplicationDbContext context, DatabaseConcurrentAccessSemaphore semaphore)
+    public DbCache(ApplicationDbContext context, DatabaseConcurrentAccessSemaphore semaphore, EbayServerOptions options)
     {
         _context = context;
         _semaphore = semaphore;
+        _options = options;
     }
 
     public async Task<T?> GetOrCreateAsync<T>(
@@ -31,8 +33,11 @@ public class DbCache
 
             if (entry is not null && entry.ExpiresAt > DateTime.UtcNow)
             {
-                return JsonSerializer.Deserialize<T>(entry.Value, jsonOptions) ??
-                       throw new InvalidOperationException("Deserialization failed");
+                if (!_options.IsLocalRun)
+                {
+                    return JsonSerializer.Deserialize<T>(entry.Value, jsonOptions) ??
+                           throw new InvalidOperationException("Deserialization failed");
+                }
             }
 
             // Create new value

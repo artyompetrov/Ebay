@@ -36,7 +36,7 @@ public class LotCalculationResult
             return Revenue / QuantityTotal;
         }
     }
-    
+
     /// <summary>
     /// Средняя цена листинга для лота (цена по которой надо выставлять штуку)
     /// </summary>

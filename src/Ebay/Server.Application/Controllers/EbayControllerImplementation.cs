@@ -17,11 +17,11 @@ using LotInfoWithProductId = Server.Controllers.Generated.LotInfoWithProductId;
 using LotState = Server.Controllers.Generated.LotState;
 using MeasurementData = Server.Controllers.Generated.MeasurementData;
 using MeasurementState = Server.Controllers.Generated.MeasurementState;
+using ProductPassportInfo = Server.Controllers.Generated.ProductPassportInfo;
+using ProductPassportUpload = Server.Controllers.Generated.ProductPassportUpload;
 using ProductWithId = Server.Controllers.Generated.ProductWithId;
 using ProductWithoutId = Server.Controllers.Generated.ProductWithoutId;
 using SaleAdvertisement = Server.Controllers.Generated.SaleAdvertisement;
-using ProductPassportInfo = Server.Controllers.Generated.ProductPassportInfo;
-using ProductPassportUpload = Server.Controllers.Generated.ProductPassportUpload;
 
 namespace Server.Application.Controllers;
 
@@ -431,7 +431,7 @@ public class EbayControllerImplementation : IEbayController
         await _publishEndpoint.Publish(new CalculatePricesForProduct(productId), cancellationToken);
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
-    
+
     public async Task<ICollection<MeasurementData>> GetMeasurementsAsync(
         MeasurementState? measurementState,
         Guid productId,

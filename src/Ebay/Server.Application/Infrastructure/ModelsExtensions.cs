@@ -121,14 +121,14 @@ internal static class ModelsExtensions
         revenue: lotCalculationResult.Revenue,
         revenueAvg: lotCalculationResult.RevenueAvg,
         calculationDate: lotCalculationResult.CalculationDate.ToString("dd-MM-yy"),
-        listingPriceAvg:  lotCalculationResult.ListingPriceAvg
+        listingPriceAvg: lotCalculationResult.ListingPriceAvg
     );
 
     public static PurchaseCalculationResult? ToApiPurchaseCalculationResult(this DbPurchaseCalculationResult? lotCalculationResult) => lotCalculationResult == null ? null : new(
         quantityTotal: lotCalculationResult.QuantityTotal,
         revenue: lotCalculationResult.Revenue,
         revenueAvg: lotCalculationResult.RevenueAvg,
-        listingPriceAvg:  lotCalculationResult.ListingPriceAvg
+        listingPriceAvg: lotCalculationResult.ListingPriceAvg
     );
 
     public static PurchaseInfo ToApiPurchaseInfo(this Purchase purchase, DateTime titleChangeDate) => new(

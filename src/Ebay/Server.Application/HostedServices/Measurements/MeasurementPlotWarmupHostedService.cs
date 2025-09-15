@@ -42,7 +42,7 @@ public class MeasurementPlotWarmupHostedService : IHostedService
 
             await dbContext.SaveChangesAsync(cancellationToken);
         }
-        
+
         _logger.LogInformation("Published {Count} measurement plot warmup commands", measurementIds.Count);
     }
 

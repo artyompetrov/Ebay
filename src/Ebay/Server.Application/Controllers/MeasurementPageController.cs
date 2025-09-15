@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using Server.Application.Services.GeoIp;
 using Server.Application.Services.Measurement;
 using Server.Application.Services.MeasurementPlot;
-using System.Linq;
 
 namespace Server.Application.Controllers;
 
@@ -40,7 +39,7 @@ public class MeasurementPageController : ControllerBase
 
 #if !DEBUG
     // Только в релизе используем кеширование
-    [ResponseCache(Duration = 60 /*с*/ * 20 /*м*/)]
+    [ResponseCache(Duration = 60 /*с*/ * 5 /*м*/)]
 #endif
     [HttpGet("/m/{measurementId}/ebay_curves")]
     public async Task<IActionResult> GetEbayCurves(

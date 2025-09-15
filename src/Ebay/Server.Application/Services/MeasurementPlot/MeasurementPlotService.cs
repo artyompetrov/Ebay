@@ -118,7 +118,7 @@ public class MeasurementPlotService
                 new SvgMerger.Svg(result, true),
                 new SvgMerger.Svg(NotEnoughTesterRangeSvg(measurement.AnodeCurves.PmaxWatt, measurement.GridCurves.PmaxWatt), true));
         }
-        
+
 
         return result;
     }
@@ -253,7 +253,7 @@ public class MeasurementPlotService
 
 
 
-    
+
     private static string QuickTestSvg(MeasurementData measurement)
     {
         var lines = System.Security.SecurityElement

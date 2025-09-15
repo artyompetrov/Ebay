@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -39,4 +36,3 @@ public class ProductPassportFileController : ControllerBase
         return File(passport.Content, passport.ContentType, passport.FileName);
     }
 }
-
