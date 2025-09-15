@@ -17,7 +17,7 @@ public abstract class MeasurementTypeBase
         Func<MeasurementPointWithDelta, double> variableSelector,
         Func<MeasurementPointWithDelta, double> steppingVariableSelector,
         Func<MeasurementPointWithDelta, double, bool> takeMeasurementPointsWhile,
-        Func<List<List<MeasurementPointWithDelta>>, List<List<MeasurementPointWithDelta>>> filterCurves)
+        Func<ICollection<MeasurementPointWithDelta[]>, ICollection<MeasurementPointWithDelta[]>> filterCurves)
     {
         PmaxWatt = pmaxWatt;
 
@@ -34,8 +34,7 @@ public abstract class MeasurementTypeBase
         var curves = new List<CurveSet>();
         HasValuesAbovePmax = false;
 
-
-        var rows = measurementPointsWithDelta.Values.Select(values =>
+        var rows = filterCurves(measurementPointsWithDelta.Values).Select(values =>
             {
                 var maxI = values.Select(x => x.Ia).Union(values.Select(x => x.Is)).Max();
 
@@ -46,10 +45,8 @@ public abstract class MeasurementTypeBase
                 return valuesWithoutNonCompliant;
             })
             //utracer всегда делает первый замер, поэтому 1 точка на графике тоже не должна сохраняться как линия
-            .Where(x => x.Count(y=> y.Ia > 0.1) > 1)
+            .Where(x => x.Count(y => y.Ia > 0.1) > 1)
             .ToList();
-
-        rows = filterCurves(rows);
 
         foreach (var values in rows)
         {
@@ -94,7 +91,7 @@ public abstract class MeasurementTypeBase
         MaxY = maxY;
         CurveSets = curves;
     }
-    
+
     private MeasurementPointWithDelta[] ToMeasurementPointWithDelta(MeasurementPoint[] measurementPoints)
     {
         var previousIa = 0.0;
@@ -154,7 +151,7 @@ public abstract class MeasurementTypeBase
 
             transposed[col + 1] = newRow.ToArray(); // "+1", чтобы ключи шли с 1
         }
-        
+
         var result = transposed
             .ToDictionary(x => x.Key, x => x.Value);
 

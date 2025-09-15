@@ -11,7 +11,7 @@ public abstract class AnodeCurvesBase : MeasurementTypeBase
         variableSelector: m => m.Va,
         steppingVariableSelector: m => m.Vg,
         takeMeasurementPointsWhile: takeMeasurementPointsWhile,
-        filterCurves: x=> x)
+        filterCurves: x => x)
     {
     }
 

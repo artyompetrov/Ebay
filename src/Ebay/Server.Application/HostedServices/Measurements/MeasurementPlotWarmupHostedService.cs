@@ -31,7 +31,7 @@ public class MeasurementPlotWarmupHostedService : IHostedService
         {
             return;
         }
-        
+
         using var scope = _serviceScopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var publishEndpoint = scope.ServiceProvider.GetRequiredService<IPublishEndpoint>();

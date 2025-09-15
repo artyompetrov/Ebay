@@ -152,6 +152,7 @@ public class MeasurementPlotService
             var scatter1 = plt.Add.Scatter(
                 curveSet.V.Zip(curveSet.I1)
                     .Select(x => new Coordinates(x: x.First, y: x.Second)).ToList());
+            scatter1.Smooth = true;
             scatter1.LinePattern = section1LinePattern;
             scatter1.MarkerShape = section1MarkerShape;
             scatter1.MarkerSize = markerSize;
@@ -171,6 +172,7 @@ public class MeasurementPlotService
                 var scatter2 = plt.Add.Scatter(
                     curveSet.V.Zip(curveSet.I2)
                         .Select(x => new Coordinates(x: x.First, y: x.Second)).ToList());
+                scatter2.Smooth = true;
                 scatter2.LinePattern = section2LinePattern;
                 scatter2.MarkerShape = section2MarkerShape;
                 scatter2.Color = scatter1.Color;
