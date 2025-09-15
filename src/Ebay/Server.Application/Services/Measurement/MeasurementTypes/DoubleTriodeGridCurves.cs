@@ -9,7 +9,8 @@ public class DoubleTriodeGridCurves : GridCurvesBase
         double pmaxWatt,
         Dictionary<int, MeasurementPoint[]> measurementPoints) : base(
         pmaxWatt: pmaxWatt,
-        measurementPoints: measurementPoints)
+        measurementPoints: measurementPoints,
+        takeMeasurementPointsWhile: (x, maxI) => x.dIa / maxI > IgnoreDi && x.dIs / maxI > IgnoreDi)
     {
     }
 

@@ -4,7 +4,11 @@ namespace Server.Application.Services.Measurement.MeasurementTypes;
 
 public class PentodeGridCurves : GridCurvesBase
 {
-    public PentodeGridCurves(double pmaxWatt, Dictionary<int, MeasurementPoint[]> measurementPoints) : base(pmaxWatt, measurementPoints)
+    public PentodeGridCurves(double pmaxWatt, Dictionary<int, MeasurementPoint[]> measurementPoints) :
+        base(
+            pmaxWatt: pmaxWatt,
+            measurementPoints: measurementPoints,
+            takeMeasurementPointsWhile: (x, maxI) => x.dIa / maxI > IgnoreDi && x.dIs / maxI > IgnoreDi)
     {
     }
 

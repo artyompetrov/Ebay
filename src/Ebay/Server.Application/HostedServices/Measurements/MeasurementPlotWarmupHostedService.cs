@@ -13,17 +13,25 @@ public class MeasurementPlotWarmupHostedService : IHostedService
 {
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly ILogger<MeasurementPlotWarmupHostedService> _logger;
+    private readonly EbayServerOptions _options;
 
     public MeasurementPlotWarmupHostedService(
         IServiceScopeFactory serviceScopeFactory,
-        ILogger<MeasurementPlotWarmupHostedService> logger)
+        ILogger<MeasurementPlotWarmupHostedService> logger,
+        EbayServerOptions options)
     {
         _serviceScopeFactory = serviceScopeFactory;
         _logger = logger;
+        _options = options;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        if (_options.IsLocalRun)
+        {
+            return;
+        }
+        
         using var scope = _serviceScopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var publishEndpoint = scope.ServiceProvider.GetRequiredService<IPublishEndpoint>();

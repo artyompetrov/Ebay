@@ -289,7 +289,7 @@ public class MeasurementService
     {
         var entry = archive.CreateEntry(fileName);
         await using var entryStream = entry.Open();
-        entryStream.Write(content, 0, content.Length);
+        await entryStream.WriteAsync(content, 0, content.Length);
     }
 
 

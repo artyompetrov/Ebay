@@ -10,12 +10,14 @@ public abstract class MeasurementTypeBase
     /// <param name="steppingVariableSelector">Функция селектор для выбора переменной, изменяющейся ступенчато </param>
     /// <param name="takeMeasurementPointsWhile">Функция позволяющая не отображать точки, полученные после compliance отсечки
     /// для разных типов измерений немного разная логика вычисления этой отсечки, поэтому передается как параметр</param>
+    /// <param name="filterCurves"></param>
     protected MeasurementTypeBase(
         double pmaxWatt,
         Dictionary<int, MeasurementPoint[]> measurementPoints,
         Func<MeasurementPointWithDelta, double> variableSelector,
         Func<MeasurementPointWithDelta, double> steppingVariableSelector,
-        Func<MeasurementPointWithDelta, double, bool> takeMeasurementPointsWhile)
+        Func<MeasurementPointWithDelta, double, bool> takeMeasurementPointsWhile,
+        Func<List<List<MeasurementPointWithDelta>>, List<List<MeasurementPointWithDelta>>> filterCurves)
     {
         PmaxWatt = pmaxWatt;
 
@@ -31,20 +33,29 @@ public abstract class MeasurementTypeBase
 
         var curves = new List<CurveSet>();
         HasValuesAbovePmax = false;
-        foreach (var (_, values) in measurementPointsWithDelta)
+
+
+        var rows = measurementPointsWithDelta.Values.Select(values =>
+            {
+                var maxI = values.Select(x => x.Ia).Union(values.Select(x => x.Is)).Max();
+
+                var valuesWithoutNonCompliant = values
+                    .TakeWhile(x => takeMeasurementPointsWhile(x, maxI))
+                    .ToList();
+
+                return valuesWithoutNonCompliant;
+            })
+            //utracer всегда делает первый замер, поэтому 1 точка на графике тоже не должна сохраняться как линия
+            .Where(x => x.Count(y=> y.Ia > 0.1) > 1)
+            .ToList();
+
+        rows = filterCurves(rows);
+
+        foreach (var values in rows)
         {
-            var maxI = values.Select(x => x.Ia).Union(values.Select(x => x.Is)).Max();
-
-            var valuesWithoutNonCompliant = values
-                .TakeWhile(x => takeMeasurementPointsWhile(x, maxI))
-                .ToList();
-
-            if (valuesWithoutNonCompliant.Count == 0)
-                continue;
-
-            var vValues = valuesWithoutNonCompliant.Select(variableSelector).ToList();
-            var i1Values = valuesWithoutNonCompliant.Select(x => x.Ia).ToList();
-            var i2Values = HasSecondCurve ? valuesWithoutNonCompliant.Select(x => x.Is).ToList() : null;
+            var vValues = values.Select(variableSelector).ToList();
+            var i1Values = values.Select(x => x.Ia).ToList();
+            var i2Values = HasSecondCurve ? values.Select(x => x.Is).ToList() : null;
 
             var lineMinX = vValues.Min();
             if (lineMinX < minX)
@@ -58,8 +69,8 @@ public abstract class MeasurementTypeBase
                 maxX = lineMaxX;
             }
 
-            var iValues = valuesWithoutNonCompliant.Select(x => (V: x.Va, I: x.Ia)).Union(
-                    HasSecondCurve ? valuesWithoutNonCompliant.Select(x => (V: x.Va, I: x.Is)) : [])
+            var iValues = values.Select(x => (V: x.Va, I: x.Ia)).Union(
+                    HasSecondCurve ? values.Select(x => (V: x.Va, I: x.Is)) : [])
                 .ToList();
 
             var (lineMaxY, hasValuesAbovePmax) = GetMaxI(iValues);
@@ -83,8 +94,7 @@ public abstract class MeasurementTypeBase
         MaxY = maxY;
         CurveSets = curves;
     }
-
-
+    
     private MeasurementPointWithDelta[] ToMeasurementPointWithDelta(MeasurementPoint[] measurementPoints)
     {
         var previousIa = 0.0;
@@ -144,12 +154,8 @@ public abstract class MeasurementTypeBase
 
             transposed[col + 1] = newRow.ToArray(); // "+1", чтобы ключи шли с 1
         }
-
+        
         var result = transposed
-            // берем последние двадцать точек, т.к. первые десять точек в области низких напряжений
-            .TakeLast(20)
-            // берем каждый пятый ряд - потому что все 30 рядов нам не интересны
-            .Where((item, index) => index % 5 == 0)
             .ToDictionary(x => x.Key, x => x.Value);
 
         return result;

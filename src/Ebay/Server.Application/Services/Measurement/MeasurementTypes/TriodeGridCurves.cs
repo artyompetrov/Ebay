@@ -6,7 +6,8 @@ public class TriodeGridCurves : GridCurvesBase
 {
     public TriodeGridCurves(
         double pmaxWatt,
-        Dictionary<int, MeasurementPoint[]> measurementPoints) : base(pmaxWatt, measurementPoints)
+        Dictionary<int, MeasurementPoint[]> measurementPoints) :
+        base(pmaxWatt, measurementPoints, takeMeasurementPointsWhile: (x, maxI) => x.dIa / maxI > IgnoreDi)
     {
     }
 
