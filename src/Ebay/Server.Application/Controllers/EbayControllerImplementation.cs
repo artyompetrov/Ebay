@@ -136,6 +136,26 @@ public class EbayControllerImplementation : IEbayController
         Guid productId,
         CancellationToken cancellationToken)
     {
+        var validationErrors = new List<(string key, string[] value)>();
+
+        void ValidateGreaterThanZero(double value, string fieldName)
+        {
+            if (value <= 0)
+            {
+                validationErrors.Add((fieldName, new[] { "Значение должно быть больше 0." }));
+            }
+        }
+
+        ValidateGreaterThanZero(workingPoint.AnodeVoltage, nameof(workingPoint.AnodeVoltage));
+        ValidateGreaterThanZero(workingPoint.GridVoltage, nameof(workingPoint.GridVoltage));
+        ValidateGreaterThanZero(workingPoint.AnodeVoltageHalfWidth, nameof(workingPoint.AnodeVoltageHalfWidth));
+        ValidateGreaterThanZero(workingPoint.GridVoltageHalfWidth, nameof(workingPoint.GridVoltageHalfWidth));
+
+        if (validationErrors.Count > 0)
+        {
+            throw NonOkHttpAnswerException.ValidationError400(validationErrors);
+        }
+
         var productExists = await _applicationContext.Products
             .AnyAsync(x => x.Id == productId, cancellationToken);
 

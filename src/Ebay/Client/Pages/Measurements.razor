@@ -79,22 +79,22 @@
                 <div class="row g-2">
                     <div class="col-sm-6">
                         <label class="form-label">Напряжение анода, В</label>
-                        <InputNumber @bind-Value="_tubeWorkingPoint.AnodeVoltage" class="form-control" Step="any" />
+                        <InputNumber @bind-Value="_tubeWorkingPoint.AnodeVoltage" class="form-control" Step="any" Min="0.0000001" />
                     </div>
                     <div class="col-sm-6">
                         <label class="form-label">Полуширина по аноду, В</label>
-                        <InputNumber @bind-Value="_tubeWorkingPoint.AnodeVoltageHalfWidth" class="form-control" Step="any" />
+                        <InputNumber @bind-Value="_tubeWorkingPoint.AnodeVoltageHalfWidth" class="form-control" Step="any" Min="0.0000001" />
                     </div>
                     <div class="col-sm-6">
                         <label class="form-label">Напряжение сетки, В</label>
-                        <InputNumber @bind-Value="_tubeWorkingPoint.GridVoltage" class="form-control" Step="any" />
+                        <InputNumber @bind-Value="_tubeWorkingPoint.GridVoltage" class="form-control" Step="any" Min="0.0000001" />
                     </div>
                     <div class="col-sm-6">
                         <label class="form-label">Полуширина по сетке, В</label>
-                        <InputNumber @bind-Value="_tubeWorkingPoint.GridVoltageHalfWidth" class="form-control" Step="any" />
+                        <InputNumber @bind-Value="_tubeWorkingPoint.GridVoltageHalfWidth" class="form-control" Step="any" Min="0.0000001" />
                     </div>
                 </div>
-                <button class="btn btn-primary btn-sm mt-2" @onclick="OnSaveWorkingPointAsync" disabled="@(_isSavingWorkingPoint || _isWorkingPointLoading)">
+                <button class="btn btn-primary btn-sm mt-2" @onclick="OnSaveWorkingPointAsync" disabled="@(_isSavingWorkingPoint || _isWorkingPointLoading || !IsWorkingPointValid())">
                     @if (_isSavingWorkingPoint)
                     {
                         <span class="spinner-border spinner-border-sm me-1" role="status"></span>
@@ -290,6 +290,13 @@
             return;
         }
 
+        if (!IsWorkingPointValid())
+        {
+            _workingPointSaveError = "Введите значения больше 0.";
+            _workingPointSaveMessage = null;
+            return;
+        }
+
         _isSavingWorkingPoint = true;
         _workingPointSaveError = null;
         _workingPointSaveMessage = null;
@@ -418,6 +425,14 @@
         {
             _statesToMatch.Remove(state);
         }
+    }
+
+    private bool IsWorkingPointValid()
+    {
+        return _tubeWorkingPoint.AnodeVoltage > 0
+            && _tubeWorkingPoint.GridVoltage > 0
+            && _tubeWorkingPoint.AnodeVoltageHalfWidth > 0
+            && _tubeWorkingPoint.GridVoltageHalfWidth > 0;
     }
 
     private void OnFindMatchedClick()

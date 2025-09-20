@@ -838,15 +838,23 @@ definitions:
       anodeVoltage:
         type: number
         format: double
+        minimum: 0
+        exclusiveMinimum: true
       gridVoltage:
         type: number
         format: double
+        minimum: 0
+        exclusiveMinimum: true
       anodeVoltageHalfWidth:
         type: number
         format: double
+        minimum: 0
+        exclusiveMinimum: true
       gridVoltageHalfWidth:
         type: number
         format: double
+        minimum: 0
+        exclusiveMinimum: true
 
   FindMatchParameters:
     type: object
