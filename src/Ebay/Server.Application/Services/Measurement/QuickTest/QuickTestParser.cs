@@ -30,9 +30,10 @@ public class QuickTestParser
     private static ParseAndPrettifyQuickTestResult CreateTriodeResult(Dictionary<string, double> values, TubeType tubeType)
     {
         var section1 = CreateSection(values, "S1_");
+        var hasSecondSection = HasSection(values, "S2_");
         SectionTest? section2 = null;
 
-        if (HasSection(values, "S2_"))
+        if (hasSecondSection)
         {
             section2 = CreateSection(values, "S2_");
         }
@@ -42,63 +43,47 @@ public class QuickTestParser
             throw new FormatException("Double triode quick test must contain two sections.");
         }
 
-        return new ParseAndPrettifyQuickTestResult(tubeType, section1, section2, null);
+        if (tubeType == TubeType.Triode && section2 != null)
+        {
+            throw new FormatException("Triode quick test must contain only one section.");
+        }
+
+        return new ParseAndPrettifyQuickTestResult(tubeType, section1, section2, values);
     }
 
     private static ParseAndPrettifyQuickTestResult CreatePentodeResult(Dictionary<string, double> values)
     {
-        var details = new PentodeQuickTestDetails(
-            Va: GetRequired(values, "Va"),
-            VaSwingPercent: GetOptional(values, "VaSwingPercent"),
-            Vs: GetOptional(values, "Vs"),
-            VsSwingPercent: GetOptional(values, "VsSwingPercent"),
-            Vg: GetRequired(values, "Vg"),
-            VgSwingPercent: GetOptional(values, "VgSwingPercent"),
-            Ia: GetOptional(values, "Ia"),
-            IaNominal: GetOptional(values, "IaNominal"),
-            Gma: GetOptional(values, "Gma"),
-            GmaNominal: GetOptional(values, "GmaNominal"),
-            Ra: GetOptional(values, "Ra"),
-            RaNominal: GetOptional(values, "RaNominal"),
-            Mu1: GetOptional(values, "Mu1"),
-            Mu1Nominal: GetOptional(values, "Mu1Nominal"),
-            Gm1: GetOptional(values, "Gm1"),
-            Is: GetOptional(values, "Is"),
-            IsNominal: GetOptional(values, "IsNominal"),
-            Gms: GetOptional(values, "Gms"),
-            Rs: GetOptional(values, "Rs"),
-            Mu2: GetOptional(values, "Mu2"),
-            Gm2: GetOptional(values, "Gm2"));
-
         var section1 = new SectionTest(
-            Va: details.Va,
-            Vg: details.Vg,
-            VaSwingPercent: details.VaSwingPercent,
-            VgSwingPercent: details.VgSwingPercent,
-            Ia: details.Ia,
-            IaNominal: details.IaNominal,
-            Ra: details.Ra,
-            RaNominal: details.RaNominal,
-            Gm: details.Gma,
-            GmNominal: details.GmaNominal,
-            Mu: details.Mu1,
-            MuNominal: details.Mu1Nominal);
+            Va: GetRequired(values, "Va"),
+            Vg: GetRequired(values, "Vg"),
+            VaSwingPercent: GetRequired(values, "VaSwingPercent"),
+            VgSwingPercent: GetRequired(values, "VgSwingPercent"),
+            Ia: GetRequired(values, "Ia"),
+            IaNominal: GetRequired(values, "IaNominal"),
+            Ra: GetRequired(values, "Ra"),
+            RaNominal: GetRequired(values, "RaNominal"),
+            Gm: GetRequired(values, "Gma"),
+            GmNominal: GetRequired(values, "GmaNominal"),
+            Mu: GetRequired(values, "Mu1"),
+            MuNominal: GetRequired(values, "Mu1Nominal"));
 
         var section2 = new SectionTest(
-            Va: details.Vs,
-            Vg: details.Vg,
-            VaSwingPercent: details.VsSwingPercent,
-            VgSwingPercent: details.VgSwingPercent,
-            Ia: details.Is,
-            IaNominal: details.IsNominal,
-            Ra: details.Rs,
+            Va: GetRequired(values, "Vs"),
+            Vg: GetRequired(values, "Vg"),
+            VaSwingPercent: GetRequired(values, "VsSwingPercent"),
+            VgSwingPercent: GetRequired(values, "VgSwingPercent"),
+            Ia: GetRequired(values, "Is"),
+            IaNominal: GetRequired(values, "IsNominal"),
+            Ra: GetRequired(values, "Rs"),
             RaNominal: double.NaN,
-            Gm: details.Gms,
+            Gm: GetRequired(values, "Gms"),
             GmNominal: double.NaN,
-            Mu: details.Mu2,
+            Mu: GetRequired(values, "Mu2"),
             MuNominal: double.NaN);
 
-        return new ParseAndPrettifyQuickTestResult(TubeType.Pentode, section1, section2, details);
+        EnsurePentodeSpecificValues(values);
+
+        return new ParseAndPrettifyQuickTestResult(TubeType.Pentode, section1, section2, values);
     }
 
     private static SectionTest CreateSection(Dictionary<string, double> values, string prefix)
@@ -111,16 +96,16 @@ public class QuickTestParser
         return new SectionTest(
             Va: GetRequired(values, prefix + "Va"),
             Vg: GetRequired(values, prefix + "Vg"),
-            VaSwingPercent: GetOptional(values, prefix + "VaSwingPercent"),
-            VgSwingPercent: GetOptional(values, prefix + "VgSwingPercent"),
-            Ia: GetOptional(values, prefix + "Ia"),
-            IaNominal: GetOptional(values, prefix + "IaNominal"),
-            Ra: GetOptional(values, prefix + "Ra"),
-            RaNominal: GetOptional(values, prefix + "RaNominal"),
-            Gm: GetOptional(values, prefix + "Gm"),
-            GmNominal: GetOptional(values, prefix + "GmNominal"),
-            Mu: GetOptional(values, prefix + "Mu"),
-            MuNominal: GetOptional(values, prefix + "MuNominal"));
+            VaSwingPercent: GetRequired(values, prefix + "VaSwingPercent"),
+            VgSwingPercent: GetRequired(values, prefix + "VgSwingPercent"),
+            Ia: GetRequired(values, prefix + "Ia"),
+            IaNominal: GetRequired(values, prefix + "IaNominal"),
+            Ra: GetRequired(values, prefix + "Ra"),
+            RaNominal: GetRequired(values, prefix + "RaNominal"),
+            Gm: GetRequired(values, prefix + "Gm"),
+            GmNominal: GetRequired(values, prefix + "GmNominal"),
+            Mu: GetRequired(values, prefix + "Mu"),
+            MuNominal: GetRequired(values, prefix + "MuNominal"));
     }
 
     private static bool HasSection(Dictionary<string, double> values, string prefix)
@@ -136,11 +121,6 @@ public class QuickTestParser
         }
 
         return value;
-    }
-
-    private static double GetOptional(Dictionary<string, double> values, string key)
-    {
-        return values.TryGetValue(key, out var value) ? value : double.NaN;
     }
 
     private static Dictionary<string, double> ParseQuickTestValues(string text)
@@ -200,6 +180,12 @@ public class QuickTestParser
         }
 
         return result;
+    }
+
+    private static void EnsurePentodeSpecificValues(Dictionary<string, double> values)
+    {
+        _ = GetRequired(values, "Gm1");
+        _ = GetRequired(values, "Gm2");
     }
 
     private static string? NormalizeKey(string key)

@@ -29,7 +29,22 @@ Ia  : 271.83 (mA)            97 % of nominal 280 (mA)
 Ra  : 111 (ohm)              0 % of nominal 106 (kohm)          Ra = dVa/dIa
 Gm  : 20.36 (mA/V)           102 % of nominal 20 (mA/V)         Gm = dIa/dVg
 mu  : 2 (-)                  113 % of nominal 2 (-)             mu = Gm*Ra
+""";
 
+    private const string TriodeWithUnexpectedSection = """
+20.06.2025 13:09:07   uTracer3, GUI  V3.11  Triode Quick Test
+
+SECTION 1
+
+Test conditions:
+Va  : 120 (V)                Swing +/- 12 V (10%)
+Vg  : -30 (V)                Swing +/- 3 V (10%)
+
+Test results:
+Ia  : 271.83 (mA)            97 % of nominal 280 (mA)
+Ra  : 111 (ohm)              0 % of nominal 106 (kohm)          Ra = dVa/dIa
+Gm  : 20.36 (mA/V)           102 % of nominal 20 (mA/V)         Gm = dIa/dVg
+mu  : 2 (-)                  113 % of nominal 2 (-)             mu = Gm*Ra
 
 SECTION 2
 
@@ -115,15 +130,24 @@ Gm2 : 0 (uA/V)               Gm2 = dIs/dVa
         Assert.That(result.Section1.Mu, Is.EqualTo(2));
         Assert.That(result.Section1.MuNominal, Is.EqualTo(2));
 
-        Assert.That(result.Section2, Is.Not.Null);
-        Assert.That(result.Section2!.Ia, Is.Zero);
-        Assert.That(double.IsPositiveInfinity(result.Section2.Ra), Is.True);
-        Assert.That(double.IsNaN(result.Section2.Mu), Is.True);
+        Assert.That(result.Section2, Is.Null);
 
         Assert.That(result.PrettyQuickTestResult, Does.Contain("SECTION 1"));
         Assert.That(result.PrettyQuickTestResult, Does.Contain("Va  : 120 (V)"));
         Assert.That(result.PrettyQuickTestResult, Does.Contain("Ia  : 271.83 (mA)"));
         Assert.That(result.PrettyQuickTestResult, Does.Contain("mu  : 2 (-)"));
+        Assert.That(result.PrettyQuickTestResult, Does.Not.Contain("SECTION 2"));
+    }
+
+    [Test]
+    public void Parse_TriodeQuickTest_WithUnexpectedSecondSection_Throws()
+    {
+        var parser = new QuickTestParser();
+        var measurementType = new TriodeAnodeCurves(1, MinimalMeasurementPoints);
+
+        Assert.That(
+            () => parser.Parse(TriodeWithUnexpectedSection, measurementType),
+            Throws.InstanceOf<FormatException>());
     }
 
     [Test]

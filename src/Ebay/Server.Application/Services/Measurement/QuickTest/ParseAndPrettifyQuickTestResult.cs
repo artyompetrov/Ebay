@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
@@ -5,18 +7,20 @@ namespace Server.Application.Services.Measurement.QuickTest;
 
 public sealed record ParseAndPrettifyQuickTestResult
 {
-    private readonly PentodeQuickTestDetails? _pentodeDetails;
+    private readonly IReadOnlyDictionary<string, double> _values;
 
     public ParseAndPrettifyQuickTestResult(
         TubeType tubeType,
         SectionTest section1,
         SectionTest? section2,
-        PentodeQuickTestDetails? pentodeDetails)
+        IReadOnlyDictionary<string, double> values)
     {
+        ArgumentNullException.ThrowIfNull(values);
+
         TubeType = tubeType;
         Section1 = section1;
         Section2 = section2;
-        _pentodeDetails = pentodeDetails;
+        _values = values;
     }
 
     public TubeType TubeType { get; init; }
@@ -54,8 +58,8 @@ public sealed record ParseAndPrettifyQuickTestResult
                 case TubeType.DoubleTriode:
                     throw new InvalidOperationException("Double triode quick test must contain two sections.");
 
-                case TubeType.Pentode when _pentodeDetails != null:
-                    AppendPentode(builder, _pentodeDetails, culture);
+                case TubeType.Pentode when Section2 != null:
+                    AppendPentode(builder, culture);
                     break;
 
                 default:
@@ -101,75 +105,87 @@ public sealed record ParseAndPrettifyQuickTestResult
             "mu = Gm*Ra"));
     }
 
-    private static void AppendPentode(StringBuilder builder, PentodeQuickTestDetails details, CultureInfo culture)
+    private void AppendPentode(StringBuilder builder, CultureInfo culture)
     {
+        var section2 = Section2 ?? throw new InvalidOperationException("Pentode quick test must contain two sections.");
+
         builder.AppendLine("Test conditions:");
-        builder.AppendLine(BuildVoltageLine("Va", details.Va, details.VaSwingPercent, culture));
-        builder.AppendLine(BuildVoltageLine("Vs", details.Vs, details.VsSwingPercent, culture));
-        builder.AppendLine(BuildVoltageLine("Vg", details.Vg, details.VgSwingPercent, culture));
+        builder.AppendLine(BuildVoltageLine("Va", Section1.Va, Section1.VaSwingPercent, culture));
+        builder.AppendLine(BuildVoltageLine("Vs", section2.Va, section2.VaSwingPercent, culture));
+        builder.AppendLine(BuildVoltageLine("Vg", Section1.Vg, Section1.VgSwingPercent, culture));
         builder.AppendLine();
         builder.AppendLine("Test results:");
         builder.AppendLine(BuildResultLine(
             "Ia",
-            FormatCurrent(details.Ia, culture),
-            FormatPercent(details.Ia, details.IaNominal, culture),
-            FormatCurrent(details.IaNominal, culture),
+            FormatCurrent(Section1.Ia, culture),
+            FormatPercent(Section1.Ia, Section1.IaNominal, culture),
+            FormatCurrent(Section1.IaNominal, culture),
             null));
         builder.AppendLine(BuildResultLine(
             "Gma",
-            FormatTransconductance(details.Gma, culture),
-            FormatPercent(details.Gma, details.GmaNominal, culture),
-            FormatTransconductance(details.GmaNominal, culture),
+            FormatTransconductance(Section1.Gm, culture),
+            FormatPercent(Section1.Gm, Section1.GmNominal, culture),
+            FormatTransconductance(Section1.GmNominal, culture),
             "Gma = dIa/dVg"));
         builder.AppendLine(BuildResultLine(
             "Ra",
-            FormatResistance(details.Ra, culture),
-            FormatPercent(details.Ra, details.RaNominal, culture),
-            FormatResistance(details.RaNominal, culture),
+            FormatResistance(Section1.Ra, culture),
+            FormatPercent(Section1.Ra, Section1.RaNominal, culture),
+            FormatResistance(Section1.RaNominal, culture),
             "Ra  = dVa/dIa"));
         builder.AppendLine(BuildResultLine(
             "mu1",
-            FormatMu(details.Mu1, culture),
-            FormatPercent(details.Mu1, details.Mu1Nominal, culture),
-            FormatMu(details.Mu1Nominal, culture),
+            FormatMu(Section1.Mu, culture),
+            FormatPercent(Section1.Mu, Section1.MuNominal, culture),
+            FormatMu(Section1.MuNominal, culture),
             "mu1 = Gma*Ra"));
         builder.AppendLine(BuildResultLine(
             "Gm1",
-            FormatTransconductance(details.Gm1, culture),
+            FormatTransconductance(GetValue("Gm1"), culture),
             null,
             null,
             "Gm1 = dIa/dVs"));
         builder.AppendLine();
         builder.AppendLine(BuildResultLine(
             "Is",
-            FormatCurrent(details.Is, culture),
-            FormatPercent(details.Is, details.IsNominal, culture),
-            FormatCurrent(details.IsNominal, culture),
+            FormatCurrent(section2.Ia, culture),
+            FormatPercent(section2.Ia, section2.IaNominal, culture),
+            FormatCurrent(section2.IaNominal, culture),
             null));
         builder.AppendLine(BuildResultLine(
             "Gms",
-            FormatTransconductance(details.Gms, culture),
+            FormatTransconductance(section2.Gm, culture),
             null,
             null,
             "Gms = dIs/dVg"));
         builder.AppendLine(BuildResultLine(
             "Rs",
-            FormatResistance(details.Rs, culture),
+            FormatResistance(section2.Ra, culture),
             null,
             null,
             "Rs  = dVs/dIs"));
         builder.AppendLine(BuildResultLine(
             "mu2",
-            FormatMu(details.Mu2, culture),
+            FormatMu(section2.Mu, culture),
             null,
             null,
             "mu2 = Gms*Rs"));
         builder.AppendLine(BuildResultLine(
             "Gm2",
-            FormatTransconductance(details.Gm2, culture),
+            FormatTransconductance(GetValue("Gm2"), culture),
             null,
             null,
             "Gm2 = dIs/dVa"));
+    }
+
+    private double GetValue(string key)
+    {
+        if (_values.TryGetValue(key, out var value))
+        {
+            return value;
+        }
+
+        throw new InvalidOperationException($"Value '{key}' is missing in quick test results.");
     }
 
     private static string BuildVoltageLine(string name, double value, double percent, CultureInfo culture)
@@ -353,26 +369,3 @@ public sealed record ParseAndPrettifyQuickTestResult
         return value.ToString(value % 1 == 0 ? "0" : "0.##", culture);
     }
 }
-
-public record PentodeQuickTestDetails(
-    double Va,
-    double VaSwingPercent,
-    double Vs,
-    double VsSwingPercent,
-    double Vg,
-    double VgSwingPercent,
-    double Ia,
-    double IaNominal,
-    double Gma,
-    double GmaNominal,
-    double Ra,
-    double RaNominal,
-    double Mu1,
-    double Mu1Nominal,
-    double Gm1,
-    double Is,
-    double IsNominal,
-    double Gms,
-    double Rs,
-    double Mu2,
-    double Gm2);
