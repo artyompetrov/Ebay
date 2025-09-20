@@ -161,7 +161,7 @@ public class MeasurementPlotService
             legendItems.Add(
                 new LegendItem
                 {
-                    LabelText = $"{curves.SteppingVariableName} = {curveSet.VSteppingValue:N0}",
+                    LabelText = $"{curves.SteppingVariableName} = {curveSet.VSteppingValue:N1}",
                     LineColor = scatter1.Color,
                     LinePattern = LinePattern.Solid,
                     LineWidth = lineWidth

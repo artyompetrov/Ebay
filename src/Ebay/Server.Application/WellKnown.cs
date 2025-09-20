@@ -91,6 +91,6 @@ internal static class WellKnown
         /// <summary>
         /// Версия кеша - для сброса кеша при изменении логики расчетов
         /// </summary>
-        public const string Version = "2";
+        public const string Version = "3";
     }
 }
