@@ -23,7 +23,7 @@ def create_app() -> FastAPI:
     @app.get(
         "/",
         response_model=models.HealthResponse,
-        tags=["vacuum-tube-calculator"],
+        tags=["calculator"],
         operation_id="get_root_health",
     )
     def root() -> models.HealthResponse:  # pragma: no cover - thin wrapper

@@ -1,7 +1,6 @@
 [project]
-name = "vacuum-tube-calculator-service"
+name = "calculator"
 version = "0.1.0"
-description = "Microservice providing analytical calculations for vacuum tubes."
 requires-python = ">=3.11"
 dependencies = [
     "fastapi==0.111.0",

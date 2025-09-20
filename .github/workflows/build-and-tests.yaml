@@ -14,6 +14,7 @@ env:
   REGISTRY: ghcr.io
   EBAY_HELPER_IMAGE_NAME: ${{ github.actor }}/ebay:latest
   EBAY_NGINX_IMAGE_NAME: ${{ github.actor }}/nginx:latest
+  EBAY_CALCULATOR_IMAGE_NAME: ${{ github.actor }}/calculator:latest
 
 jobs:
   build_docker:
@@ -26,7 +27,8 @@ jobs:
       - name: Build Docker Images
         run: |
           BUILD_VERSION=$(date +'%y%m.%d.%H.%M%S' | sed 's/\.0*/./g')
-          docker build -f ./src/Dockerfile --build-arg BUILD_VERSION="$BUILD_VERSION" --build-arg EBAY_HELPER_BACKEND_DOMAIN="${{ secrets.EBAY_HELPER_BACKEND_DOMAIN }}" --tag ${{ env.REGISTRY }}/${{ env.EBAY_HELPER_IMAGE_NAME }} ./src/
+          docker build -f ./src/ebay_helper.Dockerfile --build-arg BUILD_VERSION="$BUILD_VERSION" --build-arg EBAY_HELPER_BACKEND_DOMAIN="${{ secrets.EBAY_HELPER_BACKEND_DOMAIN }}" --tag ${{ env.REGISTRY }}/${{ env.EBAY_HELPER_IMAGE_NAME }} ./src/
+          docker build -f ./src/calculator.Dockerfile --tag ${{ env.REGISTRY }}/${{ env.EBAY_CALCULATOR_IMAGE_NAME }} ./src/
           docker build -f ./deploy/build/nginx/Dockerfile --tag ${{ env.REGISTRY }}/${{ env.EBAY_NGINX_IMAGE_NAME }} ./deploy/build/nginx/
 
       - name: Publish Docker Images
@@ -34,6 +36,7 @@ jobs:
         run: |
           echo ${{ secrets.PAT }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
           docker push ${{ env.REGISTRY }}/${{ env.EBAY_HELPER_IMAGE_NAME }}
+          docker push ${{ env.REGISTRY }}/${{ env.EBAY_CALCULATOR_IMAGE_NAME }}
           docker push ${{ env.REGISTRY }}/${{ env.EBAY_NGINX_IMAGE_NAME }}
 
   deploy:

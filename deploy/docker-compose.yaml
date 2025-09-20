@@ -19,7 +19,9 @@ services:
   ebay_helper:
     container_name: ebay_helper
     image: ghcr.io/artyompetrov/ebay:latest
-    build: ../src/
+    build:
+      context: ../src/
+      dockerfile: ebay_helper.Dockerfile
     depends_on:
       - ebay_postgres
       - ebay_otelcollector
@@ -66,15 +68,20 @@ services:
           dotnet Server.dll
         fi;
 
-  ebay_vacuum_calculator:
-    container_name: ebay_vacuum_calculator
+  ebay_calculator:
+    container_name: ebay_calculator
+    image: ghcr.io/artyompetrov/calculator:latest
     build:
-      context: ../src/vacuum_calculator_service
+      context: ../src/
+      dockerfile: calculator.Dockerfile
     restart: unless-stopped
-    ports:
-      - "8080:8080"
     networks:
       - internal_network
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:8080/health" ]
+      interval: 10s
+      timeout: 2s
+      retries: 10
 
   ebay_nginx:
     container_name: ebay_nginx
