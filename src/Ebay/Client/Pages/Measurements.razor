@@ -1,5 +1,6 @@
 @using System.Text.Json
 @using Client.Clients.Generated
+@using Client.Extensions
 @using Microsoft.AspNetCore.Authorization
 @using Newtonsoft.Json
 @attribute [Authorize]
@@ -54,7 +55,60 @@
             <InputFile OnChange="HandleFileSelected" accept=".zip" />
         </div>
         <div class="col-md-6 ps-4">
+            <h4>Рабочая точка</h4>
+            @if (_isWorkingPointLoading)
+            {
+                <p>Загрузка...</p>
+            }
+            else
+            {
+                if (!string.IsNullOrWhiteSpace(_workingPointLoadError))
+                {
+                    <p class="text-danger">@_workingPointLoadError</p>
+                }
+
+                if (!string.IsNullOrWhiteSpace(_workingPointSaveError))
+                {
+                    <p class="text-danger">@_workingPointSaveError</p>
+                }
+
+                if (!string.IsNullOrWhiteSpace(_workingPointSaveMessage))
+                {
+                    <p class="text-success">@_workingPointSaveMessage</p>
+                }
+
+                <div class="row g-2">
+                    <div class="col-sm-6">
+                        <label class="form-label">Напряжение анода, В</label>
+                        <InputNumber @bind-Value="_tubeWorkingPoint.AnodeVoltage" class="form-control" Step="any" Min="0.0000001" />
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label">Полуширина по аноду, В</label>
+                        <InputNumber @bind-Value="_tubeWorkingPoint.AnodeVoltageHalfWidth" class="form-control" Step="any" Min="0.0000001" />
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label">Напряжение сетки, В</label>
+                        <InputNumber @bind-Value="_tubeWorkingPoint.GridVoltage" class="form-control" Step="any" Min="0.0000001" />
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label">Полуширина по сетке, В</label>
+                        <InputNumber @bind-Value="_tubeWorkingPoint.GridVoltageHalfWidth" class="form-control" Step="any" Min="0.0000001" />
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-sm mt-2" @onclick="OnSaveWorkingPointAsync" disabled="@(_isSavingWorkingPoint || _isWorkingPointLoading || !IsWorkingPointValid())">
+                    @if (_isSavingWorkingPoint)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                    }
+                    Сохранить
+                </button>
+            }
+            <hr class="my-4" />
             <h4>Подбор комплектов</h4>
+            @if (!string.IsNullOrWhiteSpace(_matchingError))
+            {
+                <p class="text-danger">@_matchingError</p>
+            }
             <div class="mb-2">
                 <label>Количество элементов в комплекте:</label>
                 <input type="number" min="2" class="form-control" style="width: 100px;" @bind="_matchCount"/>
@@ -75,7 +129,7 @@
                 <input class="form-check-input" type="checkbox" id="includeExisting" @bind="_includeExisting"/>
                 <label class="form-check-label" for="includeExisting">учитывать в подборе измерения, что уже включены в существующий комплект?</label>
             </div>
-            <button class="btn btn-primary btn-sm" @onclick="OnFindMatchedClick">Подобрать</button>
+            <button class="btn btn-primary btn-sm" @onclick="OnFindMatchedClick" disabled="@(_isWorkingPointLoading || !_hasWorkingPoint || !IsWorkingPointValid())">Подобрать</button>
         </div>
     </div>
 <br>
@@ -161,6 +215,14 @@
     private HashSet<MeasurementState> _statesToMatch = new();
     private int _matchCount = 2;
     private bool _includeExisting;
+    private TubeWorkingPoint _tubeWorkingPoint = new();
+    private bool _isWorkingPointLoading;
+    private bool _isSavingWorkingPoint;
+    private string? _workingPointLoadError;
+    private string? _workingPointSaveError;
+    private string? _workingPointSaveMessage;
+    private string? _matchingError;
+    private bool _hasWorkingPoint;
 
     [Parameter]
     public ProductWithId Product { get; set; } = null!;
@@ -176,6 +238,13 @@
                 .ToHashSet();
         }
 
+        _workingPointSaveError = null;
+        _workingPointSaveMessage = null;
+        _tubeWorkingPoint = new();
+        _matchingError = null;
+        _hasWorkingPoint = false;
+
+        await LoadTubeWorkingPointAsync();
         await UpdateMeasurementsAsync();
     }
 
@@ -196,6 +265,71 @@
             : Enum.Parse<MeasurementState>(e.Value!.ToString()!);
 
         await UpdateMeasurementsAsync();
+    }
+
+    private async Task LoadTubeWorkingPointAsync()
+    {
+        _isWorkingPointLoading = true;
+        _workingPointLoadError = null;
+        _hasWorkingPoint = false;
+
+        try
+        {
+            var workingPoint = await EbayClient.GetTubeWorkingPointAsync(ProductId);
+            _tubeWorkingPoint = workingPoint ?? new TubeWorkingPoint();
+            _hasWorkingPoint = workingPoint is not null;
+        }
+        catch (ApiException ex) when (ex.StatusCode == 400)
+        {
+            _tubeWorkingPoint = new TubeWorkingPoint();
+            _hasWorkingPoint = false;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load tube working point for product {ProductId}", ProductId);
+            _workingPointLoadError = "Не удалось загрузить рабочую точку.";
+        }
+        finally
+        {
+            _isWorkingPointLoading = false;
+        }
+    }
+
+    private async Task OnSaveWorkingPointAsync()
+    {
+        if (_isSavingWorkingPoint)
+        {
+            return;
+        }
+
+        if (!IsWorkingPointValid())
+        {
+            _workingPointSaveError = "Введите значения больше 0.";
+            _workingPointSaveMessage = null;
+            return;
+        }
+
+        _isSavingWorkingPoint = true;
+        _workingPointSaveError = null;
+        _workingPointSaveMessage = null;
+
+        try
+        {
+            await EbayClient.UpsertTubeWorkingPointAsync(_tubeWorkingPoint, ProductId);
+            _workingPointSaveMessage = "Рабочая точка сохранена.";
+            _workingPointLoadError = null;
+            _hasWorkingPoint = true;
+            _matchingError = null;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to save tube working point for product {ProductId}", ProductId);
+            _workingPointSaveError = "Не удалось сохранить рабочую точку.";
+        }
+        finally
+        {
+            _isSavingWorkingPoint = false;
+        }
     }
 
     private async Task HandleFileSelected(InputFileChangeEventArgs e)
@@ -307,21 +441,90 @@
         }
     }
 
+    private bool IsWorkingPointValid()
+    {
+        return _tubeWorkingPoint.AnodeVoltage > 0
+            && _tubeWorkingPoint.GridVoltage > 0
+            && _tubeWorkingPoint.AnodeVoltageHalfWidth > 0
+            && _tubeWorkingPoint.GridVoltageHalfWidth > 0;
+    }
+
     private void OnFindMatchedClick()
     {
+        if (_isWorkingPointLoading)
+        {
+            _matchingError = "Дождитесь загрузки рабочей точки.";
+            return;
+        }
+
+        if (!IsWorkingPointValid())
+        {
+            _matchingError = "Введите корректные значения рабочей точки.";
+            return;
+        }
+
+        if (!_hasWorkingPoint)
+        {
+            _matchingError = "Сохраните рабочую точку перед подбором.";
+            return;
+        }
+
+        _matchingError = null;
+
         _questionPopup.AskQuestion(
             questionText: "Подобрать комплект?",
             async () =>
             {
-                await EbayClient.FindMatchedMeasurementsAsync(
-                    findMatchParameters: new FindMatchParameters
-                    {
-                        MatchCount = _matchCount,
-                        MeasurementStates = _statesToMatch.ToList(),
-                        IncludeExisting = _includeExisting
-                    },
-                    Product.Id);
-                await UpdateMeasurementsAsync();
+                if (_isWorkingPointLoading)
+                {
+                    _matchingError = "Дождитесь загрузки рабочей точки.";
+                    StateHasChanged();
+                    return;
+                }
+
+                if (!IsWorkingPointValid())
+                {
+                    _matchingError = "Введите корректные значения рабочей точки.";
+                    StateHasChanged();
+                    return;
+                }
+
+                if (!_hasWorkingPoint)
+                {
+                    _matchingError = "Сохраните рабочую точку перед подбором.";
+                    StateHasChanged();
+                    return;
+                }
+
+                try
+                {
+                    await EbayClient.FindMatchedMeasurementsAsync(
+                        findMatchParameters: new FindMatchParameters
+                        {
+                            MatchCount = _matchCount,
+                            MeasurementStates = _statesToMatch.ToList(),
+                            IncludeExisting = _includeExisting
+                        },
+                        Product.Id);
+                    _matchingError = null;
+                    await UpdateMeasurementsAsync();
+                }
+                catch (ApiException<ValidationProblemDetailedInfo> ex)
+                {
+                    var firstError = ex.Result
+                        .Parse()
+                        .SelectMany(parsed => parsed.Errors)
+                        .FirstOrDefault();
+                    _matchingError = firstError ?? "Не удалось отправить задачу на подбор.";
+                    Logger.LogWarning(ex, "Validation error when sending matched measurements request for product {ProductId}", ProductId);
+                    StateHasChanged();
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "Failed to send matched measurements request for product {ProductId}", ProductId);
+                    _matchingError = "Не удалось отправить задачу на подбор.";
+                    StateHasChanged();
+                }
             });
     }
 
