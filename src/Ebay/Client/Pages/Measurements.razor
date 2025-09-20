@@ -1,5 +1,6 @@
 @using System.Text.Json
 @using Client.Clients.Generated
+@using Client.Extensions
 @using Microsoft.AspNetCore.Authorization
 @using Newtonsoft.Json
 @attribute [Authorize]
@@ -104,6 +105,10 @@
             }
             <hr class="my-4" />
             <h4>Подбор комплектов</h4>
+            @if (!string.IsNullOrWhiteSpace(_matchingError))
+            {
+                <p class="text-danger">@_matchingError</p>
+            }
             <div class="mb-2">
                 <label>Количество элементов в комплекте:</label>
                 <input type="number" min="2" class="form-control" style="width: 100px;" @bind="_matchCount"/>
@@ -124,7 +129,7 @@
                 <input class="form-check-input" type="checkbox" id="includeExisting" @bind="_includeExisting"/>
                 <label class="form-check-label" for="includeExisting">учитывать в подборе измерения, что уже включены в существующий комплект?</label>
             </div>
-            <button class="btn btn-primary btn-sm" @onclick="OnFindMatchedClick">Подобрать</button>
+            <button class="btn btn-primary btn-sm" @onclick="OnFindMatchedClick" disabled="@(_isWorkingPointLoading || !_hasWorkingPoint || !IsWorkingPointValid())">Подобрать</button>
         </div>
     </div>
 <br>
@@ -216,6 +221,8 @@
     private string? _workingPointLoadError;
     private string? _workingPointSaveError;
     private string? _workingPointSaveMessage;
+    private string? _matchingError;
+    private bool _hasWorkingPoint;
 
     [Parameter]
     public ProductWithId Product { get; set; } = null!;
@@ -234,6 +241,8 @@
         _workingPointSaveError = null;
         _workingPointSaveMessage = null;
         _tubeWorkingPoint = new();
+        _matchingError = null;
+        _hasWorkingPoint = false;
 
         await LoadTubeWorkingPointAsync();
         await UpdateMeasurementsAsync();
@@ -262,15 +271,18 @@
     {
         _isWorkingPointLoading = true;
         _workingPointLoadError = null;
+        _hasWorkingPoint = false;
 
         try
         {
             var workingPoint = await EbayClient.GetTubeWorkingPointAsync(ProductId);
             _tubeWorkingPoint = workingPoint ?? new TubeWorkingPoint();
+            _hasWorkingPoint = workingPoint is not null;
         }
         catch (ApiException ex) when (ex.StatusCode == 400)
         {
             _tubeWorkingPoint = new TubeWorkingPoint();
+            _hasWorkingPoint = false;
         }
         catch (Exception ex)
         {
@@ -306,6 +318,8 @@
             await EbayClient.UpsertTubeWorkingPointAsync(_tubeWorkingPoint, ProductId);
             _workingPointSaveMessage = "Рабочая точка сохранена.";
             _workingPointLoadError = null;
+            _hasWorkingPoint = true;
+            _matchingError = null;
         }
         catch (Exception ex)
         {
@@ -437,19 +451,80 @@
 
     private void OnFindMatchedClick()
     {
+        if (_isWorkingPointLoading)
+        {
+            _matchingError = "Дождитесь загрузки рабочей точки.";
+            return;
+        }
+
+        if (!IsWorkingPointValid())
+        {
+            _matchingError = "Введите корректные значения рабочей точки.";
+            return;
+        }
+
+        if (!_hasWorkingPoint)
+        {
+            _matchingError = "Сохраните рабочую точку перед подбором.";
+            return;
+        }
+
+        _matchingError = null;
+
         _questionPopup.AskQuestion(
             questionText: "Подобрать комплект?",
             async () =>
             {
-                await EbayClient.FindMatchedMeasurementsAsync(
-                    findMatchParameters: new FindMatchParameters
-                    {
-                        MatchCount = _matchCount,
-                        MeasurementStates = _statesToMatch.ToList(),
-                        IncludeExisting = _includeExisting
-                    },
-                    Product.Id);
-                await UpdateMeasurementsAsync();
+                if (_isWorkingPointLoading)
+                {
+                    _matchingError = "Дождитесь загрузки рабочей точки.";
+                    StateHasChanged();
+                    return;
+                }
+
+                if (!IsWorkingPointValid())
+                {
+                    _matchingError = "Введите корректные значения рабочей точки.";
+                    StateHasChanged();
+                    return;
+                }
+
+                if (!_hasWorkingPoint)
+                {
+                    _matchingError = "Сохраните рабочую точку перед подбором.";
+                    StateHasChanged();
+                    return;
+                }
+
+                try
+                {
+                    await EbayClient.FindMatchedMeasurementsAsync(
+                        findMatchParameters: new FindMatchParameters
+                        {
+                            MatchCount = _matchCount,
+                            MeasurementStates = _statesToMatch.ToList(),
+                            IncludeExisting = _includeExisting
+                        },
+                        Product.Id);
+                    _matchingError = null;
+                    await UpdateMeasurementsAsync();
+                }
+                catch (ApiException<ValidationProblemDetailedInfo> ex)
+                {
+                    var firstError = ex.Result
+                        .Parse()
+                        .SelectMany(parsed => parsed.Errors)
+                        .FirstOrDefault();
+                    _matchingError = firstError ?? "Не удалось отправить задачу на подбор.";
+                    Logger.LogWarning(ex, "Validation error when sending matched measurements request for product {ProductId}", ProductId);
+                    StateHasChanged();
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "Failed to send matched measurements request for product {ProductId}", ProductId);
+                    _matchingError = "Не удалось отправить задачу на подбор.";
+                    StateHasChanged();
+                }
             });
     }
 

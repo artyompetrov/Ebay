@@ -594,12 +594,23 @@ public class EbayControllerImplementation : IEbayController
             cancellationToken: cancellationToken);
     }
 
-    public Task FindMatchedMeasurementsAsync(
+    public async Task FindMatchedMeasurementsAsync(
         FindMatchParameters findMatchParameters,
         Guid productId,
         CancellationToken cancellationToken)
     {
-        return _matchedMeasurementService.FindMatchedMeasurementsAsync(
+        var hasWorkingPoint = await _applicationContext.TubeWorkingPoints
+            .AsNoTracking()
+            .AnyAsync(x => x.ProductId == productId, cancellationToken);
+
+        if (!hasWorkingPoint)
+        {
+            throw NonOkHttpAnswerException.ValidationError400(
+                field: "tubeWorkingPoint",
+                errors: "Рабочая точка не задана.");
+        }
+
+        await _matchedMeasurementService.FindMatchedMeasurementsAsync(
             productId: productId,
             matchCount: findMatchParameters.MatchCount,
             measurementStates: findMatchParameters.MeasurementStates
