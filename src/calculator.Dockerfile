@@ -16,6 +16,8 @@ RUN pip install --no-cache-dir --upgrade pip \
 
 COPY Calculator /app/calculator
 
+WORKDIR /app/calculator
+
 EXPOSE 8080
 
 CMD ["uvicorn", "calculator.app.main:app", "--host", "0.0.0.0", "--port", "8080"]
