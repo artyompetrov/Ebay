@@ -66,6 +66,16 @@ services:
           dotnet Server.dll
         fi;
 
+  ebay_vacuum_calculator:
+    container_name: ebay_vacuum_calculator
+    build:
+      context: ../src/vacuum_calculator_service
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    networks:
+      - internal_network
+
   ebay_nginx:
     container_name: ebay_nginx
     image: ghcr.io/artyompetrov/nginx:latest

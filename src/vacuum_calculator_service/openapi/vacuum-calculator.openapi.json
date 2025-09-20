@@ -1,0 +1,347 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Vacuum Tube Calculator Service",
+    "version": "0.1.0",
+    "description": "Microservice providing analytical calculations for vacuum tube stages used in audio and radio circuits."
+  },
+  "paths": {
+    "/": {
+      "get": {
+        "tags": [
+          "vacuum-tube-calculator"
+        ],
+        "summary": "Expose a default root endpoint mirroring the health check.",
+        "operationId": "get_root_health",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "tags": [
+          "vacuum-tube-calculator"
+        ],
+        "summary": "Simple health check endpoint used for monitoring.",
+        "operationId": "get_service_health",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/operating-point": {
+      "post": {
+        "tags": [
+          "vacuum-tube-calculator"
+        ],
+        "summary": "Calculate the operating point metrics for a vacuum tube stage.",
+        "operationId": "calculate_operating_point",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperatingPointRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperatingPointResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/load-line": {
+      "post": {
+        "tags": [
+          "vacuum-tube-calculator"
+        ],
+        "summary": "Calculate the DC load line intercepts for the provided parameters.",
+        "operationId": "calculate_load_line",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoadLineRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoadLineResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HealthResponse": {
+        "title": "HealthResponse",
+        "required": [
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "title": "Status",
+            "type": "string",
+            "description": "Static message indicating service availability."
+          }
+        }
+      },
+      "OperatingPointRequest": {
+        "title": "OperatingPointRequest",
+        "required": [
+          "plate_supply_voltage",
+          "cathode_resistor",
+          "grid_bias_voltage",
+          "plate_load_resistance",
+          "idle_plate_current",
+          "amplification_factor",
+          "transconductance"
+        ],
+        "type": "object",
+        "properties": {
+          "plate_supply_voltage": {
+            "title": "Plate Supply Voltage",
+            "type": "number",
+            "description": "B+ or plate supply voltage in volts provided to the anode circuit.",
+            "examples": [
+              300.0
+            ]
+          },
+          "cathode_resistor": {
+            "title": "Cathode Resistor",
+            "type": "number",
+            "description": "Cathode resistor value in ohms used for biasing.",
+            "examples": [
+              470.0
+            ]
+          },
+          "grid_bias_voltage": {
+            "title": "Grid Bias Voltage",
+            "type": "number",
+            "description": "Bias voltage between grid and cathode in volts (negative value for triodes).",
+            "examples": [
+              -12.5
+            ]
+          },
+          "plate_load_resistance": {
+            "title": "Plate Load Resistance",
+            "type": "number",
+            "description": "AC plate load resistance in ohms seen by the anode (e.g. transformer primary).",
+            "examples": [
+              50000.0
+            ]
+          },
+          "idle_plate_current": {
+            "title": "Idle Plate Current",
+            "type": "number",
+            "description": "Idle anode current in milliamperes.",
+            "examples": [
+              12.0
+            ]
+          },
+          "amplification_factor": {
+            "title": "Amplification Factor",
+            "type": "number",
+            "description": "Amplification factor (mu) of the tube.",
+            "examples": [
+              100.0
+            ]
+          },
+          "transconductance": {
+            "title": "Transconductance",
+            "type": "number",
+            "description": "Transconductance (gm) in millisiemens.",
+            "examples": [
+              2.2
+            ]
+          }
+        }
+      },
+      "OperatingPointResponse": {
+        "title": "OperatingPointResponse",
+        "required": [
+          "plate_current_amp",
+          "cathode_voltage",
+          "effective_grid_voltage",
+          "plate_dissipation",
+          "small_signal_gain",
+          "load_line_intercept_voltage",
+          "load_line_intercept_current"
+        ],
+        "type": "object",
+        "properties": {
+          "plate_current_amp": {
+            "title": "Plate Current Amp",
+            "type": "number",
+            "description": "Idle plate current converted to amperes.",
+            "examples": [
+              0.012
+            ]
+          },
+          "cathode_voltage": {
+            "title": "Cathode Voltage",
+            "type": "number",
+            "description": "Voltage developed across the cathode resistor in volts.",
+            "examples": [
+              5.64
+            ]
+          },
+          "effective_grid_voltage": {
+            "title": "Effective Grid Voltage",
+            "type": "number",
+            "description": "Grid-to-cathode voltage taking self-bias into account.",
+            "examples": [
+              -18.14
+            ]
+          },
+          "plate_dissipation": {
+            "title": "Plate Dissipation",
+            "type": "number",
+            "description": "Plate power dissipation in watts.",
+            "examples": [
+              3.6
+            ]
+          },
+          "small_signal_gain": {
+            "title": "Small Signal Gain",
+            "type": "number",
+            "description": "Estimated small-signal voltage gain.",
+            "examples": [
+              42.5
+            ]
+          },
+          "load_line_intercept_voltage": {
+            "title": "Load Line Intercept Voltage",
+            "type": "number",
+            "description": "Plate voltage intercept of the DC load line in volts.",
+            "examples": [
+              282.4
+            ]
+          },
+          "load_line_intercept_current": {
+            "title": "Load Line Intercept Current",
+            "type": "number",
+            "description": "Plate current intercept of the DC load line in amperes.",
+            "examples": [
+              0.025
+            ]
+          }
+        }
+      },
+      "LoadLineRequest": {
+        "title": "LoadLineRequest",
+        "required": [
+          "plate_supply_voltage",
+          "plate_load_resistance"
+        ],
+        "type": "object",
+        "properties": {
+          "plate_supply_voltage": {
+            "title": "Plate Supply Voltage",
+            "type": "number",
+            "description": "B+ or plate supply voltage in volts.",
+            "examples": [
+              300.0
+            ]
+          },
+          "plate_load_resistance": {
+            "title": "Plate Load Resistance",
+            "type": "number",
+            "description": "Plate load resistance in ohms.",
+            "examples": [
+              50000.0
+            ]
+          },
+          "screen_voltage": {
+            "title": "Screen Voltage",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional screen voltage in volts for tetrodes/pentodes.",
+            "examples": [
+              250.0
+            ]
+          }
+        }
+      },
+      "LoadLineResponse": {
+        "title": "LoadLineResponse",
+        "required": [
+          "voltage_intercept",
+          "current_intercept"
+        ],
+        "type": "object",
+        "properties": {
+          "voltage_intercept": {
+            "title": "Voltage Intercept",
+            "type": "number",
+            "description": "Voltage axis intercept of the load line in volts."
+          },
+          "current_intercept": {
+            "title": "Current Intercept",
+            "type": "number",
+            "description": "Current axis intercept of the load line in amperes."
+          },
+          "screen_voltage": {
+            "title": "Screen Voltage",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Screen voltage repeated for reference if provided."
+          }
+        }
+      }
+    }
+  }
+}
