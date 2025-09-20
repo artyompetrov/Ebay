@@ -331,6 +331,42 @@ paths:
           schema:
             $ref: '#/definitions/ValidationProblemDetailedInfo'
 
+  /products/{productId}/tube_working_point/:
+    parameters:
+      - name: productId
+        in: path
+        required: true
+        type: string
+        format: guid
+    get:
+      operationId: GetTubeWorkingPoint
+      summary: Get tube working point for product
+      responses:
+        200:
+          description: Ok
+          schema:
+            $ref: '#/definitions/TubeWorkingPoint'
+        400:
+          description: 'NotFound'
+          schema:
+            $ref: '#/definitions/NotFoundProblemDetailedInfo'
+    post:
+      operationId: UpsertTubeWorkingPoint
+      summary: Upsert tube working point for product
+      parameters:
+        - name: workingPoint
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/TubeWorkingPoint'
+      responses:
+        200:
+          description: 'Ok'
+        400:
+          description: 'NotFound'
+          schema:
+            $ref: '#/definitions/NotFoundProblemDetailedInfo'
+
   /products/{productId}/measurements/find_matched/:
     parameters:
       - name: productId
@@ -790,6 +826,27 @@ definitions:
         type: integer
     required:
       - order
+
+  TubeWorkingPoint:
+    type: object
+    required:
+      - anodeVoltage
+      - gridVoltage
+      - anodeVoltageHalfWidth
+      - gridVoltageHalfWidth
+    properties:
+      anodeVoltage:
+        type: number
+        format: double
+      gridVoltage:
+        type: number
+        format: double
+      anodeVoltageHalfWidth:
+        type: number
+        format: double
+      gridVoltageHalfWidth:
+        type: number
+        format: double
 
   FindMatchParameters:
     type: object

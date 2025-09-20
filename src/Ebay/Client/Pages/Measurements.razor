@@ -54,6 +54,55 @@
             <InputFile OnChange="HandleFileSelected" accept=".zip" />
         </div>
         <div class="col-md-6 ps-4">
+            <h4>Рабочая точка</h4>
+            @if (_isWorkingPointLoading)
+            {
+                <p>Загрузка...</p>
+            }
+            else
+            {
+                if (!string.IsNullOrWhiteSpace(_workingPointLoadError))
+                {
+                    <p class="text-danger">@_workingPointLoadError</p>
+                }
+
+                if (!string.IsNullOrWhiteSpace(_workingPointSaveError))
+                {
+                    <p class="text-danger">@_workingPointSaveError</p>
+                }
+
+                if (!string.IsNullOrWhiteSpace(_workingPointSaveMessage))
+                {
+                    <p class="text-success">@_workingPointSaveMessage</p>
+                }
+
+                <div class="row g-2">
+                    <div class="col-sm-6">
+                        <label class="form-label">Напряжение анода, В</label>
+                        <InputNumber @bind-Value="_tubeWorkingPoint.AnodeVoltage" class="form-control" Step="any" />
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label">Полуширина по аноду, В</label>
+                        <InputNumber @bind-Value="_tubeWorkingPoint.AnodeVoltageHalfWidth" class="form-control" Step="any" />
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label">Напряжение сетки, В</label>
+                        <InputNumber @bind-Value="_tubeWorkingPoint.GridVoltage" class="form-control" Step="any" />
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label">Полуширина по сетке, В</label>
+                        <InputNumber @bind-Value="_tubeWorkingPoint.GridVoltageHalfWidth" class="form-control" Step="any" />
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-sm mt-2" @onclick="OnSaveWorkingPointAsync" disabled="@(_isSavingWorkingPoint || _isWorkingPointLoading)">
+                    @if (_isSavingWorkingPoint)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                    }
+                    Сохранить
+                </button>
+            }
+            <hr class="my-4" />
             <h4>Подбор комплектов</h4>
             <div class="mb-2">
                 <label>Количество элементов в комплекте:</label>
@@ -161,6 +210,12 @@
     private HashSet<MeasurementState> _statesToMatch = new();
     private int _matchCount = 2;
     private bool _includeExisting;
+    private TubeWorkingPoint _tubeWorkingPoint = new();
+    private bool _isWorkingPointLoading;
+    private bool _isSavingWorkingPoint;
+    private string? _workingPointLoadError;
+    private string? _workingPointSaveError;
+    private string? _workingPointSaveMessage;
 
     [Parameter]
     public ProductWithId Product { get; set; } = null!;
@@ -176,6 +231,11 @@
                 .ToHashSet();
         }
 
+        _workingPointSaveError = null;
+        _workingPointSaveMessage = null;
+        _tubeWorkingPoint = new();
+
+        await LoadTubeWorkingPointAsync();
         await UpdateMeasurementsAsync();
     }
 
@@ -196,6 +256,59 @@
             : Enum.Parse<MeasurementState>(e.Value!.ToString()!);
 
         await UpdateMeasurementsAsync();
+    }
+
+    private async Task LoadTubeWorkingPointAsync()
+    {
+        _isWorkingPointLoading = true;
+        _workingPointLoadError = null;
+
+        try
+        {
+            var workingPoint = await EbayClient.GetTubeWorkingPointAsync(ProductId);
+            _tubeWorkingPoint = workingPoint ?? new TubeWorkingPoint();
+        }
+        catch (ApiException ex) when (ex.StatusCode == 400)
+        {
+            _tubeWorkingPoint = new TubeWorkingPoint();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load tube working point for product {ProductId}", ProductId);
+            _workingPointLoadError = "Не удалось загрузить рабочую точку.";
+        }
+        finally
+        {
+            _isWorkingPointLoading = false;
+        }
+    }
+
+    private async Task OnSaveWorkingPointAsync()
+    {
+        if (_isSavingWorkingPoint)
+        {
+            return;
+        }
+
+        _isSavingWorkingPoint = true;
+        _workingPointSaveError = null;
+        _workingPointSaveMessage = null;
+
+        try
+        {
+            await EbayClient.UpsertTubeWorkingPointAsync(_tubeWorkingPoint, ProductId);
+            _workingPointSaveMessage = "Рабочая точка сохранена.";
+            _workingPointLoadError = null;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to save tube working point for product {ProductId}", ProductId);
+            _workingPointSaveError = "Не удалось сохранить рабочую точку.";
+        }
+        finally
+        {
+            _isSavingWorkingPoint = false;
+        }
     }
 
     private async Task HandleFileSelected(InputFileChangeEventArgs e)

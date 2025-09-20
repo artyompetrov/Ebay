@@ -71,6 +71,15 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
         {
             entity.HasIndex(e => new { e.ProductId, e.Order });
         });
+
+        modelBuilder.Entity<TubeWorkingPoint>(entity =>
+        {
+            entity.HasKey(e => e.ProductId);
+            entity.HasOne(e => e.Product)
+                .WithOne(e => e.TubeWorkingPoint)
+                .HasForeignKey<TubeWorkingPoint>(e => e.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
     }
 
     public ApplicationDbContext(
@@ -103,4 +112,6 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
     public DbSet<ProductEmailSendHistory> ProductEmailSendHistory { get; set; } = null!;
 
     public DbSet<CacheEntry> CacheEntries { get; set; } = null!;
+
+    public DbSet<TubeWorkingPoint> TubeWorkingPoints { get; set; } = null!;
 }

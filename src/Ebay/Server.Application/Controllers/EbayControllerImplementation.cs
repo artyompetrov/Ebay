@@ -23,6 +23,7 @@ using ProductPassportUpload = Server.Controllers.Generated.ProductPassportUpload
 using ProductWithId = Server.Controllers.Generated.ProductWithId;
 using ProductWithoutId = Server.Controllers.Generated.ProductWithoutId;
 using SaleAdvertisement = Server.Controllers.Generated.SaleAdvertisement;
+using TubeWorkingPoint = Server.Controllers.Generated.TubeWorkingPoint;
 
 namespace Server.Application.Controllers;
 
@@ -111,6 +112,41 @@ public class EbayControllerImplementation : IEbayController
             p.Order--;
         }
 
+        await _applicationContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<TubeWorkingPoint> GetTubeWorkingPointAsync(
+        Guid productId,
+        CancellationToken cancellationToken)
+    {
+        var workingPoint = await _applicationContext.TubeWorkingPoints
+            .AsNoTracking()
+            .SingleOrDefaultAsync(x => x.ProductId == productId, cancellationToken);
+
+        if (workingPoint == null)
+        {
+            throw NonOkHttpAnswerException.NotFound400();
+        }
+
+        return workingPoint.ToApiTubeWorkingPoint();
+    }
+
+    public async Task UpsertTubeWorkingPointAsync(
+        TubeWorkingPoint workingPoint,
+        Guid productId,
+        CancellationToken cancellationToken)
+    {
+        var productExists = await _applicationContext.Products
+            .AnyAsync(x => x.Id == productId, cancellationToken);
+
+        if (!productExists)
+        {
+            throw NonOkHttpAnswerException.NotFound400();
+        }
+
+        var entity = workingPoint.ToDbTubeWorkingPoint(productId);
+
+        await _applicationContext.TubeWorkingPoints.Upsert(entity).RunAsync(cancellationToken);
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 

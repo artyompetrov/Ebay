@@ -9,6 +9,7 @@ using DbMeasurementState = Server.Application.Data.Models.MeasurementState;
 using DbProduct = Server.Application.Data.Models.Product;
 using DbProductCalculationResult = Server.Application.Data.Models.ProductCalculationResult;
 using DbProductState = Server.Application.Data.Models.ProductState;
+using DbTubeWorkingPoint = Server.Application.Data.Models.TubeWorkingPoint;
 using DbPurchaseCalculationResult = Server.Application.Data.Models.PurchaseCalculationResult;
 using DbRuSearchQuery = Server.Application.Data.Models.RuSearchQuery;
 using DbSearchQuery = Server.Application.Data.Models.SearchQuery;
@@ -19,6 +20,7 @@ using Purchase = Server.Application.Data.Models.Purchase;
 using PurchaseCalculationResult = Server.Controllers.Generated.PurchaseCalculationResult;
 using RuSearchQuery = Server.Controllers.Generated.RuSearchQuery;
 using SearchQuery = Server.Controllers.Generated.SearchQuery;
+using TubeWorkingPoint = Server.Controllers.Generated.TubeWorkingPoint;
 
 namespace Server.Application.Infrastructure;
 
@@ -55,6 +57,22 @@ internal static class ModelsExtensions
         Id = searchQuery.Id,
         Query = searchQuery.Query,
         ProductId = productId
+    };
+
+    public static TubeWorkingPoint ToApiTubeWorkingPoint(this DbTubeWorkingPoint workingPoint) => new(
+        anodeVoltage: workingPoint.AnodeVoltage,
+        gridVoltage: workingPoint.GridVoltage,
+        anodeVoltageHalfWidth: workingPoint.AnodeVoltageHalfWidth,
+        gridVoltageHalfWidth: workingPoint.GridVoltageHalfWidth
+    );
+
+    public static DbTubeWorkingPoint ToDbTubeWorkingPoint(this TubeWorkingPoint workingPoint, Guid productId) => new()
+    {
+        ProductId = productId,
+        AnodeVoltage = workingPoint.AnodeVoltage,
+        GridVoltage = workingPoint.GridVoltage,
+        AnodeVoltageHalfWidth = workingPoint.AnodeVoltageHalfWidth,
+        GridVoltageHalfWidth = workingPoint.GridVoltageHalfWidth
     };
 
     public static DbProduct ToDbProduct(this ProductWithoutId productWithoutId, Guid productId) => new()
