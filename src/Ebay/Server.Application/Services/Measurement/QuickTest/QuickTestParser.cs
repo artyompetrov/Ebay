@@ -1,5 +1,6 @@
+using System.Collections.Generic;
 using System.Globalization;
-using System.Text.RegularExpressions;
+using System.Linq;
 using Server.Application.Services.Measurement.MeasurementTypes;
 using Server.Application.Services.Measurement.MeasurementTypes.Base;
 
@@ -7,21 +8,26 @@ namespace Server.Application.Services.Measurement.QuickTest;
 
 public class QuickTestParser
 {
-    private static readonly Regex SectionRegex = new(
-        @"SECTION\s+\d+(?<content>.*?)(?=(SECTION\s+\d+)|\Z)",
-        RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly CultureInfo RuCulture = CultureInfo.GetCultureInfo("ru-RU");
 
-    private static readonly Regex ValueRegex = new(
-        @"^(?<value>[^()]+)\((?<unit>[^)]+)\)",
-        RegexOptions.Compiled);
-
-    private static readonly Regex NominalRegex = new(
-        @"nominal\s+(?<value>[^()]+)\((?<unit>[^)]+)\)",
-        RegexOptions.IgnoreCase | RegexOptions.Compiled);
-
-    private static readonly Regex SwingRegex = new(
-        @"Swing\s+\+/-\s+[^()]*\((?<percent>[-\d.,]+)%\)",
-        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Dictionary<string, string> KnownKeys = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Va"] = "Va",
+        ["Vg"] = "Vg",
+        ["Vs"] = "Vs",
+        ["Ia"] = "Ia",
+        ["Is"] = "Is",
+        ["Ra"] = "Ra",
+        ["Rs"] = "Rs",
+        ["Gm"] = "Gm",
+        ["Gma"] = "Gma",
+        ["Gm1"] = "Gm1",
+        ["Gms"] = "Gms",
+        ["Gm2"] = "Gm2",
+        ["mu"] = "Mu",
+        ["mu1"] = "Mu1",
+        ["mu2"] = "Mu2"
+    };
 
     public ParseAndPrettifyQuickTestResult Parse(string quickTestOriginal, MeasurementTypeBase measurementType)
     {
@@ -29,39 +35,59 @@ public class QuickTestParser
         ArgumentNullException.ThrowIfNull(measurementType);
 
         var normalized = quickTestOriginal.Replace("\r\n", "\n");
+        var values = ParseQuickTestValues(normalized);
 
         return measurementType switch
         {
-            TriodeAnodeCurves => CreateTriodeResult(normalized, TubeType.Triode),
-            DoubleTriodeAnodeCurves => CreateTriodeResult(normalized, TubeType.DoubleTriode),
-            PentodeAnodeCurves => CreatePentodeResult(normalized),
+            TriodeAnodeCurves => CreateTriodeResult(values, TubeType.Triode),
+            DoubleTriodeAnodeCurves => CreateTriodeResult(values, TubeType.DoubleTriode),
+            PentodeAnodeCurves => CreatePentodeResult(values),
             _ => throw new ArgumentException($"The type {measurementType.GetType().Name} is not supported.")
         };
     }
 
-    private static ParseAndPrettifyQuickTestResult CreateTriodeResult(string text, TubeType tubeType)
+    private static ParseAndPrettifyQuickTestResult CreateTriodeResult(Dictionary<string, double> values, TubeType tubeType)
     {
-        var sections = ParseTriodeSections(text);
+        var section1 = CreateSection(values, "S1_");
+        SectionTest? section2 = null;
 
-        if (sections.Count == 0)
+        if (HasSection(values, "S2_"))
         {
-            throw new FormatException("Quick test data does not contain section information.");
+            section2 = CreateSection(values, "S2_");
         }
 
-        if (tubeType == TubeType.DoubleTriode && sections.Count < 2)
+        if (tubeType == TubeType.DoubleTriode && section2 == null)
         {
             throw new FormatException("Double triode quick test must contain two sections.");
         }
 
-        var section1 = sections[0];
-        var section2 = sections.Count > 1 ? sections[1] : null;
-
         return new ParseAndPrettifyQuickTestResult(tubeType, section1, section2);
     }
 
-    private static ParseAndPrettifyQuickTestResult CreatePentodeResult(string text)
+    private static ParseAndPrettifyQuickTestResult CreatePentodeResult(Dictionary<string, double> values)
     {
-        var details = ParsePentode(text);
+        var details = new PentodeQuickTestDetails(
+            Va: GetRequired(values, "Va"),
+            VaSwingPercent: GetOptional(values, "VaSwingPercent"),
+            Vs: GetOptional(values, "Vs"),
+            VsSwingPercent: GetOptional(values, "VsSwingPercent"),
+            Vg: GetRequired(values, "Vg"),
+            VgSwingPercent: GetOptional(values, "VgSwingPercent"),
+            Ia: GetOptional(values, "Ia"),
+            IaNominal: GetOptional(values, "IaNominal"),
+            Gma: GetOptional(values, "Gma"),
+            GmaNominal: GetOptional(values, "GmaNominal"),
+            Ra: GetOptional(values, "Ra"),
+            RaNominal: GetOptional(values, "RaNominal"),
+            Mu1: GetOptional(values, "Mu1"),
+            Mu1Nominal: GetOptional(values, "Mu1Nominal"),
+            Gm1: GetOptional(values, "Gm1"),
+            Is: GetOptional(values, "Is"),
+            IsNominal: GetOptional(values, "IsNominal"),
+            Gms: GetOptional(values, "Gms"),
+            Rs: GetOptional(values, "Rs"),
+            Mu2: GetOptional(values, "Mu2"),
+            Gm2: GetOptional(values, "Gm2"));
 
         var section1 = new SectionTest(
             Va: details.Va,
@@ -97,256 +123,241 @@ public class QuickTestParser
         };
     }
 
-    private static List<SectionTest> ParseTriodeSections(string text)
+    private static SectionTest CreateSection(Dictionary<string, double> values, string prefix)
     {
-        var matches = SectionRegex.Matches(text);
-        if (matches.Count == 0)
+        if (!HasSection(values, prefix))
         {
-            return [];
+            throw new FormatException($"Section '{prefix}' is missing.");
         }
-
-        var result = new List<SectionTest>(matches.Count);
-        foreach (Match match in matches)
-        {
-            var sectionContent = match.Groups["content"].Value;
-            var lines = GetNormalizedLines(sectionContent)
-                .Where(l => !string.Equals(l, "Test conditions:", StringComparison.OrdinalIgnoreCase))
-                .Where(l => !string.Equals(l, "Test results:", StringComparison.OrdinalIgnoreCase))
-                .ToList();
-
-            if (lines.Count == 0)
-            {
-                continue;
-            }
-
-            result.Add(ParseTriodeSection(lines));
-        }
-
-        return result;
-    }
-
-    private static SectionTest ParseTriodeSection(IReadOnlyCollection<string> lines)
-    {
-        var vaLine = FindLine(lines, "Va");
-        var vgLine = FindLine(lines, "Vg");
-        var iaLine = FindLine(lines, "Ia");
-        var raLine = FindLine(lines, "Ra");
-        var gmLine = FindLine(lines, "Gm");
-        var muLine = FindLine(lines, "mu");
 
         return new SectionTest(
-            Va: ParseMeasurementValue(vaLine),
-            Vg: ParseMeasurementValue(vgLine),
-            VaSwingPercent: ParseSwingPercent(vaLine),
-            VgSwingPercent: ParseSwingPercent(vgLine),
-            Ia: ParseMeasurementValue(iaLine),
-            IaNominal: ParseNominalValue(iaLine),
-            Ra: ParseMeasurementValue(raLine),
-            RaNominal: ParseNominalValue(raLine),
-            Gm: ParseMeasurementValue(gmLine),
-            GmNominal: ParseNominalValue(gmLine),
-            Mu: ParseMeasurementValue(muLine),
-            MuNominal: ParseNominalValue(muLine));
+            Va: GetRequired(values, prefix + "Va"),
+            Vg: GetRequired(values, prefix + "Vg"),
+            VaSwingPercent: GetOptional(values, prefix + "VaSwingPercent"),
+            VgSwingPercent: GetOptional(values, prefix + "VgSwingPercent"),
+            Ia: GetOptional(values, prefix + "Ia"),
+            IaNominal: GetOptional(values, prefix + "IaNominal"),
+            Ra: GetOptional(values, prefix + "Ra"),
+            RaNominal: GetOptional(values, prefix + "RaNominal"),
+            Gm: GetOptional(values, prefix + "Gm"),
+            GmNominal: GetOptional(values, prefix + "GmNominal"),
+            Mu: GetOptional(values, prefix + "Mu"),
+            MuNominal: GetOptional(values, prefix + "MuNominal"));
     }
 
-    private static PentodeQuickTestDetails ParsePentode(string text)
+    private static bool HasSection(Dictionary<string, double> values, string prefix)
     {
-        var lines = GetNormalizedLines(text)
-            .Where(l => !string.Equals(l, "Test conditions:", StringComparison.OrdinalIgnoreCase))
-            .Where(l => !string.Equals(l, "Test results:", StringComparison.OrdinalIgnoreCase))
-            .ToList();
-
-        string Get(string prefix) => FindLine(lines, prefix);
-
-        var vaLine = Get("Va");
-        var vsLine = Get("Vs");
-        var vgLine = Get("Vg");
-        var iaLine = Get("Ia");
-        var gmaLine = Get("Gma");
-        var raLine = Get("Ra");
-        var mu1Line = Get("mu1");
-        var gm1Line = Get("Gm1");
-        var isLine = Get("Is");
-        var gmsLine = Get("Gms");
-        var rsLine = Get("Rs");
-        var mu2Line = Get("mu2");
-        var gm2Line = Get("Gm2");
-
-        return new PentodeQuickTestDetails(
-            Va: ParseMeasurementValue(vaLine),
-            VaSwingPercent: ParseSwingPercent(vaLine),
-            Vs: ParseMeasurementValue(vsLine),
-            VsSwingPercent: ParseSwingPercent(vsLine),
-            Vg: ParseMeasurementValue(vgLine),
-            VgSwingPercent: ParseSwingPercent(vgLine),
-            Ia: ParseMeasurementValue(iaLine),
-            IaNominal: ParseNominalValue(iaLine),
-            Gma: ParseMeasurementValue(gmaLine),
-            GmaNominal: ParseNominalValue(gmaLine),
-            Ra: ParseMeasurementValue(raLine),
-            RaNominal: ParseNominalValue(raLine),
-            Mu1: ParseMeasurementValue(mu1Line),
-            Mu1Nominal: ParseNominalValue(mu1Line),
-            Gm1: ParseMeasurementValue(gm1Line),
-            Is: ParseMeasurementValue(isLine),
-            IsNominal: ParseNominalValue(isLine),
-            Gms: ParseMeasurementValue(gmsLine),
-            Rs: ParseMeasurementValue(rsLine),
-            Mu2: ParseMeasurementValue(mu2Line),
-            Gm2: ParseMeasurementValue(gm2Line));
+        return values.Keys.Any(k => k.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
     }
 
-    private static double ParseMeasurementValue(string line)
+    private static double GetRequired(Dictionary<string, double> values, string key)
     {
-        var match = ValueRegex.Match(GetValuePart(line));
-        if (!match.Success)
+        if (!values.TryGetValue(key, out var value))
         {
-            throw new FormatException($"Unable to parse value from line: '{line}'");
-        }
-
-        var rawValue = match.Groups["value"].Value;
-        var unit = match.Groups["unit"].Value.Trim();
-
-        var numericValue = ParseNumericValue(rawValue);
-        return ConvertToBaseUnit(numericValue, unit);
-    }
-
-    private static double ParseNominalValue(string line)
-    {
-        var match = NominalRegex.Match(GetValuePart(line));
-        if (!match.Success)
-        {
-            return double.NaN;
-        }
-
-        var rawValue = match.Groups["value"].Value;
-        var unit = match.Groups["unit"].Value.Trim();
-
-        var numericValue = ParseNumericValue(rawValue);
-        return ConvertToBaseUnit(numericValue, unit);
-    }
-
-    private static double ParseSwingPercent(string line)
-    {
-        var match = SwingRegex.Match(line);
-        if (!match.Success)
-        {
-            return double.NaN;
-        }
-
-        return ParseNumericValue(match.Groups["percent"].Value);
-    }
-
-    private static string GetValuePart(string line)
-    {
-        var parts = line.Split(':', 2);
-        if (parts.Length != 2)
-        {
-            throw new FormatException($"Line does not contain separator ':': '{line}'");
-        }
-
-        return parts[1].Trim();
-    }
-
-    private static string FindLine(IEnumerable<string> lines, string prefix)
-    {
-        var line = lines.FirstOrDefault(l => l.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
-        if (line == null)
-        {
-            throw new FormatException($"Line with prefix '{prefix}' was not found in quick test results.");
-        }
-
-        return line;
-    }
-
-    private static IEnumerable<string> GetNormalizedLines(string text)
-    {
-        return text.Replace("\r\n", "\n")
-            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
-            .Select(l => l.Trim())
-            .Where(l => !string.IsNullOrWhiteSpace(l));
-    }
-
-    private static double ParseNumericValue(string rawValue)
-    {
-        var normalized = rawValue.Trim();
-
-        if (normalized.Length == 0)
-        {
-            return double.NaN;
-        }
-
-        if (normalized.Contains("N.A.", StringComparison.OrdinalIgnoreCase) || normalized.Contains("---", StringComparison.Ordinal))
-        {
-            return double.NaN;
-        }
-
-        var isGreater = normalized.StartsWith('>');
-        var isLess = normalized.StartsWith('<');
-
-        if (isGreater || isLess)
-        {
-            normalized = normalized[1..].Trim();
-        }
-
-        var multiplier = 1.0;
-        if (normalized.EndsWith("M", StringComparison.OrdinalIgnoreCase))
-        {
-            multiplier = 1_000_000;
-            normalized = normalized[..^1];
-        }
-        else if (normalized.EndsWith("k", StringComparison.OrdinalIgnoreCase))
-        {
-            multiplier = 1_000;
-            normalized = normalized[..^1];
-        }
-
-        normalized = normalized.Replace(" ", string.Empty).Replace(',', '.');
-
-        if (!double.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
-        {
-            return double.NaN;
-        }
-
-        value *= multiplier;
-
-        if (isGreater)
-        {
-            return double.PositiveInfinity;
-        }
-
-        if (isLess)
-        {
-            return double.NegativeInfinity;
+            throw new FormatException($"Required value '{key}' is missing in quick test results.");
         }
 
         return value;
     }
 
-    private static double ConvertToBaseUnit(double value, string unit)
+    private static double GetOptional(Dictionary<string, double> values, string key)
     {
-        if (double.IsNaN(value) || double.IsInfinity(value))
+        return values.TryGetValue(key, out var value) ? value : double.NaN;
+    }
+
+    private static Dictionary<string, double> ParseQuickTestValues(string text)
+    {
+        var result = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
+        var lines = text.Split('\n');
+        var sectionPrefix = string.Empty;
+
+        foreach (var rawLine in lines)
         {
-            return value;
+            var line = rawLine.Trim();
+            if (string.IsNullOrEmpty(line))
+            {
+                continue;
+            }
+
+            if (line.StartsWith("SECTION", StringComparison.OrdinalIgnoreCase))
+            {
+                sectionPrefix = ParseSectionPrefix(line);
+                continue;
+            }
+
+            if (!line.Contains(':', StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var colonIndex = line.IndexOf(':');
+            var keyPart = line[..colonIndex].Trim();
+
+            if (!KnownKeys.TryGetValue(keyPart, out var normalizedKey))
+            {
+                continue;
+            }
+
+            var valuePart = line[(colonIndex + 1)..];
+            var key = sectionPrefix + normalizedKey;
+            result[key] = ParseValueWithUnit(valuePart);
+
+            if (normalizedKey is "Va" or "Vg" or "Vs")
+            {
+                var swingPercent = ParseSwingPercent(valuePart);
+                if (!double.IsNaN(swingPercent))
+                {
+                    result[sectionPrefix + normalizedKey + "SwingPercent"] = swingPercent;
+                }
+            }
+            else
+            {
+                var nominal = ParseNominalValue(valuePart);
+                if (!double.IsNaN(nominal))
+                {
+                    result[sectionPrefix + normalizedKey + "Nominal"] = nominal;
+                }
+            }
         }
 
-        var factor = unit switch
-        {
-            "V" => 1.0,
-            "mV" => 1e-3,
-            "A" => 1.0,
-            "mA" => 1e-3,
-            "uA" => 1e-6,
-            "mA/V" => 1e-3,
-            "uA/V" => 1e-6,
-            "A/V" => 1.0,
-            "ohm" => 1.0,
-            "kohm" => 1e3,
-            "Mohm" => 1e6,
-            "-" => 1.0,
-            _ => 1.0
-        };
+        return result;
+    }
 
-        return value * factor;
+    private static string ParseSectionPrefix(string line)
+    {
+        var parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length < 2 || !int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out var sectionNumber))
+        {
+            throw new FormatException($"Cannot parse section number from '{line}'.");
+        }
+
+        return $"S{sectionNumber}_";
+    }
+
+    private static double ParseValueWithUnit(string valuePart)
+    {
+        var trimmed = valuePart.Trim();
+        if (string.IsNullOrEmpty(trimmed))
+        {
+            throw new FormatException("Measurement line does not contain a value.");
+        }
+
+        if (trimmed.StartsWith('>'))
+        {
+            return double.PositiveInfinity;
+        }
+
+        if (trimmed.StartsWith("N.A.", StringComparison.OrdinalIgnoreCase))
+        {
+            return double.NaN;
+        }
+
+        var openIndex = trimmed.IndexOf('(');
+        var closeIndex = trimmed.IndexOf(')', openIndex + 1);
+
+        if (openIndex < 0 || closeIndex < 0)
+        {
+            throw new FormatException($"Cannot parse unit from '{trimmed}'.");
+        }
+
+        var valueString = trimmed[..openIndex].Trim();
+        var unit = trimmed[(openIndex + 1)..closeIndex].Trim();
+
+        var value = ParseNumber(valueString);
+        return ConvertValue(unit, value);
+    }
+
+    private static double ParseNominalValue(string valuePart)
+    {
+        var index = valuePart.IndexOf("nominal", StringComparison.OrdinalIgnoreCase);
+        if (index < 0)
+        {
+            return double.NaN;
+        }
+
+        var afterNominal = valuePart[(index + "nominal".Length)..];
+        return ParseValueWithOptionalText(afterNominal);
+    }
+
+    private static double ParseValueWithOptionalText(string text)
+    {
+        var trimmed = text.Trim();
+        if (string.IsNullOrEmpty(trimmed))
+        {
+            return double.NaN;
+        }
+
+        var openIndex = trimmed.IndexOf('(');
+        var closeIndex = trimmed.IndexOf(')', openIndex + 1);
+        if (openIndex < 0 || closeIndex < 0)
+        {
+            return double.NaN;
+        }
+
+        var valueString = trimmed[..openIndex].Trim();
+        var unit = trimmed[(openIndex + 1)..closeIndex].Trim();
+
+        if (valueString.StartsWith('>'))
+        {
+            return double.PositiveInfinity;
+        }
+
+        if (valueString.StartsWith("N.A.", StringComparison.OrdinalIgnoreCase))
+        {
+            return double.NaN;
+        }
+
+        var value = ParseNumber(valueString);
+        return ConvertValue(unit, value);
+    }
+
+    private static double ParseSwingPercent(string valuePart)
+    {
+        var percentIndex = valuePart.LastIndexOf('%');
+        if (percentIndex < 0)
+        {
+            return double.NaN;
+        }
+
+        var openIndex = valuePart.LastIndexOf('(', percentIndex);
+        if (openIndex < 0)
+        {
+            return double.NaN;
+        }
+
+        var percentString = valuePart[(openIndex + 1)..percentIndex].Trim();
+
+        return double.TryParse(percentString, NumberStyles.Float, RuCulture, out var percent)
+            ? percent
+            : double.NaN;
+    }
+
+    private static double ParseNumber(string value)
+    {
+        if (double.TryParse(value, NumberStyles.Float, RuCulture, out var result))
+        {
+            return result;
+        }
+
+        throw new FormatException($"Cannot parse numeric value '{value}'.");
+    }
+
+    private static double ConvertValue(string unit, double value)
+    {
+        return unit switch
+        {
+            "A" => value,
+            "mA" => value / 1000.0,
+            "uA" => value / 1_000_000.0,
+            "V" => value,
+            "ohm" => value,
+            "kohm" => value * 1000.0,
+            "Mohm" => value * 1_000_000.0,
+            "A/V" => value,
+            "mA/V" => value / 1000.0,
+            "uA/V" => value / 1_000_000.0,
+            "(-)" => value,
+            _ => value
+        };
     }
 }
