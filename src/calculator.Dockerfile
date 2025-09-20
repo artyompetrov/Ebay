@@ -6,7 +6,7 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-COPY /Calculator/pyproject.toml /app/pyproject.toml
+COPY Calculator/pyproject.toml /app/pyproject.toml
 RUN pip install --no-cache-dir --upgrade pip \
     && python -m pip install --no-cache-dir \
         fastapi==0.111.0 \
@@ -16,7 +16,7 @@ RUN pip install --no-cache-dir --upgrade pip \
 
 COPY Calculator /app/calculator
 
-WORKDIR /app/calculator
+ENV PYTHONPATH=/app
 
 EXPOSE 8080
 
