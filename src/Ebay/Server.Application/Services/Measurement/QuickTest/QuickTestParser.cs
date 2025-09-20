@@ -8,26 +8,7 @@ namespace Server.Application.Services.Measurement.QuickTest;
 
 public class QuickTestParser
 {
-    private static readonly CultureInfo RuCulture = CultureInfo.GetCultureInfo("ru-RU");
-
-    private static readonly Dictionary<string, string> KnownKeys = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["Va"] = "Va",
-        ["Vg"] = "Vg",
-        ["Vs"] = "Vs",
-        ["Ia"] = "Ia",
-        ["Is"] = "Is",
-        ["Ra"] = "Ra",
-        ["Rs"] = "Rs",
-        ["Gm"] = "Gm",
-        ["Gma"] = "Gma",
-        ["Gm1"] = "Gm1",
-        ["Gms"] = "Gms",
-        ["Gm2"] = "Gm2",
-        ["mu"] = "Mu",
-        ["mu1"] = "Mu1",
-        ["mu2"] = "Mu2"
-    };
+    private static readonly CultureInfo InvariantCulture = CultureInfo.InvariantCulture;
 
     public ParseAndPrettifyQuickTestResult Parse(string quickTestOriginal, MeasurementTypeBase measurementType)
     {
@@ -61,7 +42,7 @@ public class QuickTestParser
             throw new FormatException("Double triode quick test must contain two sections.");
         }
 
-        return new ParseAndPrettifyQuickTestResult(tubeType, section1, section2);
+        return new ParseAndPrettifyQuickTestResult(tubeType, section1, section2, null);
     }
 
     private static ParseAndPrettifyQuickTestResult CreatePentodeResult(Dictionary<string, double> values)
@@ -117,10 +98,7 @@ public class QuickTestParser
             Mu: details.Mu2,
             MuNominal: double.NaN);
 
-        return new ParseAndPrettifyQuickTestResult(TubeType.Pentode, section1, section2)
-        {
-            PentodeDetails = details
-        };
+        return new ParseAndPrettifyQuickTestResult(TubeType.Pentode, section1, section2, details);
     }
 
     private static SectionTest CreateSection(Dictionary<string, double> values, string prefix)
@@ -193,7 +171,8 @@ public class QuickTestParser
             var colonIndex = line.IndexOf(':');
             var keyPart = line[..colonIndex].Trim();
 
-            if (!KnownKeys.TryGetValue(keyPart, out var normalizedKey))
+            var normalizedKey = NormalizeKey(keyPart);
+            if (normalizedKey == null)
             {
                 continue;
             }
@@ -221,6 +200,91 @@ public class QuickTestParser
         }
 
         return result;
+    }
+
+    private static string? NormalizeKey(string key)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return null;
+        }
+
+        if (key.Equals("Va", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Va";
+        }
+
+        if (key.Equals("Vg", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Vg";
+        }
+
+        if (key.Equals("Vs", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Vs";
+        }
+
+        if (key.Equals("Ia", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Ia";
+        }
+
+        if (key.Equals("Is", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Is";
+        }
+
+        if (key.Equals("Ra", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Ra";
+        }
+
+        if (key.Equals("Rs", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Rs";
+        }
+
+        if (key.Equals("Gm", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Gm";
+        }
+
+        if (key.Equals("Gma", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Gma";
+        }
+
+        if (key.Equals("Gm1", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Gm1";
+        }
+
+        if (key.Equals("Gms", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Gms";
+        }
+
+        if (key.Equals("Gm2", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Gm2";
+        }
+
+        if (key.Equals("mu", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Mu";
+        }
+
+        if (key.Equals("mu1", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Mu1";
+        }
+
+        if (key.Equals("mu2", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Mu2";
+        }
+
+        return null;
     }
 
     private static string ParseSectionPrefix(string line)
@@ -327,19 +391,25 @@ public class QuickTestParser
 
         var percentString = valuePart[(openIndex + 1)..percentIndex].Trim();
 
-        return double.TryParse(percentString, NumberStyles.Float, RuCulture, out var percent)
+        return TryParseInvariant(percentString, out var percent)
             ? percent
             : double.NaN;
     }
 
     private static double ParseNumber(string value)
     {
-        if (double.TryParse(value, NumberStyles.Float, RuCulture, out var result))
+        if (TryParseInvariant(value, out var result))
         {
             return result;
         }
 
         throw new FormatException($"Cannot parse numeric value '{value}'.");
+    }
+
+    private static bool TryParseInvariant(string value, out double result)
+    {
+        var normalized = value.Replace(',', '.');
+        return double.TryParse(normalized, NumberStyles.Float, InvariantCulture, out result);
     }
 
     private static double ConvertValue(string unit, double value)

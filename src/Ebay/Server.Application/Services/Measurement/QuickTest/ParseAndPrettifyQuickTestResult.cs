@@ -3,19 +3,33 @@ using System.Text;
 
 namespace Server.Application.Services.Measurement.QuickTest;
 
-public record ParseAndPrettifyQuickTestResult(
-    TubeType TubeType,
-    SectionTest Section1,
-    SectionTest? Section2
-)
+public sealed record ParseAndPrettifyQuickTestResult
 {
-    public PentodeQuickTestDetails? PentodeDetails { get; init; }
+    private readonly PentodeQuickTestDetails? _pentodeDetails;
+
+    public ParseAndPrettifyQuickTestResult(
+        TubeType tubeType,
+        SectionTest section1,
+        SectionTest? section2,
+        PentodeQuickTestDetails? pentodeDetails)
+    {
+        TubeType = tubeType;
+        Section1 = section1;
+        Section2 = section2;
+        _pentodeDetails = pentodeDetails;
+    }
+
+    public TubeType TubeType { get; init; }
+
+    public SectionTest Section1 { get; init; }
+
+    public SectionTest? Section2 { get; init; }
 
     public string PrettyQuickTestResult
     {
         get
         {
-            var culture = CultureInfo.GetCultureInfo("ru-RU");
+            var culture = CultureInfo.InvariantCulture;
             var builder = new StringBuilder();
 
             switch (TubeType)
@@ -31,32 +45,21 @@ public record ParseAndPrettifyQuickTestResult(
 
                     break;
 
-                case TubeType.DoubleTriode:
+                case TubeType.DoubleTriode when Section2 != null:
                     AppendTriodeSection(builder, Section1, 1, culture);
-
-                    if (Section2 == null)
-                    {
-                        break;
-                    }
-
                     builder.AppendLine();
                     AppendTriodeSection(builder, Section2, 2, culture);
                     break;
 
-                case TubeType.Pentode when PentodeDetails != null:
-                    AppendPentode(builder, PentodeDetails, culture);
+                case TubeType.DoubleTriode:
+                    throw new InvalidOperationException("Double triode quick test must contain two sections.");
+
+                case TubeType.Pentode when _pentodeDetails != null:
+                    AppendPentode(builder, _pentodeDetails, culture);
                     break;
 
                 default:
-                    AppendTriodeSection(builder, Section1, 1, culture);
-
-                    if (Section2 != null)
-                    {
-                        builder.AppendLine();
-                        AppendTriodeSection(builder, Section2, 2, culture);
-                    }
-
-                    break;
+                    throw new InvalidOperationException($"Unsupported tube type '{TubeType}'.");
             }
 
             return builder.ToString().TrimEnd();

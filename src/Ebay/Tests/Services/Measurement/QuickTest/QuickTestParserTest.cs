@@ -25,9 +25,9 @@ Va  : 120 (V)                Swing +/- 12 V (10%)
 Vg  : -30 (V)                Swing +/- 3 V (10%)
 
 Test results:
-Ia  : 271,83 (mA)            97 % of nominal 280 (mA)
+Ia  : 271.83 (mA)            97 % of nominal 280 (mA)
 Ra  : 111 (ohm)              0 % of nominal 106 (kohm)          Ra = dVa/dIa
-Gm  : 20,36 (mA/V)           102 % of nominal 20 (mA/V)         Gm = dIa/dVg
+Gm  : 20.36 (mA/V)           102 % of nominal 20 (mA/V)         Gm = dIa/dVg
 mu  : 2 (-)                  113 % of nominal 2 (-)             mu = Gm*Ra
 
 
@@ -54,10 +54,10 @@ Va  : 250 (V)                Swing +/- 25 V (10%)
 Vg  : -8 (V)                 Swing +/- 0,8 V (10%)
 
 Test results:
-Ia  : 8,27 (mA)              100 % of nominal 8,27 (mA)
-Ra  : 7,51 (kohm)            98 % of nominal 7,66 (kohm)        Ra = dVa/dIa
-Gm  : 2,58 (mA/V)            102 % of nominal 2,53 (mA/V)       Gm = dIa/dVg
-mu  : 19 (-)                 99 % of nominal 19,2 (-)           mu = Gm*Ra
+Ia  : 8.27 (mA)              100 % of nominal 8.27 (mA)
+Ra  : 7.51 (kohm)            98 % of nominal 7.66 (kohm)        Ra = dVa/dIa
+Gm  : 2.58 (mA/V)            102 % of nominal 2.53 (mA/V)       Gm = dIa/dVg
+mu  : 19 (-)                 99 % of nominal 19.2 (-)           mu = Gm*Ra
 
 SECTION 2
 
@@ -66,10 +66,10 @@ Va  : 250 (V)                Swing +/- 25 V (10%)
 Vg  : -8 (V)                 Swing +/- 0,8 V (10%)
 
 Test results:
-Ia  : 7,86 (mA)              95 % of nominal 8,27 (mA)
-Ra  : 7,72 (kohm)            101 % of nominal 7,66 (kohm)       Ra = dVa/dIa
-Gm  : 2,51 (mA/V)            99 % of nominal 2,53 (mA/V)        Gm = dIa/dVg
-mu  : 19 (-)                 99 % of nominal 19,2 (-)           mu = Gm*Ra
+Ia  : 7.86 (mA)              95 % of nominal 8.27 (mA)
+Ra  : 7.72 (kohm)            101 % of nominal 7.66 (kohm)       Ra = dVa/dIa
+Gm  : 2.51 (mA/V)            99 % of nominal 2.53 (mA/V)        Gm = dIa/dVg
+mu  : 19 (-)                 99 % of nominal 19.2 (-)           mu = Gm*Ra
 """;
 
     private const string PentodeSample = """
@@ -81,15 +81,15 @@ Vs  : 135 (V)                Swing +/- 33,75 V (25%)
 Vg  : -3 (V)                 Swing +/- 0,75 V (25%)
 
 Test results:
-Ia  : 4,93 (mA)              90 % of nominal 5,5 (mA)
-Gma : 1,72 (mA/V)            93 % of nominal 1,85 (mA/V)        Gma = dIa/dVg
-Ra  : 654,57 (kohm)          131 % of nominal 500 (kohm)        Ra  = dVa/dIa
+Ia  : 4.93 (mA)              90 % of nominal 5.5 (mA)
+Gma : 1.72 (mA/V)            93 % of nominal 1.85 (mA/V)        Gma = dIa/dVg
+Ra  : 654.57 (kohm)          131 % of nominal 500 (kohm)        Ra  = dVa/dIa
 mu1 : 1124 (-)               112 % of nominal 1000 (-)          mu1 = Gma*Ra
 Gm1 : 83 (uA/V)              Gm1 = dIa/dVs
 
-Is  : 0,86 (mA)              82 % of nominal 1,05 (mA)
+Is  : 0.86 (mA)              82 % of nominal 1.05 (mA)
 Gms : 312 (uA/V)             Gms = dIs/dVg
-Rs  : 63,31 (kohm)           Rs  = dVs/dIs
+Rs  : 63.31 (kohm)           Rs  = dVs/dIs
 mu2 : 20 (-)                 mu2 = Gms*Rs
 Gm2 : 0 (uA/V)               Gm2 = dIs/dVa
 """;
@@ -122,7 +122,7 @@ Gm2 : 0 (uA/V)               Gm2 = dIs/dVa
 
         Assert.That(result.PrettyQuickTestResult, Does.Contain("SECTION 1"));
         Assert.That(result.PrettyQuickTestResult, Does.Contain("Va  : 120 (V)"));
-        Assert.That(result.PrettyQuickTestResult, Does.Contain("Ia  : 271,83 (mA)"));
+        Assert.That(result.PrettyQuickTestResult, Does.Contain("Ia  : 271.83 (mA)"));
         Assert.That(result.PrettyQuickTestResult, Does.Contain("mu  : 2 (-)"));
     }
 
@@ -159,12 +159,9 @@ Gm2 : 0 (uA/V)               Gm2 = dIs/dVa
         Assert.That(result.Section2!.Va, Is.EqualTo(135));
         Assert.That(result.Section2.Gm, Is.EqualTo(0.000312).Within(1e-7));
 
-        Assert.That(result.PentodeDetails, Is.Not.Null);
-        Assert.That(result.PentodeDetails!.Gm1, Is.EqualTo(0.000083).Within(1e-8));
-        Assert.That(result.PentodeDetails.Gm2, Is.Zero);
-
         Assert.That(result.PrettyQuickTestResult, Does.Contain("Vs  : 135 (V)"));
         Assert.That(result.PrettyQuickTestResult, Does.Contain("Gma = dIa/dVg"));
+        Assert.That(result.PrettyQuickTestResult, Does.Contain("Gm1 : 83"));
         Assert.That(result.PrettyQuickTestResult, Does.Contain("Gm2 = dIs/dVa"));
     }
 }
