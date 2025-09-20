@@ -37,6 +37,102 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         {
             return;
         }
+
+        var model1 = Rbfmodel(measurementId1);
+        var model2 = Rbfmodel(measurementId2);
+
+        var (mse, rmse, maxAbs) = SquaredDiffPointsInEllipse(
+            model1,
+            model2,
+            150,
+            -3.0,
+            a: 30,
+            b: 0.6,
+            radialBands: 20,
+            pointsPerBand: 36);
+    }
+
+    private static alglib.rbfmodel Rbfmodel(MeasurementData measurementId1)
+    {
+        var points = new List<(double Va, double Vg, double Ia)>();
+        foreach (var result in measurementId1.AnodeCurves.CurveSets)
+        {
+            foreach (var (va, ia) in result.V.Zip(result.I1, (va, ia) => (va, ia)))
+            {
+                points.Add((Va: va, Vg: result.VSteppingValue, Ia: ia));
+            }
+
+        }
+        
+        var xy = new double[points.Count, 3];
+        for (var i = 0; i < points.Count; i++)
+        {
+            xy[i, 0] = points[i].Va;
+            xy[i, 1] = points[i].Vg;
+            xy[i, 2] = points[i].Ia;
+        }
+        
+        var vaRange = points.Max(p => p.Va) - points.Min(p => p.Va);
+        var vgRange = points.Max(p => p.Vg) - points.Min(p => p.Vg);
+        double rbase = Math.Max(vaRange, vgRange);
+        
+        
+        var layers = 6;
+        double lambda = 0.0;
+        alglib.rbfcreate(2, 1, out var model);
+        alglib.rbfsetpoints(model, xy);
+        alglib.rbfsetalgomultilayer(model, rbase,layers, lambda);
+        alglib.rbfbuildmodel(model, out _);
+        return model;
+    }
+    
+    static (double mse, double rmse, double maxAbs) SquaredDiffPointsInEllipse(
+        alglib.rbfmodel m1, alglib.rbfmodel m2,
+        double cx, double cy,   // центр
+        double a, double b,     // полуоси
+        int radialBands,        // колец по радиусу
+        int pointsPerBand,      // точек на кольцо
+        double phiRad = 0.0     // поворот (рад)
+    )
+    {
+        double c = Math.Cos(phiRad), s = Math.Sin(phiRad);
+
+        double sse = 0.0;     // sum of squared errors
+        double maxAbs = 0.0;
+        long count = 0;
+
+        for (int i = 1; i <= radialBands; i++)
+        {
+            // midpoint по радиусу, чтобы не попадать на границы
+            double r = (i - 0.5) / radialBands;
+
+            for (int j = 0; j < pointsPerBand; j++)
+            {
+                double theta = 2 * Math.PI * j / pointsPerBand;
+
+                // точка эллипса до поворота
+                double ex = a * r * Math.Cos(theta);
+                double ey = b * r * Math.Sin(theta);
+
+                // поворот
+                double rx = c * ex - s * ey;
+                double ry = s * ex + c * ey;
+
+                double va = cx + rx;
+                double vg = cy + ry;
+
+                double d = alglib.rbfcalc2(m1, va, vg) - alglib.rbfcalc2(m2, va, vg);
+                double ad = Math.Abs(d);
+
+                sse += d * d;
+                if (ad > maxAbs) maxAbs = ad;
+                count++;
+            }
+        }
+
+        double mse = count > 0 ? sse / count : 0.0;
+        double rmse = Math.Sqrt(mse);
+        return (mse, rmse, maxAbs);
     }
 }
 

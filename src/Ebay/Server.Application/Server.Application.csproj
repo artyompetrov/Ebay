@@ -6,6 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="alglib.net" />
         <PackageReference Include="FlexLabs.EntityFrameworkCore.Upsert" />
         <PackageReference Include="HtmlAgilityPack" />
         <PackageReference Include="JetBrains.Annotations" />
