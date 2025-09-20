@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
@@ -7,20 +6,14 @@ namespace Server.Application.Services.Measurement.QuickTest;
 
 public sealed record ParseAndPrettifyQuickTestResult
 {
-    private readonly IReadOnlyDictionary<string, double> _values;
-
     public ParseAndPrettifyQuickTestResult(
         TubeType tubeType,
         SectionTest section1,
-        SectionTest? section2,
-        IReadOnlyDictionary<string, double> values)
+        SectionTest? section2)
     {
-        ArgumentNullException.ThrowIfNull(values);
-
         TubeType = tubeType;
         Section1 = section1;
         Section2 = section2;
-        _values = values;
     }
 
     public TubeType TubeType { get; init; }
@@ -139,53 +132,31 @@ public sealed record ParseAndPrettifyQuickTestResult
             FormatPercent(Section1.Mu, Section1.MuNominal, culture),
             FormatMu(Section1.MuNominal, culture),
             "mu1 = Gma*Ra"));
-        builder.AppendLine(BuildResultLine(
-            "Gm1",
-            FormatTransconductance(GetValue("Gm1"), culture),
-            null,
-            null,
-            "Gm1 = dIa/dVs"));
         builder.AppendLine();
         builder.AppendLine(BuildResultLine(
             "Is",
             FormatCurrent(section2.Ia, culture),
-            FormatPercent(section2.Ia, section2.IaNominal, culture),
-            FormatCurrent(section2.IaNominal, culture),
+            double.IsNaN(section2.IaNominal) ? null : FormatPercent(section2.Ia, section2.IaNominal, culture),
+            double.IsNaN(section2.IaNominal) ? null : FormatCurrent(section2.IaNominal, culture),
             null));
         builder.AppendLine(BuildResultLine(
             "Gms",
             FormatTransconductance(section2.Gm, culture),
-            null,
-            null,
+            double.IsNaN(section2.GmNominal) ? null : FormatPercent(section2.Gm, section2.GmNominal, culture),
+            double.IsNaN(section2.GmNominal) ? null : FormatTransconductance(section2.GmNominal, culture),
             "Gms = dIs/dVg"));
         builder.AppendLine(BuildResultLine(
             "Rs",
             FormatResistance(section2.Ra, culture),
-            null,
-            null,
+            double.IsNaN(section2.RaNominal) ? null : FormatPercent(section2.Ra, section2.RaNominal, culture),
+            double.IsNaN(section2.RaNominal) ? null : FormatResistance(section2.RaNominal, culture),
             "Rs  = dVs/dIs"));
         builder.AppendLine(BuildResultLine(
             "mu2",
             FormatMu(section2.Mu, culture),
-            null,
-            null,
+            double.IsNaN(section2.MuNominal) ? null : FormatPercent(section2.Mu, section2.MuNominal, culture),
+            double.IsNaN(section2.MuNominal) ? null : FormatMu(section2.MuNominal, culture),
             "mu2 = Gms*Rs"));
-        builder.AppendLine(BuildResultLine(
-            "Gm2",
-            FormatTransconductance(GetValue("Gm2"), culture),
-            null,
-            null,
-            "Gm2 = dIs/dVa"));
-    }
-
-    private double GetValue(string key)
-    {
-        if (_values.TryGetValue(key, out var value))
-        {
-            return value;
-        }
-
-        throw new InvalidOperationException($"Value '{key}' is missing in quick test results.");
     }
 
     private static string BuildVoltageLine(string name, double value, double percent, CultureInfo culture)

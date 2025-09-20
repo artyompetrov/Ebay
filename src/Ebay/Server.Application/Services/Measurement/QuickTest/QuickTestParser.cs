@@ -48,7 +48,7 @@ public class QuickTestParser
             throw new FormatException("Triode quick test must contain only one section.");
         }
 
-        return new ParseAndPrettifyQuickTestResult(tubeType, section1, section2, values);
+        return new ParseAndPrettifyQuickTestResult(tubeType, section1, section2);
     }
 
     private static ParseAndPrettifyQuickTestResult CreatePentodeResult(Dictionary<string, double> values)
@@ -81,9 +81,7 @@ public class QuickTestParser
             Mu: GetRequired(values, "Mu2"),
             MuNominal: double.NaN);
 
-        EnsurePentodeSpecificValues(values);
-
-        return new ParseAndPrettifyQuickTestResult(TubeType.Pentode, section1, section2, values);
+        return new ParseAndPrettifyQuickTestResult(TubeType.Pentode, section1, section2);
     }
 
     private static SectionTest CreateSection(Dictionary<string, double> values, string prefix)
@@ -180,12 +178,6 @@ public class QuickTestParser
         }
 
         return result;
-    }
-
-    private static void EnsurePentodeSpecificValues(Dictionary<string, double> values)
-    {
-        _ = GetRequired(values, "Gm1");
-        _ = GetRequired(values, "Gm2");
     }
 
     private static string? NormalizeKey(string key)

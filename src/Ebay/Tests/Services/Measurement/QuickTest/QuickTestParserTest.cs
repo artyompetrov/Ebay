@@ -185,7 +185,7 @@ Gm2 : 0 (uA/V)               Gm2 = dIs/dVa
 
         Assert.That(result.PrettyQuickTestResult, Does.Contain("Vs  : 135 (V)"));
         Assert.That(result.PrettyQuickTestResult, Does.Contain("Gma = dIa/dVg"));
-        Assert.That(result.PrettyQuickTestResult, Does.Contain("Gm1 : 83"));
-        Assert.That(result.PrettyQuickTestResult, Does.Contain("Gm2 = dIs/dVa"));
+        Assert.That(result.PrettyQuickTestResult, Does.Not.Contain("Gm1"));
+        Assert.That(result.PrettyQuickTestResult, Does.Not.Contain("Gm2"));
     }
 }
