@@ -3,18 +3,21 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Server.Application.Data;
 
 #nullable disable
 
-namespace Server.Data.Migrations
+namespace Server.Application.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250921121311_AlterMatchedPairs")]
+    partial class AlterMatchedPairs
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -702,22 +705,13 @@ namespace Server.Data.Migrations
                     b.Property<int>("ComparisonMode")
                         .HasColumnType("integer");
 
-                    b.Property<double>("MaxAbsSection1")
+                    b.Property<double>("MaxAbs")
                         .HasColumnType("double precision");
 
-                    b.Property<double?>("MaxAbsSection2")
+                    b.Property<double>("MseSumm")
                         .HasColumnType("double precision");
 
-                    b.Property<double>("MseSection1")
-                        .HasColumnType("double precision");
-
-                    b.Property<double?>("MseSection2")
-                        .HasColumnType("double precision");
-
-                    b.Property<double>("RmseSection1")
-                        .HasColumnType("double precision");
-
-                    b.Property<double?>("RmseSection2")
+                    b.Property<double>("RmseSumm")
                         .HasColumnType("double precision");
 
                     b.HasKey("MeasurementId1", "MeasurementId2", "ComparisonMode");

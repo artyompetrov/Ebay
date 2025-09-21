@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Server.Application.Data.Models;
+namespace Server.Application.Data.Models.Measurements;
 
 public sealed class TubeWorkingPoint
 {

@@ -505,9 +505,9 @@ public class EbayControllerImplementation : IEbayController
         MeasurementState? apiMeasurementState = measurementState.HasValue
             ? (MeasurementState)(int)measurementState.Value
             : null;
-        IReadOnlyCollection<Data.Models.MeasurementState> measurementStates = apiMeasurementState.HasValue
+        IReadOnlyCollection<Data.Models.Measurements.MeasurementState> measurementStates = apiMeasurementState.HasValue
             ? new[] { apiMeasurementState.Value.ToDbMeasurementState() }
-            : Enum.GetValues<Data.Models.MeasurementState>();
+            : Enum.GetValues<Data.Models.Measurements.MeasurementState>();
 
         var measurements = await _measurementService.GetMeasurementInfos(
             productId: productId,

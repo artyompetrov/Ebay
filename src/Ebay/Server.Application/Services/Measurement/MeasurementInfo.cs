@@ -1,4 +1,5 @@
 using Server.Application.Data.Models;
+using Server.Application.Data.Models.Measurements;
 
 namespace Server.Application.Services.Measurement;
 

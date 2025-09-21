@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Options;
 using Server.Application.Data.Models;
+using Server.Application.Data.Models.Measurements;
 
 namespace Server.Application.Data;
 
@@ -83,7 +84,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
 
         modelBuilder.Entity<MatchedPairDifference>(entity =>
         {
-            entity.HasKey(e => new { e.MeasurementId1, e.MeasurementId2 });
+            entity.HasKey(e => new { e.MeasurementId1, e.MeasurementId2, e.ComparisonMode });
 
             entity.Property(e => e.MeasurementId1)
                 .HasMaxLength(100);

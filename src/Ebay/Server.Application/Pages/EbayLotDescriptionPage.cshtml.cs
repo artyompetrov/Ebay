@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Data;
 using Server.Application.Data.Models;
+using Server.Application.Data.Models.Measurements;
 
 namespace Server.Application.Pages;
 

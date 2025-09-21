@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Server.Application.Data.Models.Measurements;
 
 namespace Server.Application.Data.Models;
 

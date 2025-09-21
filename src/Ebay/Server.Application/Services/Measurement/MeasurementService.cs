@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Data;
 using Server.Application.Data.Models;
+using Server.Application.Data.Models.Measurements;
 using Server.Application.Services.Measurement.MeasurementTypes;
 using Server.Application.Services.Measurement.MeasurementTypes.Base;
 
@@ -204,8 +205,6 @@ public class MeasurementService
             .AsNoTracking()
             .Where(m => m.ProductId == productId)
             .Where(m => measurementStates.Contains(m.MeasurementState));
-
-        measurementsQuery = measurementsQuery.Where(m => m.MatchId == null);
 
         return await measurementsQuery
             .OrderBy(m => m.Id)

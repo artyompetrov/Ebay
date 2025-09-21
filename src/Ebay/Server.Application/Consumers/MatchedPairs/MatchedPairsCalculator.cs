@@ -1,9 +1,12 @@
+using System.Diagnostics;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Server.Application.Data;
-using Server.Application.Data.Models;
+using Server.Application.Data.Models.Measurements;
 using Server.Application.Services.Measurement;
+using Server.Application.Services.Measurement.MeasurementTypes;
+using Server.Application.Services.Measurement.MeasurementTypes.Base;
 
 namespace Server.Application.Consumers.MatchedPairs;
 
@@ -44,8 +47,14 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
             return;
         }
 
-        var model1 = RbfModel(measurementId1);
-        var model2 = RbfModel(measurementId2);
+        // Сравниваем только новые с новыми и б/у с б/у
+        if (measurementId1.ProductState != measurementId2.ProductState)
+        {
+            return;
+        }
+        
+        var radialBands = 10;
+        var pointsPerBand = 36;
 
         var workingPoint = await _applicationDbContext.TubeWorkingPoints
             .AsNoTracking()
@@ -61,76 +70,263 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
             return;
         }
 
-        var (mse, rmse, maxAbs) = SquaredDiffPointsInEllipse(
-            model1: model1,
-            model2: model2,
-            cx: workingPoint.AnodeVoltage,
-            cy: workingPoint.GridVoltage,
-            ax: workingPoint.AnodeVoltageHalfWidth,
-            by: workingPoint.GridVoltageHalfWidth,
-            radialBands: 10,
-            pointsPerBand: 36);
+        switch (measurementId1.AnodeCurves)
+        {
+            case PentodeAnodeCurves:
+            {
+                if (measurementId2.AnodeCurves is not PentodeAnodeCurves)
+                {
+                    throw new UnreachableException($"{nameof(measurementId2)} is expected to be PentodeAnodeCurves");
+     
+                }
+                
+                if (measurementId1.MeasurementId == measurementId2.MeasurementId)
+                {
+                    // игнорируем сравнение сами собой
+                    return;
+                }
+                
+                await CalculateForOneSectionTubes(
+                    measurementId1: measurementId1,
+                    measurementId2: measurementId2,
+                    cancellationToken: context.CancellationToken,
+                    workingPoint: workingPoint,
+                    radialBands: radialBands,
+                    pointsPerBand: pointsPerBand);
+            }
+                break;
+                
+            case TriodeAnodeCurves:
+            {
+                if (measurementId2.AnodeCurves is not TriodeAnodeCurves)
+                {
+                    throw new UnreachableException($"{nameof(measurementId2)} is expected to be TriodeAnodeCurves");
+                }
+                
+                if (measurementId1.MeasurementId == measurementId2.MeasurementId)
+                {
+                    // игнорируем сравнение сами собой
+                    return;
+                }
+                
+                await CalculateForOneSectionTubes(
+                    measurementId1: measurementId1,
+                    measurementId2: measurementId2,
+                    cancellationToken: context.CancellationToken,
+                    workingPoint: workingPoint,
+                    radialBands: radialBands,
+                    pointsPerBand: pointsPerBand);
+            }
+                break;
 
+            case DoubleTriodeAnodeCurves:
+            {
+                if (measurementId2.AnodeCurves is not DoubleTriodeAnodeCurves)
+                {
+                    throw new UnreachableException($"{nameof(measurementId2)} is expected to be DoubleTriodeAnodeCurves");
+                }
+                
+                await CalculateForTwoSectionTubes(
+                    measurementId1: measurementId1,
+                    measurementId2: measurementId2,
+                    cancellationToken: context.CancellationToken,
+                    workingPoint: workingPoint,
+                    radialBands: radialBands,
+                    pointsPerBand: pointsPerBand);
+            }
+                break;
+            default:
+                throw new NotSupportedException($"Unsupported subtype of {nameof(MeasurementTypeBase)}");
+        }
+    }
+
+    private async Task CalculateForTwoSectionTubes(
+        MeasurementData measurementId1,
+        MeasurementData measurementId2,
+        CancellationToken cancellationToken,
+        TubeWorkingPoint workingPoint,
+        int radialBands, int pointsPerBand)
+    {
+        var measurement1I1 = GetPoints(measurementId: measurementId1, x => x.I1);
+        var measurement2I1 = GetPoints(measurementId: measurementId2, x => x.I1);
+        var measurement1I1Model = RbfModel(measurement1I1, workingPoint);
+        var measurement2I1Model = RbfModel(measurement2I1, workingPoint);
+        
+        var measurement1I2 = GetPoints(
+            measurementId: measurementId1,
+            x => x.I2 ?? throw new NullReferenceException("I2 is expected to be not null"));
+        var measurement2I2 = GetPoints(
+            measurementId: measurementId2,
+            x => x.I2 ?? throw new NullReferenceException("I2 is expected to be not null"));
+        var measurement1I2Model = RbfModel(measurement1I2, workingPoint);
+        var measurement2I2Model = RbfModel(measurement2I2, workingPoint);
+        
+        if (measurementId1.MeasurementId != measurementId2.MeasurementId) // не делаем Direct в кейсе когда мы сравниваем две секции двойного триода между собой
+        {
+            var (mseDirect1, rmseDirect1, maxAbsDirect1) = SquaredDiffPointsInEllipse(
+                model1: measurement1I1Model,
+                model2: measurement2I1Model,
+                radialBands: radialBands,
+                pointsPerBand: pointsPerBand,
+                workingPoint: workingPoint);
+                
+            var (mseDirect2, rmseDirect2, maxAbsDirect2) = SquaredDiffPointsInEllipse(
+                model1: measurement1I2Model,
+                model2: measurement2I2Model,
+                radialBands: radialBands,
+                pointsPerBand: pointsPerBand,
+                workingPoint: workingPoint);
+                
+            await SaveToDatabase(
+                measurementId1: measurementId1,
+                measurementId2: measurementId2,
+                cancellationToken: cancellationToken,
+                comparisonMode: ComparisonMode.Direct,
+                mseSection1: mseDirect1,
+                rmseSection1: rmseDirect1,
+                maxAbsSection1: maxAbsDirect1,
+                mseSection2: mseDirect2,
+                rmseSection2: rmseDirect2,
+                maxAbsSection2: maxAbsDirect2);
+        }
+
+        var (mseCross1, rmseCross1, maxAbsCross1) = SquaredDiffPointsInEllipse(
+            model1: measurement1I1Model,
+            model2: measurement2I2Model,
+            radialBands: radialBands,
+            pointsPerBand: pointsPerBand,
+            workingPoint: workingPoint);
+                
+        var (mseCross2, rmseCross2, maxAbsCross2) = SquaredDiffPointsInEllipse(
+            model1: measurement1I2Model,
+            model2: measurement2I1Model,
+            radialBands: radialBands,
+            pointsPerBand: pointsPerBand,
+            workingPoint: workingPoint);
+
+        await SaveToDatabase(
+            measurementId1: measurementId1,
+            measurementId2: measurementId2,
+            cancellationToken: cancellationToken,
+            comparisonMode: ComparisonMode.Cross,
+            mseSection1: mseCross1,
+            rmseSection1: rmseCross1,
+            maxAbsSection1: maxAbsCross1,
+            mseSection2: mseCross2,
+            rmseSection2: rmseCross2,
+            maxAbsSection2: maxAbsCross2);
+    }
+
+    private async Task CalculateForOneSectionTubes(MeasurementData measurementId1, MeasurementData measurementId2,
+        CancellationToken cancellationToken, TubeWorkingPoint workingPoint, int radialBands, int pointsPerBand)
+    {
+        var measurement1I1 = GetPoints(measurementId: measurementId1, x => x.I1);
+        var measurement2I1 = GetPoints(measurementId: measurementId2, x => x.I1);
+
+        var measurement1I1Model = RbfModel(measurement1I1, workingPoint);
+        var measurement2I1Model = RbfModel(measurement2I1, workingPoint);
+
+        var (mse, rmse, maxAbs) = SquaredDiffPointsInEllipse(
+            model1: measurement1I1Model,
+            model2: measurement2I1Model,
+            radialBands: radialBands,
+            pointsPerBand: pointsPerBand,
+            workingPoint: workingPoint
+            );
+
+        await SaveToDatabase(
+            measurementId1: measurementId1,
+            measurementId2: measurementId2,
+            cancellationToken: cancellationToken,
+            comparisonMode: ComparisonMode.Direct,
+            mseSection1: mse,
+            rmseSection1: rmse,
+            maxAbsSection1: maxAbs
+            );
+    }
+
+    private async Task SaveToDatabase(
+        MeasurementData measurementId1,
+        MeasurementData measurementId2,
+        CancellationToken cancellationToken,
+        ComparisonMode comparisonMode,
+        double mseSection1,
+        double rmseSection1,
+        double maxAbsSection1,
+        double? mseSection2 = null,
+        double? rmseSection2 = null,
+        double? maxAbsSection2 = null)
+    {
         var pairDifference = await _applicationDbContext.MatchedPairDifferences
             .SingleOrDefaultAsync(
-                x => x.MeasurementId1 == context.Message.MeasurementId1 &&
-                     x.MeasurementId2 == context.Message.MeasurementId2,
-                cancellationToken: context.CancellationToken);
+                x => x.MeasurementId1 == measurementId1.MeasurementId &&
+                     x.MeasurementId2 == measurementId2.MeasurementId &&
+                     x.ComparisonMode  == comparisonMode,
+                cancellationToken: cancellationToken);
 
         if (pairDifference == null)
         {
             pairDifference = new MatchedPairDifference
             {
-                MeasurementId1 = context.Message.MeasurementId1,
-                MeasurementId2 = context.Message.MeasurementId2
+                MeasurementId1 = measurementId1.MeasurementId,
+                MeasurementId2 = measurementId2.MeasurementId,
+                ComparisonMode = comparisonMode
             };
 
             _applicationDbContext.MatchedPairDifferences.Add(pairDifference);
         }
 
-        pairDifference.Mse = mse;
-        pairDifference.Rmse = rmse;
-        pairDifference.MaxAbs = maxAbs;
+        pairDifference.MseSection1 = mseSection1;
+        pairDifference.RmseSection1 = rmseSection1;
+        pairDifference.MaxAbsSection1 = maxAbsSection1;
+        pairDifference.MseSection2 = mseSection2;
+        pairDifference.RmseSection2 = rmseSection2;
+        pairDifference.MaxAbsSection2 = maxAbsSection2;
 
-        await _applicationDbContext.SaveChangesAsync(context.CancellationToken);
+        await _applicationDbContext.SaveChangesAsync(cancellationToken);
     }
 
-    /// <summary>
-    /// Функция создает модель при помощи RBF интерполяции
-    /// </summary>
-    /// <param name="measurement"></param>
-    /// <returns></returns>
-    private static alglib.rbfmodel RbfModel(MeasurementData measurement)
+    private static List<MeasurementPoint> GetPoints(MeasurementData measurementId, Func<CurveSet, IReadOnlyCollection<double>> iExtractor)
     {
-        var points = new List<(double Va, double Vg, double Ia)>();
-        foreach (var result in measurement.AnodeCurves.CurveSets)
+        var points = new List<MeasurementPoint>();
+        foreach (var result in measurementId.AnodeCurves.CurveSets)
         {
-            foreach (var (va, ia) in result.V.Zip(second: result.I1, (va, ia) => (va, ia)))
+            foreach (var (va, ia) in result.V.Zip(second: iExtractor(result), (va, ia) => (va, ia)))
             {
-                points.Add((Va: va, Vg: result.VSteppingValue, Ia: ia));
+                points.Add(new (
+                    Va: va,
+                    Vg: result.VSteppingValue,
+                    Ia: ia));
             }
 
         }
 
+        return points;
+    }
+
+    private record struct MeasurementPoint(double Va, double Vg, double Ia);
+    
+    /// <summary>
+    /// Функция создает модель при помощи RBF интерполяции
+    /// </summary>
+    private static alglib.rbfmodel RbfModel(List<MeasurementPoint> points, TubeWorkingPoint wp)
+    {
+        var ax = Math.Max(1e-9, wp.AnodeVoltageHalfWidth);
+        var by = Math.Max(1e-9, wp.GridVoltageHalfWidth);
+
         var xy = new double[points.Count, 3];
         for (var i = 0; i < points.Count; i++)
         {
-            xy[i, 0] = points[i].Va;
-            xy[i, 1] = points[i].Vg;
-            xy[i, 2] = points[i].Ia;
+            // нормализация относительно рабочей точки и полуосей эллипса
+            xy[i, 0] = (points[i].Va - wp.AnodeVoltage) / ax;
+            xy[i, 1] = (points[i].Vg - wp.GridVoltage) / by;
+            xy[i, 2] = points[i].Ia; // ток НЕ нормализуем
         }
 
-        var vaRange = points.Max(p => p.Va) - points.Min(p => p.Va);
-        var vgRange = points.Max(p => p.Vg) - points.Min(p => p.Vg);
-        double rbase = Math.Max(val1: vaRange, val2: vgRange);
-
-
-        var layers = 6;
-        double lambda = 0.0;
-        alglib.rbfcreate(nx: 2, ny: 1, s: out var model);
-        alglib.rbfsetpoints(s: model, xy: xy);
-        alglib.rbfsetalgomultilayer(s: model, rbase: rbase,nlayers: layers, lambdav: lambda);
-        alglib.rbfbuildmodel(s: model, rep: out _);
+        alglib.rbfcreate(2, 1, out var model);
+        alglib.rbfsetpoints(model, xy);
+        alglib.rbfsetalgomultilayer(model, rbase: 1.0, nlayers: 6, lambdav: 1e-5);
+        alglib.rbfbuildmodel(model, out _);
         return model;
     }
 
@@ -139,23 +335,17 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
     /// </summary>
     /// <param name="model1">Модель 1</param>
     /// <param name="model2">Модель 2</param>
-    /// <param name="cx">Центр X</param>
-    /// <param name="cy">Центр Y</param>
-    /// <param name="ax">Полуось по оси X</param>
-    /// <param name="by">Полуось по оси Y</param>
-    /// <param name="radialBands">Количество элипсов вокруг рабочей точки</param>
-    /// <param name="pointsPerBand">Количество точек на элипсе</param>
-    /// <param name="phiRad">Поворот элипса</param>
+    /// <param name="radialBands">Количество эллипсов вокруг рабочей точки</param>
+    /// <param name="pointsPerBand">Количество точек на эллипсе</param>
+    /// <param name="workingPoint">Рабочая точка</param>
+    /// <param name="phiRad">Поворот эллипса</param>
     /// <returns></returns>
     static (double mse, double rmse, double maxAbs) SquaredDiffPointsInEllipse(
         alglib.rbfmodel model1,
         alglib.rbfmodel model2,
-        double cx,
-        double cy,
-        double ax,
-        double by,
         int radialBands,        // колец по радиусу
         int pointsPerBand,      // точек на кольцо
+        TubeWorkingPoint workingPoint,
         double phiRad = 0.0     // поворот (рад)
     )
     {
@@ -165,7 +355,10 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         var sse = 0.0;     // sum of squared errors
         var maxAbs = 0.0;
         long count = 0;
-
+        
+        var anodeBase = Math.Max(1e-9, workingPoint.AnodeVoltageHalfWidth);
+        var gridBase = Math.Max(1e-9, workingPoint.GridVoltageHalfWidth);
+        
         for (var i = 1; i <= radialBands; i++)
         {
             // midpoint по радиусу, чтобы не попадать на границы
@@ -176,17 +369,17 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
                 var theta = 2 * Math.PI * j / pointsPerBand;
 
                 // точка эллипса до поворота
-                var ex = ax * r * Math.Cos(theta);
-                var ey = by * r * Math.Sin(theta);
+                var ex = workingPoint.AnodeVoltageHalfWidth * r * Math.Cos(theta);
+                var ey = workingPoint.GridVoltageHalfWidth * r * Math.Sin(theta);
 
                 // поворот
                 var rx = c * ex - s * ey;
                 var ry = s * ex + c * ey;
 
-                var va = cx + rx;
-                var vg = cy + ry;
+                var x =  rx / anodeBase; // Делим для нормализации
+                var y =  ry / gridBase; // Делим для нормализации
 
-                var d = alglib.rbfcalc2(s: model1, x0: va, x1: vg) - alglib.rbfcalc2(s: model2, x0: va, x1: vg);
+                var d = alglib.rbfcalc2(s: model1, x0: x, x1: y) - alglib.rbfcalc2(s: model2, x0: x, x1: y);
                 var ad = Math.Abs(d);
 
                 sse += d * d;

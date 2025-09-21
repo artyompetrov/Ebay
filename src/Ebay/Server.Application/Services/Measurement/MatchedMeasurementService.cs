@@ -2,6 +2,7 @@ using MassTransit;
 using Server.Application.Consumers.MatchedPairs;
 using Server.Application.Data;
 using Server.Application.Data.Models;
+using Server.Application.Data.Models.Measurements;
 
 namespace Server.Application.Services.Measurement;
 
@@ -36,16 +37,13 @@ public class MatchedMeasurementService
         {
             foreach (var measurementId2 in measurementIds)
             {
-                if (measurementId1 != measurementId2)
-                {
-                    await _publishEndpoint.Publish(
-                        message: new CalculateMatchedPair(
-                            MeasurementId1: measurementId1,
-                            MeasurementId2: measurementId2),
-                        cancellationToken: cancellationToken);
-                    
-                    await _applicationContext.SaveChangesAsync(cancellationToken);
-                }
+                await _publishEndpoint.Publish(
+                    message: new CalculateMatchedPair(
+                        MeasurementId1: measurementId1,
+                        MeasurementId2: measurementId2),
+                    cancellationToken: cancellationToken);
+
+                await _applicationContext.SaveChangesAsync(cancellationToken);
             }
         }
     }
