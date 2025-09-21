@@ -1,4 +1,3 @@
-@using System.Text.Json
 @using Client.Clients.Generated
 @using Client.Extensions
 @using Microsoft.AspNetCore.Authorization
@@ -109,18 +108,6 @@
             {
                 <p class="text-danger">@_matchingError</p>
             }
-            <div class="mb-2">
-                <label>Статусы для подбора:</label>
-                <div>
-                    @foreach (var state in _measurementStates.Where(s => s != MeasurementState.Sold))
-                    {
-                        <label class="me-2">
-                            <input type="checkbox" checked="@_statesToMatch.Contains(state)" @onchange="e => OnMatchStateChanged(state, e)" />
-                            @GetMeasurementStateEmoji(state) @state.ToString("G")
-                        </label>
-                    }
-                </div>
-            </div>
             <button class="btn btn-primary btn-sm" @onclick="OnFindMatchedClick" disabled="@(_isWorkingPointLoading || !_hasWorkingPoint || !IsWorkingPointValid())">Подобрать</button>
         </div>
     </div>
@@ -204,7 +191,6 @@
     private string? _manufactureCode;
     private string? _location;
     private string? _matchId;
-    private HashSet<MeasurementState> _statesToMatch = new();
     private TubeWorkingPoint _tubeWorkingPoint = new();
     private bool _isWorkingPointLoading;
     private bool _isSavingWorkingPoint;
@@ -221,13 +207,6 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        if (_statesToMatch.Count == 0)
-        {
-            _statesToMatch = _measurementStates
-                .Where(s => s != MeasurementState.Sold && s != MeasurementState.Selling)
-                .ToHashSet();
-        }
-
         _workingPointSaveError = null;
         _workingPointSaveMessage = null;
         _tubeWorkingPoint = new();
@@ -418,19 +397,6 @@
         }
     }
 
-    private void OnMatchStateChanged(MeasurementState state, ChangeEventArgs e)
-    {
-        var selected = e.Value as bool? == true;
-        if (selected)
-        {
-            _statesToMatch.Add(state);
-        }
-        else
-        {
-            _statesToMatch.Remove(state);
-        }
-    }
-
     private bool IsWorkingPointValid()
     {
         return _tubeWorkingPoint.AnodeVoltage > 0
@@ -488,12 +454,7 @@
 
                 try
                 {
-                    await EbayClient.FindMatchedMeasurementsAsync(
-                        findMatchParameters: new FindMatchParameters
-                        {
-                            MeasurementStates = _statesToMatch.ToList()
-                        },
-                        Product.Id);
+                    await EbayClient.FindMatchedMeasurementsAsync(Product.Id);
                     _matchingError = null;
                     await UpdateMeasurementsAsync();
                 }

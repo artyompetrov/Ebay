@@ -376,12 +376,6 @@ paths:
         format: guid
     post:
       operationId: FindMatchedMeasurements
-      parameters:
-        - name: findMatchParameters
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/FindMatchParameters'
       responses:
         200:
           description: Ok
@@ -855,16 +849,6 @@ definitions:
         format: double
         minimum: 0
         exclusiveMinimum: true
-
-  FindMatchParameters:
-    type: object
-    properties:
-      measurementStates:
-        type: array
-        items:
-          $ref: '#/definitions/MeasurementState'
-    required:
-      - measurementStates
 
   LotInfo:
     type: object
