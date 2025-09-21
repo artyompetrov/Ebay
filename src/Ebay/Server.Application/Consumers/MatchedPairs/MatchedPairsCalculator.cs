@@ -327,7 +327,7 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
             // нормализация относительно рабочей точки и полуосей эллипса
             xy[i, 0] = (points[i].Va - wp.AnodeVoltage) / baseX;
             xy[i, 1] = (points[i].Vg - wp.GridVoltage) / baseY;
-            xy[i, 2] = points[i].Ia / baseZ;
+            xy[i, 2] = (points[i].Ia / baseZ) * 100.0; // нормализуем и приводим к процентам
         }
 
         alglib.rbfcreate(2, 1, out var model);
