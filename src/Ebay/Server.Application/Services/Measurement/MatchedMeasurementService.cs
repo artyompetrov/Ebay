@@ -35,19 +35,16 @@ public class MatchedMeasurementService
             .Where(state => state != MeasurementState.Sold)
             .ToArray();
 
-        var measurementIds = await _measurementService.GetMeasurementIds(
+        var measurementIds = (await _measurementService.GetMeasurementIds(
             productId: productId,
             measurementStates: measurementStates,
-            cancellationToken: cancellationToken);
+            cancellationToken: cancellationToken)).ToHashSet();
 
+        _applicationContext.MatchedPairDifferences.RemoveRange(
+            _applicationContext.MatchedPairDifferences.Where(x => measurementIds.Contains(x.MeasurementId1)));
+        
         foreach (var measurementId1 in measurementIds)
         {
-            using var transaction = TransactionScopeFactory.Create();
-            
-            _applicationContext.MatchedPairDifferences.RemoveRange(
-                _applicationContext.MatchedPairDifferences.Where(x =>
-                    x.MeasurementId1 == measurementId1));
-            
             foreach (var measurementId2 in measurementIds)
             {
                 await _publishEndpoint.Publish(
@@ -58,7 +55,6 @@ public class MatchedMeasurementService
             }
             
             await _applicationContext.SaveChangesAsync(cancellationToken);
-            transaction.Complete();
         }
         
 
