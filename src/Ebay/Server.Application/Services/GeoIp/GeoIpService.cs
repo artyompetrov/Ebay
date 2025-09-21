@@ -89,6 +89,11 @@ public class GeoIpService
             _logger.LogWarning(ex, "GeoIP lookup failed for {XRealIp}", realIp);
         }
 
+        if (WellKnown.GeoIp.ExcludeCountries.Contains(location?.Country, StringComparer.OrdinalIgnoreCase))
+        {
+            return;
+        }
+        
         _logger.LogInformation(
             message: prefix + " X-Real-IP: {XRealIp}. Country: {Country}. City: {City}. UserAgent: {UserAgent}",
             realIp,

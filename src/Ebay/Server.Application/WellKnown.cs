@@ -93,4 +93,9 @@ internal static class WellKnown
         /// </summary>
         public const string Version = "3";
     }
+    
+    public static class GeoIp
+    {
+        public static IReadOnlyCollection<string> ExcludeCountries = ["Russia", "Kazakhstan"];
+    }
 }
