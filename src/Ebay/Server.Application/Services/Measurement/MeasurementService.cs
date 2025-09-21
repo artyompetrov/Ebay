@@ -217,16 +217,23 @@ public class MeasurementService
         IReadOnlyCollection<MeasurementState> measurementStates,
         CancellationToken cancellationToken)
     {
-        var crossDifferences = _applicationContext.MatchedPairDifferences
-            .AsNoTracking()
-            .Where(d => d.ComparisonMode == ComparisonMode.Cross)
-            .Where(d => d.MeasurementId1 == d.MeasurementId2);
-
         var measurementsQuery = from measurement in _applicationContext.ProductMeasurements.AsNoTracking()
                                  where measurement.ProductId == productId
                                  where measurementStates.Contains(measurement.MeasurementState)
-                                 join difference in crossDifferences
-                                     on measurement.Id equals difference.MeasurementId1 into differences
+                                 join difference in _applicationContext.MatchedPairDifferences.AsNoTracking()
+                                     on new
+                                     {
+                                         MeasurementId1 = measurement.Id,
+                                         MeasurementId2 = measurement.Id,
+                                         ComparisonMode = ComparisonMode.Cross
+                                     }
+                                     equals new
+                                     {
+                                         difference.MeasurementId1,
+                                         difference.MeasurementId2,
+                                         difference.ComparisonMode
+                                     }
+                                     into differences
                                  from difference in differences.DefaultIfEmpty()
                                  orderby measurement.CreatedAt descending, measurement.Id descending
                                  select new MeasurementInfo(
