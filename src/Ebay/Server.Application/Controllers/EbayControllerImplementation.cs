@@ -11,7 +11,6 @@ using Server.Controllers.Generated;
 using ClientErrorInfo = Server.Controllers.Generated.ClientErrorInfo;
 using Currency = Server.Controllers.Generated.Currency;
 using DbProduct = Server.Application.Data.Models.Product;
-using FindMatchParameters = Server.Controllers.Generated.FindMatchParameters;
 using LotInfo = Server.Controllers.Generated.LotInfo;
 using LotInfoShort = Server.Controllers.Generated.LotInfoShort;
 using LotInfoWithProductId = Server.Controllers.Generated.LotInfoWithProductId;
@@ -603,7 +602,6 @@ public class EbayControllerImplementation : IEbayController
     }
 
     public async Task FindMatchedMeasurementsAsync(
-        FindMatchParameters findMatchParameters,
         Guid productId,
         CancellationToken cancellationToken)
     {
@@ -620,9 +618,6 @@ public class EbayControllerImplementation : IEbayController
 
         await _matchedMeasurementService.FindMatchedMeasurementsAsync(
             productId: productId,
-            measurementStates: findMatchParameters.MeasurementStates
-                .Select(s => s.ToDbMeasurementState())
-                .ToArray(),
             cancellationToken: cancellationToken);
     }
 

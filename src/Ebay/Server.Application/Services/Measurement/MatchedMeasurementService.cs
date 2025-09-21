@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using MassTransit;
 using Server.Application.Consumers.MatchedPairs;
 using Server.Application.Data;
@@ -25,9 +27,13 @@ public class MatchedMeasurementService
 
     public async Task FindMatchedMeasurementsAsync(
         Guid productId,
-        IReadOnlyCollection<MeasurementState> measurementStates,
         CancellationToken cancellationToken)
     {
+        var measurementStates = Enum
+            .GetValues<MeasurementState>()
+            .Where(state => state != MeasurementState.Sold)
+            .ToArray();
+
         var measurementIds = await _measurementService.GetMeasurementIds(
             productId: productId,
             measurementStates: measurementStates,
