@@ -70,6 +70,12 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
             return;
         }
 
+        if (workingPoint.IsValid)
+        {
+            _logger.LogError(message: "Tube working point is not valid");
+            return;
+        }
+
         switch (measurementId1.AnodeCurves)
         {
             case PentodeAnodeCurves:
@@ -309,12 +315,12 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
     /// <summary>
     /// Функция создает модель при помощи RBF интерполяции
     /// </summary>
-    private static alglib.rbfmodel RbfModel(List<MeasurementPoint> points, TubeWorkingPoint wp)
+    private alglib.rbfmodel RbfModel(List<MeasurementPoint> points, TubeWorkingPoint wp)
     {
         var baseX = Math.Max(1e-9, wp.AnodeVoltageHalfWidth);
         var baseY = Math.Max(1e-9, wp.GridVoltageHalfWidth);
         var baseZ = Math.Max(1e-9, wp.NominalCurrent);
-
+        
         var xy = new double[points.Count, 3];
         for (var i = 0; i < points.Count; i++)
         {
