@@ -138,32 +138,6 @@ public class EbayControllerImplementation : IEbayController
     {
         var validationErrors = new List<(string key, string[] value)>();
 
-        void ValidateGreaterThanZero(double value, string fieldName)
-        {
-            if (value <= 0)
-            {
-                validationErrors.Add((fieldName, new[] { "Значение должно быть больше 0." }));
-            }
-        }
-
-        void ValidateLessThanZero(double value, string fieldName)
-        {
-            if (value >= 0)
-            {
-                validationErrors.Add((fieldName, new[] { "Значение должно быть меньше 0." }));
-            }
-        }
-
-        ValidateGreaterThanZero(workingPoint.AnodeVoltage, nameof(workingPoint.AnodeVoltage));
-        ValidateLessThanZero(workingPoint.GridVoltage, nameof(workingPoint.GridVoltage));
-        ValidateGreaterThanZero(workingPoint.AnodeVoltageHalfWidth, nameof(workingPoint.AnodeVoltageHalfWidth));
-        ValidateGreaterThanZero(workingPoint.GridVoltageHalfWidth, nameof(workingPoint.GridVoltageHalfWidth));
-
-        if (validationErrors.Count > 0)
-        {
-            throw NonOkHttpAnswerException.ValidationError400(validationErrors);
-        }
-
         var productExists = await _applicationContext.Products
             .AnyAsync(x => x.Id == productId, cancellationToken);
 
@@ -173,6 +147,16 @@ public class EbayControllerImplementation : IEbayController
         }
 
         var entity = workingPoint.ToDbTubeWorkingPoint(productId);
+
+        if (!entity.IsValid)
+        {
+            validationErrors.Add((nameof(workingPoint), new[] { "WorkingPont is not valid." }));
+        }
+
+        if (validationErrors.Count > 0)
+        {
+            throw NonOkHttpAnswerException.ValidationError400(validationErrors);
+        }
 
         await _applicationContext.TubeWorkingPoints.Upsert(entity).RunAsync(cancellationToken);
         await _applicationContext.SaveChangesAsync(cancellationToken);

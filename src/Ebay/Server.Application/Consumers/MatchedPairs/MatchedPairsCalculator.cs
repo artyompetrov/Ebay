@@ -70,7 +70,7 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
             return;
         }
 
-        if (workingPoint.IsValid)
+        if (!workingPoint.IsValid)
         {
             _logger.LogError(message: "Tube working point is not valid");
             return;
