@@ -1,4 +1,5 @@
 @using Client.Clients.Generated
+@using System.Globalization
 @using Client.Extensions
 @using Microsoft.AspNetCore.Authorization
 @using Newtonsoft.Json
@@ -139,6 +140,7 @@
             <th>Статус</th>
             <th>Расположение</th>
             <th>Match ID</th>
+            <th>Баланс</th>
             <th></th>
         </tr>
         </thead>
@@ -173,6 +175,9 @@
                            class="form-control"
                            value="@measurement.MatchId"
                            @oninput="async e => await OnMatchIdChanged(measurement, e.Value?.ToString())" />
+                </td>
+                <td class="@GetBalanceCellClass(measurement.DoubleTriodeSectionRmse)">
+                    @FormatBalance(measurement.DoubleTriodeSectionRmse)
                 </td>
                 <td><button class="btn btn-danger btn-sm oi oi-basket" @onclick="@(e => OnDeleteButtonClick(measurement.MeasurementId))"></button></td>
             </tr>
@@ -495,6 +500,33 @@
             Logger.LogError(ex, "Error updating state for {Id}", measurement.MeasurementId);
             _error = "Ошибка при обновлении статуса";
         }
+    }
+
+    private static string? GetBalanceCellClass(double? balance)
+    {
+        if (!balance.HasValue)
+        {
+            return null;
+        }
+
+        if (balance.Value < 5)
+        {
+            return "table-success";
+        }
+
+        if (balance.Value > 20)
+        {
+            return "table-danger";
+        }
+
+        return "table-warning";
+    }
+
+    private static string? FormatBalance(double? balance)
+    {
+        return balance.HasValue
+            ? string.Format(CultureInfo.InvariantCulture, "{0:0.##}%", balance.Value)
+            : null;
     }
 
     private static string GetMeasurementStateEmoji(MeasurementState state)

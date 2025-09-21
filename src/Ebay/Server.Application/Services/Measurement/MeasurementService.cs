@@ -217,27 +217,35 @@ public class MeasurementService
         IReadOnlyCollection<MeasurementState> measurementStates,
         CancellationToken cancellationToken)
     {
-        //todo тут надо дописать поиск doubleTriodeSectionRmse
-        // Ищем по следующей логике:
-        // идем в таблицу MatchedPairDifferences и там Measurement1 == Measurement2 = m.Id && ComparisonMode == ComparisonMode.Cross (так сохраняется результат сравнения двойных триодов самого с собой)
-        // если ничего не нашлось - то отдаем null
-        // (в этой таблице хранится замер самого себя с собой)
-        // удали эту todo и комментарии добавь что вообще происходит
-        
-        var measurements = await _applicationContext.ProductMeasurements
-            .AsNoTracking()
-            .Where(m => m.ProductId == productId)
-            .Where(m => measurementStates.Contains(m.MeasurementState))
-            .OrderByDescending(p => p.CreatedAt)
-            .ThenByDescending(p => p.Id)
-            .Select(m => new MeasurementInfo(
-                m.Id,
-                m.ManufactureCode,
-                m.ProductState,
-                m.Location,
-                m.MatchId,
-                m.MeasurementState))
-            .ToListAsync(cancellationToken);
+        var measurementsQuery = from measurement in _applicationContext.ProductMeasurements.AsNoTracking()
+                                 where measurement.ProductId == productId
+                                 where measurementStates.Contains(measurement.MeasurementState)
+                                 join difference in _applicationContext.MatchedPairDifferences.AsNoTracking()
+                                     on new
+                                     {
+                                         MeasurementId1 = measurement.Id,
+                                         MeasurementId2 = measurement.Id,
+                                         ComparisonMode = ComparisonMode.Cross
+                                     }
+                                     equals new
+                                     {
+                                         difference.MeasurementId1,
+                                         difference.MeasurementId2,
+                                         difference.ComparisonMode
+                                     }
+                                     into differences
+                                 from difference in differences.DefaultIfEmpty()
+                                 orderby measurement.CreatedAt descending, measurement.Id descending
+                                 select new MeasurementInfo(
+                                     measurement.Id,
+                                     measurement.ManufactureCode,
+                                     measurement.ProductState,
+                                     measurement.Location,
+                                     measurement.MatchId,
+                                     difference != null ? difference.RmseSection1 : (double?)null,
+                                     measurement.MeasurementState);
+
+        var measurements = await measurementsQuery.ToListAsync(cancellationToken);
 
         return measurements;
     }

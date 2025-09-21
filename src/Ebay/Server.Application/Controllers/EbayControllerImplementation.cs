@@ -500,6 +500,7 @@ public class EbayControllerImplementation : IEbayController
 
         var result = measurements
             .Select(x => new MeasurementData(
+                doubleTriodeSectionRmse: x.DoubleTriodeSectionRmse,
                 manufactureCode: x.ManufactureCode,
                 measurementId: x.Id,
                 productState: x.ProductState.ToApiProductState(),
