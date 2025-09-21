@@ -19,6 +19,19 @@
     #monthInput {
         width: 300px;
     }
+
+    .rmse-chip {
+        border-radius: 0.375rem;
+        padding: 0.125rem 0.5rem;
+        display: inline-block;
+    }
+
+    .rmse-chip.table-success,
+    .rmse-chip.table-warning,
+    .rmse-chip.table-danger {
+        background-color: var(--bs-table-bg);
+        color: var(--bs-table-color);
+    }
 </style>
 
     <div class="row">
@@ -189,7 +202,7 @@
                             {
                                 <li>
                                     <NavLink href="@($"m/{similar.MeasurementId}")" target="_blank">@similar.MeasurementId</NavLink>
-                                    <span class="text-muted ms-1">@FormatRmse(similar.RmseSection1)</span>
+                                    <span class="rmse-chip ms-1 @GetBalanceCellClass(similar.RmseSection1)">@FormatRmse(similar.RmseSection1)</span>
                                 </li>
                             }
                         </ul>
