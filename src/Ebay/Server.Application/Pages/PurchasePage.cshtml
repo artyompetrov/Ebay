@@ -1,0 +1,47 @@
+@page "/purchase"
+@using System.Net
+@model Server.Application.Pages.PurchasePage
+
+@{
+    Layout = null;
+    var baseUrl = $"{Request.Scheme}://{Request.Host}";
+}
+
+<style>
+    table {
+        margin: 0 auto;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        border: 1px solid #ccc;
+        padding: 8px;
+        text-align: center;
+    }
+
+    th {
+        background-color: #f5f5f5;
+    }
+</style>
+
+<table>
+    <tr>
+        <th>Tube #</th>
+        <th>Curves</th>
+    </tr>
+    @foreach (var measurement in Model.Measurements)
+    {
+        <tr>
+            <td>
+                #@measurement.MeasurementId
+                <br /><br />
+                @measurement.ManufactureCode
+                <br /><br />
+                @measurement.ProductState
+            </td>
+            <td>
+                <img src="@($"{baseUrl}/m/{measurement.MeasurementId}/ebay_curves?product={WebUtility.UrlEncode(measurement.ProductName)}")" alt="@measurement.MeasurementId" />
+            </td>
+        </tr>
+    }
+</table>
