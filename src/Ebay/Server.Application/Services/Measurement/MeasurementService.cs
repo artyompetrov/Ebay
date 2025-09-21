@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO.Compression;
@@ -258,41 +257,6 @@ public class MeasurementService
             .Select(x => x.Id)
             .ToArray();
 
-        var similarMeasurementsLookup = await GetSimilarMeasurementsLookupAsync(
-            measurementIds,
-            cancellationToken);
-
-        return measurements
-            .Select(measurement =>
-            {
-                similarMeasurementsLookup.TryGetValue(measurement.Id, out var similar);
-                return measurement with { SimilarMeasurements = similar ?? Array.Empty<SimilarMeasurementInfo>() };
-            })
-            .ToList();
-    }
-
-    public async Task<IReadOnlyCollection<SimilarMeasurementInfo>> GetSimilarMeasurements(
-        string measurementId,
-        CancellationToken cancellationToken)
-    {
-        var similarMeasurementsLookup = await GetSimilarMeasurementsLookupAsync(
-            new[] { measurementId },
-            cancellationToken);
-
-        return similarMeasurementsLookup.TryGetValue(measurementId, out var similar)
-            ? similar
-            : Array.Empty<SimilarMeasurementInfo>();
-    }
-
-    private async Task<IReadOnlyDictionary<string, IReadOnlyCollection<SimilarMeasurementInfo>>> GetSimilarMeasurementsLookupAsync(
-        IReadOnlyCollection<string> measurementIds,
-        CancellationToken cancellationToken)
-    {
-        if (measurementIds.Count == 0)
-        {
-            return new Dictionary<string, IReadOnlyCollection<SimilarMeasurementInfo>>();
-        }
-
         var similarMeasurements = await _applicationContext.MatchedPairDifferences
             .AsNoTracking()
             .Where(x => measurementIds.Contains(x.MeasurementId1))
@@ -308,7 +272,7 @@ public class MeasurementService
             })
             .ToListAsync(cancellationToken);
 
-        return similarMeasurements
+        var similarMeasurementsLookup = similarMeasurements
             .GroupBy(x => x.MeasurementId1)
             .ToDictionary(
                 x => x.Key,
@@ -319,6 +283,14 @@ public class MeasurementService
                         measurement.MeasurementId2,
                         measurement.RmseSection1))
                     .ToList());
+
+        return measurements
+            .Select(measurement =>
+            {
+                similarMeasurementsLookup.TryGetValue(measurement.Id, out var similar);
+                return measurement with { SimilarMeasurements = similar ?? Array.Empty<SimilarMeasurementInfo>() };
+            })
+            .ToList();
     }
 
     private static string ComputeEntryHashAsync(byte[] bytes)

@@ -57,8 +57,6 @@
     <p>If no number is provided within 24 hours, a tube will be selected and shipped randomly.</p>
     <br/>
 
-    <p><strong>Колонка «Похожие»</strong> показывает идентификаторы ближайших по параметрам ламп, а число рядом с ID — значение RMSE первой секции (чем меньше, тем точнее совпадение).</p>
-
     <style>
         table {
             margin: 0 auto;
@@ -80,7 +78,7 @@
     <table >
         <tr>
             <th>Tube #</th>
-            <th>Похожие и график</th>
+            <th>Curves</th>
         </tr>
         @foreach (var meas in Model.Product.Measurements)
         {
@@ -92,10 +90,7 @@
                     <br/><br/>
                     @meas.ProductState
                 </td>
-                <td>
-                    <img src="@($"{baseUrl}/m/{meas.MeasurementId}/similar_measurements")" alt="Похожие замеры для #@meas.MeasurementId" style="display: block; margin: 0 auto 12px; max-width: 100%; height: auto;" />
-                    <img src="@($"{baseUrl}/m/{meas.MeasurementId}/ebay_curves?product={WebUtility.UrlEncode(GetName(Model))}")" alt="@meas.MeasurementId"/>
-                </td>
+                <td><img src="@($"{baseUrl}/m/{meas.MeasurementId}/ebay_curves?product={WebUtility.UrlEncode(GetName(Model))}")" alt="@meas.MeasurementId"/></td>
             </tr>
         }
     </table>
