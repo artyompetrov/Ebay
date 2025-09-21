@@ -5,6 +5,7 @@ using Server.Application.Consumers.MatchedPairs;
 using Server.Application.Data;
 using Server.Application.Data.Models;
 using Server.Application.Data.Models.Measurements;
+using Server.Application.Infrastructure;
 
 namespace Server.Application.Services.Measurement;
 
@@ -41,6 +42,12 @@ public class MatchedMeasurementService
 
         foreach (var measurementId1 in measurementIds)
         {
+            using var transaction = TransactionScopeFactory.Create();
+            
+            _applicationContext.MatchedPairDifferences.RemoveRange(
+                _applicationContext.MatchedPairDifferences.Where(x =>
+                    x.MeasurementId1 == measurementId1));
+            
             foreach (var measurementId2 in measurementIds)
             {
                 await _publishEndpoint.Publish(
@@ -48,9 +55,12 @@ public class MatchedMeasurementService
                         MeasurementId1: measurementId1,
                         MeasurementId2: measurementId2),
                     cancellationToken: cancellationToken);
-
-                await _applicationContext.SaveChangesAsync(cancellationToken);
             }
+            
+            await _applicationContext.SaveChangesAsync(cancellationToken);
+            transaction.Complete();
         }
+        
+
     }
 }
