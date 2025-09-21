@@ -278,7 +278,7 @@ public class MeasurementService
                 x => x.Key,
                 x => (IReadOnlyCollection<SimilarMeasurementInfo>)x
                     .OrderBy(measurement => measurement.RmseSection1)
-                    .Take(6)
+                    .Take(3)
                     .Select(measurement => new SimilarMeasurementInfo(
                         measurement.MeasurementId2,
                         measurement.RmseSection1))

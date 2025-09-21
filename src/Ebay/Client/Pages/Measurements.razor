@@ -233,7 +233,7 @@
                                 <li>
                                     <div class="similar-measurement @GetBalanceCellClass(similar.RmseSection1)">
                                         <NavLink href="@($"m/{similar.MeasurementId}")" target="_blank">@similar.MeasurementId</NavLink>
-                                        <span class="rmse-chip @GetBalanceCellClass(similar.RmseSection1)">@FormatRmse(similar.RmseSection1)</span>
+                                        <span class="rmse-chip @GetBalanceCellClass(similar.RmseSection1)">@FormatBalance(similar.RmseSection1)</span>
                                     </div>
                                 </li>
                             }
@@ -592,11 +592,6 @@
         return balance.HasValue
             ? string.Format(CultureInfo.InvariantCulture, "{0:0.##}%", balance.Value)
             : null;
-    }
-
-    private static string FormatRmse(double rmse)
-    {
-        return string.Format(CultureInfo.InvariantCulture, "{0:0.###}", rmse);
     }
 
     private static string GetMeasurementStateEmoji(MeasurementState state)
