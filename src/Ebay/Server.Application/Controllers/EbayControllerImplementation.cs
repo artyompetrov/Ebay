@@ -146,16 +146,16 @@ public class EbayControllerImplementation : IEbayController
             }
         }
 
-        void ValidateNotZero(double value, string fieldName)
+        void ValidateLessThanZero(double value, string fieldName)
         {
-            if (value == 0)
+            if (value >= 0)
             {
-                validationErrors.Add((fieldName, new[] { "Значение не должно быть равно 0." }));
+                validationErrors.Add((fieldName, new[] { "Значение должно быть меньше 0." }));
             }
         }
 
         ValidateGreaterThanZero(workingPoint.AnodeVoltage, nameof(workingPoint.AnodeVoltage));
-        ValidateNotZero(workingPoint.GridVoltage, nameof(workingPoint.GridVoltage));
+        ValidateLessThanZero(workingPoint.GridVoltage, nameof(workingPoint.GridVoltage));
         ValidateGreaterThanZero(workingPoint.AnodeVoltageHalfWidth, nameof(workingPoint.AnodeVoltageHalfWidth));
         ValidateGreaterThanZero(workingPoint.GridVoltageHalfWidth, nameof(workingPoint.GridVoltageHalfWidth));
 
