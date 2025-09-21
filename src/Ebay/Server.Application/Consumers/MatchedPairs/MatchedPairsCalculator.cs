@@ -1,5 +1,8 @@
-﻿using MassTransit;
+using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Server.Application.Data;
+using Server.Application.Data.Models;
 using Server.Application.Services.Measurement;
 
 namespace Server.Application.Consumers.MatchedPairs;
@@ -8,14 +11,17 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
 {
     private readonly ILogger<MatchedPairsCalculator> _logger;
     private readonly MeasurementService _measurementService;
+    private readonly ApplicationDbContext _applicationDbContext;
 
     public MatchedPairsCalculator(
         ILogger<MatchedPairsCalculator> logger,
-        MeasurementService measurementService
+        MeasurementService measurementService,
+        ApplicationDbContext applicationDbContext
         )
     {
         _logger = logger;
         _measurementService = measurementService;
+        _applicationDbContext = applicationDbContext;
     }
 
     public async Task Consume(ConsumeContext<CalculateMatchedPair> context)
@@ -50,6 +56,29 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
             b: 0.6,
             radialBands: 20,
             pointsPerBand: 36);
+
+        var matchedPair = await _applicationDbContext.MatchedPairDifferences
+            .SingleOrDefaultAsync(
+                x => x.MeasurementId1 == context.Message.MeasurementId1 &&
+                     x.MeasurementId2 == context.Message.MeasurementId2,
+                context.CancellationToken);
+
+        if (matchedPair == null)
+        {
+            matchedPair = new MatchedPairDifference
+            {
+                MeasurementId1 = context.Message.MeasurementId1,
+                MeasurementId2 = context.Message.MeasurementId2
+            };
+
+            _applicationDbContext.MatchedPairDifferences.Add(matchedPair);
+        }
+
+        matchedPair.Mse = mse;
+        matchedPair.Rmse = rmse;
+        matchedPair.MaxAbs = maxAbs;
+
+        await _applicationDbContext.SaveChangesAsync(context.CancellationToken);
     }
 
     private static alglib.rbfmodel Rbfmodel(MeasurementData measurementId1)
@@ -63,7 +92,7 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
             }
 
         }
-        
+
         var xy = new double[points.Count, 3];
         for (var i = 0; i < points.Count; i++)
         {
@@ -71,12 +100,12 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
             xy[i, 1] = points[i].Vg;
             xy[i, 2] = points[i].Ia;
         }
-        
+
         var vaRange = points.Max(p => p.Va) - points.Min(p => p.Va);
         var vgRange = points.Max(p => p.Vg) - points.Min(p => p.Vg);
         double rbase = Math.Max(vaRange, vgRange);
-        
-        
+
+
         var layers = 6;
         double lambda = 0.0;
         alglib.rbfcreate(2, 1, out var model);
@@ -85,7 +114,7 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         alglib.rbfbuildmodel(model, out _);
         return model;
     }
-    
+
     static (double mse, double rmse, double maxAbs) SquaredDiffPointsInEllipse(
         alglib.rbfmodel m1, alglib.rbfmodel m2,
         double cx, double cy,   // центр

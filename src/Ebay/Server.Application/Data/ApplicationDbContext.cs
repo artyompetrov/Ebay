@@ -80,6 +80,27 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
                 .HasForeignKey<TubeWorkingPoint>(e => e.ProductId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
+
+        modelBuilder.Entity<MatchedPairDifference>(entity =>
+        {
+            entity.HasKey(e => new { e.MeasurementId1, e.MeasurementId2 });
+
+            entity.Property(e => e.MeasurementId1)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.MeasurementId2)
+                .HasMaxLength(100);
+
+            entity.HasOne(e => e.Measurement1)
+                .WithMany()
+                .HasForeignKey(e => e.MeasurementId1)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Measurement2)
+                .WithMany()
+                .HasForeignKey(e => e.MeasurementId2)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
     }
 
     public ApplicationDbContext(
@@ -114,4 +135,6 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
     public DbSet<CacheEntry> CacheEntries { get; set; } = null!;
 
     public DbSet<TubeWorkingPoint> TubeWorkingPoints { get; set; } = null!;
+
+    public DbSet<MatchedPairDifference> MatchedPairDifferences { get; set; } = null!;
 }
