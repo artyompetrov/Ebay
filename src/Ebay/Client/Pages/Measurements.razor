@@ -1,5 +1,6 @@
 @using Client.Clients.Generated
 @using System.Globalization
+@using System.Linq
 @using Client.Extensions
 @using Microsoft.AspNetCore.Authorization
 @using Newtonsoft.Json
@@ -17,6 +18,49 @@
     }
     #monthInput {
         width: 300px;
+    }
+
+    .rmse-chip {
+        border-radius: 0.375rem;
+        padding: 0.125rem 0.5rem;
+        display: inline-block;
+    }
+
+    .rmse-chip.table-success,
+    .rmse-chip.table-warning,
+    .rmse-chip.table-danger {
+        background-color: var(--bs-table-bg);
+        color: var(--bs-table-color);
+    }
+
+    .similar-measurements li + li {
+        margin-top: 0.25rem;
+    }
+
+    .similar-measurement {
+        border-radius: 0.375rem;
+        padding: 0.125rem 0.5rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        width: fit-content;
+    }
+
+    .similar-measurement.table-success,
+    .similar-measurement.table-warning,
+    .similar-measurement.table-danger {
+        background-color: var(--bs-table-bg);
+        color: var(--bs-table-color);
+    }
+
+    .similar-measurement > a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .similar-measurement > a:hover,
+    .similar-measurement > a:focus {
+        text-decoration: underline;
     }
 </style>
 
@@ -141,6 +185,7 @@
             <th>Расположение</th>
             <th>Match ID</th>
             <th>Баланс</th>
+            <th>Похожие</th>
             <th></th>
         </tr>
         </thead>
@@ -178,6 +223,26 @@
                 </td>
                 <td class="@GetBalanceCellClass(measurement.DoubleTriodeSectionRmse)">
                     @FormatBalance(measurement.DoubleTriodeSectionRmse)
+                </td>
+                <td>
+                    @if (measurement.SimilarMeasurements?.Any() == true)
+                    {
+                        <ul class="similar-measurements list-unstyled mb-0">
+                            @foreach (var similar in measurement.SimilarMeasurements)
+                            {
+                                <li>
+                                    <div class="similar-measurement @GetBalanceCellClass(similar.RmseSection1)">
+                                        <NavLink href="@($"m/{similar.MeasurementId}")" target="_blank">@similar.MeasurementId</NavLink>
+                                        <span class="rmse-chip @GetBalanceCellClass(similar.RmseSection1)">@FormatBalance(similar.RmseSection1)</span>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <span class="text-muted">—</span>
+                    }
                 </td>
                 <td><button class="btn btn-danger btn-sm oi oi-basket" @onclick="@(e => OnDeleteButtonClick(measurement.MeasurementId))"></button></td>
             </tr>
