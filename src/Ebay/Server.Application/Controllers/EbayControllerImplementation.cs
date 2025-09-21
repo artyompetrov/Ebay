@@ -17,6 +17,7 @@ using LotInfoWithProductId = Server.Controllers.Generated.LotInfoWithProductId;
 using LotState = Server.Controllers.Generated.LotState;
 using MeasurementData = Server.Controllers.Generated.MeasurementData;
 using MeasurementState = Server.Controllers.Generated.MeasurementState;
+using ApiSimilarMeasurementInfo = Server.Controllers.Generated.SimilarMeasurementInfo;
 using ProductPassportInfo = Server.Controllers.Generated.ProductPassportInfo;
 using ProductPassportUpload = Server.Controllers.Generated.ProductPassportUpload;
 using ProductWithId = Server.Controllers.Generated.ProductWithId;
@@ -506,7 +507,12 @@ public class EbayControllerImplementation : IEbayController
                 productState: x.ProductState.ToApiProductState(),
                 location: x.Location,
                 matchId: x.MatchId,
-                measurementState: x.MeasurementState.ToApiMeasurementState()))
+                measurementState: x.MeasurementState.ToApiMeasurementState(),
+                similarMeasurements: x.SimilarMeasurements
+                    .Select(similarMeasurement => new ApiSimilarMeasurementInfo(
+                        measurementId: similarMeasurement.MeasurementId,
+                        rmseSection1: similarMeasurement.RmseSection1))
+                    .ToList()))
             .ToList();
 
         return result;

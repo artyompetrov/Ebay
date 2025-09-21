@@ -1,3 +1,4 @@
+using System;
 using Server.Application.Data.Models;
 using Server.Application.Data.Models.Measurements;
 
@@ -10,4 +11,9 @@ public record MeasurementInfo(
     string? Location,
     string? MatchId,
     double? DoubleTriodeSectionRmse,
-    MeasurementState MeasurementState);
+    MeasurementState MeasurementState)
+{
+    public IReadOnlyCollection<SimilarMeasurementInfo> SimilarMeasurements { get; init; } = Array.Empty<SimilarMeasurementInfo>();
+}
+
+public record SimilarMeasurementInfo(string MeasurementId, double RmseSection1);

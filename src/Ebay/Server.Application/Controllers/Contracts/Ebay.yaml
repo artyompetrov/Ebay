@@ -755,11 +755,30 @@ definitions:
         $ref: '#/definitions/ProductState'
       measurementState:
         $ref: '#/definitions/MeasurementState'
+      similarMeasurements:
+        type: array
+        description: "Похожие измерения, отсортированные по возрастанию ошибки первой секции"
+        items:
+          $ref: '#/definitions/SimilarMeasurementInfo'
     required:
       - measurementId
       - manufactureCode
       - productState
       - measurementState
+
+  SimilarMeasurementInfo:
+    type: object
+    properties:
+      measurementId:
+        type: string
+        maxLength: 100
+      rmseSection1:
+        type: number
+        format: double
+        minimum: 0
+    required:
+      - measurementId
+      - rmseSection1
 
   MeasurementDataToUpload:
     type: object
