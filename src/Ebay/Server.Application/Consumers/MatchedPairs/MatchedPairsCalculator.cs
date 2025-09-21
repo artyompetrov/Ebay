@@ -70,6 +70,12 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
             return;
         }
 
+        if (!workingPoint.IsValid)
+        {
+            _logger.LogError(message: "Tube working point is not valid");
+            return;
+        }
+
         switch (measurementId1.AnodeCurves)
         {
             case PentodeAnodeCurves:
@@ -309,18 +315,19 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
     /// <summary>
     /// Функция создает модель при помощи RBF интерполяции
     /// </summary>
-    private static alglib.rbfmodel RbfModel(List<MeasurementPoint> points, TubeWorkingPoint wp)
+    private alglib.rbfmodel RbfModel(List<MeasurementPoint> points, TubeWorkingPoint wp)
     {
-        var ax = Math.Max(1e-9, wp.AnodeVoltageHalfWidth);
-        var by = Math.Max(1e-9, wp.GridVoltageHalfWidth);
-
+        var baseX = Math.Max(1e-9, wp.AnodeVoltageHalfWidth);
+        var baseY = Math.Max(1e-9, wp.GridVoltageHalfWidth);
+        var baseZ = Math.Max(1e-9, wp.NominalCurrent);
+        
         var xy = new double[points.Count, 3];
         for (var i = 0; i < points.Count; i++)
         {
             // нормализация относительно рабочей точки и полуосей эллипса
-            xy[i, 0] = (points[i].Va - wp.AnodeVoltage) / ax;
-            xy[i, 1] = (points[i].Vg - wp.GridVoltage) / by;
-            xy[i, 2] = points[i].Ia; // ток НЕ нормализуем
+            xy[i, 0] = (points[i].Va - wp.AnodeVoltage) / baseX;
+            xy[i, 1] = (points[i].Vg - wp.GridVoltage) / baseY;
+            xy[i, 2] = points[i].Ia / baseZ;
         }
 
         alglib.rbfcreate(2, 1, out var model);
