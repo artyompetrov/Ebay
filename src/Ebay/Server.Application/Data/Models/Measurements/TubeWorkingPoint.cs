@@ -21,4 +21,7 @@ public sealed class TubeWorkingPoint
 
     [Column(TypeName = "double precision")]
     public double GridVoltageHalfWidth { get; set; }
+
+    [Column(TypeName = "double precision")]
+    public double NominalCurrent { get; set; }
 }

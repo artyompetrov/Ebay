@@ -63,7 +63,8 @@ internal static class ModelsExtensions
         anodeVoltage: workingPoint.AnodeVoltage,
         gridVoltage: workingPoint.GridVoltage,
         anodeVoltageHalfWidth: workingPoint.AnodeVoltageHalfWidth,
-        gridVoltageHalfWidth: workingPoint.GridVoltageHalfWidth
+        gridVoltageHalfWidth: workingPoint.GridVoltageHalfWidth,
+        nominalCurrent: workingPoint.NominalCurrent
     );
 
     public static DbTubeWorkingPoint ToDbTubeWorkingPoint(this TubeWorkingPoint workingPoint, Guid productId) => new()
@@ -72,7 +73,8 @@ internal static class ModelsExtensions
         AnodeVoltage = workingPoint.AnodeVoltage,
         GridVoltage = workingPoint.GridVoltage,
         AnodeVoltageHalfWidth = workingPoint.AnodeVoltageHalfWidth,
-        GridVoltageHalfWidth = workingPoint.GridVoltageHalfWidth
+        GridVoltageHalfWidth = workingPoint.GridVoltageHalfWidth,
+        NominalCurrent = workingPoint.NominalCurrent
     };
 
     public static DbProduct ToDbProduct(this ProductWithoutId productWithoutId, Guid productId) => new()

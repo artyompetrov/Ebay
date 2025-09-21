@@ -834,6 +834,7 @@ definitions:
       - gridVoltage
       - anodeVoltageHalfWidth
       - gridVoltageHalfWidth
+      - nominalCurrent
     properties:
       anodeVoltage:
         type: number
@@ -851,6 +852,11 @@ definitions:
         minimum: 0
         exclusiveMinimum: true
       gridVoltageHalfWidth:
+        type: number
+        format: double
+        minimum: 0
+        exclusiveMinimum: true
+      nominalCurrent:
         type: number
         format: double
         minimum: 0

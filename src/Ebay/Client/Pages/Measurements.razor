@@ -94,6 +94,10 @@
                         <label class="form-label">Полуширина по сетке, В</label>
                         <InputNumber @bind-Value="_tubeWorkingPoint.GridVoltageHalfWidth" class="form-control" Step="any" Min="0.0000001" />
                     </div>
+                    <div class="col-sm-6">
+                        <label class="form-label">Номинальный ток, мА</label>
+                        <InputNumber @bind-Value="_tubeWorkingPoint.NominalCurrent" class="form-control" Step="any" Min="0.0000001" />
+                    </div>
                 </div>
                 <button class="btn btn-primary btn-sm mt-2" @onclick="OnSaveWorkingPointAsync" disabled="@(_isSavingWorkingPoint || _isWorkingPointLoading || !IsWorkingPointValid())">
                     @if (_isSavingWorkingPoint)
@@ -436,7 +440,8 @@
         return _tubeWorkingPoint.AnodeVoltage > 0
             && _tubeWorkingPoint.GridVoltage < 0
             && _tubeWorkingPoint.AnodeVoltageHalfWidth > 0
-            && _tubeWorkingPoint.GridVoltageHalfWidth > 0;
+            && _tubeWorkingPoint.GridVoltageHalfWidth > 0
+            && _tubeWorkingPoint.NominalCurrent > 0;
     }
 
     private void OnFindMatchedClick()
