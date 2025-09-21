@@ -47,13 +47,27 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         var model1 = Rbfmodel(measurementId1);
         var model2 = Rbfmodel(measurementId2);
 
+        var workingPoint = await _applicationDbContext.TubeWorkingPoints
+            .AsNoTracking()
+            .SingleOrDefaultAsync(
+                x => x.ProductId == measurementId1.ProductId,
+                context.CancellationToken);
+
+        if (workingPoint == null)
+        {
+            _logger.LogError(
+                "Tube working point not found for product {ProductId}",
+                measurementId1.ProductId);
+            return;
+        }
+
         var (mse, rmse, maxAbs) = SquaredDiffPointsInEllipse(
             model1,
             model2,
-            150,
-            -3.0,
-            a: 30,
-            b: 0.6,
+            workingPoint.AnodeVoltage,
+            workingPoint.GridVoltage,
+            a: workingPoint.AnodeVoltageHalfWidth,
+            b: workingPoint.GridVoltageHalfWidth,
             radialBands: 20,
             pointsPerBand: 36);
 
