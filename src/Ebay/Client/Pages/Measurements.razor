@@ -1,5 +1,6 @@
 @using Client.Clients.Generated
 @using System.Globalization
+@using System.Linq
 @using Client.Extensions
 @using Microsoft.AspNetCore.Authorization
 @using Newtonsoft.Json
@@ -141,6 +142,7 @@
             <th>Расположение</th>
             <th>Match ID</th>
             <th>Баланс</th>
+            <th>Похожие</th>
             <th></th>
         </tr>
         </thead>
@@ -178,6 +180,24 @@
                 </td>
                 <td class="@GetBalanceCellClass(measurement.DoubleTriodeSectionRmse)">
                     @FormatBalance(measurement.DoubleTriodeSectionRmse)
+                </td>
+                <td>
+                    @if (measurement.SimilarMeasurements?.Any() == true)
+                    {
+                        <ul class="list-unstyled mb-0">
+                            @foreach (var similar in measurement.SimilarMeasurements)
+                            {
+                                <li>
+                                    <NavLink href="@($"m/{similar.MeasurementId}")" target="_blank">@similar.MeasurementId</NavLink>
+                                    <span class="text-muted ms-1">@FormatRmse(similar.RmseSection1)</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <span class="text-muted">—</span>
+                    }
                 </td>
                 <td><button class="btn btn-danger btn-sm oi oi-basket" @onclick="@(e => OnDeleteButtonClick(measurement.MeasurementId))"></button></td>
             </tr>
@@ -527,6 +547,11 @@
         return balance.HasValue
             ? string.Format(CultureInfo.InvariantCulture, "{0:0.##}%", balance.Value)
             : null;
+    }
+
+    private static string FormatRmse(double rmse)
+    {
+        return string.Format(CultureInfo.InvariantCulture, "{0:0.###}", rmse);
     }
 
     private static string GetMeasurementStateEmoji(MeasurementState state)
