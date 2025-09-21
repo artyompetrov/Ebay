@@ -84,6 +84,22 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
         modelBuilder.Entity<MatchedPairDifference>(entity =>
         {
             entity.HasKey(e => new { e.MeasurementId1, e.MeasurementId2 });
+
+            entity.Property(e => e.MeasurementId1)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.MeasurementId2)
+                .HasMaxLength(100);
+
+            entity.HasOne(e => e.Measurement1)
+                .WithMany()
+                .HasForeignKey(e => e.MeasurementId1)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Measurement2)
+                .WithMany()
+                .HasForeignKey(e => e.MeasurementId2)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 

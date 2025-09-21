@@ -554,28 +554,6 @@ namespace Server.Data.Migrations
                     b.ToTable("CacheEntries");
                 });
 
-            modelBuilder.Entity("Server.Application.Data.Models.MatchedPairDifference", b =>
-                {
-                    b.Property<string>("MeasurementId1")
-                        .HasColumnType("text");
-
-                    b.Property<string>("MeasurementId2")
-                        .HasColumnType("text");
-
-                    b.Property<double>("Mse")
-                        .HasColumnType("double precision");
-
-                    b.Property<double>("Rmse")
-                        .HasColumnType("double precision");
-
-                    b.Property<double>("MaxAbs")
-                        .HasColumnType("double precision");
-
-                    b.HasKey("MeasurementId1", "MeasurementId2");
-
-                    b.ToTable("MatchedPairDifferences");
-                });
-
             modelBuilder.Entity("Server.Application.Data.Models.ClientError", b =>
                 {
                     b.Property<Guid>("Id")
@@ -709,6 +687,32 @@ namespace Server.Data.Migrations
                     b.HasIndex("ProductId");
 
                     b.ToTable("Lots");
+                });
+
+            modelBuilder.Entity("Server.Application.Data.Models.MatchedPairDifference", b =>
+                {
+                    b.Property<string>("MeasurementId1")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("MeasurementId2")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<double>("MaxAbs")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("Mse")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("Rmse")
+                        .HasColumnType("double precision");
+
+                    b.HasKey("MeasurementId1", "MeasurementId2");
+
+                    b.HasIndex("MeasurementId2");
+
+                    b.ToTable("MatchedPairDifferences");
                 });
 
             modelBuilder.Entity("Server.Application.Data.Models.Product", b =>
@@ -1049,6 +1053,25 @@ namespace Server.Data.Migrations
                     b.Navigation("Currency");
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("Server.Application.Data.Models.MatchedPairDifference", b =>
+                {
+                    b.HasOne("Server.Application.Data.Models.ProductMeasurement", "Measurement1")
+                        .WithMany()
+                        .HasForeignKey("MeasurementId1")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Server.Application.Data.Models.ProductMeasurement", "Measurement2")
+                        .WithMany()
+                        .HasForeignKey("MeasurementId2")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Measurement1");
+
+                    b.Navigation("Measurement2");
                 });
 
             modelBuilder.Entity("Server.Application.Data.Models.Product", b =>
