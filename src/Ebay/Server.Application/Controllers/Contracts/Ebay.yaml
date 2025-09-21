@@ -843,8 +843,8 @@ definitions:
       gridVoltage:
         type: number
         format: double
-        minimum: 0
-        exclusiveMinimum: true
+        maximum: 0
+        exclusiveMaximum: true
       anodeVoltageHalfWidth:
         type: number
         format: double
