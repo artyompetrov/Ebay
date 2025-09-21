@@ -110,10 +110,6 @@
                 <p class="text-danger">@_matchingError</p>
             }
             <div class="mb-2">
-                <label>Количество элементов в комплекте:</label>
-                <input type="number" min="2" class="form-control" style="width: 100px;" @bind="_matchCount"/>
-            </div>
-            <div class="mb-2">
                 <label>Статусы для подбора:</label>
                 <div>
                     @foreach (var state in _measurementStates.Where(s => s != MeasurementState.Sold))
@@ -124,10 +120,6 @@
                         </label>
                     }
                 </div>
-            </div>
-            <div class="form-check mb-2">
-                <input class="form-check-input" type="checkbox" id="includeExisting" @bind="_includeExisting"/>
-                <label class="form-check-label" for="includeExisting">учитывать в подборе измерения, что уже включены в существующий комплект?</label>
             </div>
             <button class="btn btn-primary btn-sm" @onclick="OnFindMatchedClick" disabled="@(_isWorkingPointLoading || !_hasWorkingPoint || !IsWorkingPointValid())">Подобрать</button>
         </div>
@@ -213,8 +205,6 @@
     private string? _location;
     private string? _matchId;
     private HashSet<MeasurementState> _statesToMatch = new();
-    private int _matchCount = 2;
-    private bool _includeExisting;
     private TubeWorkingPoint _tubeWorkingPoint = new();
     private bool _isWorkingPointLoading;
     private bool _isSavingWorkingPoint;
@@ -501,9 +491,7 @@
                     await EbayClient.FindMatchedMeasurementsAsync(
                         findMatchParameters: new FindMatchParameters
                         {
-                            MatchCount = _matchCount,
-                            MeasurementStates = _statesToMatch.ToList(),
-                            IncludeExisting = _includeExisting
+                            MeasurementStates = _statesToMatch.ToList()
                         },
                         Product.Id);
                     _matchingError = null;

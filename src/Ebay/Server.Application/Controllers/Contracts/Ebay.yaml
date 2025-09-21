@@ -859,21 +859,12 @@ definitions:
   FindMatchParameters:
     type: object
     properties:
-      matchCount:
-        type: integer
-        minimum: 2
-        default: 2
       measurementStates:
         type: array
         items:
           $ref: '#/definitions/MeasurementState'
-      includeExisting:
-        type: boolean
-        default: false
     required:
-      - matchCount
       - measurementStates
-      - includeExisting
 
   LotInfo:
     type: object

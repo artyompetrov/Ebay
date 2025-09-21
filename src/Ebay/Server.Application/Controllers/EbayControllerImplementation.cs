@@ -620,11 +620,9 @@ public class EbayControllerImplementation : IEbayController
 
         await _matchedMeasurementService.FindMatchedMeasurementsAsync(
             productId: productId,
-            matchCount: findMatchParameters.MatchCount,
             measurementStates: findMatchParameters.MeasurementStates
                 .Select(s => s.ToDbMeasurementState())
                 .ToArray(),
-            includeMeasurementsWithMatchId: findMatchParameters.IncludeExisting,
             cancellationToken: cancellationToken);
     }
 

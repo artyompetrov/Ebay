@@ -198,7 +198,6 @@ public class MeasurementService
     public async Task<IReadOnlyCollection<string>> GetMeasurementIds(
         Guid productId,
         IReadOnlyCollection<MeasurementState> measurementStates,
-        bool includeMeasurementsWithMatchId,
         CancellationToken cancellationToken)
     {
         var measurementsQuery = _applicationContext.ProductMeasurements
@@ -206,10 +205,7 @@ public class MeasurementService
             .Where(m => m.ProductId == productId)
             .Where(m => measurementStates.Contains(m.MeasurementState));
 
-        if (!includeMeasurementsWithMatchId)
-        {
-            measurementsQuery = measurementsQuery.Where(m => m.MatchId == null);
-        }
+        measurementsQuery = measurementsQuery.Where(m => m.MatchId == null);
 
         return await measurementsQuery
             .OrderBy(m => m.Id)
