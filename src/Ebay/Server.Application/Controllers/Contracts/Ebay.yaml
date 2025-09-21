@@ -746,6 +746,11 @@ definitions:
         type: string
       matchId:
         type: string
+      doubleTriodeSectionRmse:
+        description: "Среднеквадратичная ошибка между секциями (актуально только для двойных триодов)"
+        type: number
+        format: double
+        minimum: 0
       productState:
         $ref: '#/definitions/ProductState'
       measurementState:

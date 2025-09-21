@@ -485,10 +485,11 @@ public class EbayControllerImplementation : IEbayController
         Guid productId,
         CancellationToken cancellationToken)
     {
-        MeasurementState? apiMeasurementState = measurementState.HasValue
+        var apiMeasurementState = measurementState.HasValue
             ? (MeasurementState)(int)measurementState.Value
-            : null;
-        IReadOnlyCollection<Data.Models.Measurements.MeasurementState> measurementStates = apiMeasurementState.HasValue
+            : (MeasurementState?)null;
+        
+        var measurementStates = apiMeasurementState.HasValue
             ? new[] { apiMeasurementState.Value.ToDbMeasurementState() }
             : Enum.GetValues<Data.Models.Measurements.MeasurementState>();
 

@@ -217,6 +217,13 @@ public class MeasurementService
         IReadOnlyCollection<MeasurementState> measurementStates,
         CancellationToken cancellationToken)
     {
+        //todo тут надо дописать поиск doubleTriodeSectionRmse
+        // Ищем по следующей логике:
+        // идем в таблицу MatchedPairDifferences и там Measurement1 == Measurement2 = m.Id && ComparisonMode == ComparisonMode.Cross (так сохраняется результат сравнения двойных триодов самого с собой)
+        // если ничего не нашлось - то отдаем null
+        // (в этой таблице хранится замер самого себя с собой)
+        // удали эту todo и комментарии добавь что вообще происходит
+        
         var measurements = await _applicationContext.ProductMeasurements
             .AsNoTracking()
             .Where(m => m.ProductId == productId)

@@ -9,4 +9,5 @@ public record MeasurementInfo(
     ProductState ProductState,
     string? Location,
     string? MatchId,
+    double? DoubleTriodeSectionRmse,
     MeasurementState MeasurementState);
