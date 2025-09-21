@@ -88,7 +88,7 @@
                     </div>
                     <div class="col-sm-6">
                         <label class="form-label">Напряжение сетки, В</label>
-                        <InputNumber @bind-Value="_tubeWorkingPoint.GridVoltage" class="form-control" Step="any" Min="0.0000001" />
+                        <InputNumber @bind-Value="_tubeWorkingPoint.GridVoltage" class="form-control" Step="any" />
                     </div>
                     <div class="col-sm-6">
                         <label class="form-label">Полуширина по сетке, В</label>
@@ -444,7 +444,7 @@
     private bool IsWorkingPointValid()
     {
         return _tubeWorkingPoint.AnodeVoltage > 0
-            && _tubeWorkingPoint.GridVoltage > 0
+            && _tubeWorkingPoint.GridVoltage != 0
             && _tubeWorkingPoint.AnodeVoltageHalfWidth > 0
             && _tubeWorkingPoint.GridVoltageHalfWidth > 0;
     }
