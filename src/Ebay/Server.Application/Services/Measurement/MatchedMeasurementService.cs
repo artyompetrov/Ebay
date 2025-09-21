@@ -24,15 +24,12 @@ public class MatchedMeasurementService
 
     public async Task FindMatchedMeasurementsAsync(
         Guid productId,
-        int matchCount,
         IReadOnlyCollection<MeasurementState> measurementStates,
-        bool includeMeasurementsWithMatchId,
         CancellationToken cancellationToken)
     {
         var measurementIds = await _measurementService.GetMeasurementIds(
             productId: productId,
             measurementStates: measurementStates,
-            includeMeasurementsWithMatchId: includeMeasurementsWithMatchId,
             cancellationToken: cancellationToken);
 
         foreach (var measurementId1 in measurementIds)
