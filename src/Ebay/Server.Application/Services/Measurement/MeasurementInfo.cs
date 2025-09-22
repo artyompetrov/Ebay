@@ -1,5 +1,3 @@
-using System;
-using Server.Application.Data.Models;
 using Server.Application.Data.Models.Measurements;
 
 namespace Server.Application.Services.Measurement;
@@ -16,4 +14,4 @@ public record MeasurementInfo(
     public IReadOnlyCollection<SimilarMeasurementInfo> SimilarMeasurements { get; init; } = Array.Empty<SimilarMeasurementInfo>();
 }
 
-public record SimilarMeasurementInfo(string MeasurementId, double RmseSection1);
+public record SimilarMeasurementInfo(string MeasurementId, string ManufactureCode, double RmseSection1, double? RmseSection2, ComparisonMode ComparisonMode, double Score);

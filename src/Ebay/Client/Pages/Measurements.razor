@@ -20,15 +20,15 @@
         width: 300px;
     }
 
-    .rmse-chip {
+    .chip {
         border-radius: 0.375rem;
         padding: 0.125rem 0.5rem;
         display: inline-block;
     }
 
-    .rmse-chip.table-success,
-    .rmse-chip.table-warning,
-    .rmse-chip.table-danger {
+    .chip.table-success,
+    .chip.table-warning,
+    .chip.table-danger {
         background-color: var(--bs-table-bg);
         color: var(--bs-table-color);
     }
@@ -221,8 +221,8 @@
                            value="@measurement.MatchId"
                            @oninput="async e => await OnMatchIdChanged(measurement, e.Value?.ToString())" />
                 </td>
-                <td class="@GetBalanceCellClass(measurement.DoubleTriodeSectionRmse)">
-                    @FormatBalance(measurement.DoubleTriodeSectionRmse)
+                <td class="@GetPercentCellClass(measurement.DoubleTriodeSectionRmse)">
+                    @FormatPercent(measurement.DoubleTriodeSectionRmse)
                 </td>
                 <td>
                     @if (measurement.SimilarMeasurements?.Any() == true)
@@ -231,9 +231,18 @@
                             @foreach (var similar in measurement.SimilarMeasurements)
                             {
                                 <li>
-                                    <div class="similar-measurement @GetBalanceCellClass(similar.RmseSection1)">
-                                        <NavLink href="@($"m/{similar.MeasurementId}")" target="_blank">@similar.MeasurementId</NavLink>
-                                        <span class="rmse-chip @GetBalanceCellClass(similar.RmseSection1)">@FormatBalance(similar.RmseSection1)</span>
+                                    <div class="similar-measurement" title="Score: @similar.Score">
+                                        <NavLink class=@($"chip {GetPercentCellClass(similar.Score)}") href="@($"m/{similar.MeasurementId}")" target="_blank">@similar.MeasurementId</NavLink>
+                                        <span class="chip @GetManufactureCodeCellClass(similar.SameDate)">@similar.ManufactureCode</span>
+                                        <span class="chip @GetPercentCellClass(similar.RmseSection1)">S1: @FormatPercent(similar.RmseSection1)</span>
+                                        @if (similar.RmseSection2.HasValue)
+                                        {
+                                            <span class="chip @GetPercentCellClass(similar.RmseSection2)">S2: @FormatPercent(similar.RmseSection2)</span>
+                                        }
+                                        @if (similar.IsCrossMatch)
+                                        {
+                                            <span class="chip table-danger">Cross-match</span>
+                                        }
                                     </div>
                                 </li>
                             }
@@ -567,7 +576,9 @@
         }
     }
 
-    private static string? GetBalanceCellClass(double? balance)
+    private static string GetManufactureCodeCellClass(bool sameCode) => sameCode ? "table-success" : "table-warning";
+
+    private static string? GetPercentCellClass(double? balance)
     {
         if (!balance.HasValue)
         {
@@ -587,7 +598,7 @@
         return "table-warning";
     }
 
-    private static string? FormatBalance(double? balance)
+    private static string? FormatPercent(double? balance)
     {
         return balance.HasValue
             ? string.Format(CultureInfo.InvariantCulture, "{0:0.##}%", balance.Value)

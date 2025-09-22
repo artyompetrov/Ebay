@@ -52,7 +52,7 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         {
             return;
         }
-        
+
         var radialBands = 10;
         var pointsPerBand = 36;
 
@@ -83,15 +83,15 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
                 if (measurementId2.AnodeCurves is not PentodeAnodeCurves)
                 {
                     throw new UnreachableException($"{nameof(measurementId2)} is expected to be PentodeAnodeCurves");
-     
+
                 }
-                
+
                 if (measurementId1.MeasurementId == measurementId2.MeasurementId)
                 {
                     // игнорируем сравнение сами собой
                     return;
                 }
-                
+
                 await CalculateForOneSectionTubes(
                     measurementId1: measurementId1,
                     measurementId2: measurementId2,
@@ -100,21 +100,21 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
                     radialBands: radialBands,
                     pointsPerBand: pointsPerBand);
             }
-                break;
-                
+            break;
+
             case TriodeAnodeCurves:
             {
                 if (measurementId2.AnodeCurves is not TriodeAnodeCurves)
                 {
                     throw new UnreachableException($"{nameof(measurementId2)} is expected to be TriodeAnodeCurves");
                 }
-                
+
                 if (measurementId1.MeasurementId == measurementId2.MeasurementId)
                 {
                     // игнорируем сравнение сами собой
                     return;
                 }
-                
+
                 await CalculateForOneSectionTubes(
                     measurementId1: measurementId1,
                     measurementId2: measurementId2,
@@ -123,7 +123,7 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
                     radialBands: radialBands,
                     pointsPerBand: pointsPerBand);
             }
-                break;
+            break;
 
             case DoubleTriodeAnodeCurves:
             {
@@ -131,7 +131,7 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
                 {
                     throw new UnreachableException($"{nameof(measurementId2)} is expected to be DoubleTriodeAnodeCurves");
                 }
-                
+
                 await CalculateForTwoSectionTubes(
                     measurementId1: measurementId1,
                     measurementId2: measurementId2,
@@ -140,7 +140,7 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
                     radialBands: radialBands,
                     pointsPerBand: pointsPerBand);
             }
-                break;
+            break;
             default:
                 throw new NotSupportedException($"Unsupported subtype of {nameof(MeasurementTypeBase)}");
         }
@@ -157,7 +157,7 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         var measurement2I1 = GetPoints(measurementId: measurementId2, x => x.I1);
         var measurement1I1Model = RbfModel(measurement1I1, workingPoint);
         var measurement2I1Model = RbfModel(measurement2I1, workingPoint);
-        
+
         var measurement1I2 = GetPoints(
             measurementId: measurementId1,
             x => x.I2 ?? throw new NullReferenceException("I2 is expected to be not null"));
@@ -166,7 +166,7 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
             x => x.I2 ?? throw new NullReferenceException("I2 is expected to be not null"));
         var measurement1I2Model = RbfModel(measurement1I2, workingPoint);
         var measurement2I2Model = RbfModel(measurement2I2, workingPoint);
-        
+
         if (measurementId1.MeasurementId != measurementId2.MeasurementId) // не делаем Direct в кейсе когда мы сравниваем две секции двойного триода между собой
         {
             var (mseDirect1, rmseDirect1, maxAbsDirect1) = SquaredDiffPointsInEllipse(
@@ -175,14 +175,14 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
                 radialBands: radialBands,
                 pointsPerBand: pointsPerBand,
                 workingPoint: workingPoint);
-                
+
             var (mseDirect2, rmseDirect2, maxAbsDirect2) = SquaredDiffPointsInEllipse(
                 model1: measurement1I2Model,
                 model2: measurement2I2Model,
                 radialBands: radialBands,
                 pointsPerBand: pointsPerBand,
                 workingPoint: workingPoint);
-                
+
             await SaveToDatabase(
                 measurementId1: measurementId1,
                 measurementId2: measurementId2,
@@ -202,7 +202,7 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
             radialBands: radialBands,
             pointsPerBand: pointsPerBand,
             workingPoint: workingPoint);
-                
+
         var (mseCross2, rmseCross2, maxAbsCross2) = SquaredDiffPointsInEllipse(
             model1: measurement1I2Model,
             model2: measurement2I1Model,
@@ -267,7 +267,7 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
             .SingleOrDefaultAsync(
                 x => x.MeasurementId1 == measurementId1.MeasurementId &&
                      x.MeasurementId2 == measurementId2.MeasurementId &&
-                     x.ComparisonMode  == comparisonMode,
+                     x.ComparisonMode == comparisonMode,
                 cancellationToken: cancellationToken);
 
         if (pairDifference == null)
@@ -299,7 +299,7 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         {
             foreach (var (va, ia) in result.V.Zip(second: iExtractor(result), (va, ia) => (va, ia)))
             {
-                points.Add(new (
+                points.Add(new(
                     Va: va,
                     Vg: result.VSteppingValue,
                     Ia: ia));
@@ -311,7 +311,7 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
     }
 
     private record struct MeasurementPoint(double Va, double Vg, double Ia);
-    
+
     /// <summary>
     /// Функция создает модель при помощи RBF интерполяции
     /// </summary>
@@ -320,7 +320,7 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         var baseX = Math.Max(1e-9, wp.AnodeVoltageHalfWidth);
         var baseY = Math.Max(1e-9, wp.GridVoltageHalfWidth);
         var baseZ = Math.Max(1e-9, wp.NominalCurrent);
-        
+
         var xy = new double[points.Count, 3];
         for (var i = 0; i < points.Count; i++)
         {
@@ -362,10 +362,10 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         var sse = 0.0;     // sum of squared errors
         var maxAbs = 0.0;
         long count = 0;
-        
+
         var anodeBase = Math.Max(1e-9, workingPoint.AnodeVoltageHalfWidth);
         var gridBase = Math.Max(1e-9, workingPoint.GridVoltageHalfWidth);
-        
+
         for (var i = 1; i <= radialBands; i++)
         {
             // midpoint по радиусу, чтобы не попадать на границы
@@ -383,8 +383,8 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
                 var rx = c * ex - s * ey;
                 var ry = s * ex + c * ey;
 
-                var x =  rx / anodeBase; // Делим для нормализации
-                var y =  ry / gridBase; // Делим для нормализации
+                var x = rx / anodeBase; // Делим для нормализации
+                var y = ry / gridBase; // Делим для нормализации
 
                 var d = alglib.rbfcalc2(s: model1, x0: x, x1: y) - alglib.rbfcalc2(s: model2, x0: x, x1: y);
                 var ad = Math.Abs(d);

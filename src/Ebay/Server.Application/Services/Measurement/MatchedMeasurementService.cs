@@ -1,11 +1,7 @@
-using System;
-using System.Linq;
 using MassTransit;
 using Server.Application.Consumers.MatchedPairs;
 using Server.Application.Data;
-using Server.Application.Data.Models;
 using Server.Application.Data.Models.Measurements;
-using Server.Application.Infrastructure;
 
 namespace Server.Application.Services.Measurement;
 
@@ -42,7 +38,7 @@ public class MatchedMeasurementService
 
         _applicationContext.MatchedPairDifferences.RemoveRange(
             _applicationContext.MatchedPairDifferences.Where(x => measurementIds.Contains(x.MeasurementId1)));
-        
+
         foreach (var measurementId1 in measurementIds)
         {
             foreach (var measurementId2 in measurementIds)
@@ -53,10 +49,10 @@ public class MatchedMeasurementService
                         MeasurementId2: measurementId2),
                     cancellationToken: cancellationToken);
             }
-            
+
             await _applicationContext.SaveChangesAsync(cancellationToken);
         }
-        
+
 
     }
 }

@@ -1,13 +1,14 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using Server.Application.Consumers;
 using Server.Application.Consumers.PriceCalculator;
 using Server.Application.Data;
 using Server.Application.Data.Models;
+using Server.Application.Data.Models.Measurements;
 using Server.Application.Infrastructure;
 using Server.Application.Services.LotDataExtractor;
 using Server.Application.Services.Measurement;
 using Server.Controllers.Generated;
+using ApiSimilarMeasurementInfo = Server.Controllers.Generated.SimilarMeasurementInfo;
 using ClientErrorInfo = Server.Controllers.Generated.ClientErrorInfo;
 using Currency = Server.Controllers.Generated.Currency;
 using DbProduct = Server.Application.Data.Models.Product;
@@ -17,7 +18,6 @@ using LotInfoWithProductId = Server.Controllers.Generated.LotInfoWithProductId;
 using LotState = Server.Controllers.Generated.LotState;
 using MeasurementData = Server.Controllers.Generated.MeasurementData;
 using MeasurementState = Server.Controllers.Generated.MeasurementState;
-using ApiSimilarMeasurementInfo = Server.Controllers.Generated.SimilarMeasurementInfo;
 using ProductPassportInfo = Server.Controllers.Generated.ProductPassportInfo;
 using ProductPassportUpload = Server.Controllers.Generated.ProductPassportUpload;
 using ProductWithId = Server.Controllers.Generated.ProductWithId;
@@ -489,7 +489,7 @@ public class EbayControllerImplementation : IEbayController
         var apiMeasurementState = measurementState.HasValue
             ? (MeasurementState)(int)measurementState.Value
             : (MeasurementState?)null;
-        
+
         var measurementStates = apiMeasurementState.HasValue
             ? new[] { apiMeasurementState.Value.ToDbMeasurementState() }
             : Enum.GetValues<Data.Models.Measurements.MeasurementState>();
@@ -511,7 +511,14 @@ public class EbayControllerImplementation : IEbayController
                 similarMeasurements: x.SimilarMeasurements
                     .Select(similarMeasurement => new ApiSimilarMeasurementInfo(
                         measurementId: similarMeasurement.MeasurementId,
-                        rmseSection1: similarMeasurement.RmseSection1))
+                        manufactureCode: similarMeasurement.ManufactureCode,
+                        rmseSection1: similarMeasurement.RmseSection1,
+                        rmseSection2: similarMeasurement.RmseSection2,
+                        score: similarMeasurement.Score,
+                        isCrossMatch: similarMeasurement.ComparisonMode == ComparisonMode.Cross,
+                        sameDate: x.ManufactureCode.Equals(similarMeasurement.ManufactureCode, StringComparison.OrdinalIgnoreCase)
+
+                    ))
                     .ToList()))
             .ToList();
 

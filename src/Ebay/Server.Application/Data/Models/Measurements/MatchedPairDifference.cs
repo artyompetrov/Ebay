@@ -5,7 +5,7 @@ namespace Server.Application.Data.Models.Measurements;
 public class MatchedPairDifference
 {
     public ComparisonMode ComparisonMode { get; set; }
-    
+
     [MaxLength(100)]
     public required string MeasurementId1 { get; set; }
 

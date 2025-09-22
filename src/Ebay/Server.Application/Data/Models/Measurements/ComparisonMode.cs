@@ -1,4 +1,4 @@
-﻿namespace Server.Application.Data.Models.Measurements;
+namespace Server.Application.Data.Models.Measurements;
 
 public enum ComparisonMode
 {
