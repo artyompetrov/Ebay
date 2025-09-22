@@ -1,4 +1,6 @@
+using System.Text;
 using MassTransit;
+using Microsoft.Extensions.Logging;
 using Server.Application.Consumers.MatchedPairs;
 using Server.Application.Data;
 using Server.Application.Data.Models.Measurements;
@@ -10,16 +12,18 @@ public class MatchedMeasurementService
     private readonly MeasurementService _measurementService;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly ApplicationDbContext _applicationContext;
+    private readonly ILogger<MatchedMeasurementService> _logger;
 
     public MatchedMeasurementService(
         MeasurementService measurementService,
         IPublishEndpoint publishEndpoint,
-        ApplicationDbContext applicationContext
-    )
+        ApplicationDbContext applicationContext,
+        ILogger<MatchedMeasurementService> logger)
     {
         _measurementService = measurementService;
         _publishEndpoint = publishEndpoint;
         _applicationContext = applicationContext;
+        _logger = logger;
     }
 
     public async Task FindMatchedMeasurementsAsync(
@@ -41,18 +45,21 @@ public class MatchedMeasurementService
 
         foreach (var measurementId1 in measurementIds)
         {
+            var sb = new StringBuilder();
             foreach (var measurementId2 in measurementIds)
             {
+                var message = new CalculateMatchedPair(
+                    MeasurementId1: measurementId1,
+                    MeasurementId2: measurementId2);
+                
                 await _publishEndpoint.Publish(
-                    message: new CalculateMatchedPair(
-                        MeasurementId1: measurementId1,
-                        MeasurementId2: measurementId2),
+                    message: message,
                     cancellationToken: cancellationToken);
-            }
 
+                sb.AppendLine(message.ToString());
+            }
+            _logger.LogDebug("Publishing {messageType}, {messageIds}", nameof(CalculateMatchedPair),  sb.ToString());
             await _applicationContext.SaveChangesAsync(cancellationToken);
         }
-
-
     }
 }
