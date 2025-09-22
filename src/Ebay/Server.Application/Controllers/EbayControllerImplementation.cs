@@ -4,6 +4,7 @@ using Server.Application.Consumers;
 using Server.Application.Consumers.PriceCalculator;
 using Server.Application.Data;
 using Server.Application.Data.Models;
+using Server.Application.Data.Models.Measurements;
 using Server.Application.Infrastructure;
 using Server.Application.Services.LotDataExtractor;
 using Server.Application.Services.Measurement;
@@ -489,7 +490,7 @@ public class EbayControllerImplementation : IEbayController
         var apiMeasurementState = measurementState.HasValue
             ? (MeasurementState)(int)measurementState.Value
             : (MeasurementState?)null;
-        
+
         var measurementStates = apiMeasurementState.HasValue
             ? new[] { apiMeasurementState.Value.ToDbMeasurementState() }
             : Enum.GetValues<Data.Models.Measurements.MeasurementState>();
@@ -511,7 +512,14 @@ public class EbayControllerImplementation : IEbayController
                 similarMeasurements: x.SimilarMeasurements
                     .Select(similarMeasurement => new ApiSimilarMeasurementInfo(
                         measurementId: similarMeasurement.MeasurementId,
-                        rmseSection1: similarMeasurement.RmseSection1))
+                        manufactureCode: similarMeasurement.ManufactureCode,
+                        rmseSection1: similarMeasurement.RmseSection1,
+                        rmseSection2: similarMeasurement.RmseSection2,
+                        score: similarMeasurement.Score,
+                        isCrossMatch: similarMeasurement.ComparisonMode == ComparisonMode.Cross,
+                        sameDate: x.ManufactureCode.Equals(similarMeasurement.ManufactureCode, StringComparison.OrdinalIgnoreCase)
+                                      
+                    ))
                     .ToList()))
             .ToList();
 

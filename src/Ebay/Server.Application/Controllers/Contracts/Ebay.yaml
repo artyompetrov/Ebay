@@ -776,9 +776,28 @@ definitions:
         type: number
         format: double
         minimum: 0
+      rmseSection2:
+        type: number
+        format: double
+        minimum: 0
+      manufactureCode:
+        type: string
+        maxLength: 100
+      sameDate:
+        type: boolean
+      isCrossMatch:
+        type: boolean
+      score:
+        type: number
+        format: double
+        minimum: 0
     required:
       - measurementId
       - rmseSection1
+      - manufactureCode
+      - sameDate
+      - isCrossMatch
+      - score
 
   MeasurementDataToUpload:
     type: object

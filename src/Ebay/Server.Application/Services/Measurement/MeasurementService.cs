@@ -221,7 +221,7 @@ public class MeasurementService
         var measurementsQuery = from measurement in _applicationContext.ProductMeasurements.AsNoTracking()
                                  where measurement.ProductId == productId
                                  where measurementStates.Contains(measurement.MeasurementState)
-                                 join difference in _applicationContext.MatchedPairDifferences.AsNoTracking()
+                                 join difference in _applicationContext.MatchedPairDifferences.AsNoTracking() // этот джойн нужен для двойных триодов
                                      on new
                                      {
                                          MeasurementId1 = measurement.Id,
@@ -243,7 +243,7 @@ public class MeasurementService
                                      measurement.ProductState,
                                      measurement.Location,
                                      measurement.MatchId,
-                                     difference != null ? difference.RmseSection1 : (double?)null,
+                                     difference != null ? difference.RmseSection1 : null,
                                      measurement.MeasurementState);
 
         var measurements = await measurementsQuery.ToListAsync(cancellationToken);
@@ -254,21 +254,48 @@ public class MeasurementService
         }
 
         var measurementIds = measurements
+            .Where(x => x.MeasurementState == MeasurementState.Selling || x.MeasurementState == MeasurementState.Created)
             .Select(x => x.Id)
             .ToArray();
 
+        var similarMeasurementsLookup = await GetSimilarMeasurements(cancellationToken: cancellationToken, measurementIds: measurementIds);
+
+        return measurements
+            .Select(measurement =>
+            {
+                if (similarMeasurementsLookup.TryGetValue(measurement.Id, out var similar))
+                {
+                    return measurement with
+                    {
+                        SimilarMeasurements = similar
+                    };
+                }
+
+                return measurement;
+            })
+            .ToList();
+    }
+
+    private async Task<Dictionary<string, IReadOnlyCollection<SimilarMeasurementInfo>>> GetSimilarMeasurements(
+        CancellationToken cancellationToken,
+        string[] measurementIds)
+    {
         var similarMeasurements = await _applicationContext.MatchedPairDifferences
             .AsNoTracking()
             .Where(x => measurementIds.Contains(x.MeasurementId1))
             .Where(x => x.MeasurementId1 != x.MeasurementId2)
-            .Where(x => x.ComparisonMode == ComparisonMode.Direct)
-            .OrderBy(x => x.MeasurementId1)
-            .ThenBy(x => x.RmseSection1)
+            .Where(x =>
+                x.Measurement1.MeasurementState == x.Measurement2.MeasurementState &&
+                x.Measurement1.ProductState == x.Measurement2.ProductState)
             .Select(x => new
             {
                 x.MeasurementId1,
                 x.MeasurementId2,
-                x.RmseSection1
+                x.RmseSection1,
+                x.RmseSection2,
+                x.ComparisonMode,
+                ManufactureCode1 = x.Measurement1.ManufactureCode,
+                ManufactureCode2 = x.Measurement2.ManufactureCode
             })
             .ToListAsync(cancellationToken);
 
@@ -277,20 +304,22 @@ public class MeasurementService
             .ToDictionary(
                 x => x.Key,
                 x => (IReadOnlyCollection<SimilarMeasurementInfo>)x
-                    .OrderBy(measurement => measurement.RmseSection1)
-                    .Take(3)
                     .Select(measurement => new SimilarMeasurementInfo(
-                        measurement.MeasurementId2,
-                        measurement.RmseSection1))
+                        MeasurementId: measurement.MeasurementId2,
+                        ManufactureCode: measurement.ManufactureCode2,
+                        RmseSection1: measurement.RmseSection1,
+                        RmseSection2: measurement.RmseSection2,
+                        ComparisonMode: measurement.ComparisonMode,
+                        Score: (measurement.RmseSection1 + (measurement.RmseSection2 ?? 0.0)) / (measurement.RmseSection2.HasValue ? 2.0 : 1.0) + // учет второй секции
+                               (measurement.ComparisonMode == ComparisonMode.Cross ? 10.0 : 0.0) + // штраф за cross-match
+                               (!measurement.ManufactureCode1.Equals(measurement.ManufactureCode2, StringComparison.OrdinalIgnoreCase) ? 10.0 : 0.0) // штраф за различие в ManufactureCode2
+                    ))
+                    .OrderBy(measurement => measurement.Score)
+                    .DistinctBy(measurement=> measurement.MeasurementId)
+                    .Take(6)
                     .ToList());
 
-        return measurements
-            .Select(measurement =>
-            {
-                similarMeasurementsLookup.TryGetValue(measurement.Id, out var similar);
-                return measurement with { SimilarMeasurements = similar ?? Array.Empty<SimilarMeasurementInfo>() };
-            })
-            .ToList();
+        return similarMeasurementsLookup;
     }
 
     private static string ComputeEntryHashAsync(byte[] bytes)
