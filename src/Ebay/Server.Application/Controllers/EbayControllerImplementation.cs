@@ -1,6 +1,5 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using Server.Application.Consumers;
 using Server.Application.Consumers.PriceCalculator;
 using Server.Application.Data;
 using Server.Application.Data.Models;
@@ -9,6 +8,7 @@ using Server.Application.Infrastructure;
 using Server.Application.Services.LotDataExtractor;
 using Server.Application.Services.Measurement;
 using Server.Controllers.Generated;
+using ApiSimilarMeasurementInfo = Server.Controllers.Generated.SimilarMeasurementInfo;
 using ClientErrorInfo = Server.Controllers.Generated.ClientErrorInfo;
 using Currency = Server.Controllers.Generated.Currency;
 using DbProduct = Server.Application.Data.Models.Product;
@@ -18,7 +18,6 @@ using LotInfoWithProductId = Server.Controllers.Generated.LotInfoWithProductId;
 using LotState = Server.Controllers.Generated.LotState;
 using MeasurementData = Server.Controllers.Generated.MeasurementData;
 using MeasurementState = Server.Controllers.Generated.MeasurementState;
-using ApiSimilarMeasurementInfo = Server.Controllers.Generated.SimilarMeasurementInfo;
 using ProductPassportInfo = Server.Controllers.Generated.ProductPassportInfo;
 using ProductPassportUpload = Server.Controllers.Generated.ProductPassportUpload;
 using ProductWithId = Server.Controllers.Generated.ProductWithId;
@@ -518,7 +517,7 @@ public class EbayControllerImplementation : IEbayController
                         score: similarMeasurement.Score,
                         isCrossMatch: similarMeasurement.ComparisonMode == ComparisonMode.Cross,
                         sameDate: x.ManufactureCode.Equals(similarMeasurement.ManufactureCode, StringComparison.OrdinalIgnoreCase)
-                                      
+
                     ))
                     .ToList()))
             .ToList();

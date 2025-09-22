@@ -1,6 +1,5 @@
 using ScottPlot;
 using ScottPlot.PlotStyles;
-using Server.Application.Data.Models;
 using Server.Application.Data.Models.Measurements;
 using Server.Application.Infrastructure;
 using Server.Application.Services.Measurement;

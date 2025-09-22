@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Server.Application.Consumers;
 using Server.Application.Consumers.EbayCurvesCacheWarmUp;
 using Server.Application.Data;
 using Server.Application.Infrastructure;

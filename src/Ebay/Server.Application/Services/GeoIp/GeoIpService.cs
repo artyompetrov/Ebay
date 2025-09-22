@@ -93,7 +93,7 @@ public class GeoIpService
         {
             return;
         }
-        
+
         _logger.LogInformation(
             message: prefix + " X-Real-IP: {XRealIp}. Country: {Country}. City: {City}. UserAgent: {UserAgent}",
             realIp,
