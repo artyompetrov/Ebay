@@ -308,7 +308,7 @@ public class MeasurementService
                         RmseSection1: measurement.RmseSection1,
                         RmseSection2: measurement.RmseSection2,
                         ComparisonMode: measurement.ComparisonMode,
-                        Score: (measurement.RmseSection1 + (measurement.RmseSection2 ?? 0.0)) / (measurement.RmseSection2.HasValue ? 2.0 : 1.0) + // учет второй секции
+                        Score: Math.Max(measurement.RmseSection1, measurement.RmseSection2 ?? 0.0) + // учет второй секции
                                (measurement.ComparisonMode == ComparisonMode.Cross ? 10.0 : 0.0) + // штраф за cross-match
                                (!measurement.ManufactureCode1.Equals(measurement.ManufactureCode2, StringComparison.OrdinalIgnoreCase) ? 10.0 : 0.0) // штраф за различие в ManufactureCode2
                     ))
