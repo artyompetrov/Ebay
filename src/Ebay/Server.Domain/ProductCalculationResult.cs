@@ -1,31 +1,32 @@
 using System.Text.Json.Serialization;
 
-namespace Server.Application.Data.Models;
+namespace Server.Domain;
 
-public class LotCalculationResult
+public class ProductCalculationResult
 {
     /// <summary>
-    /// выручкаСПродажЛотаВДолларах
+    /// Общая выручка для всех продаж
     /// </summary>
     public double Revenue { get; set; }
 
     /// <summary>
-    /// общееКоличествоШтукВоВсехПродажах
+    /// Общее количество штук продано
     /// </summary>
     public int QuantityTotal { get; set; }
 
     /// <summary>
-    /// сумма цена листинга лота
+    /// Дата расчета (равно меньшему из всех дочерних расчетов)
+    /// </summary>
+    public DateTime CalculationDate { get; set; }
+
+
+    /// <summary>
+    /// суммарная цена листингов
     /// </summary>
     public double ListingPriceSumm { get; set; }
 
     /// <summary>
-    /// Дата расчета
-    /// </summary>
-    public DateTime CalculationDate { get; set; }
-
-    /// <summary>
-    /// Средняя выручка для лота (после вычета всех расходов)
+    /// Средняя выручка для продукта
     /// </summary>
     [JsonIgnore]
     public double RevenueAvg
@@ -38,7 +39,7 @@ public class LotCalculationResult
     }
 
     /// <summary>
-    /// Средняя цена листинга для лота (цена по которой надо выставлять штуку)
+    /// Средняя цена листинга для продукта
     /// </summary>
     [JsonIgnore]
     public double ListingPriceAvg

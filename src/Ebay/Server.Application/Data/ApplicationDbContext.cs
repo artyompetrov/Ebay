@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Options;
-using Server.Application.Data.Models;
-using Server.Application.Data.Models.Measurements;
+using Server.Domain;
+using Server.Domain.Measurements;
 
 namespace Server.Application.Data;
 
@@ -82,6 +82,17 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
+        modelBuilder.Entity<IgnoredLot>(entity =>
+        {
+            entity.HasKey(e => new { e.ProductId, e.LotId });
+        });
+        
+        
+        modelBuilder.Entity<Purchase>(entity =>
+        {
+            entity.HasKey(e => new { e.LotId, e.Date });
+        });
+        
         modelBuilder.Entity<MatchedPairDifference>(entity =>
         {
             entity.HasKey(e => new { e.MeasurementId1, e.MeasurementId2, e.ComparisonMode });

@@ -1,6 +1,4 @@
-namespace Server.Application.Data;
-
-using Server.Application.Data.Models;
+namespace Server.Domain;
 
 public class ProductEmailSendHistory
 {

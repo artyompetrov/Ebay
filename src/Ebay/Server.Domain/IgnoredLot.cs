@@ -1,8 +1,5 @@
-using Microsoft.EntityFrameworkCore;
+namespace Server.Domain;
 
-namespace Server.Application.Data.Models;
-
-[PrimaryKey(propertyName: nameof(ProductId), nameof(LotId))]
 public class IgnoredLot
 {
     public Guid ProductId { get; set; }

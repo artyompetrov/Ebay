@@ -1,6 +1,6 @@
 
 using System.Text.RegularExpressions;
-using Server.Application.Data.Models;
+using Server.Domain;
 
 namespace Server.Application.Infrastructure;
 

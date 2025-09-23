@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Server.Application.Data.Models;
+namespace Server.Domain;
 
 public sealed class ProductPassport
 {

@@ -3,8 +3,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenExchangeRates;
 using Server.Application.Data;
-using Server.Application.Data.Models;
 using Server.Application.Infrastructure;
+using Server.Domain;
 
 namespace Server.Application.HostedServices.Currencies;
 

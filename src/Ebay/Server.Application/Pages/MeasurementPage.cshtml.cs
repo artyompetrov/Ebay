@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Data;
-using Server.Application.Data.Models;
 using Server.Application.Services.Measurement;
+using Server.Domain;
 
 namespace Server.Application.Pages;
 

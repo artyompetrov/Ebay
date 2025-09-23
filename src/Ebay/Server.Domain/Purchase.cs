@@ -1,8 +1,5 @@
-using Microsoft.EntityFrameworkCore;
+namespace Server.Domain;
 
-namespace Server.Application.Data.Models;
-
-[PrimaryKey(propertyName: nameof(LotId), nameof(Date))]
 public class Purchase
 {
     public DateTime Date { get; set; }

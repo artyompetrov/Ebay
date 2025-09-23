@@ -1,9 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Server.Application.Data.Models;
+namespace Server.Domain;
 
-public sealed class SearchQuery
+public sealed class RuSearchQuery
 {
     [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
     public Guid Id { get; set; }

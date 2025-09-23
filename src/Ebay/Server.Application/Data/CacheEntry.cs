@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Server.Application.Data.Models;
+namespace Server.Application.Data;
 
 public class CacheEntry
 {

@@ -3,10 +3,10 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Server.Application.Data;
-using Server.Application.Data.Models.Measurements;
 using Server.Application.Services.Measurement;
 using Server.Application.Services.Measurement.MeasurementTypes;
 using Server.Application.Services.Measurement.MeasurementTypes.Base;
+using Server.Domain.Measurements;
 
 namespace Server.Application.Consumers.MatchedPairs;
 

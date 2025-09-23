@@ -8,7 +8,6 @@ using Server.Adapters.ChipFind;
 using Server.Adapters.Smtp;
 using Server.Application;
 using Server.Application.Data;
-using Server.Application.Data.Models;
 using Secret = Duende.IdentityServer.Models.Secret;
 
 //IdentityModelEventSource.ShowPII = true;

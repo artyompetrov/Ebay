@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Server.Application.Data.Models.Measurements;
+using Server.Domain.Measurements;
 
-namespace Server.Application.Data.Models;
+namespace Server.Domain;
 
 public sealed class Product
 {

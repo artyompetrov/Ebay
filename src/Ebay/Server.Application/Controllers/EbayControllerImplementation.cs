@@ -2,8 +2,8 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Consumers.PriceCalculator;
 using Server.Application.Data;
-using Server.Application.Data.Models;
-using Server.Application.Data.Models.Measurements;
+using Server.Domain;
+using Server.Domain.Measurements;
 using Server.Application.Infrastructure;
 using Server.Application.Services.LotDataExtractor;
 using Server.Application.Services.Measurement;
@@ -11,7 +11,7 @@ using Server.Controllers.Generated;
 using ApiSimilarMeasurementInfo = Server.Controllers.Generated.SimilarMeasurementInfo;
 using ClientErrorInfo = Server.Controllers.Generated.ClientErrorInfo;
 using Currency = Server.Controllers.Generated.Currency;
-using DbProduct = Server.Application.Data.Models.Product;
+using DbProduct = Server.Domain.Product;
 using LotInfo = Server.Controllers.Generated.LotInfo;
 using LotInfoShort = Server.Controllers.Generated.LotInfoShort;
 using LotInfoWithProductId = Server.Controllers.Generated.LotInfoWithProductId;
@@ -492,7 +492,7 @@ public class EbayControllerImplementation : IEbayController
 
         var measurementStates = apiMeasurementState.HasValue
             ? new[] { apiMeasurementState.Value.ToDbMeasurementState() }
-            : Enum.GetValues<Data.Models.Measurements.MeasurementState>();
+            : Enum.GetValues<Server.Domain.Measurements.MeasurementState>();
 
         var measurements = await _measurementService.GetMeasurementInfos(
             productId: productId,

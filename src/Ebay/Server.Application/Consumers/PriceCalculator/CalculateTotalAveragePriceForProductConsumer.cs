@@ -1,7 +1,7 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Data;
-using Server.Application.Data.Models;
+using Server.Domain;
 
 namespace Server.Application.Consumers.PriceCalculator;
 

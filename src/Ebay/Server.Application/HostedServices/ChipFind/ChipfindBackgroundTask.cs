@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Server.Application.Data;
 using Server.Application.Infrastructure;
+using Server.Domain;
 
 namespace Server.Application.HostedServices.ChipFind;
 

@@ -1,5 +1,5 @@
-using Server.Application.Data.Models.Measurements;
 using Server.Application.Services.Measurement.MeasurementTypes.Base;
+using Server.Domain.Measurements;
 
 namespace Server.Application.Services.Measurement;
 

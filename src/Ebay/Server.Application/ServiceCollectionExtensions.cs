@@ -6,7 +6,6 @@ using Server.Application.Consumers.MatchedPairs;
 using Server.Application.Consumers.PriceCalculator;
 using Server.Application.Controllers;
 using Server.Application.Data;
-using Server.Application.Data.Models;
 using Server.Application.HostedServices.ChipFind;
 using Server.Application.HostedServices.Currencies;
 using Server.Application.HostedServices.DbCache;

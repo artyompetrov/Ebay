@@ -1,9 +1,9 @@
 using ScottPlot;
 using ScottPlot.PlotStyles;
-using Server.Application.Data.Models.Measurements;
 using Server.Application.Infrastructure;
 using Server.Application.Services.Measurement;
 using Server.Application.Services.Measurement.MeasurementTypes.Base;
+using Server.Domain.Measurements;
 
 namespace Server.Application.Services.MeasurementPlot;
 

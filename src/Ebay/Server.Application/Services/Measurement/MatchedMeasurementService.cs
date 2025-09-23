@@ -3,7 +3,7 @@ using MassTransit;
 using Microsoft.Extensions.Logging;
 using Server.Application.Consumers.MatchedPairs;
 using Server.Application.Data;
-using Server.Application.Data.Models.Measurements;
+using Server.Domain.Measurements;
 
 namespace Server.Application.Services.Measurement;
 
