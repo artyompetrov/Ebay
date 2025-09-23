@@ -9,6 +9,7 @@ COPY Ebay/Server/*.csproj Ebay/Server/
 COPY Ebay/Server.Adapters.Smtp/*.csproj Ebay/Server.Adapters.Smtp/
 COPY Ebay/Server.Adapters.ChipFind/*.csproj Ebay/Server.Adapters.ChipFind/
 COPY Ebay/Server.Application/*.csproj Ebay/Server.Application/
+COPY Ebay/Server.Domain/*.csproj Ebay/Server.Domain/
 COPY Ebay/Server.Client/*.csproj Ebay/Server.Client/
 COPY Ebay/Tests/*.csproj Ebay/Tests/
 RUN dotnet restore "Ebay/Ebay.sln"
