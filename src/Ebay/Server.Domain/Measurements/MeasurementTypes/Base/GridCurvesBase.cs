@@ -1,4 +1,4 @@
-namespace Server.Application.Services.Measurement.MeasurementTypes.Base;
+namespace Server.Domain.Measurements.MeasurementTypes.Base;
 
 public abstract class GridCurvesBase : MeasurementTypeBase
 {

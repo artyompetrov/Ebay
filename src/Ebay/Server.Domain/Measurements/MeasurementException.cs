@@ -1,4 +1,4 @@
-namespace Server.Application.Services.Measurement;
+namespace Server.Domain.Measurements;
 
 public class MeasurementException : Exception
 {

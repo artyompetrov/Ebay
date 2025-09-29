@@ -1,7 +1,6 @@
+using Server.Domain.Measurements.MeasurementTypes.Base;
 
-using Server.Application.Services.Measurement.MeasurementTypes.Base;
-
-namespace Server.Application.Services.Measurement.MeasurementTypes;
+namespace Server.Domain.Measurements.MeasurementTypes;
 
 public class DoubleTriodeGridCurves : GridCurvesBase
 {

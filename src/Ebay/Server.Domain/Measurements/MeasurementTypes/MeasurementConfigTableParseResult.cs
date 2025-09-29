@@ -1,5 +1,5 @@
-using Server.Application.Services.Measurement.MeasurementTypes.Base;
+using Server.Domain.Measurements.MeasurementTypes.Base;
 
-namespace Server.Application.Services.Measurement;
+namespace Server.Domain.Measurements.MeasurementTypes;
 
 public record MeasurementConfigTableParseResult(MeasurementTypeBase? MeasurementType, int SteppingVariableCount, int NumberOfIntervals);

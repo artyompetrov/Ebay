@@ -16,6 +16,15 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
     {
         base.OnModelCreating(modelBuilder);
 
+        // optimistic concurrency для всех агрегатов
+        foreach (var et in modelBuilder.Model.GetEntityTypes()
+                     .Where(t => typeof(IAggregateRoot).IsAssignableFrom(t.ClrType)))
+        {
+            modelBuilder.Entity(et.ClrType)
+                .Property<uint>("xmin") // PostgreSQL системная колонка
+                .IsRowVersion();
+        }
+        
         modelBuilder.AddInboxStateEntity();
         modelBuilder.AddOutboxMessageEntity();
         modelBuilder.AddOutboxStateEntity();
@@ -43,8 +52,26 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
 
         modelBuilder.Entity<ProductMeasurement>(entity =>
         {
-            entity.HasIndex(e => e.HashAnodeCurves).IsUnique();
-            entity.HasIndex(e => e.HashQuickTest).IsUnique();
+            entity.HasKey(x => x.Id);
+                
+            entity.Property(x=> x.Id)
+                .HasMaxLength(100)
+                .ValueGeneratedNever();
+                
+            entity.Property(p => p.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                
+            entity.HasIndex(p => p.CreatedAt);
+            
+            entity.Property(x => x.ProductId).IsRequired();
+
+            entity.HasOne<Product>()
+                .WithMany()                      
+                .HasForeignKey(x => x.ProductId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
+
+            entity.HasIndex(x => x.ProductId);       // полезный индекс
         });
 
         modelBuilder.Entity<ProductEmailSendHistory>(entity =>
@@ -60,13 +87,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
         {
             entity.HasKey(e => new { e.Key, e.Version });
         });
-
-        modelBuilder.Entity<ProductMeasurement>()
-            .Property(p => p.CreatedAt)
-            .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-        modelBuilder.Entity<ProductMeasurement>()
-            .HasIndex(p => p.CreatedAt);
+        
 
         modelBuilder.Entity<ProductPassport>(entity =>
         {

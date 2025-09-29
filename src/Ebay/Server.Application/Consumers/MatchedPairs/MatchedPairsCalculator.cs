@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Server.Application.Data;
 using Server.Application.Services.Measurement;
-using Server.Application.Services.Measurement.MeasurementTypes;
-using Server.Application.Services.Measurement.MeasurementTypes.Base;
 using Server.Domain.Measurements;
+using Server.Domain.Measurements.MeasurementTypes;
+using Server.Domain.Measurements.MeasurementTypes.Base;
 
 namespace Server.Application.Consumers.MatchedPairs;
 

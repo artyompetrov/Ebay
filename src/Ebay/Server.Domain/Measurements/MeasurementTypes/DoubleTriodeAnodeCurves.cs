@@ -1,6 +1,6 @@
-using Server.Application.Services.Measurement.MeasurementTypes.Base;
+using Server.Domain.Measurements.MeasurementTypes.Base;
 
-namespace Server.Application.Services.Measurement.MeasurementTypes;
+namespace Server.Domain.Measurements.MeasurementTypes;
 
 public class DoubleTriodeAnodeCurves : AnodeCurvesBase
 {
