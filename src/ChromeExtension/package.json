@@ -3,7 +3,7 @@
         "@badgateway/oauth2-client": "^2.4.2",
         "@types/chrome": "^0.1.4",
         "jsonpath": "^1.1.1",
-        "uuid": "^11.1.0"
+        "uuid": "^13.0.0"
     },
     "name": "chromeextension",
     "main": "index.js",
