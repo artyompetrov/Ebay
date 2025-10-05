@@ -29,6 +29,7 @@ public static class ProductExtensions
         (new Regex("[hн]"), "[hн]"),
         (new Regex("[kк]"), "[kк]"),
         (new Regex("[mм]"), "[mм]"),
+        (new Regex("[l]"), "[lл]"),
         (new Regex("[tт]"), "[tт]")
     ];
 
