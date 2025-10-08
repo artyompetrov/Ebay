@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.Domain", "Server.Dom
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.Adapters.uTracer", "Server.Adapters.uTracer\Server.Adapters.uTracer.csproj", "{8B5EAACB-76F7-4F29-B7C7-0392CF32E65B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.Adapters.EF.ReadModel", "Server.Adapters.EF.ReadModel\Server.Adapters.EF.ReadModel.csproj", "{91A30B8B-0828-40B9-B05F-944E9CA73816}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -67,6 +69,10 @@ Global
 		{8B5EAACB-76F7-4F29-B7C7-0392CF32E65B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8B5EAACB-76F7-4F29-B7C7-0392CF32E65B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8B5EAACB-76F7-4F29-B7C7-0392CF32E65B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{91A30B8B-0828-40B9-B05F-944E9CA73816}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91A30B8B-0828-40B9-B05F-944E9CA73816}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91A30B8B-0828-40B9-B05F-944E9CA73816}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91A30B8B-0828-40B9-B05F-944E9CA73816}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 	EndGlobalSection

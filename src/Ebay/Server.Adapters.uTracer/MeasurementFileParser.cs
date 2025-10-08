@@ -22,14 +22,16 @@ public class MeasurementFileParser : IMeasurementFileParser
                 quickTest: out var quickTest,
                 fileCount: out var fileCount))
         {
+            //todo тут не стоит кидать exception по идее
             throw new MeasurementException(
                 $"Errors during file parsing {string.Join(separator: ", ", values: fileErrors)}");
         }
 
-        var config = ParseMeasurementConfigTable(configBytes: anodeCurvesConfig, measurementBytes: anodeCurves);
-
-        ParseSpaceSeparatedTable(anodeCurves);
-        ParseAndPrettifyQuickTest(quickTest: quickTest, removeSection2: false);
+        var parsedMeasurement = ParseMeasurement(configBytes: anodeCurvesConfig, measurementBytes: anodeCurves);
+        
+        var removeSection2 = parsedMeasurement.AnodeCurves is TriodeAnodeCurves;
+        
+        var prettifiedQuickTest = ParseAndPrettifyQuickTest(quickTest: quickTest, removeSection2: removeSection2);
 
         var hashAnodeCurvesConfig = ComputeEntryHashAsync(anodeCurvesConfig);
         var hashAnodeCurves = ComputeEntryHashAsync(anodeCurves);
@@ -38,14 +40,54 @@ public class MeasurementFileParser : IMeasurementFileParser
 
         return new MeasurementFileParseResult(
             FileCount: fileCount,
-            config,
+            MeasurementConfigTableParseResult: parsedMeasurement,
+            PrettifiedQuickTest: prettifiedQuickTest,
             HashAnodeCurves: hashAnodeCurves,
             HashAnodeCurvesConfig: hashAnodeCurvesConfig,
             HashQuickTest: hashQuickTest
         );
     }
 
+    public async Task<byte[]> ToPrettifiedZip(byte[] zipBytes)
+    {
+        if (!ReadMeasurementFile(
+                measurementData: zipBytes,
+                errors: out var fileErrors,
+                anodeCurvesConfig: out var anodeCurvesConfig,
+                anodeCurves: out var anodeCurves,
+                quickTest: out var quickTest,
+                fileCount: out var fileCount))
+        {
+            //todo тут не стоит кидать exception по идее
+            throw new MeasurementException(
+                $"Errors during file parsing {string.Join(separator: ", ", values: fileErrors)}");
+        }
+        
+        using var zipStream = new MemoryStream();
+        using (var archive = new ZipArchive(stream: zipStream, mode: ZipArchiveMode.Create, leaveOpen: true))
+        {
 
+            await SaveFileToZipArchive(
+                archive: archive,
+                fileName: "anode_curves_measurement_config.uts",
+                content: anodeCurvesConfig);
+            await SaveFileToZipArchive(archive: archive, fileName: "anode_curves.utd", content: anodeCurves);
+            await SaveFileToZipArchive(archive: archive, fileName: "quick_test.txt", content: quickTest);
+        }
+
+        zipStream.Position = 0;
+
+        return zipStream.ToArray();
+        
+    }
+
+    private async static Task SaveFileToZipArchive(ZipArchive archive, string fileName, byte[] content)
+    {
+        var entry = archive.CreateEntry(fileName);
+        await using var entryStream = entry.Open();
+        await entryStream.WriteAsync(content, 0, content.Length);
+    }
+    
 
     private static byte[] GetBytes(ZipArchiveEntry entry)
     {
@@ -56,7 +98,7 @@ public class MeasurementFileParser : IMeasurementFileParser
         return memory.ToArray();
     }
 
-    private static MeasurementTypeBase? GetMeasurementType(
+    private static AnodeCurvesBase GetMeasurementType(
         int measurementType,
         int y2AxisVariable,
         double pmaxWatt,
@@ -64,16 +106,6 @@ public class MeasurementFileParser : IMeasurementFileParser
     {
         return measurementType switch
         {
-            // I(Vg, Va) with Vs, Vh Constant - этот замер больше не делается, для сохранения обратной совместимости только оставил
-            1 => y2AxisVariable switch
-            {
-                // второго графика нет
-                0 => new TriodeGridCurves(pmaxWatt, measurementPoints),
-                // Is
-                2 => new DoubleTriodeGridCurves(pmaxWatt, measurementPoints),
-                _ => throw new ArgumentOutOfRangeException(nameof(y2AxisVariable))
-            },
-
             // I(Va, Vg) with Vs, Vh Constant
             2 => new PentodeAnodeCurves(pmaxWatt, measurementPoints),
 
@@ -86,15 +118,13 @@ public class MeasurementFileParser : IMeasurementFileParser
                 2 => new DoubleTriodeAnodeCurves(pmaxWatt, measurementPoints),
                 _ => throw new ArgumentOutOfRangeException(nameof(y2AxisVariable))
             },
-
-            // I(Vs, Vg) with Va, Vh Constant
-            5 => null, //ранее были замеры по screen curves - но в них нет практического смысла, отказался от них
+            
             _ => throw new ArgumentOutOfRangeException(nameof(measurementType), $"Value: {measurementType}")
         };
     }
 
 
-    private static MeasurementConfigTableParseResult ParseMeasurementConfigTable(
+    private static MeasurementConfigTableParseResult ParseMeasurement(
         byte[] configBytes,
         byte[] measurementBytes)
     {
@@ -129,7 +159,7 @@ public class MeasurementFileParser : IMeasurementFileParser
             measurementPoints: ParseSpaceSeparatedTable(measurementBytes));
 
         return new MeasurementConfigTableParseResult(
-            MeasurementType: measurementType,
+            AnodeCurves: measurementType,
             SteppingVariableCount: steppingVariableCount,
             NumberOfIntervals: numberOfIntervals);
     }

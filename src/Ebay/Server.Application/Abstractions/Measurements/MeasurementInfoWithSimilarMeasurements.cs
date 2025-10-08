@@ -1,8 +1,12 @@
 using Server.Domain.Measurements;
 
-namespace Server.Application.Services.Measurement;
+namespace Server.Application.Abstractions.Measurements;
 
-public record MeasurementInfo(
+
+/// <summary>
+/// Dto для отображения строки в перечне замеров
+/// </summary>
+public record MeasurementInfoWithSimilarMeasurements(
     string Id,
     string ManufactureCode,
     ProductState ProductState,

@@ -1,27 +1,28 @@
 using System.Text;
 using MassTransit;
 using Microsoft.Extensions.Logging;
+using Server.Application.Abstractions.Measurements;
 using Server.Application.Consumers.MatchedPairs;
 using Server.Application.Data;
 using Server.Domain.Measurements;
 
 namespace Server.Application.Services.Measurement;
 
-public class MatchedMeasurementService
+internal class MatchedMeasurementService
 {
-    private readonly MeasurementService _measurementService;
     private readonly IPublishEndpoint _publishEndpoint;
+    private readonly IMeasurementQueries _measurementQueries;
     private readonly ApplicationDbContext _applicationContext;
     private readonly ILogger<MatchedMeasurementService> _logger;
 
     public MatchedMeasurementService(
-        MeasurementService measurementService,
         IPublishEndpoint publishEndpoint,
+        IMeasurementQueries  measurementQueries,
         ApplicationDbContext applicationContext,
         ILogger<MatchedMeasurementService> logger)
     {
-        _measurementService = measurementService;
         _publishEndpoint = publishEndpoint;
+        _measurementQueries = measurementQueries;
         _applicationContext = applicationContext;
         _logger = logger;
     }
@@ -35,7 +36,7 @@ public class MatchedMeasurementService
             .Where(state => state != MeasurementState.Sold)
             .ToArray();
 
-        var measurementIds = (await _measurementService.GetMeasurementIds(
+        var measurementIds = (await _measurementQueries.GetMeasurementIds(
             productId: productId,
             measurementStates: measurementStates,
             cancellationToken: cancellationToken)).ToHashSet();

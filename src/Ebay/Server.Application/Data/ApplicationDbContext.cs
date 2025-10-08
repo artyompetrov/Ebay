@@ -100,7 +100,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
             entity.HasOne(e => e.Product)
                 .WithOne(e => e.TubeWorkingPoint)
                 .HasForeignKey<TubeWorkingPoint>(e => e.ProductId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<IgnoredLot>(entity =>
@@ -124,15 +124,15 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
             entity.Property(e => e.MeasurementId2)
                 .HasMaxLength(100);
 
-            entity.HasOne(e => e.Measurement1)
+            entity.HasOne<ProductMeasurement>()
                 .WithMany()
                 .HasForeignKey(e => e.MeasurementId1)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasOne(e => e.Measurement2)
+            entity.HasOne<ProductMeasurement>()
                 .WithMany()
                 .HasForeignKey(e => e.MeasurementId2)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 

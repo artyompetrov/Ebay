@@ -4,7 +4,7 @@ using Server.Application.Data;
 
 namespace Server.Application.Consumers.PriceCalculator;
 
-public class CalculatePricesForAllConsumer : IConsumer<CalculatePricesForAll>
+internal class CalculatePricesForAllConsumer : IConsumer<CalculatePricesForAll>
 {
     private readonly ApplicationDbContext _applicationContext;
     private readonly IPublishEndpoint _publishEndpoint;

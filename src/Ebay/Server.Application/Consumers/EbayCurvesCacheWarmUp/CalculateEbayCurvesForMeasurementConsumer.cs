@@ -5,7 +5,7 @@ using Server.Application.Services.MeasurementPlot;
 
 namespace Server.Application.Consumers.EbayCurvesCacheWarmUp;
 
-public class CalculateEbayCurvesForMeasurementConsumer : IConsumer<CalculateEbayCurvesForMeasurement>
+internal class CalculateEbayCurvesForMeasurementConsumer : IConsumer<CalculateEbayCurvesForMeasurement>
 {
     private readonly MeasurementPlotService _measurementPlotService;
     private readonly ILogger<CalculateEbayCurvesForMeasurementConsumer> _logger;

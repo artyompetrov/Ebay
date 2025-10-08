@@ -2,4 +2,7 @@ using Server.Domain.Measurements.MeasurementTypes.Base;
 
 namespace Server.Domain.Measurements.MeasurementTypes;
 
-public record MeasurementConfigTableParseResult(MeasurementTypeBase? MeasurementType, int SteppingVariableCount, int NumberOfIntervals);
+public record MeasurementConfigTableParseResult(
+    AnodeCurvesBase AnodeCurves,
+    int SteppingVariableCount,
+    int NumberOfIntervals);

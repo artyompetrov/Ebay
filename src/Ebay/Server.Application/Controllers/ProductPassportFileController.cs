@@ -6,7 +6,7 @@ using Server.Application.Data;
 namespace Server.Application.Controllers;
 
 [ApiController]
-public class ProductPassportFileController : ControllerBase
+internal class ProductPassportFileController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
 

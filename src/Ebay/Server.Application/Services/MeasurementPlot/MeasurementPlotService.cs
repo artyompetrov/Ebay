@@ -1,5 +1,6 @@
 using ScottPlot;
 using ScottPlot.PlotStyles;
+using Server.Application.Abstractions.Measurements;
 using Server.Application.Infrastructure;
 using Server.Application.Services.Measurement;
 using Server.Domain.Measurements;
@@ -7,17 +8,21 @@ using Server.Domain.Measurements.MeasurementTypes.Base;
 
 namespace Server.Application.Services.MeasurementPlot;
 
-public class MeasurementPlotService
+// todo генерация графиков по идее должна быть вынесена в адаптер
+internal class MeasurementPlotService
 {
     private readonly DbCache _cache;
-    private readonly MeasurementService _measurementService;
+    private readonly IMeasurementQueries _measurementQueries;
+    private readonly IMeasurementFileParser _measurementFileParser;
 
     public MeasurementPlotService(
         DbCache cache,
-        MeasurementService measurementService)
+        IMeasurementQueries measurementQueries,
+        IMeasurementFileParser measurementFileParser)
     {
         _cache = cache;
-        _measurementService = measurementService;
+        _measurementQueries = measurementQueries;
+        _measurementFileParser = measurementFileParser;
     }
 
     /// <summary>
@@ -48,7 +53,7 @@ public class MeasurementPlotService
     {
         if (sellingOnly)
         {
-            var state = await _measurementService.GetMeasurementState(measurementId, cancellationToken);
+            var state = await _measurementQueries.GetMeasurementState(measurementId, cancellationToken);
             if (state == null)
                 return null;
 
@@ -63,12 +68,12 @@ public class MeasurementPlotService
             key: cacheKey,
             async () =>
             {
-                var measurement = await _measurementService.GetMeasurement(
-                    cancellationToken: cancellationToken,
-                    measurementId);
-
-                if (measurement == null)
+                var measurementInfo = await _measurementQueries.GetMeasurementInfo(measurementId,  cancellationToken);
+                
+                if (measurementInfo == null)
                     return null;
+                
+                var result = _measurementFileParser.Parse(measurementInfo.Measurements);
 
                 return CreateMergedPlot(
                     mergeVertical: mergeVertical,
@@ -76,7 +81,9 @@ public class MeasurementPlotService
                     width: width,
                     height: height,
                     addQuickTest: addQuickTest,
-                    measurement: measurement);
+                    quickTest: result.PrettifiedQuickTest,
+                    anodeCurves: result.MeasurementConfigTableParseResult.AnodeCurves,
+                    gridCurves: result.MeasurementConfigTableParseResult.AnodeCurves.ConvertToGridCurves());
             },
             ttl: TimeSpan.FromDays(30 * 12),
             cancellationToken: cancellationToken
@@ -89,21 +96,23 @@ public class MeasurementPlotService
         int width,
         int height,
         bool addQuickTest,
-        MeasurementData measurement)
+        string quickTest,
+        AnodeCurvesBase anodeCurves,
+        GridCurvesBase gridCurves)
     {
         var plot1 = CreatePlot(
-            curves: measurement.AnodeCurves,
+            curves: anodeCurves,
             legendVertical: legendVertical,
             width: width,
             height: height);
 
         var plot2 = CreatePlot(
-            curves: measurement.GridCurves,
+            curves: gridCurves,
             legendVertical: legendVertical,
             width: width,
             height: height);
 
-        var quickTestSvg = addQuickTest ? QuickTestSvg(measurement) : null;
+        var quickTestSvg = addQuickTest ? QuickTestSvg(quickTest) : null;
 
         var result = SvgMerger.MergeSvgs(
             mergeVertical: mergeVertical,
@@ -111,12 +120,12 @@ public class MeasurementPlotService
             new SvgMerger.Svg(plot1, true),
             new SvgMerger.Svg(plot2, true));
 
-        if (!measurement.AnodeCurves.HasValuesAbovePmax && !measurement.GridCurves.HasValuesAbovePmax)
+        if (!anodeCurves.HasValuesAbovePmax && !gridCurves.HasValuesAbovePmax)
         {
             result = SvgMerger.MergeSvgs(
                 mergeVertical: true,
                 new SvgMerger.Svg(result, true),
-                new SvgMerger.Svg(NotEnoughTesterRangeSvg(measurement.AnodeCurves.PmaxWatt, measurement.GridCurves.PmaxWatt), true));
+                new SvgMerger.Svg(NotEnoughTesterRangeSvg(anodeCurves.PmaxWatt, gridCurves.PmaxWatt), true));
         }
 
 
@@ -256,10 +265,10 @@ public class MeasurementPlotService
 
 
 
-    private static string QuickTestSvg(MeasurementData measurement)
+    private static string QuickTestSvg(string quickTest)
     {
         var lines = System.Security.SecurityElement
-            .Escape(measurement.QuickTest)
+            .Escape(quickTest)
             .Split('\n');
         var lineHight = 16;
         var tspans = string.Join("\n", values: lines.Skip(1).Select((line, i) =>

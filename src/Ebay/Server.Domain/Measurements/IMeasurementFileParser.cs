@@ -3,4 +3,6 @@
 public interface IMeasurementFileParser
 {
     MeasurementFileParseResult Parse(byte[] measurements);
+
+    Task<byte[]> ToPrettifiedZip(byte[] zipBytes);
 }

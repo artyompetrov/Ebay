@@ -5,7 +5,7 @@ using Server.Domain;
 
 namespace Server.Application.Infrastructure;
 
-public class DbCache
+internal class DbCache
 {
     private readonly ApplicationDbContext _context;
     private readonly DatabaseConcurrentAccessSemaphore _semaphore;

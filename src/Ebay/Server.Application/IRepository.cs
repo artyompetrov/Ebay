@@ -2,7 +2,7 @@
 
 namespace Server.Application;
 
-public interface IRepository<TAggregate, in TId> 
+internal interface IRepository<TAggregate, in TId> 
     where TAggregate : AggregateRoot<TId>
 {
     Task<TAggregate?> GetByIdAsync(TId id, CancellationToken ct);

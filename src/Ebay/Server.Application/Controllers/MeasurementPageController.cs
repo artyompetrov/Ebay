@@ -7,7 +7,7 @@ using Server.Application.Services.MeasurementPlot;
 namespace Server.Application.Controllers;
 
 [ApiController]
-public class MeasurementPageController : ControllerBase
+internal class MeasurementPageController : ControllerBase
 {
     private readonly MeasurementService _measurementService;
     private readonly MeasurementPlotService _measurementPlotService;

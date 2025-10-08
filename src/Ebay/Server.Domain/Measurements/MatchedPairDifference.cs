@@ -41,9 +41,4 @@ public class MatchedPairDifference
     /// </summary>
     public double MaxAbsSection1 { get; set; }
     public double? MaxAbsSection2 { get; set; }
-
-
-    public ProductMeasurement Measurement1 { get; set; } = null!;
-
-    public ProductMeasurement Measurement2 { get; set; } = null!;
 }

@@ -27,7 +27,7 @@ using TubeWorkingPoint = Server.Controllers.Generated.TubeWorkingPoint;
 
 namespace Server.Application.Controllers;
 
-public class EbayControllerImplementation : IEbayController
+internal class EbayControllerImplementation : IEbayController
 {
     private readonly ApplicationDbContext _applicationContext;
     private readonly IPublishEndpoint _publishEndpoint;

@@ -5,7 +5,7 @@ using Server.Application.Data;
 
 namespace Server.Application.Consumers.PriceCalculator;
 
-public class CalculatePricesForProductConsumer : IConsumer<CalculatePricesForProduct>
+internal class CalculatePricesForProductConsumer : IConsumer<CalculatePricesForProduct>
 {
     private readonly ApplicationDbContext _applicationContext;
     private readonly ILogger<CalculatePricesForProductConsumer> _logger;

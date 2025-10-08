@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using Server.Application.Abstractions.Measurements;
 using Server.Application.Data;
 using Server.Application.Services.Measurement;
 using Server.Domain;
@@ -11,30 +12,31 @@ public class MeasurementPage : PageModel
 {
     private readonly MeasurementService _measurementService;
     private readonly ApplicationDbContext _applicationContext;
+    private readonly IMeasurementQueries _measurementQueries;
 
     //конструктор обязательно должен быть public
-    public MeasurementPage(MeasurementService measurementService, ApplicationDbContext applicationContext)
+    public MeasurementPage( ApplicationDbContext applicationContext, IMeasurementQueries measurementQueries)
     {
-        _measurementService = measurementService;
         _applicationContext = applicationContext;
+        _measurementQueries = measurementQueries;
     }
 
     public Product Product { get; set; } = null!;
-    public MeasurementData Measurement { get; set; } = null!;
+    public MeasurementInfo Measurement { get; set; } = null!;
 
 
     public async Task<IActionResult> OnGet(string measurementId, CancellationToken cancellationToken)
     {
-        var measurementData = await _measurementService.GetMeasurement(cancellationToken, measurementId);
-
-        if (measurementData == null)
+        var measurementInfo = await _measurementQueries.GetMeasurementInfo(measurementId, cancellationToken);
+        
+        if (measurementInfo == null)
             return NotFound("Measurement not found");
 
         var product = await _applicationContext.Products
             .AsNoTracking()
             .Include(x => x.SearchQueries)
             .Include(x => x.Passports)
-            .SingleOrDefaultAsync(x => x.Id == measurementData.ProductId);
+            .SingleOrDefaultAsync(x => x.Id == measurementInfo.ProductId);
 
         if (product == null)
         {
@@ -42,7 +44,7 @@ public class MeasurementPage : PageModel
         }
 
         Product = product;
-        Measurement = measurementData;
+        Measurement = measurementInfo;
 
         return Page();
     }
