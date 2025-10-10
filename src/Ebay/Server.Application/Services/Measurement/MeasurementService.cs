@@ -195,20 +195,19 @@ public class MeasurementService
             .SingleOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyCollection<string>> GetMeasurementIds(
+    public async Task<IReadOnlySet<string>> GetMeasurementIds(
         Guid productId,
         IReadOnlyCollection<MeasurementState> measurementStates,
         CancellationToken cancellationToken)
     {
-        var measurementsQuery = _applicationContext.ProductMeasurements
+        var measurementsQuery = await _applicationContext.ProductMeasurements
             .AsNoTracking()
             .Where(m => m.ProductId == productId)
-            .Where(m => measurementStates.Contains(m.MeasurementState));
+            .Where(m => measurementStates.Contains(m.MeasurementState))
+            .Select(x=>x.Id)
+            .ToHashSetAsync(cancellationToken: cancellationToken);
 
-        return await measurementsQuery
-            .OrderBy(m => m.Id)
-            .Select(m => m.Id)
-            .ToListAsync(cancellationToken);
+        return measurementsQuery;
     }
 
     public async Task<IReadOnlyCollection<MeasurementInfo>> GetMeasurementInfos(

@@ -32,7 +32,7 @@ public class MatchedMeasurementService
         Guid productId,
         CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Starting matching task for {ProductId}", productId);
+        
         
         var hasWorkingPoint = await _applicationContext.TubeWorkingPoints
             .AsNoTracking()
@@ -56,10 +56,14 @@ public class MatchedMeasurementService
             measurementStates: measurementStates,
             cancellationToken: cancellationToken)).ToHashSet();
 
+        _logger.LogInformation("Starting matching task for {ProductId}, {MeasurementIds}", productId, string.Join(",", measurementIds));
+        
         _applicationContext.MatchedPairDifferences.RemoveRange(
             _applicationContext.MatchedPairDifferences.Where(x => measurementIds.Contains(x.MeasurementId1)));
 
-        foreach (var measurementId1 in measurementIds)
+        await _applicationContext.SaveChangesAsync(cancellationToken);
+        
+        foreach (var measurementId1 in measurementIds) // todo мы тут делаем пары из измерений, находящихся в разных статусах MeasurementState, возможно не стоит так делать 
         {
             var measurements = new List<string>();
             foreach (var measurementId2 in measurementIds)
