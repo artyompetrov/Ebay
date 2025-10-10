@@ -604,17 +604,6 @@ public class EbayControllerImplementation : IEbayController
         Guid productId,
         CancellationToken cancellationToken)
     {
-        var hasWorkingPoint = await _applicationContext.TubeWorkingPoints
-            .AsNoTracking()
-            .AnyAsync(x => x.ProductId == productId, cancellationToken);
-
-        if (!hasWorkingPoint)
-        {
-            throw NonOkHttpAnswerException.ValidationError400(
-                field: "tubeWorkingPoint",
-                errors: "Рабочая точка не задана.");
-        }
-
         await _matchedMeasurementService.FindMatchedMeasurementsAsync(
             productId: productId,
             cancellationToken: cancellationToken);
