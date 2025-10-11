@@ -30,9 +30,10 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
     public async Task Consume(ConsumeContext<CalculateMatchedPair> context)
     {
         _logger.LogInformation(
-            message: "{MeasurementId1} {MeasurementId2}",
+            message: "Processing {MeasurementId1} {MeasurementId2} in {ServiceName}",
             context.Message.MeasurementId1,
-            context.Message.MeasurementId2);
+            context.Message.MeasurementId2,
+            nameof(CalculateMatchedPair));
 
         var measurementId1 = await _measurementService.GetMeasurement(
             cancellationToken: context.CancellationToken,
