@@ -1,8 +1,10 @@
 using System.Text;
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Server.Application.Abstractions.Measurements;
 using Server.Application.Consumers.MatchedPairs;
+using Server.Application.Controllers;
 using Server.Application.Data;
 using Server.Domain.Measurements;
 
@@ -31,6 +33,20 @@ internal class MatchedMeasurementService
         Guid productId,
         CancellationToken cancellationToken)
     {
+        
+        
+        var hasWorkingPoint = await _applicationContext.TubeWorkingPoints
+            .AsNoTracking()
+            .AnyAsync(x => x.ProductId == productId, cancellationToken);
+
+        // todo хендлинг ошибок должен быть на уровне адаптера
+        if (!hasWorkingPoint)
+        {
+            throw NonOkHttpAnswerException.ValidationError400(
+                field: "tubeWorkingPoint",
+                errors: "Рабочая точка не задана.");
+        }
+        
         var measurementStates = Enum
             .GetValues<MeasurementState>()
             .Where(state => state != MeasurementState.Sold)
@@ -41,12 +57,16 @@ internal class MatchedMeasurementService
             measurementStates: measurementStates,
             cancellationToken: cancellationToken)).ToHashSet();
 
+        _logger.LogInformation("Starting matching task for {ProductId}, {MeasurementIds}", productId, string.Join(",", measurementIds));
+        
         _applicationContext.MatchedPairDifferences.RemoveRange(
             _applicationContext.MatchedPairDifferences.Where(x => measurementIds.Contains(x.MeasurementId1)));
 
-        foreach (var measurementId1 in measurementIds)
+        await _applicationContext.SaveChangesAsync(cancellationToken);
+        
+        foreach (var measurementId1 in measurementIds) // todo мы тут делаем пары из измерений, находящихся в разных статусах MeasurementState, возможно не стоит так делать 
         {
-            var sb = new StringBuilder();
+            var measurements = new List<string>();
             foreach (var measurementId2 in measurementIds)
             {
                 var message = new CalculateMatchedPair(
@@ -57,9 +77,9 @@ internal class MatchedMeasurementService
                     message: message,
                     cancellationToken: cancellationToken);
 
-                sb.AppendLine(message.ToString());
+                measurements.Add(message.ToString());
             }
-            _logger.LogDebug("Publishing {messageType}, {messageIds}", nameof(CalculateMatchedPair),  sb.ToString());
+            _logger.LogInformation("Publishing {messageType}, {messageIds}", nameof(CalculateMatchedPair),  string.Join(",", measurements));
             await _applicationContext.SaveChangesAsync(cancellationToken);
         }
     }

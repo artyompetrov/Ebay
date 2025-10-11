@@ -1,3 +1,4 @@
+using System.Transactions;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Consumers.PriceCalculator;
@@ -208,16 +209,21 @@ internal class EbayControllerImplementation : IEbayController
     }
 
     public async Task<ICollection<ProductWithId>> GetAllProductsAsync(CancellationToken cancellationToken)
-
     {
+        await using var tx = await _applicationContext.Database
+            .BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead, cancellationToken);
+        
         var dbProducts = await _applicationContext.Products
             .AsNoTracking()
             .OrderBy(x => x.Name)
             .ThenBy(x => x.Id)
             .Include(x => x.SearchQueries)
             .Include(x => x.RuSearchQueries)
+            .AsSplitQuery()
             .ToListAsync(cancellationToken);
-
+        
+        await tx.CommitAsync(cancellationToken);
+        
         return dbProducts.Select(x => x.ToApiProduct()).ToList();
     }
 
@@ -289,10 +295,14 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken
     )
     {
+        await using var tx = await _applicationContext.Database
+            .BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead, cancellationToken);
+        
         var product = await _applicationContext.Products
             .AsNoTracking()
             .Include(x => x.SearchQueries)
             .Include(x => x.RuSearchQueries)
+            .AsSplitQuery()
             .SingleOrDefaultAsync(predicate: x => x.Id == id, cancellationToken: cancellationToken);
 
         if (product == null)
@@ -300,6 +310,8 @@ internal class EbayControllerImplementation : IEbayController
             throw NonOkHttpAnswerException.NotFound400();
         }
 
+        await tx.CommitAsync(cancellationToken);
+        
         return product.ToApiProduct();
     }
 
@@ -604,17 +616,6 @@ internal class EbayControllerImplementation : IEbayController
         Guid productId,
         CancellationToken cancellationToken)
     {
-        var hasWorkingPoint = await _applicationContext.TubeWorkingPoints
-            .AsNoTracking()
-            .AnyAsync(x => x.ProductId == productId, cancellationToken);
-
-        if (!hasWorkingPoint)
-        {
-            throw NonOkHttpAnswerException.ValidationError400(
-                field: "tubeWorkingPoint",
-                errors: "Рабочая точка не задана.");
-        }
-
         await _matchedMeasurementService.FindMatchedMeasurementsAsync(
             productId: productId,
             cancellationToken: cancellationToken);

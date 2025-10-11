@@ -36,9 +36,10 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
     public async Task Consume(ConsumeContext<CalculateMatchedPair> context)
     {
         _logger.LogInformation(
-            message: "{MeasurementId1} {MeasurementId2}",
+            message: "Processing {MeasurementId1} {MeasurementId2} in {ServiceName}",
             context.Message.MeasurementId1,
-            context.Message.MeasurementId2);
+            context.Message.MeasurementId2,
+            nameof(CalculateMatchedPair));
 
         var measurement1dto = await _measurementQueries.GetMeasurementInfoWithData(context.Message.MeasurementId1, context.CancellationToken);
         var measurement2dto = await _measurementQueries.GetMeasurementInfoWithData(context.Message.MeasurementId2, context.CancellationToken);
@@ -418,5 +419,5 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
 
 public record CalculateMatchedPair(string MeasurementId1, string MeasurementId2)
 {
-    public override string ToString() => $"{MeasurementId1} -  {MeasurementId2}";
+    public override string ToString() => $"{MeasurementId1}-{MeasurementId2}";
 }
