@@ -15,6 +15,8 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        
+        
 
         // optimistic concurrency для всех агрегатов
         foreach (var et in modelBuilder.Model.GetEntityTypes()

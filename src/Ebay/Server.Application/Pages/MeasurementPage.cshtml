@@ -9,7 +9,7 @@
 
 <html lang="en">
 <head>
-    <title>Test results of @Model.Product.SearchQueries.FirstOrDefault()?.Query #@Model.Measurement.MeasurementId</title>
+    <title>Test results of @Model.Product.SearchQueries.FirstOrDefault()?.Query #@Model.Measurement.Id</title>
 </head>
 <style>
     .my-table {
@@ -50,12 +50,12 @@
     </tr>
     <tr>
         <td>
-            <h2 style="text-align: center">Tube @Model.Product.SearchQueries.FirstOrDefault()?.Query #@Model.Measurement.MeasurementId</h2>
+            <h2 style="text-align: center">Tube @Model.Product.SearchQueries.FirstOrDefault()?.Query #@Model.Measurement.Id</h2>
             <p><b>Manufacture date:</b> @Model.Measurement.ManufactureCode</p>
             <p><b>Condition:</b> @Model.Measurement.ProductState</p>
             <p><b>Measurement equipment:</b> <a href="https://www.dos4ever.com/uTracer3/uTracer3_pag0.html" rel="noreferrer" target="_blank">uTracer 3+</a> tube tester.</p>
             <p><b>Measurement ranges:</b> Anode and screen supplies: 0 to 400 V @@ 600 mA. Negative grid supply: 0 to -50 V</p>
-            <p><b>Download:</b> <a href="/m/@Model.Measurement.MeasurementId/download" target="_blank">Zip archive</a> with measurement results.
+            <p><b>Download:</b> <a href="/m/@Model.Measurement.Id/download" target="_blank">Zip archive</a> with measurement results.
             You can import it into <a href="https://www.dos4ever.com/uTracer3/uTracer3_pag5.html#importexcel" rel="noreferrer" target="_blank">Excel</a>,
             or a <a href="https://www.dos4ever.com/uTracer3/uTracer3_pag16.html" rel="noreferrer" target="_blank">load line tool</a> (load line tool works with anode_curves.utd file).
         </td>
@@ -64,13 +64,13 @@
         <td>
             <h2 style="text-align: center">Quick test results:</h2>
             <br/>
-            <pre>@Model.Measurement.QuickTest</pre>
+            <pre>@Model.QuickTest</pre>
         </td>
     </tr>
     <tr>
         <td>
             <h2 style="text-align: center">Curves:</h2>
-            <img src="/m/@Model.Measurement.MeasurementId/curves?height=600&width=1200" alt="Curves">
+            <img src="/m/@Model.Measurement.Id/curves?height=600&width=1200" alt="Curves">
         </td>
     </tr>
     @if (Model.Product.Passports.Any())

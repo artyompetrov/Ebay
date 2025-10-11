@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using Server.Application.Abstractions.Measurements;
 using Server.Application.Data;
 using Server.Domain.Measurements;
 
@@ -8,62 +9,48 @@ namespace Server.Application.Pages;
 
 public class EbayLotDescriptionPage : PageModel
 {
-    private readonly ApplicationDbContext _applicationContext;
+    private readonly IMeasurementQueries _measurementQueries;
+    private readonly IProductQueries _productQueries;
+    private readonly IPassportQueries _passportQueries;
 
     //конструктор обязательно должен быть public
-    public EbayLotDescriptionPage(ApplicationDbContext applicationContext)
+    public EbayLotDescriptionPage(
+        IMeasurementQueries measurementQueries,
+        IProductQueries productQueries,
+        IPassportQueries  passportQueries)
     {
-        _applicationContext = applicationContext;
+        _measurementQueries = measurementQueries;
+        _productQueries = productQueries;
+        _passportQueries = passportQueries;
     }
 
-    public ProductWithMeasurementsDto Product { get; set; } = null!;
+
 
     public ProductState State { get; set; }
 
     public Guid ProductId { get; set; }
 
-    public record ProductWithMeasurementsDto(
-        List<string> SearchQueries,
-        List<MeasurementIdWithManufactureCode> Measurements,
-        List<PassportDto> Passports
-    );
+    public ProductInfo Product { get; set; }  = null!;
 
-    public record MeasurementIdWithManufactureCode(
-        string MeasurementId,
-        string ManufactureCode,
-        ProductState ProductState
-    );
+    public IReadOnlyList<Passport> Passports { get; set; } = null!;
 
-    public record PassportDto(
-        Guid Id,
-        string FileName
-    );
-
+    public IReadOnlyCollection<MeasurementInfo> Measurements { get; set; } = null!;
+    
     public async Task<IActionResult> OnGet(Guid productId, ProductState state, CancellationToken cancellationToken)
     {
         State = state;
         ProductId = productId;
 
-        var product = await _applicationContext.Products
-            .Where(x => x.Id == productId)
-            .Select(x => new ProductWithMeasurementsDto(
-                x.SearchQueries.Select(m => m.Query).ToList(),
-                x.ProductMeasurements
-                    .Where(pm => pm.MeasurementState == MeasurementState.Selling && pm.ProductState == state)
-                    .Select(m => new MeasurementIdWithManufactureCode(m.Id, m.ManufactureCode, m.ProductState))
-                    .ToList(),
-                x.Passports
-                    .OrderBy(p => p.Order)
-                    .Select(p => new PassportDto(p.Id, p.FileName))
-                    .ToList()
-            ))
-            .SingleOrDefaultAsync(cancellationToken);
+        var product = await  _productQueries.GetProduct(productId, cancellationToken);
 
         if (product == null)
         {
             return NotFound();
         }
 
+        Measurements = await _measurementQueries.GetMeasurementsInfo(productId, new []{MeasurementState.Selling}, cancellationToken);
+        Passports = await _passportQueries.GetPassports(productId, cancellationToken);
+        
         Product = product;
 
         return Page();

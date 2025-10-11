@@ -68,12 +68,12 @@ internal class MeasurementPlotService
             key: cacheKey,
             async () =>
             {
-                var measurementInfo = await _measurementQueries.GetMeasurementInfo(measurementId,  cancellationToken);
+                var measurementInfo = await _measurementQueries.GetMeasurementInfoWithData(measurementId,  cancellationToken);
                 
                 if (measurementInfo == null)
                     return null;
                 
-                var result = _measurementFileParser.Parse(measurementInfo.Measurements);
+                var result = _measurementFileParser.Parse(measurementInfo.Data);
 
                 return CreateMergedPlot(
                     mergeVertical: mergeVertical,

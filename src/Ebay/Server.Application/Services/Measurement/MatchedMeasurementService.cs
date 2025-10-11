@@ -36,7 +36,7 @@ internal class MatchedMeasurementService
             .Where(state => state != MeasurementState.Sold)
             .ToArray();
 
-        var measurementIds = (await _measurementQueries.GetMeasurementIds(
+        var measurementIds = (await _measurementQueries.GetMeasurementsInfo(
             productId: productId,
             measurementStates: measurementStates,
             cancellationToken: cancellationToken)).ToHashSet();

@@ -6,4 +6,5 @@ public record MeasurementInfo(
     string Id,
     Guid ProductId,
     ProductState ProductState,
-    byte[] Measurements);
+    string ManufactureCode,
+    string ProductName);

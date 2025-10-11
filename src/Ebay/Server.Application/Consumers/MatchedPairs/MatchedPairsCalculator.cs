@@ -31,7 +31,7 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         _measurementFileParser = measurementFileParser;
     }
 
-    private record MeasurementInfoWithAnodeCurves(MeasurementInfo MeasurementInfo, AnodeCurvesBase AnodeCurves);
+    private record MeasurementInfoWithAnodeCurves(MeasurementInfoWithData MeasurementInfoWithData, AnodeCurvesBase AnodeCurves);
     
     public async Task Consume(ConsumeContext<CalculateMatchedPair> context)
     {
@@ -40,8 +40,8 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
             context.Message.MeasurementId1,
             context.Message.MeasurementId2);
 
-        var measurement1dto = await _measurementQueries.GetMeasurementInfo(context.Message.MeasurementId1, context.CancellationToken);
-        var measurement2dto = await _measurementQueries.GetMeasurementInfo(context.Message.MeasurementId2, context.CancellationToken);
+        var measurement1dto = await _measurementQueries.GetMeasurementInfoWithData(context.Message.MeasurementId1, context.CancellationToken);
+        var measurement2dto = await _measurementQueries.GetMeasurementInfoWithData(context.Message.MeasurementId2, context.CancellationToken);
 
         if (measurement1dto == null || measurement2dto == null)
         {
@@ -80,11 +80,11 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         
         var measurement1 = new MeasurementInfoWithAnodeCurves(
             measurement1dto,
-            AnodeCurves: _measurementFileParser.Parse(measurement1dto.Measurements).MeasurementConfigTableParseResult.AnodeCurves);
+            AnodeCurves: _measurementFileParser.Parse(measurement1dto.Data).MeasurementConfigTableParseResult.AnodeCurves);
         
         var measurement2 = new MeasurementInfoWithAnodeCurves(
             measurement2dto,
-            AnodeCurves: _measurementFileParser.Parse(measurement1dto.Measurements).MeasurementConfigTableParseResult.AnodeCurves);
+            AnodeCurves: _measurementFileParser.Parse(measurement1dto.Data).MeasurementConfigTableParseResult.AnodeCurves);
         
         switch (measurement1.AnodeCurves)
         {
@@ -119,7 +119,7 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
                     throw new UnreachableException($"{nameof(measurement2)} is expected to be TriodeAnodeCurves");
                 }
 
-                if (measurement1.MeasurementInfo.Id == measurement2.MeasurementInfo.Id)
+                if (measurement1.MeasurementInfoWithData.Id == measurement2.MeasurementInfoWithData.Id)
                 {
                     // игнорируем сравнение сами собой
                     return;
@@ -177,7 +177,7 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         var measurement1I2Model = RbfModel(measurement1I2, workingPoint);
         var measurement2I2Model = RbfModel(measurement2I2, workingPoint);
 
-        if (measurement1.MeasurementInfo.Id != measurement2.MeasurementInfo.Id) // не делаем Direct в кейсе когда мы сравниваем две секции двойного триода между собой
+        if (measurement1.MeasurementInfoWithData.Id != measurement2.MeasurementInfoWithData.Id) // не делаем Direct в кейсе когда мы сравниваем две секции двойного триода между собой
         {
             var (mseDirect1, rmseDirect1, maxAbsDirect1) = SquaredDiffPointsInEllipse(
                 model1: measurement1I1Model,
@@ -194,8 +194,8 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
                 workingPoint: workingPoint);
 
             await SaveToDatabase(
-                measurementId1: measurement1.MeasurementInfo.Id,
-                measurementId2: measurement2.MeasurementInfo.Id,
+                measurementId1: measurement1.MeasurementInfoWithData.Id,
+                measurementId2: measurement2.MeasurementInfoWithData.Id,
                 cancellationToken: cancellationToken,
                 comparisonMode: ComparisonMode.Direct,
                 mseSection1: mseDirect1,
@@ -221,8 +221,8 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
             workingPoint: workingPoint);
 
         await SaveToDatabase(
-            measurementId1: measurement1.MeasurementInfo.Id,
-            measurementId2: measurement2.MeasurementInfo.Id,
+            measurementId1: measurement1.MeasurementInfoWithData.Id,
+            measurementId2: measurement2.MeasurementInfoWithData.Id,
             cancellationToken: cancellationToken,
             comparisonMode: ComparisonMode.Cross,
             mseSection1: mseCross1,
@@ -256,8 +256,8 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
             );
 
         await SaveToDatabase(
-            measurementId1: measurement1.MeasurementInfo.Id,
-            measurementId2: measurement2.MeasurementInfo.Id,
+            measurementId1: measurement1.MeasurementInfoWithData.Id,
+            measurementId2: measurement2.MeasurementInfoWithData.Id,
             cancellationToken: cancellationToken,
             comparisonMode: ComparisonMode.Direct,
             mseSection1: mse,

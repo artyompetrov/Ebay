@@ -1,6 +1,6 @@
 ﻿using Server.Domain.Measurements;
 
-namespace Sever.Adapters.EF.ReadModel.Dtos;
+namespace Sever.Adapters.EF.ReadModel.ReadModelSchema;
 
 public class ProductMeasurementDto
 {

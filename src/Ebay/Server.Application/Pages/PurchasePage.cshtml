@@ -33,14 +33,14 @@
     {
         <tr>
             <td>
-                #@measurement.MeasurementId
+                #@measurement.Id
                 <br /><br />
                 @measurement.ManufactureCode
                 <br /><br />
                 @measurement.ProductState
             </td>
             <td>
-                <img src="@($"{baseUrl}/m/{measurement.MeasurementId}/ebay_curves?product={WebUtility.UrlEncode(measurement.ProductName)}")" alt="@measurement.MeasurementId" />
+                <img src="@($"{baseUrl}/m/{measurement.Id}/ebay_curves?product={WebUtility.UrlEncode(measurement.ProductName)}")" alt="@measurement.Id" />
             </td>
         </tr>
     }

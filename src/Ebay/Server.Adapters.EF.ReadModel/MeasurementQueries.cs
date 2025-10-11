@@ -23,6 +23,25 @@ internal class MeasurementQueries : IMeasurementQueries
             .SingleOrDefaultAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<MeasurementInfoWithData>> GetMeasurementInfos(IReadOnlyList<string> ids, CancellationToken cancellationToken)
+    {
+        
+        var measurements = await _applicationContext.ProductMeasurements
+            .AsNoTracking()
+            .Where(pm => ids.Contains(pm.Id))
+            .Select(pm => new MeasurementDto(
+                pm.Id,
+                pm.ManufactureCode,
+                pm.ProductState,
+                pm.Product.SearchQueries
+                    .OrderBy(q => q.Query)
+                    .Select(q => q.Query)
+                    .FirstOrDefault() ?? pm.Id
+            ))
+            .ToListAsync(cancellationToken);
+        throw new NotImplementedException();
+    }
+
     public async Task<IReadOnlyCollection<string>> GetMeasurementIds(
         Guid productId,
         IReadOnlyCollection<MeasurementState> measurementStates,
@@ -39,7 +58,7 @@ internal class MeasurementQueries : IMeasurementQueries
     }
 
     public async Task<IReadOnlyCollection<MeasurementInfoWithSimilarMeasurements>>
-        GetMeasurementInfosWithSimmilarMeasurements(
+        GetMeasurementInfosWithSimilarMeasurements(
             Guid productId,
             IReadOnlyCollection<MeasurementState> measurementStates,
             CancellationToken cancellationToken)
@@ -152,12 +171,14 @@ internal class MeasurementQueries : IMeasurementQueries
         return similarMeasurementsLookup;
     }
 
-    public async Task<MeasurementInfo?> GetMeasurementInfo(string measurementId, CancellationToken cancellationToken)
+    public async Task<MeasurementInfoWithData?> GetMeasurementInfoWithData(
+        string measurementId,
+        CancellationToken cancellationToken)
     {
         var measurementInfo = await _dbContext.ProductMeasurements
             .AsNoTracking()
             .Where(x => x.Id == measurementId)
-            .Select(x => new MeasurementInfo(x.Id, x.ProductId, x.ProductState, x.Measurements))
+            .Select(x => new MeasurementInfoWithData(x.Id, x.ProductId, x.ProductState, x.Measurements))
             .SingleOrDefaultAsync(cancellationToken: cancellationToken);
 
         return measurementInfo;

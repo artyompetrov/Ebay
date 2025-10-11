@@ -106,7 +106,7 @@ internal class MeasurementService
         Guid productId,
         IReadOnlyCollection<MeasurementState> measurementStates,
         CancellationToken cancellationToken) =>
-        _measurementQueries.GetMeasurementInfosWithSimmilarMeasurements(productId, measurementStates, cancellationToken);
+        _measurementQueries.GetMeasurementInfosWithSimilarMeasurements(productId, measurementStates, cancellationToken);
 
 
     public Task<Dictionary<string, IReadOnlyCollection<SimilarMeasurementInfo>>> GetSimilarMeasurements(
@@ -117,12 +117,12 @@ internal class MeasurementService
 
     public async Task<byte[]?> GetMeasurementFile(string measurementId, CancellationToken cancellationToken)
     {
-        var zipBytes = await _measurementQueries.GetMeasurementInfo(measurementId, cancellationToken);
+        var zipBytes = await _measurementQueries.GetMeasurementInfoWithData(measurementId, cancellationToken);
         
         if (zipBytes == null)
             return null;
 
-        var result = await _measurementFileParser.ToPrettifiedZip(zipBytes.Measurements);
+        var result = await _measurementFileParser.ToPrettifiedZip(zipBytes.Data);
         
         return result;
     }

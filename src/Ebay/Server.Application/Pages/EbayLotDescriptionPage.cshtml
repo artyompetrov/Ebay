@@ -17,7 +17,7 @@
             name += ", NEW";
         }
 
-        if (model.Product.Measurements.Count > 0)
+        if (model.Measurements.Count > 0)
         {
             name += ", uTracer3+ TESTED";
         }
@@ -39,7 +39,7 @@
 
 <h3>Thank you for choosing us! Check out our other lots.</h3>
 
-@if (Model.Product.Measurements.Count > 0)
+@if (Model.Measurements.Count > 0)
 {
     <br/>
     <h2 style="text-align: center;">📈 Tested Vacuum Tube — Measurement Results Below</h2>
@@ -79,29 +79,29 @@
             <th>Tube #</th>
             <th>Curves</th>
         </tr>
-        @foreach (var meas in Model.Product.Measurements)
+        @foreach (var meas in Model.Measurements)
         {
             <tr>
                 <td>
-                    #@meas.MeasurementId
+                    #@meas.Id
                     <br/><br/>
                     @meas.ManufactureCode
                     <br/><br/>
                     @meas.ProductState
                 </td>
-                <td><img src="@($"{baseUrl}/m/{meas.MeasurementId}/ebay_curves?product={WebUtility.UrlEncode(GetName(Model))}")" alt="@meas.MeasurementId"/></td>
+                <td><img src="@($"{baseUrl}/m/{meas.Id}/ebay_curves?product={WebUtility.UrlEncode(GetName(Model))}")" alt="@meas.Id"/></td>
             </tr>
         }
     </table>
 }
 
-@if (Model.Product.Passports.Count > 0)
+@if (Model.Passports.Count > 0)
 {
     <p>You can view the passport scans by expanding the section below.</p>
     <input type="checkbox" id="passport-toggle" class="passport-toggle" />
     <label for="passport-toggle" class="passport-label">📄 Product passport (click to expand)</label>
     <div class="passport-content">
-        @foreach (var passport in Model.Product.Passports)
+        @foreach (var passport in Model.Passports)
         {
             <img src="@($"{baseUrl}/products/{Model.ProductId}/passports/{passport.Id}")" alt="@passport.FileName" />
         }

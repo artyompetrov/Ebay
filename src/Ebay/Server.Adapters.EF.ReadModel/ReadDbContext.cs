@@ -1,6 +1,6 @@
 ﻿using Duende.IdentityServer.EntityFramework.Options;
 using Microsoft.EntityFrameworkCore;
-using Sever.Adapters.EF.ReadModel.Dtos;
+using Sever.Adapters.EF.ReadModel.ReadModelSchema;
 
 namespace Sever.Adapters.EF.ReadModel;
 

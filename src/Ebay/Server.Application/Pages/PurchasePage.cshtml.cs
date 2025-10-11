@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using Server.Application.Abstractions.Measurements;
 using Server.Application.Data;
 using Server.Domain.Measurements;
 
@@ -8,21 +9,15 @@ namespace Server.Application.Pages;
 
 public class PurchasePage : PageModel
 {
-    private readonly ApplicationDbContext _applicationContext;
+    private readonly IMeasurementQueries _measurementQueries;
 
-    public PurchasePage(ApplicationDbContext applicationContext)
+    public PurchasePage(IMeasurementQueries measurementQueries)
     {
-        _applicationContext = applicationContext;
+        _measurementQueries = measurementQueries;
     }
 
-    public IReadOnlyList<MeasurementDto> Measurements { get; private set; } = Array.Empty<MeasurementDto>();
+    public IReadOnlyList<MeasurementInfoWithData> Measurements { get; private set; } = Array.Empty<MeasurementInfoWithData>();
 
-    public record MeasurementDto(
-        string MeasurementId,
-        string ManufactureCode,
-        ProductState ProductState,
-        string ProductName
-    );
 
     public async Task<IActionResult> OnGet(string measurementIds, CancellationToken cancellationToken)
     {
@@ -41,19 +36,9 @@ public class PurchasePage : PageModel
             return BadRequest("measurementIds parameter is required");
         }
 
-        var measurements = await _applicationContext.ProductMeasurements
-            .AsNoTracking()
-            .Where(pm => ids.Contains(pm.Id))
-            .Select(pm => new MeasurementDto(
-                pm.Id,
-                pm.ManufactureCode,
-                pm.ProductState,
-                pm.Product.SearchQueries
-                    .OrderBy(q => q.Query)
-                    .Select(q => q.Query)
-                    .FirstOrDefault() ?? pm.Id
-            ))
-            .ToListAsync(cancellationToken);
+        await _measurementQueries.GetMeasurementInfos(ids, cancellationToken);
+
+        var measurements = await _measurementQueries.GetMeasurementInfos(ids, cancellationToken);
 
         if (measurements.Count == 0)
         {
@@ -65,7 +50,7 @@ public class PurchasePage : PageModel
             .ToDictionary(x => x.id, x => x.index, StringComparer.OrdinalIgnoreCase);
 
         Measurements = measurements
-            .OrderBy(m => order.TryGetValue(m.MeasurementId, out var index) ? index : int.MaxValue)
+            .OrderBy(m => order.TryGetValue(m.Id, out var index) ? index : int.MaxValue)
             .ToList();
 
         return Page();
