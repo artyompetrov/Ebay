@@ -13,16 +13,23 @@ internal sealed class ReadDbContext : DbContext
         ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
     }
 
-
-
     protected override void OnModelCreating(ModelBuilder b)
     {
-        b.Entity<ProductMeasurementDto>(eb =>
-        {
-            eb.ToTable("ProductMeasurements");
-        });
-        
+        b.Entity<ProductMeasurementView>(eb => { eb.ToTable("ProductMeasurements"); });
+
+        b.Entity<ProductPassportView>(eb => { eb.ToTable("ProductPassports"); });
+
+        b.Entity<ProductView>(eb => { eb.ToTable("Products"); });
+
+
+        b.Entity<MatchedPairDifference>(eb => { eb.ToTable("MatchedPairDifferences"); });
     }
-    
-    public DbSet<ProductMeasurementDto> ProductMeasurements { get; set; } = null!;
+
+    public DbSet<ProductMeasurementView> ProductMeasurements { get; set; } = null!;
+
+    public DbSet<ProductPassportView> Passports { get; set; } = null!;
+
+    public DbSet<ProductView> Products { get; set; } = null!;
+
+    public DbSet<MatchedPairDifference> MatchedPairDifferences { get; set; } = null!;
 }

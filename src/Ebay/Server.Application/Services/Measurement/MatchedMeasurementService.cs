@@ -55,7 +55,7 @@ internal class MatchedMeasurementService
         var measurementIds = (await _measurementQueries.GetMeasurementsInfo(
             productId: productId,
             measurementStates: measurementStates,
-            cancellationToken: cancellationToken)).ToHashSet();
+            cancellationToken: cancellationToken)).Select(x => x.Id).ToHashSet();
 
         _logger.LogInformation("Starting matching task for {ProductId}, {MeasurementIds}", productId, string.Join(",", measurementIds));
         

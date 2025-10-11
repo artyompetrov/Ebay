@@ -2,14 +2,22 @@
 
 namespace Sever.Adapters.EF.ReadModel.ReadModelSchema;
 
-public class ProductMeasurementDto
+public class ProductMeasurementView
 {
     public required string Id { get; set; }
     
     public required MeasurementState MeasurementState { get; set; }
     public required ProductState ProductState { get; set; }
     
+    public required string ManufactureCode { get; set; }
+    
     public required Guid ProductId { get; set; }
+    
+    public required TimeSpan CreatedAt  { get; set; }
+    
+    public required string Location { get; set; }
+    
+    public required string MatchId { get; set; }
     
     public required byte[] Measurements  { get; set; }
 }

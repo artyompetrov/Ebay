@@ -23,38 +23,45 @@ internal class MeasurementQueries : IMeasurementQueries
             .SingleOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyList<MeasurementInfoWithData>> GetMeasurementInfos(IReadOnlyList<string> ids, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<MeasurementInfoWithData>> GetMeasurementInfos(
+        IReadOnlyList<string> ids,
+        CancellationToken cancellationToken)
     {
-        
-        var measurements = await _applicationContext.ProductMeasurements
+        var measurements = await _dbContext.ProductMeasurements
             .AsNoTracking()
             .Where(pm => ids.Contains(pm.Id))
-            .Select(pm => new MeasurementDto(
+            .Select(pm => new MeasurementInfoWithData(
                 pm.Id,
-                pm.ManufactureCode,
+                pm.ProductId,
                 pm.ProductState,
-                pm.Product.SearchQueries
-                    .OrderBy(q => q.Query)
-                    .Select(q => q.Query)
-                    .FirstOrDefault() ?? pm.Id
+                pm.ManufactureCode,
+                pm.Measurements
             ))
             .ToListAsync(cancellationToken);
-        throw new NotImplementedException();
+        
+        return measurements;
     }
 
-    public async Task<IReadOnlyCollection<string>> GetMeasurementIds(
+
+    public async Task<IReadOnlyCollection<MeasurementInfo>> GetMeasurementsInfo(
         Guid productId,
         IReadOnlyCollection<MeasurementState> measurementStates,
         CancellationToken cancellationToken)
     {
-        var measurementsQuery = _dbContext.ProductMeasurements
+        var measurementsQuery = await _dbContext.ProductMeasurements
+            .AsNoTracking()
             .Where(m => m.ProductId == productId)
-            .Where(m => measurementStates.Contains(m.MeasurementState));
+            .Where(m => measurementStates.Contains(m.MeasurementState))
+            .Select(x =>
+                new MeasurementInfo(
+                    x.Id,
+                    x.ProductId,
+                    x.ProductState,
+                    x.ManufactureCode
+                ))
+            .ToHashSetAsync(cancellationToken: cancellationToken);
 
-        return await measurementsQuery
-            .OrderBy(m => m.Id)
-            .Select(m => m.Id)
-            .ToListAsync(cancellationToken);
+        return measurementsQuery;
     }
 
     public async Task<IReadOnlyCollection<MeasurementInfoWithSimilarMeasurements>>
@@ -63,7 +70,7 @@ internal class MeasurementQueries : IMeasurementQueries
             IReadOnlyCollection<MeasurementState> measurementStates,
             CancellationToken cancellationToken)
     {
-        var measurementsQuery = from measurement in _dbContext.ProductMeasurements.
+        var measurementsQuery = from measurement in _dbContext.ProductMeasurements
             where measurement.ProductId == productId
             where measurementStates.Contains(measurement.MeasurementState)
             join difference in
@@ -121,7 +128,7 @@ internal class MeasurementQueries : IMeasurementQueries
         CancellationToken cancellationToken,
         string[] measurementIds)
     {
-        var similarMeasurements = await _applicationContext.MatchedPairDifferences
+        var similarMeasurements = await _dbContext.MatchedPairDifferences
             .AsNoTracking()
             .Where(x => measurementIds.Contains(x.MeasurementId1))
             .Where(x => x.MeasurementId1 != x.MeasurementId2)
@@ -178,7 +185,7 @@ internal class MeasurementQueries : IMeasurementQueries
         var measurementInfo = await _dbContext.ProductMeasurements
             .AsNoTracking()
             .Where(x => x.Id == measurementId)
-            .Select(x => new MeasurementInfoWithData(x.Id, x.ProductId, x.ProductState, x.Measurements))
+            .Select(x => new MeasurementInfoWithData(x.Id, x.ProductId, x.ProductState, x.ManufactureCode, x.Measurements))
             .SingleOrDefaultAsync(cancellationToken: cancellationToken);
 
         return measurementInfo;
