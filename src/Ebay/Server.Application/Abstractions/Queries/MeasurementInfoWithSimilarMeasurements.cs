@@ -18,4 +18,12 @@ public record MeasurementInfoWithSimilarMeasurements(
     public IReadOnlyCollection<SimilarMeasurementInfo> SimilarMeasurements { get; init; } = Array.Empty<SimilarMeasurementInfo>();
 }
 
-public record SimilarMeasurementInfo(string MeasurementId, string ManufactureCode, double RmseSection1, double? RmseSection2, ComparisonMode ComparisonMode, double Score, bool IsMatchedPair);
+public record SimilarMeasurementInfo(
+    string MeasurementId,
+    string ManufactureCode,
+    double RmseSection1,
+    double? RmseSection2,
+    ComparisonMode ComparisonMode,
+    double Score,
+    bool IsMatchedPair,
+    string? MatchId);

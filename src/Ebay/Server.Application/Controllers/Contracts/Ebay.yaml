@@ -793,6 +793,9 @@ definitions:
         minimum: 0
       isMatchedPair:
         type: boolean
+      matchId:
+        type: string
+        maxLength: 100
     required:
       - measurementId
       - rmseSection1

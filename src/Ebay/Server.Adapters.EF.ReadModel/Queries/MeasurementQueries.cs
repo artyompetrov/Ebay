@@ -143,7 +143,9 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                 x.ComparisonMode,
                 ManufactureCode1 = x.Measurement1.ManufactureCode,
                 ManufactureCode2 = x.Measurement2.ManufactureCode,
-                IsMatchedPair = x.Measurement1.MatchId != null && x.Measurement1.MatchId == x.Measurement2.MatchId
+                AlreadyInMatch = x.Measurement2.MatchId != null,
+                IsMatchedPair = x.Measurement2.MatchId != null && x.Measurement1.MatchId == x.Measurement2.MatchId,
+                MatchId = x.Measurement2.MatchId
             })
             .ToListAsync(cancellationToken);
 
@@ -169,7 +171,8 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                                    StringComparison.OrdinalIgnoreCase)
                                    ? 10.0
                                    : 0.0), // штраф за различие в ManufactureCode2
-                        IsMatchedPair: measurement.IsMatchedPair
+                        IsMatchedPair: measurement.IsMatchedPair,
+                        MatchId: measurement.MatchId
                     ))
                     .OrderBy(measurement => !measurement.IsMatchedPair)
                     .ThenBy(measurement => measurement.Score)

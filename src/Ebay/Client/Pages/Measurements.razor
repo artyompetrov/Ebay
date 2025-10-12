@@ -243,9 +243,16 @@
                                         {
                                             <span class="chip table-danger">Cross-match</span>
                                         }
-                                        @if (similar.IsMatchedPair)
+                                        @if (similar.MatchId != null)
                                         {
-                                            <span class="chip table-success">MatchedPair</span>
+                                            if (similar.IsMatchedPair)
+                                            {
+                                                <span class="chip table-success">Matched</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="chip table-warning">@similar.MatchId</span>
+                                            }
                                         }
                                     </div>
                                 </li>

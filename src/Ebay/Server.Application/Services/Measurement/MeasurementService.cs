@@ -19,7 +19,7 @@ public class MeasurementService
         IMeasurementQueries measurementQueries,
         IMeasurementFileParser measurementFileParser,
         IUnitOfWork unitOfWork
-        )
+    )
     {
         _productMeasurementRepository = productMeasurementRepository;
         _matchedPairDifferenceRepository = matchedPairDifferenceRepository;
@@ -96,7 +96,7 @@ public class MeasurementService
 
     public async Task UpdateMeasurementState(
         MeasurementState state,
-        Guid productId,//todo удалить
+        Guid productId, //todo удалить
         string measurementId,
         CancellationToken cancellationToken)
     {
@@ -119,7 +119,9 @@ public class MeasurementService
     {
         await using var transaction = await _unitOfWork.BeginTransactionAsync(cancellationToken: cancellationToken);
 
-        await _matchedPairDifferenceRepository.RemoveByMeasurementIds( measurementIds: new HashSet<string> {measurementId}, cancellationToken);
+        await _matchedPairDifferenceRepository.RemoveByMeasurementIds(
+            measurementIds: new HashSet<string> { measurementId },
+            cancellationToken);
         await _productMeasurementRepository.RemoveAsync(measurementId, cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
@@ -129,12 +131,14 @@ public class MeasurementService
         Guid productId,
         IReadOnlyCollection<MeasurementState> measurementStates,
         CancellationToken cancellationToken) =>
-        _measurementQueries.GetMeasurementInfosWithSimilarMeasurements(productId, measurementStates, cancellationToken);
+        _measurementQueries.GetMeasurementInfosWithSimilarMeasurements(
+            productId, measurementStates, cancellationToken);
 
 
     public async Task<byte[]?> GetMeasurementFile(string measurementId, CancellationToken cancellationToken)
     {
-        var zipBytes = await _measurementQueries.GetMeasurementInfoWithData(measurementId, cancellationToken);
+        var zipBytes = await _measurementQueries.GetMeasurementInfoWithData(
+            measurementId, cancellationToken);
 
         if (zipBytes == null)
             return null;

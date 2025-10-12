@@ -523,7 +523,8 @@ internal class EbayControllerImplementation : IEbayController
                         score: similarMeasurement.Score,
                         isCrossMatch: similarMeasurement.ComparisonMode == ComparisonMode.Cross,
                         sameDate: x.ManufactureCode.Equals(similarMeasurement.ManufactureCode, StringComparison.OrdinalIgnoreCase),
-                        isMatchedPair: similarMeasurement.IsMatchedPair
+                        isMatchedPair: similarMeasurement.IsMatchedPair,
+                        matchId: similarMeasurement.MatchId
                         
                     ))
                     .ToList()))
