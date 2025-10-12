@@ -60,7 +60,7 @@ internal class MatchedMeasurementService
             measurementStates: Enum.GetValues<MeasurementState>().Where(x=>x != MeasurementState.Sold).ToList(),
             cancellationToken: cancellationToken)).Select(x => x.Id).ToHashSet();
 
-        foreach (var measurementId1 in unsoldMeasurements) // todo мы тут делаем пары из измерений, находящихся в разных статусах MeasurementState, возможно не стоит так делать 
+        foreach (var measurementId1 in unsoldMeasurements)
         {
             var measurements = new List<string>();
             foreach (var measurementId2 in unsoldMeasurements)
