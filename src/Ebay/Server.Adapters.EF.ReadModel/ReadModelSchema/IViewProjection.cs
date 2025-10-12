@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using JetBrains.Annotations;
 
 namespace Sever.Adapters.EF.ReadModel.ReadModelSchema;

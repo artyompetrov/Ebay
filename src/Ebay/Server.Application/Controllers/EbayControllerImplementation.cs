@@ -1,14 +1,13 @@
-using System.Transactions;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Consumers.PriceCalculator;
 using Server.Application.Data;
-using Server.Domain;
-using Server.Domain.Measurements;
 using Server.Application.Infrastructure;
 using Server.Application.Services.LotDataExtractor;
 using Server.Application.Services.Measurement;
 using Server.Controllers.Generated;
+using Server.Domain;
+using Server.Domain.Measurements;
 using ApiSimilarMeasurementInfo = Server.Controllers.Generated.SimilarMeasurementInfo;
 using ClientErrorInfo = Server.Controllers.Generated.ClientErrorInfo;
 using Currency = Server.Controllers.Generated.Currency;
@@ -212,7 +211,7 @@ internal class EbayControllerImplementation : IEbayController
     {
         await using var tx = await _applicationContext.Database
             .BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead, cancellationToken);
-        
+
         var dbProducts = await _applicationContext.Products
             .AsNoTracking()
             .OrderBy(x => x.Name)
@@ -221,9 +220,9 @@ internal class EbayControllerImplementation : IEbayController
             .Include(x => x.RuSearchQueries)
             .AsSplitQuery()
             .ToListAsync(cancellationToken);
-        
+
         await tx.CommitAsync(cancellationToken);
-        
+
         return dbProducts.Select(x => x.ToApiProduct()).ToList();
     }
 
@@ -297,7 +296,7 @@ internal class EbayControllerImplementation : IEbayController
     {
         await using var tx = await _applicationContext.Database
             .BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead, cancellationToken);
-        
+
         var product = await _applicationContext.Products
             .AsNoTracking()
             .Include(x => x.SearchQueries)
@@ -311,7 +310,7 @@ internal class EbayControllerImplementation : IEbayController
         }
 
         await tx.CommitAsync(cancellationToken);
-        
+
         return product.ToApiProduct();
     }
 

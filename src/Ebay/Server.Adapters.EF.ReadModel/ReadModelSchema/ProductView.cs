@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using Server.Domain;
 
 namespace Sever.Adapters.EF.ReadModel.ReadModelSchema;
@@ -16,9 +16,9 @@ internal sealed class ProductView : IViewProjection<Product, ProductView>
     public required int Weight { get; set; }
 
     public required List<ProductPassportView> Passports { get; set; } = null!;
-    
+
     public static Expression<Func<Product, ProductView>> ToView => x =>
-        new ()
+        new()
         {
             Id = x.Id,
             Name = x.Name,

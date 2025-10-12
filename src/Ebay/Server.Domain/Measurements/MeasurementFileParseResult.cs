@@ -1,4 +1,4 @@
-﻿using Server.Domain.Measurements.MeasurementTypes;
+using Server.Domain.Measurements.MeasurementTypes;
 
 namespace Server.Domain.Measurements;
 

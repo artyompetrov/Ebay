@@ -1,4 +1,4 @@
-﻿namespace Server.Domain;
+namespace Server.Domain;
 
 public abstract class Entity<TId>
 {
@@ -6,9 +6,9 @@ public abstract class Entity<TId>
     {
         Id = id;
     }
-    
+
     public TId Id { get; }
-    
+
     public override bool Equals(object? obj)
     {
         if (obj is not Entity<TId> other) return false;

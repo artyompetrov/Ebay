@@ -1,4 +1,3 @@
-﻿using Duende.IdentityServer.EntityFramework.Options;
 using Microsoft.EntityFrameworkCore;
 using Sever.Adapters.EF.ReadModel.ReadModelSchema;
 
@@ -29,10 +28,10 @@ internal sealed class ReadDbContext : DbContext
         {
             eb.ToView("Products").HasKey(x => x.Id);
         });
-        
+
         b.Entity<MatchedPairDifferenceView>(eb =>
         {
-            eb.ToView("MatchedPairDifferences").HasKey(x =>  new { MeasurementId1 = x.Measurement1Id, MeasurementId2 = x.Measurement2Id, x.ComparisonMode });
+            eb.ToView("MatchedPairDifferences").HasKey(x => new { MeasurementId1 = x.Measurement1Id, MeasurementId2 = x.Measurement2Id, x.ComparisonMode });
         });
     }
 

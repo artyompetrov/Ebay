@@ -1,5 +1,4 @@
-﻿using System.Linq.Expressions;
-using Client.Pages;
+using System.Linq.Expressions;
 using Server.Domain;
 
 namespace Sever.Adapters.EF.ReadModel.ReadModelSchema;
@@ -11,11 +10,11 @@ internal sealed class SearchQueryView : IViewProjection<SearchQuery, SearchQuery
     public required string Query { get; set; } = null!;
 
     public required Guid ProductId { get; set; }
-    
+
     public ProductView Product { get; set; } = null!;
-    
+
     public static Expression<Func<SearchQuery, SearchQueryView>> ToView => x =>
-        new ()
+        new()
         {
             Id = x.Id,
             Query = x.Query,

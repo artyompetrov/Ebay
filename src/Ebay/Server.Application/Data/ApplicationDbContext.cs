@@ -18,13 +18,13 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
         IOptions<OperationalStoreOptions> operationalStoreOptions
     ) : base(options: options, operationalStoreOptions: operationalStoreOptions)
     {
-        
+
     }
-    
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        
+
 
         foreach (var et in modelBuilder.Model.GetEntityTypes()
                      .Where(t => typeof(IAggregateRoot).IsAssignableFrom(t.ClrType)))
@@ -34,7 +34,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
                 .IsRowVersion()
                 .ValueGeneratedOnAddOrUpdate();
         }
-        
+
         modelBuilder.AddInboxStateEntity();
         modelBuilder.AddOutboxMessageEntity();
         modelBuilder.AddOutboxStateEntity();
@@ -63,18 +63,18 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
         modelBuilder.Entity<ProductMeasurement>(entity =>
         {
             entity.HasKey(x => x.Id);
-                
-            entity.Property(x=> x.Id)
+
+            entity.Property(x => x.Id)
                 .HasMaxLength(100)
                 .ValueGeneratedNever();
-                
+
             entity.Property(p => p.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             entity.Property(x => x.ProductId).IsRequired();
 
             entity.HasOne<Product>()
-                .WithMany()                      
+                .WithMany()
                 .HasForeignKey(x => x.ProductId)
                 .OnDelete(DeleteBehavior.Restrict)
                 .IsRequired();
@@ -99,7 +99,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
         {
             entity.HasKey(e => new { e.Key, e.Version });
         });
-        
+
 
         modelBuilder.Entity<ProductPassport>(entity =>
         {
@@ -119,13 +119,13 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
         {
             entity.HasKey(e => new { e.ProductId, e.LotId });
         });
-        
-        
+
+
         modelBuilder.Entity<Purchase>(entity =>
         {
             entity.HasKey(e => new { e.LotId, e.Date });
         });
-        
+
         modelBuilder.Entity<MatchedPairDifference>(entity =>
         {
             entity.HasKey(e => new { MeasurementId1 = e.Measurement1Id, MeasurementId2 = e.Measurement2Id, e.ComparisonMode });

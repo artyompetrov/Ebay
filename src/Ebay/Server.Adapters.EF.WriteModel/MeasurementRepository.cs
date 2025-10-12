@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Server.Application;
+using Microsoft.EntityFrameworkCore;
 using Server.Application.Abstractions;
 using Server.Application.Data;
 using Server.Domain.Measurements;

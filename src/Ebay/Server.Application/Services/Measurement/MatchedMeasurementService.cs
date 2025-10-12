@@ -1,4 +1,3 @@
-using System.Text;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -19,7 +18,7 @@ internal class MatchedMeasurementService
 
     public MatchedMeasurementService(
         IPublishEndpoint publishEndpoint,
-        IMeasurementQueries  measurementQueries,
+        IMeasurementQueries measurementQueries,
         ApplicationDbContext applicationContext,
         ILogger<MatchedMeasurementService> logger)
     {
@@ -33,8 +32,8 @@ internal class MatchedMeasurementService
         Guid productId,
         CancellationToken cancellationToken)
     {
-        
-        
+
+
         var hasWorkingPoint = await _applicationContext.TubeWorkingPoints
             .AsNoTracking()
             .AnyAsync(x => x.ProductId == productId, cancellationToken);
@@ -46,7 +45,7 @@ internal class MatchedMeasurementService
                 field: "tubeWorkingPoint",
                 errors: "Рабочая точка не задана.");
         }
-        
+
         var measurementStates = Enum
             .GetValues<MeasurementState>()
             .Where(state => state != MeasurementState.Sold)
@@ -58,12 +57,12 @@ internal class MatchedMeasurementService
             cancellationToken: cancellationToken)).Select(x => x.Id).ToHashSet();
 
         _logger.LogInformation("Starting matching task for {ProductId}, {MeasurementIds}", productId, string.Join(",", measurementIds));
-        
+
         _applicationContext.MatchedPairDifferences.RemoveRange(
             _applicationContext.MatchedPairDifferences.Where(x => measurementIds.Contains(x.Measurement1Id)));
 
         await _applicationContext.SaveChangesAsync(cancellationToken);
-        
+
         foreach (var measurementId1 in measurementIds) // todo мы тут делаем пары из измерений, находящихся в разных статусах MeasurementState, возможно не стоит так делать 
         {
             var measurements = new List<string>();
@@ -72,14 +71,14 @@ internal class MatchedMeasurementService
                 var message = new CalculateMatchedPair(
                     MeasurementId1: measurementId1,
                     MeasurementId2: measurementId2);
-                
+
                 await _publishEndpoint.Publish(
                     message: message,
                     cancellationToken: cancellationToken);
 
                 measurements.Add(message.ToString());
             }
-            _logger.LogInformation("Publishing {messageType}, {messageIds}", nameof(CalculateMatchedPair),  string.Join(",", measurements));
+            _logger.LogInformation("Publishing {messageType}, {messageIds}", nameof(CalculateMatchedPair), string.Join(",", measurements));
             await _applicationContext.SaveChangesAsync(cancellationToken);
         }
     }

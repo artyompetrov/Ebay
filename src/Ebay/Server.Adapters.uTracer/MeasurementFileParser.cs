@@ -1,9 +1,8 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
-using Server.Application.Services.Measurement;
 using Server.Domain.Measurements;
 using Server.Domain.Measurements.MeasurementTypes;
 using Server.Domain.Measurements.MeasurementTypes.Base;
@@ -28,9 +27,9 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
         }
 
         var parsedMeasurement = ParseMeasurement(configBytes: anodeCurvesConfig, measurementBytes: anodeCurves);
-        
+
         var removeSection2 = parsedMeasurement.AnodeCurves is TriodeAnodeCurves;
-        
+
         var prettifiedQuickTest = ParseAndPrettifyQuickTest(quickTest: quickTest, removeSection2: removeSection2);
 
         var hashAnodeCurvesConfig = ComputeEntryHashAsync(anodeCurvesConfig);
@@ -62,7 +61,7 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
             throw new MeasurementException(
                 $"Errors during file parsing {string.Join(separator: ", ", values: fileErrors)}");
         }
-        
+
         using var zipStream = new MemoryStream();
         using (var archive = new ZipArchive(stream: zipStream, mode: ZipArchiveMode.Create, leaveOpen: true))
         {
@@ -78,7 +77,7 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
         zipStream.Position = 0;
 
         return zipStream.ToArray();
-        
+
     }
 
     private async static Task SaveFileToZipArchive(ZipArchive archive, string fileName, byte[] content)
@@ -87,7 +86,7 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
         await using var entryStream = entry.Open();
         await entryStream.WriteAsync(content, 0, content.Length);
     }
-    
+
 
     private static byte[] GetBytes(ZipArchiveEntry entry)
     {
@@ -118,7 +117,7 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
                 2 => new DoubleTriodeAnodeCurves(pmaxWatt, measurementPoints),
                 _ => throw new ArgumentOutOfRangeException(nameof(y2AxisVariable))
             },
-            
+
             _ => throw new ArgumentOutOfRangeException(nameof(measurementType), $"Value: {measurementType}")
         };
     }
@@ -348,7 +347,7 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
 
         return aligned.Trim();
     }
-    
+
     private static string ComputeEntryHashAsync(byte[] bytes)
     {
         var hashBytes = SHA256.HashData(bytes);

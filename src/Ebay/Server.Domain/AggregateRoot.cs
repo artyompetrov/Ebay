@@ -1,5 +1,3 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
 using JetBrains.Annotations;
 
 namespace Server.Domain;
@@ -7,13 +5,13 @@ namespace Server.Domain;
 public abstract class AggregateRoot<TId> : Entity<TId>, IAggregateRoot
 {
     public uint Version { get; [UsedImplicitly] private set; }
-    
+
     protected internal AggregateRoot(TId id) : base(id)
     {
     }
-    
+
     private readonly List<object> _domainEvents = new();
-    
+
 
     internal IReadOnlyCollection<object> DomainEvents => _domainEvents.AsReadOnly();
 

@@ -1,7 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Server.Application;
+using Microsoft.EntityFrameworkCore;
 using Server.Application.Abstractions.Measurements;
-using Server.Application.Services.Measurement;
 using Server.Domain.Measurements;
 
 namespace Sever.Adapters.EF.ReadModel;
@@ -38,7 +36,7 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                 pm.Measurements
             ))
             .ToListAsync(cancellationToken);
-        
+
         return measurements;
     }
 
@@ -71,28 +69,28 @@ internal sealed class MeasurementQueries : IMeasurementQueries
             CancellationToken cancellationToken)
     {
         var measurementsQuery = from measurement in _dbContext.ProductMeasurements
-            where measurement.ProductId == productId
-            where measurementStates.Contains(measurement.MeasurementState)
-            join difference in
-                _dbContext.MatchedPairDifferences.AsNoTracking() // этот джойн нужен для двойных триодов
-                on new
-                {
-                    MeasurementId1 = measurement.Id,
-                    MeasurementId2 = measurement.Id,
-                    ComparisonMode = ComparisonMode.Cross
-                }
-                equals new { MeasurementId1 = difference.Measurement1Id, MeasurementId2 = difference.Measurement2Id, difference.ComparisonMode }
-                into differences
-            from difference in differences.DefaultIfEmpty()
-            orderby measurement.CreatedAt descending, measurement.Id descending
-            select new MeasurementInfoWithSimilarMeasurements(
-                measurement.Id,
-                measurement.ManufactureCode,
-                measurement.ProductState,
-                measurement.Location,
-                measurement.MatchId,
-                difference != null ? difference.RmseSection1 : null,
-                measurement.MeasurementState);
+                                where measurement.ProductId == productId
+                                where measurementStates.Contains(measurement.MeasurementState)
+                                join difference in
+                                    _dbContext.MatchedPairDifferences.AsNoTracking() // этот джойн нужен для двойных триодов
+                                    on new
+                                    {
+                                        MeasurementId1 = measurement.Id,
+                                        MeasurementId2 = measurement.Id,
+                                        ComparisonMode = ComparisonMode.Cross
+                                    }
+                                    equals new { MeasurementId1 = difference.Measurement1Id, MeasurementId2 = difference.Measurement2Id, difference.ComparisonMode }
+                                    into differences
+                                from difference in differences.DefaultIfEmpty()
+                                orderby measurement.CreatedAt descending, measurement.Id descending
+                                select new MeasurementInfoWithSimilarMeasurements(
+                                    measurement.Id,
+                                    measurement.ManufactureCode,
+                                    measurement.ProductState,
+                                    measurement.Location,
+                                    measurement.MatchId,
+                                    difference != null ? difference.RmseSection1 : null,
+                                    measurement.MeasurementState);
 
         var measurements = await measurementsQuery.ToListAsync(cancellationToken);
 

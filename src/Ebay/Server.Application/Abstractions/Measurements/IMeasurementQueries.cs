@@ -1,4 +1,4 @@
-﻿using Server.Domain.Measurements;
+using Server.Domain.Measurements;
 
 namespace Server.Application.Abstractions.Measurements;
 

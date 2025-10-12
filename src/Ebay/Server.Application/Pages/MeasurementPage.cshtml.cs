@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Abstractions.Measurements;
 using Server.Application.Data;
-using Server.Application.Services.Measurement;
 using Server.Domain;
 using Server.Domain.Measurements;
 
@@ -29,14 +28,14 @@ public class MeasurementPage : PageModel
 
     public Product Product { get; set; } = null!;
     public MeasurementInfoWithData Measurement { get; set; } = null!;
-    
+
     public string QuickTest { get; set; } = null!;
 
 
     public async Task<IActionResult> OnGet(string measurementId, CancellationToken cancellationToken)
     {
         var measurementInfo = await _measurementQueries.GetMeasurementInfoWithData(measurementId, cancellationToken);
-        
+
         if (measurementInfo == null)
             return NotFound("Measurement not found");
 

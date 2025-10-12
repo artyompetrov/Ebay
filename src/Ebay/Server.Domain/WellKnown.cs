@@ -1,4 +1,4 @@
-﻿namespace Server.Domain;
+namespace Server.Domain;
 
 public class WellKnown
 {

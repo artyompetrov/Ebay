@@ -2,7 +2,6 @@ using ScottPlot;
 using ScottPlot.PlotStyles;
 using Server.Application.Abstractions.Measurements;
 using Server.Application.Infrastructure;
-using Server.Application.Services.Measurement;
 using Server.Domain.Measurements;
 using Server.Domain.Measurements.MeasurementTypes.Base;
 
@@ -68,11 +67,11 @@ internal class MeasurementPlotService
             key: cacheKey,
             async () =>
             {
-                var measurementInfo = await _measurementQueries.GetMeasurementInfoWithData(measurementId,  cancellationToken);
-                
+                var measurementInfo = await _measurementQueries.GetMeasurementInfoWithData(measurementId, cancellationToken);
+
                 if (measurementInfo == null)
                     return null;
-                
+
                 var result = _measurementFileParser.Parse(measurementInfo.Data);
 
                 return CreateMergedPlot(

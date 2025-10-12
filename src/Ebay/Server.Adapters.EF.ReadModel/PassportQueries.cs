@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Server.Application.Abstractions.Measurements;
 
 namespace Sever.Adapters.EF.ReadModel;

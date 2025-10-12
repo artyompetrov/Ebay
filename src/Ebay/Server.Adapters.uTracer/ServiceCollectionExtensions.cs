@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Server.Domain.Measurements;
 
 namespace Server.Adapters.uTracer;

@@ -88,16 +88,16 @@ public sealed class ProductMeasurement : AggregateRoot<string>
             hashAnodeCurves: parsedMeasurements.HashAnodeCurves,
             hashQuickTest: parsedMeasurements.HashQuickTest,
             manufactureCode: manufactureCode,
-            productState:  productState,
-            location:  location,
-            matchId:  matchId
+            productState: productState,
+            location: location,
+            matchId: matchId
         );
 
         product.Validate();
 
         return product;
     }
-    
+
 
     private void Validate()
     {
@@ -113,10 +113,10 @@ public sealed class ProductMeasurement : AggregateRoot<string>
     public MeasurementState MeasurementState { get; set; }
 
     public byte[] Measurements { get; private set; }
-    
+
     [MaxLength(128)]
-    public  string HashAnodeCurves { get; private set; }
-    
+    public string HashAnodeCurves { get; private set; }
+
     [MaxLength(128)]
     public string HashQuickTest { get; private set; }
 
@@ -129,7 +129,7 @@ public sealed class ProductMeasurement : AggregateRoot<string>
     public string ManufactureCode { get; private set; }
 
     public ProductState ProductState { get; private set; }
-    
+
     /// <summary>
     /// Местонахождение
     /// </summary>

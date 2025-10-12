@@ -1,9 +1,6 @@
-using MassTransit;
 using Server.Application.Abstractions;
 using Server.Application.Abstractions.Measurements;
 using Server.Domain.Measurements;
-using Server.Domain.Measurements.MeasurementTypes;
-using Server.Domain.Measurements.MeasurementTypes.Base;
 
 namespace Server.Application.Services.Measurement;
 
@@ -60,14 +57,14 @@ internal class MeasurementService
         CancellationToken cancellationToken)
     {
         var productMeasurement = await _productMeasurementRepository.GetByIdAsync(measurementId, cancellationToken);
-        
+
         if (productMeasurement == null)
         {
             throw new InvalidOperationException("Measurement not found.");
         }
 
         productMeasurement.Location = location;
-        
+
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
@@ -85,7 +82,7 @@ internal class MeasurementService
         }
 
         productMeasurement.MatchId = batchId;
-        
+
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
@@ -103,7 +100,7 @@ internal class MeasurementService
         }
 
         productMeasurement.MeasurementState = state;
-        
+
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
@@ -113,7 +110,7 @@ internal class MeasurementService
         CancellationToken cancellationToken)
     {
         await _productMeasurementRepository.RemoveAsync(measurementId, cancellationToken);
-        
+
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
     public Task<IReadOnlyCollection<MeasurementInfoWithSimilarMeasurements>> GetMeasurementInfos(
@@ -121,17 +118,17 @@ internal class MeasurementService
         IReadOnlyCollection<MeasurementState> measurementStates,
         CancellationToken cancellationToken) =>
         _measurementQueries.GetMeasurementInfosWithSimilarMeasurements(productId, measurementStates, cancellationToken);
-    
+
 
     public async Task<byte[]?> GetMeasurementFile(string measurementId, CancellationToken cancellationToken)
     {
         var zipBytes = await _measurementQueries.GetMeasurementInfoWithData(measurementId, cancellationToken);
-        
+
         if (zipBytes == null)
             return null;
 
         var result = await _measurementFileParser.ToPrettifiedZip(zipBytes.Data);
-        
+
         return result;
     }
 }

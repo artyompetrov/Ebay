@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Server.Application.Abstractions.Measurements;
 using Server.Application.Data;
-using Server.Application.Services.Measurement;
 using Server.Domain.Measurements;
 using Server.Domain.Measurements.MeasurementTypes;
 using Server.Domain.Measurements.MeasurementTypes.Base;
@@ -32,7 +31,7 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
     }
 
     private record MeasurementInfoWithAnodeCurves(MeasurementInfoWithData MeasurementInfoWithData, AnodeCurvesBase AnodeCurves);
-    
+
     public async Task Consume(ConsumeContext<CalculateMatchedPair> context)
     {
         _logger.LogInformation(
@@ -78,15 +77,15 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
             return;
         }
 
-        
+
         var measurement1 = new MeasurementInfoWithAnodeCurves(
             measurement1dto,
             AnodeCurves: _measurementFileParser.Parse(measurement1dto.Data).MeasurementConfigTableParseResult.AnodeCurves);
-        
+
         var measurement2 = new MeasurementInfoWithAnodeCurves(
             measurement2dto,
             AnodeCurves: _measurementFileParser.Parse(measurement1dto.Data).MeasurementConfigTableParseResult.AnodeCurves);
-        
+
         switch (measurement1.AnodeCurves)
         {
             case PentodeAnodeCurves:

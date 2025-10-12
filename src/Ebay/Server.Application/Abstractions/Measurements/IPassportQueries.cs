@@ -1,4 +1,4 @@
-﻿namespace Server.Application.Abstractions.Measurements;
+namespace Server.Application.Abstractions.Measurements;
 
 public interface IPassportQueries
 {

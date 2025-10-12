@@ -1,3 +1,3 @@
-﻿namespace Server.Application.Abstractions.Measurements;
+namespace Server.Application.Abstractions.Measurements;
 
-public record ProductInfo (IReadOnlyList<string> SearchQueries);
+public record ProductInfo(IReadOnlyList<string> SearchQueries);

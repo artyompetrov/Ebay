@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Server.Application;
+using Microsoft.Extensions.DependencyInjection;
 using Server.Application.Abstractions;
 using Server.Domain.Measurements;
 

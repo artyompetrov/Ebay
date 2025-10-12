@@ -1,4 +1,4 @@
-﻿using Server.Domain;
+using Server.Domain;
 
 namespace Server.Application.Abstractions;
 
@@ -7,7 +7,7 @@ namespace Server.Application.Abstractions;
 /// </summary>
 /// <typeparam name="TAggregate">Агрегат</typeparam>
 /// <typeparam name="TId">Идентификатор агрегата </typeparam>
-public interface IRepository<TAggregate, in TId> 
+public interface IRepository<TAggregate, in TId>
     where TAggregate : AggregateRoot<TId>
 {
     /// <summary>
@@ -17,8 +17,8 @@ public interface IRepository<TAggregate, in TId>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task<TAggregate?> GetByIdAsync(TId id, CancellationToken cancellationToken);
-    
-    
+
+
     /// <summary>
     /// Сохранить агрегат
     /// </summary>
@@ -26,7 +26,7 @@ public interface IRepository<TAggregate, in TId>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task SaveAsync(TAggregate aggregate, CancellationToken cancellationToken);
-    
+
     /// <summary>
     /// Удалить агрегат
     /// </summary>
