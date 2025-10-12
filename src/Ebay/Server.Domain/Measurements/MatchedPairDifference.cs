@@ -44,13 +44,13 @@ public class MatchedPairDifference : AggregateRoot<MatchedPairDifferenceId>
             maxAbsSection1: maxAbsSection1,
             maxAbsSection2: maxAbsSection2);
 
-    public ComparisonMode ComparisonMode { get; }
+    public ComparisonMode ComparisonMode { get; private set; }
 
     [MaxLength(100)]
-    public string Measurement1Id { get; }
+    public string Measurement1Id { get; private set; }
 
     [MaxLength(100)]
-    public string Measurement2Id { get; }
+    public string Measurement2Id { get; private set; }
 
     /// <summary>
     /// Среднеквадратичная ошибка (Mean Squared Error) между аппроксимированными 
@@ -59,8 +59,8 @@ public class MatchedPairDifference : AggregateRoot<MatchedPairDifferenceId>
     /// при одинаковых напряжениях.
     /// Измеряется в %^2.
     /// </summary>
-    public double MseSection1 { get; }
-    public double? MseSection2 { get; }
+    public double MseSection1 { get; private set; }
+    public double? MseSection2 { get; private set; }
 
     /// <summary>
     /// Среднеквадратичное отклонение (Root Mean Squared Error) между характеристиками.  
@@ -69,16 +69,16 @@ public class MatchedPairDifference : AggregateRoot<MatchedPairDifferenceId>
     /// чем меньше значение, тем ближе лампы ведут себя одинаково.
     /// Измеряется в %.
     /// </summary>
-    public double RmseSection1 { get; }
-    public double? RmseSection2 { get; }
+    public double RmseSection1 { get; private set; }
+    public double? RmseSection2 { get; private set; }
 
     /// <summary>
     /// Максимальное абсолютное относительное отклонение анодного тока между лампами 
-    /// в точках сравнения.  
+    /// в точках сравнения.
     /// Характеризует «наихудший случай» расхождения: насколько сильно может отличаться 
     /// ток одной лампы от другой при одинаковых напряжениях.
     /// Измеряется в %.
     /// </summary>
-    public double MaxAbsSection1 { get; }
-    public double? MaxAbsSection2 { get; }
+    public double MaxAbsSection1 { get; private set; }
+    public double? MaxAbsSection2 { get; private set; }
 }

@@ -55,23 +55,15 @@ public sealed class TubeWorkingPoint : AggregateRoot<Guid>
         if (!IsValid) throw new DomainException($"{nameof(TubeWorkingPoint)} is not valid.");
     }
 
-    [Key]
-    internal Guid ProductId { get; }
-
-
-    [Column(TypeName = "double precision")]
+    
     internal double AnodeVoltage { get; private set; }
-
-    [Column(TypeName = "double precision")]
+    
     internal double GridVoltage { get; private set; }
-
-    [Column(TypeName = "double precision")]
+    
     internal double AnodeVoltageHalfWidth { get; private set; }
-
-    [Column(TypeName = "double precision")]
+    
     internal double GridVoltageHalfWidth { get; private set; }
-
-    [Column(TypeName = "double precision")]
+    
     internal double NominalCurrent { get; private set; }
 
 

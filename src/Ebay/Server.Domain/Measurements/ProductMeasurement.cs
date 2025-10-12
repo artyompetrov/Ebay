@@ -27,6 +27,7 @@ public sealed class ProductMeasurement : AggregateRoot<string>
         ProductState = productState;
         Location = location;
         MatchId = matchId;
+        CreatedAt = DateTime.UtcNow; // todo перенести на уровень обертки
     }
 
     public static ProductMeasurement Create(

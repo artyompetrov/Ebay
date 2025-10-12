@@ -6,7 +6,7 @@ namespace Sever.Adapters.EF.ReadModel.ReadModelSchema;
 
 internal sealed class TubeWorkingPointView : IViewProjection<TubeWorkingPoint, TubeWorkingPointView>
 {
-    public required Guid ProductId { get; set; }
+    public required Guid Id { get; set; }
 
     public ProductView Product { get; set; } = null!;
 
@@ -27,7 +27,7 @@ internal sealed class TubeWorkingPointView : IViewProjection<TubeWorkingPoint, T
     public static Expression<Func<TubeWorkingPoint, TubeWorkingPointView>> ToView => x =>
         new TubeWorkingPointView
         {
-            ProductId = x.ProductId,
+            Id = x.Id,
             AnodeVoltage = x.AnodeVoltage,
             GridVoltage = x.GridVoltage,
             AnodeVoltageHalfWidth = x.AnodeVoltageHalfWidth,

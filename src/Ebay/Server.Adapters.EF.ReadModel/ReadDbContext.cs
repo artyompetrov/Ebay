@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Sever.Adapters.EF.ReadModel.ReadModelSchema;
 
-namespace Sever.Adapters.EF.ReadModel.Queries;
+namespace Sever.Adapters.EF.ReadModel;
 
 internal sealed class ReadDbContext : DbContext
 {
@@ -36,7 +36,7 @@ internal sealed class ReadDbContext : DbContext
 
         b.Entity<TubeWorkingPointView>(x =>
         {
-            x.ToView("TubeWorkingPoints").HasKey(x => x.ProductId);
+            x.ToView("TubeWorkingPoints").HasKey(x => x.Id);
         });
     }
 

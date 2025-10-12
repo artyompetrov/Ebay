@@ -115,7 +115,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
         {
             entity.HasKey(e => e.Id);
             entity.HasOne<Product>()
-                .WithOne(e => e.TubeWorkingPoint)
+                .WithOne()
                 .HasForeignKey<TubeWorkingPoint>(e => e.Id)
                 .OnDelete(DeleteBehavior.Restrict);
         });

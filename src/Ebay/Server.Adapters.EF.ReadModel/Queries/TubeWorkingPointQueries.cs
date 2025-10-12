@@ -15,7 +15,7 @@ internal class TubeWorkingPointQueries : ITubeWorkingPointQueries
     public async Task<TubeWorkingPointInfo?> GetWorkingPointInfo(Guid productId, CancellationToken cancellationToken)
     {
         var tubeWorkingPoint = await _context.TubeWorkingPoints.SingleOrDefaultAsync(
-            x => x.ProductId == productId,
+            x => x.Id == productId,
             cancellationToken: cancellationToken);
 
         if (tubeWorkingPoint == null)
