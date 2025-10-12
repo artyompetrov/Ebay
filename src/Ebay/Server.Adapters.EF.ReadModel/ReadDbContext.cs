@@ -7,7 +7,7 @@ namespace Sever.Adapters.EF.ReadModel;
 internal sealed class ReadDbContext : DbContext
 {
     public ReadDbContext(
-        DbContextOptions options
+        DbContextOptions<ReadDbContext> options
     ) : base(options: options)
     {
         ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
