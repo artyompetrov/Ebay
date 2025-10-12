@@ -47,10 +47,17 @@ internal class MatchedPairDifferenceRepository : IMatchedPairDifferenceRepositor
         }
     }
 
-    public async Task RemoveByMeasurementId(string measurementId, CancellationToken cancellationToken)
+    public async Task RemoveByMeasurementIds(IReadOnlySet<string> measurementIds, CancellationToken cancellationToken)
     {
-        await _dbContext.MatchedPairDifferences
-            .Where(x => x.Measurement1Id == measurementId || x.Measurement2Id == measurementId)
-            .ExecuteDeleteAsync(cancellationToken);
+        if (measurementIds.Count == 0)
+            return;
+
+        const int batchSize = 1000; // безопасный размер IN (...)
+        foreach (var batch in measurementIds.Chunk(batchSize))
+        {
+            await _dbContext.MatchedPairDifferences
+                .Where(x => batch.Contains(x.Measurement1Id) || batch.Contains(x.Measurement2Id))
+                .ExecuteDeleteAsync(cancellationToken);
+        }
     }
 }

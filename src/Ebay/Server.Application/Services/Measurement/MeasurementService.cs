@@ -115,7 +115,7 @@ internal class MeasurementService
     {
         await using var transaction = await _unitOfWork.BeginTransactionAsync(cancellationToken: cancellationToken);
 
-        await _matchedPairDifferenceRepository.RemoveByMeasurementId(measurementId, cancellationToken);
+        await _matchedPairDifferenceRepository.RemoveByMeasurementIds( measurementIds: new HashSet<string> {measurementId}, cancellationToken);
         await _productMeasurementRepository.RemoveAsync(measurementId, cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);

@@ -31,6 +31,7 @@ internal sealed class MeasurementQueries : IMeasurementQueries
             .Select(pm => new MeasurementInfoWithData(
                 pm.Id,
                 pm.ProductId,
+                pm.MeasurementState,
                 pm.ProductState,
                 pm.ManufactureCode,
                 pm.Measurements
@@ -183,7 +184,12 @@ internal sealed class MeasurementQueries : IMeasurementQueries
         var measurementInfo = await _dbContext.ProductMeasurements
             .AsNoTracking()
             .Where(x => x.Id == measurementId)
-            .Select(x => new MeasurementInfoWithData(x.Id, x.ProductId, x.ProductState, x.ManufactureCode, x.Measurements))
+            .Select(x => new MeasurementInfoWithData(
+                x.Id, x.ProductId, 
+                x.MeasurementState,
+                x.ProductState, 
+                x.ManufactureCode, 
+                x.Measurements))
             .SingleOrDefaultAsync(cancellationToken: cancellationToken);
 
         return measurementInfo;

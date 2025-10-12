@@ -54,6 +54,17 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
             return;
         }
 
+        if (measurement1dto.MeasurementState == MeasurementState.Sold || measurement2dto.MeasurementState == MeasurementState.Sold)
+        {
+            _logger.LogInformation(
+                message: "Measurement pair skipped {MeasurementId1} {MeasurementId2} because one of them is sold",
+                context.Message.MeasurementId1,
+                context.Message.MeasurementId2
+            );
+            
+            return;
+        }
+        
         // Сравниваем только новые с новыми и б/у с б/у
         if (measurement1dto.ProductState != measurement2dto.ProductState)
         {

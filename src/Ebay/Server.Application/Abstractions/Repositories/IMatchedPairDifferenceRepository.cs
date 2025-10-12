@@ -4,5 +4,5 @@ namespace Server.Application.Abstractions.Repositories;
 
 public interface IMatchedPairDifferenceRepository : IRepository<MatchedPairDifference, MatchedPairDifferenceId>
 {
-    Task RemoveByMeasurementId(string measurementId, CancellationToken cancellationToken);
+    Task RemoveByMeasurementIds(IReadOnlySet<string> measurementIds, CancellationToken cancellationToken);
 }
