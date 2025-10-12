@@ -22,13 +22,11 @@ internal class MeasurementRepository : IRepository<ProductMeasurement, string>
     public async Task SaveAsync(ProductMeasurement aggregate, CancellationToken cancellationToken)
     {
         await _dbContext.ProductMeasurements.AddAsync(aggregate, cancellationToken);
-        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task RemoveAsync(string id, CancellationToken cancellationToken)
     {
         await _dbContext.ProductMeasurements.Where(o => o.Id == id)
             .ExecuteDeleteAsync(cancellationToken: cancellationToken);
-        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }
