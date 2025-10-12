@@ -13,6 +13,7 @@ using Server.Application.HostedServices.DbCache;
 using Server.Application.HostedServices.Measurements;
 using Server.Application.HostedServices.SaleAdvertisements;
 using Server.Application.Infrastructure;
+using Server.Application.Services;
 using Server.Application.Services.GeoIp;
 using Server.Application.Services.LotDataExtractor;
 using Server.Application.Services.Measurement;
@@ -41,6 +42,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<MeasurementService>();
         services.AddScoped<MatchedMeasurementService>();
         services.AddScoped<MeasurementPlotService>();
+        services.AddScoped<TubeWorkingPointService>();
         services.AddMemoryCache();
         services.AddHttpClient<GeoIpService>(c =>
         {

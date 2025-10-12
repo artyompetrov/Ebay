@@ -48,10 +48,7 @@ internal class MatchedMeasurementService
                 errors: "Рабочая точка не задана.");
         }
 
-        var measurementStates = Enum
-            .GetValues<MeasurementState>()
-            .Where(state => state != MeasurementState.Sold)
-            .ToArray();
+        var measurementStates = Enum.GetValues<MeasurementState>();
 
         var measurementIds = (await _measurementQueries.GetMeasurementsInfo(
             productId: productId,
@@ -60,9 +57,7 @@ internal class MatchedMeasurementService
 
         _logger.LogInformation("Starting matching task for {ProductId}, {MeasurementIds}", productId, string.Join(",", measurementIds));
 
-
         await _measurementRepository.RemoveAsync(measurementIds, cancellationToken);
-
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 

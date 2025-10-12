@@ -1,11 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Abstractions;
+using Server.Application.Abstractions.Repositories;
 using Server.Application.Data;
 using Server.Domain.Measurements;
 
 namespace Server.Adapters.EF.WriteModel;
 
-internal class MatchedPairDifferenceRepository : IRepository<MatchedPairDifference, MatchedPairDifferenceId>
+internal class MatchedPairDifferenceRepository : IMatchedPairDifferenceRepository
 {
     private readonly ApplicationDbContext _dbContext;
 
@@ -14,7 +15,9 @@ internal class MatchedPairDifferenceRepository : IRepository<MatchedPairDifferen
         _dbContext = dbContext;
     }
 
-    public async Task<MatchedPairDifference?> GetByIdAsync(MatchedPairDifferenceId id, CancellationToken cancellationToken)
+    public async Task<MatchedPairDifference?> GetByIdAsync(
+        MatchedPairDifferenceId id,
+        CancellationToken cancellationToken)
     {
         return await _dbContext.MatchedPairDifferences.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
@@ -42,5 +45,12 @@ internal class MatchedPairDifferenceRepository : IRepository<MatchedPairDifferen
                 .Where(x => batch.Contains(x.Id))
                 .ExecuteDeleteAsync(cancellationToken);
         }
+    }
+
+    public async Task RemoveByMeasurementId(string measurementId, CancellationToken cancellationToken)
+    {
+        await _dbContext.MatchedPairDifferences
+            .Where(x => x.Measurement1Id == measurementId || x.Measurement2Id == measurementId)
+            .ExecuteDeleteAsync(cancellationToken);
     }
 }

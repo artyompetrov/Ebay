@@ -7,9 +7,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using Server.Application.Abstractions;
 using Server.Domain;
 using Server.Domain.Measurements;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Server.Application.Data;
 
@@ -131,7 +133,12 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
 
         modelBuilder.Entity<MatchedPairDifference>(entity =>
         {
-            entity.HasKey(e => new { MeasurementId1 = e.Measurement1Id, MeasurementId2 = e.Measurement2Id, e.ComparisonMode });
+            entity.Property(x => x.Id)
+                .HasConversion(
+                    v => JsonConvert.SerializeObject(v, Formatting.None),
+                    v => JsonConvert.DeserializeObject<MatchedPairDifferenceId>(v)!);
+            
+            entity.HasKey(e => e.Id);
 
             entity.Property(e => e.Measurement1Id)
                 .HasMaxLength(100);
@@ -139,6 +146,9 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
             entity.Property(e => e.Measurement2Id)
                 .HasMaxLength(100);
 
+            entity.HasIndex(x => x.Measurement1Id);
+            entity.HasIndex(x => x.Measurement2Id);
+            
             entity.HasOne<ProductMeasurement>()
                 .WithMany()
                 .HasForeignKey(e => e.Measurement1Id)

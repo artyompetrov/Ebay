@@ -1,12 +1,13 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Abstractions;
+using Server.Application.Abstractions.Repositories;
 using Server.Application.Data;
 using Server.Domain.Measurements;
 
 namespace Server.Adapters.EF.WriteModel;
 
-internal class MeasurementRepository : IRepository<ProductMeasurement, string>
+internal class MeasurementRepository : IMeasurementRepository
 {
     private readonly ApplicationDbContext _dbContext;
 
@@ -29,13 +30,6 @@ internal class MeasurementRepository : IRepository<ProductMeasurement, string>
     {
         await _dbContext.ProductMeasurements.Where(o => o.Id == id)
             .ExecuteDeleteAsync(cancellationToken: cancellationToken);
-    }
-
-    public async Task RemoveByFilterAsync(Expression<Func<ProductMeasurement, bool>> filter, CancellationToken cancellationToken)
-    {
-        await _dbContext.ProductMeasurements
-            .Where(filter)
-            .ExecuteDeleteAsync(cancellationToken);
     }
 
     public async Task RemoveAsync(IReadOnlySet<string> ids, CancellationToken cancellationToken)
