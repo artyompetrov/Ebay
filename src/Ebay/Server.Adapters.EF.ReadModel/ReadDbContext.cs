@@ -27,6 +27,11 @@ internal sealed class ReadDbContext : DbContext
         b.Entity<ProductView>(eb =>
         {
             eb.ToView("Products").HasKey(x => x.Id);
+            
+            eb.HasOne(x => x.TubeWorkingPoint)
+                .WithOne(x => x.Product)
+                .HasForeignKey<TubeWorkingPointView>(tp => tp.Id)
+                .HasPrincipalKey<ProductView>(p => p.Id);
         });
 
         b.Entity<MatchedPairDifferenceView>(eb =>
