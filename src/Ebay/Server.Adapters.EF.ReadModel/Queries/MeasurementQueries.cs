@@ -83,7 +83,7 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                                     equals new { MeasurementId1 = difference.Measurement1Id, MeasurementId2 = difference.Measurement2Id, difference.ComparisonMode }
                                     into differences
                                 from difference in differences.DefaultIfEmpty()
-                                orderby measurement.CreatedAt descending, measurement.Id descending
+                                orderby measurement.MatchId, measurement.CreatedAt descending, measurement.Id descending
                                 select new MeasurementInfoWithSimilarMeasurements(
                                     measurement.Id,
                                     measurement.ManufactureCode,
