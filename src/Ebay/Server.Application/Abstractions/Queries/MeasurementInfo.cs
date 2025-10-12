@@ -5,6 +5,7 @@ namespace Server.Application.Abstractions.Queries;
 public record MeasurementInfo(
     string Id,
     Guid ProductId,
-    
+
     ProductState ProductState,
-    string ManufactureCode);
+    string ManufactureCode,
+    string? MatchId);

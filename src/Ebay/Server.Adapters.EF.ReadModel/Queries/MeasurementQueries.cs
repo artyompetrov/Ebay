@@ -56,7 +56,8 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                     x.Id,
                     x.ProductId,
                     x.ProductState,
-                    x.ManufactureCode
+                    x.ManufactureCode,
+                    x.MatchId
                 ))
             .ToHashSetAsync(cancellationToken: cancellationToken);
 

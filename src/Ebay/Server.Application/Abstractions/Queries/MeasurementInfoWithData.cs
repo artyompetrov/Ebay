@@ -8,4 +8,4 @@ public record MeasurementInfoWithData(
     MeasurementState MeasurementState,
     ProductState ProductState,
     string ManufactureCode,
-    byte[] Data) : MeasurementInfo(Id: Id, ProductId: ProductId, ProductState: ProductState, ManufactureCode: ManufactureCode);
+    byte[] Data) : MeasurementInfo(Id: Id, ProductId: ProductId, ProductState: ProductState, ManufactureCode: ManufactureCode, MatchId: null);
