@@ -89,7 +89,7 @@
             <th>Curves</th>
         </tr>
         @{ var matchIndex = 1; }
-        @foreach (var grouping in Model.Measurements.GroupBy(x => x.MatchId))
+        @foreach (var grouping in Model.Measurements.GroupBy(x => x.MatchId).OrderByDescending(x=>x.Key))
         {
             var rows = grouping.ToList();
             var rowClass = matchIndex % 2 == 0 ? "match-group-even" : "match-group-odd";
