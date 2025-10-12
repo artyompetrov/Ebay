@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Abstractions.Queries;
 
-namespace Sever.Adapters.EF.ReadModel;
+namespace Sever.Adapters.EF.ReadModel.Queries;
 
 internal sealed class PassportQueries : IPassportQueries
 {

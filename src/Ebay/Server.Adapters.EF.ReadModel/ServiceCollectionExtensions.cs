@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Application.Abstractions.Queries;
+using Sever.Adapters.EF.ReadModel.Queries;
 
 namespace Sever.Adapters.EF.ReadModel;
 
@@ -21,5 +22,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IProductQueries, ProductQueries>();
         services.AddScoped<IPassportQueries, PassportQueries>();
         services.AddScoped<IMeasurementQueries, MeasurementQueries>();
+        services.AddScoped<ITubeWorkingPointQueries, TubeWorkingPointQueries>();
     }
 }

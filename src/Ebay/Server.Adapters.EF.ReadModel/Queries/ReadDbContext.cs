@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Sever.Adapters.EF.ReadModel.ReadModelSchema;
 
-namespace Sever.Adapters.EF.ReadModel;
+namespace Sever.Adapters.EF.ReadModel.Queries;
 
 internal sealed class ReadDbContext : DbContext
 {
@@ -33,6 +33,11 @@ internal sealed class ReadDbContext : DbContext
         {
             eb.ToView("MatchedPairDifferences").HasKey(x => new { MeasurementId1 = x.Measurement1Id, MeasurementId2 = x.Measurement2Id, x.ComparisonMode });
         });
+
+        b.Entity<TubeWorkingPointView>(x =>
+        {
+            x.ToView("TubeWorkingPoints").HasKey(x => x.ProductId);
+        });
     }
 
     public DbSet<ProductMeasurementView> ProductMeasurements { get; set; } = null!;
@@ -42,4 +47,6 @@ internal sealed class ReadDbContext : DbContext
     public DbSet<ProductView> Products { get; set; } = null!;
 
     public DbSet<MatchedPairDifferenceView> MatchedPairDifferences { get; set; } = null!;
+    
+    public DbSet<TubeWorkingPointView> TubeWorkingPoints { get; set; } = null!;
 }
