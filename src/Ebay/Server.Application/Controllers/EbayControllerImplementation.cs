@@ -588,7 +588,7 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken)
     {
         await _measurementService.UpdateMeasurementMatchId(
-            batchId: batchId,
+            matchId: batchId,
             productId: productId,
             measurementId: measurementId,
             cancellationToken: cancellationToken);

@@ -134,6 +134,7 @@ internal sealed class MeasurementQueries : IMeasurementQueries
             .Where(x =>
                 x.Measurement1.MeasurementState == x.Measurement2.MeasurementState &&
                 x.Measurement1.ProductState == x.Measurement2.ProductState)
+            .Where(x=> x.Measurement1.MatchId == x.Measurement2.MatchId)
             .Select(x => new
             {
                 MeasurementId1 = x.Measurement1Id,
@@ -143,7 +144,7 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                 x.ComparisonMode,
                 ManufactureCode1 = x.Measurement1.ManufactureCode,
                 ManufactureCode2 = x.Measurement2.ManufactureCode,
-                IsMatchedPair = (x.Measurement1.MatchId != null && x.Measurement1.MatchId == x.Measurement2.MatchId)
+                IsMatchedPair = x.Measurement1.MatchId != null
             })
             .ToListAsync(cancellationToken);
 

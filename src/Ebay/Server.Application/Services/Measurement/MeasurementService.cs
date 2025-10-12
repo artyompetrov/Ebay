@@ -67,13 +67,15 @@ public class MeasurementService
             throw new InvalidOperationException("Measurement not found.");
         }
 
-        productMeasurement.Location = location;
+        productMeasurement.Location = string.IsNullOrWhiteSpace(location)
+            ? null
+            : location.Trim();
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     public async Task UpdateMeasurementMatchId(
-        string? batchId,
+        string? matchId,
         Guid productId,
         string measurementId,
         CancellationToken cancellationToken)
@@ -85,7 +87,9 @@ public class MeasurementService
             throw new InvalidOperationException("Measurement not found.");
         }
 
-        productMeasurement.MatchId = batchId;
+        productMeasurement.MatchId = string.IsNullOrWhiteSpace(matchId)
+            ? null
+            : matchId.Trim();
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
