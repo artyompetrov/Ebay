@@ -16,15 +16,16 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
     {
         base.OnModelCreating(modelBuilder);
         
-        
-
-        // optimistic concurrency для всех агрегатов
+        // optimistic lock для всех агрегатов
         foreach (var et in modelBuilder.Model.GetEntityTypes()
                      .Where(t => typeof(IAggregateRoot).IsAssignableFrom(t.ClrType)))
         {
             modelBuilder.Entity(et.ClrType)
-                .Property<uint>("xmin") // PostgreSQL системная колонка
-                .IsRowVersion();
+                .Property<uint>(nameof(IAggregateRoot.Version))
+                .HasColumnName("xmin")     // маппим на системную колонку
+                .HasColumnType("xid")
+                .IsRowVersion()            // стандартный EF-способ
+                .ValueGeneratedOnAddOrUpdate();
         }
         
         modelBuilder.AddInboxStateEntity();
