@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.Json;
 using Duende.IdentityServer.EntityFramework.Options;
 using MassTransit;
@@ -16,15 +17,15 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
     {
         base.OnModelCreating(modelBuilder);
         
-        // optimistic lock для всех агрегатов
+
         foreach (var et in modelBuilder.Model.GetEntityTypes()
                      .Where(t => typeof(IAggregateRoot).IsAssignableFrom(t.ClrType)))
         {
             modelBuilder.Entity(et.ClrType)
-                .Property<uint>(nameof(IAggregateRoot.Version))
-                .HasColumnName("xmin")     // маппим на системную колонку
+                .Property(nameof(IAggregateRoot.Version))
+                .HasColumnName("xmin")
                 .HasColumnType("xid")
-                .IsRowVersion()            // стандартный EF-способ
+                .IsRowVersion()
                 .ValueGeneratedOnAddOrUpdate();
         }
         
@@ -63,9 +64,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
                 
             entity.Property(p => p.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
-                
-            entity.HasIndex(p => p.CreatedAt);
-            
+
             entity.Property(x => x.ProductId).IsRequired();
 
             entity.HasOne<Product>()
@@ -74,7 +73,11 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
                 .OnDelete(DeleteBehavior.Restrict)
                 .IsRequired();
 
-            entity.HasIndex(x => x.ProductId);       // полезный индекс
+            entity.HasIndex(x => x.ProductId);
+            entity.HasIndex(p => p.CreatedAt);
+
+            entity.HasIndex(x => x.HashAnodeCurves).IsUnique();
+            entity.HasIndex(x => x.HashQuickTest).IsUnique();
         });
 
         modelBuilder.Entity<ProductEmailSendHistory>(entity =>

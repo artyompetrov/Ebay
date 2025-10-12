@@ -4,11 +4,9 @@ using JetBrains.Annotations;
 
 namespace Server.Domain;
 
-
 public abstract class AggregateRoot<TId> : Entity<TId>, IAggregateRoot
 {
-    [Timestamp]
-    public uint Version { get; [UsedImplicitly]  private set;  }
+    public uint Version { get; [UsedImplicitly] private set; }
     
     protected internal AggregateRoot(TId id) : base(id)
     {
@@ -28,4 +26,6 @@ public abstract class AggregateRoot<TId> : Entity<TId>, IAggregateRoot
     {
         _domainEvents.Clear();
     }
+
+
 }
