@@ -28,7 +28,10 @@ public sealed class ProductMeasurement : AggregateRoot<string>
         Location = location;
         MatchId = matchId;
         CreatedAt = DateTime.UtcNow; // todo перенести на уровень обертки
+
+        Validate();
     }
+    
 
     public static ProductMeasurement Create(
         string id,
@@ -94,8 +97,6 @@ public sealed class ProductMeasurement : AggregateRoot<string>
             matchId: matchId
         );
 
-        product.Validate();
-
         return product;
     }
 
@@ -107,6 +108,9 @@ public sealed class ProductMeasurement : AggregateRoot<string>
             validationContext: new ValidationContext(this),
             validateAllProperties: true
         );
+
+        if (MatchId is not null && string.IsNullOrWhiteSpace(MatchId)) throw new ValidationException($"{nameof(MatchId)} cannot be empty string");
+        if (Location is not null && string.IsNullOrWhiteSpace(Location)) throw new ValidationException($"{nameof(Location)} cannot be empty string");
     }
 
     public Guid ProductId { get; private set; }
@@ -131,15 +135,29 @@ public sealed class ProductMeasurement : AggregateRoot<string>
 
     public ProductState ProductState { get; private set; }
 
-    /// <summary>
-    /// Местонахождение
-    /// </summary>
+    private string? _location;
+    
     [MaxLength(200)]
-    public string? Location { get; set; }
+    public string? Location
+    {
+        get => _location;
+        set
+        {
+            _location = value;
+            Validate();
+        }
+    }
 
-    /// <summary>
-    /// Идентификатор подобранного набора
-    /// </summary>
+    private string? _matchId;
+
     [MaxLength(100)]
-    public string? MatchId { get; set; }
+    public string? MatchId
+    {
+        get => _matchId;
+        set
+        {
+            _matchId = value;
+            Validate();
+        }
+    }
 }

@@ -86,6 +86,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
 
             entity.HasIndex(x => x.ProductId);
             entity.HasIndex(p => p.CreatedAt);
+            entity.HasIndex(p => p.MatchId);
 
             entity.HasIndex(x => x.HashAnodeCurves).IsUnique();
             entity.HasIndex(x => x.HashQuickTest).IsUnique();

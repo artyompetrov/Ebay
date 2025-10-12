@@ -791,6 +791,8 @@ definitions:
         type: number
         format: double
         minimum: 0
+      isMatchedPair:
+        type: boolean
     required:
       - measurementId
       - rmseSection1
@@ -798,6 +800,7 @@ definitions:
       - sameDate
       - isCrossMatch
       - score
+      - isMatchedPair
 
   MeasurementDataToUpload:
     type: object

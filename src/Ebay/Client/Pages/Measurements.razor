@@ -243,6 +243,10 @@
                                         {
                                             <span class="chip table-danger">Cross-match</span>
                                         }
+                                        @if (similar.IsMatchedPair)
+                                        {
+                                            <span class="chip table-success">MatchedPair</span>
+                                        }
                                     </div>
                                 </li>
                             }
