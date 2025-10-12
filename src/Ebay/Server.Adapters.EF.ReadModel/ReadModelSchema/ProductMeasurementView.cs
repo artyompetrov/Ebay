@@ -1,8 +1,9 @@
-﻿using Server.Domain.Measurements;
+﻿using System.Linq.Expressions;
+using Server.Domain.Measurements;
 
 namespace Sever.Adapters.EF.ReadModel.ReadModelSchema;
 
-public class ProductMeasurementView
+internal class ProductMeasurementView : IViewProjection<ProductMeasurement, ProductMeasurementView>
 {
     public required string Id { get; set; }
     
@@ -13,11 +14,25 @@ public class ProductMeasurementView
     
     public required Guid ProductId { get; set; }
     
-    public required TimeSpan CreatedAt  { get; set; }
+    public required DateTime CreatedAt  { get; set; }
     
-    public required string Location { get; set; }
+    public required string? Location { get; set; }
     
-    public required string MatchId { get; set; }
+    public required string? MatchId { get; set; }
     
     public required byte[] Measurements  { get; set; }
+    
+    public static Expression<Func<ProductMeasurement, ProductMeasurementView>> ToView => x =>
+        new ()
+        {
+            Id = x.Id,
+            MeasurementState = x.MeasurementState,
+            ProductState = x.ProductState,
+            ManufactureCode = x.ManufactureCode,
+            ProductId = x.ProductId,
+            CreatedAt = x.CreatedAt,
+            Location = x.Location,
+            MatchId = x.MatchId,
+            Measurements = x.Measurements
+        };
 }

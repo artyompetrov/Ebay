@@ -15,14 +15,25 @@ internal sealed class ReadDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder b)
     {
-        b.Entity<ProductMeasurementView>(eb => { eb.ToTable("ProductMeasurements"); });
+        b.Entity<ProductMeasurementView>(eb =>
+        {
+            eb.ToView("ProductMeasurements").HasKey(x => x.Id);
+        });
 
-        b.Entity<ProductPassportView>(eb => { eb.ToTable("ProductPassports"); });
+        b.Entity<ProductPassportView>(eb =>
+        {
+            eb.ToView("ProductPassports").HasKey(x => x.Id);
+        });
 
-        b.Entity<ProductView>(eb => { eb.ToTable("Products"); });
-
-
-        b.Entity<MatchedPairDifference>(eb => { eb.ToTable("MatchedPairDifferences"); });
+        b.Entity<ProductView>(eb =>
+        {
+            eb.ToView("Products").HasKey(x => x.Id);
+        });
+        
+        b.Entity<MatchedPairDifferenceView>(eb =>
+        {
+            eb.ToView("MatchedPairDifferences").HasKey(x =>  new { x.MeasurementId1, x.MeasurementId2, x.ComparisonMode });
+        });
     }
 
     public DbSet<ProductMeasurementView> ProductMeasurements { get; set; } = null!;
@@ -31,5 +42,5 @@ internal sealed class ReadDbContext : DbContext
 
     public DbSet<ProductView> Products { get; set; } = null!;
 
-    public DbSet<MatchedPairDifference> MatchedPairDifferences { get; set; } = null!;
+    public DbSet<MatchedPairDifferenceView> MatchedPairDifferences { get; set; } = null!;
 }

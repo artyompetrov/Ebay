@@ -1,16 +1,30 @@
-﻿namespace Sever.Adapters.EF.ReadModel.ReadModelSchema;
+﻿using System.Linq.Expressions;
+using Server.Domain;
 
-public sealed class ProductView
+namespace Sever.Adapters.EF.ReadModel.ReadModelSchema;
+
+internal sealed class ProductView : IViewProjection<Product, ProductView>
 {
-    public Guid Id { get; set; }
+    public required Guid Id { get; set; }
 
-    public string Name { get; set; } = null!;
+    public required string Name { get; set; } = null!;
 
-    public List<SearchQueryView> SearchQueries { get; set; } = null!;
+    public required List<SearchQueryView> SearchQueries { get; set; } = null!;
 
-    public DateTime LastCheckTime { get; set; }
+    public required DateTime LastCheckTime { get; set; }
 
-    public int Weight { get; set; }
+    public required int Weight { get; set; }
 
-    public List<ProductPassportView> Passports { get; set; } = null!;
+    public required List<ProductPassportView> Passports { get; set; } = null!;
+    
+    public static Expression<Func<Product, ProductView>> ToView => x =>
+        new ()
+        {
+            Id = x.Id,
+            Name = x.Name,
+            SearchQueries = x.SearchQueries.AsQueryable().Select(SearchQueryView.ToView).ToList(),
+            LastCheckTime = x.LastCheckTime,
+            Weight = x.Weight,
+            Passports = x.Passports.AsQueryable().Select(ProductPassportView.ToView).ToList()
+        };
 }

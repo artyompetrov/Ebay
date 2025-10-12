@@ -4,8 +4,16 @@ using Server.Application.Abstractions.Measurements;
 
 namespace Sever.Adapters.EF.ReadModel;
 
+/// <summary>
+/// Регистрация в контейнере
+/// </summary>
 public static class ServiceCollectionExtensions
 {
+    /// <summary>
+    /// Зарегистрировать EF ReadModel адаптер в контейнере
+    /// </summary>
+    /// <param name="services">Сервисы</param>
+    /// <param name="connectionString">Строка подключения</param>
     public static void AddEfReadModelAdapter(
         this IServiceCollection services, string connectionString)
     {

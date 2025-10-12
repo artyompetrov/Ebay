@@ -1,12 +1,24 @@
-﻿namespace Sever.Adapters.EF.ReadModel.ReadModelSchema;
+﻿using System.Linq.Expressions;
+using Client.Pages;
+using Server.Domain;
 
-public sealed class SearchQueryView
+namespace Sever.Adapters.EF.ReadModel.ReadModelSchema;
+
+internal sealed class SearchQueryView : IViewProjection<SearchQuery, SearchQueryView>
 {
-    public Guid Id { get; set; }
+    public required Guid Id { get; set; }
 
-    public string Query { get; set; } = null!;
+    public required string Query { get; set; } = null!;
 
-    public Guid ProductId { get; set; }
+    public required Guid ProductId { get; set; }
     
     public ProductView Product { get; set; } = null!;
+    
+    public static Expression<Func<SearchQuery, SearchQueryView>> ToView => x =>
+        new ()
+        {
+            Id = x.Id,
+            Query = x.Query,
+            ProductId = x.ProductId,
+        };
 }
