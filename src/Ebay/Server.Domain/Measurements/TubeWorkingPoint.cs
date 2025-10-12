@@ -56,15 +56,15 @@ public sealed class TubeWorkingPoint : AggregateRoot<Guid>
     }
 
     
-    internal double AnodeVoltage { get; private set; }
+    public double AnodeVoltage { get; private set; }
     
-    internal double GridVoltage { get; private set; }
+    public double GridVoltage { get; private set; }
     
-    internal double AnodeVoltageHalfWidth { get; private set; }
+    public double AnodeVoltageHalfWidth { get; private set; }
     
-    internal double GridVoltageHalfWidth { get; private set; }
+    public double GridVoltageHalfWidth { get; private set; }
     
-    internal double NominalCurrent { get; private set; }
+    public double NominalCurrent { get; private set; }
 
 
     /// <summary>
