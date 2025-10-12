@@ -1,3 +1,5 @@
+using System.Data;
+
 namespace Server.Application.Abstractions;
 
 /// <summary>
@@ -11,4 +13,8 @@ public interface IUnitOfWork
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
+
+    Task<IUnitOfWorkTransaction> BeginTransactionAsync(
+        CancellationToken cancellationToken,
+        IsolationLevel isolationLevel = IsolationLevel.ReadCommitted);
 }

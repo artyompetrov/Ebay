@@ -1,6 +1,6 @@
 using Server.Domain.Measurements;
 
-namespace Server.Application.Abstractions.Measurements;
+namespace Server.Application.Abstractions.Queries;
 
 
 /// <summary>

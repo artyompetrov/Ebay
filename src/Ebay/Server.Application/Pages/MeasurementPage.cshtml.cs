@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using Server.Application.Abstractions.Measurements;
+using Server.Application.Abstractions.Queries;
 using Server.Application.Data;
 using Server.Domain;
 using Server.Domain.Measurements;

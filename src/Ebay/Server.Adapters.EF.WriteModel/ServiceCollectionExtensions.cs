@@ -10,5 +10,6 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services)
     {
         services.AddScoped<IRepository<ProductMeasurement, string>, MeasurementRepository>();
+        services.AddScoped<IRepository<MatchedPairDifference, MatchedPairDifferenceId>, MatchedPairDifferenceRepository>();
     }
 }

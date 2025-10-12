@@ -1,10 +1,10 @@
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Server.Application.Abstractions.Measurements;
+using Server.Application.Abstractions;
+using Server.Application.Abstractions.Queries;
+using Server.Application.Abstractions.Repositories;
 using Server.Application.Consumers.MatchedPairs;
 using Server.Application.Controllers;
-using Server.Application.Data;
 using Server.Domain.Measurements;
 
 namespace Server.Application.Services.Measurement;
@@ -13,18 +13,24 @@ internal class MatchedMeasurementService
 {
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly IMeasurementQueries _measurementQueries;
-    private readonly ApplicationDbContext _applicationContext;
+    private readonly ITubeWorkingPointQueries _tubeWorkingPointQueries;
+    private readonly IMeasurementRepository _measurementRepository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<MatchedMeasurementService> _logger;
 
     public MatchedMeasurementService(
         IPublishEndpoint publishEndpoint,
         IMeasurementQueries measurementQueries,
-        ApplicationDbContext applicationContext,
+        ITubeWorkingPointQueries tubeWorkingPointQueries,
+        IMeasurementRepository measurementRepository,
+        IUnitOfWork unitOfWork,
         ILogger<MatchedMeasurementService> logger)
     {
         _publishEndpoint = publishEndpoint;
         _measurementQueries = measurementQueries;
-        _applicationContext = applicationContext;
+        _tubeWorkingPointQueries = tubeWorkingPointQueries;
+        _measurementRepository = measurementRepository;
+        _unitOfWork = unitOfWork;
         _logger = logger;
     }
 
@@ -32,14 +38,10 @@ internal class MatchedMeasurementService
         Guid productId,
         CancellationToken cancellationToken)
     {
-
-
-        var hasWorkingPoint = await _applicationContext.TubeWorkingPoints
-            .AsNoTracking()
-            .AnyAsync(x => x.ProductId == productId, cancellationToken);
+        var hasWorkingPoint = await _tubeWorkingPointQueries.GetWorkingPointInfo(productId, cancellationToken);
 
         // todo хендлинг ошибок должен быть на уровне адаптера
-        if (!hasWorkingPoint)
+        if (hasWorkingPoint != null)
         {
             throw NonOkHttpAnswerException.ValidationError400(
                 field: "tubeWorkingPoint",
@@ -58,10 +60,11 @@ internal class MatchedMeasurementService
 
         _logger.LogInformation("Starting matching task for {ProductId}, {MeasurementIds}", productId, string.Join(",", measurementIds));
 
-        _applicationContext.MatchedPairDifferences.RemoveRange(
-            _applicationContext.MatchedPairDifferences.Where(x => measurementIds.Contains(x.Measurement1Id)));
+        
+        await _measurementRepository.RemoveAsync(measurementIds, cancellationToken);
+        
 
-        await _applicationContext.SaveChangesAsync(cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         foreach (var measurementId1 in measurementIds) // todo мы тут делаем пары из измерений, находящихся в разных статусах MeasurementState, возможно не стоит так делать 
         {
@@ -79,7 +82,7 @@ internal class MatchedMeasurementService
                 measurements.Add(message.ToString());
             }
             _logger.LogInformation("Publishing {messageType}, {messageIds}", nameof(CalculateMatchedPair), string.Join(",", measurements));
-            await _applicationContext.SaveChangesAsync(cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
     }
 }

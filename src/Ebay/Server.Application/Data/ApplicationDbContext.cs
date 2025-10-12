@@ -1,8 +1,10 @@
+using System.Data;
 using System.Text.Json;
 using Duende.IdentityServer.EntityFramework.Options;
 using MassTransit;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Options;
 using Server.Application.Abstractions;
@@ -21,6 +23,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
 
     }
 
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -108,10 +111,10 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
 
         modelBuilder.Entity<TubeWorkingPoint>(entity =>
         {
-            entity.HasKey(e => e.ProductId);
-            entity.HasOne(e => e.Product)
+            entity.HasKey(e => e.Id);
+            entity.HasOne<Product>()
                 .WithOne(e => e.TubeWorkingPoint)
-                .HasForeignKey<TubeWorkingPoint>(e => e.ProductId)
+                .HasForeignKey<TubeWorkingPoint>(e => e.Id)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
@@ -177,4 +180,34 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
     public DbSet<TubeWorkingPoint> TubeWorkingPoints { get; set; } = null!;
 
     public DbSet<MatchedPairDifference> MatchedPairDifferences { get; set; } = null!;
+
+    
+    public async Task<IUnitOfWorkTransaction> BeginTransactionAsync(
+        CancellationToken cancellationToken,
+        IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
+    {
+        return new ApplicationDbContextTransaction( await Database.BeginTransactionAsync(isolationLevel: isolationLevel, cancellationToken));
+    }
+
+    private class ApplicationDbContextTransaction : IUnitOfWorkTransaction
+    {
+        private readonly IDbContextTransaction _transaction;
+
+        public ApplicationDbContextTransaction(IDbContextTransaction transaction)
+        {
+            _transaction = transaction;
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await _transaction.DisposeAsync();
+        }
+
+        public Task CommitAsync(CancellationToken cancellationToken) => _transaction.CommitAsync(cancellationToken);
+
+        public void Dispose()
+        {
+            _transaction.Dispose();
+        }
+    }
 }

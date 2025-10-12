@@ -1,6 +1,6 @@
 using Server.Domain.Measurements;
 
-namespace Server.Application.Abstractions.Measurements;
+namespace Server.Application.Abstractions.Queries;
 
 public interface IMeasurementQueries
 {
@@ -21,4 +21,5 @@ public interface IMeasurementQueries
     Task<IReadOnlyList<MeasurementInfoWithData>> GetMeasurementInfos(
         IReadOnlyList<string> ids,
         CancellationToken cancellationToken);
+
 }

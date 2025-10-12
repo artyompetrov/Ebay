@@ -1,3 +1,4 @@
+using Server.Application.Abstractions.Queries;
 using Server.Application.Services.LotDataExtractor;
 using Server.Controllers.Generated;
 using Server.Domain;
@@ -12,7 +13,6 @@ using DbProductState = Server.Domain.Measurements.ProductState;
 using DbPurchaseCalculationResult = Server.Domain.PurchaseCalculationResult;
 using DbRuSearchQuery = Server.Domain.RuSearchQuery;
 using DbSearchQuery = Server.Domain.SearchQuery;
-using DbTubeWorkingPoint = Server.Domain.Measurements.TubeWorkingPoint;
 using LotCalculationResult = Server.Controllers.Generated.LotCalculationResult;
 using ProductCalculationResult = Server.Controllers.Generated.ProductCalculationResult;
 using ProductState = Server.Controllers.Generated.ProductState;
@@ -59,23 +59,13 @@ internal static class ModelsExtensions
         ProductId = productId
     };
 
-    public static TubeWorkingPoint ToApiTubeWorkingPoint(this DbTubeWorkingPoint workingPoint) => new(
+    public static TubeWorkingPoint ToApiTubeWorkingPoint(this TubeWorkingPointInfo workingPoint) => new(
         anodeVoltage: workingPoint.AnodeVoltage,
         gridVoltage: workingPoint.GridVoltage,
         anodeVoltageHalfWidth: workingPoint.AnodeVoltageHalfWidth,
         gridVoltageHalfWidth: workingPoint.GridVoltageHalfWidth,
         nominalCurrent: workingPoint.NominalCurrent
     );
-
-    public static DbTubeWorkingPoint ToDbTubeWorkingPoint(this TubeWorkingPoint workingPoint, Guid productId) => new()
-    {
-        ProductId = productId,
-        AnodeVoltage = workingPoint.AnodeVoltage,
-        GridVoltage = workingPoint.GridVoltage,
-        AnodeVoltageHalfWidth = workingPoint.AnodeVoltageHalfWidth,
-        GridVoltageHalfWidth = workingPoint.GridVoltageHalfWidth,
-        NominalCurrent = workingPoint.NominalCurrent
-    };
 
     public static DbProduct ToDbProduct(this ProductWithoutId productWithoutId, Guid productId) => new()
     {

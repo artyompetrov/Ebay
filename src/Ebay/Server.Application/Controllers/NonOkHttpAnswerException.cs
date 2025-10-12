@@ -3,6 +3,7 @@ using Server.Controllers.Generated;
 
 namespace Server.Application.Controllers;
 
+[Obsolete("Нужно сделать приватным исключением адаптера")]
 internal class NonOkHttpAnswerException : Exception
 {
     public ProblemDetailedInfo ProblemDetails { get; }

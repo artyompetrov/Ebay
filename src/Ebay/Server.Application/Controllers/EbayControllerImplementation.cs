@@ -1,12 +1,16 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Server.Application.Abstractions.Queries;
+using Server.Application.Abstractions.Repositories;
 using Server.Application.Consumers.PriceCalculator;
 using Server.Application.Data;
 using Server.Application.Infrastructure;
+using Server.Application.Services;
 using Server.Application.Services.LotDataExtractor;
 using Server.Application.Services.Measurement;
 using Server.Controllers.Generated;
 using Server.Domain;
+using Server.Domain.Exceptions;
 using Server.Domain.Measurements;
 using ApiSimilarMeasurementInfo = Server.Controllers.Generated.SimilarMeasurementInfo;
 using ClientErrorInfo = Server.Controllers.Generated.ClientErrorInfo;
@@ -34,19 +38,23 @@ internal class EbayControllerImplementation : IEbayController
     private readonly ShippingRatesService _shippingRatesService;
     private readonly MeasurementService _measurementService;
     private readonly MatchedMeasurementService _matchedMeasurementService;
+    private readonly TubeWorkingPointService _tubeWorkingPointService;
 
     public EbayControllerImplementation(
         ApplicationDbContext applicationContext,
         IPublishEndpoint publishEndpoint,
         ShippingRatesService shippingRatesService,
         MeasurementService measurementService,
-        MatchedMeasurementService matchedMeasurementService)
+        MatchedMeasurementService matchedMeasurementService,
+        TubeWorkingPointService tubeWorkingPointService
+        )
     {
         _applicationContext = applicationContext;
         _publishEndpoint = publishEndpoint;
         _shippingRatesService = shippingRatesService;
         _measurementService = measurementService;
         _matchedMeasurementService = matchedMeasurementService;
+        _tubeWorkingPointService = tubeWorkingPointService;
     }
 
     public async Task<ICollection<ProductPassportInfo>> GetProductPassportsAsync(
@@ -119,9 +127,7 @@ internal class EbayControllerImplementation : IEbayController
         Guid productId,
         CancellationToken cancellationToken)
     {
-        var workingPoint = await _applicationContext.TubeWorkingPoints
-            .AsNoTracking()
-            .SingleOrDefaultAsync(x => x.ProductId == productId, cancellationToken);
+        var workingPoint = await _tubeWorkingPointService.GetWorkingPointInfo(productId, cancellationToken);
 
         if (workingPoint == null)
         {
@@ -136,30 +142,21 @@ internal class EbayControllerImplementation : IEbayController
         Guid productId,
         CancellationToken cancellationToken)
     {
-        var validationErrors = new List<(string key, string[] value)>();
-
-        var productExists = await _applicationContext.Products
-            .AnyAsync(x => x.Id == productId, cancellationToken);
-
-        if (!productExists)
+        try
         {
-            throw NonOkHttpAnswerException.NotFound400();
+            await _tubeWorkingPointService.CreateTubeWorkingPoint(
+                tubeProductId: productId,
+                anodeVoltage: workingPoint.AnodeVoltage,
+                gridVoltage: workingPoint.GridVoltage,
+                anodeVoltageHalfWidth: workingPoint.AnodeVoltageHalfWidth,
+                gridVoltageHalfWidth: workingPoint.GridVoltageHalfWidth,
+                nominalCurrent: workingPoint.NominalCurrent,
+                cancellationToken: cancellationToken);
         }
-
-        var entity = workingPoint.ToDbTubeWorkingPoint(productId);
-
-        if (!entity.IsValid)
+        catch (DomainException ex)
         {
-            validationErrors.Add((nameof(workingPoint), new[] { "WorkingPont is not valid." }));
+            throw NonOkHttpAnswerException.ValidationError400(nameof(workingPoint), errors: [ex.Message]);
         }
-
-        if (validationErrors.Count > 0)
-        {
-            throw NonOkHttpAnswerException.ValidationError400(validationErrors);
-        }
-
-        await _applicationContext.TubeWorkingPoints.Upsert(entity).RunAsync(cancellationToken);
-        await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task UpdateProductPassportAsync(

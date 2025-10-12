@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Server.Application.Abstractions.Measurements;
-using Server.Application.Data;
+using Server.Application.Abstractions;
+using Server.Application.Abstractions.Queries;
+using Server.Application.Abstractions.Repositories;
 using Server.Domain.Measurements;
 using Server.Domain.Measurements.MeasurementTypes;
 using Server.Domain.Measurements.MeasurementTypes.Base;
@@ -13,21 +13,27 @@ namespace Server.Application.Consumers.MatchedPairs;
 internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
 {
     private readonly ILogger<MatchedPairsCalculator> _logger;
-    private readonly ApplicationDbContext _applicationDbContext;
     private readonly IMeasurementQueries _measurementQueries;
     private readonly IMeasurementFileParser _measurementFileParser;
+    private readonly IMatchedPairDifferenceRepository _matchedPairDifferenceRepository;
+    private readonly ITubeWorkingPointQueries _tubeWorkingPointQueries;
+    private readonly IUnitOfWork _unitOfWork;
 
     public MatchedPairsCalculator(
         ILogger<MatchedPairsCalculator> logger,
-        ApplicationDbContext applicationDbContext,
         IMeasurementQueries measurementQueries,
-        IMeasurementFileParser measurementFileParser
+        IMeasurementFileParser measurementFileParser,
+        IMatchedPairDifferenceRepository matchedPairDifferenceRepository,
+        ITubeWorkingPointQueries tubeWorkingPointQueries,
+        IUnitOfWork unitOfWork
         )
     {
         _logger = logger;
-        _applicationDbContext = applicationDbContext;
         _measurementQueries = measurementQueries;
         _measurementFileParser = measurementFileParser;
+        _matchedPairDifferenceRepository = matchedPairDifferenceRepository;
+        _tubeWorkingPointQueries = tubeWorkingPointQueries;
+        _unitOfWork = unitOfWork;
     }
 
     private record MeasurementInfoWithAnodeCurves(MeasurementInfoWithData MeasurementInfoWithData, AnodeCurvesBase AnodeCurves);
@@ -53,15 +59,24 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         {
             return;
         }
+        
+        if (measurement1dto.ProductId != measurement2dto.ProductId)
+        {
+            _logger.LogError(
+                message: "Trying to compare different product measurements {MeasurementId1} {MeasurementId2} ProductIds {ProductId1}, {ProductId2}",
+                context.Message.MeasurementId1,
+                context.Message.MeasurementId2,
+                measurement1dto.ProductId,
+                measurement2dto.ProductId
+                );
+            return;
+        }
 
         var radialBands = 10;
         var pointsPerBand = 36;
 
-        var workingPoint = await _applicationDbContext.TubeWorkingPoints
-            .AsNoTracking()
-            .SingleOrDefaultAsync(
-                x => x.ProductId == measurement1dto.ProductId,
-                cancellationToken: context.CancellationToken);
+        var workingPoint =
+            await _tubeWorkingPointQueries.GetWorkingPointInfo(measurement1dto.ProductId, context.CancellationToken);
 
         if (workingPoint == null)
         {
@@ -70,13 +85,6 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
                 measurement1dto.ProductId);
             return;
         }
-
-        if (!workingPoint.IsValid)
-        {
-            _logger.LogError(message: "Tube working point is not valid");
-            return;
-        }
-
 
         var measurement1 = new MeasurementInfoWithAnodeCurves(
             measurement1dto,
@@ -93,7 +101,6 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
                 if (measurement2.AnodeCurves is not PentodeAnodeCurves)
                 {
                     throw new UnreachableException($"{nameof(measurement2)} is expected to be PentodeAnodeCurves");
-
                 }
 
                 if (measurement1 == measurement2)
@@ -160,7 +167,7 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         MeasurementInfoWithAnodeCurves measurement1,
         MeasurementInfoWithAnodeCurves measurement2,
         CancellationToken cancellationToken,
-        TubeWorkingPoint workingPoint,
+        TubeWorkingPointInfo workingPoint,
         int radialBands, int pointsPerBand)
     {
         var measurement1I1 = GetPoints(measurement1.AnodeCurves, x => x.I1);
@@ -237,7 +244,7 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         MeasurementInfoWithAnodeCurves measurement1,
         MeasurementInfoWithAnodeCurves measurement2,
         CancellationToken cancellationToken,
-        TubeWorkingPoint workingPoint,
+        TubeWorkingPointInfo workingPoint,
         int radialBands,
         int pointsPerBand)
     {
@@ -278,33 +285,29 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         double? rmseSection2 = null,
         double? maxAbsSection2 = null)
     {
-        var pairDifference = await _applicationDbContext.MatchedPairDifferences
-            .SingleOrDefaultAsync(
-                x => x.Measurement1Id == measurementId1 &&
-                     x.Measurement2Id == measurementId2 &&
-                     x.ComparisonMode == comparisonMode,
-                cancellationToken: cancellationToken);
+        var newMatchedPairDifference = MatchedPairDifference.Create(
+            id: new MatchedPairDifferenceId(measurementId1, measurementId2, comparisonMode),
+            comparisonMode: comparisonMode,
+            mseSection1: mseSection1,
+            mseSection2: mseSection2,
+            rmseSection1: rmseSection1,
+            rmseSection2: rmseSection2,
+            maxAbsSection1: maxAbsSection1,
+            maxAbsSection2: maxAbsSection2);
 
-        if (pairDifference == null)
-        {
-            pairDifference = new MatchedPairDifference
-            {
-                Measurement1Id = measurementId1,
-                Measurement2Id = measurementId2,
-                ComparisonMode = comparisonMode
-            };
+        await using var transaction = await  _unitOfWork.BeginTransactionAsync(cancellationToken);
+        
+        await _matchedPairDifferenceRepository.RemoveAsync(
+            newMatchedPairDifference.Id,
+            cancellationToken);
+        
+        await _matchedPairDifferenceRepository.SaveAsync(
+            newMatchedPairDifference, 
+            cancellationToken);
 
-            _applicationDbContext.MatchedPairDifferences.Add(pairDifference);
-        }
-
-        pairDifference.MseSection1 = mseSection1;
-        pairDifference.RmseSection1 = rmseSection1;
-        pairDifference.MaxAbsSection1 = maxAbsSection1;
-        pairDifference.MseSection2 = mseSection2;
-        pairDifference.RmseSection2 = rmseSection2;
-        pairDifference.MaxAbsSection2 = maxAbsSection2;
-
-        await _applicationDbContext.SaveChangesAsync(cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        
+        await transaction.CommitAsync(cancellationToken);
     }
 
     private static List<MeasurementPoint> GetPoints(AnodeCurvesBase anodeCurves, Func<CurveSet, IReadOnlyCollection<double>> iExtractor)
@@ -330,7 +333,7 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
     /// <summary>
     /// Функция создает модель при помощи RBF интерполяции
     /// </summary>
-    private alglib.rbfmodel RbfModel(List<MeasurementPoint> points, TubeWorkingPoint wp)
+    private alglib.rbfmodel RbfModel(List<MeasurementPoint> points, TubeWorkingPointInfo wp)
     {
         var baseX = Math.Max(1e-9, wp.AnodeVoltageHalfWidth);
         var baseY = Math.Max(1e-9, wp.GridVoltageHalfWidth);
@@ -367,7 +370,7 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         alglib.rbfmodel model2,
         int radialBands,        // колец по радиусу
         int pointsPerBand,      // точек на кольцо
-        TubeWorkingPoint workingPoint,
+        TubeWorkingPointInfo workingPoint,
         double phiRad = 0.0     // поворот (рад)
     )
     {

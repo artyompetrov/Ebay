@@ -1,6 +1,6 @@
 using ScottPlot;
 using ScottPlot.PlotStyles;
-using Server.Application.Abstractions.Measurements;
+using Server.Application.Abstractions.Queries;
 using Server.Application.Infrastructure;
 using Server.Domain.Measurements;
 using Server.Domain.Measurements.MeasurementTypes.Base;

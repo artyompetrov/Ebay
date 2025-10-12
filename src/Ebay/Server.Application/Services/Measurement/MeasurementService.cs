@@ -1,24 +1,29 @@
+using System.Data;
 using Server.Application.Abstractions;
-using Server.Application.Abstractions.Measurements;
+using Server.Application.Abstractions.Queries;
+using Server.Application.Abstractions.Repositories;
 using Server.Domain.Measurements;
 
 namespace Server.Application.Services.Measurement;
 
 internal class MeasurementService
 {
-    private readonly IRepository<ProductMeasurement, string> _productMeasurementRepository;
+    private readonly IMeasurementRepository _productMeasurementRepository;
+    private readonly IMatchedPairDifferenceRepository _matchedPairDifferenceRepository;
     private readonly IMeasurementQueries _measurementQueries;
     private readonly IMeasurementFileParser _measurementFileParser;
     private readonly IUnitOfWork _unitOfWork;
 
     public MeasurementService(
-        IRepository<ProductMeasurement, string> productMeasurementRepository,
+        IMeasurementRepository productMeasurementRepository,
+        IMatchedPairDifferenceRepository matchedPairDifferenceRepository,
         IMeasurementQueries measurementQueries,
         IMeasurementFileParser measurementFileParser,
         IUnitOfWork unitOfWork
         )
     {
         _productMeasurementRepository = productMeasurementRepository;
+        _matchedPairDifferenceRepository = matchedPairDifferenceRepository;
         _measurementQueries = measurementQueries;
         _measurementFileParser = measurementFileParser;
         _unitOfWork = unitOfWork;
@@ -109,10 +114,14 @@ internal class MeasurementService
         string measurementId,
         CancellationToken cancellationToken)
     {
+        await using var transaction = await _unitOfWork.BeginTransactionAsync(cancellationToken: cancellationToken);
+
+        await _matchedPairDifferenceRepository.RemoveByMeasurementId(measurementId, cancellationToken);
         await _productMeasurementRepository.RemoveAsync(measurementId, cancellationToken);
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
     }
+
     public Task<IReadOnlyCollection<MeasurementInfoWithSimilarMeasurements>> GetMeasurementInfos(
         Guid productId,
         IReadOnlyCollection<MeasurementState> measurementStates,
