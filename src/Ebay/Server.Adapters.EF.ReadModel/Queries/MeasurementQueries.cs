@@ -31,6 +31,7 @@ internal sealed class MeasurementQueries : IMeasurementQueries
             .Select(pm => new MeasurementInfoWithData(
                 pm.Id,
                 pm.ProductId,
+                pm.MatchId,
                 pm.MeasurementState,
                 pm.ProductState,
                 pm.ManufactureCode,
@@ -55,6 +56,7 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                 new MeasurementInfo(
                     x.Id,
                     x.ProductId,
+                    x.MatchId,
                     x.ProductState,
                     x.ManufactureCode
                 ))
@@ -191,6 +193,7 @@ internal sealed class MeasurementQueries : IMeasurementQueries
             .Where(x => x.Id == measurementId)
             .Select(x => new MeasurementInfoWithData(
                 x.Id, x.ProductId, 
+                x.MatchId,
                 x.MeasurementState,
                 x.ProductState, 
                 x.ManufactureCode, 

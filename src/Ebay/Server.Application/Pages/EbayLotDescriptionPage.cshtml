@@ -72,25 +72,53 @@
         th {
             background-color: #f5f5f5;
         }
+        
+        .match-group-even td {
+            background-color: #ffffff;
+        }
+
+        .match-group-odd td {
+            background-color: #f0f8ff;
+        }
     </style>
     
     <table >
         <tr>
-            <th>Tube #</th>
+            <th>Match#</th>
+            <th>Tube#</th>
             <th>Curves</th>
         </tr>
-        @foreach (var meas in Model.Measurements)
+        @{ var matchIndex = 1; }
+        @foreach (var grouping in Model.Measurements.GroupBy(x => x.MatchId))
         {
-            <tr>
-                <td>
-                    #@meas.Id
-                    <br/><br/>
-                    @meas.ManufactureCode
-                    <br/><br/>
-                    @meas.ProductState
-                </td>
-                <td><img src="@($"{baseUrl}/m/{meas.Id}/ebay_curves?product={WebUtility.UrlEncode(GetName(Model))}")" alt="@meas.Id"/></td>
-            </tr>
+            var rows = grouping.ToList();
+            var rowClass = matchIndex % 2 == 0 ? "match-group-even" : "match-group-odd";
+
+            for (var i = 0; i < rows.Count; i++)
+            {
+                var meas = rows[i];
+                <tr class="@rowClass">
+                    @* только в первой строке группы рисуем объединённую ячейку *@
+                    @if (i == 0)
+                    {
+                        <td rowspan="@rows.Count">#@matchIndex</td>
+                    }
+
+                    <td>
+                        #@meas.Id
+                        <br /><br />
+                        @meas.ManufactureCode
+                        <br /><br />
+                        @meas.ProductState
+                    </td>
+                    <td>
+                        <img src="@($"{baseUrl}/m/{meas.Id}/ebay_curves?product={WebUtility.UrlEncode(GetName(Model))}")"
+                             alt="@meas.Id" />
+                    </td>
+                </tr>
+            }
+
+            matchIndex++;
         }
     </table>
 }
