@@ -1,4 +1,3 @@
-using System.Reflection;
 using System.Text.Json;
 using Duende.IdentityServer.EntityFramework.Options;
 using MassTransit;
@@ -23,8 +22,6 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
         {
             modelBuilder.Entity(et.ClrType)
                 .Property(nameof(IAggregateRoot.Version))
-                .HasColumnName("xmin")
-                .HasColumnType("xid")
                 .IsRowVersion()
                 .ValueGeneratedOnAddOrUpdate();
         }
