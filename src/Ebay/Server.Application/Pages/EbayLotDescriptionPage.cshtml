@@ -98,22 +98,28 @@
             {
                 var meas = rows[i];
                 <tr class="@rowClass">
+                    
                     @* только в первой строке группы рисуем объединённую ячейку *@
                     @if (i == 0)
                     {
-                        <td rowspan="@rows.Count">#@matchIndex</td>
+                        <td rowspan="@rows.Count">
+                            @if (grouping.Key != null)
+                            {
+                               <text>#@matchIndex</text>
+                            }
+                        </td>
                     }
 
                     <td>
                         #@meas.Id
-                        <br /><br />
+                        <br/><br/>
                         @meas.ManufactureCode
-                        <br /><br />
+                        <br/><br/>
                         @meas.ProductState
                     </td>
                     <td>
                         <img src="@($"{baseUrl}/m/{meas.Id}/ebay_curves?product={WebUtility.UrlEncode(GetName(Model))}")"
-                             alt="@meas.Id" />
+                             alt="@meas.Id"/>
                     </td>
                 </tr>
             }
