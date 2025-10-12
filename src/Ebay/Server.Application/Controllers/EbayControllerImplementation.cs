@@ -1,7 +1,5 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using Server.Application.Abstractions.Queries;
-using Server.Application.Abstractions.Repositories;
 using Server.Application.Consumers.PriceCalculator;
 using Server.Application.Data;
 using Server.Application.Infrastructure;

@@ -1,9 +1,9 @@
-﻿namespace Server.Domain.Exceptions;
+namespace Server.Domain.Exceptions;
 
 public class DomainException : Exception
 {
     public DomainException(string message) : base(message)
     {
-        
+
     }
 }

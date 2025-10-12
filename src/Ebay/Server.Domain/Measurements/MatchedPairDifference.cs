@@ -24,7 +24,7 @@ public class MatchedPairDifference : AggregateRoot<MatchedPairDifferenceId>
         MaxAbsSection1 = maxAbsSection1;
         MaxAbsSection2 = maxAbsSection2;
     }
-    
+
     public static MatchedPairDifference Create(
         MatchedPairDifferenceId id,
         ComparisonMode comparisonMode,
@@ -47,10 +47,10 @@ public class MatchedPairDifference : AggregateRoot<MatchedPairDifferenceId>
     public ComparisonMode ComparisonMode { get; }
 
     [MaxLength(100)]
-    public string Measurement1Id { get;  }
+    public string Measurement1Id { get; }
 
     [MaxLength(100)]
-    public string Measurement2Id { get;  }
+    public string Measurement2Id { get; }
 
     /// <summary>
     /// Среднеквадратичная ошибка (Mean Squared Error) между аппроксимированными 

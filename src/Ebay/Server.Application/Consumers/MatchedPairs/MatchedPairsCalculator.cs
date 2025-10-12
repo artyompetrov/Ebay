@@ -59,7 +59,7 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         {
             return;
         }
-        
+
         if (measurement1dto.ProductId != measurement2dto.ProductId)
         {
             _logger.LogError(
@@ -295,18 +295,18 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
             maxAbsSection1: maxAbsSection1,
             maxAbsSection2: maxAbsSection2);
 
-        await using var transaction = await  _unitOfWork.BeginTransactionAsync(cancellationToken);
-        
+        await using var transaction = await _unitOfWork.BeginTransactionAsync(cancellationToken);
+
         await _matchedPairDifferenceRepository.RemoveAsync(
             newMatchedPairDifference.Id,
             cancellationToken);
-        
+
         await _matchedPairDifferenceRepository.SaveAsync(
-            newMatchedPairDifference, 
+            newMatchedPairDifference,
             cancellationToken);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
-        
+
         await transaction.CommitAsync(cancellationToken);
     }
 

@@ -1,4 +1,4 @@
-﻿namespace Server.Application.Abstractions.Queries;
+namespace Server.Application.Abstractions.Queries;
 
 public record TubeWorkingPointInfo(
     double AnodeVoltage,

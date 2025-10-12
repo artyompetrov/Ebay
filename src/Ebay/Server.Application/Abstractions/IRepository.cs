@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using Server.Domain;
 
 namespace Server.Application.Abstractions;
@@ -34,7 +33,7 @@ public interface IRepository<TAggregate, TId>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task RemoveAsync(TId id, CancellationToken cancellationToken);
-    
+
     /// <summary>
     /// Удалить агрегаты
     /// </summary>

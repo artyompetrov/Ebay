@@ -1,8 +1,8 @@
-﻿using Server.Domain.Measurements;
+using Server.Domain.Measurements;
 
 namespace Server.Application.Abstractions.Repositories;
 
-public interface IMatchedPairDifferenceRepository  : IRepository<MatchedPairDifference, MatchedPairDifferenceId>
+public interface IMatchedPairDifferenceRepository : IRepository<MatchedPairDifference, MatchedPairDifferenceId>
 {
     public Task RemoveByMeasurementId(string measurementId, CancellationToken cancellationToken);
 }

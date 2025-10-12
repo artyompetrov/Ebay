@@ -37,7 +37,7 @@ public sealed class TubeWorkingPoint : AggregateRoot<Guid>
             anodeVoltageHalfWidth: anodeVoltageHalfWidth,
             gridVoltageHalfWidth: gridVoltageHalfWidth,
             nominalCurrent: nominalCurrent);
-    
+
     public void Update(
         double anodeVoltage,
         double gridVoltage,
@@ -51,13 +51,13 @@ public sealed class TubeWorkingPoint : AggregateRoot<Guid>
         AnodeVoltageHalfWidth = anodeVoltageHalfWidth;
         GridVoltageHalfWidth = gridVoltageHalfWidth;
         NominalCurrent = nominalCurrent;
-        
+
         if (!IsValid) throw new DomainException($"{nameof(TubeWorkingPoint)} is not valid.");
     }
 
     [Key]
     internal Guid ProductId { get; }
-    
+
 
     [Column(TypeName = "double precision")]
     internal double AnodeVoltage { get; private set; }

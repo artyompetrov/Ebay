@@ -1,4 +1,3 @@
-using System.Data;
 using Server.Application.Abstractions;
 using Server.Application.Abstractions.Queries;
 using Server.Application.Abstractions.Repositories;

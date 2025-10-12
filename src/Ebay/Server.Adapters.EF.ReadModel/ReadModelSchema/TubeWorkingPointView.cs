@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using Server.Domain.Measurements;
 
 namespace Sever.Adapters.EF.ReadModel.ReadModelSchema;
@@ -9,7 +9,7 @@ internal sealed class TubeWorkingPointView : IViewProjection<TubeWorkingPoint, T
     public required Guid ProductId { get; set; }
 
     public ProductView Product { get; set; } = null!;
-    
+
     public required double AnodeVoltage { get; set; }
 
 

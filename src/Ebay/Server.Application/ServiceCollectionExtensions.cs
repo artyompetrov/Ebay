@@ -1,7 +1,6 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Server.Application.Abstractions;
 using Server.Application.Consumers.EbayCurvesCacheWarmUp;
 using Server.Application.Consumers.MatchedPairs;

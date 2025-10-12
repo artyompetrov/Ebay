@@ -1,4 +1,4 @@
-﻿namespace Server.Domain.Measurements;
+namespace Server.Domain.Measurements;
 
 public record MatchedPairDifferenceId(
     string Measurement1Id,

@@ -23,7 +23,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
 
     }
 
-    
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -181,12 +181,12 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
 
     public DbSet<MatchedPairDifference> MatchedPairDifferences { get; set; } = null!;
 
-    
+
     public async Task<IUnitOfWorkTransaction> BeginTransactionAsync(
         CancellationToken cancellationToken,
         IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
     {
-        return new ApplicationDbContextTransaction( await Database.BeginTransactionAsync(isolationLevel: isolationLevel, cancellationToken));
+        return new ApplicationDbContextTransaction(await Database.BeginTransactionAsync(isolationLevel: isolationLevel, cancellationToken));
     }
 
     private class ApplicationDbContextTransaction : IUnitOfWorkTransaction
