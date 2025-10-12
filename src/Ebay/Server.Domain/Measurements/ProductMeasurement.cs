@@ -4,7 +4,7 @@ using Server.Domain.Measurements.MeasurementTypes;
 
 namespace Server.Domain.Measurements;
 
-public class ProductMeasurement : AggregateRoot<string>
+public sealed class ProductMeasurement : AggregateRoot<string>
 {
     private ProductMeasurement(
         string id,
@@ -29,7 +29,7 @@ public class ProductMeasurement : AggregateRoot<string>
         MatchId = matchId;
     }
 
-    internal static ProductMeasurement Create(
+    public static ProductMeasurement Create(
         string id,
         Guid productId,
         byte[] measurements,
@@ -108,37 +108,37 @@ public class ProductMeasurement : AggregateRoot<string>
         );
     }
 
-    internal Guid ProductId { get; private set; }
+    public Guid ProductId { get; private set; }
 
-    internal MeasurementState MeasurementState { get; set; }
+    public MeasurementState MeasurementState { get; set; }
 
-    internal byte[] Measurements { get; private set; }
+    public byte[] Measurements { get; private set; }
     
     [MaxLength(128)]
-    internal  string HashAnodeCurves { get; private set; }
+    public  string HashAnodeCurves { get; private set; }
     
     [MaxLength(128)]
-    internal string HashQuickTest { get; private set; }
+    public string HashQuickTest { get; private set; }
 
-    internal DateTime CreatedAt { get; private set; }
+    public DateTime CreatedAt { get; private set; }
 
     /// <summary>
     /// Дата производства или код
     /// </summary>
     [MaxLength(128)]
-    internal string ManufactureCode { get; private set; }
+    public string ManufactureCode { get; private set; }
 
-    internal ProductState ProductState { get; private set; }
+    public ProductState ProductState { get; private set; }
     
     /// <summary>
     /// Местонахождение
     /// </summary>
     [MaxLength(200)]
-    internal string? Location { get; set; }
+    public string? Location { get; set; }
 
     /// <summary>
     /// Идентификатор подобранного набора
     /// </summary>
     [MaxLength(100)]
-    internal string? MatchId { get; set; }
+    public string? MatchId { get; set; }
 }

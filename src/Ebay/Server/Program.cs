@@ -5,9 +5,12 @@ using Microsoft.AspNetCore.DataProtection;
 using OpenTelemetry.Logs;
 using Server;
 using Server.Adapters.ChipFind;
+using Server.Adapters.EF.WriteModel;
 using Server.Adapters.Smtp;
+using Server.Adapters.uTracer;
 using Server.Application;
 using Server.Application.Data;
+using Sever.Adapters.EF.ReadModel;
 using Secret = Duende.IdentityServer.Models.Secret;
 
 //IdentityModelEventSource.ShowPII = true;
@@ -19,8 +22,11 @@ var options = new EbayServerOptions();
 builder.Configuration.Bind("EbayServer", options);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new NullReferenceException("Connection string cannot be null");
 builder.Services.AddEmailAdapter(builder.Configuration);
+builder.Services.AddUTracerAdapter();
 builder.Services.AddChipFindAdapter();
+builder.Services.AddEfReadModelAdapter(connectionString);
 builder.Services.AddApplicationServices(options, connectionString);
+builder.Services.AddEfWriteModelAdapter();
 
 var keyStoragePath = Environment.GetEnvironmentVariable("DATA_PROTECTION_KEYS_DIR") ??
                      Path.Join(path1: Path.GetTempPath(), path2: "data_protection_keys_dir");

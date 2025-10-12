@@ -10,7 +10,7 @@ using Server.Domain.Measurements.MeasurementTypes.Base;
 
 namespace Server.Adapters.uTracer;
 
-public class MeasurementFileParser : IMeasurementFileParser
+internal sealed class MeasurementFileParser : IMeasurementFileParser
 {
     public MeasurementFileParseResult Parse(byte[] measurements)
     {

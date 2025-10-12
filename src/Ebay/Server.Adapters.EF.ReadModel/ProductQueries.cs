@@ -3,7 +3,7 @@ using Server.Application.Abstractions.Measurements;
 
 namespace Sever.Adapters.EF.ReadModel;
 
-internal class ProductQueries : IProductQueries
+internal sealed class ProductQueries : IProductQueries
 {
     private readonly ReadDbContext _readDbContext;
 

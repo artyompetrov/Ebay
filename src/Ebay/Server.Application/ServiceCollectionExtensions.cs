@@ -30,8 +30,8 @@ public static class ServiceCollectionExtensions
         var appAssembly = typeof(ServiceCollectionExtensions).Assembly;
 
         services.AddSingleton(options);
-        services.AddNpgsqlDataSource(connectionString);
-        services.AddDbContext<ApplicationDbContext>(o => o.UseNpgsql());
+
+        services.AddDbContext<ApplicationDbContext>(o => o.UseNpgsql(connectionString));
         services.AddSingleton<ShippingRatesService>();
         services.AddSingleton(new DatabaseConcurrentAccessSemaphore(
                 maxConcurrent: new Npgsql.NpgsqlConnectionStringBuilder(connectionString).MaxPoolSize / 2));

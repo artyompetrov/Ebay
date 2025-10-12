@@ -3,7 +3,7 @@ using Server.Application.Abstractions.Measurements;
 
 namespace Sever.Adapters.EF.ReadModel;
 
-internal class PassportQueries : IPassportQueries
+internal sealed class PassportQueries : IPassportQueries
 {
     private readonly ReadDbContext _readDbContext;
 

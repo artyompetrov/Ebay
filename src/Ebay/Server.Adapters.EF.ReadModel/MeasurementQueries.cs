@@ -6,7 +6,7 @@ using Server.Domain.Measurements;
 
 namespace Sever.Adapters.EF.ReadModel;
 
-internal class MeasurementQueries : IMeasurementQueries
+internal sealed class MeasurementQueries : IMeasurementQueries
 {
     private readonly ReadDbContext _dbContext;
 
