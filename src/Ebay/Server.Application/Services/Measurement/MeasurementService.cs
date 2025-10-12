@@ -5,7 +5,7 @@ using Server.Domain.Measurements;
 
 namespace Server.Application.Services.Measurement;
 
-internal class MeasurementService
+public class MeasurementService
 {
     private readonly IMeasurementRepository _productMeasurementRepository;
     private readonly IMatchedPairDifferenceRepository _matchedPairDifferenceRepository;

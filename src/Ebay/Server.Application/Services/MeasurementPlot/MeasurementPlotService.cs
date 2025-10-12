@@ -8,7 +8,7 @@ using Server.Domain.Measurements.MeasurementTypes.Base;
 namespace Server.Application.Services.MeasurementPlot;
 
 // todo генерация графиков по идее должна быть вынесена в адаптер
-internal class MeasurementPlotService
+public class MeasurementPlotService
 {
     private readonly DbCache _cache;
     private readonly IMeasurementQueries _measurementQueries;

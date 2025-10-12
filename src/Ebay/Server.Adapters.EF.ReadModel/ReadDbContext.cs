@@ -1,3 +1,4 @@
+using Client.Clients.Generated;
 using Microsoft.EntityFrameworkCore;
 using Sever.Adapters.EF.ReadModel.ReadModelSchema;
 
@@ -42,6 +43,11 @@ internal sealed class ReadDbContext : DbContext
         b.Entity<TubeWorkingPointView>(x =>
         {
             x.ToView("TubeWorkingPoints").HasKey(x => x.Id);
+        });
+        
+        b.Entity<SearchQueryView>(x =>
+        {
+            x.ToView("SearchQueries").HasKey(x => x.Id);
         });
     }
 

@@ -103,7 +103,7 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
 
         var measurement2 = new MeasurementInfoWithAnodeCurves(
             measurement2dto,
-            AnodeCurves: _measurementFileParser.Parse(measurement1dto.Data).MeasurementConfigTableParseResult.AnodeCurves);
+            AnodeCurves: _measurementFileParser.Parse(measurement2dto.Data).MeasurementConfigTableParseResult.AnodeCurves);
 
         switch (measurement1.AnodeCurves)
         {

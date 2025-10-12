@@ -7,6 +7,9 @@ COPY Ebay/nuget.config Ebay/
 COPY Ebay/Client/*.csproj Ebay/Client/
 COPY Ebay/Server/*.csproj Ebay/Server/
 COPY Ebay/Server.Adapters.Smtp/*.csproj Ebay/Server.Adapters.Smtp/
+COPY Ebay/Server.Adapters.uTracer/*.csproj Ebay/Server.Adapters.uTracer/
+COPY Ebay/Server.Adapters.EF.ReadModel/*.csproj Ebay/Server.Adapters.EF.ReadModel/
+COPY Ebay/Server.Adapters.EF.WriteModel/*.csproj Ebay/Server.Adapters.EF.WriteModel/
 COPY Ebay/Server.Adapters.ChipFind/*.csproj Ebay/Server.Adapters.ChipFind/
 COPY Ebay/Server.Application/*.csproj Ebay/Server.Application/
 COPY Ebay/Server.Domain/*.csproj Ebay/Server.Domain/
