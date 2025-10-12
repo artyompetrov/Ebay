@@ -281,8 +281,8 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
     {
         var pairDifference = await _applicationDbContext.MatchedPairDifferences
             .SingleOrDefaultAsync(
-                x => x.MeasurementId1 == measurementId1 &&
-                     x.MeasurementId2 == measurementId2 &&
+                x => x.Measurement1Id == measurementId1 &&
+                     x.Measurement2Id == measurementId2 &&
                      x.ComparisonMode == comparisonMode,
                 cancellationToken: cancellationToken);
 
@@ -290,8 +290,8 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         {
             pairDifference = new MatchedPairDifference
             {
-                MeasurementId1 = measurementId1,
-                MeasurementId2 = measurementId2,
+                Measurement1Id = measurementId1,
+                Measurement2Id = measurementId2,
                 ComparisonMode = comparisonMode
             };
 

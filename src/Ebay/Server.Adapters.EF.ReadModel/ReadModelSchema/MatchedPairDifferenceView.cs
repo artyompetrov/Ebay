@@ -8,10 +8,10 @@ internal class MatchedPairDifferenceView : IViewProjection<MatchedPairDifference
 {
     public ComparisonMode ComparisonMode { get; set; }
     
-    public required string MeasurementId1 { get; set; }
+    public required string Measurement1Id { get; set; }
     public ProductMeasurementView Measurement1 { get; set; } = null!;
     
-    public required string MeasurementId2 { get; set; }
+    public required string Measurement2Id { get; set; }
     public ProductMeasurementView Measurement2 { get; set; } = null!;
     
     public double MseSection1 { get; set; }
@@ -27,8 +27,8 @@ internal class MatchedPairDifferenceView : IViewProjection<MatchedPairDifference
         new ()
         {
             ComparisonMode = x.ComparisonMode,
-            MeasurementId1 = x.MeasurementId1,
-            MeasurementId2 = x.MeasurementId2,
+            Measurement1Id = x.Measurement1Id,
+            Measurement2Id = x.Measurement2Id,
             MseSection1 = x.MseSection1,
             MseSection2 =  x.MseSection2,
             RmseSection1 = x.RmseSection1,

@@ -11,6 +11,6 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<SmtpSettings>(configuration.GetSection("Smtp"));
-        services.AddSingleton<IEmailSender, EmailSender>();
+        services.AddScoped<IEmailSender, EmailSender>();
     }
 }

@@ -5,18 +5,20 @@ using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Options;
+using Server.Application.Abstractions;
 using Server.Domain;
 using Server.Domain.Measurements;
 
 namespace Server.Application.Data;
 
-public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
+public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, IUnitOfWork
 {
     public ApplicationDbContext(
         DbContextOptions<ApplicationDbContext> options,
         IOptions<OperationalStoreOptions> operationalStoreOptions
     ) : base(options: options, operationalStoreOptions: operationalStoreOptions)
     {
+        
     }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -126,22 +128,22 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
         
         modelBuilder.Entity<MatchedPairDifference>(entity =>
         {
-            entity.HasKey(e => new { e.MeasurementId1, e.MeasurementId2, e.ComparisonMode });
+            entity.HasKey(e => new { MeasurementId1 = e.Measurement1Id, MeasurementId2 = e.Measurement2Id, e.ComparisonMode });
 
-            entity.Property(e => e.MeasurementId1)
+            entity.Property(e => e.Measurement1Id)
                 .HasMaxLength(100);
 
-            entity.Property(e => e.MeasurementId2)
+            entity.Property(e => e.Measurement2Id)
                 .HasMaxLength(100);
 
             entity.HasOne<ProductMeasurement>()
                 .WithMany()
-                .HasForeignKey(e => e.MeasurementId1)
+                .HasForeignKey(e => e.Measurement1Id)
                 .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasOne<ProductMeasurement>()
                 .WithMany()
-                .HasForeignKey(e => e.MeasurementId2)
+                .HasForeignKey(e => e.Measurement2Id)
                 .OnDelete(DeleteBehavior.Restrict);
         });
     }

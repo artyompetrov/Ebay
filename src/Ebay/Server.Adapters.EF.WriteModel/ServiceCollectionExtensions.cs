@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Server.Application;
+using Server.Application.Abstractions;
 using Server.Domain.Measurements;
 
 namespace Server.Adapters.EF.WriteModel;

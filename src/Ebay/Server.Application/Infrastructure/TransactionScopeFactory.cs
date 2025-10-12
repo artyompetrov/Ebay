@@ -5,6 +5,7 @@ namespace Server.Application.Infrastructure;
 internal static class TransactionScopeFactory
 {
     // todo считается устаревшим подходом, надо отказаться
+    [Obsolete]
     public static TransactionScope Create(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted) =>
         new(
             scopeOption: TransactionScopeOption.Required,

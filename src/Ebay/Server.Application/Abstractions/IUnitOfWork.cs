@@ -1,0 +1,16 @@
+﻿using System.Data;
+
+namespace Server.Application.Abstractions;
+
+/// <summary>
+/// Интерфес для работы с транзакциями
+/// </summary>
+public interface IUnitOfWork
+{
+    /// <summary>
+    /// Сохранить изменения
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<int> SaveChangesAsync(CancellationToken cancellationToken);
+}

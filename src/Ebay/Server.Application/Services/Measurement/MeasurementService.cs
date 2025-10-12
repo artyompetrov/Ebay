@@ -1,3 +1,5 @@
+using MassTransit;
+using Server.Application.Abstractions;
 using Server.Application.Abstractions.Measurements;
 using Server.Domain.Measurements;
 using Server.Domain.Measurements.MeasurementTypes;
@@ -7,19 +9,22 @@ namespace Server.Application.Services.Measurement;
 
 internal class MeasurementService
 {
-
     private readonly IRepository<ProductMeasurement, string> _productMeasurementRepository;
     private readonly IMeasurementQueries _measurementQueries;
     private readonly IMeasurementFileParser _measurementFileParser;
+    private readonly IUnitOfWork _unitOfWork;
 
     public MeasurementService(
         IRepository<ProductMeasurement, string> productMeasurementRepository,
         IMeasurementQueries measurementQueries,
-        IMeasurementFileParser measurementFileParser)
+        IMeasurementFileParser measurementFileParser,
+        IUnitOfWork unitOfWork
+        )
     {
         _productMeasurementRepository = productMeasurementRepository;
         _measurementQueries = measurementQueries;
         _measurementFileParser = measurementFileParser;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task SaveMeasurement(
@@ -44,6 +49,8 @@ internal class MeasurementService
         );
 
         await _productMeasurementRepository.SaveAsync(measurement, cancellationToken);
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     public async Task UpdateMeasurementLocation(
@@ -60,6 +67,8 @@ internal class MeasurementService
         }
 
         productMeasurement.Location = location;
+        
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     public async Task UpdateMeasurementMatchId(
@@ -76,6 +85,8 @@ internal class MeasurementService
         }
 
         productMeasurement.MatchId = batchId;
+        
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     public async Task UpdateMeasurementState(
@@ -92,27 +103,24 @@ internal class MeasurementService
         }
 
         productMeasurement.MeasurementState = state;
+        
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     public async Task DeleteMeasurement(
-        Guid productId, // это не надо
+        Guid productId, // todo это не надо
         string measurementId,
         CancellationToken cancellationToken)
     {
         await _productMeasurementRepository.RemoveAsync(measurementId, cancellationToken);
         
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
     public Task<IReadOnlyCollection<MeasurementInfoWithSimilarMeasurements>> GetMeasurementInfos(
         Guid productId,
         IReadOnlyCollection<MeasurementState> measurementStates,
         CancellationToken cancellationToken) =>
         _measurementQueries.GetMeasurementInfosWithSimilarMeasurements(productId, measurementStates, cancellationToken);
-
-
-    public Task<Dictionary<string, IReadOnlyCollection<SimilarMeasurementInfo>>> GetSimilarMeasurements(
-        CancellationToken cancellationToken,
-        string[] measurementIds) =>
-        _measurementQueries.GetSimilarMeasurements(cancellationToken, measurementIds);
     
 
     public async Task<byte[]?> GetMeasurementFile(string measurementId, CancellationToken cancellationToken)

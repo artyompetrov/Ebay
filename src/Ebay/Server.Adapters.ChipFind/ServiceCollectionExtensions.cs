@@ -9,6 +9,6 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services)
     {
         services.AddHttpClient();
-        services.AddSingleton<IChipfindAdapter, ChipfindAdapter>();
+        services.AddScoped<IChipfindAdapter, ChipfindAdapter>();
     }
 }

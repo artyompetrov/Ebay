@@ -7,10 +7,10 @@ public class MatchedPairDifference
     public ComparisonMode ComparisonMode { get; set; }
 
     [MaxLength(100)]
-    public required string MeasurementId1 { get; set; }
+    public required string Measurement1Id { get; set; }
 
     [MaxLength(100)]
-    public required string MeasurementId2 { get; set; }
+    public required string Measurement2Id { get; set; }
 
     /// <summary>
     /// Среднеквадратичная ошибка (Mean Squared Error) между аппроксимированными 

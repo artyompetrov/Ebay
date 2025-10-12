@@ -60,7 +60,7 @@ internal class MatchedMeasurementService
         _logger.LogInformation("Starting matching task for {ProductId}, {MeasurementIds}", productId, string.Join(",", measurementIds));
         
         _applicationContext.MatchedPairDifferences.RemoveRange(
-            _applicationContext.MatchedPairDifferences.Where(x => measurementIds.Contains(x.MeasurementId1)));
+            _applicationContext.MatchedPairDifferences.Where(x => measurementIds.Contains(x.Measurement1Id)));
 
         await _applicationContext.SaveChangesAsync(cancellationToken);
         

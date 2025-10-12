@@ -5,12 +5,12 @@ namespace Server.Application.Services.LotDataExtractor;
 
 public class ShippingRatesService
 {
-    private readonly List<ShippingType> _rates;
-    private readonly Dictionary<string, List<ShippingRateInner>> _shippingRatesDictionary;
+    private static readonly List<ShippingType> Rates;
+    private static readonly Dictionary<string, List<ShippingRateInner>> ShippingRatesDictionaryStatic;
 
     // тарифы взяты отсюда https://qazpost.kz/ru/help/tariffs?tab=pochtovye-uslugi
 
-    public ShippingRatesService()
+    static ShippingRatesService()
     {
 
         // не интересно
@@ -271,7 +271,7 @@ public class ShippingRatesService
 
         };
 
-        _rates =
+        Rates =
         [
             new(
                 name: "Мелкий пакет авиа",
@@ -355,7 +355,7 @@ public class ShippingRatesService
 
         ];
 
-        _shippingRatesDictionary = GetShippingRatesDictionaryInner();
+        ShippingRatesDictionaryStatic = GetShippingRatesDictionaryInner();
     }
 
     private static IEnumerable<ShippingRate> CalculateForBigParcels(int lastValueInTable, int eachAdditional)
@@ -369,15 +369,15 @@ public class ShippingRatesService
 
     public const string Worldwide = "Worldwide";
 
-    public IReadOnlyCollection<ShippingType> ShippingRates => _rates;
+    public IReadOnlyCollection<ShippingType> ShippingRates => Rates;
 
-    public IReadOnlyDictionary<string, List<ShippingRateInner>> ShippingRatesDictionary => _shippingRatesDictionary;
+    public IReadOnlyDictionary<string, List<ShippingRateInner>> ShippingRatesDictionary => ShippingRatesDictionaryStatic;
 
-    private Dictionary<string, List<ShippingRateInner>> GetShippingRatesDictionaryInner()
+    private static Dictionary<string, List<ShippingRateInner>> GetShippingRatesDictionaryInner()
     {
         var rates = new Dictionary<string, List<ShippingRateInner>>();
 
-        foreach (var shippingRate in ShippingRates)
+        foreach (var shippingRate in Rates)
         {
             foreach (var shippingRateRate in shippingRate.Rates)
             {

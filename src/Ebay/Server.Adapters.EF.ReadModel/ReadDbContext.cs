@@ -32,7 +32,7 @@ internal sealed class ReadDbContext : DbContext
         
         b.Entity<MatchedPairDifferenceView>(eb =>
         {
-            eb.ToView("MatchedPairDifferences").HasKey(x =>  new { x.MeasurementId1, x.MeasurementId2, x.ComparisonMode });
+            eb.ToView("MatchedPairDifferences").HasKey(x =>  new { MeasurementId1 = x.Measurement1Id, MeasurementId2 = x.Measurement2Id, x.ComparisonMode });
         });
     }
 

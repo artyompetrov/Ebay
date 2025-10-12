@@ -11,23 +11,17 @@ namespace Server.Application.HostedServices.ChipFind;
 public class ChipfindBackgroundTask : BackgroundTask
 {
     private readonly ILogger<ChipfindBackgroundTask> _logger;
-    private readonly IChipfindAdapter _chipfindAdapter;
-    private readonly IEmailSender _emailSender;
     private readonly EbayServerOptions _ebayServerOptions;
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private const int DelayAfterSendMilliseconds = 5000;
 
     public ChipfindBackgroundTask(
         ILogger<ChipfindBackgroundTask> logger,
-        IChipfindAdapter chipfindAdapter,
-        IEmailSender emailSender,
         EbayServerOptions ebayServerOptions,
         IServiceScopeFactory serviceScopeFactory
     ) : base(logger)
     {
         _logger = logger;
-        _chipfindAdapter = chipfindAdapter;
-        _emailSender = emailSender;
         _ebayServerOptions = ebayServerOptions;
         _serviceScopeFactory = serviceScopeFactory;
     }
@@ -43,16 +37,19 @@ public class ChipfindBackgroundTask : BackgroundTask
 
         using var scope = _serviceScopeFactory.CreateScope();
         var applicationDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var chipfindAdapter = scope.ServiceProvider.GetRequiredService<IChipfindAdapter>();
+        var emailSender = scope.ServiceProvider.GetRequiredService<IEmailSender>();
 
         var products = await GetProducts(
             cancellationToken: cancellationToken,
             applicationDbContext: applicationDbContext);
 
-        var recentAdvertisements = await _chipfindAdapter.GetRecentSaleAdvertisements(cancellationToken);
+        var recentAdvertisements = await chipfindAdapter.GetRecentSaleAdvertisements(cancellationToken);
 
         foreach (var saleAdvertisement in recentAdvertisements)
         {
             await ProcessAdvertisement(
+                emailSender: emailSender,
                 cancellationToken: cancellationToken,
                 saleAdvertisement: saleAdvertisement,
                 products: products,
@@ -61,6 +58,7 @@ public class ChipfindBackgroundTask : BackgroundTask
     }
 
     private async Task ProcessAdvertisement(
+        IEmailSender emailSender,
         CancellationToken cancellationToken,
         SaleAdvertisement saleAdvertisement,
         IReadOnlyCollection<ProductInner> products,
@@ -132,7 +130,7 @@ public class ChipfindBackgroundTask : BackgroundTask
             var emailTopic = $"{saleAdvertisement.Title} [{saleAdvertisement.Seller}]";
             _logger.LogInformation(emailTopic);
             _logger.LogDebug(emailBody);
-            await _emailSender.Send(
+            await emailSender.Send(
                 targetAddress: _ebayServerOptions.TargetEmail,
                 topic: emailTopic,
                 messageText: emailBody);

@@ -1,6 +1,7 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Application.Abstractions;
 using Server.Application.Consumers.EbayCurvesCacheWarmUp;
 using Server.Application.Consumers.MatchedPairs;
 using Server.Application.Consumers.PriceCalculator;
@@ -32,7 +33,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton(options);
 
         services.AddDbContext<ApplicationDbContext>(o => o.UseNpgsql(connectionString));
-        services.AddSingleton<ShippingRatesService>();
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ApplicationDbContext>());
+        services.AddScoped<ShippingRatesService>();
         services.AddSingleton(new DatabaseConcurrentAccessSemaphore(
                 maxConcurrent: new Npgsql.NpgsqlConnectionStringBuilder(connectionString).MaxPoolSize / 2));
         services.AddScoped<DbCache>();

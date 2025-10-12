@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Server.Application;
+using Server.Application.Abstractions;
 using Server.Application.Data;
 using Server.Domain.Measurements;
 
