@@ -143,7 +143,6 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                 x.ComparisonMode,
                 ManufactureCode1 = x.Measurement1.ManufactureCode,
                 ManufactureCode2 = x.Measurement2.ManufactureCode,
-                AlreadyInMatch = x.Measurement2.MatchId != null,
                 IsMatchedPair = x.Measurement2.MatchId != null && x.Measurement1.MatchId == x.Measurement2.MatchId,
                 MatchId = x.Measurement2.MatchId
             })
