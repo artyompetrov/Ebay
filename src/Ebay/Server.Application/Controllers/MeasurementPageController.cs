@@ -45,19 +45,27 @@ public class MeasurementPageController : ControllerBase
     public async Task<IActionResult> GetEbayCurves(
         string measurementId,
         string? product,
+        bool? sellingOnly,
         CancellationToken cancellationToken)
     {
         var xRealIp = Request.Headers["X-Real-IP"].FirstOrDefault();
         var userAgent = Request.Headers["User-Agent"].ToString();
 
-        await _geoIpService.LogRequest($"GetEbayCurves for product {product} requested", xRealIp, userAgent, cancellationToken);
+        await _geoIpService.LogRequest(
+            prefix: $"GetEbayCurves for product {product} requested",
+            realIp: xRealIp,
+            ua: userAgent,
+            token: cancellationToken);
 
-        var result = await _measurementPlotService.PlotForEbay(measurementId, cancellationToken);
+        var result = await _measurementPlotService.PlotForEbay(
+            measurementId: measurementId,
+            sellingOnly: sellingOnly ?? true,
+            cancellationToken: cancellationToken);
 
         if (result == null)
             return NotFound("Measurement not found");
 
-        var response = Content(result, "image/svg+xml");
+        var response = Content(content: result, contentType: "image/svg+xml");
         return response;
     }
 

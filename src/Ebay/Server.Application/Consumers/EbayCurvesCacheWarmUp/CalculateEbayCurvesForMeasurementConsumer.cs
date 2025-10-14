@@ -23,7 +23,7 @@ internal class CalculateEbayCurvesForMeasurementConsumer : IConsumer<CalculateEb
         _logger.LogInformation("Warm-up for {MeasurementId}", context.Message.MeasurementId);
         try
         {
-            await _measurementPlotService.PlotForEbay(context.Message.MeasurementId, context.CancellationToken);
+            await _measurementPlotService.PlotForEbay(context.Message.MeasurementId, context.CancellationToken, false);
         }
         catch (DbUpdateException ex)
         {
