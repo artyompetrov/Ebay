@@ -32,7 +32,7 @@ public class EbayLotDescriptionPage : PageModel
 
     public IReadOnlyList<Passport> Passports { get; set; } = null!;
 
-    public IReadOnlyCollection<MeasurementInfo> Measurements { get; set; } = null!;
+    public IReadOnlyCollection<MeasurementInfoWithSimilarMeasurements> Measurements { get; set; } = null!;
 
     public async Task<IActionResult> OnGet(Guid productId, ProductState state, CancellationToken cancellationToken)
     {
@@ -46,11 +46,13 @@ public class EbayLotDescriptionPage : PageModel
             return NotFound();
         }
 
-        Measurements = await _measurementQueries.GetMeasurementsInfo(productId, new[] { MeasurementState.Selling }, cancellationToken);
+        Measurements = await _measurementQueries.GetMeasurementInfosWithSimilarMeasurements(productId, new[] { MeasurementState.Selling }, cancellationToken);
         Passports = await _passportQueries.GetPassports(productId, cancellationToken);
 
         Product = product;
 
         return Page();
     }
+
+
 }
