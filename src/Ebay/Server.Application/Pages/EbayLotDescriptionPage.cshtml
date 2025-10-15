@@ -106,7 +106,9 @@
         @foreach (var grouping in Model.Measurements.GroupBy(x => x.MatchId)
                       .Select(x=> (
                           MatchKey: x.Key,
-                          SumBalance: (x.Key == null ? double.PositiveInfinity : x.Select(x=>x.DoubleTriodeSectionRmse ?? 0.0).Sum()),
+                          SumBalance: (x.Key == null ? double.PositiveInfinity : /*matched всегда выше не matched*/
+                              x.Select(x=>x.DoubleTriodeSectionRmse ?? 100.0 /*без замеров показыаются ниже чем с замерами*/)
+                                  .Sum()),
                           Items: x.ToList()))
                       .OrderBy(x=>x.SumBalance))
         {
