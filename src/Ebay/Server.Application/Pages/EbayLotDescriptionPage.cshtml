@@ -44,9 +44,9 @@
     <br/>
     <h2 style="text-align: center;">📈 Tested Vacuum Tube — Measurement Results Below</h2>
     <p>This vacuum tube has been professionally tested using a <strong>uTracer 3+</strong> tube tester — a trusted tool among audiophiles and engineers.</p>
-    <p>Each tested tube comes in a labeled box with a barcode sticker. By scanning the barcode, you can access the detailed test results for that specific tube.</p>
     
     <h3>📐 High-Quality Vector Graphs (SVG)</h3>
+    <p>Each tested tube comes in a labeled box with a barcode sticker. By scanning the barcode, you can access the detailed test results for that specific tube.</p>
     <p>The test graphs are provided in <strong>SVG vector format</strong>. You can right-click on any graph and open it in a new tab to zoom in without losing clarity.</p>
     
     <h3>🔍 Choosing a Specific Tube</h3>
@@ -62,11 +62,17 @@
             border-collapse: collapse;
         }
     
-    
         th, td {
             border: 1px solid #ccc;
             padding: 8px;
             text-align: center;
+        }
+
+        .tube-col {
+            max-width: 130px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-all;
         }
     
         th {
@@ -105,13 +111,17 @@
                         <td rowspan="@rows.Count">
                             @if (grouping.Key != null)
                             {
-                               <text>#@matchIndex</text>
+                               <text>Match #@matchIndex</text>
+                            }
+                            else
+                            {
+                                <text>Not</text><br/><text>matched</text>
                             }
                         </td>
                     }
 
-                    <td>
-                        #@meas.Id
+                    <td class="tube-col">
+                        Tube #@meas.Id
                         <br/><br/>
                         @meas.ManufactureCode
                         <br/><br/>

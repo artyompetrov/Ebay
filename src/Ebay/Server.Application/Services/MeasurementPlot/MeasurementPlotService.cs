@@ -35,7 +35,7 @@ public class MeasurementPlotService
             mergeVertical: false,
             legendVertical: true,
             addQuickTest: true,
-            width: 550,
+            width: 525,
             height: 400,
             sellingOnly: sellingOnly);
 
