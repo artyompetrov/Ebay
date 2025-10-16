@@ -2,7 +2,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using HtmlAgilityPack;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Server.Application;
 using Server.Application.HostedServices.ChipFind;
 
 namespace Server.Adapters.ChipFind;
@@ -11,11 +13,14 @@ public class ChipfindAdapter : IChipfindAdapter
 {
     private readonly ILogger<ChipfindAdapter> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IMemoryCache _memoryCache;
+    private const int DelayMilliseconds = 5000;
 
-    public ChipfindAdapter(ILogger<ChipfindAdapter> logger, IHttpClientFactory httpClientFactory)
+    public ChipfindAdapter(ILogger<ChipfindAdapter> logger, IHttpClientFactory httpClientFactory, IMemoryCache memoryCache)
     {
         _logger = logger;
         _httpClientFactory = httpClientFactory;
+        _memoryCache = memoryCache;
     }
 
     public async Task<IReadOnlyCollection<SaleAdvertisement>> GetRecentSaleAdvertisements(
@@ -87,16 +92,21 @@ public class ChipfindAdapter : IChipfindAdapter
         return result;
     }
 
-    public async Task<string?> TryGetAdvertisementContactAsync(Uri link, CancellationToken cancellationToken)
+    public async Task<string?> TryGetAdvertisementContactAsync(SaleAdvertisement saleAdvertisement, CancellationToken cancellationToken)
     {
+        var cacheKey = $"seller_contact_information_{saleAdvertisement.Seller}";
+        
+        if (_memoryCache.TryGetValue<string?>(cacheKey, out var contact))
+            return contact;
+        
         try
         {
             var httpClient = _httpClientFactory.CreateClient("chipfind");
-            using var response = await httpClient.GetAsync(link, cancellationToken);
+            using var response = await httpClient.GetAsync(saleAdvertisement.Link, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning("Unable to fetch advertisement page {Link}. Status code: {StatusCode}", link, response.StatusCode);
+                _logger.LogWarning("Unable to fetch advertisement page {Link}. Status code: {StatusCode}", saleAdvertisement.Link, response.StatusCode);
                 return null;
             }
 
@@ -109,11 +119,17 @@ public class ChipfindAdapter : IChipfindAdapter
             var doc = new HtmlDocument();
             doc.LoadHtml(html);
 
-            return TryExtractContactFromContactSection(doc);
+            var result = TryExtractContactFromContactSection(doc);
+            
+            _memoryCache.Set(cacheKey, result);
+
+            await Task.Delay(DelayMilliseconds, cancellationToken);
+            
+            return result;
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to parse advertisement contact from {Link}", link);
+            _logger.LogWarning(ex, "Failed to parse advertisement contact from {Link}", saleAdvertisement.Link);
             return null;
         }
     }
@@ -121,6 +137,7 @@ public class ChipfindAdapter : IChipfindAdapter
     private static string? TryExtractContactFromContactSection(HtmlDocument doc)
     {
         var contactNode = doc.DocumentNode.Descendants("div")
+            
             .FirstOrDefault(d => d.GetClasses().Contains("contact"));
         if (contactNode == null)
         {
@@ -129,38 +146,7 @@ public class ChipfindAdapter : IChipfindAdapter
 
         return contactNode.InnerText;
     }
-
-    private static void AppendPlainText(HtmlNode node, StringBuilder builder)
-    {
-        foreach (var child in node.ChildNodes)
-        {
-            switch (child.NodeType)
-            {
-                case HtmlNodeType.Element when child.Name.Equals("br", StringComparison.OrdinalIgnoreCase):
-                    if (builder.Length > 0 && builder[^1] != '\n')
-                    {
-                        builder.Append('\n');
-                    }
-                    break;
-                case HtmlNodeType.Element:
-                    AppendPlainText(child, builder);
-                    break;
-                case HtmlNodeType.Text:
-                    var text = child.InnerText;
-                    if (!string.IsNullOrWhiteSpace(text))
-                    {
-                        if (builder.Length > 0 && !char.IsWhiteSpace(builder[^1]))
-                        {
-                            builder.Append(' ');
-                        }
-
-                        builder.Append(text.Trim());
-                    }
-                    break;
-            }
-        }
-    }
-
+    
     private static void PreNodesAsNewLines(HtmlDocument doc)
     {
         var preNodes = doc.DocumentNode.SelectNodes("//pre");

@@ -68,10 +68,9 @@ public class ChipfindBackgroundTask : BackgroundTask
     {
         using var transaction = TransactionScopeFactory.Create();
 
-        var advertisementContact= await RequestContact(
-            chipfindAdapter: chipfindAdapter,
-            cancellationToken: cancellationToken,
-            saleAdvertisement: saleAdvertisement);
+        var advertisementContact = await chipfindAdapter.TryGetAdvertisementContactAsync(
+            saleAdvertisement,
+            cancellationToken);
 
         var newInterestingAds = new HashSet<(bool IsAmbiguous, string Ad, string? Contact)>();
         foreach (var saleAdvertisementItem in saleAdvertisement.Items)
@@ -160,20 +159,7 @@ public class ChipfindBackgroundTask : BackgroundTask
 
         transaction.Complete();
     }
-
-    private async Task<string?> RequestContact(IChipfindAdapter chipfindAdapter, CancellationToken cancellationToken,
-        SaleAdvertisement saleAdvertisement)
-    {
-        
-        string? advertisementContact;
-        advertisementContact = await chipfindAdapter.TryGetAdvertisementContactAsync(
-            saleAdvertisement.Link,
-            cancellationToken);
-
-        await Task.Delay(DelayMilliseconds, cancellationToken);
-        return advertisementContact;
-    }
-
+    
     private async static Task<IReadOnlyCollection<ProductInner>> GetProducts(
         ApplicationDbContext applicationDbContext,
         CancellationToken cancellationToken)
