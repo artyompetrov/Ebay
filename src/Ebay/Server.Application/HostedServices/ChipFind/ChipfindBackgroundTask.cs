@@ -138,7 +138,7 @@ public class ChipfindBackgroundTask : BackgroundTask
                     record.CreatedAt = saleAdvertisement.Date;
                     record.IsAmbiguous = isAmbiguous;
 
-                    if (!string.IsNullOrWhiteSpace(record.Email))
+                    if (string.IsNullOrWhiteSpace(record.Email))
                     {
                         if (!advertisementEmailRequested)
                         {
