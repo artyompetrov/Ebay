@@ -83,6 +83,46 @@ public class ChipfindAdapterTests
         Assert.That(logger.HasWarning, Is.False);
     }
 
+    [Test]
+    public async Task TryGetAdvertisementEmailAsync_WhenMailtoLinkPresent_ReturnsEmail()
+    {
+        const string html = """
+<html><body>
+<div class="contact">E-mail:<a href="mailto:info.post47@yandex.ru?subject=Re:%20%CF%F0%EE%E4%E0%EC">info.post47@yandex.ru</a></div>
+</body></html>
+""";
+
+        var handler = new StaticMessageHandler(html);
+        var httpClient = new HttpClient(handler);
+        var factory = new TestHttpClientFactory(httpClient);
+        var logger = new TestLogger<ChipfindAdapter>();
+        var adapter = new ChipfindAdapter(logger, factory);
+
+        var email = await adapter.TryGetAdvertisementEmailAsync(new Uri("https://www.chipfind.ru/market/msg_prodam_1610251451.htm"), CancellationToken.None);
+
+        Assert.That(email, Is.EqualTo("info.post47@yandex.ru"));
+    }
+
+    [Test]
+    public async Task TryGetAdvertisementEmailAsync_WhenMailtoLinkMissing_ReturnsNull()
+    {
+        const string html = """
+<html><body>
+<div class="contact">Телефон: +7 (000) 000-00-00</div>
+</body></html>
+""";
+
+        var handler = new StaticMessageHandler(html);
+        var httpClient = new HttpClient(handler);
+        var factory = new TestHttpClientFactory(httpClient);
+        var logger = new TestLogger<ChipfindAdapter>();
+        var adapter = new ChipfindAdapter(logger, factory);
+
+        var email = await adapter.TryGetAdvertisementEmailAsync(new Uri("https://www.chipfind.ru/market/msg_prodam_1610251451.htm"), CancellationToken.None);
+
+        Assert.That(email, Is.Null);
+    }
+
     private sealed class StaticMessageHandler : HttpMessageHandler
     {
         private readonly string _content;

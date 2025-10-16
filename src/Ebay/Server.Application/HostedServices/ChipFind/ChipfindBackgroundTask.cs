@@ -50,6 +50,7 @@ public class ChipfindBackgroundTask : BackgroundTask
         {
             await ProcessAdvertisement(
                 emailSender: emailSender,
+                chipfindAdapter: chipfindAdapter,
                 cancellationToken: cancellationToken,
                 saleAdvertisement: saleAdvertisement,
                 products: products,
@@ -59,12 +60,16 @@ public class ChipfindBackgroundTask : BackgroundTask
 
     private async Task ProcessAdvertisement(
         IEmailSender emailSender,
+        IChipfindAdapter chipfindAdapter,
         CancellationToken cancellationToken,
         SaleAdvertisement saleAdvertisement,
         IReadOnlyCollection<ProductInner> products,
         ApplicationDbContext applicationDbContext)
     {
         using var transaction = TransactionScopeFactory.Create();
+
+        var advertisementEmailRequested = false;
+        string? advertisementEmail = null;
 
         var newInterestitngAds = new HashSet<(bool IsAmbiguous, string Ad)>();
         foreach (var saleAdvertisementItem in saleAdvertisement.Items)
@@ -94,16 +99,30 @@ public class ChipfindBackgroundTask : BackgroundTask
 
                 if (record is null)
                 {
-                    applicationDbContext.ProductEmailSendHistory.Add(
-                        new ProductEmailSendHistory
-                        {
-                            ProductId = product.ProductId,
-                            Seller = saleAdvertisement.Seller,
-                            Link = saleAdvertisement.Link.ToString(),
-                            CreatedAt = saleAdvertisement.Date,
-                            Marketplace = WellKnown.ChipFind.Marketplace,
-                            IsAmbiguous = isAmbiguous
-                        });
+                    var newRecord = new ProductEmailSendHistory
+                    {
+                        ProductId = product.ProductId,
+                        Seller = saleAdvertisement.Seller,
+                        Link = saleAdvertisement.Link.ToString(),
+                        CreatedAt = saleAdvertisement.Date,
+                        Marketplace = WellKnown.ChipFind.Marketplace,
+                        IsAmbiguous = isAmbiguous
+                    };
+
+                    if (!advertisementEmailRequested)
+                    {
+                        advertisementEmail = await chipfindAdapter.TryGetAdvertisementEmailAsync(
+                            saleAdvertisement.Link,
+                            cancellationToken);
+                        advertisementEmailRequested = true;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(advertisementEmail))
+                    {
+                        newRecord.Email = advertisementEmail;
+                    }
+
+                    applicationDbContext.ProductEmailSendHistory.Add(newRecord);
 
                     if (product.IsInteresting)
                     {
@@ -115,6 +134,19 @@ public class ChipfindBackgroundTask : BackgroundTask
                     record.Link = saleAdvertisement.Link.ToString();
                     record.CreatedAt = saleAdvertisement.Date;
                     record.IsAmbiguous = isAmbiguous;
+
+                    if (!advertisementEmailRequested)
+                    {
+                        advertisementEmail = await chipfindAdapter.TryGetAdvertisementEmailAsync(
+                            saleAdvertisement.Link,
+                            cancellationToken);
+                        advertisementEmailRequested = true;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(advertisementEmail))
+                    {
+                        record.Email = advertisementEmail;
+                    }
                 }
             }
         }

@@ -1,3 +1,4 @@
+using System.Net.Mail;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using HtmlAgilityPack;
@@ -84,6 +85,92 @@ public class ChipfindAdapter : IChipfindAdapter
 
 
         return result;
+    }
+
+    public async Task<string?> TryGetAdvertisementEmailAsync(Uri link, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var httpClient = _httpClientFactory.CreateClient("chipfind");
+            using var response = await httpClient.GetAsync(link, cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Unable to fetch advertisement page {Link}. Status code: {StatusCode}", link, response.StatusCode);
+                return null;
+            }
+
+            var html = await response.Content.ReadAsStringAsync(cancellationToken);
+            if (string.IsNullOrWhiteSpace(html))
+            {
+                return null;
+            }
+
+            var doc = new HtmlDocument();
+            doc.LoadHtml(html);
+
+            return TryExtractEmailFromMailto(doc);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to parse advertisement email from {Link}", link);
+            return null;
+        }
+    }
+
+    private static string? TryExtractEmailFromMailto(HtmlDocument doc)
+    {
+        var anchorNodes = doc.DocumentNode.SelectNodes("//a[@href]");
+        if (anchorNodes == null)
+        {
+            return null;
+        }
+
+        foreach (var anchor in anchorNodes)
+        {
+            var href = anchor.GetAttributeValue("href", string.Empty);
+            if (href.StartsWith("mailto:", StringComparison.OrdinalIgnoreCase))
+            {
+                var emailCandidate = href["mailto:".Length..];
+                var questionMarkIndex = emailCandidate.IndexOf('?');
+                if (questionMarkIndex >= 0)
+                {
+                    emailCandidate = emailCandidate[..questionMarkIndex];
+                }
+
+                emailCandidate = Uri.UnescapeDataString(HtmlEntity.DeEntitize(emailCandidate)).Trim();
+                if (IsEmail(emailCandidate))
+                {
+                    return emailCandidate;
+                }
+
+                var innerText = HtmlEntity.DeEntitize(anchor.InnerText ?? string.Empty).Trim();
+                if (IsEmail(innerText))
+                {
+                    return innerText;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static bool IsEmail(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        try
+        {
+            var mailAddress = new MailAddress(value);
+            return !string.IsNullOrWhiteSpace(mailAddress.Address);
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private static void PreNodesAsNewLines(HtmlDocument doc)

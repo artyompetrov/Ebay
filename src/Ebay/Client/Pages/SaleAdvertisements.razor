@@ -19,6 +19,7 @@ else
                 <th>Продавец</th>
                 <th>Маркетплейс</th>
                 <th>Ссылка</th>
+                <th>E-mail</th>
                 <th>Неоднозначность</th>
                 <th>Дата</th>
             </tr>
@@ -35,6 +36,7 @@ else
                             <a href="@ad.Link" target="_blank">ссылка</a>
                         }
                     </td>
+                    <td>@ad.Email</td>
                     <td>@(ad.IsAmbiguous ? "✓" : string.Empty)</td>
                     <td>@ad.CreatedAt</td>
                 </tr>
