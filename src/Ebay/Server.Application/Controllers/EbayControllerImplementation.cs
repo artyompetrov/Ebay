@@ -352,7 +352,8 @@ internal class EbayControllerImplementation : IEbayController
                 isAmbiguous: x.IsAmbiguous,
                 link: x.Link,
                 marketplace: x.Marketplace,
-                seller: x.Seller))
+                seller: x.Seller,
+                email: x.Email))
             .ToList();
     }
 

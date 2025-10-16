@@ -12,6 +12,8 @@ public class ProductEmailSendHistory
 
     public string Link { get; set; } = null!;
 
+    public string? Email { get; set; }
+
     public string Marketplace { get; set; } = null!;
 
     public bool IsAmbiguous { get; set; }
