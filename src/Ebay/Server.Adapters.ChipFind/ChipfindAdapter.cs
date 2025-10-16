@@ -87,7 +87,7 @@ public class ChipfindAdapter : IChipfindAdapter
         return result;
     }
 
-    public async Task<string?> TryGetAdvertisementEmailAsync(Uri link, CancellationToken cancellationToken)
+    public async Task<string?> TryGetAdvertisementContactAsync(Uri link, CancellationToken cancellationToken)
     {
         try
         {
@@ -120,23 +120,14 @@ public class ChipfindAdapter : IChipfindAdapter
 
     private static string? TryExtractContactFromContactSection(HtmlDocument doc)
     {
-        var contactNode = doc.DocumentNode.SelectSingleNode("//div[contains(concat(' ', normalize-space(@class), ' '), ' contact ')]");
+        var contactNode = doc.DocumentNode.Descendants("div")
+            .FirstOrDefault(d => d.GetClasses().Contains("contact"));
         if (contactNode == null)
         {
             return null;
         }
 
-        var builder = new StringBuilder();
-        AppendPlainText(contactNode, builder);
-
-        var plainText = HtmlEntity.DeEntitize(builder.ToString());
-        plainText = Regex.Replace(plainText, "[ \t]+\n", "\n");
-        plainText = Regex.Replace(plainText, "\n[ \t]+", "\n");
-        plainText = Regex.Replace(plainText, "\n{2,}", "\n");
-        plainText = Regex.Replace(plainText, "[ \t]{2,}", " ");
-        plainText = plainText.Trim();
-
-        return string.IsNullOrWhiteSpace(plainText) ? null : plainText;
+        return contactNode.InnerText;
     }
 
     private static void AppendPlainText(HtmlNode node, StringBuilder builder)

@@ -84,7 +84,7 @@ public class ChipfindAdapterTests
     }
 
     [Test]
-    public async Task TryGetAdvertisementEmailAsync_WhenContactContainsMailto_ReturnsPlainTextContact()
+    public async Task TryGetAdvertisementContactAsync_WhenContactContainsMailto_ReturnsPlainTextContact()
     {
         const string html = """
 <html><body>
@@ -98,13 +98,13 @@ public class ChipfindAdapterTests
         var logger = new TestLogger<ChipfindAdapter>();
         var adapter = new ChipfindAdapter(logger, factory);
 
-        var contact = await adapter.TryGetAdvertisementEmailAsync(new Uri("https://www.chipfind.ru/market/msg_prodam_1610251451.htm"), CancellationToken.None);
+        var contact = await adapter.TryGetAdvertisementContactAsync(new Uri("https://www.chipfind.ru/market/msg_prodam_1610251451.htm"), CancellationToken.None);
 
-        Assert.That(contact, Is.EqualTo("E-mail: info.post47@yandex.ru"));
+        Assert.That(contact, Is.EqualTo("E-mail:info.post47@yandex.ru"));
     }
 
     [Test]
-    public async Task TryGetAdvertisementEmailAsync_WhenMailtoLinkPresentWithoutSubject_ReturnsContact()
+    public async Task TryGetAdvertisementContactAsync_WhenMailtoLinkPresentWithoutSubject_ReturnsContact()
     {
         const string html = """
                             <html><body>
@@ -118,13 +118,13 @@ public class ChipfindAdapterTests
         var logger = new TestLogger<ChipfindAdapter>();
         var adapter = new ChipfindAdapter(logger, factory);
 
-        var contact = await adapter.TryGetAdvertisementEmailAsync(new Uri("https://www.chipfind.ru/market/msg_prodam_1610251451.htm"), CancellationToken.None);
+        var contact = await adapter.TryGetAdvertisementContactAsync(new Uri("https://www.chipfind.ru/market/msg_prodam_1610251451.htm"), CancellationToken.None);
 
-        Assert.That(contact, Is.EqualTo("E-mail: info.post47@yandex.ru"));
+        Assert.That(contact, Is.EqualTo("E-mail:info.post47@yandex.ru"));
     }
 
     [Test]
-    public async Task TryGetAdvertisementEmailAsync_WhenMailtoLinkMissing_ReturnsPlainTextContact()
+    public async Task TryGetAdvertisemenContactAsync_WhenMailtoLinkMissing_ReturnsPlainTextContact()
     {
         const string html = """
 <html><body>
@@ -138,7 +138,7 @@ public class ChipfindAdapterTests
         var logger = new TestLogger<ChipfindAdapter>();
         var adapter = new ChipfindAdapter(logger, factory);
 
-        var contact = await adapter.TryGetAdvertisementEmailAsync(new Uri("https://www.chipfind.ru/market/msg_prodam_1610251451.htm"), CancellationToken.None);
+        var contact = await adapter.TryGetAdvertisementContactAsync(new Uri("https://www.chipfind.ru/market/msg_prodam_1610251451.htm"), CancellationToken.None);
 
         Assert.That(contact, Is.EqualTo("Телефон: +7 (000) 000-00-00"));
     }

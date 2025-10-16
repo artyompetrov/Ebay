@@ -68,10 +68,12 @@ public class ChipfindBackgroundTask : BackgroundTask
     {
         using var transaction = TransactionScopeFactory.Create();
 
-        var advertisementContactRequested = false;
-        string? advertisementContact = null;
+        var advertisementContact= await RequestContact(
+            chipfindAdapter: chipfindAdapter,
+            cancellationToken: cancellationToken,
+            saleAdvertisement: saleAdvertisement);
 
-        var newInterestingAds = new HashSet<(bool IsAmbiguous, string Ad)>();
+        var newInterestingAds = new HashSet<(bool IsAmbiguous, string Ad, string? Contact)>();
         foreach (var saleAdvertisementItem in saleAdvertisement.Items)
         {
             var matchesWithProducts = products
@@ -109,16 +111,6 @@ public class ChipfindBackgroundTask : BackgroundTask
                         IsAmbiguous = isAmbiguous
                     };
 
-                    if (!advertisementContactRequested)
-                    {
-                        advertisementContact = await RequestContact(
-                            chipfindAdapter: chipfindAdapter,
-                            cancellationToken: cancellationToken,
-                            saleAdvertisement: saleAdvertisement);
-
-                        advertisementContactRequested = true;
-                    }
-
                     //todo по идее эту проверку надо делать через инвариант агрегата
                     if (!string.IsNullOrWhiteSpace(advertisementContact))
                     {
@@ -129,7 +121,7 @@ public class ChipfindBackgroundTask : BackgroundTask
 
                     if (product.IsInteresting)
                     {
-                        newInterestingAds.Add((IsAmbiguous: isAmbiguous, Ad: saleAdvertisementItem));
+                        newInterestingAds.Add((IsAmbiguous: isAmbiguous, Ad: saleAdvertisementItem, Contact: advertisementContact));
                     }
                 }
                 else
@@ -137,23 +129,9 @@ public class ChipfindBackgroundTask : BackgroundTask
                     record.Link = saleAdvertisement.Link.ToString();
                     record.CreatedAt = saleAdvertisement.Date;
                     record.IsAmbiguous = isAmbiguous;
-
-                    if (string.IsNullOrWhiteSpace(record.Contact))
+                    if (!string.IsNullOrWhiteSpace(advertisementContact))
                     {
-                        if (!advertisementContactRequested)
-                        {
-                            advertisementContact = await RequestContact(
-                                chipfindAdapter: chipfindAdapter,
-                                cancellationToken: cancellationToken,
-                                saleAdvertisement: saleAdvertisement);
-
-                            advertisementContactRequested = true;
-                        }
-
-                        if (!string.IsNullOrWhiteSpace(advertisementContact))
-                        {
-                            record.Contact = advertisementContact;
-                        }
+                        record.Contact = advertisementContact;
                     }
                 }
             }
@@ -164,7 +142,9 @@ public class ChipfindBackgroundTask : BackgroundTask
         if (newInterestingAds.Count > 0)
         {
             var newItems = string.Join(" ",
-                values: newInterestingAds.Select(x => x.Ad + (x.IsAmbiguous ? " [Нашлось несколько товаров]" : "")).Select(x => $"<div>{x}</div>")
+                values: newInterestingAds.Select(x =>
+                    x.Ad + (x.IsAmbiguous ? " [Нашлось несколько товаров] " : "")
+                    ).Select(x => $"<div>{x}</div>")
                 );
             var emailBody = $"<a href=\"{saleAdvertisement.Link}\">ссылка</a><br><br>{newItems}";
             var emailTopic = $"{saleAdvertisement.Title} [{saleAdvertisement.Seller}]";
@@ -184,8 +164,9 @@ public class ChipfindBackgroundTask : BackgroundTask
     private async Task<string?> RequestContact(IChipfindAdapter chipfindAdapter, CancellationToken cancellationToken,
         SaleAdvertisement saleAdvertisement)
     {
+        
         string? advertisementContact;
-        advertisementContact = await chipfindAdapter.TryGetAdvertisementEmailAsync(
+        advertisementContact = await chipfindAdapter.TryGetAdvertisementContactAsync(
             saleAdvertisement.Link,
             cancellationToken);
 
