@@ -17,9 +17,17 @@
             name += ", NEW";
         }
 
-        if (model.Measurements.Count > 0)
+        if (model.Measurements.Any())
         {
-            name += ", uTracer3+ TESTED";
+            name += ", uTracer3+";
+            if (model.Measurements.Any(x => x.MatchId != null))
+            {
+                name += " TESTED";
+            }
+            else
+            {
+                name += " MATCHED";
+            }
         }
 
         return name;
@@ -29,18 +37,17 @@
 <h2 style="text-align: center; ">@GetName(Model)</h2>
 
 <h3>📦 Shipping & Handling:</h3>
-<p><strong>Combined shipping</strong> is available — order multiple items to save on shipping costs!</p>
-<p>Check out our other listings at <a href="https://www.ebay.com/sch/i.html?_ssn=radiotubes_kz" target="_blank">our eBay store</a>.</p>
+<p><strong>Combined shipping</strong> is available — order multiple items to save on delivery costs!</p>
+<p>When you order more than one item (even from different listings in our store), you <strong>save on shipping</strong> because the cost for additional items is <strong>significantly lower</strong>.</p>
+<p>🛒 Check out our other listings at <a href="https://www.ebay.com/sch/i.html?_ssn=radiotubes_kz" target="_blank">our radiotubes_kz eBay store</a>.</p>
 
-<p>Origin: Shipped from <strong>Kazakhstan</strong></p>
+<p>Shipping from <strong>Kazakhstan</strong></p>
 <p>Worldwide shipping available via <strong>KazPost</strong></p>
 <p>Secure packaging with anti-shock materials to prevent damage</p>
 <p>Tracking number provided within <strong>3–5 business days</strong></p>
 
 <h3>🕐 Estimated delivery time:</h3>
 <p>Approximate delivery time — <strong>25 to 35 days</strong>, depending on the destination.</p>
-
-<h3>Thank you for choosing us! Check out our other lots.</h3>
 
 @if (Model.Measurements.Count > 0)
 {
