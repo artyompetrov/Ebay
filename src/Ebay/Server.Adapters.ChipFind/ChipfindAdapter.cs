@@ -14,13 +14,14 @@ public class ChipfindAdapter : IChipfindAdapter
     private readonly ILogger<ChipfindAdapter> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IMemoryCache _memoryCache;
-    private const int DelayMilliseconds = 5000; // todo вынести в параметры адаптера - без этого тесты медленнее работают
+    private readonly ChipFindAdapterOptions _options;
 
-    public ChipfindAdapter(ILogger<ChipfindAdapter> logger, IHttpClientFactory httpClientFactory, IMemoryCache memoryCache)
+    public ChipfindAdapter(ILogger<ChipfindAdapter> logger, IHttpClientFactory httpClientFactory, IMemoryCache memoryCache, ChipFindAdapterOptions  options)
     {
         _logger = logger;
         _httpClientFactory = httpClientFactory;
         _memoryCache = memoryCache;
+        _options = options;
     }
 
     public async Task<IReadOnlyCollection<SaleAdvertisement>> GetRecentSaleAdvertisements(
@@ -123,7 +124,7 @@ public class ChipfindAdapter : IChipfindAdapter
             
             _memoryCache.Set(cacheKey, result);
 
-            await Task.Delay(DelayMilliseconds, cancellationToken);
+            await Task.Delay(_options.DelayMilliseconds, cancellationToken);
             
             return result;
         }

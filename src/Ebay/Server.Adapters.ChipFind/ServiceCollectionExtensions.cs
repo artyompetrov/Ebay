@@ -9,6 +9,7 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services)
     {
         services.AddHttpClient();
+        services.AddSingleton<ChipFindAdapterOptions>(new ChipFindAdapterOptions(DelayMilliseconds: 5000));
         services.AddScoped<IChipfindAdapter, ChipfindAdapter>();
     }
 }

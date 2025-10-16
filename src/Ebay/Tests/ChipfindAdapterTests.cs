@@ -1,6 +1,8 @@
 using System.Net;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Server.Adapters.ChipFind;
+using Server.Application.HostedServices.ChipFind;
 
 namespace Tests;
 
@@ -24,7 +26,7 @@ public class ChipfindAdapterTests
         var httpClient = new HttpClient(handler);
         var factory = new TestHttpClientFactory(httpClient);
         var logger = new TestLogger<ChipfindAdapter>();
-        var adapter = new ChipfindAdapter(logger, factory);
+        var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
 
         var ads = await adapter.GetRecentSaleAdvertisements(CancellationToken.None);
         Assert.That(ads.Count, Is.EqualTo(1));
@@ -50,7 +52,7 @@ public class ChipfindAdapterTests
         var httpClient = new HttpClient(handler);
         var factory = new TestHttpClientFactory(httpClient);
         var logger = new TestLogger<ChipfindAdapter>();
-        var adapter = new ChipfindAdapter(logger, factory);
+        var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
 
         var ads = await adapter.GetRecentSaleAdvertisements(CancellationToken.None);
         var ad = ads.Single();
@@ -75,7 +77,7 @@ public class ChipfindAdapterTests
         var httpClient = new HttpClient(handler);
         var factory = new TestHttpClientFactory(httpClient);
         var logger = new TestLogger<ChipfindAdapter>();
-        var adapter = new ChipfindAdapter(logger, factory);
+        var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
 
         var ads = await adapter.GetRecentSaleAdvertisements(CancellationToken.None);
         var ad = ads.Single();
@@ -96,10 +98,18 @@ public class ChipfindAdapterTests
         var httpClient = new HttpClient(handler);
         var factory = new TestHttpClientFactory(httpClient);
         var logger = new TestLogger<ChipfindAdapter>();
-        var adapter = new ChipfindAdapter(logger, factory);
+        var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
 
-        var contact = await adapter.TryGetAdvertisementContactAsync(new Uri("https://www.chipfind.ru/market/msg_prodam_1610251451.htm"), CancellationToken.None);
-
+        var contact = await adapter.TryGetAdvertisementContactAsync(
+            saleAdvertisement: new SaleAdvertisement(
+                Title: "title",
+                Seller: "seller",
+                Date: DateTime.MaxValue,
+                Link: new Uri("https://www.chipfind.ru/market/msg_prodam_1610251451.htm"),
+                Items: new[] { "" },
+                Body: ""),
+            CancellationToken.None);
+        
         Assert.That(contact, Is.EqualTo("E-mail:info.post47@yandex.ru"));
     }
 
@@ -116,9 +126,17 @@ public class ChipfindAdapterTests
         var httpClient = new HttpClient(handler);
         var factory = new TestHttpClientFactory(httpClient);
         var logger = new TestLogger<ChipfindAdapter>();
-        var adapter = new ChipfindAdapter(logger, factory);
+        var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
 
-        var contact = await adapter.TryGetAdvertisementContactAsync(new Uri("https://www.chipfind.ru/market/msg_prodam_1610251451.htm"), CancellationToken.None);
+        var contact = await adapter.TryGetAdvertisementContactAsync(
+            saleAdvertisement: new SaleAdvertisement(
+                Title: "title",
+                Seller: "seller",
+                Date: DateTime.MaxValue,
+                Link: new Uri("https://www.chipfind.ru/market/msg_prodam_1610251451.htm"),
+                Items: new[] { "" },
+                Body: ""),
+            CancellationToken.None);
 
         Assert.That(contact, Is.EqualTo("E-mail:info.post47@yandex.ru"));
     }
@@ -136,10 +154,18 @@ public class ChipfindAdapterTests
         var httpClient = new HttpClient(handler);
         var factory = new TestHttpClientFactory(httpClient);
         var logger = new TestLogger<ChipfindAdapter>();
-        var adapter = new ChipfindAdapter(logger, factory);
+        var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
 
-        var contact = await adapter.TryGetAdvertisementContactAsync(new Uri("https://www.chipfind.ru/market/msg_prodam_1610251451.htm"), CancellationToken.None);
-
+        var contact = await adapter.TryGetAdvertisementContactAsync(
+            saleAdvertisement: new SaleAdvertisement(
+                Title: "title",
+                Seller: "seller",
+                Date: DateTime.MaxValue,
+                Link: new Uri("https://www.chipfind.ru/market/msg_prodam_1610251451.htm"),
+                Items: new[] { "" },
+                Body: ""),
+            CancellationToken.None);
+        
         Assert.That(contact, Is.EqualTo("Телефон: +7 (000) 000-00-00"));
     }
 
