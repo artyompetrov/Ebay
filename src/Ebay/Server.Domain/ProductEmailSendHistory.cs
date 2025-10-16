@@ -12,7 +12,8 @@ public class ProductEmailSendHistory
 
     public string Link { get; set; } = null!;
 
-    public string? Email { get; set; }
+    //todo нужно сделать логику чтобы не затиралась null значениями
+    public string? Contact { get; set; }
 
     public string Marketplace { get; set; } = null!;
 

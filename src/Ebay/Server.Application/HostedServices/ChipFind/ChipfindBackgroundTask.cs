@@ -68,15 +68,21 @@ public class ChipfindBackgroundTask : BackgroundTask
     {
         using var transaction = TransactionScopeFactory.Create();
 
-        var advertisementEmailRequested = false;
-        string? advertisementEmail = null;
-
-        var newInterestingAds = new HashSet<(bool IsAmbiguous, string Ad)>();
+        var newInterestingAds = new HashSet<(bool IsAmbiguous, string Ad, string? Contact)>();
         foreach (var saleAdvertisementItem in saleAdvertisement.Items)
         {
             var matchesWithProducts = products
                 .Where(x => x.Regex.IsMatch(saleAdvertisementItem))
                 .ToList();
+
+            if (!matchesWithProducts.Any())
+            {
+                continue;
+            }
+            
+            var advertisementContact = await chipfindAdapter.TryGetAdvertisementContactAsync(
+                saleAdvertisement,
+                cancellationToken);
 
             var isAmbiguous = matchesWithProducts.Count > 1;
 
@@ -109,27 +115,17 @@ public class ChipfindBackgroundTask : BackgroundTask
                         IsAmbiguous = isAmbiguous
                     };
 
-                    if (!advertisementEmailRequested)
+                    //todo по идее эту проверку надо делать через инвариант агрегата
+                    if (!string.IsNullOrWhiteSpace(advertisementContact))
                     {
-                        advertisementEmail = await RequestEmail(
-                            chipfindAdapter: chipfindAdapter,
-                            cancellationToken: cancellationToken,
-                            saleAdvertisement: saleAdvertisement);
-                        
-                        advertisementEmailRequested = true;
-                    }
-
-                    //todo по идее эту проверку надо делать через инвариант агрегата 
-                    if (!string.IsNullOrWhiteSpace(advertisementEmail))
-                    {
-                        newRecord.Email = advertisementEmail;
+                        newRecord.Contact = advertisementContact;
                     }
 
                     applicationDbContext.ProductEmailSendHistory.Add(newRecord);
 
                     if (product.IsInteresting)
                     {
-                        newInterestingAds.Add((IsAmbiguous: isAmbiguous, Ad: saleAdvertisementItem));
+                        newInterestingAds.Add((IsAmbiguous: isAmbiguous, Ad: saleAdvertisementItem, Contact: advertisementContact));
                     }
                 }
                 else
@@ -137,23 +133,9 @@ public class ChipfindBackgroundTask : BackgroundTask
                     record.Link = saleAdvertisement.Link.ToString();
                     record.CreatedAt = saleAdvertisement.Date;
                     record.IsAmbiguous = isAmbiguous;
-
-                    if (string.IsNullOrWhiteSpace(record.Email))
+                    if (!string.IsNullOrWhiteSpace(advertisementContact))
                     {
-                        if (!advertisementEmailRequested)
-                        {
-                            advertisementEmail = await RequestEmail(
-                                chipfindAdapter: chipfindAdapter,
-                                cancellationToken: cancellationToken,
-                                saleAdvertisement: saleAdvertisement);
-                        
-                            advertisementEmailRequested = true;
-                        }
-
-                        if (!string.IsNullOrWhiteSpace(advertisementEmail))
-                        {
-                            record.Email = advertisementEmail;
-                        }
+                        record.Contact = advertisementContact;
                     }
                 }
             }
@@ -164,7 +146,9 @@ public class ChipfindBackgroundTask : BackgroundTask
         if (newInterestingAds.Count > 0)
         {
             var newItems = string.Join(" ",
-                values: newInterestingAds.Select(x => x.Ad + (x.IsAmbiguous ? " [Нашлось несколько товаров]" : "")).Select(x => $"<div>{x}</div>")
+                values: newInterestingAds.Select(x =>
+                    x.Ad + (x.IsAmbiguous ? " [Нашлось несколько товаров] " : "")
+                    ).Select(x => $"<div>{x}</div>")
                 );
             var emailBody = $"<a href=\"{saleAdvertisement.Link}\">ссылка</a><br><br>{newItems}";
             var emailTopic = $"{saleAdvertisement.Title} [{saleAdvertisement.Seller}]";
@@ -180,19 +164,7 @@ public class ChipfindBackgroundTask : BackgroundTask
 
         transaction.Complete();
     }
-
-    private async Task<string?> RequestEmail(IChipfindAdapter chipfindAdapter, CancellationToken cancellationToken,
-        SaleAdvertisement saleAdvertisement)
-    {
-        string? advertisementEmail;
-        advertisementEmail = await chipfindAdapter.TryGetAdvertisementEmailAsync(
-            saleAdvertisement.Link,
-            cancellationToken);
-                        
-        await Task.Delay(DelayMilliseconds, cancellationToken);
-        return advertisementEmail;
-    }
-
+    
     private async static Task<IReadOnlyCollection<ProductInner>> GetProducts(
         ApplicationDbContext applicationDbContext,
         CancellationToken cancellationToken)

@@ -21,6 +21,7 @@ var builder = WebApplication.CreateBuilder(args);
 var options = new EbayServerOptions();
 builder.Configuration.Bind("EbayServer", options);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new NullReferenceException("Connection string cannot be null");
+builder.Services.AddMemoryCache();
 builder.Services.AddEmailAdapter(builder.Configuration);
 builder.Services.AddUTracerAdapter();
 builder.Services.AddChipFindAdapter();

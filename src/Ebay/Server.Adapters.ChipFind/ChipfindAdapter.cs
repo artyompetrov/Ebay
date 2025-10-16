@@ -1,8 +1,10 @@
-using System.Net.Mail;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using HtmlAgilityPack;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Server.Application;
 using Server.Application.HostedServices.ChipFind;
 
 namespace Server.Adapters.ChipFind;
@@ -11,11 +13,15 @@ public class ChipfindAdapter : IChipfindAdapter
 {
     private readonly ILogger<ChipfindAdapter> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IMemoryCache _memoryCache;
+    private readonly ChipFindAdapterOptions _options;
 
-    public ChipfindAdapter(ILogger<ChipfindAdapter> logger, IHttpClientFactory httpClientFactory)
+    public ChipfindAdapter(ILogger<ChipfindAdapter> logger, IHttpClientFactory httpClientFactory, IMemoryCache memoryCache, ChipFindAdapterOptions  options)
     {
         _logger = logger;
         _httpClientFactory = httpClientFactory;
+        _memoryCache = memoryCache;
+        _options = options;
     }
 
     public async Task<IReadOnlyCollection<SaleAdvertisement>> GetRecentSaleAdvertisements(
@@ -87,16 +93,21 @@ public class ChipfindAdapter : IChipfindAdapter
         return result;
     }
 
-    public async Task<string?> TryGetAdvertisementEmailAsync(Uri link, CancellationToken cancellationToken)
+    public async Task<string?> TryGetAdvertisementContactAsync(SaleAdvertisement saleAdvertisement, CancellationToken cancellationToken)
     {
+        var cacheKey = $"seller_contact_information_{saleAdvertisement.Seller}";
+        
+        if (_memoryCache.TryGetValue<string?>(cacheKey, out var contact))
+            return contact;
+        
         try
         {
             var httpClient = _httpClientFactory.CreateClient("chipfind");
-            using var response = await httpClient.GetAsync(link, cancellationToken);
+            using var response = await httpClient.GetAsync(saleAdvertisement.Link, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning("Unable to fetch advertisement page {Link}. Status code: {StatusCode}", link, response.StatusCode);
+                _logger.LogWarning("Unable to fetch advertisement page {Link}. Status code: {StatusCode}", saleAdvertisement.Link, response.StatusCode);
                 return null;
             }
 
@@ -109,70 +120,29 @@ public class ChipfindAdapter : IChipfindAdapter
             var doc = new HtmlDocument();
             doc.LoadHtml(html);
 
-            return TryExtractEmailFromMailto(doc);
+            var result = TryExtractContactFromContactSection(doc);
+            
+            _memoryCache.Set(cacheKey, result);
+
+            await Task.Delay(_options.DelayMilliseconds, cancellationToken);
+            
+            return result;
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to parse advertisement email from {Link}", link);
+            _logger.LogWarning(ex, "Failed to parse advertisement contact from {Link}", saleAdvertisement.Link);
             return null;
         }
     }
 
-    private static string? TryExtractEmailFromMailto(HtmlDocument doc)
+    private static string? TryExtractContactFromContactSection(HtmlDocument doc)
     {
-        var anchorNodes = doc.DocumentNode.SelectNodes("//a[@href]");
-        if (anchorNodes == null)
-        {
-            return null;
-        }
-
-        foreach (var anchor in anchorNodes)
-        {
-            var href = anchor.GetAttributeValue("href", string.Empty);
-            if (href.StartsWith("mailto:", StringComparison.OrdinalIgnoreCase))
-            {
-                var emailCandidate = href["mailto:".Length..];
-                var questionMarkIndex = emailCandidate.IndexOf('?');
-                if (questionMarkIndex >= 0)
-                {
-                    emailCandidate = emailCandidate[..questionMarkIndex];
-                }
-
-                emailCandidate = Uri.UnescapeDataString(HtmlEntity.DeEntitize(emailCandidate)).Trim();
-                if (IsEmail(emailCandidate))
-                {
-                    return emailCandidate;
-                }
-
-                var innerText = HtmlEntity.DeEntitize(anchor.InnerText ?? string.Empty).Trim();
-                if (IsEmail(innerText))
-                {
-                    return innerText;
-                }
-            }
-        }
-
-        return null;
+        var contactNode = doc.DocumentNode.Descendants("div")
+            .FirstOrDefault(d => d.GetClasses().Contains("contact"));
+        
+        return contactNode?.InnerText;
     }
-
-    private static bool IsEmail(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return false;
-        }
-
-        try
-        {
-            var mailAddress = new MailAddress(value);
-            return !string.IsNullOrWhiteSpace(mailAddress.Address);
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
+    
     private static void PreNodesAsNewLines(HtmlDocument doc)
     {
         var preNodes = doc.DocumentNode.SelectNodes("//pre");

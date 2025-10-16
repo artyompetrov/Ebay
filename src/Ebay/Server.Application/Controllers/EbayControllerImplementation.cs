@@ -353,7 +353,7 @@ internal class EbayControllerImplementation : IEbayController
                 link: x.Link,
                 marketplace: x.Marketplace,
                 seller: x.Seller,
-                email: x.Email))
+                contact: x.Contact))
             .ToList();
     }
 
