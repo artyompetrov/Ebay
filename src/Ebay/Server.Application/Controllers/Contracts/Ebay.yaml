@@ -1415,7 +1415,7 @@ definitions:
         type: string
       link:
         type: string
-      email:
+      contact:
         type: string
       marketplace:
         type: string

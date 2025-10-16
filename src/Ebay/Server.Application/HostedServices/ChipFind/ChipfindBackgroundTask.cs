@@ -68,8 +68,8 @@ public class ChipfindBackgroundTask : BackgroundTask
     {
         using var transaction = TransactionScopeFactory.Create();
 
-        var advertisementEmailRequested = false;
-        string? advertisementEmail = null;
+        var advertisementContactRequested = false;
+        string? advertisementContact = null;
 
         var newInterestingAds = new HashSet<(bool IsAmbiguous, string Ad)>();
         foreach (var saleAdvertisementItem in saleAdvertisement.Items)
@@ -109,20 +109,20 @@ public class ChipfindBackgroundTask : BackgroundTask
                         IsAmbiguous = isAmbiguous
                     };
 
-                    if (!advertisementEmailRequested)
+                    if (!advertisementContactRequested)
                     {
-                        advertisementEmail = await RequestEmail(
+                        advertisementContact = await RequestContact(
                             chipfindAdapter: chipfindAdapter,
                             cancellationToken: cancellationToken,
                             saleAdvertisement: saleAdvertisement);
-                        
-                        advertisementEmailRequested = true;
+
+                        advertisementContactRequested = true;
                     }
 
-                    //todo по идее эту проверку надо делать через инвариант агрегата 
-                    if (!string.IsNullOrWhiteSpace(advertisementEmail))
+                    //todo по идее эту проверку надо делать через инвариант агрегата
+                    if (!string.IsNullOrWhiteSpace(advertisementContact))
                     {
-                        newRecord.Email = advertisementEmail;
+                        newRecord.Contact = advertisementContact;
                     }
 
                     applicationDbContext.ProductEmailSendHistory.Add(newRecord);
@@ -138,21 +138,21 @@ public class ChipfindBackgroundTask : BackgroundTask
                     record.CreatedAt = saleAdvertisement.Date;
                     record.IsAmbiguous = isAmbiguous;
 
-                    if (string.IsNullOrWhiteSpace(record.Email))
+                    if (string.IsNullOrWhiteSpace(record.Contact))
                     {
-                        if (!advertisementEmailRequested)
+                        if (!advertisementContactRequested)
                         {
-                            advertisementEmail = await RequestEmail(
+                            advertisementContact = await RequestContact(
                                 chipfindAdapter: chipfindAdapter,
                                 cancellationToken: cancellationToken,
                                 saleAdvertisement: saleAdvertisement);
-                        
-                            advertisementEmailRequested = true;
+
+                            advertisementContactRequested = true;
                         }
 
-                        if (!string.IsNullOrWhiteSpace(advertisementEmail))
+                        if (!string.IsNullOrWhiteSpace(advertisementContact))
                         {
-                            record.Email = advertisementEmail;
+                            record.Contact = advertisementContact;
                         }
                     }
                 }
@@ -181,16 +181,16 @@ public class ChipfindBackgroundTask : BackgroundTask
         transaction.Complete();
     }
 
-    private async Task<string?> RequestEmail(IChipfindAdapter chipfindAdapter, CancellationToken cancellationToken,
+    private async Task<string?> RequestContact(IChipfindAdapter chipfindAdapter, CancellationToken cancellationToken,
         SaleAdvertisement saleAdvertisement)
     {
-        string? advertisementEmail;
-        advertisementEmail = await chipfindAdapter.TryGetAdvertisementEmailAsync(
+        string? advertisementContact;
+        advertisementContact = await chipfindAdapter.TryGetAdvertisementEmailAsync(
             saleAdvertisement.Link,
             cancellationToken);
-                        
+
         await Task.Delay(DelayMilliseconds, cancellationToken);
-        return advertisementEmail;
+        return advertisementContact;
     }
 
     private async static Task<IReadOnlyCollection<ProductInner>> GetProducts(

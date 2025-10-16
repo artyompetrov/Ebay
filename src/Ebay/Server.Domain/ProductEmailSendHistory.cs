@@ -12,7 +12,7 @@ public class ProductEmailSendHistory
 
     public string Link { get; set; } = null!;
 
-    public string? Email { get; set; }
+    public string? Contact { get; set; }
 
     public string Marketplace { get; set; } = null!;
 

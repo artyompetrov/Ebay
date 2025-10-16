@@ -1,4 +1,4 @@
-using System.Net.Mail;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using HtmlAgilityPack;
@@ -109,67 +109,64 @@ public class ChipfindAdapter : IChipfindAdapter
             var doc = new HtmlDocument();
             doc.LoadHtml(html);
 
-            return TryExtractEmailFromMailto(doc);
+            return TryExtractContactFromContactSection(doc);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to parse advertisement email from {Link}", link);
+            _logger.LogWarning(ex, "Failed to parse advertisement contact from {Link}", link);
             return null;
         }
     }
 
-    private static string? TryExtractEmailFromMailto(HtmlDocument doc)
+    private static string? TryExtractContactFromContactSection(HtmlDocument doc)
     {
-        var anchorNodes = doc.DocumentNode.SelectNodes("//a[@href]");
-        if (anchorNodes == null)
+        var contactNode = doc.DocumentNode.SelectSingleNode("//div[contains(concat(' ', normalize-space(@class), ' '), ' contact ')]");
+        if (contactNode == null)
         {
             return null;
         }
 
-        foreach (var anchor in anchorNodes)
+        var builder = new StringBuilder();
+        AppendPlainText(contactNode, builder);
+
+        var plainText = HtmlEntity.DeEntitize(builder.ToString());
+        plainText = Regex.Replace(plainText, "[ \t]+\n", "\n");
+        plainText = Regex.Replace(plainText, "\n[ \t]+", "\n");
+        plainText = Regex.Replace(plainText, "\n{2,}", "\n");
+        plainText = Regex.Replace(plainText, "[ \t]{2,}", " ");
+        plainText = plainText.Trim();
+
+        return string.IsNullOrWhiteSpace(plainText) ? null : plainText;
+    }
+
+    private static void AppendPlainText(HtmlNode node, StringBuilder builder)
+    {
+        foreach (var child in node.ChildNodes)
         {
-            var href = anchor.GetAttributeValue("href", string.Empty);
-            if (href.StartsWith("mailto:", StringComparison.OrdinalIgnoreCase))
+            switch (child.NodeType)
             {
-                var emailCandidate = href["mailto:".Length..];
-                var questionMarkIndex = emailCandidate.IndexOf('?');
-                if (questionMarkIndex >= 0)
-                {
-                    emailCandidate = emailCandidate[..questionMarkIndex];
-                }
+                case HtmlNodeType.Element when child.Name.Equals("br", StringComparison.OrdinalIgnoreCase):
+                    if (builder.Length > 0 && builder[^1] != '\n')
+                    {
+                        builder.Append('\n');
+                    }
+                    break;
+                case HtmlNodeType.Element:
+                    AppendPlainText(child, builder);
+                    break;
+                case HtmlNodeType.Text:
+                    var text = child.InnerText;
+                    if (!string.IsNullOrWhiteSpace(text))
+                    {
+                        if (builder.Length > 0 && !char.IsWhiteSpace(builder[^1]))
+                        {
+                            builder.Append(' ');
+                        }
 
-                emailCandidate = Uri.UnescapeDataString(HtmlEntity.DeEntitize(emailCandidate)).Trim();
-                if (IsEmail(emailCandidate))
-                {
-                    return emailCandidate;
-                }
-
-                var innerText = HtmlEntity.DeEntitize(anchor.InnerText ?? string.Empty).Trim();
-                if (IsEmail(innerText))
-                {
-                    return innerText;
-                }
+                        builder.Append(text.Trim());
+                    }
+                    break;
             }
-        }
-
-        return null;
-    }
-
-    private static bool IsEmail(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return false;
-        }
-
-        try
-        {
-            var mailAddress = new MailAddress(value);
-            return !string.IsNullOrWhiteSpace(mailAddress.Address);
-        }
-        catch
-        {
-            return false;
         }
     }
 
