@@ -14,7 +14,7 @@ public class ChipfindAdapter : IChipfindAdapter
     private readonly ILogger<ChipfindAdapter> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IMemoryCache _memoryCache;
-    private const int DelayMilliseconds = 5000;
+    private const int DelayMilliseconds = 5000; // todo вынести в параметры адаптера - без этого тесты медленнее работают
 
     public ChipfindAdapter(ILogger<ChipfindAdapter> logger, IHttpClientFactory httpClientFactory, IMemoryCache memoryCache)
     {
@@ -137,14 +137,9 @@ public class ChipfindAdapter : IChipfindAdapter
     private static string? TryExtractContactFromContactSection(HtmlDocument doc)
     {
         var contactNode = doc.DocumentNode.Descendants("div")
-            
             .FirstOrDefault(d => d.GetClasses().Contains("contact"));
-        if (contactNode == null)
-        {
-            return null;
-        }
-
-        return contactNode.InnerText;
+        
+        return contactNode?.InnerText;
     }
     
     private static void PreNodesAsNewLines(HtmlDocument doc)

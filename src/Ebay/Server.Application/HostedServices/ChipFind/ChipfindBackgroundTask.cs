@@ -68,16 +68,21 @@ public class ChipfindBackgroundTask : BackgroundTask
     {
         using var transaction = TransactionScopeFactory.Create();
 
-        var advertisementContact = await chipfindAdapter.TryGetAdvertisementContactAsync(
-            saleAdvertisement,
-            cancellationToken);
-
         var newInterestingAds = new HashSet<(bool IsAmbiguous, string Ad, string? Contact)>();
         foreach (var saleAdvertisementItem in saleAdvertisement.Items)
         {
             var matchesWithProducts = products
                 .Where(x => x.Regex.IsMatch(saleAdvertisementItem))
                 .ToList();
+
+            if (!matchesWithProducts.Any())
+            {
+                continue;
+            }
+            
+            var advertisementContact = await chipfindAdapter.TryGetAdvertisementContactAsync(
+                saleAdvertisement,
+                cancellationToken);
 
             var isAmbiguous = matchesWithProducts.Count > 1;
 
