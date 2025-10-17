@@ -69,6 +69,8 @@ public class ChipfindBackgroundTask : BackgroundTask
         using var transaction = TransactionScopeFactory.Create();
 
         var newInterestingAds = new HashSet<(bool IsAmbiguous, string Ad, string? Contact)>();
+        string? advertisementContact = null;
+        
         foreach (var saleAdvertisementItem in saleAdvertisement.Items)
         {
             var matchesWithProducts = products
@@ -80,7 +82,7 @@ public class ChipfindBackgroundTask : BackgroundTask
                 continue;
             }
             
-            var advertisementContact = await chipfindAdapter.TryGetAdvertisementContactAsync(
+            advertisementContact = await chipfindAdapter.TryGetAdvertisementContactAsync(
                 saleAdvertisement,
                 cancellationToken);
 
@@ -150,7 +152,7 @@ public class ChipfindBackgroundTask : BackgroundTask
                     x.Ad + (x.IsAmbiguous ? " [Нашлось несколько товаров] " : "")
                     ).Select(x => $"<div>{x}</div>")
                 );
-            var emailBody = $"<a href=\"{saleAdvertisement.Link}\">ссылка</a><br><br>{newItems}";
+            var emailBody = $"<a href=\"{saleAdvertisement.Link}\">ссылка</a><br><br>{newItems}<br><div>{advertisementContact}</div>";
             var emailTopic = $"{saleAdvertisement.Title} [{saleAdvertisement.Seller}]";
             _logger.LogInformation(emailTopic);
             _logger.LogDebug(emailBody);
