@@ -14,6 +14,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IMeasurementRepository, MeasurementRepository>();
         services.AddScoped<IMatchedPairDifferenceRepository, MatchedPairDifferenceRepository>();
         services.AddScoped<ITubeWorkingPointsRepository, TubeWorkingPointsRepository>();
-        services.AddScoped<ITubeWorkingPointsRepository, TubeWorkingPointsRepository>();
+        services.AddScoped<IProductRepository, ProductRepository>();
     }
 }

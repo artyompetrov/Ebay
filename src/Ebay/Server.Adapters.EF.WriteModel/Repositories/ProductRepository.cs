@@ -1,11 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Server.Application.Abstractions;
+using Server.Application.Abstractions.Repositories;
 using Server.Application.Data;
 using Server.Domain;
 
 namespace Server.Adapters.EF.WriteModel.Repositories;
 
-internal class ProductRepository : IRepository<Product, Guid>
+internal class ProductRepository : IProductRepository
 {
     private readonly ApplicationDbContext _dbContext;
 
