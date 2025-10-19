@@ -1,26 +1,26 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Server.Application.Abstractions.Queries;
 using Server.Application.Data;
 
 namespace Server.Application.Consumers.PriceCalculator;
 
 internal class CalculatePricesForAllConsumer : IConsumer<CalculatePricesForAll>
 {
-    private readonly ApplicationDbContext _applicationContext;
+    private readonly IProductQueries _productQueries;
     private readonly IPublishEndpoint _publishEndpoint;
 
     public CalculatePricesForAllConsumer(
-        ApplicationDbContext applicationContext,
+        IProductQueries productQueries,
         IPublishEndpoint publishEndpoint)
     {
-        _applicationContext = applicationContext;
+        _productQueries = productQueries;
         _publishEndpoint = publishEndpoint;
     }
 
     public async Task Consume(ConsumeContext<CalculatePricesForAll> context)
     {
-        var productIds = await _applicationContext.Products.AsNoTracking().Select(x => x.Id)
-            .ToListAsync(context.CancellationToken);
+        var productIds = await _productQueries.GetAllProductsIdsAsync(context.CancellationToken);
 
         foreach (var productId in productIds)
         {

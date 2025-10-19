@@ -75,4 +75,9 @@ internal sealed class ProductQueries : IProductQueries
 
         return result;
     }
+
+    public async Task<IReadOnlyList<Guid>> GetAllProductsIdsAsync(CancellationToken cancellationToken)
+    {
+        return await _readDbContext.Products.Select(x=> x.Id).ToListAsync(cancellationToken: cancellationToken);
+    }
 }
