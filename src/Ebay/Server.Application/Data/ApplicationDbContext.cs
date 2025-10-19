@@ -63,25 +63,27 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
                         v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
                         v => JsonSerializer.Deserialize<ProductCalculationResult?>(v, (JsonSerializerOptions?)null)
                     ));
-            });
-            
-        
-        modelBuilder.Entity<RuSearchQuery>(entity =>
-        {
-            entity.HasKey(x => x.Id);
-            
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever();
-        });
-        
-        modelBuilder.Entity<SearchQuery>(entity =>
-        {
-            entity.HasKey(x => x.Id);
-            
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever();
-        });
+                
+                entity.Navigation(p => p.SearchQueries)
+                    .UsePropertyAccessMode(PropertyAccessMode.Field);
+                entity.Navigation(p => p.RuSearchQueries)
+                    .UsePropertyAccessMode(PropertyAccessMode.Field);
+                
+                entity.OwnsMany(p => p.SearchQueries, q =>
+                {
+                    q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
+                    q.HasKey(x => x.Id);
+                    q.Property(x => x.Query).IsRequired();
+                });
 
+                entity.OwnsMany(p => p.RuSearchQueries, q =>
+                {
+                    q.WithOwner().HasForeignKey(nameof(RuSearchQuery.ProductId));
+                    q.HasKey(x => x.Id);
+                    q.Property(x => x.Query).IsRequired();
+                });
+            });
+        
         modelBuilder.Entity<Purchase>()
             .Property(o => o.PurchaseCalculationResult)
             .HasConversion(new ValueConverter<PurchaseCalculationResult?, string>(
@@ -189,10 +191,6 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
 
 
     public DbSet<Product> Products { get; set; } = null!;
-
-    public DbSet<SearchQuery> SearchQueries { get; set; } = null!;
-
-    public DbSet<RuSearchQuery> RuSearchQueries { get; set; } = null!;
 
     public DbSet<Lot> Lots { get; set; } = null!;
 
