@@ -1,4 +1,5 @@
-﻿using MassTransit;
+﻿using System.Data;
+using MassTransit;
 using Server.Application.Abstractions;
 using Server.Application.Abstractions.Repositories;
 using Server.Application.Consumers.PriceCalculator;
@@ -50,7 +51,7 @@ internal class ProductService
         CancellationToken cancellationToken
     )
     {
-        await using var transaction = await _unitOfWork.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await _unitOfWork.BeginTransactionAsync(cancellationToken, IsolationLevel.RepeatableRead);
         
         var product = await _productRepository.GetByIdAsync(id: productId, cancellationToken: cancellationToken);
 

@@ -47,7 +47,7 @@ internal sealed class ReadDbContext : DbContext
         
         b.Entity<SearchQueryView>(x =>
         {
-            x.ToView("SearchQueries").HasKey(x => x.Id);
+            x.ToView("Product_SearchQueries").HasKey(x => x.Id);
         });
     }
 

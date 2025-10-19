@@ -74,6 +74,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
                     q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
                     q.HasKey(x => x.Id);
                     q.Property(x => x.Query).IsRequired();
+                    q.ToTable("Product_SearchQueries");
                 });
 
                 entity.OwnsMany(p => p.RuSearchQueries, q =>
@@ -81,6 +82,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
                     q.WithOwner().HasForeignKey(nameof(RuSearchQuery.ProductId));
                     q.HasKey(x => x.Id);
                     q.Property(x => x.Query).IsRequired();
+                    q.ToTable("Product_RuSearchQueries");
                 });
             });
         
