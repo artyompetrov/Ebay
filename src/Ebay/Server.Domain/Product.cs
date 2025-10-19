@@ -6,7 +6,7 @@ namespace Server.Domain;
 
 public sealed class Product : AggregateRoot<Guid>
 {
-    private readonly List<RuSearchQuery> _ruSearchQueries = new();
+    private readonly List<SearchQuery> _ruSearchQueries = new();
     private readonly List<SearchQuery> _searchQueries = new();
     
     private Product(Guid id, string name, DateTime lastCheckTime, int weight) : base(id)
@@ -31,7 +31,7 @@ public sealed class Product : AggregateRoot<Guid>
             weight: weight);
 
         product._ruSearchQueries.AddRange(
-            ruSearchQueries.Select(x => new RuSearchQuery(Guid.NewGuid(), x, productId)));
+            ruSearchQueries.Select(x => new SearchQuery(Guid.NewGuid(), x, productId)));
 
         product._searchQueries.AddRange(
             searchQueries.Select(x => new SearchQuery(Guid.NewGuid(), x, productId)));
@@ -57,9 +57,9 @@ public sealed class Product : AggregateRoot<Guid>
         {
             var existing = _searchQueries.FirstOrDefault(x => x.Id == kv.Key);
             if (existing is null)
-                _searchQueries.Add(new SearchQuery(kv.Key, kv.Value.SearchQuery, Id));
+                _searchQueries.Add(new SearchQuery(kv.Key, kv.Value.Query, Id));
             else
-                existing.SetQuery(kv.Value.SearchQuery); // сделай метод изменить Query
+                existing.SetQuery(kv.Value.Query); // сделай метод изменить Query
         }
 
         // ru
@@ -69,9 +69,9 @@ public sealed class Product : AggregateRoot<Guid>
         {
             var existing = _ruSearchQueries.FirstOrDefault(x => x.Id == kv.Key);
             if (existing is null)
-                _ruSearchQueries.Add(new RuSearchQuery(kv.Key, kv.Value.SearchQuery, Id));
+                _ruSearchQueries.Add(new SearchQuery(kv.Key, kv.Value.Query, Id));
             else
-                existing.SetQuery(kv.Value.SearchQuery);
+                existing.SetQuery(kv.Value.Query);
         }
     }
 
@@ -81,10 +81,8 @@ public sealed class Product : AggregateRoot<Guid>
     
     public ProductCalculationResult? ProductCalculationResult { get; set; }
     
-    public IReadOnlyList<RuSearchQuery> RuSearchQueries => _ruSearchQueries;
+    public IReadOnlyList<SearchQuery> RuSearchQueries => _ruSearchQueries;
     public IReadOnlyList<SearchQuery> SearchQueries => _searchQueries;
 
     public void MarkAsChecked() => LastCheckTime = DateTime.UtcNow;
-    public bool IsCheckRequired => DateTime.UtcNow - LastCheckTime > TimeSpan.FromDays(WellKnown.RecheckTimeInDays);
-    
 }

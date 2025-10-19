@@ -1,5 +1,7 @@
+using System.Text.Json;
 using Client.Clients.Generated;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Sever.Adapters.EF.ReadModel.ReadModelSchema;
 
 namespace Sever.Adapters.EF.ReadModel;
@@ -33,6 +35,12 @@ internal sealed class ReadDbContext : DbContext
                 .WithOne(x => x.Product)
                 .HasForeignKey<TubeWorkingPointView>(tp => tp.Id)
                 .HasPrincipalKey<ProductView>(p => p.Id);
+            
+            eb.Property(o => o.ProductCalculationResult)
+                .HasConversion(new ValueConverter<ProductCalculationResult?, string>(
+                    v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<ProductCalculationResult?>(v, (JsonSerializerOptions?)null)
+                ));
         });
 
         b.Entity<MatchedPairDifferenceView>(eb =>

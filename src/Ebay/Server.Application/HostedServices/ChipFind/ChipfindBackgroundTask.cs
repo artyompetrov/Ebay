@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Server.Application.Abstractions.Queries;
 using Server.Application.Data;
 using Server.Application.Infrastructure;
 using Server.Domain;
@@ -13,17 +14,20 @@ public class ChipfindBackgroundTask : BackgroundTask
     private readonly ILogger<ChipfindBackgroundTask> _logger;
     private readonly EbayServerOptions _ebayServerOptions;
     private readonly IServiceScopeFactory _serviceScopeFactory;
+    private readonly IProductQueries _productQueries;
     private const int DelayMilliseconds = 5000;
 
     public ChipfindBackgroundTask(
         ILogger<ChipfindBackgroundTask> logger,
         EbayServerOptions ebayServerOptions,
-        IServiceScopeFactory serviceScopeFactory
+        IServiceScopeFactory serviceScopeFactory,
+        IProductQueries productQueries
     ) : base(logger)
     {
         _logger = logger;
         _ebayServerOptions = ebayServerOptions;
         _serviceScopeFactory = serviceScopeFactory;
+        _productQueries = productQueries;
     }
 
     public override TimeSpan UpdateTime => WellKnown.ChipFind.UpdateTime;
@@ -42,7 +46,7 @@ public class ChipfindBackgroundTask : BackgroundTask
 
         var products = await GetProducts(
             cancellationToken: cancellationToken,
-            applicationDbContext: applicationDbContext);
+            productQueries: _productQueries);
 
         var recentAdvertisements = await chipfindAdapter.GetRecentSaleAdvertisements(cancellationToken);
 
@@ -168,19 +172,14 @@ public class ChipfindBackgroundTask : BackgroundTask
     }
     
     private async static Task<IReadOnlyCollection<ProductInner>> GetProducts(
-        ApplicationDbContext applicationDbContext,
+        IProductQueries productQueries,
         CancellationToken cancellationToken)
     {
-        var dbProducts = await applicationDbContext.Products
-            .AsNoTracking()
-            .OrderBy(x => x.Name)
-            .ThenBy(x => x.Id)
-            .Include(x => x.RuSearchQueries)
-            .ToListAsync(cancellationToken);
+        var products = await productQueries.GetAllProductsAsync(cancellationToken);
 
-        var productsArray = dbProducts.Select(x => new ProductInner(
+        var productsArray = products.Select(x => new ProductInner(
                 ProductId: x.Id,
-                Regex: x.GetProductRegex(),
+                Regex: x.ProductRegex,
                 IsInteresting: x.GetIsInteresting()))
             .ToArray();
 

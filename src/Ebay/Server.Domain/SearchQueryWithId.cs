@@ -1,3 +1,3 @@
 ﻿namespace Server.Domain;
 
-public record SearchQueryWithId(Guid Id, string SearchQuery);
+public record SearchQueryWithId(Guid Id, string Query);

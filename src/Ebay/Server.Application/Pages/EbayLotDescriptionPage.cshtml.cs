@@ -39,7 +39,7 @@ public class EbayLotDescriptionPage : PageModel
         State = state;
         ProductId = productId;
 
-        var product = await _productQueries.GetProduct(productId, cancellationToken);
+        var product = await _productQueries.GetProductAsync(productId, cancellationToken);
 
         if (product == null)
         {

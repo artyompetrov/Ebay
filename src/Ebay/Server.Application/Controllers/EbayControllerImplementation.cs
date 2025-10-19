@@ -208,21 +208,9 @@ internal class EbayControllerImplementation : IEbayController
 
     public async Task<ICollection<ProductWithId>> GetAllProductsAsync(CancellationToken cancellationToken)
     {
-        await using var tx = await _applicationContext.Database
-            .BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead, cancellationToken);
+        var products = await _productService.GetAllProductsAsync(cancellationToken);
 
-        var dbProducts = await _applicationContext.Products
-            .AsNoTracking()
-            .OrderBy(x => x.Name)
-            .ThenBy(x => x.Id)
-            .Include(x => x.SearchQueries)
-            .Include(x => x.RuSearchQueries)
-            .AsSplitQuery()
-            .ToListAsync(cancellationToken);
-
-        await tx.CommitAsync(cancellationToken);
-
-        return dbProducts.Select(x => x.ToApiProduct()).ToList();
+        return products.Select(x => x.ToApiProduct()).ToList();
     }
 
     public async Task<Guid> CreateProductAsync(
@@ -259,23 +247,13 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken
     )
     {
-        await using var tx = await _applicationContext.Database
-            .BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead, cancellationToken);
-
-        var product = await _applicationContext.Products
-            .AsNoTracking()
-            .Include(x => x.SearchQueries)
-            .Include(x => x.RuSearchQueries)
-            .AsSplitQuery()
-            .SingleOrDefaultAsync(predicate: x => x.Id == id, cancellationToken: cancellationToken);
-
+        var product = await _productService.GetProductAsync(id, cancellationToken);
+        
         if (product == null)
         {
             throw NonOkHttpAnswerException.NotFound400();
         }
-
-        await tx.CommitAsync(cancellationToken);
-
+        
         return product.ToApiProduct();
     }
 

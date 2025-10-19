@@ -7,12 +7,9 @@ using ApiMeasurementState = Server.Controllers.Generated.MeasurementState;
 using DbCurrency = Server.Domain.Currency;
 using DbLotCalculationResult = Server.Domain.LotCalculationResult;
 using DbMeasurementState = Server.Domain.Measurements.MeasurementState;
-using DbProduct = Server.Domain.Product;
 using DbProductCalculationResult = Server.Domain.ProductCalculationResult;
 using DbProductState = Server.Domain.Measurements.ProductState;
 using DbPurchaseCalculationResult = Server.Domain.PurchaseCalculationResult;
-using DbRuSearchQuery = Server.Domain.RuSearchQuery;
-using DbSearchQuery = Server.Domain.SearchQuery;
 using LotCalculationResult = Server.Controllers.Generated.LotCalculationResult;
 using ProductCalculationResult = Server.Controllers.Generated.ProductCalculationResult;
 using ProductState = Server.Controllers.Generated.ProductState;
@@ -26,23 +23,23 @@ namespace Server.Application.Infrastructure;
 
 internal static class ModelsExtensions
 {
-    public static ProductWithId ToApiProduct(this DbProduct dbProduct) => new(
-        id: dbProduct.Id,
-        name: dbProduct.Name,
-        searchQueries: dbProduct.SearchQueries.Select(x => x.ToApiSearchQuery()).ToList(),
-        ruSearchQueries: dbProduct.RuSearchQueries.Select(x => x.ToApiRuSearchQuery()).ToList(),
-        isCheckRequired: dbProduct.IsCheckRequired,
-        weight: dbProduct.Weight,
-        productCalculationResult: dbProduct.ProductCalculationResult.ToApiLotCalculationResult(),
-        productRegex: dbProduct.GetProductRegex().ToString(),
-        isInteresting: dbProduct.GetIsInteresting(),
-        calculatedEbayWeight: dbProduct.GetCalculatedEbayWeight()
+    public static ProductWithId ToApiProduct(this ProductInfo productInfo) => new(
+        id: productInfo.Id,
+        name: productInfo.Name,
+        searchQueries: productInfo.SearchQueries.Select(x => x.ToApiSearchQuery()).ToList(),
+        ruSearchQueries: productInfo.RuSearchQueries.Select(x => x.ToApiRuSearchQuery()).ToList(),
+        isCheckRequired: productInfo.IsCheckRequired,
+        weight: productInfo.Weight,
+        productCalculationResult: productInfo.CalculationResult.ToApiLotCalculationResult(),
+        productRegex: productInfo.ProductRegex.ToString(),
+        isInteresting: productInfo.GetIsInteresting(),
+        calculatedEbayWeight: productInfo.CalculatedEbayWeight
     );
 
-    public static SearchQuery ToApiSearchQuery(this DbSearchQuery searchQuery) =>
+    public static SearchQuery ToApiSearchQuery(this SearchQueryWithId searchQuery) =>
         new(id: searchQuery.Id, query: searchQuery.Query);
 
-    public static RuSearchQuery ToApiRuSearchQuery(this DbRuSearchQuery searchQuery) =>
+    public static RuSearchQuery ToApiRuSearchQuery(this SearchQueryWithId searchQuery) =>
         new(id: searchQuery.Id, query: searchQuery.Query);
 
     public static TubeWorkingPoint ToApiTubeWorkingPoint(this TubeWorkingPointInfo workingPoint) => new(

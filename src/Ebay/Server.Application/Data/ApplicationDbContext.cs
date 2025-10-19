@@ -80,7 +80,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
 
                 entity.OwnsMany(p => p.RuSearchQueries, q =>
                 {
-                    q.WithOwner().HasForeignKey(nameof(RuSearchQuery.ProductId));
+                    q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
                     q.HasKey(x => x.Id);
                     q.Property(x => x.Id).ValueGeneratedNever();
                     q.Property(x => x.Query).IsRequired();
