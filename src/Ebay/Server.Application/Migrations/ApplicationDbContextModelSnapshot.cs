@@ -1107,10 +1107,9 @@ namespace Server.Data.Migrations
                         .WithMany("Products")
                         .HasForeignKey("ApplicationUserId");
 
-                    b.OwnsMany("Server.Domain.RuSearchQuery", "RuSearchQueries", b1 =>
+                    b.OwnsMany("Server.Domain.SearchQuery", "RuSearchQueries", b1 =>
                         {
                             b1.Property<Guid>("Id")
-                                .ValueGeneratedOnAdd()
                                 .HasColumnType("uuid");
 
                             b1.Property<Guid>("ProductId")
@@ -1133,7 +1132,6 @@ namespace Server.Data.Migrations
                     b.OwnsMany("Server.Domain.SearchQuery", "SearchQueries", b1 =>
                         {
                             b1.Property<Guid>("Id")
-                                .ValueGeneratedOnAdd()
                                 .HasColumnType("uuid");
 
                             b1.Property<Guid>("ProductId")

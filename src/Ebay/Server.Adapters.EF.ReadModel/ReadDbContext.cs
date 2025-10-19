@@ -1,7 +1,7 @@
 using System.Text.Json;
-using Client.Clients.Generated;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Server.Domain;
 using Sever.Adapters.EF.ReadModel.ReadModelSchema;
 
 namespace Sever.Adapters.EF.ReadModel;
@@ -36,6 +36,20 @@ internal sealed class ReadDbContext : DbContext
                 .HasForeignKey<TubeWorkingPointView>(tp => tp.Id)
                 .HasPrincipalKey<ProductView>(p => p.Id);
             
+            eb.OwnsMany(p => p.SearchQueries, q =>
+            {
+                q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
+                q.HasKey(x => x.Id);
+                q.ToTable("Product_SearchQueries");
+            });
+
+            eb.OwnsMany(p => p.RuSearchQueries, q =>
+            {
+                q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
+                q.HasKey(x => x.Id);
+                q.ToTable("Product_RuSearchQueries");
+            });
+            
             eb.Property(o => o.ProductCalculationResult)
                 .HasConversion(new ValueConverter<ProductCalculationResult?, string>(
                     v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
@@ -51,11 +65,6 @@ internal sealed class ReadDbContext : DbContext
         b.Entity<TubeWorkingPointView>(x =>
         {
             x.ToView("TubeWorkingPoints").HasKey(x => x.Id);
-        });
-        
-        b.Entity<SearchQueryView>(x =>
-        {
-            x.ToView("Product_SearchQueries").HasKey(x => x.Id);
         });
     }
 

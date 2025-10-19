@@ -14,20 +14,17 @@ public class ChipfindBackgroundTask : BackgroundTask
     private readonly ILogger<ChipfindBackgroundTask> _logger;
     private readonly EbayServerOptions _ebayServerOptions;
     private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly IProductQueries _productQueries;
     private const int DelayMilliseconds = 5000;
 
     public ChipfindBackgroundTask(
         ILogger<ChipfindBackgroundTask> logger,
         EbayServerOptions ebayServerOptions,
-        IServiceScopeFactory serviceScopeFactory,
-        IProductQueries productQueries
+        IServiceScopeFactory serviceScopeFactory
     ) : base(logger)
     {
         _logger = logger;
         _ebayServerOptions = ebayServerOptions;
         _serviceScopeFactory = serviceScopeFactory;
-        _productQueries = productQueries;
     }
 
     public override TimeSpan UpdateTime => WellKnown.ChipFind.UpdateTime;
@@ -43,10 +40,11 @@ public class ChipfindBackgroundTask : BackgroundTask
         var applicationDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var chipfindAdapter = scope.ServiceProvider.GetRequiredService<IChipfindAdapter>();
         var emailSender = scope.ServiceProvider.GetRequiredService<IEmailSender>();
+        var productQueries = scope.ServiceProvider.GetRequiredService<IProductQueries>();
 
         var products = await GetProducts(
             cancellationToken: cancellationToken,
-            productQueries: _productQueries);
+            productQueries: productQueries);
 
         var recentAdvertisements = await chipfindAdapter.GetRecentSaleAdvertisements(cancellationToken);
 
