@@ -28,7 +28,7 @@ public class MeasurementPlotService
     /// Отдельный метод для Ebay требуется для возможности предварительного прогрева на старте
     /// иначе прогрев происходит при первом заходе покупателя после передеплоя
     /// </summary>
-    public Task<string?> PlotForEbay(string measurementId,  CancellationToken cancellationToken, bool sellingOnly) =>
+    public Task<string?> PlotForEbay(string measurementId, CancellationToken cancellationToken, bool sellingOnly) =>
         PlotForMeasurementId(
             measurementId: measurementId,
             cancellationToken: cancellationToken,

@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using Server.Domain.Exceptions;
 
 namespace Server.Domain.Measurements;
@@ -55,15 +53,15 @@ public sealed class TubeWorkingPoint : AggregateRoot<Guid>
         if (!IsValid) throw new DomainException($"{nameof(TubeWorkingPoint)} is not valid.");
     }
 
-    
+
     public double AnodeVoltage { get; private set; }
-    
+
     public double GridVoltage { get; private set; }
-    
+
     public double AnodeVoltageHalfWidth { get; private set; }
-    
+
     public double GridVoltageHalfWidth { get; private set; }
-    
+
     public double NominalCurrent { get; private set; }
 
 

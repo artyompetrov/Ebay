@@ -27,7 +27,7 @@ public interface IRepository<TAggregate, TId>
     Task SaveAsync(TAggregate aggregate, CancellationToken cancellationToken);
 
     //todo удаление сейчас выполняется не по DDD что не совсем корректно
-    
+
     /// <summary>
     /// Удалить агрегат
     /// </summary>

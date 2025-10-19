@@ -1,10 +1,8 @@
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using Server.Application;
 using Server.Application.HostedServices.ChipFind;
 
 namespace Server.Adapters.ChipFind;
@@ -16,7 +14,7 @@ public class ChipfindAdapter : IChipfindAdapter
     private readonly IMemoryCache _memoryCache;
     private readonly ChipFindAdapterOptions _options;
 
-    public ChipfindAdapter(ILogger<ChipfindAdapter> logger, IHttpClientFactory httpClientFactory, IMemoryCache memoryCache, ChipFindAdapterOptions  options)
+    public ChipfindAdapter(ILogger<ChipfindAdapter> logger, IHttpClientFactory httpClientFactory, IMemoryCache memoryCache, ChipFindAdapterOptions options)
     {
         _logger = logger;
         _httpClientFactory = httpClientFactory;
@@ -96,10 +94,10 @@ public class ChipfindAdapter : IChipfindAdapter
     public async Task<string?> TryGetAdvertisementContactAsync(SaleAdvertisement saleAdvertisement, CancellationToken cancellationToken)
     {
         var cacheKey = $"seller_contact_information_{saleAdvertisement.Seller}";
-        
+
         if (_memoryCache.TryGetValue<string?>(cacheKey, out var contact))
             return contact;
-        
+
         try
         {
             var httpClient = _httpClientFactory.CreateClient("chipfind");
@@ -121,11 +119,11 @@ public class ChipfindAdapter : IChipfindAdapter
             doc.LoadHtml(html);
 
             var result = TryExtractContactFromContactSection(doc);
-            
+
             _memoryCache.Set(cacheKey, result);
 
             await Task.Delay(_options.DelayMilliseconds, cancellationToken);
-            
+
             return result;
         }
         catch (Exception ex)
@@ -139,10 +137,10 @@ public class ChipfindAdapter : IChipfindAdapter
     {
         var contactNode = doc.DocumentNode.Descendants("div")
             .FirstOrDefault(d => d.GetClasses().Contains("contact"));
-        
+
         return contactNode?.InnerText;
     }
-    
+
     private static void PreNodesAsNewLines(HtmlDocument doc)
     {
         var preNodes = doc.DocumentNode.SelectNodes("//pre");

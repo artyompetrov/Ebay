@@ -31,7 +31,7 @@ public sealed class ProductMeasurement : AggregateRoot<string>
 
         Validate();
     }
-    
+
 
     public static ProductMeasurement Create(
         string id,
@@ -136,7 +136,7 @@ public sealed class ProductMeasurement : AggregateRoot<string>
     public ProductState ProductState { get; private set; }
 
     private string? _location;
-    
+
     [MaxLength(200)]
     public string? Location
     {

@@ -54,40 +54,40 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
         modelBuilder.Entity<Product>(entity =>
         {
             entity.HasKey(x => x.Id);
-            
-                entity.Property(e => e.Id)
-                    .ValueGeneratedNever();
-                
-                entity.Property(o => o.ProductCalculationResult)
-                    .HasConversion(new ValueConverter<ProductCalculationResult?, string>(
-                        v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
-                        v => JsonSerializer.Deserialize<ProductCalculationResult?>(v, (JsonSerializerOptions?)null)
-                    ));
-                
-                entity.Navigation(p => p.SearchQueries)
-                    .UsePropertyAccessMode(PropertyAccessMode.Field);
-                entity.Navigation(p => p.RuSearchQueries)
-                    .UsePropertyAccessMode(PropertyAccessMode.Field);
-                
-                entity.OwnsMany(p => p.SearchQueries, q =>
-                {
-                    q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
-                    q.HasKey(x => x.Id);
-                    q.Property(x => x.Id).ValueGeneratedNever();
-                    q.Property(x => x.Query).IsRequired();
-                    q.ToTable("Product_SearchQueries");
-                });
 
-                entity.OwnsMany(p => p.RuSearchQueries, q =>
-                {
-                    q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
-                    q.HasKey(x => x.Id);
-                    q.Property(x => x.Id).ValueGeneratedNever();
-                    q.Property(x => x.Query).IsRequired();
-                    q.ToTable("Product_RuSearchQueries");
-                });
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever();
+
+            entity.Property(o => o.ProductCalculationResult)
+                .HasConversion(new ValueConverter<ProductCalculationResult?, string>(
+                    v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<ProductCalculationResult?>(v, (JsonSerializerOptions?)null)
+                ));
+
+            entity.Navigation(p => p.SearchQueries)
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
+            entity.Navigation(p => p.RuSearchQueries)
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            entity.OwnsMany(p => p.SearchQueries, q =>
+            {
+                q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
+                q.HasKey(x => x.Id);
+                q.Property(x => x.Id).ValueGeneratedNever();
+                q.Property(x => x.Query).IsRequired();
+                q.ToTable("Product_SearchQueries");
             });
-        
+
+            entity.OwnsMany(p => p.RuSearchQueries, q =>
+            {
+                q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
+                q.HasKey(x => x.Id);
+                q.Property(x => x.Id).ValueGeneratedNever();
+                q.Property(x => x.Query).IsRequired();
+                q.ToTable("Product_RuSearchQueries");
+            });
+        });
+
         modelBuilder.Entity<Purchase>()
             .Property(o => o.PurchaseCalculationResult)
             .HasConversion(new ValueConverter<PurchaseCalculationResult?, string>(
@@ -168,7 +168,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
                 .HasConversion(
                     v => JsonConvert.SerializeObject(v, Formatting.None),
                     v => JsonConvert.DeserializeObject<MatchedPairDifferenceId>(v)!);
-            
+
             entity.HasKey(e => e.Id);
 
             entity.Property(e => e.Measurement1Id)
@@ -179,7 +179,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
 
             entity.HasIndex(x => x.Measurement1Id);
             entity.HasIndex(x => x.Measurement2Id);
-            
+
             entity.HasOne<ProductMeasurement>()
                 .WithMany()
                 .HasForeignKey(e => e.Measurement1Id)

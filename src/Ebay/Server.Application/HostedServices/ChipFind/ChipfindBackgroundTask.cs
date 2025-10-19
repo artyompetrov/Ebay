@@ -72,7 +72,7 @@ public class ChipfindBackgroundTask : BackgroundTask
 
         var newInterestingAds = new HashSet<(bool IsAmbiguous, string Ad, string? Contact)>();
         string? advertisementContact = null;
-        
+
         foreach (var saleAdvertisementItem in saleAdvertisement.Items)
         {
             var matchesWithProducts = products
@@ -83,7 +83,7 @@ public class ChipfindBackgroundTask : BackgroundTask
             {
                 continue;
             }
-            
+
             advertisementContact = await chipfindAdapter.TryGetAdvertisementContactAsync(
                 saleAdvertisement,
                 cancellationToken);
@@ -168,7 +168,7 @@ public class ChipfindBackgroundTask : BackgroundTask
 
         transaction.Complete();
     }
-    
+
     private async static Task<IReadOnlyCollection<ProductInner>> GetProducts(
         IProductQueries productQueries,
         CancellationToken cancellationToken)

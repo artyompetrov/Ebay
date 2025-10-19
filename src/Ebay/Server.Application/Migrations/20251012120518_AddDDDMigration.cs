@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -32,7 +32,7 @@ namespace Server.Application.Migrations
                 defaultValue: 0u);
 
             migrationBuilder.Sql(@"TRUNCATE TABLE ""MatchedPairDifferences"";");
-            
+
             migrationBuilder.AddColumn<string>(
                 name: "Id",
                 table: "MatchedPairDifferences",
@@ -48,8 +48,8 @@ namespace Server.Application.Migrations
                 nullable: false,
                 defaultValue: 0u);
 
-            
-            
+
+
             migrationBuilder.AddPrimaryKey(
                 name: "PK_MatchedPairDifferences",
                 table: "MatchedPairDifferences",

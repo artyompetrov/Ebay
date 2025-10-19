@@ -13,7 +13,6 @@ using Server.Domain.Measurements;
 using ApiSimilarMeasurementInfo = Server.Controllers.Generated.SimilarMeasurementInfo;
 using ClientErrorInfo = Server.Controllers.Generated.ClientErrorInfo;
 using Currency = Server.Controllers.Generated.Currency;
-using DbProduct = Server.Domain.Product;
 using LotInfo = Server.Controllers.Generated.LotInfo;
 using LotInfoShort = Server.Controllers.Generated.LotInfoShort;
 using LotInfoWithProductId = Server.Controllers.Generated.LotInfoWithProductId;
@@ -25,7 +24,6 @@ using ProductPassportUpload = Server.Controllers.Generated.ProductPassportUpload
 using ProductWithId = Server.Controllers.Generated.ProductWithId;
 using ProductWithoutId = Server.Controllers.Generated.ProductWithoutId;
 using SaleAdvertisement = Server.Controllers.Generated.SaleAdvertisement;
-using SearchQuery = Server.Domain.SearchQuery;
 using TubeWorkingPoint = Server.Controllers.Generated.TubeWorkingPoint;
 
 namespace Server.Application.Controllers;
@@ -221,8 +219,8 @@ internal class EbayControllerImplementation : IEbayController
         return (await _productService.CreateProductAsync(
             name: product.Name,
             weight: product.Weight,
-            searchQueries: product.SearchQueries.Select(x=>x.Query).ToList(),
-            ruSearchQueries: product.RuSearchQueries.Select(x=>x.Query).ToList(),
+            searchQueries: product.SearchQueries.Select(x => x.Query).ToList(),
+            ruSearchQueries: product.RuSearchQueries.Select(x => x.Query).ToList(),
             cancellationToken: cancellationToken)).Id;
     }
 
@@ -238,7 +236,7 @@ internal class EbayControllerImplementation : IEbayController
             weight: product.Weight,
              searchQueries: product.SearchQueries.Select(x => new SearchQueryWithId(x.Id, x.Query)).ToList(),
              ruSearchQueries: product.RuSearchQueries.Select(x => new SearchQueryWithId(x.Id, x.Query)).ToList(),
-            
+
             cancellationToken: cancellationToken);
     }
 
@@ -248,12 +246,12 @@ internal class EbayControllerImplementation : IEbayController
     )
     {
         var product = await _productService.GetProductAsync(id, cancellationToken);
-        
+
         if (product == null)
         {
             throw NonOkHttpAnswerException.NotFound400();
         }
-        
+
         return product.ToApiProduct();
     }
 
@@ -469,7 +467,7 @@ internal class EbayControllerImplementation : IEbayController
                         sameDate: x.ManufactureCode.Equals(similarMeasurement.ManufactureCode, StringComparison.OrdinalIgnoreCase),
                         isMatchedPair: similarMeasurement.IsMatchedPair,
                         matchId: similarMeasurement.MatchId
-                        
+
                     ))
                     .ToList()))
             .ToList();

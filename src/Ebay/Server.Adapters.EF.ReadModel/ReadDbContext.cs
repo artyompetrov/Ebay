@@ -30,12 +30,12 @@ internal sealed class ReadDbContext : DbContext
         b.Entity<ProductView>(eb =>
         {
             eb.ToView("Products").HasKey(x => x.Id);
-            
+
             eb.HasOne(x => x.TubeWorkingPoint)
                 .WithOne(x => x.Product)
                 .HasForeignKey<TubeWorkingPointView>(tp => tp.Id)
                 .HasPrincipalKey<ProductView>(p => p.Id);
-            
+
             eb.OwnsMany(p => p.SearchQueries, q =>
             {
                 q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
@@ -49,7 +49,7 @@ internal sealed class ReadDbContext : DbContext
                 q.HasKey(x => x.Id);
                 q.ToTable("Product_RuSearchQueries");
             });
-            
+
             eb.Property(o => o.ProductCalculationResult)
                 .HasConversion(new ValueConverter<ProductCalculationResult?, string>(
                     v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
@@ -75,6 +75,6 @@ internal sealed class ReadDbContext : DbContext
     public DbSet<ProductView> Products { get; set; } = null!;
 
     public DbSet<MatchedPairDifferenceView> MatchedPairDifferences { get; set; } = null!;
-    
+
     public DbSet<TubeWorkingPointView> TubeWorkingPoints { get; set; } = null!;
 }

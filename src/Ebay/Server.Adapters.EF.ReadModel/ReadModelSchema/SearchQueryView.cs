@@ -8,7 +8,7 @@ internal sealed class SearchQueryView : IViewProjection<SearchQuery, SearchQuery
     public required Guid Id { get; set; }
 
     public required string Query { get; set; } = null!;
-    
+
 
     public static Expression<Func<SearchQuery, SearchQueryView>> ToView => x =>
         new()

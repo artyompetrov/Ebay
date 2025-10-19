@@ -61,10 +61,10 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
                 context.Message.MeasurementId1,
                 context.Message.MeasurementId2
             );
-            
+
             return;
         }
-        
+
         // Сравниваем только новые с новыми и б/у с б/у
         if (measurement1dto.ProductState != measurement2dto.ProductState)
         {

@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Server.Application.Abstractions;
+using Microsoft.EntityFrameworkCore;
 using Server.Application.Abstractions.Repositories;
 using Server.Application.Data;
 using Server.Domain;
@@ -18,15 +17,15 @@ internal class ProductRepository : IProductRepository
     public async Task<Product?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         await using var transaction = await TransactionHelper.EnsureRepeatableReadOrStartAsync(_dbContext, cancellationToken);
-        
+
         var result = await _dbContext.Products
             .AsSplitQuery()
-            .Include(x=>x.RuSearchQueries)
+            .Include(x => x.RuSearchQueries)
             .Include(x => x.SearchQueries)
             .SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
-        
+
         await transaction.CommitIfOwnedAsync(cancellationToken);
-        
+
         return result;
     }
 

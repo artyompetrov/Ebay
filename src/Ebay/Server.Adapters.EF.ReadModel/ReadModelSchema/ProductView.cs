@@ -15,7 +15,7 @@ internal sealed class ProductView : IViewProjection<Product, ProductView>
     public required DateTime LastCheckTime { get; set; }
 
     public required int Weight { get; set; }
-    
+
     public required ProductCalculationResult? ProductCalculationResult { get; set; }
 
     public TubeWorkingPointView TubeWorkingPoint { get; set; } = null!;

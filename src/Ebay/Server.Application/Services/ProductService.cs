@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using MassTransit;
 using Server.Application.Abstractions;
 using Server.Application.Abstractions.Queries;
@@ -56,7 +56,7 @@ internal class ProductService
     )
     {
         await using var transaction = await _unitOfWork.BeginTransactionAsync(cancellationToken, IsolationLevel.RepeatableRead);
-        
+
         var product = await _productRepository.GetByIdAsync(id: productId, cancellationToken: cancellationToken);
 
         if (product == null)
@@ -70,7 +70,7 @@ internal class ProductService
         await _publishEndpoint.Publish(new CalculatePricesForProduct(productId), cancellationToken);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
-        
+
         await transaction.CommitAsync(cancellationToken);
     }
 
@@ -79,7 +79,7 @@ internal class ProductService
     {
         await _productRepository.RemoveAsync(id, cancellationToken);
     }
-    
+
     public async Task MarkProductAsCheckedAsync(
         Guid id,
         CancellationToken cancellationToken
@@ -91,7 +91,7 @@ internal class ProductService
         {
             throw new ApplicationException("Product not found");
         }
-        
+
         product.MarkAsChecked();
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);

@@ -192,11 +192,11 @@ internal sealed class MeasurementQueries : IMeasurementQueries
             .AsNoTracking()
             .Where(x => x.Id == measurementId)
             .Select(x => new MeasurementInfoWithData(
-                x.Id, x.ProductId, 
+                x.Id, x.ProductId,
                 x.MatchId,
                 x.MeasurementState,
-                x.ProductState, 
-                x.ManufactureCode, 
+                x.ProductState,
+                x.ManufactureCode,
                 x.Measurements))
             .SingleOrDefaultAsync(cancellationToken: cancellationToken);
 

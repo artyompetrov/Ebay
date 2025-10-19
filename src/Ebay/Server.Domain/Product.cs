@@ -1,21 +1,17 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using Server.Domain.Measurements;
-
 namespace Server.Domain;
 
 public sealed class Product : AggregateRoot<Guid>
 {
     private readonly List<SearchQuery> _ruSearchQueries = new();
     private readonly List<SearchQuery> _searchQueries = new();
-    
+
     private Product(Guid id, string name, DateTime lastCheckTime, int weight) : base(id)
     {
         Name = name;
         LastCheckTime = lastCheckTime;
         Weight = weight;
     }
-    
+
     public static Product Create(
         string name,
         int weight,
@@ -78,9 +74,9 @@ public sealed class Product : AggregateRoot<Guid>
     public string Name { get; private set; } = default!;
     public DateTime LastCheckTime { get; private set; }
     public int Weight { get; private set; }
-    
+
     public ProductCalculationResult? ProductCalculationResult { get; set; }
-    
+
     public IReadOnlyList<SearchQuery> RuSearchQueries => _ruSearchQueries;
     public IReadOnlyList<SearchQuery> SearchQueries => _searchQueries;
 

@@ -109,7 +109,7 @@ public class ChipfindAdapterTests
                 Items: new[] { "" },
                 Body: ""),
             CancellationToken.None);
-        
+
         Assert.That(contact, Is.EqualTo("E-mail:info.post47@yandex.ru"));
     }
 
@@ -165,7 +165,7 @@ public class ChipfindAdapterTests
                 Items: new[] { "" },
                 Body: ""),
             CancellationToken.None);
-        
+
         Assert.That(contact, Is.EqualTo("Телефон: +7 (000) 000-00-00"));
     }
 

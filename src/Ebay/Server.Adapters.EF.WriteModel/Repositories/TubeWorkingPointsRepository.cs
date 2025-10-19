@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Server.Application.Abstractions.Repositories;
 using Server.Application.Data;
 using Server.Domain.Measurements;

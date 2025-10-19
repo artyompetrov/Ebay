@@ -17,7 +17,7 @@ internal class CalculateTotalAveragePriceForProductConsumer : IConsumer<Batch<Ca
 
     public CalculateTotalAveragePriceForProductConsumer(
         ApplicationDbContext applicationDbContext,
-        IProductRepository  productRepository,
+        IProductRepository productRepository,
         IUnitOfWork unitOfWork,
         ILogger<CalculateTotalAveragePriceForProductConsumer> logger)
     {
@@ -63,7 +63,7 @@ internal class CalculateTotalAveragePriceForProductConsumer : IConsumer<Batch<Ca
                 _logger.LogWarning("Product with id {productId} not found", productId);
                 return;
             }
-            
+
             product.ProductCalculationResult = new ProductCalculationResult
             {
                 Revenue = revenue,

@@ -35,8 +35,8 @@ internal sealed class ProductQueries : IProductQueries
         return new ProductInfo(
             Id: result.Id,
             Name: result.Name,
-            SearchQueries:  result.SearchQueries.Select(x=> new SearchQueryWithId(x.Id, x.Query)).ToList(),
-            RuSearchQueries: result.RuSearchQueries.Select(x=> new SearchQueryWithId(x.Id, x.Query)).ToList(),
+            SearchQueries: result.SearchQueries.Select(x => new SearchQueryWithId(x.Id, x.Query)).ToList(),
+            RuSearchQueries: result.RuSearchQueries.Select(x => new SearchQueryWithId(x.Id, x.Query)).ToList(),
             Weight: result.Weight,
             CalculationResult: result.ProductCalculationResult,
             LastCheckTime: result.LastCheckTime
@@ -78,6 +78,6 @@ internal sealed class ProductQueries : IProductQueries
 
     public async Task<IReadOnlyList<Guid>> GetAllProductsIdsAsync(CancellationToken cancellationToken)
     {
-        return await _readDbContext.Products.Select(x=> x.Id).ToListAsync(cancellationToken: cancellationToken);
+        return await _readDbContext.Products.Select(x => x.Id).ToListAsync(cancellationToken: cancellationToken);
     }
 }

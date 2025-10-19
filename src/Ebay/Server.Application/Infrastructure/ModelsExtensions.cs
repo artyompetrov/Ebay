@@ -49,7 +49,7 @@ internal static class ModelsExtensions
         gridVoltageHalfWidth: workingPoint.GridVoltageHalfWidth,
         nominalCurrent: workingPoint.NominalCurrent
     );
-    
+
 
     public static LotInfoWithProductId ToApiLot(this Lot lot) => new(
         lotInfo: new(

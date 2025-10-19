@@ -57,7 +57,7 @@ internal class MatchedMeasurementService
     {
         var unsoldMeasurements = (await _measurementQueries.GetMeasurementsInfo(
             productId: productId,
-            measurementStates: Enum.GetValues<MeasurementState>().Where(x=>x != MeasurementState.Sold).ToList(),
+            measurementStates: Enum.GetValues<MeasurementState>().Where(x => x != MeasurementState.Sold).ToList(),
             cancellationToken: cancellationToken)).Select(x => x.Id).ToHashSet();
 
         foreach (var measurementId1 in unsoldMeasurements)
