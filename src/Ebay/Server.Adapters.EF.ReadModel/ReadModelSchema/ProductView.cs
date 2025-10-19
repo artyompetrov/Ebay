@@ -10,12 +10,13 @@ internal sealed class ProductView : IViewProjection<Product, ProductView>
     public required string Name { get; set; }
 
     public required List<SearchQueryView> SearchQueries { get; set; }
+    public required List<SearchQueryView> RuSearchQueries { get; set; }
 
     public required DateTime LastCheckTime { get; set; }
 
     public required int Weight { get; set; }
-
-    public required List<ProductPassportView> Passports { get; set; }
+    
+    public required ProductCalculationResult? ProductCalculationResult { get; set; }
 
     public TubeWorkingPointView TubeWorkingPoint { get; set; } = null!;
 
@@ -25,8 +26,9 @@ internal sealed class ProductView : IViewProjection<Product, ProductView>
             Id = x.Id,
             Name = x.Name,
             SearchQueries = x.SearchQueries.AsQueryable().Select(SearchQueryView.ToView).ToList(),
+            RuSearchQueries = x.RuSearchQueries.AsQueryable().Select(SearchQueryView.ToView).ToList(),
             LastCheckTime = x.LastCheckTime,
+            ProductCalculationResult = x.ProductCalculationResult,
             Weight = x.Weight,
-            Passports = x.Passports.AsQueryable().Select(ProductPassportView.ToView).ToList()
         };
 }

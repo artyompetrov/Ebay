@@ -3,18 +3,21 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Server.Application.Data;
 
 #nullable disable
 
-namespace Server.Data.Migrations
+namespace Server.Application.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251019111340_AddDDDProducts")]
+    partial class AddDDDProducts
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1107,9 +1110,10 @@ namespace Server.Data.Migrations
                         .WithMany("Products")
                         .HasForeignKey("ApplicationUserId");
 
-                    b.OwnsMany("Server.Domain.SearchQuery", "RuSearchQueries", b1 =>
+                    b.OwnsMany("Server.Domain.RuSearchQuery", "RuSearchQueries", b1 =>
                         {
                             b1.Property<Guid>("Id")
+                                .ValueGeneratedOnAdd()
                                 .HasColumnType("uuid");
 
                             b1.Property<Guid>("ProductId")
@@ -1132,6 +1136,7 @@ namespace Server.Data.Migrations
                     b.OwnsMany("Server.Domain.SearchQuery", "SearchQueries", b1 =>
                         {
                             b1.Property<Guid>("Id")
+                                .ValueGeneratedOnAdd()
                                 .HasColumnType("uuid");
 
                             b1.Property<Guid>("ProductId")

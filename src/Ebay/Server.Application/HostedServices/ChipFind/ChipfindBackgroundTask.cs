@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Server.Application.Abstractions.Queries;
 using Server.Application.Data;
 using Server.Application.Infrastructure;
 using Server.Domain;
@@ -39,10 +40,11 @@ public class ChipfindBackgroundTask : BackgroundTask
         var applicationDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var chipfindAdapter = scope.ServiceProvider.GetRequiredService<IChipfindAdapter>();
         var emailSender = scope.ServiceProvider.GetRequiredService<IEmailSender>();
+        var productQueries = scope.ServiceProvider.GetRequiredService<IProductQueries>();
 
         var products = await GetProducts(
             cancellationToken: cancellationToken,
-            applicationDbContext: applicationDbContext);
+            productQueries: productQueries);
 
         var recentAdvertisements = await chipfindAdapter.GetRecentSaleAdvertisements(cancellationToken);
 
@@ -168,19 +170,14 @@ public class ChipfindBackgroundTask : BackgroundTask
     }
     
     private async static Task<IReadOnlyCollection<ProductInner>> GetProducts(
-        ApplicationDbContext applicationDbContext,
+        IProductQueries productQueries,
         CancellationToken cancellationToken)
     {
-        var dbProducts = await applicationDbContext.Products
-            .AsNoTracking()
-            .OrderBy(x => x.Name)
-            .ThenBy(x => x.Id)
-            .Include(x => x.RuSearchQueries)
-            .ToListAsync(cancellationToken);
+        var products = await productQueries.GetAllProductsAsync(cancellationToken);
 
-        var productsArray = dbProducts.Select(x => new ProductInner(
+        var productsArray = products.Select(x => new ProductInner(
                 ProductId: x.Id,
-                Regex: x.GetProductRegex(),
+                Regex: x.ProductRegex,
                 IsInteresting: x.GetIsInteresting()))
             .ToArray();
 

@@ -1,5 +1,8 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Server.Application.Abstractions;
+using Server.Application.Abstractions.Repositories;
 using Server.Application.Data;
 using Server.Domain;
 
@@ -8,10 +11,20 @@ namespace Server.Application.Consumers.PriceCalculator;
 internal class CalculateTotalAveragePriceForProductConsumer : IConsumer<Batch<CalculateTotalAveragePriceForProduct>>
 {
     private readonly ApplicationDbContext _applicationDbContext;
+    private readonly IProductRepository _productRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<CalculateTotalAveragePriceForProductConsumer> _logger;
 
-    public CalculateTotalAveragePriceForProductConsumer(ApplicationDbContext applicationDbContext)
+    public CalculateTotalAveragePriceForProductConsumer(
+        ApplicationDbContext applicationDbContext,
+        IProductRepository  productRepository,
+        IUnitOfWork unitOfWork,
+        ILogger<CalculateTotalAveragePriceForProductConsumer> logger)
     {
         _applicationDbContext = applicationDbContext;
+        _productRepository = productRepository;
+        _unitOfWork = unitOfWork;
+        _logger = logger;
     }
 
     public async Task Consume(ConsumeContext<Batch<CalculateTotalAveragePriceForProduct>> context)
@@ -43,14 +56,23 @@ internal class CalculateTotalAveragePriceForProductConsumer : IConsumer<Batch<Ca
                 }
             }
 
-            var dbProduct = _applicationDbContext.Products.Attach(new Product { Id = productId });
-            dbProduct.Entity.ProductCalculationResult = new ProductCalculationResult
+            var product = await _productRepository.GetByIdAsync(productId, context.CancellationToken);
+
+            if (product == null)
+            {
+                _logger.LogWarning("Product with id {productId} not found", productId);
+                return;
+            }
+            
+            product.ProductCalculationResult = new ProductCalculationResult
             {
                 Revenue = revenue,
                 QuantityTotal = quantityTotal,
                 CalculationDate = dateTime,
                 ListingPriceSumm = listingPrice
             };
+
+            await _unitOfWork.SaveChangesAsync(context.CancellationToken);
 
             await _applicationDbContext.SaveChangesAsync(context.CancellationToken);
         }

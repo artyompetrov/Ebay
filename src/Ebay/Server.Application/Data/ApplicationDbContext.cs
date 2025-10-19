@@ -51,13 +51,43 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
                 v => JsonSerializer.Deserialize<LotCalculationResult?>(v, (JsonSerializerOptions?)null)
             ));
 
-        modelBuilder.Entity<Product>()
-            .Property(o => o.ProductCalculationResult)
-            .HasConversion(new ValueConverter<ProductCalculationResult?, string>(
-                v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
-                v => JsonSerializer.Deserialize<ProductCalculationResult?>(v, (JsonSerializerOptions?)null)
-            ));
+        modelBuilder.Entity<Product>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            
+                entity.Property(e => e.Id)
+                    .ValueGeneratedNever();
+                
+                entity.Property(o => o.ProductCalculationResult)
+                    .HasConversion(new ValueConverter<ProductCalculationResult?, string>(
+                        v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
+                        v => JsonSerializer.Deserialize<ProductCalculationResult?>(v, (JsonSerializerOptions?)null)
+                    ));
+                
+                entity.Navigation(p => p.SearchQueries)
+                    .UsePropertyAccessMode(PropertyAccessMode.Field);
+                entity.Navigation(p => p.RuSearchQueries)
+                    .UsePropertyAccessMode(PropertyAccessMode.Field);
+                
+                entity.OwnsMany(p => p.SearchQueries, q =>
+                {
+                    q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
+                    q.HasKey(x => x.Id);
+                    q.Property(x => x.Id).ValueGeneratedNever();
+                    q.Property(x => x.Query).IsRequired();
+                    q.ToTable("Product_SearchQueries");
+                });
 
+                entity.OwnsMany(p => p.RuSearchQueries, q =>
+                {
+                    q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
+                    q.HasKey(x => x.Id);
+                    q.Property(x => x.Id).ValueGeneratedNever();
+                    q.Property(x => x.Query).IsRequired();
+                    q.ToTable("Product_RuSearchQueries");
+                });
+            });
+        
         modelBuilder.Entity<Purchase>()
             .Property(o => o.PurchaseCalculationResult)
             .HasConversion(new ValueConverter<PurchaseCalculationResult?, string>(
@@ -165,10 +195,6 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
 
 
     public DbSet<Product> Products { get; set; } = null!;
-
-    public DbSet<SearchQuery> SearchQueries { get; set; } = null!;
-
-    public DbSet<RuSearchQuery> RuSearchQueries { get; set; } = null!;
 
     public DbSet<Lot> Lots { get; set; } = null!;
 

@@ -4,27 +4,85 @@ using Server.Domain.Measurements;
 
 namespace Server.Domain;
 
-public sealed class Product
+public sealed class Product : AggregateRoot<Guid>
 {
-    [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
-    public Guid Id { get; set; }
+    private readonly List<SearchQuery> _ruSearchQueries = new();
+    private readonly List<SearchQuery> _searchQueries = new();
+    
+    private Product(Guid id, string name, DateTime lastCheckTime, int weight) : base(id)
+    {
+        Name = name;
+        LastCheckTime = lastCheckTime;
+        Weight = weight;
+    }
+    
+    public static Product Create(
+        string name,
+        int weight,
+        IReadOnlyList<string> searchQueries,
+        IReadOnlyList<string> ruSearchQueries)
+    {
+        var productId = Guid.NewGuid();
 
-    public string Name { get; set; } = null!;
+        var product = new Product(
+            id: productId,
+            name: name,
+            lastCheckTime: DateTime.MinValue,
+            weight: weight);
 
-    public List<RuSearchQuery> RuSearchQueries { get; set; } = null!;
+        product._ruSearchQueries.AddRange(
+            ruSearchQueries.Select(x => new SearchQuery(Guid.NewGuid(), x, productId)));
 
-    public List<SearchQuery> SearchQueries { get; set; } = null!;
+        product._searchQueries.AddRange(
+            searchQueries.Select(x => new SearchQuery(Guid.NewGuid(), x, productId)));
 
-    public List<Lot> Lots { get; set; } = null!;
+        return product;
+    }
 
-    public DateTime LastCheckTime { get; set; }
+    public void Update(
+        string name,
+        int weight,
+        IReadOnlyList<SearchQueryWithId> searchQueries,
+        IReadOnlyList<SearchQueryWithId> ruSearchQueries)
+    {
+        Name = name;
+        Weight = weight;
 
-    public bool IsCheckRequired => DateTime.UtcNow - LastCheckTime > TimeSpan.FromDays(WellKnown.RecheckTimeInDays);
+        // en
+        var incomingEn = searchQueries.ToDictionary(x => x.Id);
+        // удалить те, которых нет во входе
+        _searchQueries.RemoveAll(sq => !incomingEn.ContainsKey(sq.Id));
+        // обновить существующие и добавить новые
+        foreach (var kv in incomingEn)
+        {
+            var existing = _searchQueries.FirstOrDefault(x => x.Id == kv.Key);
+            if (existing is null)
+                _searchQueries.Add(new SearchQuery(kv.Key, kv.Value.Query, Id));
+            else
+                existing.SetQuery(kv.Value.Query); // сделай метод изменить Query
+        }
 
-    public int Weight { get; set; }
+        // ru
+        var incomingRu = ruSearchQueries.ToDictionary(x => x.Id);
+        _ruSearchQueries.RemoveAll(sq => !incomingRu.ContainsKey(sq.Id));
+        foreach (var kv in incomingRu)
+        {
+            var existing = _ruSearchQueries.FirstOrDefault(x => x.Id == kv.Key);
+            if (existing is null)
+                _ruSearchQueries.Add(new SearchQuery(kv.Key, kv.Value.Query, Id));
+            else
+                existing.SetQuery(kv.Value.Query);
+        }
+    }
 
-    public List<ProductPassport> Passports { get; set; } = null!;
-
+    public string Name { get; private set; } = default!;
+    public DateTime LastCheckTime { get; private set; }
+    public int Weight { get; private set; }
+    
     public ProductCalculationResult? ProductCalculationResult { get; set; }
     
+    public IReadOnlyList<SearchQuery> RuSearchQueries => _ruSearchQueries;
+    public IReadOnlyList<SearchQuery> SearchQueries => _searchQueries;
+
+    public void MarkAsChecked() => LastCheckTime = DateTime.UtcNow;
 }
