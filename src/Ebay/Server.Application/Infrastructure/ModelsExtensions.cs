@@ -45,20 +45,6 @@ internal static class ModelsExtensions
     public static RuSearchQuery ToApiRuSearchQuery(this DbRuSearchQuery searchQuery) =>
         new(id: searchQuery.Id, query: searchQuery.Query);
 
-    public static DbSearchQuery ToDbSearchQuery(this SearchQuery searchQuery, Guid productId) => new()
-    {
-        Id = searchQuery.Id,
-        Query = searchQuery.Query,
-        ProductId = productId
-    };
-
-    public static DbRuSearchQuery ToDbRuSearchQuery(this RuSearchQuery searchQuery, Guid productId) => new()
-    {
-        Id = searchQuery.Id,
-        Query = searchQuery.Query,
-        ProductId = productId
-    };
-
     public static TubeWorkingPoint ToApiTubeWorkingPoint(this TubeWorkingPointInfo workingPoint) => new(
         anodeVoltage: workingPoint.AnodeVoltage,
         gridVoltage: workingPoint.GridVoltage,
@@ -66,13 +52,7 @@ internal static class ModelsExtensions
         gridVoltageHalfWidth: workingPoint.GridVoltageHalfWidth,
         nominalCurrent: workingPoint.NominalCurrent
     );
-
-    public static DbProduct ToDbProduct(this ProductWithoutId productWithoutId, Guid productId) => new()
-    {
-        Id = productId,
-        Name = productWithoutId.Name,
-        Weight = productWithoutId.Weight
-    };
+    
 
     public static LotInfoWithProductId ToApiLot(this Lot lot) => new(
         lotInfo: new(

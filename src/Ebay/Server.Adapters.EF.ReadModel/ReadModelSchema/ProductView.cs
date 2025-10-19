@@ -15,8 +15,6 @@ internal sealed class ProductView : IViewProjection<Product, ProductView>
 
     public required int Weight { get; set; }
 
-    public required List<ProductPassportView> Passports { get; set; }
-
     public TubeWorkingPointView TubeWorkingPoint { get; set; } = null!;
 
     public static Expression<Func<Product, ProductView>> ToView => x =>
@@ -27,6 +25,5 @@ internal sealed class ProductView : IViewProjection<Product, ProductView>
             SearchQueries = x.SearchQueries.AsQueryable().Select(SearchQueryView.ToView).ToList(),
             LastCheckTime = x.LastCheckTime,
             Weight = x.Weight,
-            Passports = x.Passports.AsQueryable().Select(ProductPassportView.ToView).ToList()
         };
 }

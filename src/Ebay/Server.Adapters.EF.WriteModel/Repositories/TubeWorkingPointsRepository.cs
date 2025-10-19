@@ -3,7 +3,7 @@ using Server.Application.Abstractions.Repositories;
 using Server.Application.Data;
 using Server.Domain.Measurements;
 
-namespace Server.Adapters.EF.WriteModel;
+namespace Server.Adapters.EF.WriteModel.Repositories;
 
 internal class TubeWorkingPointsRepository : ITubeWorkingPointsRepository
 {

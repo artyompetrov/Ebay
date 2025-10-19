@@ -51,12 +51,36 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
                 v => JsonSerializer.Deserialize<LotCalculationResult?>(v, (JsonSerializerOptions?)null)
             ));
 
-        modelBuilder.Entity<Product>()
-            .Property(o => o.ProductCalculationResult)
-            .HasConversion(new ValueConverter<ProductCalculationResult?, string>(
-                v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
-                v => JsonSerializer.Deserialize<ProductCalculationResult?>(v, (JsonSerializerOptions?)null)
-            ));
+        modelBuilder.Entity<Product>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            
+                entity.Property(e => e.Id)
+                    .ValueGeneratedNever();
+                
+                entity.Property(o => o.ProductCalculationResult)
+                    .HasConversion(new ValueConverter<ProductCalculationResult?, string>(
+                        v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
+                        v => JsonSerializer.Deserialize<ProductCalculationResult?>(v, (JsonSerializerOptions?)null)
+                    ));
+            });
+            
+        
+        modelBuilder.Entity<RuSearchQuery>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever();
+        });
+        
+        modelBuilder.Entity<SearchQuery>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever();
+        });
 
         modelBuilder.Entity<Purchase>()
             .Property(o => o.PurchaseCalculationResult)

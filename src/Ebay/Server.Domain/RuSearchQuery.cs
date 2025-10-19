@@ -3,13 +3,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Server.Domain;
 
-public sealed class RuSearchQuery
+public sealed class RuSearchQuery : Entity<Guid>
 {
-    [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
-    public Guid Id { get; set; }
-
-    public string Query { get; set; } = null!;
-
-    public Guid ProductId { get; set; }
-    public Product Product { get; set; } = null!;
+    public RuSearchQuery(Guid id, string query, Guid productId) : base(id)
+    {
+        Query = query;
+        ProductId = productId;
+    }
+    
+    public string Query { get; }
+    public Guid ProductId { get; }
 }

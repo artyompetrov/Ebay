@@ -25,6 +25,7 @@ using ProductPassportUpload = Server.Controllers.Generated.ProductPassportUpload
 using ProductWithId = Server.Controllers.Generated.ProductWithId;
 using ProductWithoutId = Server.Controllers.Generated.ProductWithoutId;
 using SaleAdvertisement = Server.Controllers.Generated.SaleAdvertisement;
+using SearchQuery = Server.Domain.SearchQuery;
 using TubeWorkingPoint = Server.Controllers.Generated.TubeWorkingPoint;
 
 namespace Server.Application.Controllers;
@@ -37,6 +38,7 @@ internal class EbayControllerImplementation : IEbayController
     private readonly MeasurementService _measurementService;
     private readonly MatchedMeasurementService _matchedMeasurementService;
     private readonly TubeWorkingPointService _tubeWorkingPointService;
+    private readonly ProductService _productService;
 
     public EbayControllerImplementation(
         ApplicationDbContext applicationContext,
@@ -44,7 +46,8 @@ internal class EbayControllerImplementation : IEbayController
         ShippingRatesService shippingRatesService,
         MeasurementService measurementService,
         MatchedMeasurementService matchedMeasurementService,
-        TubeWorkingPointService tubeWorkingPointService
+        TubeWorkingPointService tubeWorkingPointService,
+        ProductService productService
         )
     {
         _applicationContext = applicationContext;
@@ -53,6 +56,7 @@ internal class EbayControllerImplementation : IEbayController
         _measurementService = measurementService;
         _matchedMeasurementService = matchedMeasurementService;
         _tubeWorkingPointService = tubeWorkingPointService;
+        _productService = productService;
     }
 
     public async Task<ICollection<ProductPassportInfo>> GetProductPassportsAsync(
@@ -226,30 +230,12 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken
     )
     {
-        var newProductId = Guid.NewGuid();
-
-        using var transaction = TransactionScopeFactory.Create();
-
-        await _applicationContext.Products.AddAsync(
-            entity: product.ToDbProduct(newProductId),
-            cancellationToken: cancellationToken
-        );
-
-        await _applicationContext.SearchQueries.AddRangeAsync(
-            entities: product.SearchQueries.Select(x => x.ToDbSearchQuery(newProductId)),
-            cancellationToken: cancellationToken
-        );
-
-        await _applicationContext.RuSearchQueries.AddRangeAsync(
-            entities: product.RuSearchQueries.Select(x => x.ToDbRuSearchQuery(newProductId)),
-            cancellationToken: cancellationToken
-        );
-
-        await _applicationContext.SaveChangesAsync(cancellationToken);
-
-        transaction.Complete();
-
-        return newProductId;
+        return (await _productService.CreateProductAsync(
+            name: product.Name,
+            weight: product.Weight,
+            searchQueries: product.SearchQueries.Select(x=>x.Query).ToList(),
+            ruSearchQueries: product.RuSearchQueries.Select(x=>x.Query).ToList(),
+            cancellationToken: cancellationToken)).Id;
     }
 
     public async Task UpdateProductAsync(
@@ -258,30 +244,14 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken
     )
     {
-        using var transaction = TransactionScopeFactory.Create();
-
-        var dbProduct = _applicationContext.Products.Attach(new DbProduct { Id = id });
-        dbProduct.Entity.Name = product.Name;
-        dbProduct.Entity.Weight = product.Weight;
-
-        _applicationContext.RemoveRange(_applicationContext.SearchQueries.Where(x => x.ProductId == id));
-        _applicationContext.RemoveRange(_applicationContext.RuSearchQueries.Where(x => x.ProductId == id));
-
-        await _applicationContext.SearchQueries.AddRangeAsync(
-            entities: product.SearchQueries.Select(x => x.ToDbSearchQuery(id)),
-            cancellationToken: cancellationToken
-        );
-
-        await _applicationContext.RuSearchQueries.AddRangeAsync(
-            entities: product.RuSearchQueries.Select(x => x.ToDbRuSearchQuery(id)),
-            cancellationToken: cancellationToken
-        );
-
-        await _publishEndpoint.Publish(new CalculatePricesForProduct(id), cancellationToken);
-
-        await _applicationContext.SaveChangesAsync(cancellationToken);
-
-        transaction.Complete();
+        await _productService.UpdateProductAsync(
+            productId: id,
+            name: product.Name,
+            weight: product.Weight,
+             searchQueries: product.SearchQueries.Select(x => new SearchQueryWithId(x.Id, x.Query)).ToList(),
+             ruSearchQueries: product.RuSearchQueries.Select(x => new SearchQueryWithId(x.Id, x.Query)).ToList(),
+            
+            cancellationToken: cancellationToken);
     }
 
     public async Task<ProductWithId> GetProductAsync(
@@ -311,9 +281,7 @@ internal class EbayControllerImplementation : IEbayController
 
     public async Task DeleteProductAsync(Guid id, CancellationToken cancellationToken)
     {
-        var product = _applicationContext.Products.Attach(new DbProduct { Id = id });
-        product.State = EntityState.Deleted;
-        await _applicationContext.SaveChangesAsync(cancellationToken);
+        await _productService.DeleteProductAsync(id, cancellationToken);
     }
 
     public async Task MarkProductAsCheckedAsync(
@@ -321,10 +289,7 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken
     )
     {
-        var dbProduct = _applicationContext.Products.Attach(new DbProduct { Id = id });
-        dbProduct.Entity.LastCheckTime = DateTime.UtcNow;
-
-        await _applicationContext.SaveChangesAsync(cancellationToken);
+        await _productService.MarkProductAsCheckedAsync(id, cancellationToken);
     }
 
     public async Task<ICollection<SaleAdvertisement>> GetSaleAdvertisementsAsync(
