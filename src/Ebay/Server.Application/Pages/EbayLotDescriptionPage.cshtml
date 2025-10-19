@@ -10,7 +10,7 @@
 
     static string GetName(EbayLotDescriptionPage model)
     {
-        var name = model.Product.SearchQueries.First();
+        var name = model.Product.SearchQueries.First().Query;
 
         if (model.State == ProductState.New)
         {
