@@ -11,7 +11,12 @@ public sealed class SearchQuery : Entity<Guid>
         ProductId = productId;
     }
 
-    public string Query { get; }
+    public string Query { get; private set; }
+
+    public void SetQuery(string query)
+    {
+        Query = query;
+    }
 
     public Guid ProductId { get; }
 }

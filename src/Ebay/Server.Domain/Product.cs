@@ -48,11 +48,31 @@ public sealed class Product : AggregateRoot<Guid>
         Name = name;
         Weight = weight;
 
-        _searchQueries.Clear();
-        _searchQueries.AddRange(searchQueries.Select(x => new SearchQuery(x.Id, x.SearchQuery, Id)));
+        // en
+        var incomingEn = searchQueries.ToDictionary(x => x.Id);
+        // удалить те, которых нет во входе
+        _searchQueries.RemoveAll(sq => !incomingEn.ContainsKey(sq.Id));
+        // обновить существующие и добавить новые
+        foreach (var kv in incomingEn)
+        {
+            var existing = _searchQueries.FirstOrDefault(x => x.Id == kv.Key);
+            if (existing is null)
+                _searchQueries.Add(new SearchQuery(kv.Key, kv.Value.SearchQuery, Id));
+            else
+                existing.SetQuery(kv.Value.SearchQuery); // сделай метод изменить Query
+        }
 
-        _ruSearchQueries.Clear();
-        _ruSearchQueries.AddRange(ruSearchQueries.Select(x => new RuSearchQuery(x.Id, x.SearchQuery, Id)));
+        // ru
+        var incomingRu = ruSearchQueries.ToDictionary(x => x.Id);
+        _ruSearchQueries.RemoveAll(sq => !incomingRu.ContainsKey(sq.Id));
+        foreach (var kv in incomingRu)
+        {
+            var existing = _ruSearchQueries.FirstOrDefault(x => x.Id == kv.Key);
+            if (existing is null)
+                _ruSearchQueries.Add(new RuSearchQuery(kv.Key, kv.Value.SearchQuery, Id));
+            else
+                existing.SetQuery(kv.Value.SearchQuery);
+        }
     }
 
     public string Name { get; private set; } = default!;
