@@ -51,6 +51,7 @@ public class MeasurementPageController : ControllerBase
         var xRealIp = Request.Headers["X-Real-IP"].FirstOrDefault();
         var userAgent = Request.Headers["User-Agent"].ToString();
 
+        //todo удалить тут логирование
         await _geoIpService.LogRequest(
             prefix: $"GetEbayCurves for product {product} requested",
             realIp: xRealIp,
@@ -92,6 +93,30 @@ public class MeasurementPageController : ControllerBase
             return NotFound("Measurement not found");
 
         var response = Content(result, "image/svg+xml");
+        return response;
+    }
+    
+    
+    [HttpGet("/empty_picture")]
+    public async Task<IActionResult> GetEmptyPicture(
+        string product,
+        CancellationToken cancellationToken)
+    {
+        var xRealIp = Request.Headers["X-Real-IP"].FirstOrDefault();
+        var userAgent = Request.Headers["User-Agent"].ToString();
+
+        await _geoIpService.LogRequest(
+            prefix: $"GetEbayCurves for product {product} requested",
+            realIp: xRealIp,
+            ua: userAgent,
+            token: cancellationToken);
+
+        var result = """
+                <svg xmlns="http://www.w3.org/2000/svg" width="5" height="5">
+                </svg>
+                """;
+
+        var response = Content(content: result, contentType: "image/svg+xml");
         return response;
     }
 }

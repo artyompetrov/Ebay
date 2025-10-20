@@ -36,6 +36,8 @@
 
 <h2 style="text-align: center; ">@GetName(Model)</h2>
 
+<img src="@($"{baseUrl}/empty_picture?product={WebUtility.UrlEncode(GetName(Model))}")" alt="" style="height: 1px; width: 1px;" />
+
 <h3>📦 Shipping & Handling:</h3>
 <p><strong>Combined shipping</strong> is available — order multiple items to save on delivery costs!</p>
 <p>When you order more than one item (even from different listings in our store), you <strong>save on shipping</strong> because the cost for additional items is <strong>significantly lower</strong>.</p>
@@ -182,7 +184,7 @@
                         }
                     </td>
                     <td>
-                        <img src="@($"{baseUrl}/m/{meas.Id}/ebay_curves?product={WebUtility.UrlEncode(GetName(Model))}")"
+                        <img src="@($"{baseUrl}/m/{meas.Id}/ebay_curves")"
                              alt="@meas.Id"/>
                     </td>
                 </tr>
