@@ -55,6 +55,7 @@ internal sealed class ProductQueries : IProductQueries
             .AsSplitQuery()
             .Include(p => p.SearchQueries)
             .Include(p => p.RuSearchQueries)
+            .OrderBy(x =>x.Name)
             .ToListAsync(cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
