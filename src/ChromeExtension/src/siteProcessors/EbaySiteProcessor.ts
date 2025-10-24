@@ -87,7 +87,7 @@ class EbaySiteProcessor implements ISiteProcessor {
     private readonly categoriesDiv = "categoriesDiv"
     private readonly ignoredLotDiv = "ignoredLotDiv"
     private readonly currentProductIdParamName = "tool_productId"
-    private _lotNotSupported = false;
+    private _notFound = false;
     private _lotInfo = new EbayToolBackendClient.LotInfo()
     private _purchaseHistory: EbayToolBackendClient.PurchaseInfo[] | null;
     private _titleChangeDate: string | null;
@@ -927,7 +927,7 @@ class EbaySiteProcessor implements ISiteProcessor {
         catch (error)
         {
             if (error instanceof EbayClient.ApiException && error.message === "Not Found") {
-                this._lotNotSupported = true;
+                this._notFound = true;
                 console.log("multivariant lots are not supported")
             } else {
                 throw error;
@@ -1035,8 +1035,7 @@ class EbaySiteProcessor implements ISiteProcessor {
             this.getServerLotInfo(),
         ]);
 
-        if (this._lotNotSupported) {
-            await this.ignoreThatLot();
+        if (this._notFound) {
             return;
         }
 
