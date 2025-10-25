@@ -21,10 +21,11 @@ const backendDomainRegex = new RegExp(
 const excludeSites: RegExp[] = [
     /(?:^|\.)ebay\..*$/i,
     backendDomainRegex,
+    /^localhost$/i,
 ];
 
 export function tryGetSearchSitesProcessor() : ISiteProcessor | null {
-    if (!utils.matchesAnyRegex(excludeSites, location.host)) {
+    if (!utils.matchesAnyRegex(excludeSites, location.hostname)) {
         return new SearchSitesProcessor();
     }
     return null;
