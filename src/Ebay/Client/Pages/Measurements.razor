@@ -658,9 +658,9 @@
         }
     }
 
-    private static string GetStateFilterId(MeasurementState state) => $"stateFilter_{state.ToString("G")}";
+    private static string GetStateFilterId(MeasurementState state) => $"stateFilter_{state:G}";
 
-    private static string GetManufactureCodeCellClass(bool sameCode) => sameCode ? "table-success" : "table-warning";
+    private static string GetManufactureCodeCellClass(bool sameCode) => sameCode ? "table-super-success" : "table-warning";
 
     private static string? GetPercentCellClass(double? balance)
     {
