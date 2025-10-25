@@ -14,8 +14,6 @@ else
 {
     <h3>@_product.Name</h3>
     <div class="mb-3" style="display: flex; align-items: center; gap: 10px;">
-        <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}?measurementState={MeasurementState.Selling}&state={ProductState.New}")" target="_blank">Описание для eBay (New)</NavLink>
-        <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}?measurementState={MeasurementState.Selling}&state={ProductState.Used}")" target="_blank">Описание для eBay (Used)</NavLink>
         <button class="btn btn-danger btn-sm oi oi-basket" @onclick="OnDeleteClick"></button>
     </div>
 

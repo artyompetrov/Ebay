@@ -161,4 +161,9 @@ public class MeasurementService
 
         return result;
     }
+
+    public async Task<IReadOnlySet<string?>> GetLotIdsForProductAsync(Guid productId, CancellationToken cancellationToken)
+    {
+        return await _measurementQueries.GetLotIds(productId, cancellationToken);
+    }
 }

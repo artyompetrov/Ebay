@@ -380,6 +380,24 @@ paths:
         200:
           description: Ok
 
+  /products/{productId}/lotIds/:
+    parameters:
+      - name: productId
+        in: path
+        required: true
+        type: string
+        format: guid
+    post:
+      operationId: GetLotIdsForProduct
+      responses:
+        200:
+          description: Ok
+          schema:
+            type: array
+            items:
+              type: string
+              x-nullable: true
+
   /products/{productId}/measurements/{measurementId}/:
     parameters:
       - name: productId

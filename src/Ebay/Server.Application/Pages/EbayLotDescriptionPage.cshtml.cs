@@ -34,7 +34,7 @@ public class EbayLotDescriptionPage : PageModel
 
     public IReadOnlyCollection<MeasurementInfoWithSimilarMeasurements> Measurements { get; set; } = null!;
 
-    public async Task<IActionResult> OnGet(Guid productId, MeasurementState measurementState, ProductState state, CancellationToken cancellationToken)
+    public async Task<IActionResult> OnGet(Guid productId, MeasurementState measurementState, ProductState state, CancellationToken cancellationToken, string? lotId = null)
     {
         State = state;
         ProductId = productId;
@@ -46,7 +46,7 @@ public class EbayLotDescriptionPage : PageModel
             return NotFound();
         }
 
-        Measurements = await _measurementQueries.GetMeasurementInfosWithSimilarMeasurements(productId, new[] { measurementState }, cancellationToken);
+        Measurements = await _measurementQueries.GetMeasurementInfosWithSimilarMeasurements(productId,  lotId, new[] { measurementState }, cancellationToken);
         Passports = await _passportQueries.GetPassports(productId, cancellationToken);
 
         Product = product;

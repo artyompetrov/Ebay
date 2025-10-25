@@ -501,6 +501,11 @@ internal class EbayControllerImplementation : IEbayController
         }
     }
 
+    public async Task<ICollection<string?>> GetLotIdsForProductAsync(Guid productId, CancellationToken cancellationToken) =>
+        (await _measurementService.GetLotIdsForProductAsync(
+            productId: productId,
+            cancellationToken: cancellationToken)).ToList();
+
     public async Task DeleteMeasurementAsync(
         Guid productId,
         string measurementId,

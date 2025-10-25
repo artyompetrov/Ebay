@@ -11,9 +11,15 @@ public interface IMeasurementQueries
 
     Task<IReadOnlyCollection<MeasurementInfoWithSimilarMeasurements>> GetMeasurementInfosWithSimilarMeasurements(
         Guid productId,
+        string? lotId,
         IReadOnlyCollection<MeasurementState> measurementStates,
         CancellationToken cancellationToken);
 
+    Task<IReadOnlyCollection<MeasurementInfoWithSimilarMeasurements>> GetMeasurementInfosWithSimilarMeasurements(
+        Guid productId,
+        IReadOnlyCollection<MeasurementState> measurementStates,
+        CancellationToken cancellationToken);
+    
     Task<MeasurementInfoWithData?> GetMeasurementInfoWithData(string measurementId, CancellationToken cancellationToken);
 
     Task<MeasurementState?> GetMeasurementState(string measurementId, CancellationToken cancellationToken);
@@ -24,6 +30,10 @@ public interface IMeasurementQueries
     
     Task<IReadOnlyList<string>> GetMeasurementPairMeasurements(
         string id,
+        CancellationToken cancellationToken);
+    
+    Task<IReadOnlySet<string?>> GetLotIds(
+        Guid productId,
         CancellationToken cancellationToken);
 
 }

@@ -57,6 +57,11 @@ internal sealed class MeasurementQueries : IMeasurementQueries
             .ToListAsync(cancellationToken: cancellationToken);
     }
 
+    public async Task<IReadOnlySet<string?>> GetLotIds(Guid productId, CancellationToken cancellationToken)
+    {
+        return await _dbContext.ProductMeasurements.Select(x => x.LotId).Distinct().ToHashSetAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyCollection<MeasurementInfo>> GetMeasurementsInfo(
         Guid productId,
         IReadOnlyCollection<MeasurementState> measurementStates,
@@ -80,14 +85,42 @@ internal sealed class MeasurementQueries : IMeasurementQueries
         return measurementsQuery;
     }
 
-    public async Task<IReadOnlyCollection<MeasurementInfoWithSimilarMeasurements>>
+    public Task<IReadOnlyCollection<MeasurementInfoWithSimilarMeasurements>> GetMeasurementInfosWithSimilarMeasurements(
+        Guid productId,
+        IReadOnlyCollection<MeasurementState> measurementStates,
+        CancellationToken cancellationToken) =>
+        GetMeasurementInfosWithSimilarMeasurementsInternal(
+            productId: productId,
+            withLotIdFilter: false,
+            lotId: null,
+            measurementStates: measurementStates,
+            cancellationToken: cancellationToken);
+
+
+    public Task<IReadOnlyCollection<MeasurementInfoWithSimilarMeasurements>>
         GetMeasurementInfosWithSimilarMeasurements(
             Guid productId,
+            string? lotId,
+            IReadOnlyCollection<MeasurementState> measurementStates,
+            CancellationToken cancellationToken) =>
+        GetMeasurementInfosWithSimilarMeasurementsInternal(
+            productId: productId,
+            withLotIdFilter: true,
+            lotId: lotId,
+            measurementStates: measurementStates,
+            cancellationToken: cancellationToken);
+
+    private async Task<IReadOnlyCollection<MeasurementInfoWithSimilarMeasurements>>
+        GetMeasurementInfosWithSimilarMeasurementsInternal(
+            Guid productId,
+            bool withLotIdFilter,
+            string? lotId,
             IReadOnlyCollection<MeasurementState> measurementStates,
             CancellationToken cancellationToken)
     {
         var measurementsQuery = from measurement in _dbContext.ProductMeasurements
                                 where measurement.ProductId == productId
+                                where !withLotIdFilter || measurement.LotId == lotId
                                 where measurementStates.Contains(measurement.MeasurementState)
                                 join difference in
                                     _dbContext.MatchedPairDifferences.AsNoTracking() // этот джойн нужен для двойных триодов
@@ -140,6 +173,8 @@ internal sealed class MeasurementQueries : IMeasurementQueries
             })
             .ToList();
     }
+
+
 
     private async Task<Dictionary<string, IReadOnlyCollection<SimilarMeasurementInfo>>> GetSimilarMeasurements(
         CancellationToken cancellationToken,

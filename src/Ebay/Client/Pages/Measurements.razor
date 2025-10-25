@@ -1,5 +1,6 @@
 @using Client.Clients.Generated
 @using System.Collections.Generic
+@using System.Collections.ObjectModel
 @using System.Globalization
 @using System.Linq
 @using Client.Extensions
@@ -169,7 +170,17 @@
         </div>
     </div>
 <br>
-
+@if (_lotIds!= null) {
+    @foreach (var lotId in _lotIds)
+    {
+        var lotIdPart = lotId == null ? "" : $"&lotId={lotId}";
+        var lotName = lotId ?? "Основной лот";
+        <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}?measurementState={MeasurementState.Selling}&state={ProductState.New}{lotIdPart}")" target="_blank">@lotName (New)</NavLink>
+        <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}?measurementState={MeasurementState.Selling}&state={ProductState.Used}{lotIdPart}")" target="_blank">@lotName (Used)</NavLink>
+        <br>
+        <br>
+    }
+}
 @if (_measurements != null)
 {
 <h3>Зарегистрированные замеры:</h3>
@@ -200,8 +211,8 @@
             <th>Состояние</th>
             <th>Статус</th>
             <th>Расположение</th>
-            <th>Match ID</th>
             <th>Lot ID</th>
+            <th>Match ID</th>
             <th>Баланс</th>
             <th>Похожие</th>
             <th></th>
@@ -249,14 +260,14 @@
                 <td>
                     <input type="text"
                            class="form-control"
-                           value="@measurement.MatchId"
-                           @oninput="async e => await OnMatchIdChanged(measurement, e.Value?.ToString())" />
+                           value="@measurement.LotId"
+                           @oninput="async e => await OnLotIdChanged(measurement, e.Value?.ToString())" />
                 </td>
                 <td>
                     <input type="text"
                            class="form-control"
-                           value="@measurement.LotId"
-                           @oninput="async e => await OnLotIdChanged(measurement, e.Value?.ToString())" />
+                           value="@measurement.MatchId"
+                           @oninput="async e => await OnMatchIdChanged(measurement, e.Value?.ToString())" />
                 </td>
                 <td class="@GetPercentCellClass(measurement.DoubleTriodeSectionRmse)">
                     @FormatPercent(measurement.DoubleTriodeSectionRmse)
@@ -339,6 +350,7 @@
     private string? _workingPointSaveMessage;
     private string? _matchingError;
     private bool _hasWorkingPoint;
+    private ReadOnlyCollection<string?>? _lotIds;
 
     [Parameter]
     public ProductWithId Product { get; set; } = null!;
@@ -353,8 +365,14 @@
         _matchingError = null;
         _hasWorkingPoint = false;
 
+        await LoadLotIds();
         await LoadTubeWorkingPointAsync();
         await UpdateMeasurementsAsync();
+    }
+
+    private async Task LoadLotIds()
+    {
+         _lotIds = (await EbayClient.GetLotIdsForProductAsync(ProductId)).ToList().AsReadOnly();
     }
 
     private async Task UpdateMeasurementsAsync()
