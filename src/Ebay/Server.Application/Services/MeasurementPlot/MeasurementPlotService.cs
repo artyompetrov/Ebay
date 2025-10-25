@@ -56,7 +56,7 @@ public class MeasurementPlotService
             if (state == null)
                 return null;
 
-            if (state != MeasurementState.Selling)
+            if (state != MeasurementState.Selling && state != MeasurementState.Created)
                 return StatusSvg(state.Value);
         }
 
