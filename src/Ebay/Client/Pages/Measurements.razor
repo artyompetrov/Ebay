@@ -274,7 +274,7 @@
                                         {
                                             <span title="Средневатратичная ошибка между вторыми секциями (чем меньше тем лучше)" class="chip @GetPercentCellClass(similar.RmseSection2)">S2: @FormatPercent(similar.RmseSection2)</span>
                                         }
-                                        @if (similar.DoubleTriodeSectionRmse != null)
+                                        @if (measurement.DoubleTriodeSectionRmse != null)
                                         {
                                             var balanceError = measurement.DoubleTriodeSectionRmse - similar.DoubleTriodeSectionRmse;
                                             balanceError = balanceError == null ? null : Math.Abs(balanceError.Value);
