@@ -60,19 +60,31 @@ public class MeasurementPlotService
                 return StatusSvg(state.Value);
         }
 
+        var matchedPairMeasurementsIds =
+            await _measurementQueries.GetMeasurementPairMeasurements(measurementId, cancellationToken);
+
         var cacheKey =
-            $"measurementPlot_{mergeVertical}_{legendVertical}_{width}_{height}_{addQuickTest}_{measurementId}";
+            $"measurementPlot_{mergeVertical}_{legendVertical}_{width}_{height}_{addQuickTest}_{measurementId}_{string.Join(",", matchedPairMeasurementsIds)}";
 
         return await _cache.GetOrCreateAsync(
             key: cacheKey,
             async () =>
             {
-                var measurementInfo = await _measurementQueries.GetMeasurementInfoWithData(measurementId, cancellationToken);
+                var measurementInfo =
+                    await _measurementQueries.GetMeasurementInfoWithData(measurementId, cancellationToken);
 
                 if (measurementInfo == null)
                     return null;
 
                 var result = _measurementFileParser.Parse(measurementInfo.Data);
+                var anodeCurves = result.MeasurementConfigTableParseResult.AnodeCurves;
+                var gridCurves = anodeCurves.ConvertToGridCurves();
+
+                var minMaxCoordinates = await GetMinMaxCoordinates(
+                    cancellationToken: cancellationToken,
+                    anodeCurves: anodeCurves,
+                    gridCurves: gridCurves,
+                    matchedPairMeasurementsIds: matchedPairMeasurementsIds);
 
                 return CreateMergedPlot(
                     mergeVertical: mergeVertical,
@@ -81,13 +93,83 @@ public class MeasurementPlotService
                     height: height,
                     addQuickTest: addQuickTest,
                     quickTest: result.PrettifiedQuickTest,
+                    minMaxCoordinates: minMaxCoordinates,
                     anodeCurves: result.MeasurementConfigTableParseResult.AnodeCurves,
-                    gridCurves: result.MeasurementConfigTableParseResult.AnodeCurves.ConvertToGridCurves());
+                    gridCurves: gridCurves);
             },
             ttl: TimeSpan.FromDays(30 * 12),
             cancellationToken: cancellationToken
         );
     }
+
+    private async Task<MinMaxCoordinates> GetMinMaxCoordinates(CancellationToken cancellationToken,
+        AnodeCurvesBase anodeCurves, GridCurvesBase gridCurves, IReadOnlyList<string> matchedPairMeasurementsIds)
+    {
+        var anodeCurvesMinX = anodeCurves.MinX;
+        var anodeCurvesMaxX = anodeCurves.MaxX;
+        var anodeCurvesMaxY = anodeCurves.MaxY;
+                
+        var gridCurvesMinX = gridCurves.MinX;
+        var gridCurvesMaxX = gridCurves.MaxX;
+        var gridCurvesMaxY = gridCurves.MaxY;
+
+        foreach (var matchedPairMeasurementsId in matchedPairMeasurementsIds)
+        {
+            var pair = await _measurementQueries.GetMeasurementInfoWithData(matchedPairMeasurementsId, cancellationToken);
+            if (pair == null) continue;
+            var pairAnodeCurves = _measurementFileParser.Parse(pair.Data)
+                .MeasurementConfigTableParseResult.AnodeCurves;
+            var pairGridCurves = pairAnodeCurves.ConvertToGridCurves();
+
+            // Anode
+            if (pairAnodeCurves.MinX < anodeCurvesMinX)
+            {
+                anodeCurvesMinX = pairAnodeCurves.MinX;
+            }
+
+            if (pairAnodeCurves.MaxX > anodeCurvesMaxX)
+            {
+                anodeCurvesMaxX = pairAnodeCurves.MaxX;
+            }
+
+            if (pairAnodeCurves.MaxY > anodeCurvesMaxY)
+            {
+                anodeCurvesMaxY = pairAnodeCurves.MaxY;
+            }
+
+            // Grid
+            if (pairGridCurves.MinX < gridCurvesMinX)
+            {
+                gridCurvesMinX = pairGridCurves.MinX;
+            }
+
+            if (pairGridCurves.MaxX > gridCurvesMaxX)
+            {
+                gridCurvesMaxX = pairGridCurves.MaxX;
+            }
+
+            if (pairGridCurves.MaxY > gridCurvesMaxY)
+            {
+                gridCurvesMaxY = pairGridCurves.MaxY;
+            }
+        }
+        
+        return new MinMaxCoordinates(
+            AnodeCurvesMinX: anodeCurvesMinX,
+            AnodeCurvesMaxX: anodeCurvesMaxX,
+            AnodeCurvesMaxY: anodeCurvesMaxY,
+            GridCurvesMinX: gridCurvesMinX,
+            GridCurvesMaxX: gridCurvesMaxX,
+            GridCurvesMaxY: gridCurvesMaxY);
+    }
+
+    private record MinMaxCoordinates(
+        double AnodeCurvesMinX,
+        double AnodeCurvesMaxX,
+        double AnodeCurvesMaxY,
+        double GridCurvesMinX,
+        double GridCurvesMaxX,
+        double GridCurvesMaxY);
 
     private static string CreateMergedPlot(
         bool mergeVertical,
@@ -96,6 +178,7 @@ public class MeasurementPlotService
         int height,
         bool addQuickTest,
         string quickTest,
+        MinMaxCoordinates minMaxCoordinates,
         AnodeCurvesBase anodeCurves,
         GridCurvesBase gridCurves)
     {
@@ -103,13 +186,19 @@ public class MeasurementPlotService
             curves: anodeCurves,
             legendVertical: legendVertical,
             width: width,
-            height: height);
+            height: height,
+            curvesMinX: minMaxCoordinates.AnodeCurvesMinX,
+            curvesMaxX: minMaxCoordinates.AnodeCurvesMaxX,
+            curvesMaxY: minMaxCoordinates.AnodeCurvesMaxY);
 
         var plot2 = CreatePlot(
             curves: gridCurves,
             legendVertical: legendVertical,
             width: width,
-            height: height);
+            height: height,
+            curvesMinX: minMaxCoordinates.GridCurvesMinX,
+            curvesMaxX: minMaxCoordinates.GridCurvesMaxX,
+            curvesMaxY: minMaxCoordinates.GridCurvesMaxY);
 
         var quickTestSvg = addQuickTest ? QuickTestSvg(quickTest) : null;
 
@@ -135,7 +224,10 @@ public class MeasurementPlotService
         MeasurementTypeBase curves,
         bool legendVertical,
         int width,
-        int height)
+        int height,
+        double curvesMinX,
+        double curvesMaxX,
+        double curvesMaxY)
     {
         var plt = new Plot();
         plt.SetStyle(
@@ -229,7 +321,7 @@ public class MeasurementPlotService
                 });
         }
 
-        plt.Axes.SetLimits(bottom: 0, left: curves.MinX, top: curves.MaxY, right: curves.MaxX);
+        plt.Axes.SetLimits(bottom: 0, left: curvesMinX, top: curvesMaxY, right: curvesMaxX);
         plt.XLabel(curves.XLabel);
         plt.YLabel(curves.YLabel);
         plt.Title(curves.CurveTitle);

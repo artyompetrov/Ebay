@@ -21,5 +21,9 @@ public interface IMeasurementQueries
     Task<IReadOnlyList<MeasurementInfoWithData>> GetMeasurementInfos(
         IReadOnlyList<string> ids,
         CancellationToken cancellationToken);
+    
+    Task<IReadOnlyList<string>> GetMeasurementPairMeasurements(
+        string id,
+        CancellationToken cancellationToken);
 
 }

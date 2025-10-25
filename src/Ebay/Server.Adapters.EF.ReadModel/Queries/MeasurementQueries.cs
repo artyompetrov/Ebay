@@ -42,6 +42,19 @@ internal sealed class MeasurementQueries : IMeasurementQueries
         return measurements;
     }
 
+    public async Task<IReadOnlyList<string>> GetMeasurementPairMeasurements(string id, CancellationToken cancellationToken)
+    {
+       return await _dbContext.ProductMeasurements
+            .Where(x => x.MatchId != null) // чтоб не тянуть весь null
+            .Where(x => x.MatchId == _dbContext.ProductMeasurements
+                .Where(m => m.Id == id)
+                .Select(m => m.MatchId)
+                .FirstOrDefault())
+            .Where(x => x.Id != id)
+            .Select(x => x.Id)
+            .OrderBy(x=>x)
+            .ToListAsync(cancellationToken: cancellationToken);
+    }
 
     public async Task<IReadOnlyCollection<MeasurementInfo>> GetMeasurementsInfo(
         Guid productId,
