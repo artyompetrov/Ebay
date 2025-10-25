@@ -36,7 +36,7 @@
 
 <h2 style="text-align: center; ">@GetName(Model)</h2>
 
-<img src="@($"{baseUrl}/empty_picture?product={WebUtility.UrlEncode(GetName(Model))}")" alt="" style="height: 1px; width: 1px;" />
+<img src="@($"{baseUrl}/empty_picture?product={WebUtility.UrlEncode(GetName(Model))}&lotId={WebUtility.UrlDecode(Model.LotId)}")" alt="" style="height: 1px; width: 1px;" />
 
 <h3>📦 Shipping & Handling:</h3>
 <p><strong>Combined shipping</strong> is available — order multiple items to save on delivery costs!</p>
@@ -109,20 +109,33 @@
     </style>
     
     <table >
+
+        @{ var matchIndex = 1; }
+        
+        @{
+            var groupedCollection =  Model.Measurements.GroupBy(x => x.MatchId)
+                .Select(x=> (
+                    MatchKey: x.Key,
+                    SumBalance: (x.Key == null ? double.PositiveInfinity : /*matched всегда выше не matched*/
+                        x.Select(x=>x.DoubleTriodeSectionRmse ?? 100.0 /*без замеров показыаются ниже чем с замерами*/)
+                        .Sum()),
+                    Items: x.ToList())
+                )
+                .OrderBy(x=>x.SumBalance).ToList();
+
+            var hasMatchedPairs = groupedCollection.Any(x => x.MatchKey != null);
+        }
+        
+        
         <tr>
-            <th>Match#</th>
+            @if (hasMatchedPairs)
+            {
+                <th>Match#</th>
+            }
             <th>Tube#</th>
             <th>Curves</th>
         </tr>
-        @{ var matchIndex = 1; }
-        @foreach (var grouping in Model.Measurements.GroupBy(x => x.MatchId)
-                      .Select(x=> (
-                          MatchKey: x.Key,
-                          SumBalance: (x.Key == null ? double.PositiveInfinity : /*matched всегда выше не matched*/
-                              x.Select(x=>x.DoubleTriodeSectionRmse ?? 100.0 /*без замеров показыаются ниже чем с замерами*/)
-                                  .Sum()),
-                          Items: x.ToList()))
-                      .OrderBy(x=>x.SumBalance))
+        @foreach (var grouping in groupedCollection)
         {
            
             var rowClass = matchIndex % 2 == 0 ? "match-group-even" : "match-group-odd";
@@ -133,23 +146,27 @@
                 
                 var meas = grouping.Items[i];
                 <tr class="@rowClass">
-                    
+                @if (hasMatchedPairs)
+                {
                     @* только в первой строке группы рисуем объединённую ячейку *@
                     @if (i == 0)
                     {
                         <td rowspan="@grouping.Items.Count">
                             @if (grouping.MatchKey != null)
                             {
-                               <text>Match #@matchIndex</text>
+                                <text>Match #@matchIndex</text>
                             }
                             else
                             {
-                                <text>Not</text><br/><text>matched</text>
+                                <text>Not</text>
+                                <br/>
+                                <text>matched</text>
                             }
                         </td>
                     }
+                }
 
-                    <td class="tube-col">
+                <td class="tube-col">
                         Tube #@meas.Id
                         <br/><br/>
                         @meas.ManufactureCode
@@ -186,7 +203,10 @@
                         }
                     </td>
                     <td>
-                        <img src="@($"{baseUrl}/m/{meas.Id}/ebay_curves")"
+                        @{
+                            var lotIdPart = meas.LotId == null ? "" : $"?lotId={WebUtility.UrlDecode(meas.LotId)}";
+                        }
+                        <img src="@($"{baseUrl}/m/{meas.Id}/ebay_curves{lotIdPart}")"
                              alt="@meas.Id"/>
                     </td>
                 </tr>

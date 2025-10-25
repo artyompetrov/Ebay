@@ -44,22 +44,13 @@ public class MeasurementPageController : ControllerBase
     [HttpGet("/m/{measurementId}/ebay_curves")]
     public async Task<IActionResult> GetEbayCurves(
         string measurementId,
-        string? product,
+        string? lotId,
         bool? sellingOnly,
         CancellationToken cancellationToken)
     {
-        var xRealIp = Request.Headers["X-Real-IP"].FirstOrDefault();
-        var userAgent = Request.Headers["User-Agent"].ToString();
-
-        //todo удалить тут логирование
-        await _geoIpService.LogRequest(
-            prefix: $"GetEbayCurves for product {product} requested",
-            realIp: xRealIp,
-            ua: userAgent,
-            token: cancellationToken);
-
         var result = await _measurementPlotService.PlotForEbay(
             measurementId: measurementId,
+            lotId: lotId,
             sellingOnly: sellingOnly ?? true,
             cancellationToken: cancellationToken);
 
@@ -86,8 +77,7 @@ public class MeasurementPageController : ControllerBase
             legendVertical: true,
             addQuickTest: false,
             width: 800,
-            height: 500,
-            sellingOnly: false);
+            height: 500);
 
         if (result == null)
             return NotFound("Measurement not found");
@@ -100,13 +90,14 @@ public class MeasurementPageController : ControllerBase
     [HttpGet("/empty_picture")]
     public async Task<IActionResult> GetEmptyPicture(
         string product,
+        string? lotId,
         CancellationToken cancellationToken)
     {
         var xRealIp = Request.Headers["X-Real-IP"].FirstOrDefault();
         var userAgent = Request.Headers["User-Agent"].ToString();
 
         await _geoIpService.LogRequest(
-            prefix: $"GetEbayCurves for product {product} requested",
+            prefix: $"GetEbayCurves for product {product} {lotId} requested",
             realIp: xRealIp,
             ua: userAgent,
             token: cancellationToken);

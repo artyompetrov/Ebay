@@ -22,7 +22,7 @@ public interface IMeasurementQueries
     
     Task<MeasurementInfoWithData?> GetMeasurementInfoWithData(string measurementId, CancellationToken cancellationToken);
 
-    Task<MeasurementState?> GetMeasurementState(string measurementId, CancellationToken cancellationToken);
+    Task<MeasurementInfo?> GetMeasurementInfo(string measurementId, CancellationToken cancellationToken);
 
     Task<IReadOnlyList<MeasurementInfoWithData>> GetMeasurementInfos(
         IReadOnlyList<string> ids,

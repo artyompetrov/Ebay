@@ -13,11 +13,19 @@ internal sealed class MeasurementQueries : IMeasurementQueries
         _dbContext = dbContext;
     }
 
-    public async Task<MeasurementState?> GetMeasurementState(string measurementId, CancellationToken cancellationToken)
+    public async Task<MeasurementInfo?> GetMeasurementInfo(string measurementId, CancellationToken cancellationToken)
     {
         return await _dbContext.ProductMeasurements
             .Where(x => x.Id == measurementId)
-            .Select(x => (MeasurementState?)x.MeasurementState)
+            .Select(x =>  new MeasurementInfo(
+                x.Id,
+                x.ProductId,
+                x.MatchId,
+                x.LotId,
+                x.MeasurementState,
+                x.ProductState,
+                x.ManufactureCode
+            ))
             .SingleOrDefaultAsync(cancellationToken);
     }
 
@@ -77,6 +85,7 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                     x.ProductId,
                     x.MatchId,
                     x.LotId,
+                    x.MeasurementState,
                     x.ProductState,
                     x.ManufactureCode
                 ))

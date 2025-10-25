@@ -29,16 +29,32 @@ public class MeasurementPlotService
     /// Отдельный метод для Ebay требуется для возможности предварительного прогрева на старте
     /// иначе прогрев происходит при первом заходе покупателя после передеплоя
     /// </summary>
-    public Task<string?> PlotForEbay(string measurementId, CancellationToken cancellationToken, bool sellingOnly) =>
-        PlotForMeasurementId(
+    public async Task<string?> PlotForEbay(string measurementId, string? lotId, bool sellingOnly, CancellationToken cancellationToken)
+    {
+        if (sellingOnly)
+        {
+            var info = await _measurementQueries.GetMeasurementInfo(measurementId, cancellationToken);
+            if (info == null)
+                return null;
+
+            if (info.MeasurementState != MeasurementState.Selling && info.MeasurementState != MeasurementState.Created)
+                return StatusSvg(info.MeasurementState.ToString());
+
+            if (lotId != info.LotId)
+            {
+                return StatusSvg("Listed in other lot");
+            }
+        }
+
+        return await PlotForMeasurementId(
             measurementId: measurementId,
             cancellationToken: cancellationToken,
             mergeVertical: false,
             legendVertical: true,
             addQuickTest: true,
             width: 525,
-            height: 400,
-            sellingOnly: sellingOnly);
+            height: 400);
+    }
 
     public async Task<string?> PlotForMeasurementId(
         string measurementId,
@@ -47,20 +63,9 @@ public class MeasurementPlotService
         bool legendVertical,
         bool addQuickTest,
         int width,
-        int height,
-        bool sellingOnly
+        int height
     )
     {
-        if (sellingOnly)
-        {
-            var state = await _measurementQueries.GetMeasurementState(measurementId, cancellationToken);
-            if (state == null)
-                return null;
-
-            if (state != MeasurementState.Selling && state != MeasurementState.Created)
-                return StatusSvg(state.Value);
-        }
-
         var matchedPairMeasurementsIds =
             await _measurementQueries.GetMeasurementPairMeasurements(measurementId, cancellationToken);
 
@@ -385,11 +390,11 @@ public class MeasurementPlotService
         return quickTestSvg;
     }
 
-    private static string StatusSvg(MeasurementState state)
+    private static string StatusSvg(string text)
     {
         return $"""
 <svg xmlns="http://www.w3.org/2000/svg" width="200" height="40">
-    <text x="10" y="25" font-size="24" fill="black">{state}</text>
+    <text x="10" y="25" font-size="24" fill="black">{text}</text>
 </svg>
 """;
     }

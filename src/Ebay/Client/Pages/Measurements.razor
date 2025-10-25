@@ -175,8 +175,8 @@
     {
         var lotIdPart = lotId == null ? "" : $"&lotId={lotId}";
         var lotName = lotId ?? "Основной лот";
-        <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}?measurementState={MeasurementState.Selling}&state={ProductState.New}{lotIdPart}")" target="_blank">@lotName (New)</NavLink>
-        <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}?measurementState={MeasurementState.Selling}&state={ProductState.Used}{lotIdPart}")" target="_blank">@lotName (Used)</NavLink>
+        <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}?measurementState={MeasurementState.Created}&state={ProductState.New}{lotIdPart}")" target="_blank">@lotName (New)</NavLink>
+        <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}?measurementState={MeasurementState.Created}&state={ProductState.Used}{lotIdPart}")" target="_blank">@lotName (Used)</NavLink>
         <br>
         <br>
     }

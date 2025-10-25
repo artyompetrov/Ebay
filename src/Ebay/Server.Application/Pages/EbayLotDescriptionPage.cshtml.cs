@@ -27,7 +27,7 @@ public class EbayLotDescriptionPage : PageModel
     public ProductState State { get; set; }
 
     public Guid ProductId { get; set; }
-
+    public string? LotId { get; set; }
     public ProductInfo Product { get; set; } = null!;
 
     public IReadOnlyList<Passport> Passports { get; set; } = null!;
@@ -38,6 +38,7 @@ public class EbayLotDescriptionPage : PageModel
     {
         State = state;
         ProductId = productId;
+        LotId = lotId;
 
         var product = await _productQueries.GetProductAsync(productId, cancellationToken);
 
