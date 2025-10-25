@@ -362,8 +362,8 @@ public class MeasurementPlotService
 
     private static readonly Regex[] HighlightPatterns =
     [
-        new Regex(@"^Ia", RegexOptions.Compiled),
-        new Regex(@"^Gm", RegexOptions.Compiled)
+        new Regex(@"^Ia\s", RegexOptions.Compiled),
+        new Regex(@"^Gm(a)?\s", RegexOptions.Compiled)
     ];
 
     
