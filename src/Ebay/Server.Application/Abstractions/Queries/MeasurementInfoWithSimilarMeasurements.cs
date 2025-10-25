@@ -26,4 +26,5 @@ public record SimilarMeasurementInfo(
     ComparisonMode ComparisonMode,
     double Score,
     bool IsMatchedPair,
+    double? DoubleTriodeSectionRmse,
     string? MatchId);

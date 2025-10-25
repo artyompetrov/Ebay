@@ -252,13 +252,19 @@
                             @foreach (var similar in measurement.SimilarMeasurements)
                             {
                                 <li>
-                                    <div class="similar-measurement" title="Score: @similar.Score">
-                                        <NavLink class=@($"chip {GetPercentCellClass(similar.Score)}") href="@($"m/{similar.MeasurementId}")" target="_blank">@similar.MeasurementId</NavLink>
-                                        <span class="chip @GetManufactureCodeCellClass(similar.SameDate)">@similar.ManufactureCode</span>
-                                        <span class="chip @GetPercentCellClass(similar.RmseSection1)">S1: @FormatPercent(similar.RmseSection1)</span>
+                                    <div class="similar-measurement" >
+                                        <a title="Общий скор (чем меньше тем луче): @similar.Score" class=@($"chip {GetPercentCellClass(similar.Score)}") href="@($"m/{similar.MeasurementId}")" target="_blank">@similar.MeasurementId</a>
+                                        <span title="Дата производства (если одинаковая то лучше)" class="chip @GetManufactureCodeCellClass(similar.SameDate)">@similar.ManufactureCode</span>
+                                        <span title="Средневатратичная ошибка между первыми секциями (чем меньше тем лучше)" class="chip @GetPercentCellClass(similar.RmseSection1)">S1: @FormatPercent(similar.RmseSection1)</span>
                                         @if (similar.RmseSection2.HasValue)
                                         {
-                                            <span class="chip @GetPercentCellClass(similar.RmseSection2)">S2: @FormatPercent(similar.RmseSection2)</span>
+                                            <span title="Средневатратичная ошибка между вторыми секциями (чем меньше тем лучше)" class="chip @GetPercentCellClass(similar.RmseSection2)">S2: @FormatPercent(similar.RmseSection2)</span>
+                                        }
+                                        @if (similar.DoubleTriodeSectionRmse != null)
+                                        {
+                                            var balanceError = measurement.DoubleTriodeSectionRmse - similar.DoubleTriodeSectionRmse;
+                                            balanceError = balanceError == null ? null : Math.Abs(balanceError.Value);
+                                            <span title="Разница баланса первой и второй лампы (чем меньше тем лучше)" class="chip @GetPercentCellClass(balanceError)">B: @FormatPercent(balanceError)</span>
                                         }
                                         @if (similar.IsCrossMatch)
                                         {
@@ -320,7 +326,7 @@
 
     private Guid ProductId => Product.Id;
 
-    protected override async Task OnParametersSetAsync()
+    protected async override Task OnParametersSetAsync()
     {
         _workingPointSaveError = null;
         _workingPointSaveMessage = null;

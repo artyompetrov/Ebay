@@ -796,6 +796,11 @@ definitions:
       matchId:
         type: string
         maxLength: 100
+      doubleTriodeSectionRmse:
+        description: "Среднеквадратичная ошибка между секциями (актуально только для двойных триодов)"
+        type: number
+        format: double
+        minimum: 0
     required:
       - measurementId
       - rmseSection1

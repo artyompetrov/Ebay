@@ -466,7 +466,9 @@ internal class EbayControllerImplementation : IEbayController
                         isCrossMatch: similarMeasurement.ComparisonMode == ComparisonMode.Cross,
                         sameDate: x.ManufactureCode.Equals(similarMeasurement.ManufactureCode, StringComparison.OrdinalIgnoreCase),
                         isMatchedPair: similarMeasurement.IsMatchedPair,
-                        matchId: similarMeasurement.MatchId
+                        matchId: similarMeasurement.MatchId,
+                        doubleTriodeSectionRmse:  similarMeasurement.DoubleTriodeSectionRmse
+                        
 
                     ))
                     .ToList()))

@@ -146,7 +146,15 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                 ManufactureCode1 = x.Measurement1.ManufactureCode,
                 ManufactureCode2 = x.Measurement2.ManufactureCode,
                 IsMatchedPair = x.Measurement2.MatchId != null && x.Measurement1.MatchId == x.Measurement2.MatchId,
-                MatchId = x.Measurement2.MatchId
+                MatchId = x.Measurement2.MatchId,
+                DoubleTriodeSectionRmseTube1 = _dbContext.MatchedPairDifferences
+                    .Where(m => m.Measurement1Id == x.Measurement1Id && m.Measurement2Id == x.Measurement1Id && m.ComparisonMode == ComparisonMode.Cross)
+                    .Select(m => m.RmseSection1)     // любой скалярный столбец
+                    .FirstOrDefault(),
+                DoubleTriodeSectionRmseTube2 = _dbContext.MatchedPairDifferences
+                    .Where(m => m.Measurement1Id == x.Measurement2Id && m.Measurement2Id == x.Measurement2Id && m.ComparisonMode == ComparisonMode.Cross)
+                    .Select(m => m.RmseSection1)     // любой скалярный столбец
+                    .FirstOrDefault()
             })
             .ToListAsync(cancellationToken);
 
@@ -161,19 +169,28 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                         RmseSection1: measurement.RmseSection1,
                         RmseSection2: measurement.RmseSection2,
                         ComparisonMode: measurement.ComparisonMode,
-                        Score: Math.Max(
+                        Score: 
+                                //берем максимальную ошибку из двух секций
+                                Math.Max(
                                    measurement.RmseSection1,
-                                   measurement.RmseSection2 ?? 0.0) + // учет второй секции
-                               (measurement.ComparisonMode == ComparisonMode.Cross
+                                   measurement.RmseSection2 ?? 0.0) // учет второй секции
+                                
+                                // штраф за cross-match
+                                + (measurement.ComparisonMode == ComparisonMode.Cross
                                    ? 10.0
-                                   : 0.0) + // штраф за cross-match
-                               (!measurement.ManufactureCode1.Equals(
+                                   : 0.0) +
+                                
+                               //штраф за различие в ManufactureCode2
+                               + (!measurement.ManufactureCode1.Equals(
                                    measurement.ManufactureCode2,
                                    StringComparison.OrdinalIgnoreCase)
                                    ? 10.0
-                                   : 0.0), // штраф за различие в ManufactureCode2
+                                   : 0.0)
+                               // добавляем разность балансов для двоиных триодов
+                               + Math.Abs(measurement.DoubleTriodeSectionRmseTube1 - measurement.DoubleTriodeSectionRmseTube2),
                         IsMatchedPair: measurement.IsMatchedPair,
-                        MatchId: measurement.MatchId
+                        MatchId: measurement.MatchId,
+                        DoubleTriodeSectionRmse: measurement.DoubleTriodeSectionRmseTube2
                     ))
                     .OrderBy(measurement => !measurement.IsMatchedPair)
                     .ThenBy(measurement => measurement.Score)
