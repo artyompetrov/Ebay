@@ -21,16 +21,16 @@ else
 
     <ul class="nav nav-tabs mb-3">
         <li class="nav-item">
-            <a class="nav-link @(GetTabClass(TabKind.LotSales))" href="javascript:void(0)" @onclick="() => Activate(TabKind.LotSales)">Продажи на Ebay</a>
+            <a class="nav-link @(GetTabClass(TabKind.LotSales))" href="@GetTabUri(TabKind.LotSales)" @onclick="() => Activate(TabKind.LotSales)" @onclick:preventDefault="true">Продажи на Ebay</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link @(GetTabClass(TabKind.SaleAdvertisements))" href="javascript:void(0)" @onclick="() => Activate(TabKind.SaleAdvertisements)">Предложения</a>
+            <a class="nav-link @(GetTabClass(TabKind.SaleAdvertisements))" href="@GetTabUri(TabKind.SaleAdvertisements)" @onclick="() => Activate(TabKind.SaleAdvertisements)" @onclick:preventDefault="true">Предложения</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link @(GetTabClass(TabKind.Measurements))" href="javascript:void(0)" @onclick="() => Activate(TabKind.Measurements)">Измерения</a>
+            <a class="nav-link @(GetTabClass(TabKind.Measurements))" href="@GetTabUri(TabKind.Measurements)" @onclick="() => Activate(TabKind.Measurements)" @onclick:preventDefault="true">Измерения</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link @(GetTabClass(TabKind.Parameters))" href="javascript:void(0)" @onclick="() => Activate(TabKind.Parameters)">Параметры</a>
+            <a class="nav-link @(GetTabClass(TabKind.Parameters))" href="@GetTabUri(TabKind.Parameters)" @onclick="() => Activate(TabKind.Parameters)" @onclick:preventDefault="true">Параметры</a>
         </li>
     </ul>
 
@@ -82,13 +82,29 @@ else
             { } t when t.Equals(nameof(TabKind.Measurements), StringComparison.OrdinalIgnoreCase) => TabKind.Measurements,
             { } t when t.Equals(nameof(TabKind.Parameters), StringComparison.OrdinalIgnoreCase) => TabKind.Parameters,
             { } t when t.Equals(nameof(TabKind.SaleAdvertisements), StringComparison.OrdinalIgnoreCase) => TabKind.SaleAdvertisements,
+            { } t when t.Equals(nameof(TabKind.LotSales), StringComparison.OrdinalIgnoreCase) => TabKind.LotSales,
             _ => TabKind.LotSales
         };
 
-        _product = await EbayClient.GetProductAsync(ProductId);
+        if (_product?.Id != ProductId)
+        {
+            _product = await EbayClient.GetProductAsync(ProductId);
+        }
     }
 
-    private void Activate(TabKind tab) => _activeTab = tab;
+    private void Activate(TabKind tab)
+    {
+        if (_activeTab == tab && string.Equals(Tab, tab.ToString(), StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        _activeTab = tab;
+
+        NavigationManager.NavigateTo(GetTabUri(tab));
+    }
+
+    private string GetTabUri(TabKind tab) => $"/Product/{ProductId}/{tab}";
 
     private string GetTabClass(TabKind tab) => _activeTab == tab ? "active" : string.Empty;
 
