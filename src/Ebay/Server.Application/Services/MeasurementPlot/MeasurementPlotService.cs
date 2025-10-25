@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using ScottPlot;
 using ScottPlot.PlotStyles;
 using Server.Application.Abstractions.Queries;
@@ -354,19 +355,28 @@ public class MeasurementPlotService
     }
 
 
+    private static readonly Regex[] HighlightPatterns =
+    [
+        new Regex(@"^Ia", RegexOptions.Compiled),
+        new Regex(@"^Gm", RegexOptions.Compiled)
+    ];
 
-
+    
+    private static bool ShouldHighlight(string s) =>
+        HighlightPatterns.Any(rx => rx.IsMatch(s));
+    
     private static string QuickTestSvg(string quickTest)
     {
         var lines = System.Security.SecurityElement
             .Escape(quickTest)
             .Split('\n');
         var lineHight = 16;
-        var tspans = string.Join("\n", values: lines.Skip(1).Select((line, i) =>
-            $"""<tspan x="20" y="{lineHight + i * lineHight}">{line.Split('\t')[0]}</tspan>"""));
+        var tspans = string.Join("\n", values: lines.Skip(1)
+            .Select((line, i) =>
+            $"""<tspan x="20" {(ShouldHighlight(line) ? "fill=\"#8B2E2E\" font-weight=\"bold\"" : "")} y="{lineHight + i * lineHight}">{line.Split('\t')[0]}</tspan>"""));
 
         var quickTestSvg = $"""
-                            <svg width="180" height="{lineHight + lines.Length * lineHight}" xmlns="http://www.w3.org/2000/svg">
+                            <svg width="160" height="{lineHight + lines.Length * lineHight}" xmlns="http://www.w3.org/2000/svg">
                                 <text font-size="14" fill="black" xml:space="preserve" font-family="monospace">
                                     {tspans}
                                 </text>
