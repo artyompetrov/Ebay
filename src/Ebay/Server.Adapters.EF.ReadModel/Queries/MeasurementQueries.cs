@@ -32,6 +32,7 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                 pm.Id,
                 pm.ProductId,
                 pm.MatchId,
+                pm.LotId,
                 pm.MeasurementState,
                 pm.ProductState,
                 pm.ManufactureCode,
@@ -70,6 +71,7 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                     x.Id,
                     x.ProductId,
                     x.MatchId,
+                    x.LotId,
                     x.ProductState,
                     x.ManufactureCode
                 ))
@@ -105,6 +107,7 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                                     measurement.ProductState,
                                     measurement.Location,
                                     measurement.MatchId,
+                                    measurement.LotId,
                                     difference != null ? difference.RmseSection1 : null,
                                     measurement.MeasurementState);
 
@@ -224,6 +227,7 @@ internal sealed class MeasurementQueries : IMeasurementQueries
             .Select(x => new MeasurementInfoWithData(
                 x.Id, x.ProductId,
                 x.MatchId,
+                x.LotId,
                 x.MeasurementState,
                 x.ProductState,
                 x.ManufactureCode,

@@ -455,6 +455,7 @@ internal class EbayControllerImplementation : IEbayController
                 productState: x.ProductState.ToApiProductState(),
                 location: x.Location,
                 matchId: x.MatchId,
+                lotId: x.LotId,
                 measurementState: x.MeasurementState.ToApiMeasurementState(),
                 similarMeasurements: x.SimilarMeasurements
                     .Select(similarMeasurement => new ApiSimilarMeasurementInfo(
@@ -489,8 +490,6 @@ internal class EbayControllerImplementation : IEbayController
                 measurementsFile: measurementData.File,
                 productState: measurementData.ProductState.ToDbProductState(),
                 manufactureCode: measurementData.ManufactureCode,
-                location: measurementData.Location,
-                matchId: measurementData.MatchId,
                 productId: productId,
                 cancellationToken: cancellationToken);
         }
@@ -534,6 +533,19 @@ internal class EbayControllerImplementation : IEbayController
     {
         await _measurementService.UpdateMeasurementMatchId(
             matchId: batchId,
+            productId: productId,
+            measurementId: measurementId,
+            cancellationToken: cancellationToken);
+    }
+
+    public async Task UpdateMeasurementLotIdAsync(
+        string? lotId,
+        Guid productId,
+        string measurementId,
+        CancellationToken cancellationToken)
+    {
+        await _measurementService.UpdateMeasurementLotId(
+            lotId: lotId,
             productId: productId,
             measurementId: measurementId,
             cancellationToken: cancellationToken);

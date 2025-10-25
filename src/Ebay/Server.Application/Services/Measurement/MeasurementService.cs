@@ -33,8 +33,6 @@ public class MeasurementService
         byte[] measurementsFile,
         ProductState productState,
         string manufactureCode,
-        string? location,
-        string? matchId,
         Guid productId,
         CancellationToken cancellationToken)
     {
@@ -43,8 +41,6 @@ public class MeasurementService
             productId: productId,
             measurements: measurementsFile,
             manufactureCode: manufactureCode,
-            location: location,
-            matchId: matchId,
             productState: productState,
             measurementFileParser: _measurementFileParser
         );
@@ -90,6 +86,24 @@ public class MeasurementService
         productMeasurement.MatchId = string.IsNullOrWhiteSpace(matchId)
             ? null
             : matchId.Trim();
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task UpdateMeasurementLotId(
+        string? lotId,
+        Guid productId,
+        string measurementId,
+        CancellationToken cancellationToken)
+    {
+        var productMeasurement = await _productMeasurementRepository.GetByIdAsync(measurementId, cancellationToken);
+
+        if (productMeasurement == null)
+        {
+            throw new InvalidOperationException("Measurement not found.");
+        }
+
+        productMeasurement.LotId = string.IsNullOrWhiteSpace(lotId) ? null : lotId.Trim();
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }

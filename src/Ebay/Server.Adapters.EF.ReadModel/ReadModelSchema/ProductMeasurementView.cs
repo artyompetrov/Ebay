@@ -20,6 +20,8 @@ internal class ProductMeasurementView : IViewProjection<ProductMeasurement, Prod
 
     public required string? MatchId { get; set; }
 
+    public required string? LotId { get; set; }
+
     public required byte[] Measurements { get; set; }
 
     public static Expression<Func<ProductMeasurement, ProductMeasurementView>> ToView => x =>
@@ -33,6 +35,7 @@ internal class ProductMeasurementView : IViewProjection<ProductMeasurement, Prod
             CreatedAt = x.CreatedAt,
             Location = x.Location,
             MatchId = x.MatchId,
+            LotId = x.LotId,
             Measurements = x.Measurements
         };
 }
