@@ -129,6 +129,8 @@
 
             for (var i = 0; i < grouping.Items.Count; i++)
             {
+                var doubleTriodeSectionRmse = grouping.Items.Max(x => x.DoubleTriodeSectionRmse);
+                
                 var meas = grouping.Items[i];
                 <tr class="@rowClass">
                     
@@ -154,9 +156,9 @@
                         <br/><br/>
                         @meas.ProductState
                         <br/><br/>
-                        @if (meas.DoubleTriodeSectionRmse != null)
+                        @if (doubleTriodeSectionRmse != null)
                         {
-                            @if (meas.DoubleTriodeSectionRmse < 10)
+                            @if (doubleTriodeSectionRmse < 10)
                             {
                                 <span class="balanced">
                                     <span class="nowrap">EXCELLENT</span>
@@ -165,16 +167,16 @@
                                     <span class="nowrap">(less than 10%)</span>
                                 </span>
                             }
-                            else if (meas.DoubleTriodeSectionRmse < 20)
+                            else if (doubleTriodeSectionRmse < 20)
                             {
                                 <span class="balanced">
                                     <span class="nowrap">GOOD</span>
                                     <span class="nowrap">SECTION</span>
                                     <span class="nowrap">BALANCE!</span>
-                                    <span class="nowrap">(less than 10%)</span>
+                                    <span class="nowrap">(less than 20%)</span>
                                 </span>
                             }
-                            else if (meas.DoubleTriodeSectionRmse < 30)
+                            else if (doubleTriodeSectionRmse < 30)
                             {
                                 <span class="nowrap">FAIR</span>
                                 <span class="nowrap">SECTION</span>
