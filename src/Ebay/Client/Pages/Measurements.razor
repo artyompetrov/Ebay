@@ -1,4 +1,5 @@
 @using Client.Clients.Generated
+@using System.Collections.Generic
 @using System.Globalization
 @using System.Linq
 @using Client.Extensions
@@ -173,16 +174,25 @@
 @if (_measurements != null)
 {
 <h3>Зарегистрированные замеры:</h3>
-    <label for="stateFilter">Фильтр по статусу:</label>
-    <select id="stateFilter" class="form-control" @onchange="OnFilterChanged">
-        <option value="">-- все --</option>
-        @foreach (var state in _measurementStates)
-        {
-            <option value="@state" selected="@(_selectedMeasurementState == state)">
-                @GetMeasurementStateEmoji(state) @state.ToString("G")
-            </option>
-        }
-    </select>
+    <div class="mb-3">
+        <span class="form-label d-block">Фильтр по статусу:</span>
+        <div class="d-flex flex-wrap gap-3">
+            @foreach (var state in _measurementStates)
+            {
+                var checkboxId = GetStateFilterId(state);
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input"
+                           type="checkbox"
+                           id="@checkboxId"
+                           checked="@_selectedMeasurementStates.Contains(state)"
+                           @onchange="e => OnMeasurementFilterChanged(state, (bool?)e.Value == true)" />
+                    <label class="form-check-label" for="@checkboxId">
+                        @GetMeasurementStateEmoji(state) @state.ToString("G")
+                    </label>
+                </div>
+            }
+        </div>
+    </div>
     <table class="table">
         <thead>
         <tr>
@@ -306,7 +316,12 @@
     private ProductState? _selectedState;
     private List<ProductState> _productStates = Enum.GetValues(typeof(ProductState)).Cast<ProductState>().ToList();
     private List<MeasurementState> _measurementStates = Enum.GetValues(typeof(MeasurementState)).Cast<MeasurementState>().ToList();
-    private MeasurementState? _selectedMeasurementState;
+    private HashSet<MeasurementState> _selectedMeasurementStates = new()
+    {
+        MeasurementState.Created,
+        MeasurementState.Selling
+    };
+    private List<MeasurementData>? _allMeasurements;
     private ICollection<MeasurementData>? _measurements;
     private QuestionPopup _questionPopup = null!;
     private string? _manufactureCode;
@@ -340,21 +355,45 @@
 
     private async Task UpdateMeasurementsAsync()
     {
-        _measurements = await EbayClient.GetMeasurementsAsync(
-            _selectedMeasurementState.HasValue
-                ? _selectedMeasurementState.Value
-                : null,
-            ProductId);
-        StateHasChanged();
+        _allMeasurements = (await EbayClient.GetMeasurementsAsync(null, ProductId)).ToList();
+        ApplyMeasurementFilters();
     }
 
-    private async Task OnFilterChanged(ChangeEventArgs e)
+    private void OnMeasurementFilterChanged(MeasurementState state, bool isSelected)
     {
-        _selectedMeasurementState = string.IsNullOrWhiteSpace(e.Value?.ToString())
-            ? null
-            : Enum.Parse<MeasurementState>(e.Value!.ToString()!);
+        if (isSelected)
+        {
+            _selectedMeasurementStates.Add(state);
+        }
+        else
+        {
+            _selectedMeasurementStates.Remove(state);
+        }
 
-        await UpdateMeasurementsAsync();
+        ApplyMeasurementFilters();
+    }
+
+    private void ApplyMeasurementFilters()
+    {
+        if (_allMeasurements is null)
+        {
+            _measurements = null;
+            StateHasChanged();
+            return;
+        }
+
+        if (_selectedMeasurementStates.Count == 0)
+        {
+            _measurements = Array.Empty<MeasurementData>();
+            StateHasChanged();
+            return;
+        }
+
+        _measurements = _allMeasurements
+            .Where(measurement => _selectedMeasurementStates.Contains(measurement.MeasurementState))
+            .ToList();
+
+        StateHasChanged();
     }
 
     private async Task LoadTubeWorkingPointAsync()
@@ -606,6 +645,7 @@
             measurement.MeasurementState = newState;
             await EbayClient.UpdateMeasurementStateAsync(newState, ProductId, measurement.MeasurementId);
             Logger.LogInformation("Updated state for {Id}: {State}", measurement.MeasurementId, newState);
+            ApplyMeasurementFilters();
         }
         catch (Exception ex)
         {
@@ -613,6 +653,8 @@
             _error = "Ошибка при обновлении статуса";
         }
     }
+
+    private static string GetStateFilterId(MeasurementState state) => $"stateFilter_{state.ToString("G")}";
 
     private static string GetManufactureCodeCellClass(bool sameCode) => sameCode ? "table-success" : "table-warning";
 
