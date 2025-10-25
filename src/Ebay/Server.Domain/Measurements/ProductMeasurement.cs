@@ -40,9 +40,6 @@ public sealed class ProductMeasurement : AggregateRoot<string>
         Guid productId,
         byte[] measurements,
         string manufactureCode,
-        string? location,
-        string? matchId,
-        string? lotId,
         ProductState productState,
         IMeasurementFileParser measurementFileParser
     )
@@ -96,9 +93,9 @@ public sealed class ProductMeasurement : AggregateRoot<string>
             hashQuickTest: parsedMeasurements.HashQuickTest,
             manufactureCode: manufactureCode,
             productState: productState,
-            location: location,
-            matchId: matchId,
-            lotId: string.IsNullOrWhiteSpace(lotId) ? null : lotId.Trim()
+            location: null,
+            matchId: null,
+            lotId: null
         );
 
         return product;

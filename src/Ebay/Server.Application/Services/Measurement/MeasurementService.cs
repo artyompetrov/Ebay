@@ -33,9 +33,6 @@ public class MeasurementService
         byte[] measurementsFile,
         ProductState productState,
         string manufactureCode,
-        string? location,
-        string? matchId,
-        string? lotId,
         Guid productId,
         CancellationToken cancellationToken)
     {
@@ -44,9 +41,6 @@ public class MeasurementService
             productId: productId,
             measurements: measurementsFile,
             manufactureCode: manufactureCode,
-            location: location,
-            matchId: matchId,
-            lotId: string.IsNullOrWhiteSpace(lotId) ? null : lotId.Trim(),
             productState: productState,
             measurementFileParser: _measurementFileParser
         );

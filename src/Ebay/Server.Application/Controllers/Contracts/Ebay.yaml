@@ -853,13 +853,6 @@ definitions:
       file:
         type: string
         format: binary
-      location:
-        type: string
-      matchId:
-        type: string
-      lotId:
-        type: string
-        x-nullable: true
     required:
       - measurementId
       - manufactureCode

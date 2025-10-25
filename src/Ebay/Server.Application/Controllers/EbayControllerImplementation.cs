@@ -490,9 +490,6 @@ internal class EbayControllerImplementation : IEbayController
                 measurementsFile: measurementData.File,
                 productState: measurementData.ProductState.ToDbProductState(),
                 manufactureCode: measurementData.ManufactureCode,
-                location: measurementData.Location,
-                matchId: measurementData.MatchId,
-                lotId: measurementData.LotId,
                 productId: productId,
                 cancellationToken: cancellationToken);
         }

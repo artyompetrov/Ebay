@@ -102,15 +102,7 @@
             <br>
             <label for="manufactureCodeInput">Код или дата производства в формате yyyy-mm:</label>
             <input id="manufactureCodeInput" @bind="_manufactureCode" type="text" class="form-control" lang="en" />
-
-            <label for="locationInput">Место хранения (необязательно):</label>
-            <input id="locationInput" @bind="_location" type="text" class="form-control" lang="en" />
-
-            <label for="matchIdInput">Match ID (необязательно):</label>
-            <input id="matchIdInput" @bind="_matchId" type="text" class="form-control" lang="en" />
-
-            <label for="lotIdInput">Lot ID (необязательно):</label>
-            <InputText @bind-Value="_lotId" id="lotIdInput" class="form-control" />
+            
             <br>
             <InputFile OnChange="HandleFileSelected" accept=".zip" />
         </div>
@@ -339,9 +331,6 @@
     private ICollection<MeasurementData>? _measurements;
     private QuestionPopup _questionPopup = null!;
     private string? _manufactureCode;
-    private string? _location;
-    private string? _matchId;
-    private string? _lotId;
     private TubeWorkingPoint _tubeWorkingPoint = new();
     private bool _isWorkingPointLoading;
     private bool _isSavingWorkingPoint;
@@ -511,9 +500,6 @@
                     MeasurementId = id,
                     ManufactureCode = _manufactureCode,
                     ProductState = _selectedState ?? throw new InvalidOperationException("Тип измерения не выбран"),
-                    Location = _location,
-                    MatchId = _matchId,
-                    LotId = string.IsNullOrWhiteSpace(_lotId) ? null : _lotId.Trim()
                 },
                 Product.Id,
                 CancellationToken.None);
