@@ -71,6 +71,10 @@
     .match-group-b {
         background-color: #eef3ff;
     }
+
+    .table-super-success {
+        background-color: #3fae5c !important; /* тёмно-зелёный (Forest Green) */
+    }
 </style>
 
     <div class="row">
@@ -667,15 +671,20 @@
 
         if (balance.Value < 10)
         {
+            return "table-super-success";
+        }
+        
+        if (balance.Value < 20)
+        {
             return "table-success";
         }
 
-        if (balance.Value > 30)
+        if (balance.Value < 30)
         {
-            return "table-danger";
+            return "table-warning";
         }
 
-        return "table-warning";
+        return "table-danger";
     }
 
     private static string? FormatPercent(double? balance)
