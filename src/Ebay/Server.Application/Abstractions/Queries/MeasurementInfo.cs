@@ -6,5 +6,6 @@ public record MeasurementInfo(
     string Id,
     Guid ProductId,
     string? MatchId,
+    string? LotId,
     ProductState ProductState,
     string ManufactureCode);

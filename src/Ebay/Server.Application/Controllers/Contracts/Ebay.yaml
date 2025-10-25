@@ -446,6 +446,31 @@ paths:
         200:
           description: Ok
 
+  /products/{productId}/measurements/{measurementId}/lot/:
+    parameters:
+      - name: productId
+        in: path
+        required: true
+        type: string
+        format: guid
+      - name: measurementId
+        in: path
+        required: true
+        type: string
+        maxLength: 100
+    post:
+      operationId: UpdateMeasurementLotId
+      parameters:
+        - name: lotId
+          in: body
+          required: false
+          schema:
+            type: string
+            x-nullable: true
+      responses:
+        200:
+          description: Ok
+
   /products/{productId}/measurements/{measurementId}/state/:
     parameters:
       - name: productId
@@ -746,6 +771,9 @@ definitions:
         type: string
       matchId:
         type: string
+      lotId:
+        type: string
+        x-nullable: true
       doubleTriodeSectionRmse:
         description: "Среднеквадратичная ошибка между секциями (актуально только для двойных триодов)"
         type: number
@@ -829,6 +857,9 @@ definitions:
         type: string
       matchId:
         type: string
+      lotId:
+        type: string
+        x-nullable: true
     required:
       - measurementId
       - manufactureCode

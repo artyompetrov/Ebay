@@ -15,7 +15,8 @@ public sealed class ProductMeasurement : AggregateRoot<string>
         string manufactureCode,
         ProductState productState,
         string? location,
-        string? matchId
+        string? matchId,
+        string? lotId
         ) : base(id)
     {
         ProductId = productId;
@@ -27,6 +28,7 @@ public sealed class ProductMeasurement : AggregateRoot<string>
         ProductState = productState;
         Location = location;
         MatchId = matchId;
+        LotId = lotId;
         CreatedAt = DateTime.UtcNow; // todo перенести на уровень обертки
 
         Validate();
@@ -40,6 +42,7 @@ public sealed class ProductMeasurement : AggregateRoot<string>
         string manufactureCode,
         string? location,
         string? matchId,
+        string? lotId,
         ProductState productState,
         IMeasurementFileParser measurementFileParser
     )
@@ -94,7 +97,8 @@ public sealed class ProductMeasurement : AggregateRoot<string>
             manufactureCode: manufactureCode,
             productState: productState,
             location: location,
-            matchId: matchId
+            matchId: matchId,
+            lotId: string.IsNullOrWhiteSpace(lotId) ? null : lotId.Trim()
         );
 
         return product;
@@ -111,6 +115,7 @@ public sealed class ProductMeasurement : AggregateRoot<string>
 
         if (MatchId is not null && string.IsNullOrWhiteSpace(MatchId)) throw new ValidationException($"{nameof(MatchId)} cannot be empty string");
         if (Location is not null && string.IsNullOrWhiteSpace(Location)) throw new ValidationException($"{nameof(Location)} cannot be empty string");
+        if (LotId is not null && string.IsNullOrWhiteSpace(LotId)) throw new ValidationException($"{nameof(LotId)} cannot be empty string");
     }
 
     public Guid ProductId { get; private set; }
@@ -157,6 +162,19 @@ public sealed class ProductMeasurement : AggregateRoot<string>
         set
         {
             _matchId = value;
+            Validate();
+        }
+    }
+
+    private string? _lotId;
+
+    [MaxLength(100)]
+    public string? LotId
+    {
+        get => _lotId;
+        set
+        {
+            _lotId = value?.Trim();
             Validate();
         }
     }

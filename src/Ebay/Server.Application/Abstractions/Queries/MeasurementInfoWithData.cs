@@ -6,7 +6,8 @@ public record MeasurementInfoWithData(
     string Id,
     Guid ProductId,
     string? MatchId,
+    string? LotId,
     MeasurementState MeasurementState,
     ProductState ProductState,
     string ManufactureCode,
-    byte[] Data) : MeasurementInfo(Id: Id, ProductId: ProductId, MatchId: MatchId, ProductState: ProductState, ManufactureCode: ManufactureCode);
+    byte[] Data) : MeasurementInfo(Id: Id, ProductId: ProductId, MatchId: MatchId, LotId: LotId, ProductState: ProductState, ManufactureCode: ManufactureCode);

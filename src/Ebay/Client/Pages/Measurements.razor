@@ -108,6 +108,9 @@
 
             <label for="matchIdInput">Match ID (необязательно):</label>
             <input id="matchIdInput" @bind="_matchId" type="text" class="form-control" lang="en" />
+
+            <label for="lotIdInput">Lot ID (необязательно):</label>
+            <InputText @bind-Value="_lotId" id="lotIdInput" class="form-control" />
             <br>
             <InputFile OnChange="HandleFileSelected" accept=".zip" />
         </div>
@@ -206,6 +209,7 @@
             <th>Статус</th>
             <th>Расположение</th>
             <th>Match ID</th>
+            <th>Lot ID</th>
             <th>Баланс</th>
             <th>Похожие</th>
             <th></th>
@@ -255,6 +259,12 @@
                            class="form-control"
                            value="@measurement.MatchId"
                            @oninput="async e => await OnMatchIdChanged(measurement, e.Value?.ToString())" />
+                </td>
+                <td>
+                    <input type="text"
+                           class="form-control"
+                           value="@measurement.LotId"
+                           @oninput="async e => await OnLotIdChanged(measurement, e.Value?.ToString())" />
                 </td>
                 <td class="@GetPercentCellClass(measurement.DoubleTriodeSectionRmse)">
                     @FormatPercent(measurement.DoubleTriodeSectionRmse)
@@ -331,6 +341,7 @@
     private string? _manufactureCode;
     private string? _location;
     private string? _matchId;
+    private string? _lotId;
     private TubeWorkingPoint _tubeWorkingPoint = new();
     private bool _isWorkingPointLoading;
     private bool _isSavingWorkingPoint;
@@ -501,7 +512,8 @@
                     ManufactureCode = _manufactureCode,
                     ProductState = _selectedState ?? throw new InvalidOperationException("Тип измерения не выбран"),
                     Location = _location,
-                    MatchId = _matchId
+                    MatchId = _matchId,
+                    LotId = string.IsNullOrWhiteSpace(_lotId) ? null : _lotId.Trim()
                 },
                 Product.Id,
                 CancellationToken.None);
@@ -558,6 +570,24 @@
         {
             Logger.LogError(ex, "Error updating match id for {Id}", measurement.MeasurementId);
             _error = "Ошибка при обновлении match id";
+        }
+    }
+
+    private async Task OnLotIdChanged(MeasurementData measurement, string? newValue)
+    {
+        try
+        {
+            var lotId = string.IsNullOrWhiteSpace(newValue) ? null : newValue.Trim();
+
+            measurement.LotId = lotId;
+            await EbayClient.UpdateMeasurementLotIdAsync(lotId, ProductId, measurement.MeasurementId);
+            Logger.LogInformation("Updated Lot Id for {Id}: {Lot}", measurement.MeasurementId, lotId);
+            _error = null;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error updating lot id for {Id}", measurement.MeasurementId);
+            _error = "Ошибка при обновлении lot id";
         }
     }
 

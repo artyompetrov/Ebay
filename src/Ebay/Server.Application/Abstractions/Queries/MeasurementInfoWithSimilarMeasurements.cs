@@ -12,6 +12,7 @@ public record MeasurementInfoWithSimilarMeasurements(
     ProductState ProductState,
     string? Location,
     string? MatchId,
+    string? LotId,
     double? DoubleTriodeSectionRmse,
     MeasurementState MeasurementState)
 {
