@@ -174,12 +174,17 @@ internal sealed class MeasurementQueries : IMeasurementQueries
             cancellationToken: cancellationToken,
             measurementIds: measurementIds);
 
-        return measurements
+        var result = measurements
             .Select(measurement =>
             {
                 if (similarMeasurementsLookup.TryGetValue(measurement.Id, out var similar))
                 {
-                    return measurement with { SimilarMeasurements = similar, ScorePlusBalance = similar.Min(x=>x.Score) + measurement.DoubleTriodeSectionRmse ?? 0.0};
+                    var withSimilar = measurement with {
+                        SimilarMeasurements = similar,
+                        ScorePlusBalance = similar.Min(x=>x.Score) + (measurement.DoubleTriodeSectionRmse ?? 0.0)
+                    };
+                    
+                    return withSimilar;
                 }
 
                 return measurement;
@@ -187,6 +192,8 @@ internal sealed class MeasurementQueries : IMeasurementQueries
             .OrderByDescending(x=> x.MatchId)
             .ThenBy(x=>x.ScorePlusBalance)
             .ToList();
+
+        return result;
     }
 
 
