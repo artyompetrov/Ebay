@@ -179,11 +179,13 @@ internal sealed class MeasurementQueries : IMeasurementQueries
             {
                 if (similarMeasurementsLookup.TryGetValue(measurement.Id, out var similar))
                 {
-                    return measurement with { SimilarMeasurements = similar };
+                    return measurement with { SimilarMeasurements = similar, MinScore = similar.Min(x=>x.Score)};
                 }
 
                 return measurement;
             })
+            .OrderByDescending(x=> x.MatchId)
+            .ThenBy(x=>x.MinScore)
             .ToList();
     }
 

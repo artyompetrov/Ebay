@@ -17,6 +17,7 @@ public record MeasurementInfoWithSimilarMeasurements(
     MeasurementState MeasurementState)
 {
     public IReadOnlyCollection<SimilarMeasurementInfo> SimilarMeasurements { get; init; } = Array.Empty<SimilarMeasurementInfo>();
+    public double? MinScore { get; init; } = null;
 }
 
 public record SimilarMeasurementInfo(
