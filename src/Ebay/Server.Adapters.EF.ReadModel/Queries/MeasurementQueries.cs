@@ -67,7 +67,11 @@ internal sealed class MeasurementQueries : IMeasurementQueries
 
     public async Task<IReadOnlySet<string?>> GetLotIds(Guid productId, CancellationToken cancellationToken)
     {
-        return await _dbContext.ProductMeasurements.Select(x => x.LotId).Distinct().ToHashSetAsync(cancellationToken);
+        return await _dbContext.ProductMeasurements.Where(x=>x.ProductId == productId)
+            .Select(x => x.LotId)
+            .Distinct()
+            .OrderByDescending(x=>x)
+            .ToHashSetAsync(cancellationToken);
     }
 
     public async Task<IReadOnlyCollection<MeasurementInfo>> GetMeasurementsInfo(
