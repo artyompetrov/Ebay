@@ -236,7 +236,7 @@
             var matchRowClass = useAlternateMatchColor ? "match-group-b" : "match-group-a";
 
             <tr class="@matchRowClass">
-                <td><NavLink href="@($"m/{measurement.MeasurementId}")" target="_blank">@measurement.MeasurementId</NavLink></td>
+                <td><NavLink href="@($"m/{measurement.MeasurementId}")" target="_blank">#@measurement.MeasurementId</NavLink></td>
                 <td>@measurement.ManufactureCode</td>
                 <td>@measurement.ProductState.ToString("G")</td>
                 <td>
