@@ -441,9 +441,12 @@ internal class EbayControllerImplementation : IEbayController
         var measurementStates = apiMeasurementState.HasValue
             ? new[] { apiMeasurementState.Value.ToDbMeasurementState() }
             : Enum.GetValues<Server.Domain.Measurements.MeasurementState>();
+        
+        var productStates = Enum.GetValues<Server.Domain.Measurements.ProductState>();
 
         var measurements = await _measurementService.GetMeasurementInfos(
             productId: productId,
+            productState: productStates,
             measurementStates: measurementStates,
             cancellationToken: cancellationToken);
 

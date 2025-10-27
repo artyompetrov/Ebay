@@ -143,10 +143,11 @@ public class MeasurementService
 
     public Task<IReadOnlyCollection<MeasurementInfoWithSimilarMeasurements>> GetMeasurementInfos(
         Guid productId,
+        IReadOnlyCollection<ProductState> productState,
         IReadOnlyCollection<MeasurementState> measurementStates,
         CancellationToken cancellationToken) =>
         _measurementQueries.GetMeasurementInfosWithSimilarMeasurements(
-            productId, measurementStates, cancellationToken);
+            productId, productState, measurementStates, cancellationToken);
 
 
     public async Task<byte[]?> GetMeasurementFile(string measurementId, CancellationToken cancellationToken)

@@ -100,12 +100,14 @@ internal sealed class MeasurementQueries : IMeasurementQueries
 
     public Task<IReadOnlyCollection<MeasurementInfoWithSimilarMeasurements>> GetMeasurementInfosWithSimilarMeasurements(
         Guid productId,
+        IReadOnlyCollection<ProductState> productStates,
         IReadOnlyCollection<MeasurementState> measurementStates,
         CancellationToken cancellationToken) =>
         GetMeasurementInfosWithSimilarMeasurementsInternal(
             productId: productId,
             withLotIdFilter: false,
             lotId: null,
+            productStates: productStates,
             measurementStates: measurementStates,
             cancellationToken: cancellationToken);
 
@@ -114,12 +116,14 @@ internal sealed class MeasurementQueries : IMeasurementQueries
         GetMeasurementInfosWithSimilarMeasurements(
             Guid productId,
             string? lotId,
+            IReadOnlyCollection<ProductState> productStates,
             IReadOnlyCollection<MeasurementState> measurementStates,
             CancellationToken cancellationToken) =>
         GetMeasurementInfosWithSimilarMeasurementsInternal(
             productId: productId,
             withLotIdFilter: true,
             lotId: lotId,
+            productStates: productStates,
             measurementStates: measurementStates,
             cancellationToken: cancellationToken);
 
@@ -128,12 +132,14 @@ internal sealed class MeasurementQueries : IMeasurementQueries
             Guid productId,
             bool withLotIdFilter,
             string? lotId,
+            IReadOnlyCollection<ProductState> productStates,
             IReadOnlyCollection<MeasurementState> measurementStates,
             CancellationToken cancellationToken)
     {
         var measurementsQuery = from measurement in _dbContext.ProductMeasurements
                                 where measurement.ProductId == productId
                                 where !withLotIdFilter || measurement.LotId == lotId
+                                where productStates.Contains(measurement.ProductState)
                                 where measurementStates.Contains(measurement.MeasurementState)
                                 join difference in
                                     _dbContext.MatchedPairDifferences.AsNoTracking() // этот джойн нужен для двойных триодов
