@@ -175,7 +175,16 @@
                         <br/><br/>
                         @if (doubleTriodeSectionRmse != null)
                         {
-                            @if (doubleTriodeSectionRmse < 10)
+                            @if (doubleTriodeSectionRmse < 5)
+                            {
+                                <span class="balanced">
+                                    <span class="nowrap">EXCELLENT</span>
+                                    <span class="nowrap">SECTION</span>
+                                    <span class="nowrap">BALANCE!</span>
+                                    <span class="nowrap">(less than 5%)</span>
+                                </span>
+                            }
+                            else if (doubleTriodeSectionRmse < 10)
                             {
                                 <span class="balanced">
                                     <span class="nowrap">EXCELLENT</span>
