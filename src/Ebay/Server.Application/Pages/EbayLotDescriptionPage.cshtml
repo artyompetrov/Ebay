@@ -157,6 +157,13 @@
         
         @foreach (var grouping in groupedCollection)
         {
+            @if (grouping.MatchKey == null)
+            {
+                //todo не matched пары пока не продаются
+                continue;
+            }
+            
+            
             matchIndex++;
            
             var rowClass = matchIndex % 2 == 0 ? "match-group-even" : "match-group-odd";
