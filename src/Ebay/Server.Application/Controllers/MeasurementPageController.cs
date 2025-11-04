@@ -61,6 +61,17 @@ public class MeasurementPageController : ControllerBase
         return response;
     }
 
+    [HttpGet("/m/sold")]
+    public Task<IActionResult> GetSoldImage(
+        CancellationToken cancellationToken)
+    {
+        var result = _measurementPlotService.PlotSold();
+    
+        var response = Content(content: result, contentType: "image/svg+xml");
+        return Task.FromResult<IActionResult>(response);
+    }
+    
+    
 #if !DEBUG
     // Только в релизе используем кеширование
     [ResponseCache(Duration = 60 /*с*/ * 60 /*м*/ * 24 /*ч*/)]

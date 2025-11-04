@@ -25,6 +25,10 @@ public class MeasurementPlotService
         _measurementFileParser = measurementFileParser;
     }
 
+
+    public string PlotSold() => StatusSvg(nameof(MeasurementState.Sold));
+    
+
     /// <summary>
     /// Отдельный метод для Ebay требуется для возможности предварительного прогрева на старте
     /// иначе прогрев происходит при первом заходе покупателя после передеплоя
@@ -397,5 +401,13 @@ public class MeasurementPlotService
     <text x="10" y="25" font-size="24" fill="black">{text}</text>
 </svg>
 """;
+    }
+    
+    private static string EmptySvg()
+    {
+        return $"""
+                <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0">
+                </svg>
+                """;
     }
 }

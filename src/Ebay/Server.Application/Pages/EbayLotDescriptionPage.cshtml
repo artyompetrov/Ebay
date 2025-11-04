@@ -135,8 +135,30 @@
             <th>Tube#</th>
             <th>Curves</th>
         </tr>
+        
+        <tr class="match-group-odd">
+            <td rowspan="2">
+                <text>Match #@matchIndex</text>
+            </td>
+            <td class="tube-col">
+                Tube #@Model.FakeTubeId1
+            </td>
+            <td>
+                <img src="@($"{baseUrl}/m/sold")" alt=""/>
+            </td>
+        </tr>
+        <tr class="match-group-odd">
+            <td class="tube-col">
+                Tube #@Model.FakeTubeId2
+            </td>
+            <td>
+                <img src="@($"{baseUrl}/m/sold")" alt=""/>
+            </td>
+        </tr>
+        
         @foreach (var grouping in groupedCollection)
         {
+            matchIndex++;
            
             var rowClass = matchIndex % 2 == 0 ? "match-group-even" : "match-group-odd";
 
@@ -220,8 +242,6 @@
                     </td>
                 </tr>
             }
-
-            matchIndex++;
         }
     </table>
 }
