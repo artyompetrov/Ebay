@@ -60,6 +60,39 @@ public class MeasurementPageController : ControllerBase
         var response = Content(content: result, contentType: "image/svg+xml");
         return response;
     }
+    
+#if !DEBUG
+    // Только в релизе используем кеширование
+    [ResponseCache(Duration = 60 /*с*/ * 5 /*м*/)]
+#endif
+    [HttpGet("/m/{measurementId}/ebay_tube_description")]
+    public async Task<IActionResult> GetEbayTubeDescription(
+        string measurementId,
+        string? lotId,
+        bool? sellingOnly,
+        CancellationToken cancellationToken)
+    {
+        var result = await _measurementPlotService.GetEbayTubeDescription(
+            measurementId: measurementId,
+            lotId: lotId,
+            sellingOnly: sellingOnly ?? true,
+            cancellationToken: cancellationToken);
+
+        if (result == null)
+            return NotFound("Measurement not found");
+
+        var response = Content(content: result, contentType: "image/svg+xml");
+        return response;
+    }
+
+    [HttpGet("/m/sold")]
+    public IActionResult GetSoldImage()
+    {
+        var result = _measurementPlotService.PlotSold();
+    
+        var response = Content(content: result, contentType: "image/svg+xml");
+        return response;
+    }
 
 #if !DEBUG
     // Только в релизе используем кеширование

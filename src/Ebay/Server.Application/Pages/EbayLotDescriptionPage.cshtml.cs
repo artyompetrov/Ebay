@@ -1,3 +1,4 @@
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Server.Application.Abstractions.Queries;
@@ -31,6 +32,8 @@ public class EbayLotDescriptionPage : PageModel
     public ProductInfo Product { get; set; } = null!;
 
     public IReadOnlyList<Passport> Passports { get; set; } = null!;
+    
+
 
     public IReadOnlyCollection<MeasurementInfoWithSimilarMeasurements> Measurements { get; set; } = null!;
 
@@ -50,6 +53,8 @@ public class EbayLotDescriptionPage : PageModel
         ProductId = productId;
         LotId = lotId;
 
+     
+
         var product = await _productQueries.GetProductAsync(productId, cancellationToken);
 
         if (product == null)
@@ -64,6 +69,7 @@ public class EbayLotDescriptionPage : PageModel
 
         return Page();
     }
+
 
 
 }

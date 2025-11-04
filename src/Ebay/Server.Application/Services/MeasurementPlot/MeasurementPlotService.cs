@@ -3,6 +3,7 @@ using ScottPlot;
 using ScottPlot.PlotStyles;
 using Server.Application.Abstractions.Queries;
 using Server.Application.Infrastructure;
+using Server.Application.Migrations;
 using Server.Domain.Measurements;
 using Server.Domain.Measurements.MeasurementTypes.Base;
 
@@ -25,11 +26,19 @@ public class MeasurementPlotService
         _measurementFileParser = measurementFileParser;
     }
 
+
+    public string PlotSold() => StatusSvg(nameof(MeasurementState.Sold));
+
+
     /// <summary>
     /// Отдельный метод для Ebay требуется для возможности предварительного прогрева на старте
     /// иначе прогрев происходит при первом заходе покупателя после передеплоя
     /// </summary>
-    public async Task<string?> PlotForEbay(string measurementId, string? lotId, bool sellingOnly, CancellationToken cancellationToken)
+    public async Task<string?> PlotForEbay(
+        string measurementId,
+        string? lotId,
+        bool sellingOnly,
+        CancellationToken cancellationToken)
     {
         if (sellingOnly)
         {
@@ -108,20 +117,25 @@ public class MeasurementPlotService
         );
     }
 
-    private async Task<MinMaxCoordinates> GetMinMaxCoordinates(CancellationToken cancellationToken,
-        AnodeCurvesBase anodeCurves, GridCurvesBase gridCurves, IReadOnlyList<string> matchedPairMeasurementsIds)
+    private async Task<MinMaxCoordinates> GetMinMaxCoordinates(
+        CancellationToken cancellationToken,
+        AnodeCurvesBase anodeCurves,
+        GridCurvesBase gridCurves,
+        IReadOnlyList<string> matchedPairMeasurementsIds)
     {
         var anodeCurvesMinX = anodeCurves.MinX;
         var anodeCurvesMaxX = anodeCurves.MaxX;
         var anodeCurvesMaxY = anodeCurves.MaxY;
-                
+
         var gridCurvesMinX = gridCurves.MinX;
         var gridCurvesMaxX = gridCurves.MaxX;
         var gridCurvesMaxY = gridCurves.MaxY;
 
         foreach (var matchedPairMeasurementsId in matchedPairMeasurementsIds)
         {
-            var pair = await _measurementQueries.GetMeasurementInfoWithData(matchedPairMeasurementsId, cancellationToken);
+            var pair = await _measurementQueries.GetMeasurementInfoWithData(
+                matchedPairMeasurementsId,
+                cancellationToken);
             if (pair == null) continue;
             var pairAnodeCurves = _measurementFileParser.Parse(pair.Data)
                 .MeasurementConfigTableParseResult.AnodeCurves;
@@ -159,7 +173,7 @@ public class MeasurementPlotService
                 gridCurvesMaxY = pairGridCurves.MaxY;
             }
         }
-        
+
         return new MinMaxCoordinates(
             AnodeCurvesMinX: anodeCurvesMinX,
             AnodeCurvesMaxX: anodeCurvesMaxX,
@@ -366,19 +380,21 @@ public class MeasurementPlotService
         new Regex(@"^Gm(a)?\s", RegexOptions.Compiled)
     ];
 
-    
+
     private static bool ShouldHighlight(string s) =>
         HighlightPatterns.Any(rx => rx.IsMatch(s));
-    
+
     private static string QuickTestSvg(string quickTest)
     {
         var lines = System.Security.SecurityElement
             .Escape(quickTest)
             .Split('\n');
         var lineHight = 16;
-        var tspans = string.Join("\n", values: lines.Skip(1)
-            .Select((line, i) =>
-            $"""<tspan x="20" {(ShouldHighlight(line) ? "fill=\"#8B2E2E\" font-weight=\"bold\"" : "")} y="{lineHight + i * lineHight}">{line.Split('\t')[0]}</tspan>"""));
+        var tspans = string.Join(
+            "\n",
+            values: lines.Skip(1)
+                .Select((line, i) =>
+                    $"""<tspan x="20" {(ShouldHighlight(line) ? "fill=\"#8B2E2E\" font-weight=\"bold\"" : "")} y="{lineHight + i * lineHight}">{line.Split('\t')[0]}</tspan>"""));
 
         var quickTestSvg = $"""
                             <svg width="160" height="{lineHight + lines.Length * lineHight}" xmlns="http://www.w3.org/2000/svg">
@@ -393,9 +409,182 @@ public class MeasurementPlotService
     private static string StatusSvg(string text)
     {
         return $"""
-<svg xmlns="http://www.w3.org/2000/svg" width="200" height="40">
-    <text x="10" y="25" font-size="24" fill="black">{text}</text>
-</svg>
-""";
+                <svg xmlns="http://www.w3.org/2000/svg" width="200" height="30">
+                    <text x="10" y="20" font-size="20" fill="black">{text}</text>
+                </svg>
+                """;
     }
+
+    private static string EmptySvg() =>
+        """
+        <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0">
+        </svg>
+        """;
+
+    public async Task<string?> GetEbayTubeDescription(
+        string measurementId,
+        string? lotId,
+        bool sellingOnly,
+        CancellationToken cancellationToken)
+    {
+        if (sellingOnly)
+        {
+            var info = await _measurementQueries.GetMeasurementInfo(measurementId, cancellationToken);
+            if (info == null)
+                return null;
+
+            if (info.MeasurementState != MeasurementState.Selling && info.MeasurementState != MeasurementState.Created)
+                return EmptySvg();
+
+            if (lotId != info.LotId)
+            {
+                return StatusSvg("Listed in other lot");
+            }
+        }
+
+        var matchedPairMeasurementsIds =
+            await _measurementQueries.GetMeasurementPairMeasurements(measurementId, cancellationToken);
+
+        var cacheKey =
+            $"ebayTubeDescription_{measurementId}_{string.Join(",", matchedPairMeasurementsIds)}";
+
+        return await _cache.GetOrCreateAsync(
+            key: cacheKey,
+            async () =>
+            {
+                var measurementInfo =
+                    await _measurementQueries.GetMeasurementInfo(measurementId, cancellationToken);
+
+                if (measurementInfo == null)
+                    return null;
+
+                var biggestError =
+                    await _measurementQueries.GetDoubleTriodeSectionRmse(measurementId, cancellationToken);
+
+                if (biggestError != null)
+                {
+                    foreach (var id in matchedPairMeasurementsIds)
+                    {
+                        var matchPairError =
+                            await _measurementQueries.GetDoubleTriodeSectionRmse(id, cancellationToken);
+
+                        if (matchPairError > biggestError)
+                        {
+                            biggestError = matchPairError;
+                        }
+                    }
+                }
+
+                return BuildTubeInfoSvg(
+                    manufactureCode: measurementInfo.ManufactureCode,
+                    productState: measurementInfo.ProductState,
+                    doubleTriodeSectionRmse: biggestError
+                );
+            },
+            ttl: TimeSpan.FromDays(30 * 12),
+            cancellationToken: cancellationToken
+        );
+    }
+
+    private static string BuildTubeInfoSvg(
+        string manufactureCode,
+        ProductState productState,
+        double? doubleTriodeSectionRmse)
+    {
+        var manufactureCodeSplited = manufactureCode.Split('_',' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        
+        
+        string? badgeText = null;
+        string? badgeSub = null;
+        string badgeFill = "none";
+
+        if (doubleTriodeSectionRmse is { } rmse)
+        {
+            switch (rmse)
+            {
+                case < 5:
+                    badgeText = "EXCELLENT";
+                    badgeSub = "(&lt; 5%)";
+                    badgeFill = "#16a34a";
+                    break;
+                case < 10:
+                    badgeText = "EXCELLENT";
+                    badgeSub = "(&lt; 10%)";
+                    badgeFill = "#16a34a";
+                    break;
+                case < 20:
+                    badgeText = "GOOD";
+                    badgeSub = "(&lt; 20%)";
+                    badgeFill = "#16a34a";
+                    break;
+                case < 30:
+                    badgeText = "DECENT";
+                    badgeSub = "(&lt; 30%)";
+                    badgeFill = "#d4a017";
+                    break;
+                case < 40:
+                    badgeText = "DECENT";
+                    badgeSub = "(&lt; 40%)";
+                    badgeFill = "#d4a017";
+                    break;
+                case < 50:
+                    badgeText = "BAD";
+                    badgeSub = "(&lt; 50%)";
+                    badgeFill = "#c75c5c";
+                    break;
+                case < 60:
+                    badgeText = "BAD";
+                    badgeSub = "(&lt; 60%)";
+                    badgeFill = "#c75c5c";
+                    break;
+                case < 70:
+                    badgeText = "BAD";
+                    badgeSub = "(&lt; 70%)";
+                    badgeFill = "#c75c5c";
+                    break;
+            }
+        }
+
+        var svgHeight = badgeText is null ? 75 + manufactureCodeSplited.Length * 15 : 155 + manufactureCodeSplited.Length * 15;
+
+
+        
+        var yPosition = 65;
+        var manufactureCodePart = string.Join("\n", manufactureCodeSplited.Select(x => $"<text x=\"5\" y=\"{yPosition += 15}\" class=\"important\">{x}</text>"));
+        
+        var badge = badgeText is null
+            ? ""
+            : $"""
+                <rect x="0" y="{yPosition += 15}" width="80" height="70" rx="8" fill="{badgeFill}"/>
+                <text x="5" y="{yPosition += 15}" class="badgeText">{badgeText}</text>
+                <text x="5" y="{yPosition += 15}" class="badgeText">SECTION</text>
+                <text x="5" y="{yPosition += 15}" class="badgeText">BALANCE!</text>
+                <text x="5" y="{yPosition += 15}" class="badgeText">{badgeSub}</text>
+               """;
+        
+        return $$"""
+                  <svg xmlns="http://www.w3.org/2000/svg"
+                       width="80" height="{{svgHeight}}" viewBox="0 0 80 {{svgHeight}}">
+                    <defs>
+                      <style>
+                        .important     { font: 700 13px 'Segoe UI', sans-serif; fill: #0f172a; }
+                        .label     { font: 600 13px 'Segoe UI', sans-serif; fill: #475569; }
+                        .value     { font: 400 13px 'Consolas', monospace; fill:  #0f172a; }
+                        .notImportant { font: 400 13px 'Segoe UI', sans-serif; fill: #0f172a; }
+                        .badgeText { font: 700 13px 'Segoe UI', sans-serif; fill: #ffffff; }
+                      </style>
+                    </defs>
+                    
+                    <text x="5" y="20" class="label">State:</text>
+                    <text x="5" y="35" class="important">{{productState}}</text>
+                    
+                    <text x="5" y="65" class="label">Date/code:</text>
+                    {{manufactureCodePart}}
+                    {{badge}}
+                    </svg>
+                  """;
+    }
+
+
+
 }
