@@ -28,6 +28,8 @@
             {
                 name += " TESTED";
             }
+
+            name += ", See measurement results in table below 📈";
         }
 
         return name;
@@ -35,6 +37,18 @@
 }
 
 <h2 style="text-align: center; ">@GetName(Model)</h2>
+
+@if (Model.Measurements.Count > 0)
+{
+    <h3>📐 High-Quality Vector Graphs (SVG)</h3>
+    <p>This vacuum tube has been professionally tested using a <strong>uTracer 3+</strong> tube tester — a trusted tool among audiophiles and engineers.</p>
+    <p>The test graphs are provided in <strong>SVG vector format</strong>. You can right-click on any graph and open it in a new tab to zoom in without losing clarity.</p>
+
+    <h3>🔍 Choosing a Specific Tube</h3>
+    <p>If you're purchasing from a batch of tested tubes:</p>
+    <p><strong>After purchase, please message me with the number of the tube you want</strong> (each graph is labeled).</p>
+    <p>If no number is provided within 24 hours, a tube will be selected and shipped randomly.</p>
+}
 
 <img src="@($"{baseUrl}/empty_picture?product={WebUtility.UrlEncode(GetName(Model))}&lotId={WebUtility.UrlDecode(Model.LotId)}")" alt="" style="height: 1px; width: 1px;" />
 
@@ -54,21 +68,7 @@
 @if (Model.Measurements.Count > 0)
 {
     <br/>
-    <h2 style="text-align: center;">📈 Tested Vacuum Tube — Measurement Results Below</h2>
-    <p>This vacuum tube has been professionally tested using a <strong>uTracer 3+</strong> tube tester — a trusted tool among audiophiles and engineers.</p>
-    
-    <h3>📐 High-Quality Vector Graphs (SVG)</h3>
-    <p>Each tested tube comes in a labeled box with a barcode sticker. By scanning the barcode, you can access the detailed test results for that specific tube.</p>
-    <p>The test graphs are provided in <strong>SVG vector format</strong>. You can right-click on any graph and open it in a new tab to zoom in without losing clarity.</p>
-    
-    <h3>🔍 Choosing a Specific Tube</h3>
-   
-    <p>If you're purchasing from a batch of tested tubes:</p>
-    <p><strong>After purchase, please message me with the number of the tube you want</strong> (each graph is labeled).</p>
-    <p>If no number is provided within 24 hours, a tube will be selected and shipped randomly.</p>
-    <br/>
-
-    <style>
+<style>
         table {
             margin: 0 auto;
             border-collapse: collapse;
