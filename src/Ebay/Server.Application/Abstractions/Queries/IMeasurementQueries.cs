@@ -26,9 +26,11 @@ public interface IMeasurementQueries
 
     Task<MeasurementInfo?> GetMeasurementInfo(string measurementId, CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<MeasurementInfoWithData>> GetMeasurementInfos(
+    Task<IReadOnlyList<MeasurementInfoWithData>> GetMeasurementInfosWithData(
         IReadOnlyList<string> ids,
         CancellationToken cancellationToken);
+
+    Task<double?> GetDoubleTriodeSectionRmse(string measurementId, CancellationToken cancellationToken);
     
     Task<IReadOnlyList<string>> GetMeasurementPairMeasurements(
         string id,

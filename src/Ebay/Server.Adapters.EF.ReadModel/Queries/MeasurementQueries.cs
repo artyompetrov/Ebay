@@ -29,7 +29,7 @@ internal sealed class MeasurementQueries : IMeasurementQueries
             .SingleOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyList<MeasurementInfoWithData>> GetMeasurementInfos(
+    public async Task<IReadOnlyList<MeasurementInfoWithData>> GetMeasurementInfosWithData(
         IReadOnlyList<string> ids,
         CancellationToken cancellationToken)
     {
@@ -49,6 +49,17 @@ internal sealed class MeasurementQueries : IMeasurementQueries
             .ToListAsync(cancellationToken);
 
         return measurements;
+    }
+
+    public async Task<double?> GetDoubleTriodeSectionRmse(string measurementId, CancellationToken cancellationToken)
+    {
+        return await _dbContext.MatchedPairDifferences
+            .AsNoTracking()
+            .Where(x => x.Measurement1Id == measurementId
+                        && x.Measurement2Id == measurementId
+                        && x.ComparisonMode == ComparisonMode.Cross)
+            .Select(x => (double?)x.RmseSection1)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task<IReadOnlyList<string>> GetMeasurementPairMeasurements(string id, CancellationToken cancellationToken)
