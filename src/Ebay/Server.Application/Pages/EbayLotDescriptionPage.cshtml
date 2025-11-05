@@ -29,14 +29,20 @@
                 name += " TESTED";
             }
 
-            name += ", See measurement results in table below 📈";
+            name += "";
         }
 
         return name;
     }
 }
-
-<h2 style="text-align: center; ">@GetName(Model)</h2>
+@if (Model.Measurements.Count > 0)
+{
+    <h2 style="text-align: center; ">@GetName(Model), See measurement results in table below 📈</h2>
+}
+else
+{
+    <h2 style="text-align: center; ">@GetName(Model)</h2>
+}
 
 @if (Model.Measurements.Count > 0)
 {
