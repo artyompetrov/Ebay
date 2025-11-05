@@ -409,17 +409,11 @@ public class MeasurementPlotService
     private static string StatusSvg(string text)
     {
         return $"""
-                <svg xmlns="http://www.w3.org/2000/svg" width="200" height="30">
+                <svg xmlns="http://www.w3.org/2000/svg" width="80" height="30">
                     <text x="10" y="20" font-size="20" fill="black">{text}</text>
                 </svg>
                 """;
     }
-
-    private static string EmptySvg() =>
-        """
-        <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0">
-        </svg>
-        """;
 
     public async Task<string?> GetEbayTubeDescription(
         string measurementId,
@@ -434,7 +428,7 @@ public class MeasurementPlotService
                 return null;
 
             if (info.MeasurementState != MeasurementState.Selling && info.MeasurementState != MeasurementState.Created)
-                return EmptySvg();
+                return StatusSvg(info.MeasurementState.ToString());
 
             if (lotId != info.LotId)
             {
@@ -584,7 +578,4 @@ public class MeasurementPlotService
                     </svg>
                   """;
     }
-
-
-
 }
