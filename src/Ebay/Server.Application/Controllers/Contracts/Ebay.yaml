@@ -440,6 +440,30 @@ paths:
         200:
           description: Ok
 
+  /products/{productId}/measurements/{measurementId}/manufacture_code/:
+    parameters:
+      - name: productId
+        in: path
+        required: true
+        type: string
+        format: guid
+      - name: measurementId
+        in: path
+        required: true
+        type: string
+        maxLength: 100
+    post:
+      operationId: UpdateMeasurementManufactureCode
+      parameters:
+        - name: manufactureCode
+          in: body
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+
   /products/{productId}/measurements/{measurementId}/match/:
     parameters:
       - name: productId

@@ -237,7 +237,12 @@
 
             <tr class="@matchRowClass">
                 <td><NavLink href="@($"m/{measurement.MeasurementId}")" target="_blank">#@measurement.MeasurementId</NavLink></td>
-                <td>@measurement.ManufactureCode</td>
+                <td>
+                    <input type="text"
+                           class="form-control"
+                           value="@measurement.ManufactureCode"
+                           @oninput="async e => await OnManufactureCodeChanged(measurement, e.Value?.ToString())" />
+                </td>
                 <td>@measurement.ProductState.ToString("G")</td>
                 <td>
                     <select class="form-select"
@@ -559,6 +564,26 @@
         {
             Logger.LogError(ex, "Error updating note for {Id}", measurement.MeasurementId);
             _error = "Ошибка при обновлении заметки";
+        }
+    }
+
+    private async Task OnManufactureCodeChanged(MeasurementData measurement, string? newValue)
+    {
+        var previousValue = measurement.ManufactureCode;
+
+        try
+        {
+            var updatedValue = (newValue ?? string.Empty).Trim();
+
+            measurement.ManufactureCode = updatedValue;
+            await EbayClient.UpdateMeasurementManufactureCodeAsync(updatedValue, ProductId, measurement.MeasurementId);
+            _error = null;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error updating manufacture code for {Id}", measurement.MeasurementId);
+            measurement.ManufactureCode = previousValue;
+            _error = "Ошибка при обновлении кода измерения";
         }
     }
 
