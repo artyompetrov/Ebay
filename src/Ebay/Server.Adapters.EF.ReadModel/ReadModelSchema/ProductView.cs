@@ -20,18 +20,20 @@ namespace Sever.Adapters.EF.ReadModel.ReadModelSchema
 
         public TubeWorkingPointView TubeWorkingPoint { get; set; } = null!;
 
-#pragma warning disable format
+
         public static Expression<Func<Product, ProductView>> ToView => x =>
             new()
             {
                 Id = x.Id,
                 Name = x.Name,
-                SearchQueries =  [.. x.SearchQueries.AsQueryable().Select(SearchQueryView.ToView)],
-                RuSearchQueries = [.. x.RuSearchQueries.AsQueryable().Select(SearchQueryView.ToView)],
+#pragma warning disable format
+                SearchQueries =  x.SearchQueries.AsQueryable().Select(SearchQueryView.ToView).ToList(),
+                RuSearchQueries = x.RuSearchQueries.AsQueryable().Select(SearchQueryView.ToView).ToList(),
+#pragma warning restore format
                 LastCheckTime = x.LastCheckTime,
                 ProductCalculationResult = x.ProductCalculationResult,
                 Weight = x.Weight,
             };
     }
-#pragma warning restore format
+
 }
