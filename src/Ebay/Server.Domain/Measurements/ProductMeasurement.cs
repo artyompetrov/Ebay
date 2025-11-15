@@ -102,6 +102,19 @@ public sealed class ProductMeasurement : AggregateRoot<string>
     }
 
 
+    public void UpdateManufactureCode(string manufactureCode)
+    {
+        if (string.IsNullOrWhiteSpace(manufactureCode))
+        {
+            throw new ValidationException($"{nameof(ManufactureCode)} cannot be empty string");
+        }
+
+        ManufactureCode = manufactureCode.Trim();
+
+        Validate();
+    }
+
+
     private void Validate()
     {
         Validator.ValidateObject(

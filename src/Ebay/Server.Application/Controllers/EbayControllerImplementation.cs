@@ -533,6 +533,19 @@ internal class EbayControllerImplementation : IEbayController
             cancellationToken: cancellationToken);
     }
 
+    public async Task UpdateMeasurementManufactureCodeAsync(
+        string manufactureCode,
+        Guid productId,
+        string measurementId,
+        CancellationToken cancellationToken)
+    {
+        await _measurementService.UpdateMeasurementManufactureCode(
+            manufactureCode: manufactureCode,
+            productId: productId,
+            measurementId: measurementId,
+            cancellationToken: cancellationToken);
+    }
+
     public async Task UpdateMeasurementMatchIdAsync(
         string? batchId,
         Guid productId,

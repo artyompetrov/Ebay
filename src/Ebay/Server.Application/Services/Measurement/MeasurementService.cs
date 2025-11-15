@@ -70,6 +70,24 @@ public class MeasurementService
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task UpdateMeasurementManufactureCode(
+        string manufactureCode,
+        Guid productId,
+        string measurementId,
+        CancellationToken cancellationToken)
+    {
+        var productMeasurement = await _productMeasurementRepository.GetByIdAsync(measurementId, cancellationToken);
+
+        if (productMeasurement == null)
+        {
+            throw new InvalidOperationException("Measurement not found.");
+        }
+
+        productMeasurement.UpdateManufactureCode(manufactureCode);
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task UpdateMeasurementMatchId(
         string? matchId,
         Guid productId,
