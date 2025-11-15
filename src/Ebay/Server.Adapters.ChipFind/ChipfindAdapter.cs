@@ -52,7 +52,7 @@ namespace Server.Adapters.ChipFind
                 plainText = HtmlEntity.DeEntitize(plainText);
 
                 var items = plainText
-                    .Split(separator: [ '\r', '\n' ], StringSplitOptions.RemoveEmptyEntries)
+                    .Split(separator: ['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
                     .Select(x => x.Trim())
                     .Where(x => !string.IsNullOrEmpty(x))
                     .ToArray();

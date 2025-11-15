@@ -7,7 +7,7 @@ namespace Server.Application.Migrations
     /// <inheritdoc />
     public partial class AddCacheEntryVersion : Migration
     {
-        private static readonly string[] columns = new[] { "Key", "Version" };
+        private static readonly string[] columns = ["Key", "Version"];
 
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

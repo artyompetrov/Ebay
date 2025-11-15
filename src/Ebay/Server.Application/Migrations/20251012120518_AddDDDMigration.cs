@@ -68,7 +68,7 @@ namespace Server.Application.Migrations
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
         }
-        private static readonly string[] columns = new[] { "Measurement1Id", "Measurement2Id", "ComparisonMode" };
+        private static readonly string[] columns = ["Measurement1Id", "Measurement2Id", "ComparisonMode"];
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)

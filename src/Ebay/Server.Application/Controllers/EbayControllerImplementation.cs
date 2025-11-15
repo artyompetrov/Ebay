@@ -298,7 +298,7 @@ namespace Server.Application.Controllers
             var validationErrors = new List<(string key, string[] value)>();
             if (lotInfo.ShippingAdditional == null)
             {
-                validationErrors.Add((key: nameof(lotInfo.ShippingAdditional), value: [ "Not set" ]));
+                validationErrors.Add((key: nameof(lotInfo.ShippingAdditional), value: ["Not set"]));
             }
 
             if (lotInfo.Shipping == null)

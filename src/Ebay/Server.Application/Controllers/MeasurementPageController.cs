@@ -7,24 +7,16 @@ using Server.Application.Services.MeasurementPlot;
 namespace Server.Application.Controllers
 {
     [ApiController]
-    public class MeasurementPageController : ControllerBase
+    public class MeasurementPageController(
+        MeasurementService measurementService,
+        MeasurementPlotService measurementPlotService,
+        GeoIpService geoIpService,
+        ILogger<MeasurementPageController> logger) : ControllerBase
     {
-        private readonly MeasurementService _measurementService;
-        private readonly MeasurementPlotService _measurementPlotService;
-        private readonly GeoIpService _geoIpService;
-        private readonly ILogger<MeasurementPageController> _logger;
-
-        public MeasurementPageController(
-            MeasurementService measurementService,
-            MeasurementPlotService measurementPlotService,
-            GeoIpService geoIpService,
-            ILogger<MeasurementPageController> logger)
-        {
-            _measurementService = measurementService;
-            _measurementPlotService = measurementPlotService;
-            _geoIpService = geoIpService;
-            _logger = logger;
-        }
+        private readonly MeasurementService _measurementService = measurementService;
+        private readonly MeasurementPlotService _measurementPlotService = measurementPlotService;
+        private readonly GeoIpService _geoIpService = geoIpService;
+        private readonly ILogger<MeasurementPageController> _logger = logger;
 
         [HttpGet("/m/{measurementId}/download")]
         public async Task<IActionResult> DownloadZip(string measurementId, CancellationToken cancellationToken)

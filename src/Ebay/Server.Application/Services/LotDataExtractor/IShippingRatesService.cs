@@ -1,10 +1,11 @@
-﻿using Server.Controllers.Generated;
+using Server.Controllers.Generated;
 
-namespace Server.Application.Services.LotDataExtractor;
-
-public interface IShippingRatesService
+namespace Server.Application.Services.LotDataExtractor
 {
-    IReadOnlyCollection<ShippingType> ShippingRates { get; }
-    
-    public IReadOnlyDictionary<string, List<ShippingRatesService.ShippingRateInner>> ShippingRatesDictionary { get; }
+    public interface IShippingRatesService
+    {
+        IReadOnlyCollection<ShippingType> ShippingRates { get; }
+
+        public IReadOnlyDictionary<string, List<ShippingRatesService.ShippingRateInner>> ShippingRatesDictionary { get; }
+    }
 }

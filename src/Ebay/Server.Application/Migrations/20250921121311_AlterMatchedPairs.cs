@@ -34,9 +34,9 @@ namespace Server.Application.Migrations
             _ = migrationBuilder.AddPrimaryKey(
                 name: "PK_MatchedPairDifferences",
                 table: "MatchedPairDifferences",
-                columns: [ "MeasurementId1", "MeasurementId2", "ComparisonMode" ]);
+                columns: ["MeasurementId1", "MeasurementId2", "ComparisonMode"]);
         }
-        private static readonly string[] columns = new[] { "MeasurementId1", "MeasurementId2" };
+        private static readonly string[] columns = ["MeasurementId1", "MeasurementId2"];
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)

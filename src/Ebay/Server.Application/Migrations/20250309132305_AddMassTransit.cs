@@ -8,8 +8,8 @@ namespace Server.Migrations
     /// <inheritdoc />
     public partial class AddMassTransit : Migration
     {
-        private static readonly string[] principalColumns = new[] { "MessageId", "ConsumerId" };
-        private static readonly string[] columns = new[] { "OutboxId", "SequenceNumber" };
+        private static readonly string[] principalColumns = ["MessageId", "ConsumerId"];
+        private static readonly string[] columns = ["OutboxId", "SequenceNumber"];
 
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -113,7 +113,7 @@ namespace Server.Migrations
             _ = migrationBuilder.CreateIndex(
                 name: "IX_OutboxMessage_InboxMessageId_InboxConsumerId_SequenceNumber",
                 table: "OutboxMessage",
-                columns: [ "InboxMessageId", "InboxConsumerId", "SequenceNumber" ],
+                columns: ["InboxMessageId", "InboxConsumerId", "SequenceNumber"],
                 unique: true);
 
             _ = migrationBuilder.CreateIndex(

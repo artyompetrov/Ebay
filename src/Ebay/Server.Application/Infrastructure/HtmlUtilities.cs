@@ -95,12 +95,7 @@ namespace Server.Application.Infrastructure
                     switch (node.Name)
                     {
                         case "p":
-                            // treat paragraphs as crlf
-                            outText.Write("\r\n");
-                            break;
                         case "br":
-                            outText.Write("\r\n");
-                            break;
                         case "div":
                             outText.Write("\r\n");
                             break;

@@ -36,7 +36,7 @@ namespace Server.Application.Migrations
                 name: "IX_ProductPassports_ProductId_Order",
                 table: "ProductPassports",
                 columns:
-                [ "ProductId", "Order" ]);
+                ["ProductId", "Order"]);
         }
 
         /// <inheritdoc />

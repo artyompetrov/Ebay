@@ -18,9 +18,13 @@ indent_size = 4
 dotnet_analyzer_diagnostic.severity = error
 
 # Исключения:
+# Use 'GeneratedRegexAttribute' to generate the regular expression implementation at compile-time.
+# todo уточнить надо ли это или заигнорить
+dotnet_diagnostic.SYSLIB1045.severity = none
+
 # For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
 # не очень удобно делать функции под каждую лог запись
-dotnet_diagnostic.SYSLIB1045.severity = none
+dotnet_diagnostic.CA1848.severity = none
 
 # Remove the underscores from member name Should_Do_Smth() - Тесты пишем в такой нотации
 dotnet_diagnostic.CA1707.severity = none

@@ -249,9 +249,9 @@ namespace Server.Adapters.uTracer
 
             var lines = stringData
                 .Replace(oldChar: ',', newChar: '.')
-                .Split(separator: [  '\r', '\n' ], options: StringSplitOptions.RemoveEmptyEntries) ;
+                .Split(separator: ['\r', '\n'], options: StringSplitOptions.RemoveEmptyEntries);
 
-            var header = lines[0].Split(separator: [ "  " ], options: StringSplitOptions.RemoveEmptyEntries)
+            var header = lines[0].Split(separator: ["  "], options: StringSplitOptions.RemoveEmptyEntries)
                 .Select(x => x.Trim()).ToArray();
 
             var idxCurve = Array.IndexOf(array: header, value: "Curve");
@@ -264,7 +264,7 @@ namespace Server.Adapters.uTracer
 
 
             var rows = lines.Skip(1)
-                .Select(l => l.Split(separator: [ "  " ], options: StringSplitOptions.RemoveEmptyEntries))
+                .Select(l => l.Split(separator: ["  "], options: StringSplitOptions.RemoveEmptyEntries))
                 .Select(parts =>
                 {
                     var currentCurve = int.Parse(parts[idxCurve], CultureInfo.InvariantCulture);

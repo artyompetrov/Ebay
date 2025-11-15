@@ -28,7 +28,7 @@ namespace Server.Application.Services.Measurement
             Guid productId,
             CancellationToken cancellationToken)
         {
-            var hasWorkingPoint = await _tubeWorkingPointQueries.GetWorkingPointInfo(productId, cancellationToken) ?? throw NonOkHttpAnswerException.ValidationError400(
+            _ = await _tubeWorkingPointQueries.GetWorkingPointInfo(productId, cancellationToken) ?? throw NonOkHttpAnswerException.ValidationError400(
                     field: "tubeWorkingPoint",
                     errors: "Рабочая точка не задана.");
             await DeletePreviousResults(productId: productId, cancellationToken: cancellationToken);

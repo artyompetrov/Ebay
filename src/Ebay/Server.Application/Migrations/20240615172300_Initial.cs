@@ -438,12 +438,12 @@ namespace Server.Data.Migrations
             _ = migrationBuilder.CreateIndex(
                 name: "IX_PersistedGrants_SubjectId_ClientId_Type",
                 table: "PersistedGrants",
-                columns: [ "SubjectId", "ClientId", "Type" ]);
+                columns: ["SubjectId", "ClientId", "Type"]);
 
             _ = migrationBuilder.CreateIndex(
                 name: "IX_PersistedGrants_SubjectId_SessionId_Type",
                 table: "PersistedGrants",
-                columns: [ "SubjectId", "SessionId", "Type" ]);
+                columns: ["SubjectId", "SessionId", "Type"]);
 
             _ = migrationBuilder.CreateIndex(
                 name: "IX_Products_ApplicationUserId",
