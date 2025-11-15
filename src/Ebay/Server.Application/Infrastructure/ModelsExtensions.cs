@@ -1,3 +1,4 @@
+using System.Globalization;
 using Server.Application.Abstractions.Queries;
 using Server.Application.Services.LotDataExtractor;
 using Server.Controllers.Generated;
@@ -66,7 +67,7 @@ internal static class ModelsExtensions
             price: lot.Price,
             purchaseHistory: lot.Purchases.OrderByDescending(x => x.Date).Select(x => x.ToApiPurchaseInfo(lot.TitleChangeDate)).ToList(),
             seller: lot.Seller,
-            titleChangeDate: lot.TitleChangeDate.ToString(WellKnown.Formats.TimeFormat),
+            titleChangeDate: lot.TitleChangeDate.ToString(WellKnown.Formats.TimeFormat, CultureInfo.InvariantCulture),
             shipping: lot.Shipping,
             shippingAdditional: lot.ShippingAdditional,
             shortDescription: lot.ShortDescription,
@@ -89,7 +90,7 @@ internal static class ModelsExtensions
         purchaseHistory: lot.Purchases.OrderByDescending(x => x.Date).Select(x => x.ToApiPurchaseInfo(lot.TitleChangeDate)).ToList(),
         seller: lot.Seller,
         shipping: lot.Shipping,
-        titleChangeDate: lot.TitleChangeDate.ToString(WellKnown.Formats.TimeFormat),
+        titleChangeDate: lot.TitleChangeDate.ToString(WellKnown.Formats.TimeFormat, CultureInfo.InvariantCulture),
         shippingAdditional: lot.ShippingAdditional,
         shortDescription: lot.ShortDescription,
         lotCalculationResult: lot.LotCalculationResult.ToApiLotCalculationResult()
@@ -99,7 +100,7 @@ internal static class ModelsExtensions
         quantityTotal: productCalculationResult.QuantityTotal,
         revenue: productCalculationResult.Revenue,
         revenueAvg: productCalculationResult.RevenueAvg,
-        calculationDate: productCalculationResult.CalculationDate.ToString("dd-MM-yy"),
+        calculationDate: productCalculationResult.CalculationDate.ToString("dd-MM-yy", CultureInfo.InvariantCulture),
         listingPriceAvg: productCalculationResult.ListingPriceAvg
     );
 
@@ -107,7 +108,7 @@ internal static class ModelsExtensions
         quantityTotal: lotCalculationResult.QuantityTotal,
         revenue: lotCalculationResult.Revenue,
         revenueAvg: lotCalculationResult.RevenueAvg,
-        calculationDate: lotCalculationResult.CalculationDate.ToString("dd-MM-yy"),
+        calculationDate: lotCalculationResult.CalculationDate.ToString("dd-MM-yy", CultureInfo.InvariantCulture),
         listingPriceAvg: lotCalculationResult.ListingPriceAvg
     );
 
@@ -119,7 +120,7 @@ internal static class ModelsExtensions
     );
 
     public static PurchaseInfo ToApiPurchaseInfo(this Purchase purchase, DateTime titleChangeDate) => new(
-        date: purchase.Date.ToString(WellKnown.Formats.TimeFormat),
+        date: purchase.Date.ToString(WellKnown.Formats.TimeFormat, CultureInfo.InvariantCulture),
         price: purchase.Price,
         quantity: purchase.Quantity,
         purchaseCalculationResult: purchase.PurchaseCalculationResult.ToApiPurchaseCalculationResult(),
@@ -145,7 +146,7 @@ internal static class ModelsExtensions
             Seller = lotInfo.Seller,
             LocatedIn = lotInfo.LocatedIn,
             Categories = lotInfo.Categories.ToDictionary(x => x.Type, x => x.Value),
-            TitleChangeDate = DateTime.Parse(lotInfo.TitleChangeDate).ToUniversalTime(),
+            TitleChangeDate = DateTime.Parse(lotInfo.TitleChangeDate, CultureInfo.InvariantCulture).ToUniversalTime(),
             UpdateDate = updateDate,
             LotSize = lotInfo.LotSize
         };
@@ -154,7 +155,7 @@ internal static class ModelsExtensions
         new()
         {
             LotId = lotId,
-            Date = DateTime.Parse(purchaseInfo.Date).ToUniversalTime(),
+            Date = DateTime.Parse(purchaseInfo.Date, CultureInfo.InvariantCulture).ToUniversalTime(),
             Price = purchaseInfo.Price,
             Quantity = purchaseInfo.Quantity
         };
@@ -169,7 +170,7 @@ internal static class ModelsExtensions
         ebayName: currency.CurrencyEbayName,
         rusName: currency.CurrencyRusName,
         rate: currency.CurrencyRate,
-        lastUpdate: currency.LastUpdate.ToString(WellKnown.Formats.TimeFormat)
+        lastUpdate: currency.LastUpdate.ToString(WellKnown.Formats.TimeFormat, CultureInfo.InvariantCulture)
     );
 
 

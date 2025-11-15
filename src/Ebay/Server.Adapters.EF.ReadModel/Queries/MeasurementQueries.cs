@@ -216,8 +216,7 @@ internal sealed class MeasurementQueries : IMeasurementQueries
 
 
     private async Task<Dictionary<string, IReadOnlyCollection<SimilarMeasurementInfo>>> GetSimilarMeasurements(
-        CancellationToken cancellationToken,
-        string[] measurementIds)
+        string[] measurementIds, CancellationToken cancellationToken)
     {
         var similarMeasurements = await _dbContext.MatchedPairDifferences
             .AsNoTracking()

@@ -16,7 +16,7 @@ public class Lot
 
     public int Pcs { get; set; }
 
-    public int? LotSize { get; set; } = null;
+    public int? LotSize { get; set; }
 
     [ForeignKey("CurrencyEbayName")]
     public string CurrencyId { get; set; } = null!;

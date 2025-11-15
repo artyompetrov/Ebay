@@ -142,7 +142,10 @@ internal class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
         {
             var pricesString = string.Join(", ", prices);
             _logger.LogError(
-                $"Error while calculating shipping price for {shippingCountry}, and weight {weight}, prices: '{pricesString}'");
+                "Error while calculating shipping price for {ShippingCountry}, and weight {Weight}, prices: '{PricesString}'",
+                shippingCountry,
+                weight,
+                pricesString);
 
             throw;
         }

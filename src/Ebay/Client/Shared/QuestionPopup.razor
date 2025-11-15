@@ -25,13 +25,11 @@
         StateHasChanged();
     }
 
-    private Task OnSubmit()
+    private async Task OnSubmit()
     {
         if (_questionState == null) throw new NullReferenceException(nameof(_questionState));
-        _questionState.Value.OnSubmit.Invoke();
+        await _questionState.Value.OnSubmit.Invoke();
         _questionState = null;
-
-        return Task.CompletedTask;
     }
 
     private void OnCancel()

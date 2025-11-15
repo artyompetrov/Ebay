@@ -15,6 +15,24 @@ indent_style = space
 indent_size = 4
 
 # Microsoft .NET properties
+#### !!! Important !!! Enable dotnet_diagnostic ####
+dotnet_analyzer_diagnostic.severity = error
+dotnet_analyzer_diagnostic.category-Performance.severity = error
+dotnet_analyzer_diagnostic.category-Reliability.severity = error
+dotnet_analyzer_diagnostic.category-Design.severity = error
+dotnet_analyzer_diagnostic.category-Usage.severity = error
+dotnet_analyzer_diagnostic.category-Security.severity = error
+dotnet_analyzer_diagnostic.category-Maintainability.severity = error
+dotnet_analyzer_diagnostic.category-Interoperability.severity = error
+
+#исключения
+dotnet_diagnostic.SYSLIB1045.severity = none
+dotnet_diagnostic.CA1848.severity = none
+dotnet_diagnostic.CA1861.severity = none
+dotnet_diagnostic.CA1822.severity = none
+dotnet_diagnostic.CA1707.severity = none
+
+
 csharp_new_line_before_members_in_object_initializers = true
 csharp_preferred_modifier_order = public, protected, internal, private, new, async, static, virtual, abstract, override, sealed, readonly, extern, unsafe, volatile, file, required:suggestion
 csharp_style_prefer_utf8_string_literals = false

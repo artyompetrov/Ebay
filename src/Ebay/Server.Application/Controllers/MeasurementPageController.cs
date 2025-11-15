@@ -127,7 +127,7 @@ public class MeasurementPageController : ControllerBase
         CancellationToken cancellationToken)
     {
         var xRealIp = Request.Headers["X-Real-IP"].FirstOrDefault();
-        var userAgent = Request.Headers["User-Agent"].ToString();
+        var userAgent = Request.Headers.UserAgent.ToString();
 
         await _geoIpService.LogRequest(
             prefix: $"GetEbayCurves for product {product} {lotId} requested",

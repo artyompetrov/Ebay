@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Xml.Linq;
 
 namespace Server.Application.Infrastructure;
@@ -36,8 +37,8 @@ public static class SvgMerger
                 }
             }
 
-            var width = double.Parse(svgElem.Attribute("width")?.Value.Replace("px", "") ?? "0");
-            var height = double.Parse(svgElem.Attribute("height")?.Value.Replace("px", "") ?? "0");
+            var width = double.Parse(svgElem.Attribute("width")?.Value.Replace("px", "") ?? "0", CultureInfo.InvariantCulture);
+            var height = double.Parse(svgElem.Attribute("height")?.Value.Replace("px", "") ?? "0", CultureInfo.InvariantCulture);
             svgs.Add(svgElem);
             widths.Add(width);
             heights.Add(height);

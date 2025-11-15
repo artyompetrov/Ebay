@@ -18,10 +18,7 @@ internal class TestStateExtractor : ExtractorBase, IExtractor
         new Extractor(Regex: new Regex(pattern: @"\btube\s*tester\b", options: Ro), Result: WellKnown.Categories.TestState.Tested, ExtractFrom: All)
     };
 
-    private static readonly string[] ToRemove =
-    {
-
-    };
+    private static readonly string[] ToRemove = [];
 
     public Dictionary<string, HashSet<ExtractionResult>> Extract(LotDataToExtract lotDataToExtract)
     {
@@ -69,7 +66,9 @@ internal class TestStateExtractor : ExtractorBase, IExtractor
             );
         }
 
+#pragma warning disable CA1853
         if (extractionResult.ContainsKey(WellKnown.Categories.TestState.Matched))
+#pragma warning restore CA1853
         {
             extractionResult.Remove(WellKnown.Categories.TestState.Tested);
             extractionResult.Remove(WellKnown.Categories.TestState.NotTested);

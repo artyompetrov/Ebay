@@ -177,9 +177,9 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
     private async Task CalculateForTwoSectionTubes(
         MeasurementInfoWithAnodeCurves measurement1,
         MeasurementInfoWithAnodeCurves measurement2,
-        CancellationToken cancellationToken,
         TubeWorkingPointInfo workingPoint,
-        int radialBands, int pointsPerBand)
+        int radialBands, int pointsPerBand,
+        CancellationToken cancellationToken)
     {
         var measurement1I1 = GetPoints(measurement1.AnodeCurves, x => x.I1);
         var measurement2I1 = GetPoints(measurement2.AnodeCurves, x => x.I1);
@@ -188,10 +188,10 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
 
         var measurement1I2 = GetPoints(
              measurement1.AnodeCurves,
-            x => x.I2 ?? throw new NullReferenceException("I2 is expected to be not null"));
+            x => x.I2 ?? throw new InvalidOperationException("I2 is expected to be not null"));
         var measurement2I2 = GetPoints(
             measurement2.AnodeCurves,
-            x => x.I2 ?? throw new NullReferenceException("I2 is expected to be not null"));
+            x => x.I2 ?? throw new InvalidOperationException("I2 is expected to be not null"));
         var measurement1I2Model = RbfModel(measurement1I2, workingPoint);
         var measurement2I2Model = RbfModel(measurement2I2, workingPoint);
 
@@ -254,10 +254,10 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
     private async Task CalculateForOneSectionTubes(
         MeasurementInfoWithAnodeCurves measurement1,
         MeasurementInfoWithAnodeCurves measurement2,
-        CancellationToken cancellationToken,
         TubeWorkingPointInfo workingPoint,
         int radialBands,
-        int pointsPerBand)
+        int pointsPerBand,
+        CancellationToken cancellationToken)
     {
         var measurement1I1 = GetPoints(measurement1.AnodeCurves, x => x.I1);
         var measurement2I1 = GetPoints(measurement2.AnodeCurves, x => x.I1);
@@ -287,11 +287,11 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
     private async Task SaveToDatabase(
         string measurementId1,
         string measurementId2,
-        CancellationToken cancellationToken,
         ComparisonMode comparisonMode,
         double mseSection1,
         double rmseSection1,
         double maxAbsSection1,
+        CancellationToken cancellationToken,
         double? mseSection2 = null,
         double? rmseSection2 = null,
         double? maxAbsSection2 = null)

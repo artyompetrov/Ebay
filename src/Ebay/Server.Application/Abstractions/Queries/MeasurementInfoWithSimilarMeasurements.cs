@@ -21,7 +21,7 @@ public record MeasurementInfoWithSimilarMeasurements(
     /// <summary>
     /// Параметр по которому сортируем лампы в списке
     /// </summary>
-    public double? ScorePlusBalance { get; init; } = null;
+    public double? ScorePlusBalance { get; init; }
 }
 
 public record SimilarMeasurementInfo(

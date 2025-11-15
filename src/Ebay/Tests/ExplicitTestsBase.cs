@@ -7,11 +7,12 @@ namespace Tests;
 
 public abstract class ExplicitTestsBase
 {
-    protected static HttpClient HttpClient = null!;
+    protected static HttpClient HttpClient { get; set; } = null!;
     protected static readonly string Server =
         Environment.GetEnvironmentVariable("EBAY_HELPER_REMOTE_HOST") ??
         throw new InvalidOperationException("EBAY_HELPER_REMOTE_HOST environment variable is required");
-    protected static EbayClient BackendClient = null!;
+
+    protected static EbayClient BackendClient { get; set; } = null!;
 
     static ExplicitTestsBase()
     {
@@ -22,7 +23,7 @@ public abstract class ExplicitTestsBase
     [OneTimeTearDown]
     public void OneTimeTearDown()
     {
-        HttpClient.Dispose();
+        HttpClient?.Dispose();
     }
 
     private static void CreateClient()
@@ -34,11 +35,11 @@ public abstract class ExplicitTestsBase
         HttpClient = new HttpClient();
 
         var clientId = Environment.GetEnvironmentVariable(WellKnown.Authorization.ClientId)
-                       ?? throw new NullReferenceException("CLIENT_ID is not set");
+                       ?? throw new InvalidOperationException("CLIENT_ID is not set");
         var clientSecret = Environment.GetEnvironmentVariable(WellKnown.Authorization.ClientSecret)
-                           ?? throw new NullReferenceException("AUTH_CLIENT_SECRET is not set");
+                           ?? throw new InvalidOperationException("AUTH_CLIENT_SECRET is not set");
         var scope = Environment.GetEnvironmentVariable(WellKnown.Authorization.Scope)
-                   ?? throw new NullReferenceException("AUTH_SCOPE is not set");
+                   ?? throw new InvalidOperationException("AUTH_SCOPE is not set");
 
         using var res = HttpClient.SendAsync(
                 new HttpRequestMessage(method: HttpMethod.Post, requestUri: url)

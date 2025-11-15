@@ -5,7 +5,7 @@ using Server.Domain.Measurements;
 
 namespace Server.Adapters.EF.WriteModel.Repositories;
 
-internal class MeasurementRepository : IMeasurementRepository
+internal sealed class MeasurementRepository : IMeasurementRepository
 {
     private readonly ApplicationDbContext _dbContext;
 

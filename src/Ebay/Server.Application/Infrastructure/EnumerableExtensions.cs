@@ -4,8 +4,8 @@ public static class EnumerableExtensions
 {
     public static IEnumerable<IEnumerable<T>> Batch<T>(this IEnumerable<T> source, int size)
     {
-        if (source == null) throw new ArgumentNullException(nameof(source));
-        if (size <= 0) throw new ArgumentOutOfRangeException(nameof(size));
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(size);
 
         using var enumerator = source.GetEnumerator();
         while (enumerator.MoveNext())

@@ -6,4 +6,10 @@
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <WarningsNotAsErrors>CS0612,CS0618,CS1591</WarningsNotAsErrors>
     </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="ErrorProne.NET.CoreAnalyzers">
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+    </ItemGroup>
+    
 </Project>

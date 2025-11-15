@@ -5,7 +5,7 @@ using Server.Domain.Measurements;
 
 namespace Server.Adapters.EF.WriteModel.Repositories;
 
-internal class MatchedPairDifferenceRepository : IMatchedPairDifferenceRepository
+internal sealed class MatchedPairDifferenceRepository : IMatchedPairDifferenceRepository
 {
     private readonly ApplicationDbContext _dbContext;
 

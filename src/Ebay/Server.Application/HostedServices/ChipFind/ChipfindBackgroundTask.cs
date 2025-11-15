@@ -63,10 +63,10 @@ public class ChipfindBackgroundTask : BackgroundTask
     private async Task ProcessAdvertisement(
         IEmailSender emailSender,
         IChipfindAdapter chipfindAdapter,
-        CancellationToken cancellationToken,
         SaleAdvertisement saleAdvertisement,
         IReadOnlyCollection<ProductInner> products,
-        ApplicationDbContext applicationDbContext)
+        ApplicationDbContext applicationDbContext,
+        CancellationToken cancellationToken)
     {
         using var transaction = TransactionScopeFactory.Create();
 
@@ -79,7 +79,7 @@ public class ChipfindBackgroundTask : BackgroundTask
                 .Where(x => x.Regex.IsMatch(saleAdvertisementItem))
                 .ToList();
 
-            if (!matchesWithProducts.Any())
+            if (matchesWithProducts.Count == 0)
             {
                 continue;
             }
@@ -156,8 +156,8 @@ public class ChipfindBackgroundTask : BackgroundTask
                 );
             var emailBody = $"<a href=\"{saleAdvertisement.Link}\">ссылка</a><br><br>{newItems}<br><div>{advertisementContact}</div>";
             var emailTopic = $"{saleAdvertisement.Title} [{saleAdvertisement.Seller}]";
-            _logger.LogInformation(emailTopic);
-            _logger.LogDebug(emailBody);
+            _logger.LogInformation("Email sent {EmailTopic}", emailTopic);
+            _logger.LogDebug("Email sent {EmailBody}", emailBody);
             await emailSender.Send(
                 targetAddress: _ebayServerOptions.TargetEmail,
                 topic: emailTopic,

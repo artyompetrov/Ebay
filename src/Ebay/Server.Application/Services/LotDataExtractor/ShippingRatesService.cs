@@ -381,7 +381,7 @@ public class ShippingRatesService
         {
             foreach (var shippingRateRate in shippingRate.Rates)
             {
-                if (shippingRateRate == null) throw new NullReferenceException(nameof(shippingRate));
+                if (shippingRateRate == null) throw new InvalidOperationException(nameof(shippingRate));
 
                 foreach (var rate in shippingRateRate.Rates)
                 {
@@ -397,7 +397,7 @@ public class ShippingRatesService
                     {
                         foreach (var specifiedCountry in shippingRateRate.SpecifiedCountries)
                         {
-                            if (rate == null!) throw new NullReferenceException(nameof(rate));
+                            if (rate == null!) throw new InvalidOperationException(nameof(rate));
 
                             rates.AppendOrCreateNewCollection(key: specifiedCountry.TwoLetterCode, value: new ShippingRateInner(
                                 WeightFrom: rate.MinWeight,

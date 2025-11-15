@@ -535,7 +535,7 @@
         }
         catch (Exception ex)
         {
-            _error = ex.Message;
+            _error = ex.ToString();
         }
 
         await UpdateMeasurementsAsync();

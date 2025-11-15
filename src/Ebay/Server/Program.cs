@@ -20,7 +20,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 var options = new EbayServerOptions();
 builder.Configuration.Bind("EbayServer", options);
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new NullReferenceException("Connection string cannot be null");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string cannot be null");
 builder.Services.AddMemoryCache();
 builder.Services.AddEmailAdapter(builder.Configuration);
 builder.Services.AddUTracerAdapter();

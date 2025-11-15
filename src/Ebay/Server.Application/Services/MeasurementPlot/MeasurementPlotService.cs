@@ -67,12 +67,12 @@ public class MeasurementPlotService
 
     public async Task<string?> PlotForMeasurementId(
         string measurementId,
-        CancellationToken cancellationToken,
         bool mergeVertical,
         bool legendVertical,
         bool addQuickTest,
         int width,
-        int height
+        int height,
+        CancellationToken cancellationToken
     )
     {
         var matchedPairMeasurementsIds =
@@ -118,10 +118,10 @@ public class MeasurementPlotService
     }
 
     private async Task<MinMaxCoordinates> GetMinMaxCoordinates(
-        CancellationToken cancellationToken,
         AnodeCurvesBase anodeCurves,
         GridCurvesBase gridCurves,
-        IReadOnlyList<string> matchedPairMeasurementsIds)
+        IReadOnlyList<string> matchedPairMeasurementsIds,
+        CancellationToken cancellationToken)
     {
         var anodeCurvesMinX = anodeCurves.MinX;
         var anodeCurvesMaxX = anodeCurves.MaxX;

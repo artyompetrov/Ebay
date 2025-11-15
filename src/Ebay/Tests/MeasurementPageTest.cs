@@ -27,9 +27,9 @@ public class MeasurementPageTest : ExplicitTestsBase
     public async Task Check_Extractor_Function_TestState(string measurementId)
     {
         var response = await HttpClient.GetAsync($"https://{Server}/m/{measurementId}");
-        Assert.That(response.StatusCode == System.Net.HttpStatusCode.OK);
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.OK));
 
         response = await HttpClient.GetAsync($"https://{Server}/m/{measurementId}/curves");
-        Assert.That(response.StatusCode == System.Net.HttpStatusCode.OK);
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.OK));
     }
 }

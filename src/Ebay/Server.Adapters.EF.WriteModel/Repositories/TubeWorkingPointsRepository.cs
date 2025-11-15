@@ -5,7 +5,7 @@ using Server.Domain.Measurements;
 
 namespace Server.Adapters.EF.WriteModel.Repositories;
 
-internal class TubeWorkingPointsRepository : ITubeWorkingPointsRepository
+internal sealed class TubeWorkingPointsRepository : ITubeWorkingPointsRepository
 {
     private readonly ApplicationDbContext _dbContext;
 

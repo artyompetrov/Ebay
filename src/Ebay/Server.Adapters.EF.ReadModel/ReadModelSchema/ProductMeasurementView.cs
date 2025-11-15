@@ -3,7 +3,7 @@ using Server.Domain.Measurements;
 
 namespace Sever.Adapters.EF.ReadModel.ReadModelSchema;
 
-internal class ProductMeasurementView : IViewProjection<ProductMeasurement, ProductMeasurementView>
+internal sealed class ProductMeasurementView : IViewProjection<ProductMeasurement, ProductMeasurementView>
 {
     public required string Id { get; set; }
 

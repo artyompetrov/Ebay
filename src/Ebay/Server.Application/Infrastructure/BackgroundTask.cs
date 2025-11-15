@@ -28,7 +28,7 @@ public abstract class BackgroundTask : IHostedService, IDisposable
                 }
                 catch (Exception e) when (e.IsNotIntendedCancellation(cts.Token))
                 {
-                    _logger.LogError(exception: e, message: $"{GetType().Name} {nameof(BackgroundTask)} finished with error");
+                    _logger.LogError(exception: e, message: "{ChildClassName} {ParentClassName} finished with error", GetType().Name, nameof(BackgroundTask));
                 }
                 catch (Exception e) when (!e.IsNotIntendedCancellation(cts.Token))
                 {
@@ -36,7 +36,7 @@ public abstract class BackgroundTask : IHostedService, IDisposable
                 }
                 finally
                 {
-                    _logger.LogInformation(message: $"{GetType().Name} {nameof(BackgroundTask)} stopped working");
+                    _logger.LogInformation(message: "{Type} {Task} stopped working", GetType().Name, nameof(BackgroundTask));
                 }
             },
             cancellationToken: cts.Token);
@@ -58,7 +58,7 @@ public abstract class BackgroundTask : IHostedService, IDisposable
             }
             catch (Exception e) when (e.IsNotIntendedCancellation(cancellationToken))
             {
-                _logger.LogError(exception: e, message: "Error in {taskName}", nameof(BackgroundTaskImplementation));
+                _logger.LogError(exception: e, message: "Error in {TaskName}", nameof(BackgroundTaskImplementation));
 
                 await Task.Delay(delay: ErrorDelay, cancellationToken: cancellationToken);
             }
@@ -102,5 +102,6 @@ public abstract class BackgroundTask : IHostedService, IDisposable
     public void Dispose()
     {
         StopTaskAndDispose();
+        GC.SuppressFinalize(this);
     }
 }

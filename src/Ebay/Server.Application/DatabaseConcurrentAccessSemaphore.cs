@@ -1,6 +1,6 @@
 namespace Server.Application;
 
-public class DatabaseConcurrentAccessSemaphore : IDisposable
+public sealed class DatabaseConcurrentAccessSemaphore : IDisposable
 {
     public SemaphoreSlim Semaphore { get; }
 

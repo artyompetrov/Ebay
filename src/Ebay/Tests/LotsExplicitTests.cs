@@ -1,3 +1,4 @@
+using System.Globalization;
 using Server.Application;
 using Server.Application.Services.LotDataExtractor;
 using LotDataToExtract = Server.Controllers.Generated.LotDataToExtract;
@@ -38,7 +39,7 @@ public class LotsExplicitTests : ExplicitTestsBase
         var isExtractedCorrectly = (lotInfoFull.LotInfo.Pcs == 1 && result.Count == 0) || (extractedFields.Count >= 1 &&
             int.Parse(
                 result.MaxBy(x => x.Value.Count).Key
-            ) == lotInfoFull.LotInfo.Pcs); //todo недостаточно точная проверка
+            , CultureInfo.InvariantCulture) == lotInfoFull.LotInfo.Pcs); //todo недостаточно точная проверка
 
         Assert.That(
             condition: isExtractedCorrectly,
@@ -93,9 +94,9 @@ public class LotsExplicitTests : ExplicitTestsBase
 
         Assert.That(
             condition: (results.Count == 0 && manualCondition == WellKnown.Categories.Conditions.New) ||
-            (results.Count == 1 && results[0].Key.Equals(manualCondition)) ||
+            (results.Count == 1 && results[0].Key.Equals(manualCondition, StringComparison.Ordinal)) ||
                 (results.Count > 1 && results[0].Value.Count > results[1].Value.Count &&
-                    results[0].Key.Equals(manualCondition)),
+                    results[0].Key.Equals(manualCondition, StringComparison.Ordinal)),
             message: $"{ToStr(result)}{Environment.NewLine}lotId: {lotId}{Environment.NewLine}seller:{lotInfoFull.LotInfo.Seller}"
         );
     }
@@ -136,15 +137,15 @@ public class LotsExplicitTests : ExplicitTestsBase
 
         Assert.That(
             condition: (results.Count == 0 && manualCondition == WellKnown.Categories.TestState.NotTested) ||
-            (results.Count == 1 && results[0].Key.Equals(manualCondition)) ||
+            (results.Count == 1 && results[0].Key.Equals(manualCondition, StringComparison.Ordinal)) ||
             (results.Count > 1 && results[0].Value.Count > results[1].Value.Count &&
-                results[0].Key.Equals(manualCondition)),
+                results[0].Key.Equals(manualCondition, StringComparison.Ordinal)),
             message: $"{ToStr(result)}{Environment.NewLine}lotId: {lotId}{Environment.NewLine}seller:{lotInfoFull.LotInfo.Seller}"
         );
     }
 
 
-    public static IEnumerable<TestCaseData> GetLots()
+    private static IEnumerable<TestCaseData> GetLots()
     {
         var allLotIds = BackendClient.GetLotIdsAsync().GetAwaiter().GetResult();
 

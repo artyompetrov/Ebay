@@ -176,7 +176,7 @@ public class MeasurementService
         if (zipBytes == null)
             return null;
 
-        var result = await _measurementFileParser.ToPrettifiedZip(zipBytes.Data);
+        var result = await _measurementFileParser.ToPrettifiedZip(zipBytes.Data, cancellationToken);
 
         return result;
     }

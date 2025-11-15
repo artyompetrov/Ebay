@@ -37,7 +37,7 @@ internal class HtmlUtilities
     {
         if (!String.IsNullOrEmpty(text) && text.Length > length)
         {
-            text = text.Substring(startIndex: 0, length: length - 4) + " ...";
+            text = string.Concat(text.AsSpan(start: 0, length: length - 4), " ...");
         }
 
         return text;

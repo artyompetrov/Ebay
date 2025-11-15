@@ -29,10 +29,13 @@ public class ChipfindAdapterTests
         var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
 
         var ads = await adapter.GetRecentSaleAdvertisements(CancellationToken.None);
-        Assert.That(ads.Count, Is.EqualTo(1));
+        Assert.That(ads, Has.Count.EqualTo(1));
         var ad = ads.Single();
-        Assert.That(ad.Items.Length, Is.EqualTo(20));
-        Assert.That(logger.HasWarning, Is.False);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(ad.Items, Has.Length.EqualTo(20));
+            Assert.That(logger.HasWarning, Is.False);
+        }
     }
 
     [Test]
@@ -56,8 +59,11 @@ public class ChipfindAdapterTests
 
         var ads = await adapter.GetRecentSaleAdvertisements(CancellationToken.None);
         var ad = ads.Single();
-        Assert.That(ad.Items.Length, Is.EqualTo(14));
-        Assert.That(logger.HasWarning, Is.False);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(ad.Items, Has.Length.EqualTo(14));
+            Assert.That(logger.HasWarning, Is.False);
+        }
     }
 
     [Test]
@@ -81,8 +87,11 @@ public class ChipfindAdapterTests
 
         var ads = await adapter.GetRecentSaleAdvertisements(CancellationToken.None);
         var ad = ads.Single();
-        Assert.That(ad.Items.Length, Is.EqualTo(12));
-        Assert.That(logger.HasWarning, Is.False);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(ad.Items, Has.Length.EqualTo(12));
+            Assert.That(logger.HasWarning, Is.False);
+        }
     }
 
     [Test]

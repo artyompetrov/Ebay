@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 using Server.Application.Infrastructure;
 using Server.Controllers.Generated;
@@ -78,8 +79,8 @@ internal class PcsExtractor : ExtractorBase, IExtractor
         if (lotDataToExtract.LotSize != null)
         {
             extractionResult.AppendOrCreateNewCollection(
-                key: lotDataToExtract.LotSize.ToString()!,
-                value: new ExtractionResult(ExtractedFrom: ExtractFrom.LotSize, Extractor: "lotSize", Match: lotDataToExtract.LotSize.ToString()!)
+                key: lotDataToExtract.LotSize?.ToString(CultureInfo.InvariantCulture) ?? throw new InvalidOperationException("Null here is not expected"),
+                value: new ExtractionResult(ExtractedFrom: ExtractFrom.LotSize, Extractor: "lotSize", Match: lotDataToExtract.LotSize?.ToString(CultureInfo.InvariantCulture) ?? throw new InvalidOperationException("Null here is not expected"))
             );
         }
 
@@ -144,7 +145,7 @@ internal class PcsExtractor : ExtractorBase, IExtractor
                             );
 
                         result.AppendOrCreateNewCollection(
-                            key: (int.Parse(match.Groups[1].ToString()) * extractor.Multiplier).ToString(),
+                            key: (int.Parse(match.Groups[1].ToString(), CultureInfo.InvariantCulture) * extractor.Multiplier).ToString(CultureInfo.InvariantCulture),
                             value: new ExtractionResult(
                                 ExtractedFrom: extractedFrom,
                                 Extractor: extractor.Regex.ToString(),
@@ -162,7 +163,7 @@ internal class PcsExtractor : ExtractorBase, IExtractor
                             );
 
                         result.AppendOrCreateNewCollection(
-                            key: (extractor.Result.Value * extractor.Multiplier).ToString(),
+                            key: (extractor.Result.Value * extractor.Multiplier).ToString(CultureInfo.InvariantCulture),
                             value: new ExtractionResult(
                                 ExtractedFrom: extractedFrom,
                                 Extractor: extractor.Regex.ToString(),

@@ -5,7 +5,7 @@ using Server.Domain;
 
 namespace Server.Adapters.EF.WriteModel.Repositories;
 
-internal class ProductRepository : IProductRepository
+internal sealed class ProductRepository : IProductRepository
 {
     private readonly ApplicationDbContext _dbContext;
 

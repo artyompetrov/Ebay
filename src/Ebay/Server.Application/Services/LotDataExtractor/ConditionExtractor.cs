@@ -104,7 +104,9 @@ internal class ConditionExtractor : ExtractorBase, IExtractor
     {
         if (extractionResult.ContainsKey(NosOrOpenBox))
         {
+#pragma warning disable CA1853
             if (extractionResult.ContainsKey(WellKnown.Categories.Conditions.Used))
+#pragma warning restore CA1853
             {
                 extractionResult.Remove(NosOrOpenBox);
             }

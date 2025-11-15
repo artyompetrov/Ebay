@@ -26,32 +26,32 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
     }
 
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    protected override void OnModelCreating(ModelBuilder builder)
     {
-        base.OnModelCreating(modelBuilder);
+        base.OnModelCreating(builder);
 
 
-        foreach (var et in modelBuilder.Model.GetEntityTypes()
+        foreach (var et in builder.Model.GetEntityTypes()
                      .Where(t => typeof(IAggregateRoot).IsAssignableFrom(t.ClrType)))
         {
-            modelBuilder.Entity(et.ClrType)
+            builder.Entity(et.ClrType)
                 .Property(nameof(IAggregateRoot.Version))
                 .IsRowVersion()
                 .ValueGeneratedOnAddOrUpdate();
         }
 
-        modelBuilder.AddInboxStateEntity();
-        modelBuilder.AddOutboxMessageEntity();
-        modelBuilder.AddOutboxStateEntity();
+        builder.AddInboxStateEntity();
+        builder.AddOutboxMessageEntity();
+        builder.AddOutboxStateEntity();
 
-        modelBuilder.Entity<Lot>()
+        builder.Entity<Lot>()
             .Property(o => o.LotCalculationResult)
             .HasConversion(new ValueConverter<LotCalculationResult?, string>(
                 v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
                 v => JsonSerializer.Deserialize<LotCalculationResult?>(v, (JsonSerializerOptions?)null)
             ));
 
-        modelBuilder.Entity<Product>(entity =>
+        builder.Entity<Product>(entity =>
         {
             entity.HasKey(x => x.Id);
 
@@ -88,14 +88,14 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
             });
         });
 
-        modelBuilder.Entity<Purchase>()
+        builder.Entity<Purchase>()
             .Property(o => o.PurchaseCalculationResult)
             .HasConversion(new ValueConverter<PurchaseCalculationResult?, string>(
                 v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
                 v => JsonSerializer.Deserialize<PurchaseCalculationResult?>(v, (JsonSerializerOptions?)null)
             ));
 
-        modelBuilder.Entity<ProductMeasurement>(entity =>
+        builder.Entity<ProductMeasurement>(entity =>
         {
             entity.HasKey(x => x.Id);
 
@@ -123,7 +123,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
             entity.HasIndex(x => x.HashQuickTest).IsUnique();
         });
 
-        modelBuilder.Entity<ProductEmailSendHistory>(entity =>
+        builder.Entity<ProductEmailSendHistory>(entity =>
         {
             entity.ToTable("SaleAdvertisements");
             entity.HasIndex(e => e.ProductId);
@@ -132,18 +132,18 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
             entity.Property(e => e.IsAmbiguous).HasDefaultValue(false);
         });
 
-        modelBuilder.Entity<CacheEntry>(entity =>
+        builder.Entity<CacheEntry>(entity =>
         {
             entity.HasKey(e => new { e.Key, e.Version });
         });
 
 
-        modelBuilder.Entity<ProductPassport>(entity =>
+        builder.Entity<ProductPassport>(entity =>
         {
             entity.HasIndex(e => new { e.ProductId, e.Order });
         });
 
-        modelBuilder.Entity<TubeWorkingPoint>(entity =>
+        builder.Entity<TubeWorkingPoint>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.HasOne<Product>()
@@ -152,18 +152,18 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
-        modelBuilder.Entity<IgnoredLot>(entity =>
+        builder.Entity<IgnoredLot>(entity =>
         {
             entity.HasKey(e => new { e.ProductId, e.LotId });
         });
 
 
-        modelBuilder.Entity<Purchase>(entity =>
+        builder.Entity<Purchase>(entity =>
         {
             entity.HasKey(e => new { e.LotId, e.Date });
         });
 
-        modelBuilder.Entity<MatchedPairDifference>(entity =>
+        builder.Entity<MatchedPairDifference>(entity =>
         {
             entity.Property(x => x.Id)
                 .HasConversion(

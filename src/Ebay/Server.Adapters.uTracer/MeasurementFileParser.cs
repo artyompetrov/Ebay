@@ -21,7 +21,7 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
                 quickTest: out var quickTest,
                 fileCount: out var fileCount))
         {
-            //todo тут не стоит кидать exception по идее
+            // todo тут не стоит кидать exception по идее
             throw new MeasurementException(
                 $"Errors during file parsing {string.Join(separator: ", ", values: fileErrors)}");
         }
@@ -43,11 +43,10 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
             PrettifiedQuickTest: prettifiedQuickTest,
             HashAnodeCurves: hashAnodeCurves,
             HashAnodeCurvesConfig: hashAnodeCurvesConfig,
-            HashQuickTest: hashQuickTest
-        );
+            HashQuickTest: hashQuickTest);
     }
 
-    public async Task<byte[]> ToPrettifiedZip(byte[] zipBytes)
+    public async Task<byte[]> ToPrettifiedZip(byte[] zipBytes, CancellationToken cancellationToken)
     {
         if (!ReadMeasurementFile(
                 measurementData: zipBytes,
@@ -57,7 +56,7 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
                 quickTest: out var quickTest,
                 fileCount: out var fileCount))
         {
-            //todo тут не стоит кидать exception по идее
+            // todo тут не стоит кидать exception по идее
             throw new MeasurementException(
                 $"Errors during file parsing {string.Join(separator: ", ", values: fileErrors)}");
         }
@@ -65,26 +64,25 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
         using var zipStream = new MemoryStream();
         using (var archive = new ZipArchive(stream: zipStream, mode: ZipArchiveMode.Create, leaveOpen: true))
         {
-
             await SaveFileToZipArchive(
                 archive: archive,
                 fileName: "anode_curves_measurement_config.uts",
-                content: anodeCurvesConfig);
-            await SaveFileToZipArchive(archive: archive, fileName: "anode_curves.utd", content: anodeCurves);
-            await SaveFileToZipArchive(archive: archive, fileName: "quick_test.txt", content: quickTest);
+                content: anodeCurvesConfig,
+                cancellationToken);
+            await SaveFileToZipArchive(archive: archive, fileName: "anode_curves.utd", content: anodeCurves, cancellationToken);
+            await SaveFileToZipArchive(archive: archive, fileName: "quick_test.txt", content: quickTest, cancellationToken);
         }
 
         zipStream.Position = 0;
 
         return zipStream.ToArray();
-
     }
 
-    private async static Task SaveFileToZipArchive(ZipArchive archive, string fileName, byte[] content)
+    private async static Task SaveFileToZipArchive(ZipArchive archive, string fileName, byte[] content, CancellationToken cancellationToken)
     {
         var entry = archive.CreateEntry(fileName);
         await using var entryStream = entry.Open();
-        await entryStream.WriteAsync(content, 0, content.Length);
+        await entryStream.WriteAsync(content, cancellationToken);
     }
 
 
@@ -113,6 +111,7 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
             {
                 // второго графика нет
                 0 => new TriodeAnodeCurves(pmaxWatt, measurementPoints),
+
                 // Is
                 2 => new DoubleTriodeAnodeCurves(pmaxWatt, measurementPoints),
                 _ => throw new ArgumentOutOfRangeException(nameof(y2AxisVariable))
@@ -140,9 +139,11 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
         {
             var match = lineRegex.Match(line);
             if (!match.Success)
+            {
                 continue;
+            }
 
-            var value = int.Parse(match.Groups[1].Value);
+            var value = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
             var comment = doubleSpaceRegex.Replace(match.Groups[2].Value.Trim(), " ");
 
             config[comment] = value;
@@ -231,8 +232,10 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
             errors.Add("exactly 5 or 3 files expected");
         }
 
-        if (errors.Count <= 0) return true;
-
+        if (errors.Count <= 0)
+        {
+            return true;
+        }
 
         anodeCurves = null;
         quickTest = null;
@@ -264,7 +267,7 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
             .Select(l => l.Split(separator: new[] { "  " }, options: StringSplitOptions.RemoveEmptyEntries))
             .Select(parts =>
             {
-                var currentCurve = int.Parse(parts[idxCurve]);
+                var currentCurve = int.Parse(parts[idxCurve], CultureInfo.InvariantCulture);
 
                 var currentIa = double.Parse(s: parts[idxIa], provider: CultureInfo.InvariantCulture);
                 var currentIs = double.Parse(s: parts[idxIs], provider: CultureInfo.InvariantCulture);
@@ -282,8 +285,7 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
                         Vg: currentVg,
                         Va: currentVa,
                         Vs: currentVs,
-                        Vf: currentVf
-                    )
+                        Vf: currentVf),
                 };
 
                 return result;

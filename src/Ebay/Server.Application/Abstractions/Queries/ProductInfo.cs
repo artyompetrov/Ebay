@@ -73,7 +73,7 @@ public record ProductInfo(
             productNames.Add(Name);
 
             if (RuSearchQueries == null)
-                throw new NullReferenceException($"{nameof(RuSearchQueries)} is null");
+                throw new InvalidOperationException($"{nameof(RuSearchQueries)} is null");
 
             foreach (var ruSearchQuery in RuSearchQueries)
             {
@@ -82,7 +82,7 @@ public record ProductInfo(
 
             var processed = productNames.Select(word =>
             {
-                var w = word.ToLower().Trim();
+                var w = word.ToLowerInvariant().Trim();
 
                 // Simple string replacements
                 foreach (var kvp in SimpleReplacements)

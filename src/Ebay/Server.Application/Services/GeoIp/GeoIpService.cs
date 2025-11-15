@@ -6,7 +6,7 @@ namespace Server.Application.Services.GeoIp;
 
 public sealed record GeoIpLocation(string? Country, string? City);
 
-public class GeoIpService
+public class GeoIpService : IDisposable
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<GeoIpService> _logger;
@@ -95,7 +95,9 @@ public class GeoIpService
         }
 
         _logger.LogInformation(
+#pragma warning disable CA2254
             message: prefix + " X-Real-IP: {XRealIp}. Country: {Country}. City: {City}. UserAgent: {UserAgent}",
+#pragma warning restore CA2254
             realIp,
             location?.Country,
             location?.City,
@@ -103,4 +105,11 @@ public class GeoIpService
     }
 
     private sealed record IpApiResponse(string? Country, string? City);
+
+    public void Dispose()
+    {
+        _httpClient.Dispose();
+        _semaphore.Dispose();
+        GC.SuppressFinalize(this);
+    }
 }

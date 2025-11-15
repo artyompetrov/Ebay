@@ -1,3 +1,4 @@
+using System.Globalization;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Consumers.PriceCalculator;
@@ -356,7 +357,7 @@ internal class EbayControllerImplementation : IEbayController
 
         await _applicationContext.Lots.Upsert(dbLotInfo).RunAsync(cancellationToken);
 
-        var titleChangedDate = DateTime.Parse(lotInfo.TitleChangeDate).ToUniversalTime();
+        var titleChangedDate = DateTime.Parse(lotInfo.TitleChangeDate, CultureInfo.InvariantCulture).ToUniversalTime();
 
         var filteredPurchaseHistory = lotInfo.PurchaseHistory
             .Select(x => x.ToDbPurchase(lotId: lotInfo.LotId))
@@ -418,7 +419,7 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken
     )
     {
-        var dbLot = await _applicationContext.IgnoredLots.AnyAsync(x => x.LotId == lotId && x.ProductId == productId);
+        var dbLot = await _applicationContext.IgnoredLots.AnyAsync(x => x.LotId == lotId && x.ProductId == productId, cancellationToken: cancellationToken);
 
         return dbLot;
     }
@@ -655,7 +656,7 @@ internal class EbayControllerImplementation : IEbayController
 
         return result.Select(
                 x => new LotState(
-                    lastUpdate: x.UpdateDate.ToString(WellKnown.Formats.TimeFormat),
+                    lastUpdate: x.UpdateDate.ToString(WellKnown.Formats.TimeFormat, CultureInfo.InvariantCulture),
                     lotId: x.Id
                 )
             )

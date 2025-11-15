@@ -2,7 +2,7 @@ namespace Server.Domain.Measurements.MeasurementTypes.Base;
 
 public abstract class MeasurementTypeBase
 {
-    protected readonly Dictionary<int, MeasurementPoint[]> MeasurementPoints;
+    protected Dictionary<int, MeasurementPoint[]> MeasurementPoints { get; }
 
     /// <param name="pmaxWatt">Максимальная мощность замера в ваттах</param>
     /// <param name="measurementPoints">Данные замера</param>
@@ -92,7 +92,7 @@ public abstract class MeasurementTypeBase
         CurveSets = curves;
     }
 
-    private MeasurementPointWithDelta[] ToMeasurementPointWithDelta(MeasurementPoint[] measurementPoints)
+    private static MeasurementPointWithDelta[] ToMeasurementPointWithDelta(MeasurementPoint[] measurementPoints)
     {
         var previousIa = 0.0;
         var previousIs = 0.0;
@@ -131,7 +131,7 @@ public abstract class MeasurementTypeBase
     /// <summary>
     /// Транспонирует матрицу анодной характеристики, чтобы получить сеточную
     /// </summary>
-    protected Dictionary<int, MeasurementPoint[]> GetGridCurvesFromAnodeCurves(Dictionary<int, MeasurementPoint[]> anodeCurves)
+    protected static Dictionary<int, MeasurementPoint[]> GetGridCurvesFromAnodeCurves(Dictionary<int, MeasurementPoint[]> anodeCurves)
     {
         // Определяем максимальную длину массива (чтобы знать количество "столбцов")
         var maxCols = anodeCurves.Values.Max(arr => arr.Length);
@@ -198,7 +198,9 @@ public abstract class MeasurementTypeBase
 
     public abstract string XLabel { get; }
 
+#pragma warning disable CA1822
     public string YLabel => "I (mA)";
+#pragma warning restore CA1822
 
     public bool HasValuesAbovePmax { get; }
 

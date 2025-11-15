@@ -5,6 +5,7 @@ using Server.Application.Abstractions.Queries;
 using Server.Application.Abstractions.Repositories;
 using Server.Application.Consumers.PriceCalculator;
 using Server.Domain;
+using Server.Domain.Exceptions;
 
 namespace Server.Application.Services;
 
@@ -61,7 +62,7 @@ internal class ProductService
 
         if (product == null)
         {
-            throw new ApplicationException("product not found");
+            throw new InvalidOperationException("product not found");
         }
 
         product.Update(name: name, weight: weight, searchQueries: searchQueries, ruSearchQueries: ruSearchQueries);
@@ -89,7 +90,7 @@ internal class ProductService
 
         if (product == null)
         {
-            throw new ApplicationException("Product not found");
+            throw new InvalidOperationException("Product not found");
         }
 
         product.MarkAsChecked();

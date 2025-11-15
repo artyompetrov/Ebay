@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using HtmlAgilityPack;
@@ -39,10 +40,10 @@ public class ChipfindAdapter : IChipfindAdapter
 
         foreach (var item in xdoc.Descendants("item"))
         {
-            var titleAndSeller = item.Element("title")?.Value ?? throw new NullReferenceException("title");
-            var link = item.Element("link")?.Value ?? throw new NullReferenceException("link");
-            var description = item.Element("description")?.Value ?? throw new NullReferenceException("description");
-            var pubDate = item.Element("pubDate")?.Value ?? throw new NullReferenceException("pubDate");
+            var titleAndSeller = item.Element("title")?.Value ?? throw new InvalidOperationException("title");
+            var link = item.Element("link")?.Value ?? throw new InvalidOperationException("link");
+            var description = item.Element("description")?.Value ?? throw new InvalidOperationException("description");
+            var pubDate = item.Element("pubDate")?.Value ?? throw new InvalidOperationException("pubDate");
 
             var doc = new HtmlDocument();
             doc.LoadHtml(description);
@@ -74,14 +75,14 @@ public class ChipfindAdapter : IChipfindAdapter
 
             if (items.Any(x => x.Length > 1000))
             {
-                _logger.LogWarning("Suspicious huge items in adveritsement: {description}", description.Substring(0, 1000));
+                _logger.LogWarning("Suspicious huge items in advertisement: {Description}", description.Substring(0, 1000));
             }
 
             result.Add(
                 new SaleAdvertisement(
                     Title: title,
-                    Seller: seller.ToLower(),
-                    Date: DateTime.Parse(pubDate).ToUniversalTime(),
+                    Seller: seller.ToLower(CultureInfo.InvariantCulture),
+                    Date: DateTime.Parse(pubDate, CultureInfo.InvariantCulture).ToUniversalTime(),
                     Link: new Uri(link),
                     Items: items,
                     Body: description));

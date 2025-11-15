@@ -45,7 +45,7 @@ internal class CalculateTotalAveragePriceForProductConsumer : IConsumer<Batch<Ca
             var dateTime = DateTime.UtcNow;
             foreach (var lotCalculationResult in lotCalculationResults)
             {
-                if (lotCalculationResult == null) throw new NullReferenceException(nameof(lotCalculationResults));
+                if (lotCalculationResult == null) throw new InvalidOperationException(nameof(lotCalculationResults));
                 revenue += lotCalculationResult.Revenue;
                 listingPrice += lotCalculationResult.ListingPriceSumm;
                 quantityTotal += lotCalculationResult.QuantityTotal;
@@ -60,7 +60,7 @@ internal class CalculateTotalAveragePriceForProductConsumer : IConsumer<Batch<Ca
 
             if (product == null)
             {
-                _logger.LogWarning("Product with id {productId} not found", productId);
+                _logger.LogWarning("Product with id {ProductId} not found", productId);
                 return;
             }
 

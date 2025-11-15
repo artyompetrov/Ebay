@@ -75,7 +75,7 @@ internal class MatchedMeasurementService
 
                 measurements.Add(message.ToString());
             }
-            _logger.LogInformation("Publishing {messageType}, {messageIds}", nameof(CalculateMatchedPair), string.Join(",", measurements));
+            _logger.LogInformation("Publishing {MessageType}, {MessageIds}", nameof(CalculateMatchedPair), string.Join(",", measurements));
             await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
     }

@@ -4,8 +4,10 @@ using Server.Domain.Measurements.MeasurementTypes;
 
 namespace Server.Domain.Measurements;
 
-public sealed class ProductMeasurement : AggregateRoot<string>
+public sealed partial class ProductMeasurement : AggregateRoot<string>
 {
+    
+    
     private ProductMeasurement(
         string id,
         Guid productId,
@@ -34,7 +36,9 @@ public sealed class ProductMeasurement : AggregateRoot<string>
         Validate();
     }
 
-
+    [GeneratedRegex("^[A-Z0-9]+$")]
+    private static partial Regex MeasurementIdRegex();
+    
     public static ProductMeasurement Create(
         string id,
         Guid productId,
@@ -44,7 +48,7 @@ public sealed class ProductMeasurement : AggregateRoot<string>
         IMeasurementFileParser measurementFileParser
     )
     {
-        if (!Regex.IsMatch(input: id, pattern: "^[A-Z0-9]+$"))
+        if (!MeasurementIdRegex().IsMatch(input: id))
         {
             throw new MeasurementException($"Incorrect MeasurementId Format {id}");
         }

@@ -3,7 +3,7 @@ using Server.Domain.Measurements;
 
 namespace Sever.Adapters.EF.ReadModel.ReadModelSchema;
 
-internal class MatchedPairDifferenceView : IViewProjection<MatchedPairDifference, MatchedPairDifferenceView>
+internal sealed class MatchedPairDifferenceView : IViewProjection<MatchedPairDifference, MatchedPairDifferenceView>
 {
     public ComparisonMode ComparisonMode { get; set; }
 

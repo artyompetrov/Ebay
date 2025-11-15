@@ -3,7 +3,7 @@ using Server.Domain;
 
 namespace Sever.Adapters.EF.ReadModel.ReadModelSchema;
 
-internal class ProductPassportView : IViewProjection<ProductPassport, ProductPassportView>
+internal sealed class ProductPassportView : IViewProjection<ProductPassport, ProductPassportView>
 {
     public required Guid ProductId { get; set; }
     public ProductView Product { get; set; } = null!;

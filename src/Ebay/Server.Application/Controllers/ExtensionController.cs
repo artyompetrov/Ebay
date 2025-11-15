@@ -40,7 +40,7 @@ public class ExtensionController : ControllerBase
         var extensionsFolder = GetExtensionsFolder();
 
         var versionedFiles = GetVersionedFiles(folder: extensionsFolder, extensionName: extensionName).ToList();
-        if (!versionedFiles.Any())
+        if (versionedFiles.Count == 0)
         {
             return StatusCode(statusCode: 500, value: $"No properly versioned CRX files found for extension '{extensionName}'.");
         }
@@ -124,7 +124,7 @@ public class ExtensionController : ControllerBase
         var extensionsFolder = Path.Combine(path1: _env.WebRootPath, path2: "chrome_extensions");
         if (!Directory.Exists(extensionsFolder))
         {
-            throw new Exception("Extensions folder not found.");
+            throw new InvalidOperationException("Extensions folder not found.");
         }
         return extensionsFolder;
     }

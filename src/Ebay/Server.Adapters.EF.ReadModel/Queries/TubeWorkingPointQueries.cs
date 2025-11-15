@@ -3,7 +3,7 @@ using Server.Application.Abstractions.Queries;
 
 namespace Sever.Adapters.EF.ReadModel.Queries;
 
-internal class TubeWorkingPointQueries : ITubeWorkingPointQueries
+internal sealed class TubeWorkingPointQueries : ITubeWorkingPointQueries
 {
     private readonly ReadDbContext _context;
 
