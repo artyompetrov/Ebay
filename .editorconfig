@@ -17,21 +17,24 @@ indent_size = 4
 # Microsoft .NET properties
 #### !!! Important !!! Enable dotnet_diagnostic ####
 dotnet_analyzer_diagnostic.severity = error
-dotnet_analyzer_diagnostic.category-Performance.severity = error
-dotnet_analyzer_diagnostic.category-Reliability.severity = error
-dotnet_analyzer_diagnostic.category-Design.severity = error
-dotnet_analyzer_diagnostic.category-Usage.severity = error
-dotnet_analyzer_diagnostic.category-Security.severity = error
-dotnet_analyzer_diagnostic.category-Maintainability.severity = error
-dotnet_analyzer_diagnostic.category-Interoperability.severity = error
 
-#исключения
+# исключения
 dotnet_diagnostic.SYSLIB1045.severity = none
 dotnet_diagnostic.CA1848.severity = none
 dotnet_diagnostic.CA1861.severity = none
 dotnet_diagnostic.CA1822.severity = none
 dotnet_diagnostic.CA1707.severity = none
 
+# Полностью вырубаем все StyleCop.Analyzers - т.к. мы пользуемся dotnet format и вручную не хотим ничего редактировать
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.AlternativeRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.DocumentationRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.LayoutRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.MaintainabilityRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.NamingRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.OrderingRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.ReadabilityRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.SpacingRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.SpecialRules.severity = none
 
 csharp_new_line_before_members_in_object_initializers = true
 csharp_preferred_modifier_order = public, protected, internal, private, new, async, static, virtual, abstract, override, sealed, readonly, extern, unsafe, volatile, file, required:suggestion

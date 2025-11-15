@@ -168,8 +168,8 @@ namespace Server.Adapters.uTracer
         private static bool ReadMeasurementFile(
             byte[] measurementData,
             [NotNullWhen(false)] out List<string>? errors,
-            [NotNullWhen(true)] out byte[]? anodeCurvesConfig,
-            [NotNullWhen(true)] out byte[]? anodeCurves,
+            [NotNullWhen(true)] out byte[] ? anodeCurvesConfig,
+            [NotNullWhen(true)] out byte[] ? anodeCurves,
             [NotNullWhen(true)] out byte[]? quickTest,
             out int fileCount)
         {
@@ -203,7 +203,7 @@ namespace Server.Adapters.uTracer
                       неправильные названия остались в zip файлах)*/
                      fileName.EndsWith("plate_curves.uts.utd", StringComparison.Ordinal))
                 {
-                    //замер grid curves вообще теперь не делается
+                    // замер grid curves вообще теперь не делается
                 }
                 else if (fileName.EndsWith(".txt", StringComparison.Ordinal))
                 {
@@ -219,7 +219,7 @@ namespace Server.Adapters.uTracer
                       неправильные названия остались в zip файлах)*/
                      fileName.EndsWith("plate_curves.uts", StringComparison.Ordinal))
                 {
-                    //замер grid curves вообще теперь не делается
+                    // замер grid curves вообще теперь не делается
                 }
                 else
                 {
