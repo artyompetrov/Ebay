@@ -10,7 +10,7 @@ namespace Server.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<int>(
+            _ = migrationBuilder.AddColumn<int>(
                 name: "State",
                 table: "ProductMeasurements",
                 type: "integer",
@@ -21,7 +21,7 @@ namespace Server.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
+            _ = migrationBuilder.DropColumn(
                 name: "State",
                 table: "ProductMeasurements");
         }

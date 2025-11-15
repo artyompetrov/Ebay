@@ -10,12 +10,12 @@ namespace Server.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
+            _ = migrationBuilder.RenameColumn(
                 name: "State",
                 table: "ProductMeasurements",
                 newName: "ProductState");
 
-            migrationBuilder.AddColumn<string>(
+            _ = migrationBuilder.AddColumn<string>(
                 name: "ManufactureDate",
                 table: "ProductMeasurements",
                 type: "character varying(7)",
@@ -23,7 +23,7 @@ namespace Server.Migrations
                 nullable: false,
                 defaultValue: "");
 
-            migrationBuilder.AddColumn<int>(
+            _ = migrationBuilder.AddColumn<int>(
                 name: "MeasurementState",
                 table: "ProductMeasurements",
                 type: "integer",
@@ -34,15 +34,15 @@ namespace Server.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
+            _ = migrationBuilder.DropColumn(
                 name: "ManufactureDate",
                 table: "ProductMeasurements");
 
-            migrationBuilder.DropColumn(
+            _ = migrationBuilder.DropColumn(
                 name: "MeasurementState",
                 table: "ProductMeasurements");
 
-            migrationBuilder.RenameColumn(
+            _ = migrationBuilder.RenameColumn(
                 name: "ProductState",
                 table: "ProductMeasurements",
                 newName: "State");

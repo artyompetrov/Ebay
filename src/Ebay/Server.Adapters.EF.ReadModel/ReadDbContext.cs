@@ -4,77 +4,78 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Server.Domain;
 using Sever.Adapters.EF.ReadModel.ReadModelSchema;
 
-namespace Sever.Adapters.EF.ReadModel;
-
-internal sealed class ReadDbContext : DbContext
+namespace Sever.Adapters.EF.ReadModel
 {
-    public ReadDbContext(
-        DbContextOptions<ReadDbContext> options
-    ) : base(options: options)
+    internal sealed class ReadDbContext : DbContext
     {
-        ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-    }
-
-    protected override void OnModelCreating(ModelBuilder b)
-    {
-        b.Entity<ProductMeasurementView>(eb =>
+        public ReadDbContext(
+            DbContextOptions<ReadDbContext> options
+        ) : base(options: options)
         {
-            eb.ToView("ProductMeasurements").HasKey(x => x.Id);
-        });
+            ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+        }
 
-        b.Entity<ProductPassportView>(eb =>
+        protected override void OnModelCreating(ModelBuilder b)
         {
-            eb.ToView("ProductPassports").HasKey(x => x.Id);
-        });
-
-        b.Entity<ProductView>(eb =>
-        {
-            eb.ToView("Products").HasKey(x => x.Id);
-
-            eb.HasOne(x => x.TubeWorkingPoint)
-                .WithOne(x => x.Product)
-                .HasForeignKey<TubeWorkingPointView>(tp => tp.Id)
-                .HasPrincipalKey<ProductView>(p => p.Id);
-
-            eb.OwnsMany(p => p.SearchQueries, q =>
+            _ = b.Entity<ProductMeasurementView>(eb =>
             {
-                q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
-                q.HasKey(x => x.Id);
-                q.ToTable("Product_SearchQueries");
+                _ = eb.ToView("ProductMeasurements").HasKey(x => x.Id);
             });
 
-            eb.OwnsMany(p => p.RuSearchQueries, q =>
+            _ = b.Entity<ProductPassportView>(eb =>
             {
-                q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
-                q.HasKey(x => x.Id);
-                q.ToTable("Product_RuSearchQueries");
+                _ = eb.ToView("ProductPassports").HasKey(x => x.Id);
             });
 
-            eb.Property(o => o.ProductCalculationResult)
-                .HasConversion(new ValueConverter<ProductCalculationResult?, string>(
-                    v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
-                    v => JsonSerializer.Deserialize<ProductCalculationResult?>(v, (JsonSerializerOptions?)null)
-                ));
-        });
+            _ = b.Entity<ProductView>(eb =>
+            {
+                _ = eb.ToView("Products").HasKey(x => x.Id);
 
-        b.Entity<MatchedPairDifferenceView>(eb =>
-        {
-            eb.ToView("MatchedPairDifferences").HasKey(x => new { MeasurementId1 = x.Measurement1Id, MeasurementId2 = x.Measurement2Id, x.ComparisonMode });
-        });
+                _ = eb.HasOne(x => x.TubeWorkingPoint)
+                    .WithOne(x => x.Product)
+                    .HasForeignKey<TubeWorkingPointView>(tp => tp.Id)
+                    .HasPrincipalKey<ProductView>(p => p.Id);
 
-        b.Entity<TubeWorkingPointView>(x =>
-        {
-            x.ToView("TubeWorkingPoints").HasKey(x => x.Id);
-        });
+                _ = eb.OwnsMany(p => p.SearchQueries, q =>
+                {
+                    _ = q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
+                    _ = q.HasKey(x => x.Id);
+                    _ = q.ToTable("Product_SearchQueries");
+                });
+
+                _ = eb.OwnsMany(p => p.RuSearchQueries, q =>
+                {
+                    _ = q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
+                    _ = q.HasKey(x => x.Id);
+                    _ = q.ToTable("Product_RuSearchQueries");
+                });
+
+                _ = eb.Property(o => o.ProductCalculationResult)
+                    .HasConversion(new ValueConverter<ProductCalculationResult?, string>(
+                        v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
+                        v => JsonSerializer.Deserialize<ProductCalculationResult?>(v, (JsonSerializerOptions?)null)
+                    ));
+            });
+
+            _ = b.Entity<MatchedPairDifferenceView>(eb =>
+            {
+                _ = eb.ToView("MatchedPairDifferences").HasKey(x => new { MeasurementId1 = x.Measurement1Id, MeasurementId2 = x.Measurement2Id, x.ComparisonMode });
+            });
+
+            _ = b.Entity<TubeWorkingPointView>(x =>
+            {
+                _ = x.ToView("TubeWorkingPoints").HasKey(x => x.Id);
+            });
+        }
+
+        public DbSet<ProductMeasurementView> ProductMeasurements { get; set; } = null!;
+
+        public DbSet<ProductPassportView> Passports { get; set; } = null!;
+
+        public DbSet<ProductView> Products { get; set; } = null!;
+
+        public DbSet<MatchedPairDifferenceView> MatchedPairDifferences { get; set; } = null!;
+
+        public DbSet<TubeWorkingPointView> TubeWorkingPoints { get; set; } = null!;
     }
-
-    public DbSet<ProductMeasurementView> ProductMeasurements { get; set; } = null!;
-
-    public DbSet<ProductPassportView> Passports { get; set; } = null!;
-
-    public DbSet<ProductView> Products { get; set; } = null!;
-
-    public DbSet<MatchedPairDifferenceView> MatchedPairDifferences { get; set; } = null!;
-
-    public DbSet<TubeWorkingPointView> TubeWorkingPoints { get; set; } = null!;
 }

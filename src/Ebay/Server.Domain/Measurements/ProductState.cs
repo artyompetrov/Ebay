@@ -1,7 +1,8 @@
-namespace Server.Domain.Measurements;
-
-public enum ProductState
+namespace Server.Domain.Measurements
 {
-    New = 0,
-    Used
+    public enum ProductState
+    {
+        New = 0,
+        Used
+    }
 }

@@ -10,7 +10,7 @@ namespace Server.Application.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<double>(
+            _ = migrationBuilder.AddColumn<double>(
                 name: "NominalCurrent",
                 table: "TubeWorkingPoints",
                 type: "double precision",
@@ -21,7 +21,7 @@ namespace Server.Application.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
+            _ = migrationBuilder.DropColumn(
                 name: "NominalCurrent",
                 table: "TubeWorkingPoints");
         }

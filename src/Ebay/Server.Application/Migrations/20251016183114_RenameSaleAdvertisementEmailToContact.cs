@@ -10,7 +10,7 @@ namespace Server.Application.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
+            _ = migrationBuilder.RenameColumn(
                 name: "Email",
                 table: "SaleAdvertisements",
                 newName: "Contact");
@@ -19,7 +19,7 @@ namespace Server.Application.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
+            _ = migrationBuilder.RenameColumn(
                 name: "Contact",
                 table: "SaleAdvertisements",
                 newName: "Email");

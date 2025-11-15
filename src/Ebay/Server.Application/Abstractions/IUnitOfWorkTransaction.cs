@@ -1,6 +1,7 @@
-namespace Server.Application.Abstractions;
-
-public interface IUnitOfWorkTransaction : IDisposable, IAsyncDisposable
+namespace Server.Application.Abstractions
 {
-    Task CommitAsync(CancellationToken cancellationToken);
+    public interface IUnitOfWorkTransaction : IDisposable, IAsyncDisposable
+    {
+        Task CommitAsync(CancellationToken cancellationToken);
+    }
 }

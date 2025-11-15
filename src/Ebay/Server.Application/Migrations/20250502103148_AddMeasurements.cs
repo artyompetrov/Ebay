@@ -10,7 +10,7 @@ namespace Server.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "ProductMeasurements",
                 columns: table => new
                 {
@@ -20,8 +20,8 @@ namespace Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ProductMeasurements", x => x.Id);
-                    table.ForeignKey(
+                    _ = table.PrimaryKey("PK_ProductMeasurements", x => x.Id);
+                    _ = table.ForeignKey(
                         name: "FK_ProductMeasurements_Products_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Products",
@@ -29,7 +29,7 @@ namespace Server.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_ProductMeasurements_ProductId",
                 table: "ProductMeasurements",
                 column: "ProductId");
@@ -38,7 +38,7 @@ namespace Server.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "ProductMeasurements");
         }
     }

@@ -1,13 +1,14 @@
 using Microsoft.Extensions.DependencyInjection;
 using Server.Domain.Measurements;
 
-namespace Server.Adapters.uTracer;
-
-public static class ServiceCollectionExtensions
+namespace Server.Adapters.uTracer
 {
-    public static void AddUTracerAdapter(
-        this IServiceCollection services)
+    public static class ServiceCollectionExtensions
     {
-        services.AddScoped<IMeasurementFileParser, MeasurementFileParser>();
+        public static void AddUTracerAdapter(
+            this IServiceCollection services)
+        {
+            _ = services.AddScoped<IMeasurementFileParser, MeasurementFileParser>();
+        }
     }
 }

@@ -10,12 +10,12 @@ namespace Server.Application.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
+            _ = migrationBuilder.RenameColumn(
                 name: "ManufactureDate",
                 table: "ProductMeasurements",
                 newName: "ManufactureCode");
 
-            migrationBuilder.AlterColumn<string>(
+            _ = migrationBuilder.AlterColumn<string>(
                 name: "ManufactureCode",
                 table: "ProductMeasurements",
                 type: "character varying(128)",
@@ -29,7 +29,7 @@ namespace Server.Application.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<string>(
+            _ = migrationBuilder.AlterColumn<string>(
                 name: "ManufactureCode",
                 table: "ProductMeasurements",
                 type: "character varying(7)",
@@ -39,7 +39,7 @@ namespace Server.Application.Migrations
                 oldType: "character varying(128)",
                 oldMaxLength: 128);
 
-            migrationBuilder.RenameColumn(
+            _ = migrationBuilder.RenameColumn(
                 name: "ManufactureCode",
                 table: "ProductMeasurements",
                 newName: "ManufactureDate");

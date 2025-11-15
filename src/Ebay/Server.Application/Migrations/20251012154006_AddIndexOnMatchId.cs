@@ -10,7 +10,7 @@ namespace Server.Application.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_ProductMeasurements_MatchId",
                 table: "ProductMeasurements",
                 column: "MatchId");
@@ -19,7 +19,7 @@ namespace Server.Application.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropIndex(
+            _ = migrationBuilder.DropIndex(
                 name: "IX_ProductMeasurements_MatchId",
                 table: "ProductMeasurements");
         }

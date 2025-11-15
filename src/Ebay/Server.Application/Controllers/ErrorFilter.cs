@@ -3,67 +3,63 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Server.Controllers.Generated;
 
-namespace Server.Application.Controllers;
-
-public sealed class ErrorFilter : IAsyncActionFilter, IExceptionFilter
+namespace Server.Application.Controllers
 {
-    private readonly ProblemDetailsFactory _problemDetailsFactory;
-
-    public ErrorFilter(ProblemDetailsFactory problemDetailsFactory)
+    public sealed class ErrorFilter(ProblemDetailsFactory problemDetailsFactory) : IAsyncActionFilter, IExceptionFilter
     {
-        _problemDetailsFactory = problemDetailsFactory;
-    }
+        private readonly ProblemDetailsFactory _problemDetailsFactory = problemDetailsFactory;
 
-    public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
-    {
-        if (!context.ModelState.IsValid)
+        public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
-            var problemDetails = _problemDetailsFactory.CreateValidationProblemDetails(
-                httpContext: context.HttpContext,
-                modelStateDictionary: context.ModelState,
-                type: nameof(ValidationProblemDetailedInfo),
-                statusCode: 400);
-
-            context.Result = new ObjectResult(problemDetails)
+            if (!context.ModelState.IsValid)
             {
-                StatusCode = problemDetails.Status
-            };
+                var problemDetails = _problemDetailsFactory.CreateValidationProblemDetails(
+                    httpContext: context.HttpContext,
+                    modelStateDictionary: context.ModelState,
+                    type: nameof(ValidationProblemDetailedInfo),
+                    statusCode: 400);
 
-            return;
+                context.Result = new ObjectResult(problemDetails)
+                {
+                    StatusCode = problemDetails.Status
+                };
+
+                return;
+            }
+
+            _ = await next();
         }
 
-        await next();
-    }
-
-    public void OnException(ExceptionContext context)
-    {
-        var exception = context.Exception;
-
-        if (exception is NonOkHttpAnswerException nonOkHttpAnswerException)
+        public void OnException(ExceptionContext context)
         {
-            context.Result = new ObjectResult(nonOkHttpAnswerException.ProblemDetails)
+            var exception = context.Exception;
+
+            if (exception is NonOkHttpAnswerException nonOkHttpAnswerException)
             {
-                StatusCode = nonOkHttpAnswerException.ProblemDetails.Status
-            };
-        }
-        else
-        {
-            var httpContext = context.HttpContext;
-
-            var problemDetails = _problemDetailsFactory.CreateProblemDetails(
-                httpContext: httpContext,
-                type: "UnhandledError",
-                statusCode: 500,
-                title: exception.Message,
-                detail: exception.ToString());
-
-            context.Result = new ObjectResult(problemDetails)
+                context.Result = new ObjectResult(nonOkHttpAnswerException.ProblemDetails)
+                {
+                    StatusCode = nonOkHttpAnswerException.ProblemDetails.Status
+                };
+            }
+            else
             {
-                StatusCode = problemDetails.Status
-            };
+                var httpContext = context.HttpContext;
+
+                var problemDetails = _problemDetailsFactory.CreateProblemDetails(
+                    httpContext: httpContext,
+                    type: "UnhandledError",
+                    statusCode: 500,
+                    title: exception.Message,
+                    detail: exception.ToString());
+
+                context.Result = new ObjectResult(problemDetails)
+                {
+                    StatusCode = problemDetails.Status
+                };
+            }
+
+
+            context.ExceptionHandled = true;
         }
-
-
-        context.ExceptionHandled = true;
     }
 }

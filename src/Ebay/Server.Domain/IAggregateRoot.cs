@@ -1,6 +1,7 @@
-namespace Server.Domain;
-
-public interface IAggregateRoot
+namespace Server.Domain
 {
-    uint Version { get; }
+    public interface IAggregateRoot
+    {
+        uint Version { get; }
+    }
 }

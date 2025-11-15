@@ -20,106 +20,107 @@ using Server.Application.Services.Measurement;
 using Server.Application.Services.MeasurementPlot;
 using Server.Controllers.Generated;
 
-namespace Server.Application;
-
-public static class ServiceCollectionExtensions
+namespace Server.Application
 {
-    public static void AddApplicationServices(
-        this IServiceCollection services,
-        EbayServerOptions options,
-        string connectionString)
+    public static class ServiceCollectionExtensions
     {
-        var appAssembly = typeof(ServiceCollectionExtensions).Assembly;
-
-        services.AddSingleton(options);
-
-        services.AddDbContext<ApplicationDbContext>(o => o.UseNpgsql(connectionString));
-        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ApplicationDbContext>());
-        services.AddScoped<ShippingRatesService>();
-        services.AddSingleton(new DatabaseConcurrentAccessSemaphore(
-                maxConcurrent: new Npgsql.NpgsqlConnectionStringBuilder(connectionString).MaxPoolSize / 2));
-        services.AddScoped<DbCache>();
-        services.AddScoped<MeasurementService>();
-        services.AddScoped<MatchedMeasurementService>();
-        services.AddScoped<MeasurementPlotService>();
-        services.AddScoped<TubeWorkingPointService>();
-        services.AddScoped<ProductService>();
-        services.AddHttpClient<GeoIpService>(c =>
+        public static void AddApplicationServices(
+            this IServiceCollection services,
+            EbayServerOptions options,
+            string connectionString)
         {
-            c.Timeout = TimeSpan.FromSeconds(2);
-        });
+            var appAssembly = typeof(ServiceCollectionExtensions).Assembly;
 
-        services.AddScoped<IEbayController, EbayControllerImplementation>();
-        services.AddDefaultIdentity<ApplicationUser>(o => o.SignIn.RequireConfirmedAccount = true)
-            .AddEntityFrameworkStores<ApplicationDbContext>();
+            _ = services.AddSingleton(options);
 
-        services.AddHostedService<CurrencyRateBackgroundTask>();
-        services.AddHostedService<ChipfindBackgroundTask>();
-        services.AddHostedService<SaleAdvertisementCleanupBackgroundTask>();
+            _ = services.AddDbContext<ApplicationDbContext>(o => o.UseNpgsql(connectionString));
+            _ = services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ApplicationDbContext>());
+            _ = services.AddScoped<ShippingRatesService>();
+            _ = services.AddSingleton(new DatabaseConcurrentAccessSemaphore(
+                    maxConcurrent: new Npgsql.NpgsqlConnectionStringBuilder(connectionString).MaxPoolSize / 2));
+            _ = services.AddScoped<DbCache>();
+            _ = services.AddScoped<MeasurementService>();
+            _ = services.AddScoped<MatchedMeasurementService>();
+            _ = services.AddScoped<MeasurementPlotService>();
+            _ = services.AddScoped<TubeWorkingPointService>();
+            _ = services.AddScoped<ProductService>();
+            _ = services.AddHttpClient<GeoIpService>(c =>
+            {
+                c.Timeout = TimeSpan.FromSeconds(2);
+            });
 
-        services.AddOptions<SqlTransportOptions>()
-            .Configure(o => { o.ConnectionString = connectionString; });
+            _ = services.AddScoped<IEbayController, EbayControllerImplementation>();
+            _ = services.AddDefaultIdentity<ApplicationUser>(o => o.SignIn.RequireConfirmedAccount = true)
+                .AddEntityFrameworkStores<ApplicationDbContext>();
 
-        services.AddPostgresMigrationHostedService(x =>
+            _ = services.AddHostedService<CurrencyRateBackgroundTask>();
+            _ = services.AddHostedService<ChipfindBackgroundTask>();
+            _ = services.AddHostedService<SaleAdvertisementCleanupBackgroundTask>();
+
+            _ = services.AddOptions<SqlTransportOptions>()
+                .Configure(o => { o.ConnectionString = connectionString; });
+
+            _ = services.AddPostgresMigrationHostedService(x =>
+            {
+                x.CreateDatabase = false;
+                x.CreateInfrastructure = true;
+            });
+            _ = services.AddMassTransit(x =>
+            {
+                _ = x.AddConsumer<CalculatePricesForAllConsumer>();
+                _ = x.AddConsumer<CalculatePricesForProductConsumer>();
+                _ = x.AddConsumer<CalculatePricesForLotConsumer>();
+                _ = x.AddConsumer<CalculateEbayCurvesForMeasurementConsumer>(c =>
+                {
+                    c.UseConcurrencyLimit(10);
+                });
+                _ = x.AddConsumer<MatchedPairsCalculator>(c =>
+                {
+                    c.UseConcurrencyLimit(1);
+                });
+                _ = x.AddConsumer<CalculateTotalAveragePriceForProductConsumer>(c => c.Options<BatchOptions>(o =>
+                {
+                    o.ConcurrencyLimit = 1;
+                    o.MessageLimit = 100;
+                }));
+                x.AddEntityFrameworkOutbox<ApplicationDbContext>(o =>
+                {
+                    _ = o.UsePostgres();
+                    o.UseBusOutbox();
+                });
+
+                x.AddSqlMessageScheduler();
+
+                x.UsingPostgres((context, cfg) =>
+                {
+                    cfg.UseSqlMessageScheduler();
+
+                    cfg.ConfigureEndpoints(context);
+                });
+
+            });
+            _ = services.AddHostedService<DbCacheCleanupHostedService>();
+            _ = services.AddHostedService<MeasurementPlotWarmupHostedService>();
+            _ = services.AddDatabaseDeveloperPageExceptionFilter();
+
+            _ = services.AddControllersWithViews(options =>
+                {
+                    _ = options.Filters.Add<ErrorFilter>();
+                })
+                .AddApplicationPart(appAssembly)
+                .AddNewtonsoftJson();
+
+            _ = services.AddRazorPages()
+                .AddApplicationPart(typeof(ServiceCollectionExtensions).Assembly);
+        }
+
+        public static void InitializeApplication(this IServiceProvider serviceProvider)
         {
-            x.CreateDatabase = false;
-            x.CreateInfrastructure = true;
-        });
-        services.AddMassTransit(x =>
-        {
-            x.AddConsumer<CalculatePricesForAllConsumer>();
-            x.AddConsumer<CalculatePricesForProductConsumer>();
-            x.AddConsumer<CalculatePricesForLotConsumer>();
-            x.AddConsumer<CalculateEbayCurvesForMeasurementConsumer>(c =>
-            {
-                c.UseConcurrencyLimit(10);
-            });
-            x.AddConsumer<MatchedPairsCalculator>(c =>
-            {
-                c.UseConcurrencyLimit(1);
-            });
-            x.AddConsumer<CalculateTotalAveragePriceForProductConsumer>(c => c.Options<BatchOptions>(o =>
-            {
-                o.ConcurrencyLimit = 1;
-                o.MessageLimit = 100;
-            }));
-            x.AddEntityFrameworkOutbox<ApplicationDbContext>(o =>
-            {
-                o.UsePostgres();
-                o.UseBusOutbox();
-            });
+            // Migrate DB
+            using var scope = serviceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            dbContext.Database.Migrate();
+        }
 
-            x.AddSqlMessageScheduler();
-
-            x.UsingPostgres((context, cfg) =>
-            {
-                cfg.UseSqlMessageScheduler();
-
-                cfg.ConfigureEndpoints(context);
-            });
-
-        });
-        services.AddHostedService<DbCacheCleanupHostedService>();
-        services.AddHostedService<MeasurementPlotWarmupHostedService>();
-        services.AddDatabaseDeveloperPageExceptionFilter();
-
-        services.AddControllersWithViews(options =>
-            {
-                options.Filters.Add<ErrorFilter>();
-            })
-            .AddApplicationPart(appAssembly)
-            .AddNewtonsoftJson();
-
-        services.AddRazorPages()
-            .AddApplicationPart(typeof(ServiceCollectionExtensions).Assembly);
     }
-
-    public static void InitializeApplication(this IServiceProvider serviceProvider)
-    {
-        // Migrate DB
-        using var scope = serviceProvider.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        dbContext.Database.Migrate();
-    }
-
 }

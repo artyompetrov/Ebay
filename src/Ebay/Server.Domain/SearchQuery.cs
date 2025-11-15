@@ -1,19 +1,14 @@
-namespace Server.Domain;
-
-public sealed class SearchQuery : Entity<Guid>
+namespace Server.Domain
 {
-    public SearchQuery(Guid id, string query, Guid productId) : base(id)
+    public sealed class SearchQuery(Guid id, string query, Guid productId) : Entity<Guid>(id)
     {
-        Query = query;
-        ProductId = productId;
+        public string Query { get; private set; } = query;
+
+        public void SetQuery(string query)
+        {
+            Query = query;
+        }
+
+        public Guid ProductId { get; } = productId;
     }
-
-    public string Query { get; private set; }
-
-    public void SetQuery(string query)
-    {
-        Query = query;
-    }
-
-    public Guid ProductId { get; }
 }

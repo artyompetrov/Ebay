@@ -1,7 +1,8 @@
-namespace Server.Application.HostedServices.ChipFind;
-
-public interface IChipfindAdapter
+namespace Server.Application.HostedServices.ChipFind
 {
-    Task<IReadOnlyCollection<SaleAdvertisement>> GetRecentSaleAdvertisements(CancellationToken cancellationToken);
-    Task<string?> TryGetAdvertisementContactAsync(SaleAdvertisement saleAdvertisement, CancellationToken cancellationToken);
+    public interface IChipfindAdapter
+    {
+        Task<IReadOnlyCollection<SaleAdvertisement>> GetRecentSaleAdvertisements(CancellationToken cancellationToken);
+        Task<string?> TryGetAdvertisementContactAsync(SaleAdvertisement saleAdvertisement, CancellationToken cancellationToken);
+    }
 }

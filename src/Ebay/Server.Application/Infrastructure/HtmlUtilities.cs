@@ -1,113 +1,118 @@
 using HtmlAgilityPack;
 
-namespace Server.Application.Infrastructure;
-
-internal class HtmlUtilities
+namespace Server.Application.Infrastructure
 {
-    /// <summary>
-    /// Converts HTML to plain text / strips tags.
-    /// </summary>
-    /// <param name="html">The HTML.</param>
-    /// <returns></returns>
-    public static string ConvertToPlainText(string html)
+    internal class HtmlUtilities
     {
-        HtmlDocument doc = new HtmlDocument();
-        doc.LoadHtml(html);
-
-        StringWriter sw = new StringWriter();
-        ConvertTo(node: doc.DocumentNode, outText: sw);
-        sw.Flush();
-        return sw.ToString();
-    }
-
-
-    /// <summary>
-    /// Count the words.
-    /// The content has to be converted to plain text before (using ConvertToPlainText).
-    /// </summary>
-    /// <param name="plainText">The plain text.</param>
-    /// <returns></returns>
-    public static int CountWords(string plainText)
-    {
-        return !String.IsNullOrEmpty(plainText) ? plainText.Split(' ', '\n').Length : 0;
-    }
-
-
-    public static string Cut(string text, int length)
-    {
-        if (!String.IsNullOrEmpty(text) && text.Length > length)
+        /// <summary>
+        /// Converts HTML to plain text / strips tags.
+        /// </summary>
+        /// <param name="html">The HTML.</param>
+        /// <returns></returns>
+        public static string ConvertToPlainText(string html)
         {
-            text = string.Concat(text.AsSpan(start: 0, length: length - 4), " ...");
+            var doc = new HtmlDocument();
+            doc.LoadHtml(html);
+
+            var sw = new StringWriter();
+            ConvertTo(node: doc.DocumentNode, outText: sw);
+            sw.Flush();
+            return sw.ToString();
         }
 
-        return text;
-    }
 
-
-    private static void ConvertContentTo(HtmlNode node, TextWriter outText)
-    {
-        foreach (HtmlNode subnode in node.ChildNodes)
+        /// <summary>
+        /// Count the words.
+        /// The content has to be converted to plain text before (using ConvertToPlainText).
+        /// </summary>
+        /// <param name="plainText">The plain text.</param>
+        /// <returns></returns>
+        public static int CountWords(string plainText)
         {
-            ConvertTo(node: subnode, outText: outText);
+            return !string.IsNullOrEmpty(plainText) ? plainText.Split(' ', '\n').Length : 0;
         }
-    }
 
 
-    private static void ConvertTo(HtmlNode node, TextWriter outText)
-    {
-        string html;
-        switch (node.NodeType)
+        public static string Cut(string text, int length)
         {
-            case HtmlNodeType.Comment:
-                // don't output comments
-                break;
+            if (!string.IsNullOrEmpty(text) && text.Length > length)
+            {
+                text = string.Concat(text.AsSpan(start: 0, length: length - 4), " ...");
+            }
 
-            case HtmlNodeType.Document:
-                ConvertContentTo(node: node, outText: outText);
-                break;
+            return text;
+        }
 
-            case HtmlNodeType.Text:
-                // script and style must not be output
-                var parentName = node.ParentNode.Name;
-                if ((parentName == "script") || (parentName == "style") || (parentName == "title"))
+
+        private static void ConvertContentTo(HtmlNode node, TextWriter outText)
+        {
+            foreach (var subnode in node.ChildNodes)
+            {
+                ConvertTo(node: subnode, outText: outText);
+            }
+        }
+
+
+        private static void ConvertTo(HtmlNode node, TextWriter outText)
+        {
+            string html;
+            switch (node.NodeType)
+            {
+                case HtmlNodeType.Comment:
+                    // don't output comments
                     break;
 
-                // get text
-                html = ((HtmlTextNode)node).Text;
-
-                // is it in fact a special closing node output as text?
-                if (HtmlNode.IsOverlappedClosingElement(html))
-                    break;
-
-                // check the text is meaningful and not a bunch of whitespaces
-                if (html.Trim().Length > 0)
-                {
-                    outText.Write(HtmlEntity.DeEntitize(html));
-                }
-
-                break;
-
-            case HtmlNodeType.Element:
-                switch (node.Name)
-                {
-                    case "p":
-                        // treat paragraphs as crlf
-                        outText.Write("\r\n");
-                        break;
-                    case "br":
-                        outText.Write("\r\n");
-                        break;
-                    case "div":
-                        outText.Write("\r\n");
-                        break;
-                }
-
-                if (node.HasChildNodes)
-                {
+                case HtmlNodeType.Document:
                     ConvertContentTo(node: node, outText: outText);
-                }
+                    break;
 
-                break;
+                case HtmlNodeType.Text:
+                    // script and style must not be output
+                    var parentName = node.ParentNode.Name;
+                    if (parentName is "script" or "style" or "title")
+                    {
+                        break;
+                    }
+
+                    // get text
+                    html = ((HtmlTextNode)node).Text;
+
+                    // is it in fact a special closing node output as text?
+                    if (HtmlNode.IsOverlappedClosingElement(html))
+                    {
+                        break;
+                    }
+
+                    // check the text is meaningful and not a bunch of whitespaces
+                    if (html.Trim().Length > 0)
+                    {
+                        outText.Write(HtmlEntity.DeEntitize(html));
+                    }
+
+                    break;
+
+                case HtmlNodeType.Element:
+                    switch (node.Name)
+                    {
+                        case "p":
+                            // treat paragraphs as crlf
+                            outText.Write("\r\n");
+                            break;
+                        case "br":
+                            outText.Write("\r\n");
+                            break;
+                        case "div":
+                            outText.Write("\r\n");
+                            break;
+                    }
+
+                    if (node.HasChildNodes)
+                    {
+                        ConvertContentTo(node: node, outText: outText);
+                    }
+
+                    break;
+            }
         }
     }
 }

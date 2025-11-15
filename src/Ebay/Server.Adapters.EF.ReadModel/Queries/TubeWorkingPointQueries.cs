@@ -1,33 +1,26 @@
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Abstractions.Queries;
 
-namespace Sever.Adapters.EF.ReadModel.Queries;
-
-internal sealed class TubeWorkingPointQueries : ITubeWorkingPointQueries
+namespace Sever.Adapters.EF.ReadModel.Queries
 {
-    private readonly ReadDbContext _context;
-
-    public TubeWorkingPointQueries(ReadDbContext context)
+    internal sealed class TubeWorkingPointQueries(ReadDbContext context) : ITubeWorkingPointQueries
     {
-        _context = context;
-    }
+        private readonly ReadDbContext _context = context;
 
-    public async Task<TubeWorkingPointInfo?> GetWorkingPointInfo(Guid productId, CancellationToken cancellationToken)
-    {
-        var tubeWorkingPoint = await _context.TubeWorkingPoints.SingleOrDefaultAsync(
-            x => x.Id == productId,
-            cancellationToken: cancellationToken);
-
-        if (tubeWorkingPoint == null)
+        public async Task<TubeWorkingPointInfo?> GetWorkingPointInfo(Guid productId, CancellationToken cancellationToken)
         {
-            return null;
-        }
+            var tubeWorkingPoint = await _context.TubeWorkingPoints.SingleOrDefaultAsync(
+                x => x.Id == productId,
+                cancellationToken: cancellationToken);
 
-        return new TubeWorkingPointInfo(
-            AnodeVoltage: tubeWorkingPoint.AnodeVoltage,
-            GridVoltage: tubeWorkingPoint.GridVoltage,
-            AnodeVoltageHalfWidth: tubeWorkingPoint.AnodeVoltageHalfWidth,
-            GridVoltageHalfWidth: tubeWorkingPoint.GridVoltageHalfWidth,
-            NominalCurrent: tubeWorkingPoint.NominalCurrent);
+            return tubeWorkingPoint == null
+                ? null
+                : new TubeWorkingPointInfo(
+                AnodeVoltage: tubeWorkingPoint.AnodeVoltage,
+                GridVoltage: tubeWorkingPoint.GridVoltage,
+                AnodeVoltageHalfWidth: tubeWorkingPoint.AnodeVoltageHalfWidth,
+                GridVoltageHalfWidth: tubeWorkingPoint.GridVoltageHalfWidth,
+                NominalCurrent: tubeWorkingPoint.NominalCurrent);
+        }
     }
 }

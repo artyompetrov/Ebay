@@ -13,239 +13,232 @@ using Server.Domain;
 using Server.Domain.Measurements;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
-namespace Server.Application.Data;
-
-public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, IUnitOfWork
+namespace Server.Application.Data
 {
-    public ApplicationDbContext(
+    public class ApplicationDbContext(
         DbContextOptions<ApplicationDbContext> options,
         IOptions<OperationalStoreOptions> operationalStoreOptions
-    ) : base(options: options, operationalStoreOptions: operationalStoreOptions)
+        ) : ApiAuthorizationDbContext<ApplicationUser>(options: options, operationalStoreOptions: operationalStoreOptions), IUnitOfWork
     {
-
-    }
-
-
-    protected override void OnModelCreating(ModelBuilder builder)
-    {
-        base.OnModelCreating(builder);
-
-
-        foreach (var et in builder.Model.GetEntityTypes()
-                     .Where(t => typeof(IAggregateRoot).IsAssignableFrom(t.ClrType)))
+        protected override void OnModelCreating(ModelBuilder builder)
         {
-            builder.Entity(et.ClrType)
-                .Property(nameof(IAggregateRoot.Version))
-                .IsRowVersion()
-                .ValueGeneratedOnAddOrUpdate();
-        }
+            base.OnModelCreating(builder);
 
-        builder.AddInboxStateEntity();
-        builder.AddOutboxMessageEntity();
-        builder.AddOutboxStateEntity();
 
-        builder.Entity<Lot>()
-            .Property(o => o.LotCalculationResult)
-            .HasConversion(new ValueConverter<LotCalculationResult?, string>(
-                v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
-                v => JsonSerializer.Deserialize<LotCalculationResult?>(v, (JsonSerializerOptions?)null)
-            ));
+            foreach (var et in builder.Model.GetEntityTypes()
+                         .Where(t => typeof(IAggregateRoot).IsAssignableFrom(t.ClrType)))
+            {
+                _ = builder.Entity(et.ClrType)
+                    .Property(nameof(IAggregateRoot.Version))
+                    .IsRowVersion()
+                    .ValueGeneratedOnAddOrUpdate();
+            }
 
-        builder.Entity<Product>(entity =>
-        {
-            entity.HasKey(x => x.Id);
+            builder.AddInboxStateEntity();
+            builder.AddOutboxMessageEntity();
+            builder.AddOutboxStateEntity();
 
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever();
-
-            entity.Property(o => o.ProductCalculationResult)
-                .HasConversion(new ValueConverter<ProductCalculationResult?, string>(
+            _ = builder.Entity<Lot>()
+                .Property(o => o.LotCalculationResult)
+                .HasConversion(new ValueConverter<LotCalculationResult?, string>(
                     v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
-                    v => JsonSerializer.Deserialize<ProductCalculationResult?>(v, (JsonSerializerOptions?)null)
+                    v => JsonSerializer.Deserialize<LotCalculationResult?>(v, (JsonSerializerOptions?)null)
                 ));
 
-            entity.Navigation(p => p.SearchQueries)
-                .UsePropertyAccessMode(PropertyAccessMode.Field);
-            entity.Navigation(p => p.RuSearchQueries)
-                .UsePropertyAccessMode(PropertyAccessMode.Field);
-
-            entity.OwnsMany(p => p.SearchQueries, q =>
+            _ = builder.Entity<Product>(entity =>
             {
-                q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
-                q.HasKey(x => x.Id);
-                q.Property(x => x.Id).ValueGeneratedNever();
-                q.Property(x => x.Query).IsRequired();
-                q.ToTable("Product_SearchQueries");
+                _ = entity.HasKey(x => x.Id);
+
+                _ = entity.Property(e => e.Id)
+                    .ValueGeneratedNever();
+
+                _ = entity.Property(o => o.ProductCalculationResult)
+                    .HasConversion(new ValueConverter<ProductCalculationResult?, string>(
+                        v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
+                        v => JsonSerializer.Deserialize<ProductCalculationResult?>(v, (JsonSerializerOptions?)null)
+                    ));
+
+                _ = entity.Navigation(p => p.SearchQueries)
+                    .UsePropertyAccessMode(PropertyAccessMode.Field);
+                _ = entity.Navigation(p => p.RuSearchQueries)
+                    .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+                _ = entity.OwnsMany(p => p.SearchQueries, q =>
+                {
+                    _ = q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
+                    _ = q.HasKey(x => x.Id);
+                    _ = q.Property(x => x.Id).ValueGeneratedNever();
+                    _ = q.Property(x => x.Query).IsRequired();
+                    _ = q.ToTable("Product_SearchQueries");
+                });
+
+                _ = entity.OwnsMany(p => p.RuSearchQueries, q =>
+                {
+                    _ = q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
+                    _ = q.HasKey(x => x.Id);
+                    _ = q.Property(x => x.Id).ValueGeneratedNever();
+                    _ = q.Property(x => x.Query).IsRequired();
+                    _ = q.ToTable("Product_RuSearchQueries");
+                });
             });
 
-            entity.OwnsMany(p => p.RuSearchQueries, q =>
+            _ = builder.Entity<Purchase>()
+                .Property(o => o.PurchaseCalculationResult)
+                .HasConversion(new ValueConverter<PurchaseCalculationResult?, string>(
+                    v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<PurchaseCalculationResult?>(v, (JsonSerializerOptions?)null)
+                ));
+
+            _ = builder.Entity<ProductMeasurement>(entity =>
             {
-                q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
-                q.HasKey(x => x.Id);
-                q.Property(x => x.Id).ValueGeneratedNever();
-                q.Property(x => x.Query).IsRequired();
-                q.ToTable("Product_RuSearchQueries");
+                _ = entity.HasKey(x => x.Id);
+
+                _ = entity.Property(x => x.Id)
+                    .HasMaxLength(100)
+                    .ValueGeneratedNever();
+
+                _ = entity.Property(p => p.CreatedAt)
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                _ = entity.Property(x => x.ProductId).IsRequired();
+
+                _ = entity.HasOne<Product>()
+                    .WithMany()
+                    .HasForeignKey(x => x.ProductId)
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
+
+                _ = entity.HasIndex(x => x.ProductId);
+                _ = entity.HasIndex(p => p.CreatedAt);
+                _ = entity.HasIndex(p => p.MatchId);
+                _ = entity.HasIndex(p => p.LotId);
+
+                _ = entity.HasIndex(x => x.HashAnodeCurves).IsUnique();
+                _ = entity.HasIndex(x => x.HashQuickTest).IsUnique();
             });
-        });
 
-        builder.Entity<Purchase>()
-            .Property(o => o.PurchaseCalculationResult)
-            .HasConversion(new ValueConverter<PurchaseCalculationResult?, string>(
-                v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
-                v => JsonSerializer.Deserialize<PurchaseCalculationResult?>(v, (JsonSerializerOptions?)null)
-            ));
+            _ = builder.Entity<ProductEmailSendHistory>(entity =>
+            {
+                _ = entity.ToTable("SaleAdvertisements");
+                _ = entity.HasIndex(e => e.ProductId);
+                _ = entity.HasIndex(e => new { e.ProductId, e.Seller, e.Marketplace }).IsUnique();
+                _ = entity.HasIndex(e => e.CreatedAt);
+                _ = entity.Property(e => e.IsAmbiguous).HasDefaultValue(false);
+            });
 
-        builder.Entity<ProductMeasurement>(entity =>
-        {
-            entity.HasKey(x => x.Id);
-
-            entity.Property(x => x.Id)
-                .HasMaxLength(100)
-                .ValueGeneratedNever();
-
-            entity.Property(p => p.CreatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-            entity.Property(x => x.ProductId).IsRequired();
-
-            entity.HasOne<Product>()
-                .WithMany()
-                .HasForeignKey(x => x.ProductId)
-                .OnDelete(DeleteBehavior.Restrict)
-                .IsRequired();
-
-            entity.HasIndex(x => x.ProductId);
-            entity.HasIndex(p => p.CreatedAt);
-            entity.HasIndex(p => p.MatchId);
-            entity.HasIndex(p => p.LotId);
-
-            entity.HasIndex(x => x.HashAnodeCurves).IsUnique();
-            entity.HasIndex(x => x.HashQuickTest).IsUnique();
-        });
-
-        builder.Entity<ProductEmailSendHistory>(entity =>
-        {
-            entity.ToTable("SaleAdvertisements");
-            entity.HasIndex(e => e.ProductId);
-            entity.HasIndex(e => new { e.ProductId, e.Seller, e.Marketplace }).IsUnique();
-            entity.HasIndex(e => e.CreatedAt);
-            entity.Property(e => e.IsAmbiguous).HasDefaultValue(false);
-        });
-
-        builder.Entity<CacheEntry>(entity =>
-        {
-            entity.HasKey(e => new { e.Key, e.Version });
-        });
+            _ = builder.Entity<CacheEntry>(entity =>
+            {
+                _ = entity.HasKey(e => new { e.Key, e.Version });
+            });
 
 
-        builder.Entity<ProductPassport>(entity =>
-        {
-            entity.HasIndex(e => new { e.ProductId, e.Order });
-        });
+            _ = builder.Entity<ProductPassport>(entity =>
+            {
+                _ = entity.HasIndex(e => new { e.ProductId, e.Order });
+            });
 
-        builder.Entity<TubeWorkingPoint>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.HasOne<Product>()
-                .WithOne()
-                .HasForeignKey<TubeWorkingPoint>(e => e.Id)
-                .OnDelete(DeleteBehavior.Restrict);
-        });
+            _ = builder.Entity<TubeWorkingPoint>(entity =>
+            {
+                _ = entity.HasKey(e => e.Id);
+                _ = entity.HasOne<Product>()
+                    .WithOne()
+                    .HasForeignKey<TubeWorkingPoint>(e => e.Id)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
 
-        builder.Entity<IgnoredLot>(entity =>
-        {
-            entity.HasKey(e => new { e.ProductId, e.LotId });
-        });
-
-
-        builder.Entity<Purchase>(entity =>
-        {
-            entity.HasKey(e => new { e.LotId, e.Date });
-        });
-
-        builder.Entity<MatchedPairDifference>(entity =>
-        {
-            entity.Property(x => x.Id)
-                .HasConversion(
-                    v => JsonConvert.SerializeObject(v, Formatting.None),
-                    v => JsonConvert.DeserializeObject<MatchedPairDifferenceId>(v)!);
-
-            entity.HasKey(e => e.Id);
-
-            entity.Property(e => e.Measurement1Id)
-                .HasMaxLength(100);
-
-            entity.Property(e => e.Measurement2Id)
-                .HasMaxLength(100);
-
-            entity.HasIndex(x => x.Measurement1Id);
-            entity.HasIndex(x => x.Measurement2Id);
-
-            entity.HasOne<ProductMeasurement>()
-                .WithMany()
-                .HasForeignKey(e => e.Measurement1Id)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            entity.HasOne<ProductMeasurement>()
-                .WithMany()
-                .HasForeignKey(e => e.Measurement2Id)
-                .OnDelete(DeleteBehavior.Restrict);
-        });
-    }
+            _ = builder.Entity<IgnoredLot>(entity =>
+            {
+                _ = entity.HasKey(e => new { e.ProductId, e.LotId });
+            });
 
 
+            _ = builder.Entity<Purchase>(entity =>
+            {
+                _ = entity.HasKey(e => new { e.LotId, e.Date });
+            });
 
-    public DbSet<Product> Products { get; set; } = null!;
+            _ = builder.Entity<MatchedPairDifference>(entity =>
+            {
+                _ = entity.Property(x => x.Id)
+                    .HasConversion(
+                        v => JsonConvert.SerializeObject(v, Formatting.None),
+                        v => JsonConvert.DeserializeObject<MatchedPairDifferenceId>(v)!);
 
-    public DbSet<Lot> Lots { get; set; } = null!;
+                _ = entity.HasKey(e => e.Id);
 
-    public DbSet<IgnoredLot> IgnoredLots { get; set; } = null!;
+                _ = entity.Property(e => e.Measurement1Id)
+                    .HasMaxLength(100);
 
-    public DbSet<Purchase> Purchases { get; set; } = null!;
+                _ = entity.Property(e => e.Measurement2Id)
+                    .HasMaxLength(100);
 
-    public DbSet<ClientError> ClientErrors { get; set; } = null!;
+                _ = entity.HasIndex(x => x.Measurement1Id);
+                _ = entity.HasIndex(x => x.Measurement2Id);
 
-    public DbSet<ProductMeasurement> ProductMeasurements { get; set; } = null!;
+                _ = entity.HasOne<ProductMeasurement>()
+                    .WithMany()
+                    .HasForeignKey(e => e.Measurement1Id)
+                    .OnDelete(DeleteBehavior.Restrict);
 
-    public DbSet<ProductPassport> ProductPassports { get; set; } = null!;
-
-    public DbSet<Currency> Currencies { get; set; } = null!;
-
-    public DbSet<ProductEmailSendHistory> ProductEmailSendHistory { get; set; } = null!;
-
-    public DbSet<CacheEntry> CacheEntries { get; set; } = null!;
-
-    public DbSet<TubeWorkingPoint> TubeWorkingPoints { get; set; } = null!;
-
-    public DbSet<MatchedPairDifference> MatchedPairDifferences { get; set; } = null!;
-
-
-    public async Task<IUnitOfWorkTransaction> BeginTransactionAsync(
-        CancellationToken cancellationToken,
-        IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
-    {
-        return new ApplicationDbContextTransaction(await Database.BeginTransactionAsync(isolationLevel: isolationLevel, cancellationToken));
-    }
-
-    private class ApplicationDbContextTransaction : IUnitOfWorkTransaction
-    {
-        private readonly IDbContextTransaction _transaction;
-
-        public ApplicationDbContextTransaction(IDbContextTransaction transaction)
-        {
-            _transaction = transaction;
+                _ = entity.HasOne<ProductMeasurement>()
+                    .WithMany()
+                    .HasForeignKey(e => e.Measurement2Id)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
         }
 
-        public async ValueTask DisposeAsync()
+
+
+        public DbSet<Product> Products { get; set; } = null!;
+
+        public DbSet<Lot> Lots { get; set; } = null!;
+
+        public DbSet<IgnoredLot> IgnoredLots { get; set; } = null!;
+
+        public DbSet<Purchase> Purchases { get; set; } = null!;
+
+        public DbSet<ClientError> ClientErrors { get; set; } = null!;
+
+        public DbSet<ProductMeasurement> ProductMeasurements { get; set; } = null!;
+
+        public DbSet<ProductPassport> ProductPassports { get; set; } = null!;
+
+        public DbSet<Currency> Currencies { get; set; } = null!;
+
+        public DbSet<ProductEmailSendHistory> ProductEmailSendHistory { get; set; } = null!;
+
+        public DbSet<CacheEntry> CacheEntries { get; set; } = null!;
+
+        public DbSet<TubeWorkingPoint> TubeWorkingPoints { get; set; } = null!;
+
+        public DbSet<MatchedPairDifference> MatchedPairDifferences { get; set; } = null!;
+
+
+        public async Task<IUnitOfWorkTransaction> BeginTransactionAsync(
+            CancellationToken cancellationToken,
+            IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
         {
-            await _transaction.DisposeAsync();
+            return new ApplicationDbContextTransaction(await Database.BeginTransactionAsync(isolationLevel: isolationLevel, cancellationToken));
         }
 
-        public Task CommitAsync(CancellationToken cancellationToken) => _transaction.CommitAsync(cancellationToken);
-
-        public void Dispose()
+        private class ApplicationDbContextTransaction(IDbContextTransaction transaction) : IUnitOfWorkTransaction
         {
-            _transaction.Dispose();
+            private readonly IDbContextTransaction _transaction = transaction;
+
+            public async ValueTask DisposeAsync()
+            {
+                await _transaction.DisposeAsync();
+            }
+
+            public Task CommitAsync(CancellationToken cancellationToken)
+            {
+                return _transaction.CommitAsync(cancellationToken);
+            }
+
+            public void Dispose()
+            {
+                _transaction.Dispose();
+            }
         }
     }
 }

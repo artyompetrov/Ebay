@@ -1,10 +1,11 @@
-namespace Server.Application.Services.LotDataExtractor;
-
-internal record struct ExtractionResult(ExtractFrom ExtractedFrom, string Extractor, string Match)
+namespace Server.Application.Services.LotDataExtractor
 {
-    public override string ToString()
+    internal record struct ExtractionResult(ExtractFrom ExtractedFrom, string Extractor, string Match)
     {
-        return
-            $"{nameof(ExtractedFrom)}: '{ExtractedFrom}', {nameof(Extractor)}: '{Extractor}', {nameof(Match)}: '{Match}'";
+        public override readonly string ToString()
+        {
+            return
+                $"{nameof(ExtractedFrom)}: '{ExtractedFrom}', {nameof(Extractor)}: '{Extractor}', {nameof(Match)}: '{Match}'";
+        }
     }
 }

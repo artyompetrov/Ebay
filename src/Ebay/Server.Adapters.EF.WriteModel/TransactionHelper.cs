@@ -3,69 +3,81 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Server.Application.Data;
 
-namespace Server.Adapters.EF.WriteModel;
-
-internal static class TransactionHelper
+namespace Server.Adapters.EF.WriteModel
 {
-    public async static Task<TransactionWrapper> EnsureRepeatableReadOrStartAsync(
-        ApplicationDbContext dbContext,
-        CancellationToken ct)
+    internal static class TransactionHelper
     {
-        // 1) Запрещаем ambient TransactionScope
-        if (System.Transactions.Transaction.Current is not null)
-            throw new InvalidOperationException("Ambient TransactionScope is not allowed here.");
-
-        var db = dbContext.Database;
-
-        // 2) Если уже есть EF-транзакция — проверяем уровень
-        if (db.CurrentTransaction is { } current)
+        public async static Task<TransactionWrapper> EnsureRepeatableReadOrStartAsync(
+            ApplicationDbContext dbContext,
+            CancellationToken ct)
         {
-            var iso = current.GetDbTransaction().IsolationLevel;
-            if (iso is not (IsolationLevel.RepeatableRead or IsolationLevel.Serializable))
-                throw new InvalidOperationException(
-                    $"Isolation is {iso}; need at least REPEATABLE READ for split-query consistency.");
-            return TransactionWrapper.Existing(current);
-        }
-
-        // 3) Открываем соединение (если нужно) и заводим raw-транзакцию с RR
-        var connection = db.GetDbConnection();
-        if (connection.State != ConnectionState.Open)
-            await connection.OpenAsync(ct);
-
-        var rawTx = await connection.BeginTransactionAsync(IsolationLevel.RepeatableRead, ct);
-
-        // 4) Подкладываем её EF Core — используем перегрузку, которая возвращает IDbContextTransaction?
-        var efTx = await db.UseTransactionAsync(rawTx, ct)
-                   ?? throw new InvalidOperationException("EF did not attach to the provided transaction.");
-
-        return TransactionWrapper.Owned(efTx);
-    }
-
-    public readonly struct TransactionWrapper : IAsyncDisposable
-    {
-        private readonly IDbContextTransaction? _owned;
-
-        private TransactionWrapper(IDbContextTransaction? owned)
-        {
-            _owned = owned;
-        }
-
-        public static TransactionWrapper Owned(IDbContextTransaction tx) => new(tx);
-        public static TransactionWrapper Existing(IDbContextTransaction _) => new(null);
-
-        public async ValueTask CommitIfOwnedAsync(CancellationToken ct)
-        {
-            if (_owned is not null)
+            // 1) Запрещаем ambient TransactionScope
+            if (System.Transactions.Transaction.Current is not null)
             {
-                await _owned.CommitAsync(ct);
+                throw new InvalidOperationException("Ambient TransactionScope is not allowed here.");
             }
+
+            var db = dbContext.Database;
+
+            // 2) Если уже есть EF-транзакция — проверяем уровень
+            if (db.CurrentTransaction is { } current)
+            {
+                var iso = current.GetDbTransaction().IsolationLevel;
+                return iso is not (IsolationLevel.RepeatableRead or IsolationLevel.Serializable)
+                    ? throw new InvalidOperationException(
+                        $"Isolation is {iso}; need at least REPEATABLE READ for split-query consistency.")
+                    : TransactionWrapper.Existing(current);
+            }
+
+            // 3) Открываем соединение (если нужно) и заводим raw-транзакцию с RR
+            var connection = db.GetDbConnection();
+            if (connection.State != ConnectionState.Open)
+            {
+                await connection.OpenAsync(ct);
+            }
+
+            var rawTx = await connection.BeginTransactionAsync(IsolationLevel.RepeatableRead, ct);
+
+            // 4) Подкладываем её EF Core — используем перегрузку, которая возвращает IDbContextTransaction?
+            var efTx = await db.UseTransactionAsync(rawTx, ct)
+                       ?? throw new InvalidOperationException("EF did not attach to the provided transaction.");
+
+            return TransactionWrapper.Owned(efTx);
         }
 
-        public async ValueTask DisposeAsync()
+        public readonly struct TransactionWrapper : IAsyncDisposable
         {
-            if (_owned is not null)
+            private readonly IDbContextTransaction? _owned;
+
+            private TransactionWrapper(IDbContextTransaction? owned)
             {
-                await _owned.DisposeAsync();
+                _owned = owned;
+            }
+
+            public static TransactionWrapper Owned(IDbContextTransaction tx)
+            {
+                return new(tx);
+            }
+
+            public static TransactionWrapper Existing(IDbContextTransaction _)
+            {
+                return new(null);
+            }
+
+            public async ValueTask CommitIfOwnedAsync(CancellationToken ct)
+            {
+                if (_owned is not null)
+                {
+                    await _owned.CommitAsync(ct);
+                }
+            }
+
+            public async ValueTask DisposeAsync()
+            {
+                if (_owned is not null)
+                {
+                    await _owned.DisposeAsync();
+                }
             }
         }
     }

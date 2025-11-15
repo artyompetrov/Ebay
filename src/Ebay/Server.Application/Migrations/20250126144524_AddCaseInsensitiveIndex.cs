@@ -10,7 +10,7 @@ namespace Server.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.Sql(
+            _ = migrationBuilder.Sql(
 @"
 CREATE UNIQUE INDEX IF NOT EXISTS IX_Product_Name_CI
 ON ""Products"" (LOWER(""Name""));

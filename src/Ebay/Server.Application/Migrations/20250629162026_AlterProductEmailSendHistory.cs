@@ -10,20 +10,20 @@ namespace Server.Application.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropPrimaryKey(
+            _ = migrationBuilder.DropPrimaryKey(
                 name: "PK_EmailSendHistories",
                 table: "EmailSendHistories");
 
-            migrationBuilder.RenameTable(
+            _ = migrationBuilder.RenameTable(
                 name: "EmailSendHistories",
                 newName: "ProductEmailSendHistory");
 
-            migrationBuilder.RenameIndex(
+            _ = migrationBuilder.RenameIndex(
                 name: "IX_EmailSendHistories_ProductKey",
                 table: "ProductEmailSendHistory",
                 newName: "IX_ProductEmailSendHistory_ProductKey");
 
-            migrationBuilder.AddPrimaryKey(
+            _ = migrationBuilder.AddPrimaryKey(
                 name: "PK_ProductEmailSendHistory",
                 table: "ProductEmailSendHistory",
                 column: "Id");
@@ -32,20 +32,20 @@ namespace Server.Application.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropPrimaryKey(
+            _ = migrationBuilder.DropPrimaryKey(
                 name: "PK_ProductEmailSendHistory",
                 table: "ProductEmailSendHistory");
 
-            migrationBuilder.RenameTable(
+            _ = migrationBuilder.RenameTable(
                 name: "ProductEmailSendHistory",
                 newName: "EmailSendHistories");
 
-            migrationBuilder.RenameIndex(
+            _ = migrationBuilder.RenameIndex(
                 name: "IX_ProductEmailSendHistory_ProductKey",
                 table: "EmailSendHistories",
                 newName: "IX_EmailSendHistories_ProductKey");
 
-            migrationBuilder.AddPrimaryKey(
+            _ = migrationBuilder.AddPrimaryKey(
                 name: "PK_EmailSendHistories",
                 table: "EmailSendHistories",
                 column: "Id");

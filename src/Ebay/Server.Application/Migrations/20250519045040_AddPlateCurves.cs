@@ -10,7 +10,7 @@ namespace Server.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
+            _ = migrationBuilder.AddColumn<string>(
                 name: "HashPlateCurves",
                 table: "ProductMeasurements",
                 type: "character varying(128)",
@@ -18,7 +18,7 @@ namespace Server.Migrations
                 nullable: false,
                 defaultValue: "");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_ProductMeasurements_HashPlateCurves",
                 table: "ProductMeasurements",
                 column: "HashPlateCurves",
@@ -28,11 +28,11 @@ namespace Server.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropIndex(
+            _ = migrationBuilder.DropIndex(
                 name: "IX_ProductMeasurements_HashPlateCurves",
                 table: "ProductMeasurements");
 
-            migrationBuilder.DropColumn(
+            _ = migrationBuilder.DropColumn(
                 name: "HashPlateCurves",
                 table: "ProductMeasurements");
         }

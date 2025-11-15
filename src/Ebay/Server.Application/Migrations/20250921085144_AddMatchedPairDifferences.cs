@@ -10,7 +10,7 @@ namespace Server.Application.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "MatchedPairDifferences",
                 columns: table => new
                 {
@@ -22,14 +22,14 @@ namespace Server.Application.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_MatchedPairDifferences", x => new { x.MeasurementId1, x.MeasurementId2 });
-                    table.ForeignKey(
+                    _ = table.PrimaryKey("PK_MatchedPairDifferences", x => new { x.MeasurementId1, x.MeasurementId2 });
+                    _ = table.ForeignKey(
                         name: "FK_MatchedPairDifferences_ProductMeasurements_MeasurementId1",
                         column: x => x.MeasurementId1,
                         principalTable: "ProductMeasurements",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
+                    _ = table.ForeignKey(
                         name: "FK_MatchedPairDifferences_ProductMeasurements_MeasurementId2",
                         column: x => x.MeasurementId2,
                         principalTable: "ProductMeasurements",
@@ -37,7 +37,7 @@ namespace Server.Application.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_MatchedPairDifferences_MeasurementId2",
                 table: "MatchedPairDifferences",
                 column: "MeasurementId2");
@@ -46,7 +46,7 @@ namespace Server.Application.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "MatchedPairDifferences");
         }
     }

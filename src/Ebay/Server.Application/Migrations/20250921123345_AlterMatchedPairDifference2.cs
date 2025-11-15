@@ -10,34 +10,34 @@ namespace Server.Application.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
+            _ = migrationBuilder.RenameColumn(
                 name: "RmseSumm",
                 table: "MatchedPairDifferences",
                 newName: "RmseSection1");
 
-            migrationBuilder.RenameColumn(
+            _ = migrationBuilder.RenameColumn(
                 name: "MseSumm",
                 table: "MatchedPairDifferences",
                 newName: "MseSection1");
 
-            migrationBuilder.RenameColumn(
+            _ = migrationBuilder.RenameColumn(
                 name: "MaxAbs",
                 table: "MatchedPairDifferences",
                 newName: "MaxAbsSection1");
 
-            migrationBuilder.AddColumn<double>(
+            _ = migrationBuilder.AddColumn<double>(
                 name: "MaxAbsSection2",
                 table: "MatchedPairDifferences",
                 type: "double precision",
                 nullable: true);
 
-            migrationBuilder.AddColumn<double>(
+            _ = migrationBuilder.AddColumn<double>(
                 name: "MseSection2",
                 table: "MatchedPairDifferences",
                 type: "double precision",
                 nullable: true);
 
-            migrationBuilder.AddColumn<double>(
+            _ = migrationBuilder.AddColumn<double>(
                 name: "RmseSection2",
                 table: "MatchedPairDifferences",
                 type: "double precision",
@@ -47,29 +47,29 @@ namespace Server.Application.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
+            _ = migrationBuilder.DropColumn(
                 name: "MaxAbsSection2",
                 table: "MatchedPairDifferences");
 
-            migrationBuilder.DropColumn(
+            _ = migrationBuilder.DropColumn(
                 name: "MseSection2",
                 table: "MatchedPairDifferences");
 
-            migrationBuilder.DropColumn(
+            _ = migrationBuilder.DropColumn(
                 name: "RmseSection2",
                 table: "MatchedPairDifferences");
 
-            migrationBuilder.RenameColumn(
+            _ = migrationBuilder.RenameColumn(
                 name: "RmseSection1",
                 table: "MatchedPairDifferences",
                 newName: "RmseSumm");
 
-            migrationBuilder.RenameColumn(
+            _ = migrationBuilder.RenameColumn(
                 name: "MseSection1",
                 table: "MatchedPairDifferences",
                 newName: "MseSumm");
 
-            migrationBuilder.RenameColumn(
+            _ = migrationBuilder.RenameColumn(
                 name: "MaxAbsSection1",
                 table: "MatchedPairDifferences",
                 newName: "MaxAbs");

@@ -10,11 +10,11 @@ namespace Server.Application.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropIndex(
+            _ = migrationBuilder.DropIndex(
                 name: "IX_ProductMeasurements_HashGridCurves",
                 table: "ProductMeasurements");
 
-            migrationBuilder.DropColumn(
+            _ = migrationBuilder.DropColumn(
                 name: "HashGridCurves",
                 table: "ProductMeasurements");
         }
@@ -22,7 +22,7 @@ namespace Server.Application.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
+            _ = migrationBuilder.AddColumn<string>(
                 name: "HashGridCurves",
                 table: "ProductMeasurements",
                 type: "character varying(128)",
@@ -30,7 +30,7 @@ namespace Server.Application.Migrations
                 nullable: false,
                 defaultValue: "");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_ProductMeasurements_HashGridCurves",
                 table: "ProductMeasurements",
                 column: "HashGridCurves",

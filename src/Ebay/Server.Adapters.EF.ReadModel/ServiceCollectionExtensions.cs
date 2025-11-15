@@ -3,25 +3,26 @@ using Microsoft.Extensions.DependencyInjection;
 using Server.Application.Abstractions.Queries;
 using Sever.Adapters.EF.ReadModel.Queries;
 
-namespace Sever.Adapters.EF.ReadModel;
-
-/// <summary>
-/// Регистрация в контейнере
-/// </summary>
-public static class ServiceCollectionExtensions
+namespace Sever.Adapters.EF.ReadModel
 {
     /// <summary>
-    /// Зарегистрировать EF ReadModel адаптер в контейнере
+    /// Регистрация в контейнере
     /// </summary>
-    /// <param name="services">Сервисы</param>
-    /// <param name="connectionString">Строка подключения</param>
-    public static void AddEfReadModelAdapter(
-        this IServiceCollection services, string connectionString)
+    public static class ServiceCollectionExtensions
     {
-        services.AddDbContext<ReadDbContext>(o => o.UseNpgsql(connectionString));
-        services.AddScoped<IProductQueries, ProductQueries>();
-        services.AddScoped<IPassportQueries, PassportQueries>();
-        services.AddScoped<IMeasurementQueries, MeasurementQueries>();
-        services.AddScoped<ITubeWorkingPointQueries, TubeWorkingPointQueries>();
+        /// <summary>
+        /// Зарегистрировать EF ReadModel адаптер в контейнере
+        /// </summary>
+        /// <param name="services">Сервисы</param>
+        /// <param name="connectionString">Строка подключения</param>
+        public static void AddEfReadModelAdapter(
+            this IServiceCollection services, string connectionString)
+        {
+            _ = services.AddDbContext<ReadDbContext>(o => o.UseNpgsql(connectionString));
+            _ = services.AddScoped<IProductQueries, ProductQueries>();
+            _ = services.AddScoped<IPassportQueries, PassportQueries>();
+            _ = services.AddScoped<IMeasurementQueries, MeasurementQueries>();
+            _ = services.AddScoped<ITubeWorkingPointQueries, TubeWorkingPointQueries>();
+        }
     }
 }

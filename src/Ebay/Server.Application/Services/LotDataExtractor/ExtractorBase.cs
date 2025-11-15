@@ -1,41 +1,42 @@
 using System.Text.RegularExpressions;
 
-namespace Server.Application.Services.LotDataExtractor;
-
-internal abstract class ExtractorBase
+namespace Server.Application.Services.LotDataExtractor
 {
-    protected static readonly ExtractFrom All = ExtractFrom.Title | ExtractFrom.Description |
-        ExtractFrom.ConditionDescription | ExtractFrom.Condition | ExtractFrom.ShortDescription;
-
-    protected static readonly ExtractFrom TitleAndShortAndConditionDescription =
-        ExtractFrom.Title | ExtractFrom.ConditionDescription | ExtractFrom.ShortDescription;
-
-    protected static readonly ExtractFrom TitleAndConditionDescription =
-        ExtractFrom.Title | ExtractFrom.ConditionDescription;
-
-    private static readonly string[] NewLines = { "\r\n", "\r", "\n" };
-    protected const RegexOptions Ro = RegexOptions.IgnoreCase;
-
-    protected static string[] Split(string data)
+    internal abstract class ExtractorBase
     {
-        return data.Split(
-            separator: NewLines,
-            options: StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries
-        );
-    }
+        protected static readonly ExtractFrom All = ExtractFrom.Title | ExtractFrom.Description |
+            ExtractFrom.ConditionDescription | ExtractFrom.Condition | ExtractFrom.ShortDescription;
 
-    protected static bool CheckIfAlreadyExtractedThatMatch(HashSet<string> successfulExtractions, Regex regex)
-    {
-        var alreadyExtractedThatMatch = false;
-        foreach (var successfulExtraction in successfulExtractions)
+        protected static readonly ExtractFrom TitleAndShortAndConditionDescription =
+            ExtractFrom.Title | ExtractFrom.ConditionDescription | ExtractFrom.ShortDescription;
+
+        protected static readonly ExtractFrom TitleAndConditionDescription =
+            ExtractFrom.Title | ExtractFrom.ConditionDescription;
+
+        private static readonly string[] NewLines = ["\r\n", "\r", "\n"];
+        protected const RegexOptions Ro = RegexOptions.IgnoreCase;
+
+        protected static string[] Split(string data)
         {
-            if (regex.Match(successfulExtraction).Success)
-            {
-                alreadyExtractedThatMatch = true;
-                break;
-            }
+            return data.Split(
+                separator: NewLines,
+                options: StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries
+            );
         }
 
-        return alreadyExtractedThatMatch;
+        protected static bool CheckIfAlreadyExtractedThatMatch(HashSet<string> successfulExtractions, Regex regex)
+        {
+            var alreadyExtractedThatMatch = false;
+            foreach (var successfulExtraction in successfulExtractions)
+            {
+                if (regex.Match(successfulExtraction).Success)
+                {
+                    alreadyExtractedThatMatch = true;
+                    break;
+                }
+            }
+
+            return alreadyExtractedThatMatch;
+        }
     }
 }

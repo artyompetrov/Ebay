@@ -1,35 +1,36 @@
-namespace Tests;
-
-[Category("ExplicitOnly")]
-[Explicit]
-[NonParallelizable]
-public class MeasurementPageTest : ExplicitTestsBase
+namespace Tests
 {
-    private static IEnumerable<TestCaseData> GetMeasurements()
+    [Category("ExplicitOnly")]
+    [Explicit]
+    [NonParallelizable]
+    public class MeasurementPageTest : ExplicitTestsBase
     {
-        var allProducts = BackendClient.GetAllProductsAsync().GetAwaiter().GetResult();
-
-        foreach (var productWithId in allProducts)
+        private static IEnumerable<TestCaseData> GetMeasurements()
         {
-            var measurements = BackendClient.GetMeasurementsAsync(null, productWithId.Id).GetAwaiter().GetResult();
+            var allProducts = BackendClient.GetAllProductsAsync().GetAwaiter().GetResult();
 
-            foreach (var measurement in measurements)
+            foreach (var productWithId in allProducts)
             {
-                yield return new TestCaseData(measurement.MeasurementId)
+                var measurements = BackendClient.GetMeasurementsAsync(null, productWithId.Id).GetAwaiter().GetResult();
+
+                foreach (var measurement in measurements)
                 {
-                    TestName = $"{productWithId.Name} {measurement.MeasurementId}"
-                };
+                    yield return new TestCaseData(measurement.MeasurementId)
+                    {
+                        TestName = $"{productWithId.Name} {measurement.MeasurementId}"
+                    };
+                }
             }
         }
-    }
 
-    [TestCaseSource(nameof(GetMeasurements))]
-    public async Task Check_Extractor_Function_TestState(string measurementId)
-    {
-        var response = await HttpClient.GetAsync($"https://{Server}/m/{measurementId}");
-        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.OK));
+        [TestCaseSource(nameof(GetMeasurements))]
+        public async Task Check_Extractor_Function_TestState(string measurementId)
+        {
+            var response = await HttpClient.GetAsync($"https://{Server}/m/{measurementId}");
+            Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.OK));
 
-        response = await HttpClient.GetAsync($"https://{Server}/m/{measurementId}/curves");
-        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.OK));
+            response = await HttpClient.GetAsync($"https://{Server}/m/{measurementId}/curves");
+            Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.OK));
+        }
     }
 }

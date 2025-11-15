@@ -11,7 +11,7 @@ namespace Server.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "InboxState",
                 columns: table => new
                 {
@@ -30,11 +30,11 @@ namespace Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_InboxState", x => x.Id);
-                    table.UniqueConstraint("AK_InboxState_MessageId_ConsumerId", x => new { x.MessageId, x.ConsumerId });
+                    _ = table.PrimaryKey("PK_InboxState", x => x.Id);
+                    _ = table.UniqueConstraint("AK_InboxState_MessageId_ConsumerId", x => new { x.MessageId, x.ConsumerId });
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "OutboxState",
                 columns: table => new
                 {
@@ -47,10 +47,10 @@ namespace Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_OutboxState", x => x.OutboxId);
+                    _ = table.PrimaryKey("PK_OutboxState", x => x.OutboxId);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "OutboxMessage",
                 columns: table => new
                 {
@@ -79,47 +79,47 @@ namespace Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_OutboxMessage", x => x.SequenceNumber);
-                    table.ForeignKey(
+                    _ = table.PrimaryKey("PK_OutboxMessage", x => x.SequenceNumber);
+                    _ = table.ForeignKey(
                         name: "FK_OutboxMessage_InboxState_InboxMessageId_InboxConsumerId",
                         columns: x => new { x.InboxMessageId, x.InboxConsumerId },
                         principalTable: "InboxState",
                         principalColumns: new[] { "MessageId", "ConsumerId" });
-                    table.ForeignKey(
+                    _ = table.ForeignKey(
                         name: "FK_OutboxMessage_OutboxState_OutboxId",
                         column: x => x.OutboxId,
                         principalTable: "OutboxState",
                         principalColumn: "OutboxId");
                 });
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_InboxState_Delivered",
                 table: "InboxState",
                 column: "Delivered");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_OutboxMessage_EnqueueTime",
                 table: "OutboxMessage",
                 column: "EnqueueTime");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_OutboxMessage_ExpirationTime",
                 table: "OutboxMessage",
                 column: "ExpirationTime");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_OutboxMessage_InboxMessageId_InboxConsumerId_SequenceNumber",
                 table: "OutboxMessage",
                 columns: new[] { "InboxMessageId", "InboxConsumerId", "SequenceNumber" },
                 unique: true);
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_OutboxMessage_OutboxId_SequenceNumber",
                 table: "OutboxMessage",
                 columns: new[] { "OutboxId", "SequenceNumber" },
                 unique: true);
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_OutboxState_Created",
                 table: "OutboxState",
                 column: "Created");
@@ -128,13 +128,13 @@ namespace Server.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "OutboxMessage");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "InboxState");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "OutboxState");
         }
     }

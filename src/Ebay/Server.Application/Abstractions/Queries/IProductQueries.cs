@@ -1,11 +1,12 @@
-namespace Server.Application.Abstractions.Queries;
-
-public interface IProductQueries
+namespace Server.Application.Abstractions.Queries
 {
-    Task<ProductInfo?> GetProductAsync(Guid productId, CancellationToken cancellationToken);
+    public interface IProductQueries
+    {
+        Task<ProductInfo?> GetProductAsync(Guid productId, CancellationToken cancellationToken);
 
-    //todo сделать асинхронную энумерацию или пагинацию
-    Task<IReadOnlyList<ProductInfo>> GetAllProductsAsync(CancellationToken cancellationToken);
+        //todo сделать асинхронную энумерацию или пагинацию
+        Task<IReadOnlyList<ProductInfo>> GetAllProductsAsync(CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<Guid>> GetAllProductsIdsAsync(CancellationToken cancellationToken);
+        Task<IReadOnlyList<Guid>> GetAllProductsIdsAsync(CancellationToken cancellationToken);
+    }
 }

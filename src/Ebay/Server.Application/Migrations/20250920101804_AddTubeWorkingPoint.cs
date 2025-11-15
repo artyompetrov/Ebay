@@ -10,7 +10,7 @@ namespace Server.Application.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "TubeWorkingPoints",
                 columns: table => new
                 {
@@ -22,8 +22,8 @@ namespace Server.Application.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TubeWorkingPoints", x => x.ProductId);
-                    table.ForeignKey(
+                    _ = table.PrimaryKey("PK_TubeWorkingPoints", x => x.ProductId);
+                    _ = table.ForeignKey(
                         name: "FK_TubeWorkingPoints_Products_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Products",
@@ -35,7 +35,7 @@ namespace Server.Application.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "TubeWorkingPoints");
         }
     }

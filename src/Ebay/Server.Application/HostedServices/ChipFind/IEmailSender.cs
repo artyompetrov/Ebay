@@ -1,6 +1,7 @@
-namespace Server.Application.HostedServices.ChipFind;
-
-public interface IEmailSender
+namespace Server.Application.HostedServices.ChipFind
 {
-    Task Send(string targetAddress, string topic, string messageText);
+    public interface IEmailSender
+    {
+        Task Send(string targetAddress, string topic, string messageText);
+    }
 }

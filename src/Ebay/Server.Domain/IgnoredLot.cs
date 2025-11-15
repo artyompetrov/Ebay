@@ -1,10 +1,11 @@
-namespace Server.Domain;
-
-public class IgnoredLot
+namespace Server.Domain
 {
-    public Guid ProductId { get; set; }
+    public class IgnoredLot
+    {
+        public Guid ProductId { get; set; }
 
-    public Product Product { get; set; } = null!;
+        public Product Product { get; set; } = null!;
 
-    public long LotId { get; set; }
+        public long LotId { get; set; }
+    }
 }

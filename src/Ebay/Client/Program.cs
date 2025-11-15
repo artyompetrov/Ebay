@@ -21,7 +21,7 @@ builder.Services.AddApiAuthorization();
 
 if (OperatingSystem.IsBrowser())
 {
-    await JSHost.ImportAsync(moduleName: "interop", moduleUrl: "/js/interop.js");
+    _ = await JSHost.ImportAsync(moduleName: "interop", moduleUrl: "/js/interop.js");
 }
 
 await builder.Build().RunAsync();

@@ -1,11 +1,12 @@
-namespace Server.Application;
-
-public class EbayServerOptions
+namespace Server.Application
 {
-    /// <summary>
-    /// Отключает функции которые работают только на сервере
-    /// </summary>
-    public bool IsLocalRun { get; set; } = true;
+    public class EbayServerOptions
+    {
+        /// <summary>
+        /// Отключает функции которые работают только на сервере
+        /// </summary>
+        public bool IsLocalRun { get; set; } = true;
 
-    public string TargetEmail { get; set; } = null!;
+        public string TargetEmail { get; set; } = null!;
+    }
 }

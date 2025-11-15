@@ -1,3 +1,4 @@
-namespace Server.Adapters.ChipFind;
-
-public record ChipFindAdapterOptions(int DelayMilliseconds);
+namespace Server.Adapters.ChipFind
+{
+    public record ChipFindAdapterOptions(int DelayMilliseconds);
+}

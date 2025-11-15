@@ -10,7 +10,7 @@ namespace Server.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
+            _ = migrationBuilder.AddColumn<string>(
                 name: "HashAnodeCurves",
                 table: "ProductMeasurements",
                 type: "character varying(128)",
@@ -18,7 +18,7 @@ namespace Server.Migrations
                 nullable: false,
                 defaultValue: "");
 
-            migrationBuilder.AddColumn<string>(
+            _ = migrationBuilder.AddColumn<string>(
                 name: "HashQuickTest",
                 table: "ProductMeasurements",
                 type: "character varying(128)",
@@ -26,13 +26,13 @@ namespace Server.Migrations
                 nullable: false,
                 defaultValue: "");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_ProductMeasurements_HashAnodeCurves",
                 table: "ProductMeasurements",
                 column: "HashAnodeCurves",
                 unique: true);
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_ProductMeasurements_HashQuickTest",
                 table: "ProductMeasurements",
                 column: "HashQuickTest",
@@ -42,19 +42,19 @@ namespace Server.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropIndex(
+            _ = migrationBuilder.DropIndex(
                 name: "IX_ProductMeasurements_HashAnodeCurves",
                 table: "ProductMeasurements");
 
-            migrationBuilder.DropIndex(
+            _ = migrationBuilder.DropIndex(
                 name: "IX_ProductMeasurements_HashQuickTest",
                 table: "ProductMeasurements");
 
-            migrationBuilder.DropColumn(
+            _ = migrationBuilder.DropColumn(
                 name: "HashAnodeCurves",
                 table: "ProductMeasurements");
 
-            migrationBuilder.DropColumn(
+            _ = migrationBuilder.DropColumn(
                 name: "HashQuickTest",
                 table: "ProductMeasurements");
         }

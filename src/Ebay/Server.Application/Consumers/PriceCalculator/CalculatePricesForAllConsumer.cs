@@ -1,30 +1,25 @@
 using MassTransit;
 using Server.Application.Abstractions.Queries;
 
-namespace Server.Application.Consumers.PriceCalculator;
-
-internal class CalculatePricesForAllConsumer : IConsumer<CalculatePricesForAll>
+namespace Server.Application.Consumers.PriceCalculator
 {
-    private readonly IProductQueries _productQueries;
-    private readonly IPublishEndpoint _publishEndpoint;
-
-    public CalculatePricesForAllConsumer(
+    internal class CalculatePricesForAllConsumer(
         IProductQueries productQueries,
-        IPublishEndpoint publishEndpoint)
+        IPublishEndpoint publishEndpoint) : IConsumer<CalculatePricesForAll>
     {
-        _productQueries = productQueries;
-        _publishEndpoint = publishEndpoint;
-    }
+        private readonly IProductQueries _productQueries = productQueries;
+        private readonly IPublishEndpoint _publishEndpoint = publishEndpoint;
 
-    public async Task Consume(ConsumeContext<CalculatePricesForAll> context)
-    {
-        var productIds = await _productQueries.GetAllProductsIdsAsync(context.CancellationToken);
-
-        foreach (var productId in productIds)
+        public async Task Consume(ConsumeContext<CalculatePricesForAll> context)
         {
-            await _publishEndpoint.Publish(message: new CalculatePricesForProduct(productId), context.CancellationToken);
+            var productIds = await _productQueries.GetAllProductsIdsAsync(context.CancellationToken);
+
+            foreach (var productId in productIds)
+            {
+                await _publishEndpoint.Publish(message: new CalculatePricesForProduct(productId), context.CancellationToken);
+            }
         }
     }
-}
 
-public record CalculatePricesForAll;
+    public record CalculatePricesForAll;
+}

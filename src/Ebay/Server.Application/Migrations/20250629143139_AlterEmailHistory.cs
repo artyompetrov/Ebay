@@ -10,12 +10,12 @@ namespace Server.Application.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
+            _ = migrationBuilder.RenameColumn(
                 name: "EmailId",
                 table: "EmailSendHistories",
                 newName: "ProductKey");
 
-            migrationBuilder.RenameIndex(
+            _ = migrationBuilder.RenameIndex(
                 name: "IX_EmailSendHistories_EmailId",
                 table: "EmailSendHistories",
                 newName: "IX_EmailSendHistories_ProductKey");
@@ -24,12 +24,12 @@ namespace Server.Application.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
+            _ = migrationBuilder.RenameColumn(
                 name: "ProductKey",
                 table: "EmailSendHistories",
                 newName: "EmailId");
 
-            migrationBuilder.RenameIndex(
+            _ = migrationBuilder.RenameIndex(
                 name: "IX_EmailSendHistories_ProductKey",
                 table: "EmailSendHistories",
                 newName: "IX_EmailSendHistories_EmailId");

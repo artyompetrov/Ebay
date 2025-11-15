@@ -10,30 +10,30 @@ namespace Server.Application.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
+            _ = migrationBuilder.DropForeignKey(
                 name: "FK_MatchedPairDifferences_ProductMeasurements_MeasurementId1",
                 table: "MatchedPairDifferences");
 
-            migrationBuilder.DropForeignKey(
+            _ = migrationBuilder.DropForeignKey(
                 name: "FK_MatchedPairDifferences_ProductMeasurements_MeasurementId2",
                 table: "MatchedPairDifferences");
 
-            migrationBuilder.RenameColumn(
+            _ = migrationBuilder.RenameColumn(
                 name: "MeasurementId2",
                 table: "MatchedPairDifferences",
                 newName: "Measurement2Id");
 
-            migrationBuilder.RenameColumn(
+            _ = migrationBuilder.RenameColumn(
                 name: "MeasurementId1",
                 table: "MatchedPairDifferences",
                 newName: "Measurement1Id");
 
-            migrationBuilder.RenameIndex(
+            _ = migrationBuilder.RenameIndex(
                 name: "IX_MatchedPairDifferences_MeasurementId2",
                 table: "MatchedPairDifferences",
                 newName: "IX_MatchedPairDifferences_Measurement2Id");
 
-            migrationBuilder.AddForeignKey(
+            _ = migrationBuilder.AddForeignKey(
                 name: "FK_MatchedPairDifferences_ProductMeasurements_Measurement1Id",
                 table: "MatchedPairDifferences",
                 column: "Measurement1Id",
@@ -41,7 +41,7 @@ namespace Server.Application.Migrations
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
 
-            migrationBuilder.AddForeignKey(
+            _ = migrationBuilder.AddForeignKey(
                 name: "FK_MatchedPairDifferences_ProductMeasurements_Measurement2Id",
                 table: "MatchedPairDifferences",
                 column: "Measurement2Id",
@@ -53,30 +53,30 @@ namespace Server.Application.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
+            _ = migrationBuilder.DropForeignKey(
                 name: "FK_MatchedPairDifferences_ProductMeasurements_Measurement1Id",
                 table: "MatchedPairDifferences");
 
-            migrationBuilder.DropForeignKey(
+            _ = migrationBuilder.DropForeignKey(
                 name: "FK_MatchedPairDifferences_ProductMeasurements_Measurement2Id",
                 table: "MatchedPairDifferences");
 
-            migrationBuilder.RenameColumn(
+            _ = migrationBuilder.RenameColumn(
                 name: "Measurement2Id",
                 table: "MatchedPairDifferences",
                 newName: "MeasurementId2");
 
-            migrationBuilder.RenameColumn(
+            _ = migrationBuilder.RenameColumn(
                 name: "Measurement1Id",
                 table: "MatchedPairDifferences",
                 newName: "MeasurementId1");
 
-            migrationBuilder.RenameIndex(
+            _ = migrationBuilder.RenameIndex(
                 name: "IX_MatchedPairDifferences_Measurement2Id",
                 table: "MatchedPairDifferences",
                 newName: "IX_MatchedPairDifferences_MeasurementId2");
 
-            migrationBuilder.AddForeignKey(
+            _ = migrationBuilder.AddForeignKey(
                 name: "FK_MatchedPairDifferences_ProductMeasurements_MeasurementId1",
                 table: "MatchedPairDifferences",
                 column: "MeasurementId1",
@@ -84,7 +84,7 @@ namespace Server.Application.Migrations
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
 
-            migrationBuilder.AddForeignKey(
+            _ = migrationBuilder.AddForeignKey(
                 name: "FK_MatchedPairDifferences_ProductMeasurements_MeasurementId2",
                 table: "MatchedPairDifferences",
                 column: "MeasurementId2",

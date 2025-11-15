@@ -10,7 +10,7 @@ namespace Server.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<string>(
+            _ = migrationBuilder.AlterColumn<string>(
                 name: "Id",
                 table: "ProductMeasurements",
                 type: "character varying(100)",
@@ -23,7 +23,7 @@ namespace Server.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<Guid>(
+            _ = migrationBuilder.AlterColumn<Guid>(
                 name: "Id",
                 table: "ProductMeasurements",
                 type: "uuid",

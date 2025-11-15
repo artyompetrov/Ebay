@@ -10,23 +10,23 @@ namespace Server.Application.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
+            _ = migrationBuilder.DropForeignKey(
                 name: "FK_MatchedPairDifferences_ProductMeasurements_MeasurementId1",
                 table: "MatchedPairDifferences");
 
-            migrationBuilder.DropForeignKey(
+            _ = migrationBuilder.DropForeignKey(
                 name: "FK_MatchedPairDifferences_ProductMeasurements_MeasurementId2",
                 table: "MatchedPairDifferences");
 
-            migrationBuilder.DropForeignKey(
+            _ = migrationBuilder.DropForeignKey(
                 name: "FK_ProductMeasurements_Products_ProductId",
                 table: "ProductMeasurements");
 
-            migrationBuilder.DropForeignKey(
+            _ = migrationBuilder.DropForeignKey(
                 name: "FK_TubeWorkingPoints_Products_ProductId",
                 table: "TubeWorkingPoints");
 
-            migrationBuilder.AddColumn<uint>(
+            _ = migrationBuilder.AddColumn<uint>(
                 name: "xmin",
                 table: "ProductMeasurements",
                 type: "xid",
@@ -34,7 +34,7 @@ namespace Server.Application.Migrations
                 nullable: false,
                 defaultValue: 0u);
 
-            migrationBuilder.AddForeignKey(
+            _ = migrationBuilder.AddForeignKey(
                 name: "FK_MatchedPairDifferences_ProductMeasurements_MeasurementId1",
                 table: "MatchedPairDifferences",
                 column: "MeasurementId1",
@@ -42,7 +42,7 @@ namespace Server.Application.Migrations
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
 
-            migrationBuilder.AddForeignKey(
+            _ = migrationBuilder.AddForeignKey(
                 name: "FK_MatchedPairDifferences_ProductMeasurements_MeasurementId2",
                 table: "MatchedPairDifferences",
                 column: "MeasurementId2",
@@ -50,7 +50,7 @@ namespace Server.Application.Migrations
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
 
-            migrationBuilder.AddForeignKey(
+            _ = migrationBuilder.AddForeignKey(
                 name: "FK_ProductMeasurements_Products_ProductId",
                 table: "ProductMeasurements",
                 column: "ProductId",
@@ -58,7 +58,7 @@ namespace Server.Application.Migrations
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
 
-            migrationBuilder.AddForeignKey(
+            _ = migrationBuilder.AddForeignKey(
                 name: "FK_TubeWorkingPoints_Products_ProductId",
                 table: "TubeWorkingPoints",
                 column: "ProductId",
@@ -70,27 +70,27 @@ namespace Server.Application.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
+            _ = migrationBuilder.DropForeignKey(
                 name: "FK_MatchedPairDifferences_ProductMeasurements_MeasurementId1",
                 table: "MatchedPairDifferences");
 
-            migrationBuilder.DropForeignKey(
+            _ = migrationBuilder.DropForeignKey(
                 name: "FK_MatchedPairDifferences_ProductMeasurements_MeasurementId2",
                 table: "MatchedPairDifferences");
 
-            migrationBuilder.DropForeignKey(
+            _ = migrationBuilder.DropForeignKey(
                 name: "FK_ProductMeasurements_Products_ProductId",
                 table: "ProductMeasurements");
 
-            migrationBuilder.DropForeignKey(
+            _ = migrationBuilder.DropForeignKey(
                 name: "FK_TubeWorkingPoints_Products_ProductId",
                 table: "TubeWorkingPoints");
 
-            migrationBuilder.DropColumn(
+            _ = migrationBuilder.DropColumn(
                 name: "xmin",
                 table: "ProductMeasurements");
 
-            migrationBuilder.AddForeignKey(
+            _ = migrationBuilder.AddForeignKey(
                 name: "FK_MatchedPairDifferences_ProductMeasurements_MeasurementId1",
                 table: "MatchedPairDifferences",
                 column: "MeasurementId1",
@@ -98,7 +98,7 @@ namespace Server.Application.Migrations
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
 
-            migrationBuilder.AddForeignKey(
+            _ = migrationBuilder.AddForeignKey(
                 name: "FK_MatchedPairDifferences_ProductMeasurements_MeasurementId2",
                 table: "MatchedPairDifferences",
                 column: "MeasurementId2",
@@ -106,7 +106,7 @@ namespace Server.Application.Migrations
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
 
-            migrationBuilder.AddForeignKey(
+            _ = migrationBuilder.AddForeignKey(
                 name: "FK_ProductMeasurements_Products_ProductId",
                 table: "ProductMeasurements",
                 column: "ProductId",
@@ -114,7 +114,7 @@ namespace Server.Application.Migrations
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
 
-            migrationBuilder.AddForeignKey(
+            _ = migrationBuilder.AddForeignKey(
                 name: "FK_TubeWorkingPoints_Products_ProductId",
                 table: "TubeWorkingPoints",
                 column: "ProductId",

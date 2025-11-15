@@ -10,7 +10,7 @@ namespace Server.Application.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "CacheEntries",
                 columns: table => new
                 {
@@ -20,14 +20,14 @@ namespace Server.Application.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CacheEntries", x => x.Key);
+                    _ = table.PrimaryKey("PK_CacheEntries", x => x.Key);
                 });
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "CacheEntries");
         }
     }

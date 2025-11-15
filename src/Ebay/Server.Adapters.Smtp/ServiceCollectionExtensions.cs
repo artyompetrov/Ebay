@@ -3,14 +3,15 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Application.HostedServices.ChipFind;
 
-namespace Server.Adapters.Smtp;
-
-public static class ServiceCollectionExtensions
+namespace Server.Adapters.Smtp
 {
-    public static void AddEmailAdapter(
-        this IServiceCollection services, IConfiguration configuration)
+    public static class ServiceCollectionExtensions
     {
-        services.Configure<SmtpSettings>(configuration.GetSection("Smtp"));
-        services.AddScoped<IEmailSender, EmailSender>();
+        public static void AddEmailAdapter(
+            this IServiceCollection services, IConfiguration configuration)
+        {
+            _ = services.Configure<SmtpSettings>(configuration.GetSection("Smtp"));
+            _ = services.AddScoped<IEmailSender, EmailSender>();
+        }
     }
 }

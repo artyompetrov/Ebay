@@ -7,52 +7,49 @@ using Server.Application.Consumers.EbayCurvesCacheWarmUp;
 using Server.Application.Data;
 using Server.Application.Infrastructure;
 
-namespace Server.Application.HostedServices.Measurements;
-
-public class MeasurementPlotWarmupHostedService : IHostedService
+namespace Server.Application.HostedServices.Measurements
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly ILogger<MeasurementPlotWarmupHostedService> _logger;
-    private readonly EbayServerOptions _options;
-
-    public MeasurementPlotWarmupHostedService(
+    public class MeasurementPlotWarmupHostedService(
         IServiceScopeFactory serviceScopeFactory,
         ILogger<MeasurementPlotWarmupHostedService> logger,
-        EbayServerOptions options)
+        EbayServerOptions options) : IHostedService
     {
-        _serviceScopeFactory = serviceScopeFactory;
-        _logger = logger;
-        _options = options;
-    }
+        private readonly IServiceScopeFactory _serviceScopeFactory = serviceScopeFactory;
+        private readonly ILogger<MeasurementPlotWarmupHostedService> _logger = logger;
+        private readonly EbayServerOptions _options = options;
 
-    public async Task StartAsync(CancellationToken cancellationToken)
-    {
-        if (_options.IsLocalRun)
+        public async Task StartAsync(CancellationToken cancellationToken)
         {
-            return;
-        }
-
-        using var scope = _serviceScopeFactory.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        var publishEndpoint = scope.ServiceProvider.GetRequiredService<IPublishEndpoint>();
-
-        var measurementIds = await dbContext.ProductMeasurements
-            .AsNoTracking()
-            .Select(m => m.Id)
-            .ToListAsync(cancellationToken);
-
-        foreach (var batch in measurementIds.Batch(500))
-        {
-            foreach (var id in batch)
+            if (_options.IsLocalRun)
             {
-                await publishEndpoint.Publish(new CalculateEbayCurvesForMeasurement(id), cancellationToken);
+                return;
             }
 
-            await dbContext.SaveChangesAsync(cancellationToken);
+            using var scope = _serviceScopeFactory.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var publishEndpoint = scope.ServiceProvider.GetRequiredService<IPublishEndpoint>();
+
+            var measurementIds = await dbContext.ProductMeasurements
+                .AsNoTracking()
+                .Select(m => m.Id)
+                .ToListAsync(cancellationToken);
+
+            foreach (var batch in measurementIds.Batch(500))
+            {
+                foreach (var id in batch)
+                {
+                    await publishEndpoint.Publish(new CalculateEbayCurvesForMeasurement(id), cancellationToken);
+                }
+
+                _ = await dbContext.SaveChangesAsync(cancellationToken);
+            }
+
+            _logger.LogInformation("Published {Count} measurement plot warmup commands", measurementIds.Count);
         }
 
-        _logger.LogInformation("Published {Count} measurement plot warmup commands", measurementIds.Count);
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
     }
-
-    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 }

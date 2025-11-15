@@ -10,12 +10,12 @@ namespace Server.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
+            _ = migrationBuilder.RenameColumn(
                 name: "HashPlateCurves",
                 table: "ProductMeasurements",
                 newName: "HashGridCurves");
 
-            migrationBuilder.RenameIndex(
+            _ = migrationBuilder.RenameIndex(
                 name: "IX_ProductMeasurements_HashPlateCurves",
                 table: "ProductMeasurements",
                 newName: "IX_ProductMeasurements_HashGridCurves");
@@ -24,12 +24,12 @@ namespace Server.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
+            _ = migrationBuilder.RenameColumn(
                 name: "HashGridCurves",
                 table: "ProductMeasurements",
                 newName: "HashPlateCurves");
 
-            migrationBuilder.RenameIndex(
+            _ = migrationBuilder.RenameIndex(
                 name: "IX_ProductMeasurements_HashGridCurves",
                 table: "ProductMeasurements",
                 newName: "IX_ProductMeasurements_HashPlateCurves");

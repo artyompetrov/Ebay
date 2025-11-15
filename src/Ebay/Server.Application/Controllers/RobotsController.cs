@@ -1,15 +1,16 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace Server.Application.Controllers;
-
-[ApiController]
-public class RobotsController : ControllerBase
+namespace Server.Application.Controllers
 {
-    [HttpGet("/robots.txt")]
-    public ContentResult RobotsTxt()
+    [ApiController]
+    public class RobotsController : ControllerBase
     {
-        const string content = "User-agent: *\nDisallow: /";
+        [HttpGet("/robots.txt")]
+        public ContentResult RobotsTxt()
+        {
+            const string content = "User-agent: *\nDisallow: /";
 
-        return Content(content: content, contentType: "text/plain");
+            return Content(content: content, contentType: "text/plain");
+        }
     }
 }

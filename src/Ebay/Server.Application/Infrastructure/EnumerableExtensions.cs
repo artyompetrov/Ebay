@@ -1,23 +1,24 @@
-namespace Server.Application.Infrastructure;
-
-public static class EnumerableExtensions
+namespace Server.Application.Infrastructure
 {
-    public static IEnumerable<IEnumerable<T>> Batch<T>(this IEnumerable<T> source, int size)
+    public static class EnumerableExtensions
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(size);
-
-        using var enumerator = source.GetEnumerator();
-        while (enumerator.MoveNext())
+        public static IEnumerable<IEnumerable<T>> Batch<T>(this IEnumerable<T> source, int size)
         {
-            var batch = new List<T>(size) { enumerator.Current };
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(size);
 
-            while (batch.Count < size && enumerator.MoveNext())
+            using var enumerator = source.GetEnumerator();
+            while (enumerator.MoveNext())
             {
-                batch.Add(enumerator.Current);
-            }
+                var batch = new List<T>(size) { enumerator.Current };
 
-            yield return batch;
+                while (batch.Count < size && enumerator.MoveNext())
+                {
+                    batch.Add(enumerator.Current);
+                }
+
+                yield return batch;
+            }
         }
     }
 }

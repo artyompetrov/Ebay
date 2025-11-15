@@ -1,10 +1,11 @@
 using LotDataToExtract = Server.Controllers.Generated.LotDataToExtract;
 
-namespace Server.Application.Services.LotDataExtractor;
-
-internal interface IExtractor
+namespace Server.Application.Services.LotDataExtractor
 {
-    public string ExtractedDataName { get; }
+    internal interface IExtractor
+    {
+        public string ExtractedDataName { get; }
 
-    public Dictionary<string, HashSet<ExtractionResult>> Extract(LotDataToExtract lotDataToExtract);
+        public Dictionary<string, HashSet<ExtractionResult>> Extract(LotDataToExtract lotDataToExtract);
+    }
 }
