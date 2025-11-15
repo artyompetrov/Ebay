@@ -7,6 +7,8 @@ namespace Server.Application.Migrations
     /// <inheritdoc />
     public partial class AddCacheEntryVersion : Migration
     {
+        private static readonly string[] columns = new[] { "Key", "Version" };
+
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -25,7 +27,7 @@ namespace Server.Application.Migrations
             _ = migrationBuilder.AddPrimaryKey(
                 name: "PK_CacheEntries",
                 table: "CacheEntries",
-                columns: new[] { "Key", "Version" });
+                columns: columns);
         }
 
         /// <inheritdoc />

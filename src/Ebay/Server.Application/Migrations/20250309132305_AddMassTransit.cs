@@ -8,6 +8,9 @@ namespace Server.Migrations
     /// <inheritdoc />
     public partial class AddMassTransit : Migration
     {
+        private static readonly string[] principalColumns = new[] { "MessageId", "ConsumerId" };
+        private static readonly string[] columns = new[] { "OutboxId", "SequenceNumber" };
+
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -84,7 +87,7 @@ namespace Server.Migrations
                         name: "FK_OutboxMessage_InboxState_InboxMessageId_InboxConsumerId",
                         columns: x => new { x.InboxMessageId, x.InboxConsumerId },
                         principalTable: "InboxState",
-                        principalColumns: new[] { "MessageId", "ConsumerId" });
+                        principalColumns: principalColumns);
                     _ = table.ForeignKey(
                         name: "FK_OutboxMessage_OutboxState_OutboxId",
                         column: x => x.OutboxId,
@@ -110,13 +113,13 @@ namespace Server.Migrations
             _ = migrationBuilder.CreateIndex(
                 name: "IX_OutboxMessage_InboxMessageId_InboxConsumerId_SequenceNumber",
                 table: "OutboxMessage",
-                columns: new[] { "InboxMessageId", "InboxConsumerId", "SequenceNumber" },
+                columns: [ "InboxMessageId", "InboxConsumerId", "SequenceNumber" ],
                 unique: true);
 
             _ = migrationBuilder.CreateIndex(
                 name: "IX_OutboxMessage_OutboxId_SequenceNumber",
                 table: "OutboxMessage",
-                columns: new[] { "OutboxId", "SequenceNumber" },
+                columns: columns,
                 unique: true);
 
             _ = migrationBuilder.CreateIndex(

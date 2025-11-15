@@ -68,6 +68,7 @@ namespace Server.Application.Migrations
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
         }
+        private static readonly string[] columns = new[] { "Measurement1Id", "Measurement2Id", "ComparisonMode" };
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -104,7 +105,7 @@ namespace Server.Application.Migrations
             _ = migrationBuilder.AddPrimaryKey(
                 name: "PK_MatchedPairDifferences",
                 table: "MatchedPairDifferences",
-                columns: new[] { "Measurement1Id", "Measurement2Id", "ComparisonMode" });
+                columns: columns);
 
             _ = migrationBuilder.AddForeignKey(
                 name: "FK_TubeWorkingPoints_Products_ProductId",

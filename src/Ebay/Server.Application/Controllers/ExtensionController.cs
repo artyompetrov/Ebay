@@ -116,7 +116,7 @@ namespace Server.Application.Controllers
             return !Directory.Exists(extensionsFolder) ? throw new InvalidOperationException("Extensions folder not found.") : extensionsFolder;
         }
 
-        private IEnumerable<(string FilePath, Version Version)> GetVersionedFiles(string folder, string extensionName)
+        private static IEnumerable<(string FilePath, Version Version)> GetVersionedFiles(string folder, string extensionName)
         {
             var pattern = $"{extensionName}_*.crx";
             var crxFiles = Directory.GetFiles(path: folder, searchPattern: pattern);

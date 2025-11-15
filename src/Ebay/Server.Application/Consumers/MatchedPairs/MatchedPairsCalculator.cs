@@ -334,7 +334,7 @@ namespace Server.Application.Consumers.MatchedPairs
         /// <summary>
         /// Функция создает модель при помощи RBF интерполяции
         /// </summary>
-        private alglib.rbfmodel RbfModel(List<MeasurementPoint> points, TubeWorkingPointInfo wp)
+        private static alglib.rbfmodel RbfModel(List<MeasurementPoint> points, TubeWorkingPointInfo wp)
         {
             var baseX = Math.Max(1e-9, wp.AnodeVoltageHalfWidth);
             var baseY = Math.Max(1e-9, wp.GridVoltageHalfWidth);

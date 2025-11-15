@@ -35,7 +35,8 @@ namespace Server.Application.Migrations
             _ = migrationBuilder.CreateIndex(
                 name: "IX_ProductPassports_ProductId_Order",
                 table: "ProductPassports",
-                columns: new[] { "ProductId", "Order" });
+                columns:
+                [ "ProductId", "Order" ]);
         }
 
         /// <inheritdoc />

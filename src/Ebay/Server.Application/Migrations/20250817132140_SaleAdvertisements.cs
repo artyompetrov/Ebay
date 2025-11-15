@@ -105,7 +105,7 @@ namespace Server.Application.Migrations
             _ = migrationBuilder.CreateIndex(
                 name: "IX_SaleAdvertisements_ProductId_Seller_Marketplace",
                 table: "SaleAdvertisements",
-                columns: new[] { "ProductId", "Seller", "Marketplace" },
+                columns: [ "ProductId", "Seller", "Marketplace" ],
                 unique: true);
 
             _ = migrationBuilder.CreateIndex(

@@ -298,19 +298,19 @@ namespace Server.Application.Controllers
             var validationErrors = new List<(string key, string[] value)>();
             if (lotInfo.ShippingAdditional == null)
             {
-                validationErrors.Add((key: nameof(lotInfo.ShippingAdditional), value: new[] { "Not set" }));
+                validationErrors.Add((key: nameof(lotInfo.ShippingAdditional), value: [ "Not set" ]));
             }
 
             if (lotInfo.Shipping == null)
             {
-                validationErrors.Add((key: nameof(lotInfo.Shipping), value: new[] { "Not set" }));
+                validationErrors.Add((key: nameof(lotInfo.Shipping), value: ["Not set"]));
             }
 
             if (!new HashSet<string> { WellKnown.Categories.Conditions.CategoryName, WellKnown.Categories.TestState.CategoryName }.SequenceEqual(
                     lotInfo.Categories.Select(x => x.Type)
                 ))
             {
-                validationErrors.Add((key: nameof(lotInfo.Categories), value: new[] { "Not all categories set" }));
+                validationErrors.Add((key: nameof(lotInfo.Categories), value: ["Not all categories set"]));
             }
 
             if (validationErrors.Count > 0)

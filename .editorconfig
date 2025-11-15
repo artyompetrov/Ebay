@@ -19,22 +19,14 @@ indent_size = 4
 dotnet_analyzer_diagnostic.severity = error
 
 # исключения
-dotnet_diagnostic.SYSLIB1045.severity = none
-dotnet_diagnostic.CA1848.severity = none
-dotnet_diagnostic.CA1861.severity = none
-dotnet_diagnostic.CA1822.severity = none
-dotnet_diagnostic.CA1707.severity = none
+dotnet_diagnostic.SYSLIB1045.severity = none #
+dotnet_diagnostic.CA1848.severity = none     #
+dotnet_diagnostic.CA1822.severity = none     # Member does not access instance data and can be marked as static - срабатывает в том числе на публичные методы
+dotnet_diagnostic.CA1707.severity = none     # Remove the underscores from member name Should_Do_Smth()
 
 # Полностью отключаем все StyleCop.Analyzers - так как мы пользуемся dotnet format, а они несовместимы
-dotnet_analyzer_diagnostic.category-StyleCop.CSharp.AlternativeRules.severity = none
-dotnet_analyzer_diagnostic.category-StyleCop.CSharp.DocumentationRules.severity = none
-dotnet_analyzer_diagnostic.category-StyleCop.CSharp.LayoutRules.severity = none
-dotnet_analyzer_diagnostic.category-StyleCop.CSharp.MaintainabilityRules.severity = none
-dotnet_analyzer_diagnostic.category-StyleCop.CSharp.NamingRules.severity = none
-dotnet_analyzer_diagnostic.category-StyleCop.CSharp.OrderingRules.severity = none
-dotnet_analyzer_diagnostic.category-StyleCop.CSharp.ReadabilityRules.severity = none
-dotnet_analyzer_diagnostic.category-StyleCop.CSharp.SpacingRules.severity = none
-dotnet_analyzer_diagnostic.category-StyleCop.CSharp.SpecialRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.severity = none
+
 
 csharp_new_line_before_members_in_object_initializers = true
 csharp_preferred_modifier_order = public, protected, internal, private, new, async, static, virtual, abstract, override, sealed, readonly, extern, unsafe, volatile, file, required:suggestion
