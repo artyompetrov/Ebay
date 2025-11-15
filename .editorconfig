@@ -14,15 +14,16 @@ insert_final_newline = false
 indent_style = space
 indent_size = 4
 
-# Microsoft .NET properties
 #### !!! Important !!! Enable dotnet_diagnostic ####
 dotnet_analyzer_diagnostic.severity = error
 
-# исключения
-dotnet_diagnostic.SYSLIB1045.severity = none #
-dotnet_diagnostic.CA1848.severity = none     #
-dotnet_diagnostic.CA1822.severity = none     # Member does not access instance data and can be marked as static - срабатывает в том числе на публичные методы
-dotnet_diagnostic.CA1707.severity = none     # Remove the underscores from member name Should_Do_Smth()
+# Исключения:
+# For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+# не очень удобно делать функции под каждую лог запись
+dotnet_diagnostic.SYSLIB1045.severity = none
+
+# Remove the underscores from member name Should_Do_Smth() - Тесты пишем в такой нотации
+dotnet_diagnostic.CA1707.severity = none
 
 # Полностью отключаем все StyleCop.Analyzers - так как мы пользуемся dotnet format, а они несовместимы
 dotnet_analyzer_diagnostic.category-StyleCop.severity = none

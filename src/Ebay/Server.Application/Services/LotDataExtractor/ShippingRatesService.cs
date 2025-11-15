@@ -3,7 +3,7 @@ using Server.Controllers.Generated;
 
 namespace Server.Application.Services.LotDataExtractor
 {
-    public class ShippingRatesService
+    public class ShippingRatesService : IShippingRatesService
     {
         private static readonly List<ShippingType> Rates;
         private static readonly Dictionary<string, List<ShippingRateInner>> ShippingRatesDictionaryStatic;

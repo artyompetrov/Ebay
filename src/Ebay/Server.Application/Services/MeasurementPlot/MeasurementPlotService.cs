@@ -12,7 +12,7 @@ namespace Server.Application.Services.MeasurementPlot
     public class MeasurementPlotService(
         DbCache cache,
         IMeasurementQueries measurementQueries,
-        IMeasurementFileParser measurementFileParser)
+        IMeasurementFileParser measurementFileParser) : IMeasurementPlotService
     {
         private readonly DbCache _cache = cache;
         private readonly IMeasurementQueries _measurementQueries = measurementQueries;
