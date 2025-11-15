@@ -168,8 +168,8 @@ namespace Server.Adapters.uTracer
         private static bool ReadMeasurementFile(
             byte[] measurementData,
             [NotNullWhen(false)] out List<string>? errors,
-            [NotNullWhen(true)] out byte[] ? anodeCurvesConfig,
-            [NotNullWhen(true)] out byte[] ? anodeCurves,
+            [NotNullWhen(true)] out byte[]? anodeCurvesConfig,
+            [NotNullWhen(true)] out byte[]? anodeCurves,
             [NotNullWhen(true)] out byte[]? quickTest,
             out int fileCount)
         {

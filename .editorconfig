@@ -25,7 +25,7 @@ dotnet_diagnostic.CA1861.severity = none
 dotnet_diagnostic.CA1822.severity = none
 dotnet_diagnostic.CA1707.severity = none
 
-# Полностью вырубаем все StyleCop.Analyzers - т.к. мы пользуемся dotnet format и вручную не хотим ничего редактировать
+# Полностью отключаем все StyleCop.Analyzers - так как мы пользуемся dotnet format, а они несовместимы
 dotnet_analyzer_diagnostic.category-StyleCop.CSharp.AlternativeRules.severity = none
 dotnet_analyzer_diagnostic.category-StyleCop.CSharp.DocumentationRules.severity = none
 dotnet_analyzer_diagnostic.category-StyleCop.CSharp.LayoutRules.severity = none

@@ -11,7 +11,7 @@ namespace Server.Domain
 
         public override bool Equals(object? obj)
         {
-            return obj is not Entity<TId> other ? false : ReferenceEquals(this, other) || EqualityComparer<TId>.Default.Equals(Id, other.Id);
+            return obj is Entity<TId> other && (ReferenceEquals(this, other) || EqualityComparer<TId>.Default.Equals(Id, other.Id));
         }
 
         public override int GetHashCode()

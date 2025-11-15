@@ -20,6 +20,7 @@ namespace Sever.Adapters.EF.ReadModel.ReadModelSchema
 
         public TubeWorkingPointView TubeWorkingPoint { get; set; } = null!;
 
+#pragma warning disable format
         public static Expression<Func<Product, ProductView>> ToView => x =>
             new()
             {
@@ -32,4 +33,5 @@ namespace Sever.Adapters.EF.ReadModel.ReadModelSchema
                 Weight = x.Weight,
             };
     }
+#pragma warning restore format
 }
