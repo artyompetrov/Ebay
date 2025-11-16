@@ -8,7 +8,20 @@
 }
 
 .navbar-brand {
-    font-size: 1.1rem;
+    font-size: 0.95rem;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+    gap: 0.1rem;
+}
+
+.navbar-brand-title {
+    font-size: 1rem;
+}
+
+.navbar-brand-version {
+    font-size: 0.75rem;
+    opacity: 0.85;
 }
 
 .oi {
