@@ -75,7 +75,7 @@ namespace Server.Application.Services.GeoIp
             try
             {
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(token);
-                cts.CancelAfter(TimeSpan.FromSeconds(5));
+                cts.CancelAfter(TimeSpan.FromSeconds(60));
                 location = await GetLocationAsync(realIp, cts.Token);
             }
             catch (Exception ex)
