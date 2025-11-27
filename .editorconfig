@@ -45,6 +45,11 @@ dotnet_analyzer_diagnostic.category-StyleCop.severity = none
 # IDE0305: Simplify collection initialization — правило, которое предлагает упростить инициализацию коллекций
 dotnet_diagnostic.IDE0305.severity = suggestion
 
+# Organize usings
+dotnet_separate_import_directive_groups = false
+dotnet_sort_system_directives_first = true
+file_header_template = unset
+
 csharp_new_line_before_members_in_object_initializers = true
 csharp_preferred_modifier_order = public, protected, internal, private, new, async, static, virtual, abstract, override, sealed, readonly, extern, unsafe, volatile, file, required:suggestion
 csharp_style_prefer_utf8_string_literals = false
@@ -75,7 +80,7 @@ dotnet_style_qualification_for_method = false:suggestion
 dotnet_style_qualification_for_property = false:suggestion
 dotnet_style_require_accessibility_modifiers = for_non_interface_members:suggestion
 dotnet_diagnostic.ide0005.severity = warning
-dotnet_sort_system_directives_first = true
+
 
 # ReSharper properties
 resharper_apply_auto_detected_rules = false
