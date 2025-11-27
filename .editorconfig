@@ -1,3 +1,5 @@
+# https://gitlab.ptsecurity.com/api/v4/projects/8749/repository/files/CodeStyle%2F.editorconfig/raw
+
 root = true
 
 [**/Generated/**]
@@ -14,6 +16,13 @@ insert_final_newline = false
 indent_style = space
 indent_size = 4
 
+
+[*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,projitems,shproj}]
+indent_size = 2
+ij_xml_space_inside_empty_tag = false
+insert_final_newline = true
+
+[*.cs]
 #### !!! Important !!! Enable dotnet_diagnostic ####
 dotnet_analyzer_diagnostic.severity = error
 
@@ -32,6 +41,9 @@ dotnet_diagnostic.CA1707.severity = none
 # Полностью отключаем все StyleCop.Analyzers - так как мы пользуемся dotnet format, а они несовместимы
 dotnet_analyzer_diagnostic.category-StyleCop.severity = none
 
+
+# IDE0305: Simplify collection initialization — правило, которое предлагает упростить инициализацию коллекций
+dotnet_diagnostic.IDE0305.severity = suggestion
 
 csharp_new_line_before_members_in_object_initializers = true
 csharp_preferred_modifier_order = public, protected, internal, private, new, async, static, virtual, abstract, override, sealed, readonly, extern, unsafe, volatile, file, required:suggestion
