@@ -548,6 +548,7 @@ namespace Server.Application.Services.MeasurementPlot
                         badgeSub = "(&lt; 70%)";
                         badgeFill = "#c75c5c";
                         break;
+
                 }
             }
 

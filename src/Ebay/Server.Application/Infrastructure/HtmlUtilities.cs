@@ -92,13 +92,10 @@ namespace Server.Application.Infrastructure
                     break;
 
                 case HtmlNodeType.Element:
-                    switch (node.Name)
+
+                    if (node.Name is "p" or "br" or "div")
                     {
-                        case "p":
-                        case "br":
-                        case "div":
-                            outText.Write("\r\n");
-                            break;
+                        outText.Write("\r\n");
                     }
 
                     if (node.HasChildNodes)
@@ -106,6 +103,8 @@ namespace Server.Application.Infrastructure
                         ConvertContentTo(node: node, outText: outText);
                     }
 
+                    break;
+                default:
                     break;
             }
         }
