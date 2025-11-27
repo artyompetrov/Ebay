@@ -13,22 +13,22 @@ public class MeasurementService
     private readonly IMeasurementFileParser _measurementFileParser;
     private readonly IUnitOfWork _unitOfWork;
 
-    
+
     public MeasurementService(
         IMeasurementRepository productMeasurementRepository,
         IMatchedPairDifferenceRepository matchedPairDifferenceRepository,
         IMeasurementQueries measurementQueries,
         IMeasurementFileParser measurementFileParser,
         IUnitOfWork unitOfWork
-    ) 
+    )
     {
-         _productMeasurementRepository = productMeasurementRepository;
-         _matchedPairDifferenceRepository = matchedPairDifferenceRepository;
-         _measurementQueries = measurementQueries;
-         _measurementFileParser = measurementFileParser;
+        _productMeasurementRepository = productMeasurementRepository;
+        _matchedPairDifferenceRepository = matchedPairDifferenceRepository;
+        _measurementQueries = measurementQueries;
+        _measurementFileParser = measurementFileParser;
         _unitOfWork = unitOfWork;
     }
-    
+
 
     public async Task SaveMeasurement(
         string measurementId,
