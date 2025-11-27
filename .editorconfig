@@ -153,10 +153,16 @@ csharp_new_line_before_members_in_object_initializers = true
 csharp_new_line_before_open_brace = all
 csharp_new_line_between_query_expression_clauses = true
 
+# Indentation preferences
+csharp_indent_block_contents = true
+csharp_indent_braces = false
+csharp_indent_case_contents = true
+csharp_indent_case_contents_when_block = true
+csharp_indent_labels = no_change
+csharp_indent_switch_labels = true
+
 
 csharp_style_prefer_utf8_string_literals = false
-csharp_indent_case_contents = true
-csharp_indent_case_contents_when_block = false
 dotnet_naming_rule.unity_serialized_field_rule.import_to_resharper = True
 dotnet_naming_rule.unity_serialized_field_rule.resharper_description = Unity serialized field
 dotnet_naming_rule.unity_serialized_field_rule.resharper_guid = 5f0fdb63-c892-4d2c-9324-15c80b22a7ef

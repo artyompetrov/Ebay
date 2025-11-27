@@ -98,67 +98,67 @@ internal class MatchedPairsCalculator(
         switch (measurement1.AnodeCurves)
         {
             case PentodeAnodeCurves:
-            {
-                if (measurement2.AnodeCurves is not PentodeAnodeCurves)
                 {
-                    throw new UnreachableException($"{nameof(measurement2)} is expected to be PentodeAnodeCurves");
-                }
+                    if (measurement2.AnodeCurves is not PentodeAnodeCurves)
+                    {
+                        throw new UnreachableException($"{nameof(measurement2)} is expected to be PentodeAnodeCurves");
+                    }
 
-                if (measurement1 == measurement2)
-                {
-                    // игнорируем сравнение сами собой
-                    return;
-                }
+                    if (measurement1 == measurement2)
+                    {
+                        // игнорируем сравнение сами собой
+                        return;
+                    }
 
-                await CalculateForOneSectionTubes(
-                    measurement1: measurement1,
-                    measurement2: measurement2,
-                    cancellationToken: context.CancellationToken,
-                    workingPoint: workingPoint,
-                    radialBands: radialBands,
-                    pointsPerBand: pointsPerBand);
-            }
-            break;
+                    await CalculateForOneSectionTubes(
+                        measurement1: measurement1,
+                        measurement2: measurement2,
+                        cancellationToken: context.CancellationToken,
+                        workingPoint: workingPoint,
+                        radialBands: radialBands,
+                        pointsPerBand: pointsPerBand);
+                }
+                break;
 
             case TriodeAnodeCurves:
-            {
-                if (measurement2.AnodeCurves is not TriodeAnodeCurves)
                 {
-                    throw new UnreachableException($"{nameof(measurement2)} is expected to be TriodeAnodeCurves");
-                }
+                    if (measurement2.AnodeCurves is not TriodeAnodeCurves)
+                    {
+                        throw new UnreachableException($"{nameof(measurement2)} is expected to be TriodeAnodeCurves");
+                    }
 
-                if (measurement1.MeasurementInfoWithData.Id == measurement2.MeasurementInfoWithData.Id)
-                {
-                    // игнорируем сравнение сами собой
-                    return;
-                }
+                    if (measurement1.MeasurementInfoWithData.Id == measurement2.MeasurementInfoWithData.Id)
+                    {
+                        // игнорируем сравнение сами собой
+                        return;
+                    }
 
-                await CalculateForOneSectionTubes(
-                    measurement1: measurement1,
-                    measurement2: measurement2,
-                    cancellationToken: context.CancellationToken,
-                    workingPoint: workingPoint,
-                    radialBands: radialBands,
-                    pointsPerBand: pointsPerBand);
-            }
-            break;
+                    await CalculateForOneSectionTubes(
+                        measurement1: measurement1,
+                        measurement2: measurement2,
+                        cancellationToken: context.CancellationToken,
+                        workingPoint: workingPoint,
+                        radialBands: radialBands,
+                        pointsPerBand: pointsPerBand);
+                }
+                break;
 
             case DoubleTriodeAnodeCurves:
-            {
-                if (measurement2.AnodeCurves is not DoubleTriodeAnodeCurves)
                 {
-                    throw new UnreachableException($"{nameof(measurement2)} is expected to be DoubleTriodeAnodeCurves");
-                }
+                    if (measurement2.AnodeCurves is not DoubleTriodeAnodeCurves)
+                    {
+                        throw new UnreachableException($"{nameof(measurement2)} is expected to be DoubleTriodeAnodeCurves");
+                    }
 
-                await CalculateForTwoSectionTubes(
-                    measurement1: measurement1,
-                    measurement2: measurement2,
-                    cancellationToken: context.CancellationToken,
-                    workingPoint: workingPoint,
-                    radialBands: radialBands,
-                    pointsPerBand: pointsPerBand);
-            }
-            break;
+                    await CalculateForTwoSectionTubes(
+                        measurement1: measurement1,
+                        measurement2: measurement2,
+                        cancellationToken: context.CancellationToken,
+                        workingPoint: workingPoint,
+                        radialBands: radialBands,
+                        pointsPerBand: pointsPerBand);
+                }
+                break;
             default:
                 throw new NotSupportedException($"Unsupported subtype of {nameof(MeasurementTypeBase)}");
         }
