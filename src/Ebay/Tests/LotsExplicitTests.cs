@@ -39,10 +39,10 @@ namespace Tests
 
             var result = extractedFields["pcs"];
 
-            var isExtractedCorrectly = (lotInfoFull.LotInfo.Pcs == 1 && result.Count == 0) || (extractedFields.Count >= 1 &&
+            var isExtractedCorrectly = lotInfoFull.LotInfo.Pcs == 1 && result.Count == 0 || extractedFields.Count >= 1 &&
                 int.Parse(
                     result.MaxBy(x => x.Value.Count).Key
-                , CultureInfo.InvariantCulture) == lotInfoFull.LotInfo.Pcs); //todo недостаточно точная проверка
+                , CultureInfo.InvariantCulture) == lotInfoFull.LotInfo.Pcs; //todo недостаточно точная проверка
 
             Assert.That(
                 condition: isExtractedCorrectly,
@@ -99,10 +99,10 @@ namespace Tests
                 throw new AssertionException("manualCondition not found");
 
             Assert.That(
-                condition: (results.Count == 0 && manualCondition == WellKnown.Categories.Conditions.New) ||
-                (results.Count == 1 && results[0].Key.Equals(manualCondition, StringComparison.Ordinal)) ||
-                    (results.Count > 1 && results[0].Value.Count > results[1].Value.Count &&
-                        results[0].Key.Equals(manualCondition, StringComparison.Ordinal)),
+                condition: results.Count == 0 && manualCondition == WellKnown.Categories.Conditions.New ||
+                results.Count == 1 && results[0].Key.Equals(manualCondition, StringComparison.Ordinal) ||
+                    results.Count > 1 && results[0].Value.Count > results[1].Value.Count &&
+                        results[0].Key.Equals(manualCondition, StringComparison.Ordinal),
                 message: $"{ToStr(result)}{Environment.NewLine}lotId: {lotId}{Environment.NewLine}seller:{lotInfoFull.LotInfo.Seller}"
             );
         }
@@ -145,10 +145,10 @@ namespace Tests
                 throw new AssertionException("testState not found");
 
             Assert.That(
-                condition: (results.Count == 0 && manualCondition == WellKnown.Categories.TestState.NotTested) ||
-                (results.Count == 1 && results[0].Key.Equals(manualCondition, StringComparison.Ordinal)) ||
-                (results.Count > 1 && results[0].Value.Count > results[1].Value.Count &&
-                    results[0].Key.Equals(manualCondition, StringComparison.Ordinal)),
+                condition: results.Count == 0 && manualCondition == WellKnown.Categories.TestState.NotTested ||
+                results.Count == 1 && results[0].Key.Equals(manualCondition, StringComparison.Ordinal) ||
+                results.Count > 1 && results[0].Value.Count > results[1].Value.Count &&
+                    results[0].Key.Equals(manualCondition, StringComparison.Ordinal),
                 message: $"{ToStr(result)}{Environment.NewLine}lotId: {lotId}{Environment.NewLine}seller:{lotInfoFull.LotInfo.Seller}"
             );
         }

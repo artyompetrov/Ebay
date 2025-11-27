@@ -13,7 +13,7 @@ namespace Server.Domain.Measurements.MeasurementTypes
                 // т.к. grid curves замер получен из anode curves, то мы получаем 30 графиков
                 // надо уменьшить количество графиков
                 const int maxCount = 8;
-                var step = (int)Math.Floor((x.Count) / (double)maxCount);
+                var step = (int)Math.Floor(x.Count / (double)maxCount);
                 return x
                     // первые графики пропускаем, т.к. они в области низких напряжений
                     .Where((_, i) => i % step == 0).ToList();

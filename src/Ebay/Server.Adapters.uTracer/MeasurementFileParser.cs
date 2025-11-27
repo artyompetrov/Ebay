@@ -335,7 +335,7 @@ namespace Server.Adapters.uTracer
                     // Сколько надо символов до maxWidth
                     var padLen = maxWidth - left.Length;
                     // Сколько табов (с учётом табуляции 8)
-                    var tabsNeeded = ((left.Length + padLen) / tabSize) + 1 - (left.Length / tabSize);
+                    var tabsNeeded = (left.Length + padLen) / tabSize + 1 - left.Length / tabSize;
                     if (tabsNeeded < 1)
                     {
                         tabsNeeded = 1;

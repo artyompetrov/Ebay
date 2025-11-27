@@ -10,7 +10,7 @@ namespace Server.Domain.Measurements
         public CurveSet(double vSteppingValue, IReadOnlyCollection<double> v, IReadOnlyCollection<double> i1, IReadOnlyCollection<double>? i2)
         {
             VSteppingValue = vSteppingValue;
-            if (v.Count != i1.Count && (i2 != null && v.Count != i2.Count))
+            if (v.Count != i1.Count && i2 != null && v.Count != i2.Count)
             {
                 throw new ArgumentException("length expected to be equal");
             }
