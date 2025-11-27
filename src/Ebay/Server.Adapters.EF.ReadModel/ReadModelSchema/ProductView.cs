@@ -26,8 +26,8 @@ internal sealed class ProductView : IViewProjection<Product, ProductView>
         {
             Id = x.Id,
             Name = x.Name,
-            SearchQueries =   x.SearchQueries.AsQueryable().Select(SearchQueryView.ToView).ToList(),
-            RuSearchQueries =  x.RuSearchQueries.AsQueryable().Select(SearchQueryView.ToView).ToList(),
+            SearchQueries = x.SearchQueries.AsQueryable().Select(SearchQueryView.ToView).ToList(),
+            RuSearchQueries = x.RuSearchQueries.AsQueryable().Select(SearchQueryView.ToView).ToList(),
             LastCheckTime = x.LastCheckTime,
             ProductCalculationResult = x.ProductCalculationResult,
             Weight = x.Weight,
