@@ -2,13 +2,12 @@ namespace Server.Domain.Measurements;
 
 public record MeasurementPointWithDelta(
     MeasurementPoint MeasurementPoint,
-    double dIa,
-    double dIs,
-    double dVg,
-    double dVa,
-    double dVs,
-    double dVf
-)
+    double DeltaIa,
+    double DeltaIs,
+    double DeltaVg,
+    double DeltaVa,
+    double DeltaVs,
+    double DeltaVf)
 {
     public double Ia => MeasurementPoint.Ia;
     public double Is => MeasurementPoint.Is;

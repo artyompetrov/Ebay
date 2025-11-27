@@ -128,7 +128,7 @@ csharp_style_namespace_declarations = file_scoped:silent
 # Предпочитает запись Method вместо (x) => Method(x)
 csharp_style_prefer_method_group_conversion = true:silent
 
-#Предпочитает верхнеуровневые операторы вместо Main
+# Предпочитает верхнеуровневые операторы вместо Main
 csharp_style_prefer_top_level_statements = true:silent
 
 # Expression-level preferences
@@ -192,47 +192,6 @@ csharp_space_between_square_brackets = false
 csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = true
 
-#### Naming styles ####
-
-# Naming rules
-
-dotnet_naming_rule.interface_should_be_begins_with_i.severity = suggestion
-dotnet_naming_rule.interface_should_be_begins_with_i.symbols = interface
-dotnet_naming_rule.interface_should_be_begins_with_i.style = begins_with_i
-
-dotnet_naming_rule.types_should_be_pascal_case.severity = suggestion
-dotnet_naming_rule.types_should_be_pascal_case.symbols = types
-dotnet_naming_rule.types_should_be_pascal_case.style = pascal_case
-
-dotnet_naming_rule.non_field_members_should_be_pascal_case.severity = suggestion
-dotnet_naming_rule.non_field_members_should_be_pascal_case.symbols = non_field_members
-dotnet_naming_rule.non_field_members_should_be_pascal_case.style = pascal_case
-
-# Symbol specifications
-
-dotnet_naming_symbols.interface.applicable_kinds = interface
-dotnet_naming_symbols.interface.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
-dotnet_naming_symbols.interface.required_modifiers =
-
-dotnet_naming_symbols.types.applicable_kinds = class, struct, interface, enum
-dotnet_naming_symbols.types.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
-dotnet_naming_symbols.types.required_modifiers =
-
-dotnet_naming_symbols.non_field_members.applicable_kinds = property, event, method
-dotnet_naming_symbols.non_field_members.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
-dotnet_naming_symbols.non_field_members.required_modifiers =
-
-# Naming styles
-dotnet_naming_style.pascal_case.required_prefix =
-dotnet_naming_style.pascal_case.required_suffix =
-dotnet_naming_style.pascal_case.word_separator =
-dotnet_naming_style.pascal_case.capitalization = pascal_case
-
-dotnet_naming_style.begins_with_i.required_prefix = I
-dotnet_naming_style.begins_with_i.required_suffix =
-dotnet_naming_style.begins_with_i.word_separator =
-dotnet_naming_style.begins_with_i.capitalization = pascal_case
-
 #### Relaxation of the rules ####
 
 # CA1860: Avoid using 'Enumerable.Any()' extension method
@@ -257,23 +216,14 @@ dotnet_diagnostic.IDE0046.severity = suggestion
 # IDE0022: Use expression body for methods
 dotnet_diagnostic.IDE0022.severity = suggestion
 
-# CA1711: Identifiers should not have incorrect suffix
-dotnet_diagnostic.CA1711.severity = none
-
-# CA1716: Identifiers should not match keywords
-dotnet_diagnostic.CA1716.severity = none
-
-# IDE0290: Use primary constructor
-dotnet_diagnostic.IDE0290.severity = none
-
-# Naming rule violation: These words must begin with upper case characters:
-dotnet_diagnostic.IDE1006.severity = suggestion
-
 # Fix formatting
 dotnet_diagnostic.IDE0055.severity = suggestion
 
 #  Collection initialization can be simplified
 dotnet_diagnostic.IDE0305.severity = suggestion
+
+# IDE0290: Use primary constructor
+dotnet_diagnostic.IDE0290.severity = none
 
 # ReSharper properties
 resharper_apply_auto_detected_rules = false
@@ -293,8 +243,6 @@ resharper_csharp_wrap_after_declaration_lpar = true
 resharper_csharp_wrap_after_invocation_lpar = true
 resharper_csharp_wrap_arguments_style = chop_if_long
 resharper_csharp_wrap_parameters_style = chop_if_long
-resharper_formatter_off_tag = @formatter:off
-resharper_formatter_on_tag = @formatter:on
 resharper_formatter_tags_enabled = true
 resharper_max_formal_parameters_on_line = 3
 resharper_method_or_operator_body = expression_body

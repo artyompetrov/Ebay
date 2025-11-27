@@ -7,7 +7,7 @@ public class DoubleTriodeGridCurves(
     Dictionary<int, MeasurementPoint[]> measurementPoints) : GridCurvesBase(
     pmaxWatt: pmaxWatt,
     measurementPoints: measurementPoints,
-    takeMeasurementPointsWhile: (x, maxI) => x.dIa / maxI > IgnoreDi && x.dIs / maxI > IgnoreDi,
+    takeMeasurementPointsWhile: (x, maxI) => x.DeltaIa / maxI > IgnoreDi && x.DeltaIs / maxI > IgnoreDi,
     filterCurves: x =>
         {
             // т.к. grid curves замер получен из anode curves, то мы получаем 30 графиков

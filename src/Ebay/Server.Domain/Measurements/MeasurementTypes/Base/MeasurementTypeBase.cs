@@ -109,12 +109,12 @@ public abstract class MeasurementTypeBase
 
             result[idx] = new MeasurementPointWithDelta(
                 measurementPoints[idx],
-                dIa: currentValue.Ia - previousIa,
-                dIs: currentValue.Is - previousIs,
-                dVg: currentValue.Vg - previousVg,
-                dVa: currentValue.Va - previousVa,
-                dVs: currentValue.Vs - previousVs,
-                dVf: currentValue.Vf - previousVf
+                DeltaIa: currentValue.Ia - previousIa,
+                DeltaIs: currentValue.Is - previousIs,
+                DeltaVg: currentValue.Vg - previousVg,
+                DeltaVa: currentValue.Va - previousVa,
+                DeltaVs: currentValue.Vs - previousVs,
+                DeltaVf: currentValue.Vf - previousVf
             );
 
             previousIa = currentValue.Ia;
