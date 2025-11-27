@@ -9,15 +9,9 @@ namespace Server.Adapters.EF.WriteModel.Repositories
     {
         private readonly ApplicationDbContext _dbContext = dbContext;
 
-        public async Task<TubeWorkingPoint?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
-        {
-            return await _dbContext.TubeWorkingPoints.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
-        }
+        public async Task<TubeWorkingPoint?> GetByIdAsync(Guid id, CancellationToken cancellationToken) => await _dbContext.TubeWorkingPoints.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
 
-        public async Task SaveAsync(TubeWorkingPoint aggregate, CancellationToken cancellationToken)
-        {
-            _ = await _dbContext.TubeWorkingPoints.AddAsync(aggregate, cancellationToken);
-        }
+        public async Task SaveAsync(TubeWorkingPoint aggregate, CancellationToken cancellationToken) => _ = await _dbContext.TubeWorkingPoints.AddAsync(aggregate, cancellationToken);
 
         public async Task RemoveAsync(Guid id, CancellationToken cancellationToken)
         {

@@ -15,15 +15,9 @@ namespace Server.Domain
 
         internal IReadOnlyCollection<object> DomainEvents => _domainEvents.AsReadOnly();
 
-        protected internal void AddDomainEvent(object domainEvent)
-        {
-            _domainEvents.Add(domainEvent);
-        }
+        protected internal void AddDomainEvent(object domainEvent) => _domainEvents.Add(domainEvent);
 
-        internal void ClearDomainEvents()
-        {
-            _domainEvents.Clear();
-        }
+        internal void ClearDomainEvents() => _domainEvents.Clear();
 
 
     }

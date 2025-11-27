@@ -99,6 +99,16 @@ csharp_style_var_elsewhere = true
 csharp_style_var_for_built_in_types = true
 csharp_style_var_when_type_is_apparent = true
 
+# Expression-bodied members — настройки стиля для использования краткой формы записи членов вида `=>`.
+csharp_style_expression_bodied_accessors = true:silent
+csharp_style_expression_bodied_constructors = false:silent
+csharp_style_expression_bodied_indexers = true:silent
+csharp_style_expression_bodied_lambdas = true:silent
+csharp_style_expression_bodied_local_functions = false:silent
+csharp_style_expression_bodied_methods = when_on_single_line:silent
+csharp_style_expression_bodied_operators = when_on_single_line:silent
+csharp_style_expression_bodied_properties = true:silent
+
 csharp_new_line_before_members_in_object_initializers = true
 csharp_preferred_modifier_order = public, protected, internal, private, new, async, static, virtual, abstract, override, sealed, readonly, extern, unsafe, volatile, file, required:suggestion
 csharp_style_prefer_utf8_string_literals = false

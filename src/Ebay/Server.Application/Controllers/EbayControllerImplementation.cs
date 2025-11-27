@@ -223,18 +223,12 @@ namespace Server.Application.Controllers
             return product == null ? throw NonOkHttpAnswerException.NotFound400() : product.ToApiProduct();
         }
 
-        public async Task DeleteProductAsync(Guid id, CancellationToken cancellationToken)
-        {
-            await _productService.DeleteProductAsync(id, cancellationToken);
-        }
+        public async Task DeleteProductAsync(Guid id, CancellationToken cancellationToken) => await _productService.DeleteProductAsync(id, cancellationToken);
 
         public async Task MarkProductAsCheckedAsync(
             Guid id,
             CancellationToken cancellationToken
-        )
-        {
-            await _productService.MarkProductAsCheckedAsync(id, cancellationToken);
-        }
+        ) => await _productService.MarkProductAsCheckedAsync(id, cancellationToken);
 
         public async Task<ICollection<SaleAdvertisement>> GetSaleAdvertisementsAsync(
             Guid productId,
@@ -659,10 +653,7 @@ namespace Server.Application.Controllers
 
         public Task<ICollection<ShippingType>> GetShippingRatesAsync(
             CancellationToken cancellationToken
-        )
-        {
-            return Task.FromResult<ICollection<ShippingType>>(_shippingRatesService.ShippingRates.ToList());
-        }
+        ) => Task.FromResult<ICollection<ShippingType>>(_shippingRatesService.ShippingRates.ToList());
 
         public async Task<ICollection<Currency>> GetCurrenciesAsync(
             CancellationToken cancellationToken

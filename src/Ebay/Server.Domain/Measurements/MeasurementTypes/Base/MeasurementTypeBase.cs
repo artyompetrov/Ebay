@@ -215,10 +215,7 @@ namespace Server.Domain.Measurements.MeasurementTypes.Base
         /// <summary>
         /// Функция максимального тока в связи с лимитом по мощности - результат ток в милиамперрах
         /// </summary>
-        public double MaxI(double v)
-        {
-            return PmaxWatt * 1000.0 / v;
-        }
+        public double MaxI(double v) => PmaxWatt * 1000.0 / v;
 
         public double MinX { get; }
         public double MaxX { get; }

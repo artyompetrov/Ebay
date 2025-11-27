@@ -21,9 +21,6 @@ namespace Server.Application.HostedServices.DbCache
             _logger.LogInformation("Removed old db cache versions");
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
+        public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
     }
 }

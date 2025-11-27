@@ -4,10 +4,7 @@ namespace Server.Domain
     {
         public string Query { get; private set; } = query;
 
-        public void SetQuery(string query)
-        {
-            Query = query;
-        }
+        public void SetQuery(string query) => Query = query;
 
         public Guid ProductId { get; } = productId;
     }

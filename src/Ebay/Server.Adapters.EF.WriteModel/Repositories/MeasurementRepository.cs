@@ -9,15 +9,9 @@ namespace Server.Adapters.EF.WriteModel.Repositories
     {
         private readonly ApplicationDbContext _dbContext = dbContext;
 
-        public async Task<ProductMeasurement?> GetByIdAsync(string id, CancellationToken cancellationToken)
-        {
-            return await _dbContext.ProductMeasurements.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
-        }
+        public async Task<ProductMeasurement?> GetByIdAsync(string id, CancellationToken cancellationToken) => await _dbContext.ProductMeasurements.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
 
-        public async Task SaveAsync(ProductMeasurement aggregate, CancellationToken cancellationToken)
-        {
-            _ = await _dbContext.ProductMeasurements.AddAsync(aggregate, cancellationToken);
-        }
+        public async Task SaveAsync(ProductMeasurement aggregate, CancellationToken cancellationToken) => _ = await _dbContext.ProductMeasurements.AddAsync(aggregate, cancellationToken);
 
         public async Task RemoveAsync(string id, CancellationToken cancellationToken)
         {

@@ -425,10 +425,7 @@ namespace Server.Application.Services.LotDataExtractor
 
         public record struct ShippingRateInner(int WeightFrom, int WeightTo, double Price, string Currency)
         {
-            public override readonly string ToString()
-            {
-                return $"{WeightFrom}-{WeightTo} : {Price} {Currency}";
-            }
+            public override readonly string ToString() => $"{WeightFrom}-{WeightTo} : {Price} {Currency}";
         };
 
     }

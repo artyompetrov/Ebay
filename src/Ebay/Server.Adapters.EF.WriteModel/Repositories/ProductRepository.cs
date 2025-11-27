@@ -24,10 +24,7 @@ namespace Server.Adapters.EF.WriteModel.Repositories
             return result;
         }
 
-        public async Task SaveAsync(Product aggregate, CancellationToken cancellationToken)
-        {
-            _ = await _dbContext.Products.AddAsync(aggregate, cancellationToken);
-        }
+        public async Task SaveAsync(Product aggregate, CancellationToken cancellationToken) => _ = await _dbContext.Products.AddAsync(aggregate, cancellationToken);
 
         public async Task RemoveAsync(Guid id, CancellationToken cancellationToken)
         {

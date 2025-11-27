@@ -21,10 +21,7 @@ namespace Tests
 
 
         [OneTimeTearDown]
-        public void OneTimeTearDown()
-        {
-            HttpClient?.Dispose();
-        }
+        public void OneTimeTearDown() => HttpClient?.Dispose();
 
         private static void CreateClient()
         {

@@ -18,10 +18,7 @@ namespace Server.Application.Services.MeasurementPlot
         private readonly IMeasurementQueries _measurementQueries = measurementQueries;
         private readonly IMeasurementFileParser _measurementFileParser = measurementFileParser;
 
-        public string PlotSold()
-        {
-            return StatusSvg(nameof(MeasurementState.Sold));
-        }
+        public string PlotSold() => StatusSvg(nameof(MeasurementState.Sold));
 
 
         /// <summary>
@@ -385,10 +382,7 @@ namespace Server.Application.Services.MeasurementPlot
         ];
 
 
-        private static bool ShouldHighlight(string s)
-        {
-            return HighlightPatterns.Any(rx => rx.IsMatch(s));
-        }
+        private static bool ShouldHighlight(string s) => HighlightPatterns.Any(rx => rx.IsMatch(s));
 
         private static string QuickTestSvg(string quickTest)
         {
@@ -548,7 +542,8 @@ namespace Server.Application.Services.MeasurementPlot
                         badgeSub = "(&lt; 70%)";
                         badgeFill = "#c75c5c";
                         break;
-
+                    default:
+                        break;
                 }
             }
 

@@ -5,10 +5,7 @@ namespace Client.Pages
 {
     internal static partial class Helpers
     {
-        public static string GetSearchLink(string query, Guid productId)
-        {
-            return $"https://www.ebay.com/sch/i.html?_nkw={query}&LH_Sold=1&tool_productId={productId}";
-        }
+        public static string GetSearchLink(string query, Guid productId) => $"https://www.ebay.com/sch/i.html?_nkw={query}&LH_Sold=1&tool_productId={productId}";
 
 
 

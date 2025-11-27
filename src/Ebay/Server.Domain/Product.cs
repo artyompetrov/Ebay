@@ -88,9 +88,6 @@ namespace Server.Domain
         public IReadOnlyList<SearchQuery> RuSearchQueries => _ruSearchQueries;
         public IReadOnlyList<SearchQuery> SearchQueries => _searchQueries;
 
-        public void MarkAsChecked()
-        {
-            LastCheckTime = DateTime.UtcNow;
-        }
+        public void MarkAsChecked() => LastCheckTime = DateTime.UtcNow;
     }
 }

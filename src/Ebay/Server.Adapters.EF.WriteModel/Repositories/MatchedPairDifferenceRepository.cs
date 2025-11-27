@@ -11,15 +11,9 @@ namespace Server.Adapters.EF.WriteModel.Repositories
 
         public async Task<MatchedPairDifference?> GetByIdAsync(
             MatchedPairDifferenceId id,
-            CancellationToken cancellationToken)
-        {
-            return await _dbContext.MatchedPairDifferences.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
-        }
+            CancellationToken cancellationToken) => await _dbContext.MatchedPairDifferences.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
 
-        public async Task SaveAsync(MatchedPairDifference aggregate, CancellationToken cancellationToken)
-        {
-            _ = await _dbContext.MatchedPairDifferences.AddAsync(aggregate, cancellationToken);
-        }
+        public async Task SaveAsync(MatchedPairDifference aggregate, CancellationToken cancellationToken) => _ = await _dbContext.MatchedPairDifferences.AddAsync(aggregate, cancellationToken);
 
         public async Task RemoveAsync(MatchedPairDifferenceId id, CancellationToken cancellationToken)
         {

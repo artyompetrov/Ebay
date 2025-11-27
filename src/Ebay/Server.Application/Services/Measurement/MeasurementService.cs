@@ -145,9 +145,6 @@ namespace Server.Application.Services.Measurement
             return result;
         }
 
-        public async Task<IReadOnlySet<string?>> GetLotIdsForProductAsync(Guid productId, CancellationToken cancellationToken)
-        {
-            return await _measurementQueries.GetLotIds(productId, cancellationToken);
-        }
+        public async Task<IReadOnlySet<string?>> GetLotIdsForProductAsync(Guid productId, CancellationToken cancellationToken) => await _measurementQueries.GetLotIds(productId, cancellationToken);
     }
 }

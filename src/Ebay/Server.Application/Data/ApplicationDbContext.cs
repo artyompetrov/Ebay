@@ -216,29 +216,17 @@ namespace Server.Application.Data
 
         public async Task<IUnitOfWorkTransaction> BeginTransactionAsync(
             CancellationToken cancellationToken,
-            IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
-        {
-            return new ApplicationDbContextTransaction(await Database.BeginTransactionAsync(isolationLevel: isolationLevel, cancellationToken));
-        }
+            IsolationLevel isolationLevel = IsolationLevel.ReadCommitted) => new ApplicationDbContextTransaction(await Database.BeginTransactionAsync(isolationLevel: isolationLevel, cancellationToken));
 
         private class ApplicationDbContextTransaction(IDbContextTransaction transaction) : IUnitOfWorkTransaction
         {
             private readonly IDbContextTransaction _transaction = transaction;
 
-            public async ValueTask DisposeAsync()
-            {
-                await _transaction.DisposeAsync();
-            }
+            public async ValueTask DisposeAsync() => await _transaction.DisposeAsync();
 
-            public Task CommitAsync(CancellationToken cancellationToken)
-            {
-                return _transaction.CommitAsync(cancellationToken);
-            }
+            public Task CommitAsync(CancellationToken cancellationToken) => _transaction.CommitAsync(cancellationToken);
 
-            public void Dispose()
-            {
-                _transaction.Dispose();
-            }
+            public void Dispose() => _transaction.Dispose();
         }
     }
 }

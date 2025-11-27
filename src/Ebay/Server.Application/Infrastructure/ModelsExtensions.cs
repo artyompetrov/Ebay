@@ -40,15 +40,9 @@ namespace Server.Application.Infrastructure
         );
         }
 
-        public static SearchQuery ToApiSearchQuery(this SearchQueryWithId searchQuery)
-        {
-            return new(id: searchQuery.Id, query: searchQuery.Query);
-        }
+        public static SearchQuery ToApiSearchQuery(this SearchQueryWithId searchQuery) => new(id: searchQuery.Id, query: searchQuery.Query);
 
-        public static RuSearchQuery ToApiRuSearchQuery(this SearchQueryWithId searchQuery)
-        {
-            return new(id: searchQuery.Id, query: searchQuery.Query);
-        }
+        public static RuSearchQuery ToApiRuSearchQuery(this SearchQueryWithId searchQuery) => new(id: searchQuery.Id, query: searchQuery.Query);
 
         public static TubeWorkingPoint ToApiTubeWorkingPoint(this TubeWorkingPointInfo workingPoint)
         {

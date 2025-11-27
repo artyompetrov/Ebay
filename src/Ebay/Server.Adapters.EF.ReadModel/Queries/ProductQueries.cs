@@ -74,9 +74,6 @@ namespace Sever.Adapters.EF.ReadModel.Queries
             return result;
         }
 
-        public async Task<IReadOnlyList<Guid>> GetAllProductsIdsAsync(CancellationToken cancellationToken)
-        {
-            return await _readDbContext.Products.Select(x => x.Id).ToListAsync(cancellationToken: cancellationToken);
-        }
+        public async Task<IReadOnlyList<Guid>> GetAllProductsIdsAsync(CancellationToken cancellationToken) => await _readDbContext.Products.Select(x => x.Id).ToListAsync(cancellationToken: cancellationToken);
     }
 }

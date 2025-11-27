@@ -4,9 +4,6 @@ namespace Server.Application
     {
         public SemaphoreSlim Semaphore { get; } = new SemaphoreSlim(maxConcurrent, maxConcurrent);
 
-        public void Dispose()
-        {
-            Semaphore.Dispose();
-        }
+        public void Dispose() => Semaphore.Dispose();
     }
 }

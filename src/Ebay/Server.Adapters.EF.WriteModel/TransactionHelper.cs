@@ -54,15 +54,9 @@ namespace Server.Adapters.EF.WriteModel
                 _owned = owned;
             }
 
-            public static TransactionWrapper Owned(IDbContextTransaction tx)
-            {
-                return new(tx);
-            }
+            public static TransactionWrapper Owned(IDbContextTransaction tx) => new(tx);
 
-            public static TransactionWrapper Existing(IDbContextTransaction _)
-            {
-                return new(null);
-            }
+            public static TransactionWrapper Existing(IDbContextTransaction _) => new(null);
 
             public async ValueTask CommitIfOwnedAsync(CancellationToken ct)
             {

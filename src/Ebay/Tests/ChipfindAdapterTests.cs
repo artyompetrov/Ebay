@@ -196,10 +196,7 @@ namespace Tests
         {
             private readonly HttpClient _client = client;
 
-            public HttpClient CreateClient(string name)
-            {
-                return _client;
-            }
+            public HttpClient CreateClient(string name) => _client;
         }
 
         private sealed class TestLogger<T> : ILogger<T>
@@ -207,20 +204,11 @@ namespace Tests
             private readonly List<LogLevel> _levels = [];
             public bool HasWarning => _levels.Contains(LogLevel.Warning);
 
-            IDisposable ILogger.BeginScope<TState>(TState state)
-            {
-                return NullDisposable.Instance;
-            }
+            IDisposable ILogger.BeginScope<TState>(TState state) => NullDisposable.Instance;
 
-            bool ILogger.IsEnabled(LogLevel logLevel)
-            {
-                return true;
-            }
+            bool ILogger.IsEnabled(LogLevel logLevel) => true;
 
-            void ILogger.Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
-            {
-                _levels.Add(logLevel);
-            }
+            void ILogger.Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter) => _levels.Add(logLevel);
 
             private sealed class NullDisposable : IDisposable
             {

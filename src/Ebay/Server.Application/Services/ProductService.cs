@@ -61,10 +61,7 @@ namespace Server.Application.Services
         }
 
         public async Task DeleteProductAsync(Guid id,
-            CancellationToken cancellationToken)
-        {
-            await _productRepository.RemoveAsync(id, cancellationToken);
-        }
+            CancellationToken cancellationToken) => await _productRepository.RemoveAsync(id, cancellationToken);
 
         public async Task MarkProductAsCheckedAsync(
             Guid id,

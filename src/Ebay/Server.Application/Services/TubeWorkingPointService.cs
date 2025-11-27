@@ -66,9 +66,6 @@ namespace Server.Application.Services
             _ = await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
-        public Task<TubeWorkingPointInfo?> GetWorkingPointInfo(Guid productId, CancellationToken cancellationToken)
-        {
-            return _tubeWorkingPointQueries.GetWorkingPointInfo(productId, cancellationToken);
-        }
+        public Task<TubeWorkingPointInfo?> GetWorkingPointInfo(Guid productId, CancellationToken cancellationToken) => _tubeWorkingPointQueries.GetWorkingPointInfo(productId, cancellationToken);
     }
 }

@@ -47,9 +47,6 @@ namespace Server.Application.HostedServices.Measurements
             _logger.LogInformation("Published {Count} measurement plot warmup commands", measurementIds.Count);
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
+        public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
     }
 }
