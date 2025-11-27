@@ -61,6 +61,7 @@ dotnet_diagnostic.IDE0305.severity = suggestion
 dotnet_separate_import_directive_groups = false
 dotnet_sort_system_directives_first = true
 file_header_template = unset
+dotnet_diagnostic.ide0005.severity = warning
 
 # this. preferences
 dotnet_style_qualification_for_event = false
@@ -234,7 +235,6 @@ dotnet_naming_symbols.non_field_members.applicable_accessibilities = public, int
 dotnet_naming_symbols.non_field_members.required_modifiers =
 
 # Naming styles
-
 dotnet_naming_style.pascal_case.required_prefix =
 dotnet_naming_style.pascal_case.required_suffix =
 dotnet_naming_style.pascal_case.word_separator =
@@ -244,26 +244,6 @@ dotnet_naming_style.begins_with_i.required_prefix = I
 dotnet_naming_style.begins_with_i.required_suffix =
 dotnet_naming_style.begins_with_i.word_separator =
 dotnet_naming_style.begins_with_i.capitalization = pascal_case
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-csharp_style_prefer_utf8_string_literals = false
-dotnet_diagnostic.ide0005.severity = warning
-
-
 
 # ReSharper properties
 resharper_apply_auto_detected_rules = false
