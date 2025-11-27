@@ -5,19 +5,30 @@ using Server.Domain.Measurements;
 
 namespace Server.Application.Services.Measurement;
 
-public class MeasurementService(
-    IMeasurementRepository productMeasurementRepository,
-    IMatchedPairDifferenceRepository matchedPairDifferenceRepository,
-    IMeasurementQueries measurementQueries,
-    IMeasurementFileParser measurementFileParser,
-    IUnitOfWork unitOfWork
-    )
+public class MeasurementService
 {
-    private readonly IMeasurementRepository _productMeasurementRepository = productMeasurementRepository;
-    private readonly IMatchedPairDifferenceRepository _matchedPairDifferenceRepository = matchedPairDifferenceRepository;
-    private readonly IMeasurementQueries _measurementQueries = measurementQueries;
-    private readonly IMeasurementFileParser _measurementFileParser = measurementFileParser;
-    private readonly IUnitOfWork _unitOfWork = unitOfWork;
+    private readonly IMeasurementRepository _productMeasurementRepository;
+    private readonly IMatchedPairDifferenceRepository _matchedPairDifferenceRepository;
+    private readonly IMeasurementQueries _measurementQueries;
+    private readonly IMeasurementFileParser _measurementFileParser;
+    private readonly IUnitOfWork _unitOfWork;
+
+    
+    public MeasurementService(
+        IMeasurementRepository productMeasurementRepository,
+        IMatchedPairDifferenceRepository matchedPairDifferenceRepository,
+        IMeasurementQueries measurementQueries,
+        IMeasurementFileParser measurementFileParser,
+        IUnitOfWork unitOfWork
+    ) 
+    {
+         _productMeasurementRepository = productMeasurementRepository;
+         _matchedPairDifferenceRepository = matchedPairDifferenceRepository;
+         _measurementQueries = measurementQueries;
+         _measurementFileParser = measurementFileParser;
+        _unitOfWork = unitOfWork;
+    }
+    
 
     public async Task SaveMeasurement(
         string measurementId,
