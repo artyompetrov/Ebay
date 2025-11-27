@@ -39,24 +39,6 @@ tab_width = 4
 #### !!! Important !!! Enable dotnet_diagnostic ####
 dotnet_analyzer_diagnostic.severity = error
 
-# Исключения:
-# Use 'GeneratedRegexAttribute' to generate the regular expression implementation at compile-time.
-# todo уточнить надо ли это или заигнорить
-dotnet_diagnostic.SYSLIB1045.severity = none
-
-# For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
-# не очень удобно делать функции под каждую лог запись
-dotnet_diagnostic.CA1848.severity = none
-
-# Remove the underscores from member name Should_Do_Smth() - Тесты пишем в такой нотации
-dotnet_diagnostic.CA1707.severity = none
-
-# Полностью отключаем все StyleCop.Analyzers - так как мы пользуемся dotnet format, а они несовместимы
-dotnet_analyzer_diagnostic.category-StyleCop.severity = none
-
-# IDE0305: Simplify collection initialization — правило, которое предлагает упростить инициализацию коллекций
-dotnet_diagnostic.IDE0305.severity = suggestion
-
 # Organize usings
 dotnet_separate_import_directive_groups = false
 dotnet_sort_system_directives_first = true
@@ -87,10 +69,10 @@ dotnet_style_namespace_match_folder = true
 dotnet_diagnostic.IDE0130.severity = suggestion
 
 # Expression-level preferences
-dotnet_style_coalesce_expression = true
+dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_collection_initializer = true
 dotnet_style_explicit_tuple_names = true
-dotnet_style_null_propagation = true
+dotnet_style_null_propagation = true:suggestion
 dotnet_style_object_initializer = true
 dotnet_style_operator_placement_when_wrapping = beginning_of_line
 dotnet_style_prefer_auto_properties = true
@@ -99,7 +81,7 @@ dotnet_style_prefer_conditional_expression_over_assignment = true
 dotnet_style_prefer_conditional_expression_over_return = true
 dotnet_style_prefer_inferred_anonymous_type_member_names = true
 dotnet_style_prefer_inferred_tuple_names = true
-dotnet_style_prefer_is_null_check_over_reference_equality_method = true
+dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
 dotnet_style_prefer_simplified_boolean_expressions = true
 dotnet_style_prefer_simplified_interpolation = true
 
@@ -142,6 +124,12 @@ csharp_preferred_modifier_order = public, private, protected, internal, static, 
 csharp_prefer_braces = when_multiline:silent
 csharp_prefer_simple_using_statement = true:suggestion
 csharp_style_namespace_declarations = file_scoped:silent
+
+# Предпочитает запись Method вместо (x) => Method(x)
+csharp_style_prefer_method_group_conversion = true:silent
+
+#Предпочитает верхнеуровневые операторы вместо Main
+csharp_style_prefer_top_level_statements = true:silent
 
 # Expression-level preferences
 csharp_prefer_simple_default_expression = true
@@ -244,6 +232,52 @@ dotnet_naming_style.begins_with_i.required_prefix = I
 dotnet_naming_style.begins_with_i.required_suffix =
 dotnet_naming_style.begins_with_i.word_separator =
 dotnet_naming_style.begins_with_i.capitalization = pascal_case
+
+#### Relaxation of the rules ####
+
+# CA1860: Avoid using 'Enumerable.Any()' extension method
+dotnet_diagnostic.CA1860.severity = none
+
+# Use 'GeneratedRegexAttribute' to generate the regular expression implementation at compile-time.
+dotnet_diagnostic.SYSLIB1045.severity = none
+
+# For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+# не очень удобно делать функции под каждую лог запись
+dotnet_diagnostic.CA1848.severity = none
+
+# Remove the underscores from member name Should_Do_Smth() - Тесты пишем в такой нотации
+dotnet_diagnostic.CA1707.severity = none
+
+# Полностью отключаем все StyleCop.Analyzers - так как мы пользуемся dotnet format, а они несовместимы
+dotnet_analyzer_diagnostic.category-StyleCop.severity = none
+
+# IDE0305: Simplify collection initialization — правило, которое предлагает упростить инициализацию коллекций
+dotnet_diagnostic.IDE0305.severity = suggestion
+
+# IDE0046: Convert to conditional expression
+dotnet_diagnostic.IDE0046.severity = suggestion
+
+# IDE0022: Use expression body for methods
+dotnet_diagnostic.IDE0022.severity = suggestion
+
+# CA2211: Non-constant fields should not be visible
+dotnet_diagnostic.CA2211.severity = none
+
+# CA1711: Identifiers should not have incorrect suffix
+dotnet_diagnostic.CA1711.severity = none
+
+# CA1716: Identifiers should not match keywords
+dotnet_diagnostic.CA1716.severity = none
+
+# IDE0058: Expression value is never used
+dotnet_diagnostic.IDE0058.severity = none
+
+# CA1305: Specify IFormatProvider
+dotnet_diagnostic.CA1305.severity = silent
+
+# IDE0290: Use primary constructor
+dotnet_diagnostic.IDE0290.severity = none
+
 
 # ReSharper properties
 resharper_apply_auto_detected_rules = false
