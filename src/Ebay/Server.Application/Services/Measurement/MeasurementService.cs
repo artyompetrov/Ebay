@@ -54,7 +54,6 @@ public class MeasurementService
 
     public async Task UpdateMeasurementLocation(
         string location,
-        Guid productId,
         string measurementId,
         CancellationToken cancellationToken)
     {
@@ -68,7 +67,6 @@ public class MeasurementService
 
     public async Task UpdateMeasurementManufactureCode(
         string manufactureCode,
-        Guid productId,
         string measurementId,
         CancellationToken cancellationToken)
     {
@@ -80,7 +78,6 @@ public class MeasurementService
 
     public async Task UpdateMeasurementMatchId(
         string? matchId,
-        Guid productId,
         string measurementId,
         CancellationToken cancellationToken)
     {
@@ -94,7 +91,6 @@ public class MeasurementService
 
     public async Task UpdateMeasurementLotId(
         string? lotId,
-        Guid productId,
         string measurementId,
         CancellationToken cancellationToken)
     {
@@ -106,7 +102,6 @@ public class MeasurementService
 
     public async Task UpdateMeasurementState(
         MeasurementState state,
-        Guid productId, //todo удалить
         string measurementId,
         CancellationToken cancellationToken)
     {
@@ -117,7 +112,6 @@ public class MeasurementService
     }
 
     public async Task DeleteMeasurement(
-        Guid productId, // todo это не надо
         string measurementId,
         CancellationToken cancellationToken)
     {

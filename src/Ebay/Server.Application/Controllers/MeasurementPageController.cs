@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Server.Application.Services.GeoIp;
 using Server.Application.Services.Measurement;
 using Server.Application.Services.MeasurementPlot;
@@ -7,16 +6,21 @@ using Server.Application.Services.MeasurementPlot;
 namespace Server.Application.Controllers;
 
 [ApiController]
-public class MeasurementPageController(
-    MeasurementService measurementService,
-    MeasurementPlotService measurementPlotService,
-    GeoIpService geoIpService,
-    ILogger<MeasurementPageController> logger) : ControllerBase
+public class MeasurementPageController : ControllerBase
 {
-    private readonly MeasurementService _measurementService = measurementService;
-    private readonly MeasurementPlotService _measurementPlotService = measurementPlotService;
-    private readonly GeoIpService _geoIpService = geoIpService;
-    private readonly ILogger<MeasurementPageController> _logger = logger;
+    public MeasurementPageController(
+        MeasurementService measurementService,
+        MeasurementPlotService measurementPlotService,
+        GeoIpService geoIpService)
+    {
+        _measurementService = measurementService;
+        _measurementPlotService = measurementPlotService;
+        _geoIpService = geoIpService;
+    }
+
+    private readonly MeasurementService _measurementService;
+    private readonly MeasurementPlotService _measurementPlotService;
+    private readonly GeoIpService _geoIpService;
 
     [HttpGet("/m/{measurementId}/download")]
     public async Task<IActionResult> DownloadZip(string measurementId, CancellationToken cancellationToken)

@@ -66,7 +66,7 @@ builder.Services.AddIdentityServer()
                 new Duende.IdentityServer.Models.Client
                 {
                     ClientId = clientId,
-                    ClientSecrets = new List<Secret> { new(clientSecret.Sha256()) },
+                    ClientSecrets = [new Secret(clientSecret.Sha256())],
                     AllowedGrantTypes = GrantTypes.ClientCredentials,
                     AllowedScopes =
                     {

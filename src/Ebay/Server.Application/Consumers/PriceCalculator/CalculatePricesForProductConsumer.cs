@@ -1,6 +1,5 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Server.Application.Data;
 
 namespace Server.Application.Consumers.PriceCalculator;
@@ -9,16 +8,13 @@ internal class CalculatePricesForProductConsumer : IConsumer<CalculatePricesForP
 {
     public CalculatePricesForProductConsumer(
         ApplicationDbContext applicationContext,
-        ILogger<CalculatePricesForProductConsumer> logger,
         IPublishEndpoint publishEndpoint)
     {
         _applicationContext = applicationContext;
-        _logger = logger;
         _publishEndpoint = publishEndpoint;
     }
 
     private readonly ApplicationDbContext _applicationContext;
-    private readonly ILogger<CalculatePricesForProductConsumer> _logger;
     private readonly IPublishEndpoint _publishEndpoint;
 
     public async Task Consume(ConsumeContext<CalculatePricesForProduct> context)

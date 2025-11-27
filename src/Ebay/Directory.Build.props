@@ -4,6 +4,8 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <WarningsNotAsErrors>CS0612,CS0618,CS1591</WarningsNotAsErrors>
     </PropertyGroup>
     <ItemGroup>

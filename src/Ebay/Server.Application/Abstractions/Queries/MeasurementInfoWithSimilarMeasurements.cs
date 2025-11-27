@@ -16,7 +16,7 @@ public record MeasurementInfoWithSimilarMeasurements(
     double? DoubleTriodeSectionRmse,
     MeasurementState MeasurementState)
 {
-    public IReadOnlyCollection<SimilarMeasurementInfo> SimilarMeasurements { get; init; } = Array.Empty<SimilarMeasurementInfo>();
+    public IReadOnlyCollection<SimilarMeasurementInfo> SimilarMeasurements { get; init; } = [];
 
     /// <summary>
     /// Параметр по которому сортируем лампы в списке

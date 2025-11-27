@@ -251,9 +251,6 @@ dotnet_diagnostic.CA1707.severity = none
 # Переводим StyleCop.Analyzers на suggestion
 dotnet_analyzer_diagnostic.category-StyleCop.severity = suggestion
 
-# IDE0305: Simplify collection initialization — правило, которое предлагает упростить инициализацию коллекций
-dotnet_diagnostic.IDE0305.severity = suggestion
-
 # IDE0046: Convert to conditional expression
 dotnet_diagnostic.IDE0046.severity = suggestion
 
@@ -269,8 +266,14 @@ dotnet_diagnostic.CA1716.severity = none
 # IDE0290: Use primary constructor
 dotnet_diagnostic.IDE0290.severity = none
 
-dotnet_diagnostic.IDE0052.severity = warning
+# Naming rule violation: These words must begin with upper case characters:
+dotnet_diagnostic.IDE1006.severity = suggestion
 
+# Fix formatting
+dotnet_diagnostic.IDE0055.severity = suggestion
+
+#  Collection initialization can be simplified
+dotnet_diagnostic.IDE0305.severity = suggestion
 
 # ReSharper properties
 resharper_apply_auto_detected_rules = false

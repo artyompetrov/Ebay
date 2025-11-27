@@ -52,14 +52,13 @@ public class EbayLotDescriptionPage(
             return NotFound();
         }
 
-        Measurements = await _measurementQueries.GetMeasurementInfosWithSimilarMeasurements(productId, lotId, productStates: new[] { state.Value }, measurementStates: new[] { measurementState.Value }, cancellationToken: cancellationToken);
+        Measurements = await _measurementQueries.GetMeasurementInfosWithSimilarMeasurements(productId, lotId, productStates:
+            [state.Value], measurementStates: [measurementState.Value], cancellationToken: cancellationToken);
         Passports = await _passportQueries.GetPassports(productId, cancellationToken);
 
         Product = product;
 
         return Page();
     }
-
-
-
+    
 }

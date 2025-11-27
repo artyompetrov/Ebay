@@ -42,13 +42,12 @@ public abstract class ExplicitTestsBase
                 new HttpRequestMessage(method: HttpMethod.Post, requestUri: url)
                 {
                     Content = new FormUrlEncodedContent(
-                        new List<KeyValuePair<string, string>>
-                        {
+                        [
                             new(key: "grant_type", value: "client_credentials"),
                             new(key: "client_id", value: clientId),
                             new(key: "client_secret", value: clientSecret),
                             new(key: "scope", value: scope),
-                        }
+                        ]
                     )
                 }
             )

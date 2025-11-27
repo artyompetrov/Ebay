@@ -238,7 +238,7 @@ internal class EbayControllerImplementation(
             .AsNoTracking()
             .AnyAsync(x => x.Id == productId, cancellationToken);
 
-        if (exist == false)
+        if (!exist)
         {
             throw NonOkHttpAnswerException.NotFound400();
         }
@@ -270,7 +270,7 @@ internal class EbayControllerImplementation(
             .AsNoTracking()
             .AnyAsync(predicate: x => x.Id == productId, cancellationToken: cancellationToken);
 
-        if (exist == false)
+        if (!exist)
         {
             throw NonOkHttpAnswerException.NotFound400();
         }
@@ -479,7 +479,6 @@ internal class EbayControllerImplementation(
         CancellationToken cancellationToken)
     {
         await _measurementService.DeleteMeasurement(
-            productId: productId,
             measurementId: measurementId,
             cancellationToken: cancellationToken);
     }
@@ -492,7 +491,6 @@ internal class EbayControllerImplementation(
     {
         await _measurementService.UpdateMeasurementLocation(
             location: location,
-            productId: productId,
             measurementId: measurementId,
             cancellationToken: cancellationToken);
     }
@@ -505,7 +503,6 @@ internal class EbayControllerImplementation(
     {
         await _measurementService.UpdateMeasurementManufactureCode(
             manufactureCode: manufactureCode,
-            productId: productId,
             measurementId: measurementId,
             cancellationToken: cancellationToken);
     }
@@ -518,7 +515,6 @@ internal class EbayControllerImplementation(
     {
         await _measurementService.UpdateMeasurementMatchId(
             matchId: batchId,
-            productId: productId,
             measurementId: measurementId,
             cancellationToken: cancellationToken);
     }
@@ -531,7 +527,6 @@ internal class EbayControllerImplementation(
     {
         await _measurementService.UpdateMeasurementLotId(
             lotId: lotId,
-            productId: productId,
             measurementId: measurementId,
             cancellationToken: cancellationToken);
     }
@@ -544,7 +539,6 @@ internal class EbayControllerImplementation(
     {
         await _measurementService.UpdateMeasurementState(
             state: state.ToDbMeasurementState(),
-            productId: productId,
             measurementId: measurementId,
             cancellationToken: cancellationToken);
     }
@@ -626,8 +620,7 @@ internal class EbayControllerImplementation(
     )
     {
         return Task.FromResult<ICollection<CategoryType>>(
-            new List<CategoryType>
-            {
+            [
                 new(
                     items:
                     [
@@ -647,7 +640,7 @@ internal class EbayControllerImplementation(
                     ],
                     type: "test_state"
                 )
-            }
+            ]
         );
     }
 
@@ -689,4 +682,6 @@ internal class EbayControllerImplementation(
         _ = await _applicationContext.SaveChangesAsync(cancellationToken);
 
     }
+    
+    
 }

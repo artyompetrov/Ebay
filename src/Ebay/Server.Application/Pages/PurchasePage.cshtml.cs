@@ -8,7 +8,7 @@ public class PurchasePage(IMeasurementQueries measurementQueries) : PageModel
 {
     private readonly IMeasurementQueries _measurementQueries = measurementQueries;
 
-    public IReadOnlyList<MeasurementInfoWithData> Measurements { get; private set; } = Array.Empty<MeasurementInfoWithData>();
+    public IReadOnlyList<MeasurementInfoWithData> Measurements { get; private set; } = [];
 
 
     public async Task<IActionResult> OnGet(string measurementIds, CancellationToken cancellationToken)
