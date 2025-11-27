@@ -78,7 +78,7 @@ namespace Server.Adapters.uTracer
             return zipStream.ToArray();
         }
 
-        private async static Task SaveFileToZipArchive(ZipArchive archive, string fileName, byte[] content, CancellationToken cancellationToken)
+        private static async Task SaveFileToZipArchive(ZipArchive archive, string fileName, byte[] content, CancellationToken cancellationToken)
         {
             var entry = archive.CreateEntry(fileName);
             await using var entryStream = entry.Open();

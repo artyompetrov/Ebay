@@ -21,7 +21,7 @@ namespace Server.Application.HostedServices.Currencies
         public override TimeSpan ErrorDelay => WellKnown.CurrencyRate.ErrorDelay;
 
 
-        protected async override Task BackgroundTaskImplementation(CancellationToken cancellationToken)
+        protected override async Task BackgroundTaskImplementation(CancellationToken cancellationToken)
         {
             if (_options.IsLocalRun)
             {

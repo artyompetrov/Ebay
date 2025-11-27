@@ -25,7 +25,7 @@ namespace Server.Application.HostedServices.ChipFind
 
         private record ProductInner(Guid ProductId, Regex Regex, bool IsInteresting);
 
-        protected async override Task BackgroundTaskImplementation(CancellationToken cancellationToken)
+        protected override async Task BackgroundTaskImplementation(CancellationToken cancellationToken)
         {
             if (_ebayServerOptions.IsLocalRun)
             {
@@ -165,7 +165,7 @@ namespace Server.Application.HostedServices.ChipFind
             transaction.Complete();
         }
 
-        private async static Task<IReadOnlyCollection<ProductInner>> GetProducts(
+        private static async Task<IReadOnlyCollection<ProductInner>> GetProducts(
             IProductQueries productQueries,
             CancellationToken cancellationToken)
         {

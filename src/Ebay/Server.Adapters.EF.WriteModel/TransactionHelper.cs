@@ -7,7 +7,7 @@ namespace Server.Adapters.EF.WriteModel
 {
     internal static class TransactionHelper
     {
-        public async static Task<TransactionWrapper> EnsureRepeatableReadOrStartAsync(
+        public static async Task<TransactionWrapper> EnsureRepeatableReadOrStartAsync(
             ApplicationDbContext dbContext,
             CancellationToken ct)
         {
