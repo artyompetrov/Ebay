@@ -6,7 +6,10 @@
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-        <WarningsNotAsErrors>CS0612,CS0618,CS1591</WarningsNotAsErrors>
+        <WarningsNotAsErrors>
+            CS0612, <!--A class member was marked with the Obsolete attribute-->
+            CS0618 <!--Static member was marked with the Obsolete attribute-->
+        </WarningsNotAsErrors>
     </PropertyGroup>
     <ItemGroup>
         <PackageVersion Include="ErrorProne.NET.CoreAnalyzers" Version="0.7.0-beta.1" />

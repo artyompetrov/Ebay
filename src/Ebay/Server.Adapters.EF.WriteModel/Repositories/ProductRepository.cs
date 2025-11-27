@@ -7,13 +7,11 @@ namespace Server.Adapters.EF.WriteModel.Repositories;
 
 internal sealed class ProductRepository(ApplicationDbContext dbContext) : IProductRepository
 {
-    private readonly ApplicationDbContext _dbContext = dbContext;
-
     public async Task<Product?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        await using var transaction = await TransactionHelper.EnsureRepeatableReadOrStartAsync(_dbContext, cancellationToken);
+        await using var transaction = await TransactionHelper.EnsureRepeatableReadOrStartAsync(dbContext, cancellationToken);
 
-        var result = await _dbContext.Products
+        var result = await dbContext.Products
             .AsSplitQuery()
             .Include(x => x.RuSearchQueries)
             .Include(x => x.SearchQueries)
@@ -24,11 +22,11 @@ internal sealed class ProductRepository(ApplicationDbContext dbContext) : IProdu
         return result;
     }
 
-    public async Task SaveAsync(Product aggregate, CancellationToken cancellationToken) => _ = await _dbContext.Products.AddAsync(aggregate, cancellationToken);
+    public async Task SaveAsync(Product aggregate, CancellationToken cancellationToken) => _ = await dbContext.Products.AddAsync(aggregate, cancellationToken);
 
     public async Task RemoveAsync(Guid id, CancellationToken cancellationToken)
     {
-        _ = await _dbContext.Products.Where(o => o.Id == id)
+        _ = await dbContext.Products.Where(o => o.Id == id)
             .ExecuteDeleteAsync(cancellationToken: cancellationToken);
     }
 
@@ -42,7 +40,7 @@ internal sealed class ProductRepository(ApplicationDbContext dbContext) : IProdu
         const int batchSize = 1000; // безопасный размер IN (...)
         foreach (var batch in ids.Chunk(batchSize))
         {
-            _ = await _dbContext.Products
+            _ = await dbContext.Products
                 .Where(x => batch.Contains(x.Id))
                 .ExecuteDeleteAsync(cancellationToken);
         }
