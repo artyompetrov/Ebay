@@ -269,12 +269,6 @@ dotnet_diagnostic.CA1711.severity = none
 # CA1716: Identifiers should not match keywords
 dotnet_diagnostic.CA1716.severity = none
 
-# IDE0058: Expression value is never used
-dotnet_diagnostic.IDE0058.severity = none
-
-# CA1305: Specify IFormatProvider
-dotnet_diagnostic.CA1305.severity = silent
-
 # IDE0290: Use primary constructor
 dotnet_diagnostic.IDE0290.severity = none
 
