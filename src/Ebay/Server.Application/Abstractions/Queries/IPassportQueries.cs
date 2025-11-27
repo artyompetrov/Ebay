@@ -1,7 +1,6 @@
-namespace Server.Application.Abstractions.Queries
+namespace Server.Application.Abstractions.Queries;
+
+public interface IPassportQueries
 {
-    public interface IPassportQueries
-    {
-        Task<IReadOnlyList<Passport>> GetPassports(Guid productId, CancellationToken cancellationToken);
-    }
+    Task<IReadOnlyList<Passport>> GetPassports(Guid productId, CancellationToken cancellationToken);
 }

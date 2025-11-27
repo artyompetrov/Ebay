@@ -2,27 +2,26 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Server.Application.Migrations
+namespace Server.Application.Migrations;
+
+/// <inheritdoc />
+public partial class RenameSaleAdvertisementEmailToContact : Migration
 {
     /// <inheritdoc />
-    public partial class RenameSaleAdvertisementEmailToContact : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            _ = migrationBuilder.RenameColumn(
-                name: "Email",
-                table: "SaleAdvertisements",
-                newName: "Contact");
-        }
+        _ = migrationBuilder.RenameColumn(
+            name: "Email",
+            table: "SaleAdvertisements",
+            newName: "Contact");
+    }
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            _ = migrationBuilder.RenameColumn(
-                name: "Contact",
-                table: "SaleAdvertisements",
-                newName: "Email");
-        }
+    /// <inheritdoc />
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        _ = migrationBuilder.RenameColumn(
+            name: "Contact",
+            table: "SaleAdvertisements",
+            newName: "Email");
     }
 }

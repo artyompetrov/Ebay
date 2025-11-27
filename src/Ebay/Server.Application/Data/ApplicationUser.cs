@@ -2,10 +2,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Server.Domain;
 
-namespace Server.Application.Data
+namespace Server.Application.Data;
+
+public class ApplicationUser : IdentityUser
 {
-    public class ApplicationUser : IdentityUser
-    {
-        public DbSet<Product> Products { get; set; } = null!;
-    }
+    public DbSet<Product> Products { get; set; } = null!;
 }

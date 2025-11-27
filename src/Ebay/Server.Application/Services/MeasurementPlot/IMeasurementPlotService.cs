@@ -1,7 +1,6 @@
-namespace Server.Application.Services.MeasurementPlot
+namespace Server.Application.Services.MeasurementPlot;
+
+public interface IMeasurementPlotService
 {
-    public interface IMeasurementPlotService
-    {
-        public string PlotSold();
-    }
+    public string PlotSold();
 }

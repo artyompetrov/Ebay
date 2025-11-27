@@ -1,19 +1,18 @@
 using System.Transactions;
 
-namespace Server.Application.Infrastructure
+namespace Server.Application.Infrastructure;
+
+internal static class TransactionScopeFactory
 {
-    internal static class TransactionScopeFactory
+    // todo считается устаревшим подходом, надо отказаться
+    [Obsolete]
+    public static TransactionScope Create(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
     {
-        // todo считается устаревшим подходом, надо отказаться
-        [Obsolete]
-        public static TransactionScope Create(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
-        {
-            return new(
-                scopeOption: TransactionScopeOption.Required,
-                asyncFlowOption: TransactionScopeAsyncFlowOption.Enabled,
-                transactionOptions: new TransactionOptions
-                { IsolationLevel = isolationLevel }
-            );
-        }
+        return new(
+            scopeOption: TransactionScopeOption.Required,
+            asyncFlowOption: TransactionScopeAsyncFlowOption.Enabled,
+            transactionOptions: new TransactionOptions
+            { IsolationLevel = isolationLevel }
+        );
     }
 }

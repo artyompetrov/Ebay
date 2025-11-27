@@ -7,74 +7,73 @@ using Server.Application.Consumers.MatchedPairs;
 using Server.Application.Controllers;
 using Server.Domain.Measurements;
 
-namespace Server.Application.Services.Measurement
+namespace Server.Application.Services.Measurement;
+
+internal class MatchedMeasurementService(
+    IPublishEndpoint publishEndpoint,
+    IMeasurementQueries measurementQueries,
+    ITubeWorkingPointQueries tubeWorkingPointQueries,
+    IMatchedPairDifferenceRepository matchedPairDifferenceRepository,
+    IUnitOfWork unitOfWork,
+    ILogger<MatchedMeasurementService> logger)
 {
-    internal class MatchedMeasurementService(
-        IPublishEndpoint publishEndpoint,
-        IMeasurementQueries measurementQueries,
-        ITubeWorkingPointQueries tubeWorkingPointQueries,
-        IMatchedPairDifferenceRepository matchedPairDifferenceRepository,
-        IUnitOfWork unitOfWork,
-        ILogger<MatchedMeasurementService> logger)
+    private readonly IPublishEndpoint _publishEndpoint = publishEndpoint;
+    private readonly IMeasurementQueries _measurementQueries = measurementQueries;
+    private readonly ITubeWorkingPointQueries _tubeWorkingPointQueries = tubeWorkingPointQueries;
+    private readonly IMatchedPairDifferenceRepository _matchedPairDifferenceRepository = matchedPairDifferenceRepository;
+    private readonly IUnitOfWork _unitOfWork = unitOfWork;
+    private readonly ILogger<MatchedMeasurementService> _logger = logger;
+
+    public async Task FindMatchedMeasurementsAsync(
+        Guid productId,
+        CancellationToken cancellationToken)
     {
-        private readonly IPublishEndpoint _publishEndpoint = publishEndpoint;
-        private readonly IMeasurementQueries _measurementQueries = measurementQueries;
-        private readonly ITubeWorkingPointQueries _tubeWorkingPointQueries = tubeWorkingPointQueries;
-        private readonly IMatchedPairDifferenceRepository _matchedPairDifferenceRepository = matchedPairDifferenceRepository;
-        private readonly IUnitOfWork _unitOfWork = unitOfWork;
-        private readonly ILogger<MatchedMeasurementService> _logger = logger;
+        _ = await _tubeWorkingPointQueries.GetWorkingPointInfo(productId, cancellationToken) ?? throw NonOkHttpAnswerException.ValidationError400(
+                field: "tubeWorkingPoint",
+                errors: "Рабочая точка не задана.");
+        await DeletePreviousResults(productId: productId, cancellationToken: cancellationToken);
 
-        public async Task FindMatchedMeasurementsAsync(
-            Guid productId,
-            CancellationToken cancellationToken)
+        await EnqueueCommands(productId: productId, cancellationToken: cancellationToken);
+    }
+
+    private async Task EnqueueCommands(Guid productId, CancellationToken cancellationToken)
+    {
+        var unsoldMeasurements = (await _measurementQueries.GetMeasurementsInfo(
+            productId: productId,
+            measurementStates: Enum.GetValues<MeasurementState>().Where(x => x != MeasurementState.Sold).ToList(),
+            cancellationToken: cancellationToken)).Select(x => x.Id).ToHashSet();
+
+        foreach (var measurementId1 in unsoldMeasurements)
         {
-            _ = await _tubeWorkingPointQueries.GetWorkingPointInfo(productId, cancellationToken) ?? throw NonOkHttpAnswerException.ValidationError400(
-                    field: "tubeWorkingPoint",
-                    errors: "Рабочая точка не задана.");
-            await DeletePreviousResults(productId: productId, cancellationToken: cancellationToken);
-
-            await EnqueueCommands(productId: productId, cancellationToken: cancellationToken);
-        }
-
-        private async Task EnqueueCommands(Guid productId, CancellationToken cancellationToken)
-        {
-            var unsoldMeasurements = (await _measurementQueries.GetMeasurementsInfo(
-                productId: productId,
-                measurementStates: Enum.GetValues<MeasurementState>().Where(x => x != MeasurementState.Sold).ToList(),
-                cancellationToken: cancellationToken)).Select(x => x.Id).ToHashSet();
-
-            foreach (var measurementId1 in unsoldMeasurements)
+            var measurements = new List<string>();
+            foreach (var measurementId2 in unsoldMeasurements)
             {
-                var measurements = new List<string>();
-                foreach (var measurementId2 in unsoldMeasurements)
-                {
-                    var message = new CalculateMatchedPair(
-                        MeasurementId1: measurementId1,
-                        MeasurementId2: measurementId2);
+                var message = new CalculateMatchedPair(
+                    MeasurementId1: measurementId1,
+                    MeasurementId2: measurementId2);
 
-                    await _publishEndpoint.Publish(
-                        message: message,
-                        cancellationToken: cancellationToken);
+                await _publishEndpoint.Publish(
+                    message: message,
+                    cancellationToken: cancellationToken);
 
-                    measurements.Add(message.ToString());
-                }
-                _logger.LogInformation("Publishing {MessageType}, {MessageIds}", nameof(CalculateMatchedPair), string.Join(",", measurements));
-                _ = await _unitOfWork.SaveChangesAsync(cancellationToken);
+                measurements.Add(message.ToString());
             }
-        }
-
-        private async Task DeletePreviousResults(Guid productId, CancellationToken cancellationToken)
-        {
-            var measurementIds = (await _measurementQueries.GetMeasurementsInfo(
-                productId: productId,
-                measurementStates: Enum.GetValues<MeasurementState>(),
-                cancellationToken: cancellationToken)).Select(x => x.Id).ToHashSet();
-
-            _logger.LogInformation("Starting matching task for {ProductId}, {MeasurementIds}", productId, string.Join(",", measurementIds));
-
-            await _matchedPairDifferenceRepository.RemoveByMeasurementIds(measurementIds, cancellationToken);
-
+            _logger.LogInformation("Publishing {MessageType}, {MessageIds}", nameof(CalculateMatchedPair), string.Join(",", measurements));
             _ = await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
+    }
+
+    private async Task DeletePreviousResults(Guid productId, CancellationToken cancellationToken)
+    {
+        var measurementIds = (await _measurementQueries.GetMeasurementsInfo(
+            productId: productId,
+            measurementStates: Enum.GetValues<MeasurementState>(),
+            cancellationToken: cancellationToken)).Select(x => x.Id).ToHashSet();
+
+        _logger.LogInformation("Starting matching task for {ProductId}, {MeasurementIds}", productId, string.Join(",", measurementIds));
+
+        await _matchedPairDifferenceRepository.RemoveByMeasurementIds(measurementIds, cancellationToken);
+
+        _ = await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

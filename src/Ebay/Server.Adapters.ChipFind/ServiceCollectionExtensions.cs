@@ -1,16 +1,15 @@
 using Microsoft.Extensions.DependencyInjection;
 using Server.Application.HostedServices.ChipFind;
 
-namespace Server.Adapters.ChipFind
+namespace Server.Adapters.ChipFind;
+
+public static class ServiceCollectionExtensions
 {
-    public static class ServiceCollectionExtensions
+    public static void AddChipFindAdapter(
+        this IServiceCollection services)
     {
-        public static void AddChipFindAdapter(
-            this IServiceCollection services)
-        {
-            _ = services.AddHttpClient();
-            _ = services.AddSingleton(new ChipFindAdapterOptions(DelayMilliseconds: 5000));
-            _ = services.AddScoped<IChipfindAdapter, ChipfindAdapter>();
-        }
+        _ = services.AddHttpClient();
+        _ = services.AddSingleton(new ChipFindAdapterOptions(DelayMilliseconds: 5000));
+        _ = services.AddScoped<IChipfindAdapter, ChipfindAdapter>();
     }
 }

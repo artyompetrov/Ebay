@@ -3,64 +3,63 @@ using Microsoft.AspNetCore.Components.Forms;
 using Newtonsoft.Json.Linq;
 using ProductWithId = Client.Clients.Generated.ProductWithId;
 
-namespace Client.Extensions
+namespace Client.Extensions;
+
+internal static class ModelExtensions
 {
-    internal static class ModelExtensions
+    public static ProductWithoutId ToProductWithoutId(this ProductWithId productWithId)
     {
-        public static ProductWithoutId ToProductWithoutId(this ProductWithId productWithId)
+        return new()
         {
-            return new()
-            {
-                Name = productWithId.Name,
-                SearchQueries = productWithId.SearchQueries,
-                RuSearchQueries = productWithId.RuSearchQueries,
-                Weight = productWithId.Weight
-            };
-        }
-
-        public static IEnumerable<ValidationProblemParsed> Parse(this ValidationProblemDetailedInfo validationProblemDetails)
-        {
-            foreach (var errorsAdditionalProperty in validationProblemDetails.Errors.AdditionalProperties)
-            {
-                var fieldName = errorsAdditionalProperty.Key;
-                var errors = new List<string>();
-                if (errorsAdditionalProperty.Value is JArray jArray)
-                {
-                    foreach (var error in jArray)
-                    {
-                        errors.Add(error.ToString());
-                    }
-                }
-                else
-                {
-                    throw new InvalidOperationException(
-                        $"{nameof(errorsAdditionalProperty)}.{nameof(errorsAdditionalProperty.Value)} expected to be jArray");
-                }
-
-                yield return new ValidationProblemParsed(FieldName: fieldName, Errors: errors);
-            }
-        }
-
-        public static void FillValidationMessageStore(
-            this ApiException<ValidationProblemDetailedInfo> errorException,
-            ValidationMessageStore validationMessageStore,
-            object model)
-        {
-            foreach (var validationProblemParsed in errorException.Result.Parse())
-            {
-                foreach (var error in validationProblemParsed.Errors)
-                {
-                    validationMessageStore.Add(
-                        fieldIdentifier: new FieldIdentifier(model: model, fieldName: validationProblemParsed.FieldName),
-                        message: error);
-                }
-            }
-        }
-
-        public static string GetCondition(this LotInfoShort lotInfo) => lotInfo.Categories.Single(x => x.Type == WellKnown.Categories.Conditions.CategoryName).Value!;
-
-        public static string GetTestState(this LotInfoShort lotInfo) => lotInfo.Categories.Single(x => x.Type == WellKnown.Categories.TestState.CategoryName).Value!;
-
-        public record struct ValidationProblemParsed(string FieldName, IReadOnlyList<string> Errors);
+            Name = productWithId.Name,
+            SearchQueries = productWithId.SearchQueries,
+            RuSearchQueries = productWithId.RuSearchQueries,
+            Weight = productWithId.Weight
+        };
     }
+
+    public static IEnumerable<ValidationProblemParsed> Parse(this ValidationProblemDetailedInfo validationProblemDetails)
+    {
+        foreach (var errorsAdditionalProperty in validationProblemDetails.Errors.AdditionalProperties)
+        {
+            var fieldName = errorsAdditionalProperty.Key;
+            var errors = new List<string>();
+            if (errorsAdditionalProperty.Value is JArray jArray)
+            {
+                foreach (var error in jArray)
+                {
+                    errors.Add(error.ToString());
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    $"{nameof(errorsAdditionalProperty)}.{nameof(errorsAdditionalProperty.Value)} expected to be jArray");
+            }
+
+            yield return new ValidationProblemParsed(FieldName: fieldName, Errors: errors);
+        }
+    }
+
+    public static void FillValidationMessageStore(
+        this ApiException<ValidationProblemDetailedInfo> errorException,
+        ValidationMessageStore validationMessageStore,
+        object model)
+    {
+        foreach (var validationProblemParsed in errorException.Result.Parse())
+        {
+            foreach (var error in validationProblemParsed.Errors)
+            {
+                validationMessageStore.Add(
+                    fieldIdentifier: new FieldIdentifier(model: model, fieldName: validationProblemParsed.FieldName),
+                    message: error);
+            }
+        }
+    }
+
+    public static string GetCondition(this LotInfoShort lotInfo) => lotInfo.Categories.Single(x => x.Type == WellKnown.Categories.Conditions.CategoryName).Value!;
+
+    public static string GetTestState(this LotInfoShort lotInfo) => lotInfo.Categories.Single(x => x.Type == WellKnown.Categories.TestState.CategoryName).Value!;
+
+    public record struct ValidationProblemParsed(string FieldName, IReadOnlyList<string> Errors);
 }

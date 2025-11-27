@@ -2,28 +2,27 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Server.Application.Migrations
+namespace Server.Application.Migrations;
+
+/// <inheritdoc />
+public partial class AddLotIdToMeasurement : Migration
 {
     /// <inheritdoc />
-    public partial class AddLotIdToMeasurement : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            _ = migrationBuilder.AddColumn<string>(
-                name: "LotId",
-                table: "ProductMeasurements",
-                type: "character varying(100)",
-                maxLength: 100,
-                nullable: true);
-        }
+        _ = migrationBuilder.AddColumn<string>(
+            name: "LotId",
+            table: "ProductMeasurements",
+            type: "character varying(100)",
+            maxLength: 100,
+            nullable: true);
+    }
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            _ = migrationBuilder.DropColumn(
-                name: "LotId",
-                table: "ProductMeasurements");
-        }
+    /// <inheritdoc />
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        _ = migrationBuilder.DropColumn(
+            name: "LotId",
+            table: "ProductMeasurements");
     }
 }

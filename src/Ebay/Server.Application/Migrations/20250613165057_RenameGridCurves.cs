@@ -2,37 +2,36 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Server.Migrations
+namespace Server.Migrations;
+
+/// <inheritdoc />
+public partial class RenameGridCurves : Migration
 {
     /// <inheritdoc />
-    public partial class RenameGridCurves : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            _ = migrationBuilder.RenameColumn(
-                name: "HashPlateCurves",
-                table: "ProductMeasurements",
-                newName: "HashGridCurves");
+        _ = migrationBuilder.RenameColumn(
+            name: "HashPlateCurves",
+            table: "ProductMeasurements",
+            newName: "HashGridCurves");
 
-            _ = migrationBuilder.RenameIndex(
-                name: "IX_ProductMeasurements_HashPlateCurves",
-                table: "ProductMeasurements",
-                newName: "IX_ProductMeasurements_HashGridCurves");
-        }
+        _ = migrationBuilder.RenameIndex(
+            name: "IX_ProductMeasurements_HashPlateCurves",
+            table: "ProductMeasurements",
+            newName: "IX_ProductMeasurements_HashGridCurves");
+    }
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            _ = migrationBuilder.RenameColumn(
-                name: "HashGridCurves",
-                table: "ProductMeasurements",
-                newName: "HashPlateCurves");
+    /// <inheritdoc />
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        _ = migrationBuilder.RenameColumn(
+            name: "HashGridCurves",
+            table: "ProductMeasurements",
+            newName: "HashPlateCurves");
 
-            _ = migrationBuilder.RenameIndex(
-                name: "IX_ProductMeasurements_HashGridCurves",
-                table: "ProductMeasurements",
-                newName: "IX_ProductMeasurements_HashPlateCurves");
-        }
+        _ = migrationBuilder.RenameIndex(
+            name: "IX_ProductMeasurements_HashGridCurves",
+            table: "ProductMeasurements",
+            newName: "IX_ProductMeasurements_HashPlateCurves");
     }
 }

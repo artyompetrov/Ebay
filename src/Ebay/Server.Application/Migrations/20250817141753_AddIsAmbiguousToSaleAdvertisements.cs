@@ -2,28 +2,27 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Server.Application.Migrations
+namespace Server.Application.Migrations;
+
+/// <inheritdoc />
+public partial class AddIsAmbiguousToSaleAdvertisements : Migration
 {
     /// <inheritdoc />
-    public partial class AddIsAmbiguousToSaleAdvertisements : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            _ = migrationBuilder.AddColumn<bool>(
-                name: "IsAmbiguous",
-                table: "SaleAdvertisements",
-                type: "boolean",
-                nullable: false,
-                defaultValue: false);
-        }
+        _ = migrationBuilder.AddColumn<bool>(
+            name: "IsAmbiguous",
+            table: "SaleAdvertisements",
+            type: "boolean",
+            nullable: false,
+            defaultValue: false);
+    }
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            _ = migrationBuilder.DropColumn(
-                name: "IsAmbiguous",
-                table: "SaleAdvertisements");
-        }
+    /// <inheritdoc />
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        _ = migrationBuilder.DropColumn(
+            name: "IsAmbiguous",
+            table: "SaleAdvertisements");
     }
 }

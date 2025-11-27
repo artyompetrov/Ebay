@@ -4,31 +4,30 @@ using Microsoft.Extensions.Logging;
 using Server.Application.Data;
 using Server.Application.Infrastructure;
 
-namespace Server.Application.HostedServices.SaleAdvertisements
+namespace Server.Application.HostedServices.SaleAdvertisements;
+
+public class SaleAdvertisementCleanupBackgroundTask(
+    ILogger<SaleAdvertisementCleanupBackgroundTask> logger,
+    IServiceScopeFactory serviceScopeFactory) : BackgroundTask(logger)
 {
-    public class SaleAdvertisementCleanupBackgroundTask(
-        ILogger<SaleAdvertisementCleanupBackgroundTask> logger,
-        IServiceScopeFactory serviceScopeFactory) : BackgroundTask(logger)
+    private readonly IServiceScopeFactory _serviceScopeFactory = serviceScopeFactory;
+
+    public override TimeSpan UpdateTime => WellKnown.SaleAdvertisements.UpdateTime;
+    public override TimeSpan ErrorDelay => WellKnown.SaleAdvertisements.ErrorDelay;
+
+    protected override async Task BackgroundTaskImplementation(CancellationToken cancellationToken)
     {
-        private readonly IServiceScopeFactory _serviceScopeFactory = serviceScopeFactory;
+        using var scope = _serviceScopeFactory.CreateScope();
+        var applicationDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-        public override TimeSpan UpdateTime => WellKnown.SaleAdvertisements.UpdateTime;
-        public override TimeSpan ErrorDelay => WellKnown.SaleAdvertisements.ErrorDelay;
+        using var transaction = TransactionScopeFactory.Create();
 
-        protected override async Task BackgroundTaskImplementation(CancellationToken cancellationToken)
-        {
-            using var scope = _serviceScopeFactory.CreateScope();
-            var applicationDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var staleThreshold = DateTime.UtcNow - WellKnown.SaleAdvertisements.RemoveAdvertisementAfter;
 
-            using var transaction = TransactionScopeFactory.Create();
+        _ = await applicationDbContext.ProductEmailSendHistory
+            .Where(e => e.CreatedAt < staleThreshold)
+            .ExecuteDeleteAsync(cancellationToken);
 
-            var staleThreshold = DateTime.UtcNow - WellKnown.SaleAdvertisements.RemoveAdvertisementAfter;
-
-            _ = await applicationDbContext.ProductEmailSendHistory
-                .Where(e => e.CreatedAt < staleThreshold)
-                .ExecuteDeleteAsync(cancellationToken);
-
-            transaction.Complete();
-        }
+        transaction.Complete();
     }
 }

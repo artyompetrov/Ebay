@@ -1,68 +1,67 @@
-namespace Client.Extensions
+namespace Client.Extensions;
+
+internal static class DictionaryExtensions
 {
-    internal static class DictionaryExtensions
+    public static void AppendOrCreateNewCollection<TKey, TValue, TCollection>(
+        this IDictionary<TKey, TCollection> dictionary,
+        TKey key,
+        TValue value
+    )
+        where TCollection : ICollection<TValue>, new()
     {
-        public static void AppendOrCreateNewCollection<TKey, TValue, TCollection>(
-            this IDictionary<TKey, TCollection> dictionary,
-            TKey key,
-            TValue value
-        )
-            where TCollection : ICollection<TValue>, new()
+        if (dictionary.TryGetValue(key: key, value: out var values))
         {
-            if (dictionary.TryGetValue(key: key, value: out var values))
-            {
-                values.Add(value);
-            }
-            else
-            {
-                dictionary.Add(
-                    key: key,
-                    value: new TCollection
-                    {
-                        value
-                    }
-                );
-            }
+            values.Add(value);
         }
-
-
-        public static TValue GetOrAdd<TKey, TValue>(
-            this IDictionary<TKey, TValue> dictionary,
-            TKey key,
-            Func<TValue> createValue
-        )
+        else
         {
-            if (dictionary.TryGetValue(key: key, value: out var value))
-            {
-                return value;
-            }
-
-            var newValue = createValue();
             dictionary.Add(
                 key: key,
-                value: createValue()
+                value: new TCollection
+                {
+                    value
+                }
             );
-
-            return newValue;
         }
+    }
 
-        public static TValue GetOrAdd<TKey, TValue>(
-            this IDictionary<TKey, TValue> dictionary,
-            TKey key,
-            TValue newValue
-        )
+
+    public static TValue GetOrAdd<TKey, TValue>(
+        this IDictionary<TKey, TValue> dictionary,
+        TKey key,
+        Func<TValue> createValue
+    )
+    {
+        if (dictionary.TryGetValue(key: key, value: out var value))
         {
-            if (dictionary.TryGetValue(key: key, value: out var value))
-            {
-                return value;
-            }
-
-            dictionary.Add(
-                key: key,
-                value: newValue
-            );
-
-            return newValue;
+            return value;
         }
+
+        var newValue = createValue();
+        dictionary.Add(
+            key: key,
+            value: createValue()
+        );
+
+        return newValue;
+    }
+
+    public static TValue GetOrAdd<TKey, TValue>(
+        this IDictionary<TKey, TValue> dictionary,
+        TKey key,
+        TValue newValue
+    )
+    {
+        if (dictionary.TryGetValue(key: key, value: out var value))
+        {
+            return value;
+        }
+
+        dictionary.Add(
+            key: key,
+            value: newValue
+        );
+
+        return newValue;
     }
 }

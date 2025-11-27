@@ -1,13 +1,12 @@
-namespace Server.Application.Services.LotDataExtractor
+namespace Server.Application.Services.LotDataExtractor;
+
+[Flags]
+internal enum ExtractFrom
 {
-    [Flags]
-    internal enum ExtractFrom
-    {
-        Title = 1,
-        ConditionDescription = 2,
-        Description = 4,
-        Condition = 8,
-        ShortDescription = 16,
-        LotSize = 32,
-    }
+    Title = 1,
+    ConditionDescription = 2,
+    Description = 4,
+    Condition = 8,
+    ShortDescription = 16,
+    LotSize = 32,
 }

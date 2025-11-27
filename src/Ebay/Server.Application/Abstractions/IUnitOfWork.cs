@@ -1,21 +1,20 @@
 using System.Data;
 
-namespace Server.Application.Abstractions
+namespace Server.Application.Abstractions;
+
+/// <summary>
+/// Интерфес для работы с транзакциями
+/// </summary>
+public interface IUnitOfWork
 {
     /// <summary>
-    /// Интерфес для работы с транзакциями
+    /// Сохранить изменения
     /// </summary>
-    public interface IUnitOfWork
-    {
-        /// <summary>
-        /// Сохранить изменения
-        /// </summary>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        Task<int> SaveChangesAsync(CancellationToken cancellationToken);
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 
-        Task<IUnitOfWorkTransaction> BeginTransactionAsync(
-            CancellationToken cancellationToken,
-            IsolationLevel isolationLevel = IsolationLevel.ReadCommitted);
-    }
+    Task<IUnitOfWorkTransaction> BeginTransactionAsync(
+        CancellationToken cancellationToken,
+        IsolationLevel isolationLevel = IsolationLevel.ReadCommitted);
 }

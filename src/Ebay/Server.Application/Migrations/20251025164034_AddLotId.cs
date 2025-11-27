@@ -2,26 +2,25 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Server.Application.Migrations
+namespace Server.Application.Migrations;
+
+/// <inheritdoc />
+public partial class AddLotId : Migration
 {
     /// <inheritdoc />
-    public partial class AddLotId : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            _ = migrationBuilder.CreateIndex(
-                name: "IX_ProductMeasurements_LotId",
-                table: "ProductMeasurements",
-                column: "LotId");
-        }
+        _ = migrationBuilder.CreateIndex(
+            name: "IX_ProductMeasurements_LotId",
+            table: "ProductMeasurements",
+            column: "LotId");
+    }
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            _ = migrationBuilder.DropIndex(
-                name: "IX_ProductMeasurements_LotId",
-                table: "ProductMeasurements");
-        }
+    /// <inheritdoc />
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        _ = migrationBuilder.DropIndex(
+            name: "IX_ProductMeasurements_LotId",
+            table: "ProductMeasurements");
     }
 }

@@ -1,9 +1,8 @@
-namespace Server.Domain.Measurements
-{
-    public interface IMeasurementFileParser
-    {
-        MeasurementFileParseResult Parse(byte[] measurements);
+namespace Server.Domain.Measurements;
 
-        Task<byte[]> ToPrettifiedZip(byte[] zipBytes, CancellationToken cancellationToken);
-    }
+public interface IMeasurementFileParser
+{
+    MeasurementFileParseResult Parse(byte[] measurements);
+
+    Task<byte[]> ToPrettifiedZip(byte[] zipBytes, CancellationToken cancellationToken);
 }

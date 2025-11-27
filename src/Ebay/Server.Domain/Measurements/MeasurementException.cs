@@ -1,6 +1,5 @@
-namespace Server.Domain.Measurements
+namespace Server.Domain.Measurements;
+
+public class MeasurementException(string message) : Exception(message)
 {
-    public class MeasurementException(string message) : Exception(message)
-    {
-    }
 }

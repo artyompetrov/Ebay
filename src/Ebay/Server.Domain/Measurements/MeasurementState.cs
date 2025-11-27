@@ -1,9 +1,8 @@
-namespace Server.Domain.Measurements
+namespace Server.Domain.Measurements;
+
+public enum MeasurementState
 {
-    public enum MeasurementState
-    {
-        Created = 0,
-        Selling,
-        Sold
-    }
+    Created = 0,
+    Selling,
+    Sold
 }

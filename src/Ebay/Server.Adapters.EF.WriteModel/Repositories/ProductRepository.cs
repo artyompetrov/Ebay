@@ -3,49 +3,48 @@ using Server.Application.Abstractions.Repositories;
 using Server.Application.Data;
 using Server.Domain;
 
-namespace Server.Adapters.EF.WriteModel.Repositories
+namespace Server.Adapters.EF.WriteModel.Repositories;
+
+internal sealed class ProductRepository(ApplicationDbContext dbContext) : IProductRepository
 {
-    internal sealed class ProductRepository(ApplicationDbContext dbContext) : IProductRepository
+    private readonly ApplicationDbContext _dbContext = dbContext;
+
+    public async Task<Product?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        private readonly ApplicationDbContext _dbContext = dbContext;
+        await using var transaction = await TransactionHelper.EnsureRepeatableReadOrStartAsync(_dbContext, cancellationToken);
 
-        public async Task<Product?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+        var result = await _dbContext.Products
+            .AsSplitQuery()
+            .Include(x => x.RuSearchQueries)
+            .Include(x => x.SearchQueries)
+            .SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+
+        await transaction.CommitIfOwnedAsync(cancellationToken);
+
+        return result;
+    }
+
+    public async Task SaveAsync(Product aggregate, CancellationToken cancellationToken) => _ = await _dbContext.Products.AddAsync(aggregate, cancellationToken);
+
+    public async Task RemoveAsync(Guid id, CancellationToken cancellationToken)
+    {
+        _ = await _dbContext.Products.Where(o => o.Id == id)
+            .ExecuteDeleteAsync(cancellationToken: cancellationToken);
+    }
+
+    public async Task RemoveAsync(IReadOnlySet<Guid> ids, CancellationToken cancellationToken)
+    {
+        if (ids.Count == 0)
         {
-            await using var transaction = await TransactionHelper.EnsureRepeatableReadOrStartAsync(_dbContext, cancellationToken);
-
-            var result = await _dbContext.Products
-                .AsSplitQuery()
-                .Include(x => x.RuSearchQueries)
-                .Include(x => x.SearchQueries)
-                .SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
-
-            await transaction.CommitIfOwnedAsync(cancellationToken);
-
-            return result;
+            return;
         }
 
-        public async Task SaveAsync(Product aggregate, CancellationToken cancellationToken) => _ = await _dbContext.Products.AddAsync(aggregate, cancellationToken);
-
-        public async Task RemoveAsync(Guid id, CancellationToken cancellationToken)
+        const int batchSize = 1000; // безопасный размер IN (...)
+        foreach (var batch in ids.Chunk(batchSize))
         {
-            _ = await _dbContext.Products.Where(o => o.Id == id)
-                .ExecuteDeleteAsync(cancellationToken: cancellationToken);
-        }
-
-        public async Task RemoveAsync(IReadOnlySet<Guid> ids, CancellationToken cancellationToken)
-        {
-            if (ids.Count == 0)
-            {
-                return;
-            }
-
-            const int batchSize = 1000; // безопасный размер IN (...)
-            foreach (var batch in ids.Chunk(batchSize))
-            {
-                _ = await _dbContext.Products
-                    .Where(x => batch.Contains(x.Id))
-                    .ExecuteDeleteAsync(cancellationToken);
-            }
+            _ = await _dbContext.Products
+                .Where(x => batch.Contains(x.Id))
+                .ExecuteDeleteAsync(cancellationToken);
         }
     }
 }

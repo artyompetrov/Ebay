@@ -1,7 +1,6 @@
-namespace Server.Application.Abstractions.Queries
+namespace Server.Application.Abstractions.Queries;
+
+public interface ITubeWorkingPointQueries
 {
-    public interface ITubeWorkingPointQueries
-    {
-        Task<TubeWorkingPointInfo?> GetWorkingPointInfo(Guid productId, CancellationToken cancellationToken);
-    }
+    Task<TubeWorkingPointInfo?> GetWorkingPointInfo(Guid productId, CancellationToken cancellationToken);
 }

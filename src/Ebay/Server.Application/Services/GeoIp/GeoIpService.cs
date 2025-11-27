@@ -2,109 +2,108 @@ using System.Net.Http.Json;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
-namespace Server.Application.Services.GeoIp
+namespace Server.Application.Services.GeoIp;
+
+public sealed record GeoIpLocation(string? Country, string? City);
+
+public class GeoIpService(HttpClient httpClient, ILogger<GeoIpService> logger, IMemoryCache cache) : IDisposable
 {
-    public sealed record GeoIpLocation(string? Country, string? City);
+    private readonly HttpClient _httpClient = httpClient;
+    private readonly ILogger<GeoIpService> _logger = logger;
+    private readonly IMemoryCache _cache = cache;
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
 
-    public class GeoIpService(HttpClient httpClient, ILogger<GeoIpService> logger, IMemoryCache cache) : IDisposable
+    private async Task<GeoIpLocation?> GetLocationAsync(string? ip, CancellationToken cancellationToken)
     {
-        private readonly HttpClient _httpClient = httpClient;
-        private readonly ILogger<GeoIpService> _logger = logger;
-        private readonly IMemoryCache _cache = cache;
-        private readonly SemaphoreSlim _semaphore = new(1, 1);
-
-        private async Task<GeoIpLocation?> GetLocationAsync(string? ip, CancellationToken cancellationToken)
+        if (string.IsNullOrWhiteSpace(ip))
         {
-            if (string.IsNullOrWhiteSpace(ip))
-            {
-                return null;
-            }
-
-            try
-            {
-                var response = await _httpClient.GetFromJsonAsync<IpApiResponse>(
-                    $"http://ip-api.com/json/{ip}?fields=country,city",
-                    cancellationToken);
-
-                return response == null ? null : new GeoIpLocation(response.Country, response.City);
-            }
-            catch (OperationCanceledException)
-            {
-                _logger.LogWarning("GeoIP lookup timed out for {Ip}", ip);
-                return null;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to get location for {Ip}", ip);
-                return null;
-            }
+            return null;
         }
 
-        public async Task LogRequest(
-            string prefix,
-            string? realIp,
-            string ua,
-            CancellationToken token)
+        try
         {
-            await _semaphore.WaitAsync(token);
-            try
-            {
+            var response = await _httpClient.GetFromJsonAsync<IpApiResponse>(
+                $"http://ip-api.com/json/{ip}?fields=country,city",
+                cancellationToken);
 
-                var key = $"{prefix}_{realIp}_{ua}";
-
-                if (_cache.TryGetValue(key, out _))
-                {
-                    return;
-                }
-
-                _ = _cache.Set(key, true, TimeSpan.FromDays(1));
-
-                _ = LogRequestAsyncInternal(prefix, realIp, ua, token);
-
-            }
-            finally
-            {
-                _ = _semaphore.Release();
-            }
+            return response == null ? null : new GeoIpLocation(response.Country, response.City);
         }
-
-        private async Task LogRequestAsyncInternal(string prefix, string? realIp, string ua, CancellationToken token)
+        catch (OperationCanceledException)
         {
-            GeoIpLocation? location = null;
+            _logger.LogWarning("GeoIP lookup timed out for {Ip}", ip);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get location for {Ip}", ip);
+            return null;
+        }
+    }
 
-            try
-            {
-                using var cts = CancellationTokenSource.CreateLinkedTokenSource(token);
-                cts.CancelAfter(TimeSpan.FromSeconds(60));
-                location = await GetLocationAsync(realIp, cts.Token);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "GeoIP lookup failed for {XRealIp}", realIp);
-            }
+    public async Task LogRequest(
+        string prefix,
+        string? realIp,
+        string ua,
+        CancellationToken token)
+    {
+        await _semaphore.WaitAsync(token);
+        try
+        {
 
-            if (WellKnown.GeoIp.ExcludeCountries.Contains(location?.Country, StringComparer.OrdinalIgnoreCase))
+            var key = $"{prefix}_{realIp}_{ua}";
+
+            if (_cache.TryGetValue(key, out _))
             {
                 return;
             }
 
-            _logger.LogInformation(
-#pragma warning disable CA2254
-                message: prefix + " X-Real-IP: {XRealIp}. Country: {Country}. City: {City}. UserAgent: {UserAgent}",
-#pragma warning restore CA2254
-                realIp,
-                location?.Country,
-                location?.City,
-                ua);
+            _ = _cache.Set(key, true, TimeSpan.FromDays(1));
+
+            _ = LogRequestAsyncInternal(prefix, realIp, ua, token);
+
         }
-
-        private sealed record IpApiResponse(string? Country, string? City);
-
-        public void Dispose()
+        finally
         {
-            _httpClient.Dispose();
-            _semaphore.Dispose();
-            GC.SuppressFinalize(this);
+            _ = _semaphore.Release();
         }
+    }
+
+    private async Task LogRequestAsyncInternal(string prefix, string? realIp, string ua, CancellationToken token)
+    {
+        GeoIpLocation? location = null;
+
+        try
+        {
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(token);
+            cts.CancelAfter(TimeSpan.FromSeconds(60));
+            location = await GetLocationAsync(realIp, cts.Token);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "GeoIP lookup failed for {XRealIp}", realIp);
+        }
+
+        if (WellKnown.GeoIp.ExcludeCountries.Contains(location?.Country, StringComparer.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        _logger.LogInformation(
+#pragma warning disable CA2254
+            message: prefix + " X-Real-IP: {XRealIp}. Country: {Country}. City: {City}. UserAgent: {UserAgent}",
+#pragma warning restore CA2254
+            realIp,
+            location?.Country,
+            location?.City,
+            ua);
+    }
+
+    private sealed record IpApiResponse(string? Country, string? City);
+
+    public void Dispose()
+    {
+        _httpClient.Dispose();
+        _semaphore.Dispose();
+        GC.SuppressFinalize(this);
     }
 }
