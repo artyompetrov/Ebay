@@ -1,17 +1,17 @@
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace Server.Application.Controllers;
 
-#pragma warning disable CS1591
-public class OidcConfigurationController(
-    IClientRequestParametersProvider clientRequestParametersProvider,
-    ILogger<OidcConfigurationController> logger) : Controller
+public class OidcConfigurationController : Controller
 {
-    private readonly ILogger<OidcConfigurationController> _logger = logger;
+    public OidcConfigurationController(
+        IClientRequestParametersProvider clientRequestParametersProvider)
+    {
+        ClientRequestParametersProvider = clientRequestParametersProvider;
+    }
 
-    public IClientRequestParametersProvider ClientRequestParametersProvider { get; } = clientRequestParametersProvider;
+    public IClientRequestParametersProvider ClientRequestParametersProvider { get; }
 
     [HttpGet("_configuration/{clientId}")]
     public IActionResult GetClientRequestParameters([FromRoute] string clientId)
@@ -20,5 +20,3 @@ public class OidcConfigurationController(
         return Ok(parameters);
     }
 }
-
-#pragma warning restore CS1591

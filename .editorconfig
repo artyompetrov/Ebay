@@ -248,8 +248,8 @@ dotnet_diagnostic.CA1848.severity = none
 # Remove the underscores from member name Should_Do_Smth() - Тесты пишем в такой нотации
 dotnet_diagnostic.CA1707.severity = none
 
-# Полностью отключаем все StyleCop.Analyzers - так как мы пользуемся dotnet format, а они несовместимы
-dotnet_analyzer_diagnostic.category-StyleCop.severity = none
+# Переводим StyleCop.Analyzers на suggestion
+dotnet_analyzer_diagnostic.category-StyleCop.severity = suggestion
 
 # IDE0305: Simplify collection initialization — правило, которое предлагает упростить инициализацию коллекций
 dotnet_diagnostic.IDE0305.severity = suggestion
@@ -268,6 +268,8 @@ dotnet_diagnostic.CA1716.severity = none
 
 # IDE0290: Use primary constructor
 dotnet_diagnostic.IDE0290.severity = none
+
+dotnet_diagnostic.IDE0052.severity = warning
 
 
 # ReSharper properties

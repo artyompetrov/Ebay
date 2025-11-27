@@ -5,14 +5,21 @@ using Server.Application.Data;
 
 namespace Server.Application.Consumers.PriceCalculator;
 
-internal class CalculatePricesForProductConsumer(
-    ApplicationDbContext applicationContext,
-    ILogger<CalculatePricesForProductConsumer> logger,
-    IPublishEndpoint publishEndpoint) : IConsumer<CalculatePricesForProduct>
+internal class CalculatePricesForProductConsumer : IConsumer<CalculatePricesForProduct>
 {
-    private readonly ApplicationDbContext _applicationContext = applicationContext;
-    private readonly ILogger<CalculatePricesForProductConsumer> _logger = logger;
-    private readonly IPublishEndpoint _publishEndpoint = publishEndpoint;
+    public CalculatePricesForProductConsumer(
+        ApplicationDbContext applicationContext,
+        ILogger<CalculatePricesForProductConsumer> logger,
+        IPublishEndpoint publishEndpoint)
+    {
+        _applicationContext = applicationContext;
+        _logger = logger;
+        _publishEndpoint = publishEndpoint;
+    }
+
+    private readonly ApplicationDbContext _applicationContext;
+    private readonly ILogger<CalculatePricesForProductConsumer> _logger;
+    private readonly IPublishEndpoint _publishEndpoint;
 
     public async Task Consume(ConsumeContext<CalculatePricesForProduct> context)
     {
