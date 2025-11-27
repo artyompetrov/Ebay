@@ -9,9 +9,9 @@
         <WarningsNotAsErrors>CS0612,CS0618,CS1591</WarningsNotAsErrors>
     </PropertyGroup>
     <ItemGroup>
+        <PackageVersion Include="ErrorProne.NET.CoreAnalyzers" Version="0.7.0-beta.1" />
         <PackageReference Include="ErrorProne.NET.CoreAnalyzers">
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
     </ItemGroup>
-    
 </Project>

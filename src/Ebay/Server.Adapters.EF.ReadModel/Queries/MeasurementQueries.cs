@@ -4,9 +4,14 @@ using Server.Domain.Measurements;
 
 namespace Sever.Adapters.EF.ReadModel.Queries;
 
-internal sealed class MeasurementQueries(ReadDbContext dbContext) : IMeasurementQueries
+internal sealed class MeasurementQueries : IMeasurementQueries
 {
-    private readonly ReadDbContext _dbContext = dbContext;
+    private readonly ReadDbContext _dbContext;
+    public MeasurementQueries(ReadDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
+
 
     public async Task<MeasurementInfo?> GetMeasurementInfo(string measurementId, CancellationToken cancellationToken)
     {
