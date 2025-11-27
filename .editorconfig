@@ -11,7 +11,7 @@ generated_code = true
 [*]
 charset = utf-8
 end_of_line = crlf
-trim_trailing_whitespace = true
+trim_trailing_whitespace = false
 insert_final_newline = false
 indent_style = space
 indent_size = 4
