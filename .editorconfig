@@ -191,7 +191,7 @@ csharp_preserve_single_line_statements = true
 
 #### Relaxation of the rules ####
 
-# CA1860: Avoid using 'Enumerable.Any()' extension method
+# Avoid using 'Enumerable.Any()' extension method
 dotnet_diagnostic.CA1860.severity = none
 
 # Use 'GeneratedRegexAttribute' to generate the regular expression implementation at compile-time.
@@ -207,20 +207,23 @@ dotnet_diagnostic.CA1707.severity = none
 # Переводим StyleCop.Analyzers на suggestion
 dotnet_analyzer_diagnostic.category-StyleCop.severity = suggestion
 
-# IDE0046: Convert to conditional expression
+# Convert to conditional expression
 dotnet_diagnostic.IDE0046.severity = suggestion
 
-# IDE0022: Use expression body for methods
+# Use expression body for methods
 dotnet_diagnostic.IDE0022.severity = suggestion
 
 # Fix formatting
 dotnet_diagnostic.IDE0055.severity = suggestion
 
-#  Collection initialization can be simplified
+# Collection initialization can be simplified
 dotnet_diagnostic.IDE0305.severity = suggestion
 
-# IDE0290: Use primary constructor
+# Use primary constructor
 dotnet_diagnostic.IDE0290.severity = none
+
+# Missing XML comment for publicly visible type or member
+dotnet_diagnostic.CS1591.severity = suggestion
 
 # ReSharper properties
 resharper_apply_auto_detected_rules = false
