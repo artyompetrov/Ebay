@@ -3,6 +3,7 @@
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <RootNamespace>Client</RootNamespace>
+        <WasmEnableStreamingResponse>false</WasmEnableStreamingResponse>
     </PropertyGroup>
 
     <ItemGroup>
