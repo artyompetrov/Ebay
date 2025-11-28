@@ -13,10 +13,10 @@ public class PentodeGridCurves(double pmaxWatt, Dictionary<int, MeasurementPoint
                 const int maxCount = 8;
                 const int skipCount = 10;
                 var step = (int)Math.Ceiling((x.Count - skipCount) / (double)maxCount);
-                return x
+                return [.. x
                     .Skip(skipCount)
                     // первые графики пропускаем, т.к. они в области низких напряжений
-                    .Where((_, i) => i % step == 0).ToList();
+                    .Where((_, i) => i % step == 0)];
             })
 {
     public override string Curve1Name => "Ianode";

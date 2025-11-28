@@ -81,7 +81,7 @@ public abstract class MeasurementTypeBase
                 HasValuesAbovePmax = true;
             }
 
-            var vSteppingValue = values.Select(steppingVariableSelector).Average();
+            var vSteppingValue = values.Average(steppingVariableSelector);
 
             curves.Add(new CurveSet(vSteppingValue, vValues, i1Values, i2Values));
         }

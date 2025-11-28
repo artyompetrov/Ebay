@@ -31,7 +31,7 @@ internal class MatchedPairsCalculator(
     public async Task Consume(ConsumeContext<CalculateMatchedPair> context)
     {
         _logger.LogInformation(
-            message: "Processing {MeasurementId1} {MeasurementId2} in {ServiceName}",
+            "Processing {MeasurementId1} {MeasurementId2} in {ServiceName}",
             context.Message.MeasurementId1,
             context.Message.MeasurementId2,
             nameof(CalculateMatchedPair));

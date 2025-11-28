@@ -32,8 +32,8 @@ internal sealed class ProductQueries(ReadDbContext readDbContext) : IProductQuer
         return new ProductInfo(
             Id: result.Id,
             Name: result.Name,
-            SearchQueries: result.SearchQueries.Select(x => new SearchQueryWithId(x.Id, x.Query)).ToList(),
-            RuSearchQueries: result.RuSearchQueries.Select(x => new SearchQueryWithId(x.Id, x.Query)).ToList(),
+            SearchQueries: [.. result.SearchQueries.Select(x => new SearchQueryWithId(x.Id, x.Query))],
+            RuSearchQueries: [.. result.RuSearchQueries.Select(x => new SearchQueryWithId(x.Id, x.Query))],
             Weight: result.Weight,
             CalculationResult: result.ProductCalculationResult,
             LastCheckTime: result.LastCheckTime
@@ -60,12 +60,8 @@ internal sealed class ProductQueries(ReadDbContext readDbContext) : IProductQuer
         var result = products.Select(p => new ProductInfo(
             Id: p.Id,
             Name: p.Name,
-            SearchQueries: p.SearchQueries
-                .Select(q => new SearchQueryWithId(q.Id, q.Query))
-                .ToList(),
-            RuSearchQueries: p.RuSearchQueries
-                .Select(q => new SearchQueryWithId(q.Id, q.Query))
-                .ToList(),
+            SearchQueries: [.. p.SearchQueries.Select(q => new SearchQueryWithId(q.Id, q.Query))],
+            RuSearchQueries: [.. p.RuSearchQueries.Select(q => new SearchQueryWithId(q.Id, q.Query))],
             Weight: p.Weight,
             CalculationResult: p.ProductCalculationResult,
             LastCheckTime: p.LastCheckTime

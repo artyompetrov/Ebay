@@ -29,8 +29,8 @@ internal static class ModelsExtensions
         return new(
         id: productInfo.Id,
         name: productInfo.Name,
-        searchQueries: productInfo.SearchQueries.Select(x => x.ToApiSearchQuery()).ToList(),
-        ruSearchQueries: productInfo.RuSearchQueries.Select(x => x.ToApiRuSearchQuery()).ToList(),
+        searchQueries: [.. productInfo.SearchQueries.Select(x => x.ToApiSearchQuery())],
+        ruSearchQueries: [.. productInfo.RuSearchQueries.Select(x => x.ToApiRuSearchQuery())],
         isCheckRequired: productInfo.IsCheckRequired,
         weight: productInfo.Weight,
         productCalculationResult: productInfo.CalculationResult.ToApiLotCalculationResult(),
@@ -64,13 +64,13 @@ internal static class ModelsExtensions
             description: lot.Description,
             locatedIn: lot.LocatedIn,
             lotId: lot.Id,
-            categories: lot.Categories.Select(x => new CategoryValue(type: x.Key, value: x.Value)).ToList(),
+            categories: [.. lot.Categories.Select(x => new CategoryValue(type: x.Key, value: x.Value))],
             name: lot.Name,
             shippingCountry: lot.ShippingCountry,
             pcs: lot.Pcs,
             currency: lot.CurrencyId,
             price: lot.Price,
-            purchaseHistory: lot.Purchases.OrderByDescending(x => x.Date).Select(x => x.ToApiPurchaseInfo(lot.TitleChangeDate)).ToList(),
+            purchaseHistory: [.. lot.Purchases.OrderByDescending(x => x.Date).Select(x => x.ToApiPurchaseInfo(lot.TitleChangeDate))],
             seller: lot.Seller,
             titleChangeDate: lot.TitleChangeDate.ToString(WellKnown.Formats.TimeFormat, CultureInfo.InvariantCulture),
             shipping: lot.Shipping,
@@ -89,13 +89,13 @@ internal static class ModelsExtensions
         conditionDescription: lot.ConditionDescription,
         locatedIn: lot.LocatedIn,
         lotId: lot.Id,
-        categories: lot.Categories.Select(x => new CategoryValue(type: x.Key, value: x.Value)).ToList(),
+        categories: [.. lot.Categories.Select(x => new CategoryValue(type: x.Key, value: x.Value))],
         name: lot.Name,
         shippingCountry: lot.ShippingCountry,
         pcs: lot.Pcs,
         currency: lot.CurrencyId,
         price: lot.Price,
-        purchaseHistory: lot.Purchases.OrderByDescending(x => x.Date).Select(x => x.ToApiPurchaseInfo(lot.TitleChangeDate)).ToList(),
+        purchaseHistory: [.. lot.Purchases.OrderByDescending(x => x.Date).Select(x => x.ToApiPurchaseInfo(lot.TitleChangeDate))],
         seller: lot.Seller,
         shipping: lot.Shipping,
         titleChangeDate: lot.TitleChangeDate.ToString(WellKnown.Formats.TimeFormat, CultureInfo.InvariantCulture),
@@ -208,18 +208,16 @@ internal static class ModelsExtensions
         this Dictionary<string, Dictionary<string, HashSet<ExtractionResult>>> extractionResult
     )
     {
-        return extractionResult.Select(z => new ExtractedFields(
-            extractedData: z.Value.OrderByDescending(x => x.Value.Count)
+        return [.. extractionResult.Select(z => new ExtractedFields(
+            extractedData: [.. z.Value.OrderByDescending(x => x.Value.Count)
                 .Select(
                     x => new LotDataExtractedItem(
-                        extractorInfo: x.Value.Select(y => new ExtractorInfo(extractedFrom: y.ExtractedFrom.ToString(), extractor: y.Extractor, match: y.Match))
-                            .ToList(),
+                        extractorInfo: [.. x.Value.Select(y => new ExtractorInfo(extractedFrom: y.ExtractedFrom.ToString(), extractor: y.Extractor, match: y.Match))],
                         value: x.Key
                     )
-                )
-                .ToList(),
+                )],
             fieldName: z.Key
-        )).ToList();
+        ))];
     }
 
     public static ProductState ToApiProductState(this DbProductState productState)

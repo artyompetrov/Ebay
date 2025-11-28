@@ -29,7 +29,7 @@ internal abstract class ExtractorBase
         var alreadyExtractedThatMatch = false;
         foreach (var successfulExtraction in successfulExtractions)
         {
-            if (regex.Match(successfulExtraction).Success)
+            if (regex.IsMatch(successfulExtraction))
             {
                 alreadyExtractedThatMatch = true;
                 break;

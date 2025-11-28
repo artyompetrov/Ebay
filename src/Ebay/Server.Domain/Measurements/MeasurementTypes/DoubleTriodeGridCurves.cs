@@ -14,9 +14,9 @@ public class DoubleTriodeGridCurves(
             // надо уменьшить количество графиков
             const int maxCount = 8;
             var step = (int)Math.Floor(x.Count / (double)maxCount);
-            return x
+            return [.. x
                 // первые графики пропускаем, т.к. они в области низких напряжений
-                .Where((_, i) => i % step == 0).ToList();
+                .Where((_, i) => i % step == 0)];
         })
 {
     public override string Curve1Name => "Section 1";

@@ -181,7 +181,7 @@ internal class EbayControllerImplementation(
     {
         var products = await _productService.GetAllProductsAsync(cancellationToken);
 
-        return products.Select(x => x.ToApiProduct()).ToList();
+        return [.. products.Select(x => x.ToApiProduct())];
     }
 
     public async Task<Guid> CreateProductAsync(
@@ -192,8 +192,8 @@ internal class EbayControllerImplementation(
         return (await _productService.CreateProductAsync(
             name: product.Name,
             weight: product.Weight,
-            searchQueries: product.SearchQueries.Select(x => x.Query).ToList(),
-            ruSearchQueries: product.RuSearchQueries.Select(x => x.Query).ToList(),
+            searchQueries: [.. product.SearchQueries.Select(x => x.Query)],
+            ruSearchQueries: [.. product.RuSearchQueries.Select(x => x.Query)],
             cancellationToken: cancellationToken)).Id;
     }
 
@@ -207,8 +207,8 @@ internal class EbayControllerImplementation(
             productId: id,
             name: product.Name,
             weight: product.Weight,
-             searchQueries: product.SearchQueries.Select(x => new SearchQueryWithId(x.Id, x.Query)).ToList(),
-             ruSearchQueries: product.RuSearchQueries.Select(x => new SearchQueryWithId(x.Id, x.Query)).ToList(),
+             searchQueries: [.. product.SearchQueries.Select(x => new SearchQueryWithId(x.Id, x.Query))],
+             ruSearchQueries: [.. product.RuSearchQueries.Select(x => new SearchQueryWithId(x.Id, x.Query))],
 
             cancellationToken: cancellationToken);
     }
@@ -249,15 +249,14 @@ internal class EbayControllerImplementation(
             .OrderByDescending(x => x.CreatedAt)
             .ToListAsync(cancellationToken);
 
-        return ads
+        return [.. ads
             .Select(x => new SaleAdvertisement(
                 createdAt: x.CreatedAt,
                 isAmbiguous: x.IsAmbiguous,
                 link: x.Link,
                 marketplace: x.Marketplace,
                 seller: x.Seller,
-                contact: x.Contact))
-            .ToList();
+                contact: x.Contact))];
     }
 
 
@@ -280,7 +279,7 @@ internal class EbayControllerImplementation(
             .Include(x => x.Purchases)
             .Where(x => x.ProductId == productId).ToListAsync(cancellationToken);
 
-        return lots.Select(x => x.ToApiLotInfoShort()).ToList();
+        return [.. lots.Select(x => x.ToApiLotInfoShort())];
     }
 
     public async Task UpsertLotInfoAsync(
@@ -422,7 +421,7 @@ internal class EbayControllerImplementation(
                 matchId: x.MatchId,
                 lotId: x.LotId,
                 measurementState: x.MeasurementState.ToApiMeasurementState(),
-                similarMeasurements: x.SimilarMeasurements
+                similarMeasurements: [.. x.SimilarMeasurements
                     .Select(similarMeasurement => new ApiSimilarMeasurementInfo(
                         measurementId: similarMeasurement.MeasurementId,
                         manufactureCode: similarMeasurement.ManufactureCode,
@@ -436,8 +435,7 @@ internal class EbayControllerImplementation(
                         doubleTriodeSectionRmse: similarMeasurement.DoubleTriodeSectionRmse
 
 
-                    ))
-                    .ToList()))
+                    ))]))
             .ToList();
 
         return result;
@@ -468,9 +466,9 @@ internal class EbayControllerImplementation(
 
     public async Task<ICollection<string?>> GetLotIdsForProductAsync(Guid productId, CancellationToken cancellationToken)
     {
-        return (await _measurementService.GetLotIdsForProductAsync(
+        return [.. (await _measurementService.GetLotIdsForProductAsync(
             productId: productId,
-            cancellationToken: cancellationToken)).ToList();
+            cancellationToken: cancellationToken))];
     }
 
     public async Task DeleteMeasurementAsync(
@@ -606,13 +604,12 @@ internal class EbayControllerImplementation(
             .Select(x => new { x.Id, x.UpdateDate })
             .ToListAsync(cancellationToken);
 
-        return result.Select(
+        return [.. result.Select(
                 x => new LotState(
                     lastUpdate: x.UpdateDate.ToString(WellKnown.Formats.TimeFormat, CultureInfo.InvariantCulture),
                     lotId: x.Id
                 )
-            )
-            .ToList();
+            )];
     }
 
     public Task<ICollection<CategoryType>> GetCategoriesAsync(
@@ -646,18 +643,17 @@ internal class EbayControllerImplementation(
 
     public Task<ICollection<ShippingType>> GetShippingRatesAsync(
         CancellationToken cancellationToken
-    ) => Task.FromResult<ICollection<ShippingType>>(_shippingRatesService.ShippingRates.ToList());
+    ) => Task.FromResult<ICollection<ShippingType>>([.. _shippingRatesService.ShippingRates]);
 
     public async Task<ICollection<Currency>> GetCurrenciesAsync(
         CancellationToken cancellationToken
     )
     {
-        return (await _applicationContext.Currencies
+        return [.. (await _applicationContext.Currencies
                 .AsNoTracking()
                 .OrderBy(x => x.CurrencyEbayName)
                 .ToListAsync(cancellationToken))
-            .Select(x => x.ToApiCurrency())
-            .ToList();
+            .Select(x => x.ToApiCurrency())];
     }
 
     public Task<ICollection<ExtractedFields>> ExtractDataAsync(

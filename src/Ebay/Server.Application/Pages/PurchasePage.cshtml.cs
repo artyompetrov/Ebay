@@ -41,9 +41,7 @@ public class PurchasePage(IMeasurementQueries measurementQueries) : PageModel
             .Select((id, index) => new { id, index })
             .ToDictionary(x => x.id, x => x.index, StringComparer.OrdinalIgnoreCase);
 
-        Measurements = measurements
-            .OrderBy(m => order.TryGetValue(m.Id, out var index) ? index : int.MaxValue)
-            .ToList();
+        Measurements = [.. measurements.OrderBy(m => order.TryGetValue(m.Id, out var index) ? index : int.MaxValue)];
 
         return Page();
     }

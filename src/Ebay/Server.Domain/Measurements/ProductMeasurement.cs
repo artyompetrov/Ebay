@@ -165,41 +165,35 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
 
     public ProductState ProductState { get; private set; }
 
-    private string? _location;
-
     [MaxLength(200)]
     public string? Location
     {
-        get => _location;
+        get;
         set
         {
-            _location = value;
+            field = value;
             Validate();
         }
     }
-
-    private string? _matchId;
 
     [MaxLength(100)]
     public string? MatchId
     {
-        get => _matchId;
+        get;
         set
         {
-            _matchId = value;
+            field = value;
             Validate();
         }
     }
 
-    private string? _lotId;
-
     [MaxLength(100)]
     public string? LotId
     {
-        get => _lotId;
+        get;
         set
         {
-            _lotId = value?.Trim();
+            field = value?.Trim();
             Validate();
         }
     }

@@ -4,7 +4,7 @@ namespace Server.Application.Services.LotDataExtractor;
 
 internal interface IExtractor
 {
-    public string ExtractedDataName { get; }
+    string ExtractedDataName { get; }
 
-    public Dictionary<string, HashSet<ExtractionResult>> Extract(LotDataToExtract lotDataToExtract);
+    Dictionary<string, HashSet<ExtractionResult>> Extract(LotDataToExtract lotDataToExtract);
 }

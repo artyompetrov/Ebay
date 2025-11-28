@@ -313,7 +313,7 @@ public class ShippingRatesService : IShippingRatesService
                             .. CalculateForBigParcels(71_400, 6_600),
                         ],
                         // тут зона 1 и 2, т.к. актуализировать тарифы для 1 и 2 зоны не хочется
-                        specifiedCountries: zone3Countries.Union(zone1Countries).Union(zone2Countries).ToList()
+                        specifiedCountries: [.. zone3Countries.Union(zone1Countries).Union(zone2Countries)]
                     ),
 
                     // зона 4

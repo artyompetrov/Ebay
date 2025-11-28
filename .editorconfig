@@ -66,7 +66,6 @@ dotnet_style_require_accessibility_modifiers = for_non_interface_members
 
 # Namespace match folder
 dotnet_style_namespace_match_folder = true
-dotnet_diagnostic.IDE0130.severity = suggestion
 
 # Expression-level preferences
 dotnet_style_coalesce_expression = true:suggestion
@@ -207,23 +206,12 @@ dotnet_diagnostic.CA1707.severity = none
 # Переводим StyleCop.Analyzers на suggestion
 dotnet_analyzer_diagnostic.category-StyleCop.severity = suggestion
 
-# Convert to conditional expression
-dotnet_diagnostic.IDE0046.severity = suggestion
-
-# Use expression body for methods
-dotnet_diagnostic.IDE0022.severity = suggestion
-
-# Fix formatting
-dotnet_diagnostic.IDE0055.severity = suggestion
-
-# Collection initialization can be simplified
-dotnet_diagnostic.IDE0305.severity = suggestion
-
 # Use primary constructor
 dotnet_diagnostic.IDE0290.severity = none
 
-# Missing XML comment for publicly visible type or member
-dotnet_diagnostic.CS1591.severity = suggestion
+# Evaluation of this argument may be expensive and unnecessary if logging is disabled
+dotnet_diagnostic.CA1873.severity = suggestion
+
 
 # ReSharper properties
 resharper_apply_auto_detected_rules = false

@@ -255,7 +255,7 @@ internal sealed class MeasurementQueries : IMeasurementQueries
             .GroupBy(x => x.MeasurementId1)
             .ToDictionary(
                 x => x.Key,
-                x => (IReadOnlyCollection<SimilarMeasurementInfo>)x
+                x => (IReadOnlyCollection<SimilarMeasurementInfo>)[.. x
                     .Select(measurement => new SimilarMeasurementInfo(
                         MeasurementId: measurement.MeasurementId2,
                         ManufactureCode: measurement.ManufactureCode2,
@@ -288,8 +288,7 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                     .OrderBy(measurement => !measurement.IsMatchedPair)
                     .ThenBy(measurement => measurement.Score)
                     .DistinctBy(measurement => measurement.MeasurementId)
-                    .Take(6)
-                    .ToList());
+                    .Take(6)]);
 
         return similarMeasurementsLookup;
     }

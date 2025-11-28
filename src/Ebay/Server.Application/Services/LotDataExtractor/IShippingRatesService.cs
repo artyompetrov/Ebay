@@ -6,5 +6,5 @@ public interface IShippingRatesService
 {
     IReadOnlyCollection<ShippingType> ShippingRates { get; }
 
-    public IReadOnlyDictionary<string, List<ShippingRatesService.ShippingRateInner>> ShippingRatesDictionary { get; }
+    IReadOnlyDictionary<string, List<ShippingRatesService.ShippingRateInner>> ShippingRatesDictionary { get; }
 }
