@@ -191,7 +191,7 @@ csharp_preserve_single_line_statements = true
 #### Relaxation of the rules ####
 
 # Avoid using 'Enumerable.Any()' extension method
-dotnet_diagnostic.CA1860.severity = none
+dotnet_diagnostic.CA1860.severity = suggestion
 
 # Use 'GeneratedRegexAttribute' to generate the regular expression implementation at compile-time.
 dotnet_diagnostic.SYSLIB1045.severity = none
@@ -211,10 +211,25 @@ dotnet_diagnostic.IDE0290.severity = none
 
 # Evaluation of this argument may be expensive and unnecessary if logging is disabled
 dotnet_diagnostic.CA1873.severity = suggestion
+resharper_apply_auto_detected_rules = false
+
+# Rename namespace so that it no longer conflicts with the reserved language keyword. Using a reserved keyword as the name of a namespace makes it harder for consumers in other languages to use the namespace.
+dotnet_diagnostic.CA1716.severity = suggestion
+
+# Missing XML comment for publicly visible type or member
+dotnet_diagnostic.CS1591.severity = suggestion
+
+# Expression value is never used
+dotnet_diagnostic.IDE0058.severity = suggestion
+
+# Fix formatting (dotnet format сам отформатирует)
+dotnet_diagnostic.IDE0055.severity = none
+
+# Use expression body for method
+dotnet_diagnostic.IDE0022.severity = suggestion
 
 
 # ReSharper properties
-resharper_apply_auto_detected_rules = false
 resharper_arguments_literal = named
 resharper_arguments_named = named
 resharper_arguments_other = named
