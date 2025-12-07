@@ -1,7 +1,10 @@
 using System.Text.RegularExpressions;
+using MassTransit;
 using ScottPlot;
 using ScottPlot.PlotStyles;
+using Server.Application.Abstractions;
 using Server.Application.Abstractions.Queries;
+using Server.Application.Consumers.MeasurementWatching;
 using Server.Application.Infrastructure;
 using Server.Domain.Measurements;
 using Server.Domain.Measurements.MeasurementTypes.Base;
@@ -14,19 +17,54 @@ public class MeasurementPlotService : IMeasurementPlotService
     private readonly DbCache _cache;
     private readonly IMeasurementQueries _measurementQueries;
     private readonly IMeasurementFileParser _measurementFileParser;
+    private readonly IPublishEndpoint _publishEndpoint;
+    private readonly IUnitOfWork _unitOfWork;
 
     public MeasurementPlotService(
         DbCache cache,
         IMeasurementQueries measurementQueries,
-        IMeasurementFileParser measurementFileParser)
+        IMeasurementFileParser measurementFileParser,
+        IPublishEndpoint publishEndpoint,
+        IUnitOfWork unitOfWork)
     {
         _cache = cache;
         _measurementQueries = measurementQueries;
         _measurementFileParser = measurementFileParser;
+        _publishEndpoint = publishEndpoint;
+        _unitOfWork = unitOfWork;
     }
 
     public string PlotSold() => StatusSvg(nameof(MeasurementState.Sold));
 
+
+    public async Task<string?> PlotForEbayAndSaveLastEbayViewTime(
+        string measurementId,
+        string? lotId,
+        bool sellingOnly,
+        CancellationToken cancellationToken)
+    {
+        var plotTask =  PlotForEbay(
+            measurementId: measurementId,
+            lotId: lotId,
+            sellingOnly: sellingOnly,
+            cancellationToken: cancellationToken);
+
+        var publishMessageTask =  PublishWatchedOnEbayMessage(measurementId: measurementId, cancellationToken: cancellationToken);
+
+        await Task.WhenAll(plotTask, publishMessageTask);
+        
+        return plotTask.Result;
+    }
+
+    private async Task PublishWatchedOnEbayMessage(string measurementId, CancellationToken cancellationToken)
+    {
+        await _publishEndpoint.Publish(
+            new MeasurementWatchedOnEbay(
+                MeasurementId: measurementId,
+                WatchedAtUtc: DateTime.UtcNow),
+            cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
 
     /// <summary>
     /// Отдельный метод для Ebay требуется для возможности предварительного прогрева на старте
