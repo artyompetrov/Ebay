@@ -7,22 +7,11 @@ namespace Server.Application.Abstractions.Queries;
 /// Dto для отображения строки в перечне замеров
 /// </summary>
 public record MeasurementInfoWithSimilarMeasurements(
-    string Id,
-    string ManufactureCode,
-    ProductState ProductState,
-    string? Location,
-    string? MatchId,
-    string? LotId,
+    MeasurementInfo MeasurementInfo,
     double? DoubleTriodeSectionRmse,
-    MeasurementState MeasurementState)
-{
-    public IReadOnlyCollection<SimilarMeasurementInfo> SimilarMeasurements { get; init; } = [];
-
-    /// <summary>
-    /// Параметр по которому сортируем лампы в списке
-    /// </summary>
-    public double? ScorePlusBalance { get; init; }
-}
+    IReadOnlyCollection<SimilarMeasurementInfo> SimilarMeasurements,
+    double? ScorePlusBalance
+);
 
 public record SimilarMeasurementInfo(
     string MeasurementId,

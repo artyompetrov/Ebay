@@ -20,7 +20,7 @@
         if (model.Measurements.Any())
         {
             name += ", uTracer3+";
-            if (model.Measurements.Any(x => x.MatchId != null))
+            if (model.Measurements.Any(x => x.MeasurementInfo.MatchId != null))
             {
                 name += " MATCHED";
             }
@@ -116,7 +116,7 @@ else
         @{ var matchIndex = 1; }
         
         @{
-            var groupedCollection =  Model.Measurements.GroupBy(x => x.MatchId)
+            var groupedCollection =  Model.Measurements.GroupBy(x => x.MeasurementInfo.MatchId)
                 .Select(x=> (
                     MatchKey: x.Key,
                     SumBalance: (x.Key == null ? double.PositiveInfinity : /*matched всегда выше не matched*/
@@ -191,15 +191,15 @@ else
                         }
                     }
                     @{
-                        var lotIdPart = meas.LotId == null ? "" : $"?lotId={WebUtility.UrlDecode(meas.LotId)}";
+                        var lotIdPart = meas.MeasurementInfo.LotId == null ? "" : $"?lotId={WebUtility.UrlDecode(meas.MeasurementInfo.LotId)}";
                     }
                     <td class="tube-col">
-                        <img src="@($"{baseUrl}/m/{meas.Id}/ebay_tube_description{lotIdPart}")"
-                             alt="@meas.Id"/>
+                        <img src="@($"{baseUrl}/m/{meas.MeasurementInfo.Id}/ebay_tube_description{lotIdPart}")"
+                             alt="@meas.MeasurementInfo.Id"/>
                     </td>
                     <td>
-                        <img src="@($"{baseUrl}/m/{meas.Id}/ebay_curves{lotIdPart}")"
-                             alt="@meas.Id"/>
+                        <img src="@($"{baseUrl}/m/{meas.MeasurementInfo.Id}/ebay_curves{lotIdPart}")"
+                             alt="@meas.MeasurementInfo.Id"/>
                     </td>
                 </tr>
             }

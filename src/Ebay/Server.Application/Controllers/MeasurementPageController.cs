@@ -1,4 +1,6 @@
+using MassTransit;
 using Microsoft.AspNetCore.Mvc;
+using Server.Application.Consumers.MeasurementWatching;
 using Server.Application.Services.GeoIp;
 using Server.Application.Services.Measurement;
 using Server.Application.Services.MeasurementPlot;
@@ -11,16 +13,19 @@ public class MeasurementPageController : ControllerBase
     public MeasurementPageController(
         MeasurementService measurementService,
         MeasurementPlotService measurementPlotService,
-        GeoIpService geoIpService)
+        GeoIpService geoIpService,
+        IPublishEndpoint publishEndpoint)
     {
         _measurementService = measurementService;
         _measurementPlotService = measurementPlotService;
         _geoIpService = geoIpService;
+        _publishEndpoint = publishEndpoint;
     }
 
     private readonly MeasurementService _measurementService;
     private readonly MeasurementPlotService _measurementPlotService;
     private readonly GeoIpService _geoIpService;
+    private readonly IPublishEndpoint _publishEndpoint;
 
     [HttpGet("/m/{measurementId}/download")]
     public async Task<IActionResult> DownloadZip(string measurementId, CancellationToken cancellationToken)
@@ -51,6 +56,12 @@ public class MeasurementPageController : ControllerBase
         {
             return NotFound("Measurement not found");
         }
+
+        await _publishEndpoint.Publish(
+            new MeasurementWatchedOnEbay(
+                MeasurementId: measurementId,
+                WatchedAtUtc: DateTime.UtcNow),
+            cancellationToken);
 
         var response = Content(content: result, contentType: "image/svg+xml");
         return response;

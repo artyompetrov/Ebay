@@ -210,6 +210,7 @@
             <th>Код</th>
             <th>Состояние</th>
             <th>Статус</th>
+            <th>Опубликован на eBay</th>
             <th>Расположение</th>
             <th>Lot ID</th>
             <th>Match ID</th>
@@ -255,6 +256,9 @@
                             </option>
                         }
                     </select>
+                </td>
+                <td class="text-center">
+                    <input type="checkbox" class="form-check-input" disabled checked="@(measurement.IsPublishedOnEbay == true)" />
                 </td>
                 <td>
                     <input type="text"

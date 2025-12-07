@@ -22,9 +22,11 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                 x.ProductId,
                 x.MatchId,
                 x.LotId,
+                x.Location,
                 x.MeasurementState,
                 x.ProductState,
-                x.ManufactureCode
+                x.ManufactureCode,
+                x.LastTimeWatchedOnEbay
             ))
             .SingleOrDefaultAsync(cancellationToken);
     }
@@ -41,10 +43,13 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                 pm.ProductId,
                 pm.MatchId,
                 pm.LotId,
+                    pm.Location,
                 pm.MeasurementState,
                 pm.ProductState,
                 pm.ManufactureCode,
+                pm.LastTimeWatchedOnEbay,
                 pm.Measurements
+
             ))
             .ToListAsync(cancellationToken);
 
@@ -100,9 +105,11 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                     x.ProductId,
                     x.MatchId,
                     x.LotId,
+                    x.Location,
                     x.MeasurementState,
                     x.ProductState,
-                    x.ManufactureCode
+                    x.ManufactureCode,
+                    x.LastTimeWatchedOnEbay
                 ))
             .ToHashSetAsync(cancellationToken: cancellationToken);
 
@@ -163,19 +170,30 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                                         MeasurementId2 = measurement.Id,
                                         ComparisonMode = ComparisonMode.Cross
                                     }
-                                    equals new { MeasurementId1 = difference.Measurement1Id, MeasurementId2 = difference.Measurement2Id, difference.ComparisonMode }
+                                    equals new
+                                    {
+                                        MeasurementId1 = difference.Measurement1Id,
+                                        MeasurementId2 = difference.Measurement2Id,
+                                        difference.ComparisonMode
+                                    }
                                     into differences
                                 from difference in differences.DefaultIfEmpty()
                                 orderby measurement.MatchId, measurement.CreatedAt descending, measurement.Id descending
                                 select new MeasurementInfoWithSimilarMeasurements(
-                                    measurement.Id,
-                                    measurement.ManufactureCode,
-                                    measurement.ProductState,
-                                    measurement.Location,
-                                    measurement.MatchId,
-                                    measurement.LotId,
-                                    difference != null ? difference.RmseSection1 : null,
-                                    measurement.MeasurementState);
+                                    new MeasurementInfo(
+                                        measurement.Id,
+                                        measurement.ProductId,
+                                        measurement.MatchId,
+                                        measurement.LotId,
+                                        measurement.Location,
+                                        measurement.MeasurementState,
+                                        measurement.ProductState,
+                                        measurement.ManufactureCode,
+                                        measurement.LastTimeWatchedOnEbay
+                                    ),
+                                    difference == null ? null : difference.RmseSection1,
+                                                        Array.Empty<SimilarMeasurementInfo>(),
+                                                        null);
 
         var measurements = await measurementsQuery.ToListAsync(cancellationToken);
 
@@ -185,9 +203,9 @@ internal sealed class MeasurementQueries : IMeasurementQueries
         }
 
         var measurementIds = measurements
-            .Where(x => x.MeasurementState is MeasurementState.Selling or
+            .Where(x => x.MeasurementInfo.MeasurementState is MeasurementState.Selling or
                         MeasurementState.Created)
-            .Select(x => x.Id)
+            .Select(x => x.MeasurementInfo.Id)
             .ToArray();
 
         var similarMeasurementsLookup = await GetSimilarMeasurements(
@@ -197,7 +215,7 @@ internal sealed class MeasurementQueries : IMeasurementQueries
         var result = measurements
             .Select(measurement =>
             {
-                if (similarMeasurementsLookup.TryGetValue(measurement.Id, out var similar))
+                if (similarMeasurementsLookup.TryGetValue(measurement.MeasurementInfo.Id, out var similar))
                 {
                     var withSimilar = measurement with
                     {
@@ -210,7 +228,7 @@ internal sealed class MeasurementQueries : IMeasurementQueries
 
                 return measurement;
             })
-            .OrderByDescending(x => x.MatchId)
+            .OrderByDescending(x => x.MeasurementInfo.MatchId)
             .ThenBy(x => x.ScorePlusBalance)
             .ToList();
 
@@ -304,9 +322,11 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                 x.Id, x.ProductId,
                 x.MatchId,
                 x.LotId,
+                x.Location,
                 x.MeasurementState,
                 x.ProductState,
                 x.ManufactureCode,
+                x.LastTimeWatchedOnEbay,
                 x.Measurements))
             .SingleOrDefaultAsync(cancellationToken: cancellationToken);
 

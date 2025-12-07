@@ -94,6 +94,7 @@ internal class EbayControllerImplementation : IEbayController
         _ = await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 
+    
     public async Task DeleteProductPassportAsync(
         Guid productId,
         Guid passportId,
@@ -117,6 +118,7 @@ internal class EbayControllerImplementation : IEbayController
         _ = await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 
+    
     public async Task<TubeWorkingPoint> GetTubeWorkingPointAsync(
         Guid productId,
         CancellationToken cancellationToken)
@@ -126,6 +128,7 @@ internal class EbayControllerImplementation : IEbayController
         return workingPoint == null ? throw NonOkHttpAnswerException.NotFound400() : workingPoint.ToApiTubeWorkingPoint();
     }
 
+    
     public async Task UpsertTubeWorkingPointAsync(
         TubeWorkingPoint workingPoint,
         Guid productId,
@@ -148,6 +151,7 @@ internal class EbayControllerImplementation : IEbayController
         }
     }
 
+    
     public async Task UpdateProductPassportAsync(
         ProductPassportUpdate passport,
         Guid productId,
@@ -223,6 +227,7 @@ internal class EbayControllerImplementation : IEbayController
             cancellationToken: cancellationToken);
     }
 
+    
     public async Task<ProductWithId> GetProductAsync(
         Guid id,
         CancellationToken cancellationToken
@@ -240,6 +245,7 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken
     ) => await _productService.MarkProductAsCheckedAsync(id, cancellationToken);
 
+    
     public async Task<ICollection<SaleAdvertisement>> GetSaleAdvertisementsAsync(
         Guid productId,
         CancellationToken cancellationToken)
@@ -269,7 +275,7 @@ internal class EbayControllerImplementation : IEbayController
                 contact: x.Contact))];
     }
 
-
+    
     public async Task<ICollection<LotInfoShort>> GetLotsAsync(
         Guid productId,
         CancellationToken cancellationToken
@@ -292,6 +298,7 @@ internal class EbayControllerImplementation : IEbayController
         return [.. lots.Select(x => x.ToApiLotInfoShort())];
     }
 
+    
     public async Task UpsertLotInfoAsync(
         LotInfo lotInfo,
         Guid productId,
@@ -360,6 +367,7 @@ internal class EbayControllerImplementation : IEbayController
         return ignoredLots;
     }
 
+    
     public async Task IgnoreLotsAsync(
         IEnumerable<long> ignoredLots,
         Guid productId,
@@ -424,13 +432,14 @@ internal class EbayControllerImplementation : IEbayController
         var result = measurements
             .Select(x => new MeasurementData(
                 doubleTriodeSectionRmse: x.DoubleTriodeSectionRmse,
-                manufactureCode: x.ManufactureCode,
-                measurementId: x.Id,
-                productState: x.ProductState.ToApiProductState(),
-                location: x.Location,
-                matchId: x.MatchId,
-                lotId: x.LotId,
-                measurementState: x.MeasurementState.ToApiMeasurementState(),
+                manufactureCode: x.MeasurementInfo.ManufactureCode,
+                measurementId: x.MeasurementInfo.Id,
+                isPublishedOnEbay: x.MeasurementInfo.IsPublishedOnEbay,
+                productState: x.MeasurementInfo.ProductState.ToApiProductState(),
+                location: x.MeasurementInfo.Location,
+                matchId: x.MeasurementInfo.MatchId,
+                lotId: x.MeasurementInfo.LotId,
+                measurementState: x.MeasurementInfo.MeasurementState.ToApiMeasurementState(),
                 similarMeasurements: [.. x.SimilarMeasurements
                     .Select(similarMeasurement => new ApiSimilarMeasurementInfo(
                         measurementId: similarMeasurement.MeasurementId,
@@ -439,7 +448,7 @@ internal class EbayControllerImplementation : IEbayController
                         rmseSection2: similarMeasurement.RmseSection2,
                         score: similarMeasurement.Score,
                         isCrossMatch: similarMeasurement.ComparisonMode == ComparisonMode.Cross,
-                        sameDate: x.ManufactureCode.Equals(similarMeasurement.ManufactureCode, StringComparison.OrdinalIgnoreCase),
+                        sameDate: x.MeasurementInfo.ManufactureCode.Equals(similarMeasurement.ManufactureCode, StringComparison.OrdinalIgnoreCase),
                         isMatchedPair: similarMeasurement.IsMatchedPair,
                         matchId: similarMeasurement.MatchId,
                         doubleTriodeSectionRmse: similarMeasurement.DoubleTriodeSectionRmse
@@ -451,6 +460,7 @@ internal class EbayControllerImplementation : IEbayController
         return result;
     }
 
+    
     public async Task UploadMeasurementAsync(
         MeasurementDataToUpload measurementData,
         Guid productId,
@@ -476,9 +486,9 @@ internal class EbayControllerImplementation : IEbayController
 
     public async Task<ICollection<string?>> GetLotIdsForProductAsync(Guid productId, CancellationToken cancellationToken)
     {
-        return [.. (await _measurementService.GetLotIdsForProductAsync(
+        return [.. await _measurementService.GetLotIdsForProductAsync(
             productId: productId,
-            cancellationToken: cancellationToken))];
+            cancellationToken: cancellationToken)];
     }
 
     public async Task DeleteMeasurementAsync(
@@ -560,6 +570,7 @@ internal class EbayControllerImplementation : IEbayController
             cancellationToken: cancellationToken);
     }
 
+    
     public async Task<LotInfoWithProductId> GetLotInfoAsync(
         long lotId,
         CancellationToken cancellationToken
@@ -576,6 +587,7 @@ internal class EbayControllerImplementation : IEbayController
         return dbLot == null ? throw NonOkHttpAnswerException.NotFound400() : dbLot.ToApiLot();
     }
 
+    
     public async Task DeleteLotInfoAsync(long lotId, CancellationToken cancellationToken)
     {
         using var transaction = TransactionScopeFactory.Create();

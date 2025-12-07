@@ -821,6 +821,8 @@ definitions:
         type: number
         format: double
         minimum: 0
+      isPublishedOnEbay:
+        type: boolean
       productState:
         $ref: '#/definitions/ProductState'
       measurementState:

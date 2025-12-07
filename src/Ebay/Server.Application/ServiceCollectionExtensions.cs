@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Server.Application.Abstractions;
 using Server.Application.Consumers.EbayCurvesCacheWarmUp;
 using Server.Application.Consumers.MatchedPairs;
+using Server.Application.Consumers.MeasurementWatching;
 using Server.Application.Consumers.PriceCalculator;
 using Server.Application.Controllers;
 using Server.Application.Data;
@@ -70,6 +71,7 @@ public static class ServiceCollectionExtensions
             _ = x.AddConsumer<CalculatePricesForAllConsumer>();
             _ = x.AddConsumer<CalculatePricesForProductConsumer>();
             _ = x.AddConsumer<CalculatePricesForLotConsumer>();
+            _ = x.AddConsumer<MeasurementWatchedOnEbayConsumer>();
             _ = x.AddConsumer<CalculateEbayCurvesForMeasurementConsumer>(c =>
             {
                 c.UseConcurrencyLimit(10);

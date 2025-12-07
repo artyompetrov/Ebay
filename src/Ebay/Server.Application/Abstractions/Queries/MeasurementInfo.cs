@@ -7,6 +7,11 @@ public record MeasurementInfo(
     Guid ProductId,
     string? MatchId,
     string? LotId,
+    string? Location,
     MeasurementState MeasurementState,
     ProductState ProductState,
-    string ManufactureCode);
+    string ManufactureCode,
+    DateTime? LastTimeWatchedOnEbay)
+{
+    public bool IsPublishedOnEbay => LastTimeWatchedOnEbay > DateTime.UtcNow.AddDays(-7);
+};

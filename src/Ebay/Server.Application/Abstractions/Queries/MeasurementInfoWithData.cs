@@ -7,7 +7,20 @@ public record MeasurementInfoWithData(
     Guid ProductId,
     string? MatchId,
     string? LotId,
+    string? Location,
     MeasurementState MeasurementState,
     ProductState ProductState,
     string ManufactureCode,
-    byte[] Data) : MeasurementInfo(Id: Id, ProductId: ProductId, MatchId: MatchId, LotId: LotId, MeasurementState: MeasurementState, ProductState: ProductState, ManufactureCode: ManufactureCode);
+    DateTime? LastTimeWatchedOnEbay,
+    byte[] Data) :
+    MeasurementInfo(
+        Id: Id,
+        ProductId:
+        ProductId,
+        MatchId: MatchId,
+        LotId: LotId,
+        Location: Location,
+        MeasurementState: MeasurementState,
+        ProductState: ProductState,
+        ManufactureCode: ManufactureCode,
+        LastTimeWatchedOnEbay: LastTimeWatchedOnEbay);
