@@ -424,14 +424,14 @@ internal class EbayControllerImplementation : IEbayController
         var result = measurements
             .Select(x => new MeasurementData(
                 doubleTriodeSectionRmse: x.DoubleTriodeSectionRmse,
-                manufactureCode: x.ManufactureCode,
-                measurementId: x.Id,
-                isPublishedOnEbay: x.IsPublishedOnEbay,
-                productState: x.ProductState.ToApiProductState(),
-                location: x.Location,
-                matchId: x.MatchId,
-                lotId: x.LotId,
-                measurementState: x.MeasurementState.ToApiMeasurementState(),
+                manufactureCode: x.MeasurementInfo.ManufactureCode,
+                measurementId: x.MeasurementInfo.Id,
+                isPublishedOnEbay: x.MeasurementInfo.IsPublishedOnEbay,
+                productState: x.MeasurementInfo.ProductState.ToApiProductState(),
+                location: x.MeasurementInfo.Location,
+                matchId: x.MeasurementInfo.MatchId,
+                lotId: x.MeasurementInfo.LotId,
+                measurementState: x.MeasurementInfo.MeasurementState.ToApiMeasurementState(),
                 similarMeasurements: [.. x.SimilarMeasurements
                     .Select(similarMeasurement => new ApiSimilarMeasurementInfo(
                         measurementId: similarMeasurement.MeasurementId,
@@ -440,7 +440,7 @@ internal class EbayControllerImplementation : IEbayController
                         rmseSection2: similarMeasurement.RmseSection2,
                         score: similarMeasurement.Score,
                         isCrossMatch: similarMeasurement.ComparisonMode == ComparisonMode.Cross,
-                        sameDate: x.ManufactureCode.Equals(similarMeasurement.ManufactureCode, StringComparison.OrdinalIgnoreCase),
+                        sameDate: x.MeasurementInfo.ManufactureCode.Equals(similarMeasurement.ManufactureCode, StringComparison.OrdinalIgnoreCase),
                         isMatchedPair: similarMeasurement.IsMatchedPair,
                         matchId: similarMeasurement.MatchId,
                         doubleTriodeSectionRmse: similarMeasurement.DoubleTriodeSectionRmse
