@@ -8,15 +8,21 @@ using Server.Domain.Measurements;
 
 namespace Server.Application.Pages;
 
-public class MeasurementPage(
-    ApplicationDbContext applicationContext,
-    IMeasurementQueries measurementQueries,
-    IMeasurementFileParser measurementFileParser
-        ) : PageModel
+public class MeasurementPage : PageModel
 {
-    private readonly ApplicationDbContext _applicationContext = applicationContext;
-    private readonly IMeasurementQueries _measurementQueries = measurementQueries;
-    private readonly IMeasurementFileParser _measurementFileParser = measurementFileParser;
+    private readonly ApplicationDbContext _applicationContext;
+    private readonly IMeasurementQueries _measurementQueries;
+    private readonly IMeasurementFileParser _measurementFileParser;
+
+    public MeasurementPage(
+        ApplicationDbContext applicationContext,
+        IMeasurementQueries measurementQueries,
+        IMeasurementFileParser measurementFileParser)
+    {
+        _applicationContext = applicationContext;
+        _measurementQueries = measurementQueries;
+        _measurementFileParser = measurementFileParser;
+    }
 
     public Product Product { get; set; } = null!;
     public MeasurementInfoWithData Measurement { get; set; } = null!;

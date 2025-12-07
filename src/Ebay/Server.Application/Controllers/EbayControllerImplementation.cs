@@ -29,23 +29,33 @@ using TubeWorkingPoint = Server.Controllers.Generated.TubeWorkingPoint;
 
 namespace Server.Application.Controllers;
 
-internal class EbayControllerImplementation(
-    ApplicationDbContext applicationContext,
-    IPublishEndpoint publishEndpoint,
-    ShippingRatesService shippingRatesService,
-    MeasurementService measurementService,
-    MatchedMeasurementService matchedMeasurementService,
-    TubeWorkingPointService tubeWorkingPointService,
-    ProductService productService
-        ) : IEbayController
+internal class EbayControllerImplementation : IEbayController
 {
-    private readonly ApplicationDbContext _applicationContext = applicationContext;
-    private readonly IPublishEndpoint _publishEndpoint = publishEndpoint;
-    private readonly ShippingRatesService _shippingRatesService = shippingRatesService;
-    private readonly MeasurementService _measurementService = measurementService;
-    private readonly MatchedMeasurementService _matchedMeasurementService = matchedMeasurementService;
-    private readonly TubeWorkingPointService _tubeWorkingPointService = tubeWorkingPointService;
-    private readonly ProductService _productService = productService;
+    private readonly ApplicationDbContext _applicationContext;
+    private readonly IPublishEndpoint _publishEndpoint;
+    private readonly ShippingRatesService _shippingRatesService;
+    private readonly MeasurementService _measurementService;
+    private readonly MatchedMeasurementService _matchedMeasurementService;
+    private readonly TubeWorkingPointService _tubeWorkingPointService;
+    private readonly ProductService _productService;
+
+    public EbayControllerImplementation(
+        ApplicationDbContext applicationContext,
+        IPublishEndpoint publishEndpoint,
+        ShippingRatesService shippingRatesService,
+        MeasurementService measurementService,
+        MatchedMeasurementService matchedMeasurementService,
+        TubeWorkingPointService tubeWorkingPointService,
+        ProductService productService)
+    {
+        _applicationContext = applicationContext;
+        _publishEndpoint = publishEndpoint;
+        _shippingRatesService = shippingRatesService;
+        _measurementService = measurementService;
+        _matchedMeasurementService = matchedMeasurementService;
+        _tubeWorkingPointService = tubeWorkingPointService;
+        _productService = productService;
+    }
 
     public async Task<ICollection<ProductPassportInfo>> GetProductPassportsAsync(
         Guid productId,

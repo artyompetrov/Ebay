@@ -5,15 +5,22 @@ using Server.Domain.Measurements;
 
 namespace Server.Adapters.EF.WriteModel.Repositories;
 
-internal sealed class TubeWorkingPointsRepository(ApplicationDbContext dbContext) : ITubeWorkingPointsRepository
+internal sealed class TubeWorkingPointsRepository : ITubeWorkingPointsRepository
 {
-    public async Task<TubeWorkingPoint?> GetByIdAsync(Guid id, CancellationToken cancellationToken) => await dbContext.TubeWorkingPoints.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+    private readonly ApplicationDbContext _dbContext;
 
-    public async Task SaveAsync(TubeWorkingPoint aggregate, CancellationToken cancellationToken) => _ = await dbContext.TubeWorkingPoints.AddAsync(aggregate, cancellationToken);
+    public TubeWorkingPointsRepository(ApplicationDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
+
+    public async Task<TubeWorkingPoint?> GetByIdAsync(Guid id, CancellationToken cancellationToken) => await _dbContext.TubeWorkingPoints.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+
+    public async Task SaveAsync(TubeWorkingPoint aggregate, CancellationToken cancellationToken) => _ = await _dbContext.TubeWorkingPoints.AddAsync(aggregate, cancellationToken);
 
     public async Task RemoveAsync(Guid id, CancellationToken cancellationToken)
     {
-        _ = await dbContext.TubeWorkingPoints.Where(o => o.Id == id)
+        _ = await _dbContext.TubeWorkingPoints.Where(o => o.Id == id)
             .ExecuteDeleteAsync(cancellationToken: cancellationToken);
     }
 
@@ -27,7 +34,7 @@ internal sealed class TubeWorkingPointsRepository(ApplicationDbContext dbContext
         const int batchSize = 1000; // безопасный размер IN (...)
         foreach (var batch in ids.Chunk(batchSize))
         {
-            _ = await dbContext.TubeWorkingPoints
+            _ = await _dbContext.TubeWorkingPoints
                 .Where(x => batch.Contains(x.Id))
                 .ExecuteDeleteAsync(cancellationToken);
         }

@@ -9,20 +9,30 @@ using Server.Domain.Measurements;
 
 namespace Server.Application.Services.Measurement;
 
-internal class MatchedMeasurementService(
-    IPublishEndpoint publishEndpoint,
-    IMeasurementQueries measurementQueries,
-    ITubeWorkingPointQueries tubeWorkingPointQueries,
-    IMatchedPairDifferenceRepository matchedPairDifferenceRepository,
-    IUnitOfWork unitOfWork,
-    ILogger<MatchedMeasurementService> logger)
+internal class MatchedMeasurementService
 {
-    private readonly IPublishEndpoint _publishEndpoint = publishEndpoint;
-    private readonly IMeasurementQueries _measurementQueries = measurementQueries;
-    private readonly ITubeWorkingPointQueries _tubeWorkingPointQueries = tubeWorkingPointQueries;
-    private readonly IMatchedPairDifferenceRepository _matchedPairDifferenceRepository = matchedPairDifferenceRepository;
-    private readonly IUnitOfWork _unitOfWork = unitOfWork;
-    private readonly ILogger<MatchedMeasurementService> _logger = logger;
+    private readonly IPublishEndpoint _publishEndpoint;
+    private readonly IMeasurementQueries _measurementQueries;
+    private readonly ITubeWorkingPointQueries _tubeWorkingPointQueries;
+    private readonly IMatchedPairDifferenceRepository _matchedPairDifferenceRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<MatchedMeasurementService> _logger;
+
+    public MatchedMeasurementService(
+        IPublishEndpoint publishEndpoint,
+        IMeasurementQueries measurementQueries,
+        ITubeWorkingPointQueries tubeWorkingPointQueries,
+        IMatchedPairDifferenceRepository matchedPairDifferenceRepository,
+        IUnitOfWork unitOfWork,
+        ILogger<MatchedMeasurementService> logger)
+    {
+        _publishEndpoint = publishEndpoint;
+        _measurementQueries = measurementQueries;
+        _tubeWorkingPointQueries = tubeWorkingPointQueries;
+        _matchedPairDifferenceRepository = matchedPairDifferenceRepository;
+        _unitOfWork = unitOfWork;
+        _logger = logger;
+    }
 
     public async Task FindMatchedMeasurementsAsync(
         Guid productId,

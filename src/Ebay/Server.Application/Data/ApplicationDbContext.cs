@@ -15,11 +15,14 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Server.Application.Data;
 
-public class ApplicationDbContext(
-    DbContextOptions<ApplicationDbContext> options,
-    IOptions<OperationalStoreOptions> operationalStoreOptions
-    ) : ApiAuthorizationDbContext<ApplicationUser>(options: options, operationalStoreOptions: operationalStoreOptions), IUnitOfWork
+public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, IUnitOfWork
 {
+    public ApplicationDbContext(
+        DbContextOptions<ApplicationDbContext> options,
+        IOptions<OperationalStoreOptions> operationalStoreOptions)
+        : base(options: options, operationalStoreOptions: operationalStoreOptions)
+    {
+    }
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -218,9 +221,14 @@ public class ApplicationDbContext(
         CancellationToken cancellationToken,
         IsolationLevel isolationLevel = IsolationLevel.ReadCommitted) => new ApplicationDbContextTransaction(await Database.BeginTransactionAsync(isolationLevel: isolationLevel, cancellationToken));
 
-    private class ApplicationDbContextTransaction(IDbContextTransaction transaction) : IUnitOfWorkTransaction
+    private class ApplicationDbContextTransaction : IUnitOfWorkTransaction
     {
-        private readonly IDbContextTransaction _transaction = transaction;
+        private readonly IDbContextTransaction _transaction;
+
+        public ApplicationDbContextTransaction(IDbContextTransaction transaction)
+        {
+            _transaction = transaction;
+        }
 
         public async ValueTask DisposeAsync() => await _transaction.DisposeAsync();
 

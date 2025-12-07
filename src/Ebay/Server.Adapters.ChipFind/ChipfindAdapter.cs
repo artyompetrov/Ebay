@@ -8,12 +8,24 @@ using Server.Application.HostedServices.ChipFind;
 
 namespace Server.Adapters.ChipFind;
 
-public class ChipfindAdapter(ILogger<ChipfindAdapter> logger, IHttpClientFactory httpClientFactory, IMemoryCache memoryCache, ChipFindAdapterOptions options) : IChipfindAdapter
+public class ChipfindAdapter : IChipfindAdapter
 {
-    private readonly ILogger<ChipfindAdapter> _logger = logger;
-    private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
-    private readonly IMemoryCache _memoryCache = memoryCache;
-    private readonly ChipFindAdapterOptions _options = options;
+    private readonly ILogger<ChipfindAdapter> _logger;
+    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IMemoryCache _memoryCache;
+    private readonly ChipFindAdapterOptions _options;
+
+    public ChipfindAdapter(
+        ILogger<ChipfindAdapter> logger,
+        IHttpClientFactory httpClientFactory,
+        IMemoryCache memoryCache,
+        ChipFindAdapterOptions options)
+    {
+        _logger = logger;
+        _httpClientFactory = httpClientFactory;
+        _memoryCache = memoryCache;
+        _options = options;
+    }
 
     public async Task<IReadOnlyCollection<SaleAdvertisement>> GetRecentSaleAdvertisements(
         CancellationToken cancellationToken)

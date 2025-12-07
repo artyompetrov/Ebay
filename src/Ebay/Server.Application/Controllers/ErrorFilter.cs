@@ -5,9 +5,14 @@ using Server.Controllers.Generated;
 
 namespace Server.Application.Controllers;
 
-public sealed class ErrorFilter(ProblemDetailsFactory problemDetailsFactory) : IAsyncActionFilter, IExceptionFilter
+public sealed class ErrorFilter : IAsyncActionFilter, IExceptionFilter
 {
-    private readonly ProblemDetailsFactory _problemDetailsFactory = problemDetailsFactory;
+    private readonly ProblemDetailsFactory _problemDetailsFactory;
+
+    public ErrorFilter(ProblemDetailsFactory problemDetailsFactory)
+    {
+        _problemDetailsFactory = problemDetailsFactory;
+    }
 
     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {

@@ -3,9 +3,14 @@ using Server.Application.Abstractions.Queries;
 
 namespace Sever.Adapters.EF.ReadModel.Queries;
 
-internal sealed class PassportQueries(ReadDbContext readDbContext) : IPassportQueries
+internal sealed class PassportQueries : IPassportQueries
 {
-    private readonly ReadDbContext _readDbContext = readDbContext;
+    private readonly ReadDbContext _readDbContext;
+
+    public PassportQueries(ReadDbContext readDbContext)
+    {
+        _readDbContext = readDbContext;
+    }
 
     public async Task<IReadOnlyList<Passport>> GetPassports(Guid productId, CancellationToken cancellationToken)
     {

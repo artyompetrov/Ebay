@@ -5,9 +5,14 @@ using Server.Domain;
 
 namespace Sever.Adapters.EF.ReadModel.Queries;
 
-internal sealed class ProductQueries(ReadDbContext readDbContext) : IProductQueries
+internal sealed class ProductQueries : IProductQueries
 {
-    private readonly ReadDbContext _readDbContext = readDbContext;
+    private readonly ReadDbContext _readDbContext;
+
+    public ProductQueries(ReadDbContext readDbContext)
+    {
+        _readDbContext = readDbContext;
+    }
 
     public async Task<ProductInfo?> GetProductAsync(Guid productId, CancellationToken cancellationToken)
     {

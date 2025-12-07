@@ -8,16 +8,24 @@ using Server.Domain;
 
 namespace Server.Application.Consumers.PriceCalculator;
 
-internal class CalculateTotalAveragePriceForProductConsumer(
-    ApplicationDbContext applicationDbContext,
-    IProductRepository productRepository,
-    IUnitOfWork unitOfWork,
-    ILogger<CalculateTotalAveragePriceForProductConsumer> logger) : IConsumer<Batch<CalculateTotalAveragePriceForProduct>>
+internal class CalculateTotalAveragePriceForProductConsumer : IConsumer<Batch<CalculateTotalAveragePriceForProduct>>
 {
-    private readonly ApplicationDbContext _applicationDbContext = applicationDbContext;
-    private readonly IProductRepository _productRepository = productRepository;
-    private readonly IUnitOfWork _unitOfWork = unitOfWork;
-    private readonly ILogger<CalculateTotalAveragePriceForProductConsumer> _logger = logger;
+    private readonly ApplicationDbContext _applicationDbContext;
+    private readonly IProductRepository _productRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<CalculateTotalAveragePriceForProductConsumer> _logger;
+
+    public CalculateTotalAveragePriceForProductConsumer(
+        ApplicationDbContext applicationDbContext,
+        IProductRepository productRepository,
+        IUnitOfWork unitOfWork,
+        ILogger<CalculateTotalAveragePriceForProductConsumer> logger)
+    {
+        _applicationDbContext = applicationDbContext;
+        _productRepository = productRepository;
+        _unitOfWork = unitOfWork;
+        _logger = logger;
+    }
 
     public async Task Consume(ConsumeContext<Batch<CalculateTotalAveragePriceForProduct>> context)
     {

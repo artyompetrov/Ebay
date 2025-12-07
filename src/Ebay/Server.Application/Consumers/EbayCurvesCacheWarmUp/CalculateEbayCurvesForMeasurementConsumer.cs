@@ -5,12 +5,18 @@ using Server.Application.Services.MeasurementPlot;
 
 namespace Server.Application.Consumers.EbayCurvesCacheWarmUp;
 
-internal class CalculateEbayCurvesForMeasurementConsumer(
-    MeasurementPlotService measurementPlotService,
-    ILogger<CalculateEbayCurvesForMeasurementConsumer> logger) : IConsumer<CalculateEbayCurvesForMeasurement>
+internal class CalculateEbayCurvesForMeasurementConsumer : IConsumer<CalculateEbayCurvesForMeasurement>
 {
-    private readonly MeasurementPlotService _measurementPlotService = measurementPlotService;
-    private readonly ILogger<CalculateEbayCurvesForMeasurementConsumer> _logger = logger;
+    private readonly MeasurementPlotService _measurementPlotService;
+    private readonly ILogger<CalculateEbayCurvesForMeasurementConsumer> _logger;
+
+    public CalculateEbayCurvesForMeasurementConsumer(
+        MeasurementPlotService measurementPlotService,
+        ILogger<CalculateEbayCurvesForMeasurementConsumer> logger)
+    {
+        _measurementPlotService = measurementPlotService;
+        _logger = logger;
+    }
 
     public async Task Consume(ConsumeContext<CalculateEbayCurvesForMeasurement> context)
     {

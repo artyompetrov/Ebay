@@ -10,21 +10,30 @@ using Server.Domain.Measurements.MeasurementTypes.Base;
 
 namespace Server.Application.Consumers.MatchedPairs;
 
-internal class MatchedPairsCalculator(
-    ILogger<MatchedPairsCalculator> logger,
-    IMeasurementQueries measurementQueries,
-    IMeasurementFileParser measurementFileParser,
-    IMatchedPairDifferenceRepository matchedPairDifferenceRepository,
-    ITubeWorkingPointQueries tubeWorkingPointQueries,
-    IUnitOfWork unitOfWork
-        ) : IConsumer<CalculateMatchedPair>
+internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
 {
-    private readonly ILogger<MatchedPairsCalculator> _logger = logger;
-    private readonly IMeasurementQueries _measurementQueries = measurementQueries;
-    private readonly IMeasurementFileParser _measurementFileParser = measurementFileParser;
-    private readonly IMatchedPairDifferenceRepository _matchedPairDifferenceRepository = matchedPairDifferenceRepository;
-    private readonly ITubeWorkingPointQueries _tubeWorkingPointQueries = tubeWorkingPointQueries;
-    private readonly IUnitOfWork _unitOfWork = unitOfWork;
+    private readonly ILogger<MatchedPairsCalculator> _logger;
+    private readonly IMeasurementQueries _measurementQueries;
+    private readonly IMeasurementFileParser _measurementFileParser;
+    private readonly IMatchedPairDifferenceRepository _matchedPairDifferenceRepository;
+    private readonly ITubeWorkingPointQueries _tubeWorkingPointQueries;
+    private readonly IUnitOfWork _unitOfWork;
+
+    public MatchedPairsCalculator(
+        ILogger<MatchedPairsCalculator> logger,
+        IMeasurementQueries measurementQueries,
+        IMeasurementFileParser measurementFileParser,
+        IMatchedPairDifferenceRepository matchedPairDifferenceRepository,
+        ITubeWorkingPointQueries tubeWorkingPointQueries,
+        IUnitOfWork unitOfWork)
+    {
+        _logger = logger;
+        _measurementQueries = measurementQueries;
+        _measurementFileParser = measurementFileParser;
+        _matchedPairDifferenceRepository = matchedPairDifferenceRepository;
+        _tubeWorkingPointQueries = tubeWorkingPointQueries;
+        _unitOfWork = unitOfWork;
+    }
 
     private record MeasurementInfoWithAnodeCurves(MeasurementInfoWithData MeasurementInfoWithData, AnodeCurvesBase AnodeCurves);
 

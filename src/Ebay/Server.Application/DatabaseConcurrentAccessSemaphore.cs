@@ -1,8 +1,13 @@
 namespace Server.Application;
 
-public sealed class DatabaseConcurrentAccessSemaphore(int maxConcurrent) : IDisposable
+public sealed class DatabaseConcurrentAccessSemaphore : IDisposable
 {
-    public SemaphoreSlim Semaphore { get; } = new SemaphoreSlim(maxConcurrent, maxConcurrent);
+    public DatabaseConcurrentAccessSemaphore(int maxConcurrent)
+    {
+        Semaphore = new SemaphoreSlim(maxConcurrent, maxConcurrent);
+    }
+
+    public SemaphoreSlim Semaphore { get; }
 
     public void Dispose() => Semaphore.Dispose();
 }

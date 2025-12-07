@@ -6,9 +6,14 @@ using SmtpClient = MailKit.Net.Smtp.SmtpClient;
 
 namespace Server.Adapters.Smtp;
 
-public class EmailSender(IOptions<SmtpSettings> options) : IEmailSender
+public class EmailSender : IEmailSender
 {
-    private readonly SmtpSettings _settings = options.Value;
+    private readonly SmtpSettings _settings;
+
+    public EmailSender(IOptions<SmtpSettings> options)
+    {
+        _settings = options.Value;
+    }
 
     public async Task Send(string targetAddress, string topic, string messageText)
     {

@@ -8,14 +8,22 @@ using Server.Domain;
 
 namespace Server.Application.HostedServices.Currencies;
 
-public class CurrencyRateBackgroundTask(
-    IServiceScopeFactory serviceScopeFactory,
-    ILogger<CurrencyRateBackgroundTask> logger,
-    EbayServerOptions options) : BackgroundTask(logger)
+public class CurrencyRateBackgroundTask : BackgroundTask
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory = serviceScopeFactory;
-    private readonly ILogger<CurrencyRateBackgroundTask> _logger = logger;
-    private readonly EbayServerOptions _options = options;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
+    private readonly ILogger<CurrencyRateBackgroundTask> _logger;
+    private readonly EbayServerOptions _options;
+
+    public CurrencyRateBackgroundTask(
+        IServiceScopeFactory serviceScopeFactory,
+        ILogger<CurrencyRateBackgroundTask> logger,
+        EbayServerOptions options)
+        : base(logger)
+    {
+        _serviceScopeFactory = serviceScopeFactory;
+        _logger = logger;
+        _options = options;
+    }
 
     public override TimeSpan UpdateTime => WellKnown.CurrencyRate.UpdateTime;
     public override TimeSpan ErrorDelay => WellKnown.CurrencyRate.ErrorDelay;
