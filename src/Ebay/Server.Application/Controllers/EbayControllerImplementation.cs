@@ -426,6 +426,7 @@ internal class EbayControllerImplementation : IEbayController
                 doubleTriodeSectionRmse: x.DoubleTriodeSectionRmse,
                 manufactureCode: x.ManufactureCode,
                 measurementId: x.Id,
+                isPublishedOnEbay: x.IsPublishedOnEbay,
                 productState: x.ProductState.ToApiProductState(),
                 location: x.Location,
                 matchId: x.MatchId,

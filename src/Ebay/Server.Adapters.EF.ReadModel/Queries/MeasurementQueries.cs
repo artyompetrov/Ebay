@@ -1,3 +1,4 @@
+using System;
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Abstractions.Queries;
 using Server.Domain.Measurements;
@@ -150,6 +151,8 @@ internal sealed class MeasurementQueries : IMeasurementQueries
             IReadOnlyCollection<MeasurementState> measurementStates,
             CancellationToken cancellationToken)
     {
+        var publishedThreshold = DateTime.UtcNow.AddDays(-7);
+
         var measurementsQuery = from measurement in _dbContext.ProductMeasurements
                                 where measurement.ProductId == productId
                                 where !withLotIdFilter || measurement.LotId == lotId
@@ -175,7 +178,11 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                                     measurement.MatchId,
                                     measurement.LotId,
                                     difference != null ? difference.RmseSection1 : null,
-                                    measurement.MeasurementState);
+                                    measurement.MeasurementState,
+                                    measurement.LastTimeWatchedOnEbay)
+                                {
+                                    IsPublishedOnEbay = measurement.LastTimeWatchedOnEbay >= publishedThreshold
+                                };
 
         var measurements = await measurementsQuery.ToListAsync(cancellationToken);
 
