@@ -157,8 +157,6 @@ internal sealed class MeasurementQueries : IMeasurementQueries
             IReadOnlyCollection<MeasurementState> measurementStates,
             CancellationToken cancellationToken)
     {
-        var publishedThreshold = DateTime.UtcNow.AddDays(-7);
-
         var measurementsQuery = from measurement in _dbContext.ProductMeasurements
                                 where measurement.ProductId == productId
                                 where !withLotIdFilter || measurement.LotId == lotId
