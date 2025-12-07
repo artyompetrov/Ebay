@@ -1,9 +1,9 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build_dotnet
 WORKDIR /src
 # Сначала копируем файлы проектов для использования кэша слоёв при restore
+COPY .editorconfig /
 COPY Ebay/*.sln Ebay/
 COPY Ebay/*.props Ebay/
-COPY Ebay/.editorconfig Ebay/
 COPY Ebay/nuget.config Ebay/
 COPY Ebay/Client/*.csproj Ebay/Client/
 COPY Ebay/Server/*.csproj Ebay/Server/
