@@ -35,7 +35,7 @@ public class GeoIpService : IDisposable
 
             return response == null ? null : new GeoIpLocation(response.Country, response.City);
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             _logger.LogWarning("GeoIP lookup timed out for {Ip}", ip);
             return null;
