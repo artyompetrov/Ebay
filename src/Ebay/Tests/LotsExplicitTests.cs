@@ -26,7 +26,7 @@ public class LotsExplicitTests : ExplicitTestsBase
             return;
         }
 
-        var extractedFields = ManualFieldsExtractor.ExtractManualData(
+        var extractedFields = ManualFieldsExtractorService.ExtractManualData(
             new LotDataToExtract(
                 conditionDescription: lotInfoFull.LotInfo.ConditionDescription,
                 description: lotInfoFull.LotInfo.Description,
@@ -81,7 +81,7 @@ public class LotsExplicitTests : ExplicitTestsBase
             return;
         }
 
-        var extractedFields = ManualFieldsExtractor.ExtractManualData(
+        var extractedFields = ManualFieldsExtractorService.ExtractManualData(
             new LotDataToExtract(
                 conditionDescription: lotInfoFull.LotInfo.ConditionDescription,
                 condition: lotInfoFull.LotInfo.Condition,
@@ -127,7 +127,7 @@ public class LotsExplicitTests : ExplicitTestsBase
             return;
         }
 
-        var extractedFields = ManualFieldsExtractor.ExtractManualData(
+        var extractedFields = ManualFieldsExtractorService.ExtractManualData(
             new LotDataToExtract(
                 conditionDescription: lotInfoFull.LotInfo.ConditionDescription,
                 condition: lotInfoFull.LotInfo.Condition,

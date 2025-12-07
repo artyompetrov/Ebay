@@ -3,12 +3,13 @@ using MassTransit;
 using Server.Application.Abstractions;
 using Server.Application.Abstractions.Queries;
 using Server.Application.Abstractions.Repositories;
+using Server.Application.Abstractions.Services;
 using Server.Application.Consumers.PriceCalculator;
 using Server.Domain;
 
 namespace Server.Application.Services;
 
-internal class ProductService
+internal class ProductService : IProductService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IProductRepository _productRepository;
@@ -92,5 +93,17 @@ internal class ProductService
     {
         var result = await _productQueries.GetAllProductsAsync(cancellationToken);
         return result;
+    }
+
+    public async Task CalculatePricesForProductAsync(Guid productId, CancellationToken cancellationToken)
+    {
+        await _publishEndpoint.Publish(new CalculatePricesForProduct(productId), cancellationToken);
+        _ = await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task CalculatePricesForAllAsync(CancellationToken cancellationToken)
+    {
+        await _publishEndpoint.Publish(new CalculatePricesForAll(), cancellationToken);
+        _ = await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 }

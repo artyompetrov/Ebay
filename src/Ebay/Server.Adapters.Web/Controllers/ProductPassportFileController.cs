@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Data;
 
-namespace Server.Application.Controllers;
+namespace Server.Adapters.Web.Controllers;
 
 [ApiController]
 public class ProductPassportFileController : ControllerBase

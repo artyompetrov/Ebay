@@ -1,28 +1,26 @@
-using MassTransit;
 using Microsoft.AspNetCore.Mvc;
-using Server.Application.Consumers.MeasurementWatching;
+using Server.Application.Abstractions.Services;
 using Server.Application.Services.GeoIp;
-using Server.Application.Services.Measurement;
 using Server.Application.Services.MeasurementPlot;
 
-namespace Server.Application.Controllers;
+namespace Server.Adapters.Web.Controllers;
 
 [ApiController]
 public class MeasurementPageController : ControllerBase
 {
     public MeasurementPageController(
-        MeasurementService measurementService,
-        MeasurementPlotService measurementPlotService,
-        GeoIpService geoIpService)
+        IMeasurementService measurementService,
+        IMeasurementPlotService measurementPlotService,
+        IGeoIpService geoIpService)
     {
         _measurementService = measurementService;
         _measurementPlotService = measurementPlotService;
         _geoIpService = geoIpService;
     }
 
-    private readonly MeasurementService _measurementService;
-    private readonly MeasurementPlotService _measurementPlotService;
-    private readonly GeoIpService _geoIpService;
+    private readonly IMeasurementService _measurementService;
+    private readonly IMeasurementPlotService _measurementPlotService;
+    private readonly IGeoIpService _geoIpService;
 
     [HttpGet("/m/{measurementId}/download")]
     public async Task<IActionResult> DownloadZip(string measurementId, CancellationToken cancellationToken)

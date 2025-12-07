@@ -1,7 +1,7 @@
 
 using Server.Controllers.Generated;
 
-namespace Server.Application.Controllers;
+namespace Server.Adapters.Web.Controllers;
 
 [Obsolete("Нужно сделать приватным исключением адаптера")]
 internal class NonOkHttpAnswerException : Exception

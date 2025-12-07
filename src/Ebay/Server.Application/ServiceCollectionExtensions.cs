@@ -6,7 +6,6 @@ using Server.Application.Consumers.EbayCurvesCacheWarmUp;
 using Server.Application.Consumers.MatchedPairs;
 using Server.Application.Consumers.MeasurementWatching;
 using Server.Application.Consumers.PriceCalculator;
-using Server.Application.Controllers;
 using Server.Application.Data;
 using Server.Application.HostedServices.ChipFind;
 using Server.Application.HostedServices.Currencies;
@@ -19,7 +18,6 @@ using Server.Application.Services.GeoIp;
 using Server.Application.Services.LotDataExtractor;
 using Server.Application.Services.Measurement;
 using Server.Application.Services.MeasurementPlot;
-using Server.Controllers.Generated;
 
 namespace Server.Application;
 
@@ -30,7 +28,6 @@ public static class ServiceCollectionExtensions
         EbayServerOptions options,
         string connectionString)
     {
-        var appAssembly = typeof(ServiceCollectionExtensions).Assembly;
 
         _ = services.AddSingleton(options);
 
@@ -49,10 +46,6 @@ public static class ServiceCollectionExtensions
         {
             c.Timeout = TimeSpan.FromSeconds(2);
         });
-
-        _ = services.AddScoped<IEbayController, EbayControllerImplementation>();
-        _ = services.AddDefaultIdentity<ApplicationUser>(o => o.SignIn.RequireConfirmedAccount = true)
-            .AddEntityFrameworkStores<ApplicationDbContext>();
 
         _ = services.AddHostedService<CurrencyRateBackgroundTask>();
         _ = services.AddHostedService<ChipfindBackgroundTask>();
@@ -103,25 +96,15 @@ public static class ServiceCollectionExtensions
         });
         _ = services.AddHostedService<DbCacheCleanupHostedService>();
         _ = services.AddHostedService<MeasurementPlotWarmupHostedService>();
-        _ = services.AddDatabaseDeveloperPageExceptionFilter();
 
-        _ = services.AddControllersWithViews(options =>
-            {
-                _ = options.Filters.Add<ErrorFilter>();
-            })
-            .AddApplicationPart(appAssembly)
-            .AddNewtonsoftJson();
-
-        _ = services.AddRazorPages()
-            .AddApplicationPart(typeof(ServiceCollectionExtensions).Assembly);
     }
 
-    public static void InitializeApplication(this IServiceProvider serviceProvider)
+    public static async Task InitializeApplication(this IServiceProvider serviceProvider)
     {
         // Migrate DB
         using var scope = serviceProvider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        dbContext.Database.Migrate();
+        await dbContext.Database.MigrateAsync();
     }
 
 }

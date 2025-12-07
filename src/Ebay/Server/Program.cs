@@ -8,6 +8,7 @@ using Server.Adapters.ChipFind;
 using Server.Adapters.EF.WriteModel;
 using Server.Adapters.Smtp;
 using Server.Adapters.uTracer;
+using Server.Adapters.Web;
 using Server.Application;
 using Server.Application.Data;
 using Sever.Adapters.EF.ReadModel;
@@ -97,35 +98,10 @@ builder.Logging.AddOpenTelemetry(o =>
 builder.Services.AddResponseCaching();
 
 
-
-
 var app = builder.Build();
 
-app.Services.InitializeApplication();
+await app.Services.InitializeApplication();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    _ = app.UseMigrationsEndPoint();
-    app.UseWebAssemblyDebugging();
-}
-else
-{
-    _ = app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    _ = app.UseHsts();
-}
-
-app.UseHttpsRedirection();
-app.UseBlazorFrameworkFiles();
-app.UseStaticFiles();
-app.UseRouting();
-app.UseResponseCaching();
-app.UseAuthentication();
-app.UseIdentityServer();
-app.UseAuthorization();
-app.MapRazorPages();
-app.MapControllers();
-app.MapFallbackToFile("index.html");
+app.UseWebAdapter();
 
 app.Run();

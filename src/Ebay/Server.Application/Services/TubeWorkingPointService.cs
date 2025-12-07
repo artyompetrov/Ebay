@@ -2,13 +2,13 @@ using Microsoft.EntityFrameworkCore;
 using Server.Application.Abstractions;
 using Server.Application.Abstractions.Queries;
 using Server.Application.Abstractions.Repositories;
-using Server.Application.Controllers;
+using Server.Application.Abstractions.Services;
 using Server.Application.Data;
 using Server.Domain.Measurements;
 
 namespace Server.Application.Services;
 
-public class TubeWorkingPointService
+internal class TubeWorkingPointService : ITubeWorkingPointService
 {
     private readonly ApplicationDbContext _applicationDbContext;
     private readonly IUnitOfWork _unitOfWork;
@@ -42,7 +42,7 @@ public class TubeWorkingPointService
 
         if (!productExists)
         {
-            throw NonOkHttpAnswerException.NotFound400();
+            throw new InvalidOperationException("Not found");
         }
 
         var tubeWorkingPoint = await _tubeWorkingPointsRepository.GetByIdAsync(

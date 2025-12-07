@@ -1,7 +1,7 @@
 namespace Server.Application.Services.LotDataExtractor;
 
 [Flags]
-internal enum ExtractFrom
+public enum ExtractFrom
 {
     Title = 1,
     ConditionDescription = 2,

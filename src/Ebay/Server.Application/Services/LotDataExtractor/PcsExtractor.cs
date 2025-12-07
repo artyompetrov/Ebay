@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 using Server.Application.Infrastructure;
-using Server.Controllers.Generated;
 
 namespace Server.Application.Services.LotDataExtractor;
 
@@ -11,6 +10,8 @@ internal class PcsExtractor : ExtractorBase, IExtractor
 
     private static readonly string[] ToRemove =
     [
+        "194x year",
+        "195x year",
         "196x year",
         "197x year",
         "198x year",

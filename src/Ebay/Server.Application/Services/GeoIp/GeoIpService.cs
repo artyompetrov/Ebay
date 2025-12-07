@@ -1,12 +1,13 @@
 using System.Net.Http.Json;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Server.Application.Abstractions.Services;
 
 namespace Server.Application.Services.GeoIp;
 
 public sealed record GeoIpLocation(string? Country, string? City);
 
-public class GeoIpService : IDisposable
+public class GeoIpService : IGeoIpService, IDisposable
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<GeoIpService> _logger;

@@ -1,10 +1,9 @@
-
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Server.Application.Abstractions.Queries;
 using Server.Domain.Measurements;
 
-namespace Server.Application.Pages;
+namespace Server.Adapters.Web.Pages;
 
 public class EbayLotDescriptionPage : PageModel
 {

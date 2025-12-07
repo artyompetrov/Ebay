@@ -20,7 +20,7 @@ using RuSearchQuery = Server.Controllers.Generated.RuSearchQuery;
 using SearchQuery = Server.Controllers.Generated.SearchQuery;
 using TubeWorkingPoint = Server.Controllers.Generated.TubeWorkingPoint;
 
-namespace Server.Application.Infrastructure;
+namespace Server.Adapters.Web;
 
 internal static class ModelsExtensions
 {

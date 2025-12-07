@@ -3,13 +3,13 @@ using Microsoft.Extensions.Logging;
 using Server.Application.Abstractions;
 using Server.Application.Abstractions.Queries;
 using Server.Application.Abstractions.Repositories;
+using Server.Application.Abstractions.Services;
 using Server.Application.Consumers.MatchedPairs;
-using Server.Application.Controllers;
 using Server.Domain.Measurements;
 
 namespace Server.Application.Services.Measurement;
 
-internal class MatchedMeasurementService
+internal class MatchedMeasurementService : IMatchedMeasurementService
 {
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly IMeasurementQueries _measurementQueries;
@@ -39,9 +39,9 @@ internal class MatchedMeasurementService
         Guid productId,
         CancellationToken cancellationToken)
     {
-        _ = await _tubeWorkingPointQueries.GetWorkingPointInfo(productId, cancellationToken) ?? throw NonOkHttpAnswerException.ValidationError400(
-                field: "tubeWorkingPoint",
-                errors: "Рабочая точка не задана.");
+        _ = await _tubeWorkingPointQueries.GetWorkingPointInfo(productId, cancellationToken) ??
+            throw new InvalidOperationException("Рабочая точка не задана.");
+        
         await DeletePreviousResults(productId: productId, cancellationToken: cancellationToken);
 
         await EnqueueCommands(productId: productId, cancellationToken: cancellationToken);

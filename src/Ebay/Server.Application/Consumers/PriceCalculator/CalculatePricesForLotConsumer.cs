@@ -1,6 +1,7 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Server.Application.Abstractions.Models;
 using Server.Application.Data;
 using Server.Application.Infrastructure;
 using Server.Application.Services.LotDataExtractor;
@@ -13,7 +14,7 @@ internal class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
     private readonly ApplicationDbContext _applicationContext;
     private readonly ILogger<CalculatePricesForProductConsumer> _logger;
     private readonly IPublishEndpoint _publishEndpoint;
-    private readonly IReadOnlyDictionary<string, List<ShippingRatesService.ShippingRateInner>> _shippingRates;
+    private readonly IReadOnlyDictionary<string, List<ShippingRate>> _shippingRates;
 
     public CalculatePricesForLotConsumer(
         ApplicationDbContext applicationContext,

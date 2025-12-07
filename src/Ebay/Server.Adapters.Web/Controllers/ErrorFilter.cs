@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Server.Controllers.Generated;
 
-namespace Server.Application.Controllers;
+namespace Server.Adapters.Web.Controllers;
 
 public sealed class ErrorFilter : IAsyncActionFilter, IExceptionFilter
 {

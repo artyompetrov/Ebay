@@ -1,12 +1,13 @@
+using Server.Application.Abstractions.Models;
 using Server.Application.Infrastructure;
 using Server.Controllers.Generated;
 
 namespace Server.Application.Services.LotDataExtractor;
 
-public class ShippingRatesService : IShippingRatesService
+internal class ShippingRatesService : IShippingRatesService
 {
     private static readonly List<ShippingType> Rates;
-    private static readonly Dictionary<string, List<ShippingRateInner>> ShippingRatesDictionaryStatic;
+    private static readonly Dictionary<string, List<ShippingRate>> ShippingRatesDictionaryStatic;
 
     // тарифы взяты отсюда https://qazpost.kz/ru/help/tariffs?tab=pochtovye-uslugi
 
@@ -374,11 +375,11 @@ public class ShippingRatesService : IShippingRatesService
 
     public IReadOnlyCollection<ShippingType> ShippingRates => Rates;
 
-    public IReadOnlyDictionary<string, List<ShippingRateInner>> ShippingRatesDictionary => ShippingRatesDictionaryStatic;
+    public IReadOnlyDictionary<string, List<ShippingRate>> ShippingRatesDictionary => ShippingRatesDictionaryStatic;
 
-    private static Dictionary<string, List<ShippingRateInner>> GetShippingRatesDictionaryInner()
+    private static Dictionary<string, List<ShippingRate>> GetShippingRatesDictionaryInner()
     {
-        var rates = new Dictionary<string, List<ShippingRateInner>>();
+        var rates = new Dictionary<string, List<ShippingRate>>();
 
         foreach (var shippingRate in Rates)
         {
@@ -393,7 +394,7 @@ public class ShippingRatesService : IShippingRatesService
                 {
                     if (shippingRateRate.SpecifiedCountries == null)
                     {
-                        rates.AppendOrCreateNewCollection(key: Worldwide, value: new ShippingRateInner(
+                        rates.AppendOrCreateNewCollection(key: Worldwide, value: new ShippingRate(
                             WeightFrom: rate.MinWeight,
                             WeightTo: rate.MaxWeight,
                             Price: rate.Price,
@@ -408,7 +409,7 @@ public class ShippingRatesService : IShippingRatesService
                                 throw new InvalidOperationException(nameof(rate));
                             }
 
-                            rates.AppendOrCreateNewCollection(key: specifiedCountry.TwoLetterCode, value: new ShippingRateInner(
+                            rates.AppendOrCreateNewCollection(key: specifiedCountry.TwoLetterCode, value: new ShippingRate(
                                 WeightFrom: rate.MinWeight,
                                 WeightTo: rate.MaxWeight,
                                 Price: rate.Price,
@@ -423,9 +424,6 @@ public class ShippingRatesService : IShippingRatesService
     }
 
 
-    public record struct ShippingRateInner(int WeightFrom, int WeightTo, double Price, string Currency)
-    {
-        public override readonly string ToString() => $"{WeightFrom}-{WeightTo} : {Price} {Currency}";
-    };
+    
 
 }

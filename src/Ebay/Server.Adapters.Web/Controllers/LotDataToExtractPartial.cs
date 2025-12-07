@@ -1,6 +1,7 @@
 
 
 using System.Diagnostics.CodeAnalysis;
+using Server.Adapters.Web;
 using Server.Application.Infrastructure;
 
 // ReSharper disable once CheckNamespace

@@ -6,7 +6,7 @@ using Server.Application.Data;
 using Server.Domain;
 using Server.Domain.Measurements;
 
-namespace Server.Application.Pages;
+namespace Server.Adapters.Web.Pages;
 
 public class MeasurementPage : PageModel
 {

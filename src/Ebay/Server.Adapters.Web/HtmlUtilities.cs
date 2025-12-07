@@ -1,6 +1,6 @@
 using HtmlAgilityPack;
 
-namespace Server.Application.Infrastructure;
+namespace Server.Adapters.Web;
 
 internal class HtmlUtilities
 {
