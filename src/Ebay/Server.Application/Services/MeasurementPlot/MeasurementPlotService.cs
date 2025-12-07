@@ -43,17 +43,15 @@ public class MeasurementPlotService : IMeasurementPlotService
         bool sellingOnly,
         CancellationToken cancellationToken)
     {
-        var plotTask =  PlotForEbay(
+        var plotTask = await PlotForEbay(
             measurementId: measurementId,
             lotId: lotId,
             sellingOnly: sellingOnly,
             cancellationToken: cancellationToken);
 
-        var publishMessageTask =  PublishWatchedOnEbayMessage(measurementId: measurementId, cancellationToken: cancellationToken);
-
-        await Task.WhenAll(plotTask, publishMessageTask);
+        await  PublishWatchedOnEbayMessage(measurementId: measurementId, cancellationToken: cancellationToken);
         
-        return plotTask.Result;
+        return plotTask;
     }
 
     private async Task PublishWatchedOnEbayMessage(string measurementId, CancellationToken cancellationToken)
