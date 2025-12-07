@@ -20,7 +20,7 @@ public class SaleAdvertisementCleanupBackgroundTask : BackgroundTask
 
     public override TimeSpan UpdateTime => WellKnown.SaleAdvertisements.UpdateTime;
     public override TimeSpan ErrorDelay => WellKnown.SaleAdvertisements.ErrorDelay;
-    
+
     protected override async Task BackgroundTaskImplementation(CancellationToken cancellationToken)
     {
         using var scope = _serviceScopeFactory.CreateScope();
