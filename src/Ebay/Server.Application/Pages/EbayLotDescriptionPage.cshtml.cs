@@ -6,14 +6,21 @@ using Server.Domain.Measurements;
 
 namespace Server.Application.Pages;
 
-public class EbayLotDescriptionPage(
-    IMeasurementQueries measurementQueries,
-    IProductQueries productQueries,
-    IPassportQueries passportQueries) : PageModel
+public class EbayLotDescriptionPage : PageModel
 {
-    private readonly IMeasurementQueries _measurementQueries = measurementQueries;
-    private readonly IProductQueries _productQueries = productQueries;
-    private readonly IPassportQueries _passportQueries = passportQueries;
+    private readonly IMeasurementQueries _measurementQueries;
+    private readonly IProductQueries _productQueries;
+    private readonly IPassportQueries _passportQueries;
+
+    public EbayLotDescriptionPage(
+        IMeasurementQueries measurementQueries,
+        IProductQueries productQueries,
+        IPassportQueries passportQueries)
+    {
+        _measurementQueries = measurementQueries;
+        _productQueries = productQueries;
+        _passportQueries = passportQueries;
+    }
 
     public ProductState State { get; set; }
 

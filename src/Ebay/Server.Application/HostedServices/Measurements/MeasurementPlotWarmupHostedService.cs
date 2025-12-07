@@ -9,14 +9,21 @@ using Server.Application.Infrastructure;
 
 namespace Server.Application.HostedServices.Measurements;
 
-public class MeasurementPlotWarmupHostedService(
-    IServiceScopeFactory serviceScopeFactory,
-    ILogger<MeasurementPlotWarmupHostedService> logger,
-    EbayServerOptions options) : IHostedService
+public class MeasurementPlotWarmupHostedService : IHostedService
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory = serviceScopeFactory;
-    private readonly ILogger<MeasurementPlotWarmupHostedService> _logger = logger;
-    private readonly EbayServerOptions _options = options;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
+    private readonly ILogger<MeasurementPlotWarmupHostedService> _logger;
+    private readonly EbayServerOptions _options;
+
+    public MeasurementPlotWarmupHostedService(
+        IServiceScopeFactory serviceScopeFactory,
+        ILogger<MeasurementPlotWarmupHostedService> logger,
+        EbayServerOptions options)
+    {
+        _serviceScopeFactory = serviceScopeFactory;
+        _logger = logger;
+        _options = options;
+    }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {

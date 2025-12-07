@@ -8,17 +8,24 @@ using Server.Domain;
 
 namespace Server.Application.Services;
 
-internal class ProductService(
-    IUnitOfWork unitOfWork,
-    IProductRepository productRepository,
-    IPublishEndpoint publishEndpoint,
-    IProductQueries productQueries
-        )
+internal class ProductService
 {
-    private readonly IUnitOfWork _unitOfWork = unitOfWork;
-    private readonly IProductRepository _productRepository = productRepository;
-    private readonly IPublishEndpoint _publishEndpoint = publishEndpoint;
-    private readonly IProductQueries _productQueries = productQueries;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IProductRepository _productRepository;
+    private readonly IPublishEndpoint _publishEndpoint;
+    private readonly IProductQueries _productQueries;
+
+    public ProductService(
+        IUnitOfWork unitOfWork,
+        IProductRepository productRepository,
+        IPublishEndpoint publishEndpoint,
+        IProductQueries productQueries)
+    {
+        _unitOfWork = unitOfWork;
+        _productRepository = productRepository;
+        _publishEndpoint = publishEndpoint;
+        _productQueries = productQueries;
+    }
 
     public async Task<Product> CreateProductAsync(
         string name,

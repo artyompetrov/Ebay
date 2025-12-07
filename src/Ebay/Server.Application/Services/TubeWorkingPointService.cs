@@ -8,16 +8,24 @@ using Server.Domain.Measurements;
 
 namespace Server.Application.Services;
 
-public class TubeWorkingPointService(
-    ApplicationDbContext applicationDbContext,
-    IUnitOfWork unitOfWork,
-    ITubeWorkingPointQueries tubeWorkingPointQueries,
-    ITubeWorkingPointsRepository tubeWorkingPointsRepository)
+public class TubeWorkingPointService
 {
-    private readonly ApplicationDbContext _applicationDbContext = applicationDbContext;
-    private readonly IUnitOfWork _unitOfWork = unitOfWork;
-    private readonly ITubeWorkingPointQueries _tubeWorkingPointQueries = tubeWorkingPointQueries;
-    private readonly ITubeWorkingPointsRepository _tubeWorkingPointsRepository = tubeWorkingPointsRepository;
+    private readonly ApplicationDbContext _applicationDbContext;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ITubeWorkingPointQueries _tubeWorkingPointQueries;
+    private readonly ITubeWorkingPointsRepository _tubeWorkingPointsRepository;
+
+    public TubeWorkingPointService(
+        ApplicationDbContext applicationDbContext,
+        IUnitOfWork unitOfWork,
+        ITubeWorkingPointQueries tubeWorkingPointQueries,
+        ITubeWorkingPointsRepository tubeWorkingPointsRepository)
+    {
+        _applicationDbContext = applicationDbContext;
+        _unitOfWork = unitOfWork;
+        _tubeWorkingPointQueries = tubeWorkingPointQueries;
+        _tubeWorkingPointsRepository = tubeWorkingPointsRepository;
+    }
 
     public async Task CreateTubeWorkingPoint(
         Guid tubeProductId,

@@ -3,12 +3,16 @@ using Server.Application.Abstractions.Queries;
 
 namespace Server.Application.Consumers.PriceCalculator;
 
-internal class CalculatePricesForAllConsumer(
-    IProductQueries productQueries,
-    IPublishEndpoint publishEndpoint) : IConsumer<CalculatePricesForAll>
+internal class CalculatePricesForAllConsumer : IConsumer<CalculatePricesForAll>
 {
-    private readonly IProductQueries _productQueries = productQueries;
-    private readonly IPublishEndpoint _publishEndpoint = publishEndpoint;
+    private readonly IProductQueries _productQueries;
+    private readonly IPublishEndpoint _publishEndpoint;
+
+    public CalculatePricesForAllConsumer(IProductQueries productQueries, IPublishEndpoint publishEndpoint)
+    {
+        _productQueries = productQueries;
+        _publishEndpoint = publishEndpoint;
+    }
 
     public async Task Consume(ConsumeContext<CalculatePricesForAll> context)
     {

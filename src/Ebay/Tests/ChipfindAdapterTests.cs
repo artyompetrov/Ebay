@@ -178,9 +178,14 @@ public class ChipfindAdapterTests
         Assert.That(contact, Is.EqualTo("Телефон: +7 (000) 000-00-00"));
     }
 
-    private sealed class StaticMessageHandler(string content) : HttpMessageHandler
+    private sealed class StaticMessageHandler : HttpMessageHandler
     {
-        private readonly string _content = content;
+        private readonly string _content;
+
+        public StaticMessageHandler(string content)
+        {
+            _content = content;
+        }
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
@@ -192,9 +197,14 @@ public class ChipfindAdapterTests
         }
     }
 
-    private sealed class TestHttpClientFactory(HttpClient client) : IHttpClientFactory
+    private sealed class TestHttpClientFactory : IHttpClientFactory
     {
-        private readonly HttpClient _client = client;
+        private readonly HttpClient _client;
+
+        public TestHttpClientFactory(HttpClient client)
+        {
+            _client = client;
+        }
 
         public HttpClient CreateClient(string name) => _client;
     }

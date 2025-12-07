@@ -3,9 +3,14 @@ using Server.Application.Abstractions.Queries;
 
 namespace Sever.Adapters.EF.ReadModel.Queries;
 
-internal sealed class TubeWorkingPointQueries(ReadDbContext context) : ITubeWorkingPointQueries
+internal sealed class TubeWorkingPointQueries : ITubeWorkingPointQueries
 {
-    private readonly ReadDbContext _context = context;
+    private readonly ReadDbContext _context;
+
+    public TubeWorkingPointQueries(ReadDbContext context)
+    {
+        _context = context;
+    }
 
     public async Task<TubeWorkingPointInfo?> GetWorkingPointInfo(Guid productId, CancellationToken cancellationToken)
     {

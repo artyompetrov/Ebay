@@ -4,9 +4,14 @@ using Server.Application.Abstractions.Queries;
 
 namespace Server.Application.Pages;
 
-public class PurchasePage(IMeasurementQueries measurementQueries) : PageModel
+public class PurchasePage : PageModel
 {
-    private readonly IMeasurementQueries _measurementQueries = measurementQueries;
+    private readonly IMeasurementQueries _measurementQueries;
+
+    public PurchasePage(IMeasurementQueries measurementQueries)
+    {
+        _measurementQueries = measurementQueries;
+    }
 
     public IReadOnlyList<MeasurementInfoWithData> Measurements { get; private set; } = [];
 

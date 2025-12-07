@@ -4,11 +4,18 @@ using Server.Application.Data;
 
 namespace Server.Application.Infrastructure;
 
-public class DbCache(ApplicationDbContext context, DatabaseConcurrentAccessSemaphore semaphore, EbayServerOptions options)
+public class DbCache
 {
-    private readonly ApplicationDbContext _context = context;
-    private readonly DatabaseConcurrentAccessSemaphore _semaphore = semaphore;
-    private readonly EbayServerOptions _options = options;
+    private readonly ApplicationDbContext _context;
+    private readonly DatabaseConcurrentAccessSemaphore _semaphore;
+    private readonly EbayServerOptions _options;
+
+    public DbCache(ApplicationDbContext context, DatabaseConcurrentAccessSemaphore semaphore, EbayServerOptions options)
+    {
+        _context = context;
+        _semaphore = semaphore;
+        _options = options;
+    }
 
     public async Task<T?> GetOrCreateAsync<T>(
         string key,

@@ -5,9 +5,14 @@ using Server.Domain.Measurements;
 
 namespace Server.Adapters.EF.WriteModel.Repositories;
 
-internal sealed class MatchedPairDifferenceRepository(ApplicationDbContext dbContext) : IMatchedPairDifferenceRepository
+internal sealed class MatchedPairDifferenceRepository : IMatchedPairDifferenceRepository
 {
-    private readonly ApplicationDbContext _dbContext = dbContext;
+    private readonly ApplicationDbContext _dbContext;
+
+    public MatchedPairDifferenceRepository(ApplicationDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
 
     public async Task<MatchedPairDifference?> GetByIdAsync(
         MatchedPairDifferenceId id,

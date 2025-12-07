@@ -9,16 +9,23 @@ using Server.Domain;
 
 namespace Server.Application.HostedServices.ChipFind;
 
-public class ChipfindBackgroundTask(
-    ILogger<ChipfindBackgroundTask> logger,
-    EbayServerOptions ebayServerOptions,
-    IServiceScopeFactory serviceScopeFactory
-    ) : BackgroundTask(logger)
+public class ChipfindBackgroundTask : BackgroundTask
 {
-    private readonly ILogger<ChipfindBackgroundTask> _logger = logger;
-    private readonly EbayServerOptions _ebayServerOptions = ebayServerOptions;
-    private readonly IServiceScopeFactory _serviceScopeFactory = serviceScopeFactory;
+    private readonly ILogger<ChipfindBackgroundTask> _logger;
+    private readonly EbayServerOptions _ebayServerOptions;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
     private const int DelayMilliseconds = 5000;
+
+    public ChipfindBackgroundTask(
+        ILogger<ChipfindBackgroundTask> logger,
+        EbayServerOptions ebayServerOptions,
+        IServiceScopeFactory serviceScopeFactory)
+        : base(logger)
+    {
+        _logger = logger;
+        _ebayServerOptions = ebayServerOptions;
+        _serviceScopeFactory = serviceScopeFactory;
+    }
 
     public override TimeSpan UpdateTime => WellKnown.ChipFind.UpdateTime;
     public override TimeSpan ErrorDelay => WellKnown.ChipFind.ErrorDelay;

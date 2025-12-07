@@ -6,9 +6,14 @@ using Server.Application.Data;
 namespace Server.Application.Controllers;
 
 [ApiController]
-public class ProductPassportFileController(ApplicationDbContext context) : ControllerBase
+public class ProductPassportFileController : ControllerBase
 {
-    private readonly ApplicationDbContext _context = context;
+    private readonly ApplicationDbContext _context;
+
+    public ProductPassportFileController(ApplicationDbContext context)
+    {
+        _context = context;
+    }
 
     [HttpGet("/products/{productId}/passports/{passportId}")]
     [AllowAnonymous]

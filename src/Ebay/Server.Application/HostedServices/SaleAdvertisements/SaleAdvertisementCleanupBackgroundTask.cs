@@ -6,11 +6,17 @@ using Server.Application.Infrastructure;
 
 namespace Server.Application.HostedServices.SaleAdvertisements;
 
-public class SaleAdvertisementCleanupBackgroundTask(
-    ILogger<SaleAdvertisementCleanupBackgroundTask> logger,
-    IServiceScopeFactory serviceScopeFactory) : BackgroundTask(logger)
+public class SaleAdvertisementCleanupBackgroundTask : BackgroundTask
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory = serviceScopeFactory;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
+
+    public SaleAdvertisementCleanupBackgroundTask(
+        ILogger<SaleAdvertisementCleanupBackgroundTask> logger,
+        IServiceScopeFactory serviceScopeFactory)
+        : base(logger)
+    {
+        _serviceScopeFactory = serviceScopeFactory;
+    }
 
     public override TimeSpan UpdateTime => WellKnown.SaleAdvertisements.UpdateTime;
     public override TimeSpan ErrorDelay => WellKnown.SaleAdvertisements.ErrorDelay;

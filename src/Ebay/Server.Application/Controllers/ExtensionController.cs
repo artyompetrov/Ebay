@@ -7,9 +7,14 @@ namespace Server.Application.Controllers;
 
 [ApiController]
 [Route("chrome_extensions")]
-public class ExtensionController(IWebHostEnvironment env) : ControllerBase
+public class ExtensionController : ControllerBase
 {
-    private readonly IWebHostEnvironment _env = env;
+    private readonly IWebHostEnvironment _env;
+
+    public ExtensionController(IWebHostEnvironment env)
+    {
+        _env = env;
+    }
 
     [HttpGet("auth")]
     public IActionResult BrowserExtensionAuthEndpoint()

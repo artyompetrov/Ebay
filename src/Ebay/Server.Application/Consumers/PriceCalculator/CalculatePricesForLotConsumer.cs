@@ -8,16 +8,24 @@ using Server.Domain;
 
 namespace Server.Application.Consumers.PriceCalculator;
 
-internal class CalculatePricesForLotConsumer(
-    ApplicationDbContext applicationContext,
-    ShippingRatesService shippingRatesService,
-    ILogger<CalculatePricesForProductConsumer> logger,
-    IPublishEndpoint publishEndpoint) : IConsumer<CalculatePricesForLot>
+internal class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
 {
-    private readonly ApplicationDbContext _applicationContext = applicationContext;
-    private readonly ILogger<CalculatePricesForProductConsumer> _logger = logger;
-    private readonly IPublishEndpoint _publishEndpoint = publishEndpoint;
-    private readonly IReadOnlyDictionary<string, List<ShippingRatesService.ShippingRateInner>> _shippingRates = shippingRatesService.ShippingRatesDictionary;
+    private readonly ApplicationDbContext _applicationContext;
+    private readonly ILogger<CalculatePricesForProductConsumer> _logger;
+    private readonly IPublishEndpoint _publishEndpoint;
+    private readonly IReadOnlyDictionary<string, List<ShippingRatesService.ShippingRateInner>> _shippingRates;
+
+    public CalculatePricesForLotConsumer(
+        ApplicationDbContext applicationContext,
+        ShippingRatesService shippingRatesService,
+        ILogger<CalculatePricesForProductConsumer> logger,
+        IPublishEndpoint publishEndpoint)
+    {
+        _applicationContext = applicationContext;
+        _logger = logger;
+        _publishEndpoint = publishEndpoint;
+        _shippingRates = shippingRatesService.ShippingRatesDictionary;
+    }
 
     public async Task Consume(ConsumeContext<CalculatePricesForLot> context)
     {

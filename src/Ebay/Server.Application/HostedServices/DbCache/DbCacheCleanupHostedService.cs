@@ -5,12 +5,18 @@ using InfrastructureDbCache = Server.Application.Infrastructure.DbCache;
 
 namespace Server.Application.HostedServices.DbCache;
 
-public class DbCacheCleanupHostedService(
-    IServiceScopeFactory serviceScopeFactory,
-    ILogger<DbCacheCleanupHostedService> logger) : IHostedService
+public class DbCacheCleanupHostedService : IHostedService
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory = serviceScopeFactory;
-    private readonly ILogger<DbCacheCleanupHostedService> _logger = logger;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
+    private readonly ILogger<DbCacheCleanupHostedService> _logger;
+
+    public DbCacheCleanupHostedService(
+        IServiceScopeFactory serviceScopeFactory,
+        ILogger<DbCacheCleanupHostedService> logger)
+    {
+        _serviceScopeFactory = serviceScopeFactory;
+        _logger = logger;
+    }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {

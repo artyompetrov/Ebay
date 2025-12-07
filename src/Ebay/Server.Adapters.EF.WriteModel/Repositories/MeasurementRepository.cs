@@ -5,9 +5,14 @@ using Server.Domain.Measurements;
 
 namespace Server.Adapters.EF.WriteModel.Repositories;
 
-internal sealed class MeasurementRepository(ApplicationDbContext dbContext) : IMeasurementRepository
+internal sealed class MeasurementRepository : IMeasurementRepository
 {
-    private readonly ApplicationDbContext _dbContext = dbContext;
+    private readonly ApplicationDbContext _dbContext;
+
+    public MeasurementRepository(ApplicationDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
 
     public async Task<ProductMeasurement?> GetByIdAsync(string id, CancellationToken cancellationToken) => await _dbContext.ProductMeasurements.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
 

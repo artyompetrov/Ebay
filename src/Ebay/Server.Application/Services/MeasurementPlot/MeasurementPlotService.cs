@@ -9,14 +9,21 @@ using Server.Domain.Measurements.MeasurementTypes.Base;
 namespace Server.Application.Services.MeasurementPlot;
 
 // todo генерация графиков по идее должна быть вынесена в адаптер
-public class MeasurementPlotService(
-    DbCache cache,
-    IMeasurementQueries measurementQueries,
-    IMeasurementFileParser measurementFileParser) : IMeasurementPlotService
+public class MeasurementPlotService : IMeasurementPlotService
 {
-    private readonly DbCache _cache = cache;
-    private readonly IMeasurementQueries _measurementQueries = measurementQueries;
-    private readonly IMeasurementFileParser _measurementFileParser = measurementFileParser;
+    private readonly DbCache _cache;
+    private readonly IMeasurementQueries _measurementQueries;
+    private readonly IMeasurementFileParser _measurementFileParser;
+
+    public MeasurementPlotService(
+        DbCache cache,
+        IMeasurementQueries measurementQueries,
+        IMeasurementFileParser measurementFileParser)
+    {
+        _cache = cache;
+        _measurementQueries = measurementQueries;
+        _measurementFileParser = measurementFileParser;
+    }
 
     public string PlotSold() => StatusSvg(nameof(MeasurementState.Sold));
 

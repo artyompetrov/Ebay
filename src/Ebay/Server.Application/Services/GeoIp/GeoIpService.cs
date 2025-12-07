@@ -6,12 +6,19 @@ namespace Server.Application.Services.GeoIp;
 
 public sealed record GeoIpLocation(string? Country, string? City);
 
-public class GeoIpService(HttpClient httpClient, ILogger<GeoIpService> logger, IMemoryCache cache) : IDisposable
+public class GeoIpService : IDisposable
 {
-    private readonly HttpClient _httpClient = httpClient;
-    private readonly ILogger<GeoIpService> _logger = logger;
-    private readonly IMemoryCache _cache = cache;
+    private readonly HttpClient _httpClient;
+    private readonly ILogger<GeoIpService> _logger;
+    private readonly IMemoryCache _cache;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
+
+    public GeoIpService(HttpClient httpClient, ILogger<GeoIpService> logger, IMemoryCache cache)
+    {
+        _httpClient = httpClient;
+        _logger = logger;
+        _cache = cache;
+    }
 
     private async Task<GeoIpLocation?> GetLocationAsync(string? ip, CancellationToken cancellationToken)
     {
