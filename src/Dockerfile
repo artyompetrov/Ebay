@@ -3,6 +3,7 @@ WORKDIR /src
 # Сначала копируем файлы проектов для использования кэша слоёв при restore
 COPY Ebay/*.sln Ebay/
 COPY Ebay/*.props Ebay/
+COPY Ebay/.editorconfig Ebay/
 COPY Ebay/nuget.config Ebay/
 COPY Ebay/Client/*.csproj Ebay/Client/
 COPY Ebay/Server/*.csproj Ebay/Server/
