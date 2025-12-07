@@ -1,4 +1,3 @@
-using System;
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Abstractions.Queries;
 using Server.Domain.Measurements;
@@ -50,7 +49,7 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                 pm.ManufactureCode,
                 pm.LastTimeWatchedOnEbay,
                 pm.Measurements
-                
+
             ))
             .ToListAsync(cancellationToken);
 
@@ -161,42 +160,42 @@ internal sealed class MeasurementQueries : IMeasurementQueries
         var publishedThreshold = DateTime.UtcNow.AddDays(-7);
 
         var measurementsQuery = from measurement in _dbContext.ProductMeasurements
-            where measurement.ProductId == productId
-            where !withLotIdFilter || measurement.LotId == lotId
-            where productStates.Contains(measurement.ProductState)
-            where measurementStates.Contains(measurement.MeasurementState)
-            join difference in
-                _dbContext.MatchedPairDifferences.AsNoTracking() // этот джойн нужен для двойных триодов
-                on new
-                {
-                    MeasurementId1 = measurement.Id,
-                    MeasurementId2 = measurement.Id,
-                    ComparisonMode = ComparisonMode.Cross
-                }
-                equals new
-                {
-                    MeasurementId1 = difference.Measurement1Id,
-                    MeasurementId2 = difference.Measurement2Id,
-                    difference.ComparisonMode
-                }
-                into differences
-            from difference in differences.DefaultIfEmpty()
-            orderby measurement.MatchId, measurement.CreatedAt descending, measurement.Id descending
-            select new MeasurementInfoWithSimilarMeasurements(
-                new MeasurementInfo(
-                    measurement.Id,
-                    measurement.ProductId,
-                    measurement.MatchId,
-                    measurement.LotId,
-                    measurement.Location,
-                    measurement.MeasurementState,
-                    measurement.ProductState,
-                    measurement.ManufactureCode,
-                    measurement.LastTimeWatchedOnEbay
-                ),
-                difference == null ? null :difference.RmseSection1,
-                                    Array.Empty<SimilarMeasurementInfo>(),
-                                    null);
+                                where measurement.ProductId == productId
+                                where !withLotIdFilter || measurement.LotId == lotId
+                                where productStates.Contains(measurement.ProductState)
+                                where measurementStates.Contains(measurement.MeasurementState)
+                                join difference in
+                                    _dbContext.MatchedPairDifferences.AsNoTracking() // этот джойн нужен для двойных триодов
+                                    on new
+                                    {
+                                        MeasurementId1 = measurement.Id,
+                                        MeasurementId2 = measurement.Id,
+                                        ComparisonMode = ComparisonMode.Cross
+                                    }
+                                    equals new
+                                    {
+                                        MeasurementId1 = difference.Measurement1Id,
+                                        MeasurementId2 = difference.Measurement2Id,
+                                        difference.ComparisonMode
+                                    }
+                                    into differences
+                                from difference in differences.DefaultIfEmpty()
+                                orderby measurement.MatchId, measurement.CreatedAt descending, measurement.Id descending
+                                select new MeasurementInfoWithSimilarMeasurements(
+                                    new MeasurementInfo(
+                                        measurement.Id,
+                                        measurement.ProductId,
+                                        measurement.MatchId,
+                                        measurement.LotId,
+                                        measurement.Location,
+                                        measurement.MeasurementState,
+                                        measurement.ProductState,
+                                        measurement.ManufactureCode,
+                                        measurement.LastTimeWatchedOnEbay
+                                    ),
+                                    difference == null ? null : difference.RmseSection1,
+                                                        Array.Empty<SimilarMeasurementInfo>(),
+                                                        null);
 
         var measurements = await measurementsQuery.ToListAsync(cancellationToken);
 

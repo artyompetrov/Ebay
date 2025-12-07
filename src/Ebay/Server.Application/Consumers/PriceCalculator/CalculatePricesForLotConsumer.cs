@@ -27,6 +27,7 @@ internal class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
         _shippingRates = shippingRatesService.ShippingRatesDictionary;
     }
 
+    [Obsolete]
     public async Task Consume(ConsumeContext<CalculatePricesForLot> context)
     {
 

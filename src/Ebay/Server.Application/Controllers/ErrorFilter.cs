@@ -34,7 +34,7 @@ public sealed class ErrorFilter : IAsyncActionFilter, IExceptionFilter
 
         _ = await next();
     }
-
+    
     public void OnException(ExceptionContext context)
     {
         var exception = context.Exception;

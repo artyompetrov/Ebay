@@ -63,6 +63,7 @@ public class ChipfindBackgroundTask : BackgroundTask
         }
     }
 
+    [Obsolete]
     private async Task ProcessAdvertisement(
         IEmailSender emailSender,
         IChipfindAdapter chipfindAdapter,

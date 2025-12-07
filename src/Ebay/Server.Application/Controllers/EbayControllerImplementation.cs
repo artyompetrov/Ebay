@@ -94,6 +94,7 @@ internal class EbayControllerImplementation : IEbayController
         _ = await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 
+    [Obsolete]
     public async Task DeleteProductPassportAsync(
         Guid productId,
         Guid passportId,
@@ -117,6 +118,7 @@ internal class EbayControllerImplementation : IEbayController
         _ = await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 
+    [Obsolete]
     public async Task<TubeWorkingPoint> GetTubeWorkingPointAsync(
         Guid productId,
         CancellationToken cancellationToken)
@@ -126,6 +128,7 @@ internal class EbayControllerImplementation : IEbayController
         return workingPoint == null ? throw NonOkHttpAnswerException.NotFound400() : workingPoint.ToApiTubeWorkingPoint();
     }
 
+    [Obsolete]
     public async Task UpsertTubeWorkingPointAsync(
         TubeWorkingPoint workingPoint,
         Guid productId,
@@ -148,6 +151,7 @@ internal class EbayControllerImplementation : IEbayController
         }
     }
 
+    [Obsolete]
     public async Task UpdateProductPassportAsync(
         ProductPassportUpdate passport,
         Guid productId,
@@ -223,6 +227,7 @@ internal class EbayControllerImplementation : IEbayController
             cancellationToken: cancellationToken);
     }
 
+    [Obsolete]
     public async Task<ProductWithId> GetProductAsync(
         Guid id,
         CancellationToken cancellationToken
@@ -240,6 +245,7 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken
     ) => await _productService.MarkProductAsCheckedAsync(id, cancellationToken);
 
+    [Obsolete]
     public async Task<ICollection<SaleAdvertisement>> GetSaleAdvertisementsAsync(
         Guid productId,
         CancellationToken cancellationToken)
@@ -269,7 +275,7 @@ internal class EbayControllerImplementation : IEbayController
                 contact: x.Contact))];
     }
 
-
+    [Obsolete]
     public async Task<ICollection<LotInfoShort>> GetLotsAsync(
         Guid productId,
         CancellationToken cancellationToken
@@ -292,6 +298,7 @@ internal class EbayControllerImplementation : IEbayController
         return [.. lots.Select(x => x.ToApiLotInfoShort())];
     }
 
+    [Obsolete]
     public async Task UpsertLotInfoAsync(
         LotInfo lotInfo,
         Guid productId,
@@ -360,6 +367,7 @@ internal class EbayControllerImplementation : IEbayController
         return ignoredLots;
     }
 
+    [Obsolete]
     public async Task IgnoreLotsAsync(
         IEnumerable<long> ignoredLots,
         Guid productId,
@@ -452,6 +460,7 @@ internal class EbayControllerImplementation : IEbayController
         return result;
     }
 
+    [Obsolete]
     public async Task UploadMeasurementAsync(
         MeasurementDataToUpload measurementData,
         Guid productId,
@@ -477,9 +486,9 @@ internal class EbayControllerImplementation : IEbayController
 
     public async Task<ICollection<string?>> GetLotIdsForProductAsync(Guid productId, CancellationToken cancellationToken)
     {
-        return [.. (await _measurementService.GetLotIdsForProductAsync(
+        return [.. await _measurementService.GetLotIdsForProductAsync(
             productId: productId,
-            cancellationToken: cancellationToken))];
+            cancellationToken: cancellationToken)];
     }
 
     public async Task DeleteMeasurementAsync(
@@ -561,6 +570,7 @@ internal class EbayControllerImplementation : IEbayController
             cancellationToken: cancellationToken);
     }
 
+    [Obsolete]
     public async Task<LotInfoWithProductId> GetLotInfoAsync(
         long lotId,
         CancellationToken cancellationToken
@@ -577,6 +587,7 @@ internal class EbayControllerImplementation : IEbayController
         return dbLot == null ? throw NonOkHttpAnswerException.NotFound400() : dbLot.ToApiLot();
     }
 
+    [Obsolete]
     public async Task DeleteLotInfoAsync(long lotId, CancellationToken cancellationToken)
     {
         using var transaction = TransactionScopeFactory.Create();
