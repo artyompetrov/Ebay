@@ -179,10 +179,7 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                                     measurement.LotId,
                                     difference != null ? difference.RmseSection1 : null,
                                     measurement.MeasurementState,
-                                    measurement.LastTimeWatchedOnEbay)
-                                {
-                                    IsPublishedOnEbay = measurement.LastTimeWatchedOnEbay >= publishedThreshold
-                                };
+                                    measurement.LastTimeWatchedOnEbay >= publishedThreshold);
 
         var measurements = await measurementsQuery.ToListAsync(cancellationToken);
 

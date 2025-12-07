@@ -15,11 +15,10 @@ public record MeasurementInfoWithSimilarMeasurements(
     string? LotId,
     double? DoubleTriodeSectionRmse,
     MeasurementState MeasurementState,
-    DateTime? LastTimeWatchedOnEbay)
+    bool IsPublishedOnEbay
+    )
 {
     public IReadOnlyCollection<SimilarMeasurementInfo> SimilarMeasurements { get; init; } = [];
-
-    public bool IsPublishedOnEbay { get; init; }
 
     /// <summary>
     /// Параметр по которому сортируем лампы в списке
