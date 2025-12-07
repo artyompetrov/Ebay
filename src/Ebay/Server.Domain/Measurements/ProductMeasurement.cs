@@ -197,4 +197,13 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
             Validate();
         }
     }
+
+    public DateTime? LastTimeWatchedOnEbay { get; private set; }
+
+    public void MarkWatchedOnEbay(DateTime watchedAtUtc)
+    {
+        LastTimeWatchedOnEbay = watchedAtUtc.Kind == DateTimeKind.Utc
+            ? watchedAtUtc
+            : watchedAtUtc.ToUniversalTime();
+    }
 }

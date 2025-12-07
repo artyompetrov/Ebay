@@ -22,6 +22,8 @@ internal sealed class ProductMeasurementView : IViewProjection<ProductMeasuremen
 
     public required string? LotId { get; set; }
 
+    public required DateTime? LastTimeWatchedOnEbay { get; set; }
+
     public required byte[] Measurements { get; set; }
 
     public static Expression<Func<ProductMeasurement, ProductMeasurementView>> ToView => x =>
@@ -36,6 +38,7 @@ internal sealed class ProductMeasurementView : IViewProjection<ProductMeasuremen
             Location = x.Location,
             MatchId = x.MatchId,
             LotId = x.LotId,
+            LastTimeWatchedOnEbay = x.LastTimeWatchedOnEbay,
             Measurements = x.Measurements
         };
 }
