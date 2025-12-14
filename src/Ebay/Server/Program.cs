@@ -5,13 +5,13 @@ using Microsoft.AspNetCore.DataProtection;
 using OpenTelemetry.Logs;
 using Server;
 using Server.Adapters.ChipFind;
+using Server.Adapters.EF.ReadModel;
 using Server.Adapters.EF.WriteModel;
 using Server.Adapters.Smtp;
 using Server.Adapters.uTracer;
 using Server.Adapters.Web;
 using Server.Application;
 using Server.Application.Data;
-using Sever.Adapters.EF.ReadModel;
 using Secret = Duende.IdentityServer.Models.Secret;
 
 //IdentityModelEventSource.ShowPII = true;

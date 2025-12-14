@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Server.Application.Abstractions.Queries;
 using Server.Domain.Measurements;
 
-namespace Sever.Adapters.EF.ReadModel.Queries;
+namespace Server.Adapters.EF.ReadModel.Queries;
 
 internal sealed class MeasurementQueries : IMeasurementQueries
 {

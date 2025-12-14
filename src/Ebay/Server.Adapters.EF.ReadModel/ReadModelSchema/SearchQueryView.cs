@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
 using Server.Domain;
 
-namespace Sever.Adapters.EF.ReadModel.ReadModelSchema;
+namespace Server.Adapters.EF.ReadModel.ReadModelSchema;
 
 internal sealed class SearchQueryView : IViewProjection<SearchQuery, SearchQueryView>
 {

@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
 using Server.Domain.Measurements;
 
-namespace Sever.Adapters.EF.ReadModel.ReadModelSchema;
+namespace Server.Adapters.EF.ReadModel.ReadModelSchema;
 
 internal sealed class MatchedPairDifferenceView : IViewProjection<MatchedPairDifference, MatchedPairDifferenceView>
 {

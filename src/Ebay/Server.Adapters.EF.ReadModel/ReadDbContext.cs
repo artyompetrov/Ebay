@@ -1,10 +1,10 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Server.Adapters.EF.ReadModel.ReadModelSchema;
 using Server.Domain;
-using Sever.Adapters.EF.ReadModel.ReadModelSchema;
 
-namespace Sever.Adapters.EF.ReadModel;
+namespace Server.Adapters.EF.ReadModel;
 
 internal sealed class ReadDbContext : DbContext
 {

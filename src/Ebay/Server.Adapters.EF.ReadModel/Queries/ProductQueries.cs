@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Server.Application.Abstractions.Queries;
 using Server.Domain;
 
-namespace Sever.Adapters.EF.ReadModel.Queries;
+namespace Server.Adapters.EF.ReadModel.Queries;
 
 internal sealed class ProductQueries : IProductQueries
 {
