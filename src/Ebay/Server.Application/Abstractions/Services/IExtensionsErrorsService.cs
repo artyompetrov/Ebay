@@ -1,6 +1,8 @@
-﻿namespace Server.Application.Abstractions.Services;
+﻿using Server.Domain.ClientErrors;
+
+namespace Server.Application.Abstractions.Services;
 
 public interface IExtensionsErrorsService
 {
-    void SaveError(ClientErrorInfo error, CancellationToken cancellationToken);
+    Task SaveError(ClientErrorInfo error, CancellationToken cancellationToken);
 }

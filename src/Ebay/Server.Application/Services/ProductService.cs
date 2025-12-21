@@ -104,6 +104,6 @@ internal class ProductService : IProductService
     public async Task CalculatePricesForAllAsync(CancellationToken cancellationToken)
     {
         await _publishEndpoint.Publish(new CalculatePricesForAll(), cancellationToken);
-        _ = await _applicationContext.SaveChangesAsync(cancellationToken);
+        _ = await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }
