@@ -1,6 +1,7 @@
 using System.Globalization;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Server.Application.Abstractions.Queries.Currencies;
 using Server.Application.Abstractions.Services;
 using Server.Application.Consumers.PriceCalculator;
 using Server.Application.Data;
@@ -39,7 +40,8 @@ internal class EbayControllerImplementation : IEbayController
     private readonly ISaleAdvertisementService _saleAdvertisementService;
     private readonly IManualFieldsExtractorService _manualFieldsExtractorService;
     private readonly IExtensionsErrorsService _extensionsErrorsService;
-    private readonly ICurrenciesService _currenciesService;
+    private readonly ICurrenciesQueries _currenciesQueries;
+
     private readonly ILotsService _lotsService;
 
     public EbayControllerImplementation(
@@ -51,7 +53,7 @@ internal class EbayControllerImplementation : IEbayController
         ISaleAdvertisementService saleAdvertisementService,
         IManualFieldsExtractorService manualFieldsExtractorService,
         IExtensionsErrorsService extensionsErrorsService,
-        ICurrenciesService currenciesService,
+        ICurrenciesQueries currenciesQueries,
         ILotsService lotsService)
     {
         _shippingRatesService = shippingRatesService;
@@ -62,7 +64,7 @@ internal class EbayControllerImplementation : IEbayController
         _saleAdvertisementService = saleAdvertisementService;
         _manualFieldsExtractorService = manualFieldsExtractorService;
         _extensionsErrorsService = extensionsErrorsService;
-        _currenciesService = currenciesService;
+        _currenciesQueries = currenciesQueries;
         _lotsService = lotsService;
     }
 
@@ -74,7 +76,7 @@ internal class EbayControllerImplementation : IEbayController
 
         return workingPoint == null
             ? throw NonOkHttpAnswerException.NotFound400()
-            : workingPoint.ToApiTubeWorkingPoint();
+            : workingPoint.ToApi();
     }
 
 
@@ -104,7 +106,7 @@ internal class EbayControllerImplementation : IEbayController
     {
         var products = await _productService.GetAllProductsAsync(cancellationToken);
 
-        return [.. products.Select(x => x.ToApiProduct())];
+        return [.. products.Select(x => x.ToApi())];
     }
 
     public async Task<Guid> CreateProductAsync(
@@ -144,7 +146,7 @@ internal class EbayControllerImplementation : IEbayController
     {
         var product = await _productService.GetProductAsync(id, cancellationToken);
 
-        return product == null ? throw NonOkHttpAnswerException.NotFound400() : product.ToApiProduct();
+        return product == null ? throw NonOkHttpAnswerException.NotFound400() : product.ToApi();
     }
 
     public async Task DeleteProductAsync(Guid id, CancellationToken cancellationToken) =>
@@ -219,7 +221,7 @@ internal class EbayControllerImplementation : IEbayController
             : (MeasurementState?)null;
 
         var measurementStates = apiMeasurementState.HasValue
-            ? [apiMeasurementState.Value.ToDbMeasurementState()]
+            ? [apiMeasurementState.Value.ToApplication()]
             : Enum.GetValues<Domain.Measurements.MeasurementState>();
 
         var productStates = Enum.GetValues<Domain.Measurements.ProductState>();
@@ -236,11 +238,11 @@ internal class EbayControllerImplementation : IEbayController
                 manufactureCode: x.MeasurementInfo.ManufactureCode,
                 measurementId: x.MeasurementInfo.Id,
                 isPublishedOnEbay: x.MeasurementInfo.IsPublishedOnEbay,
-                productState: x.MeasurementInfo.ProductState.ToApiProductState(),
+                productState: x.MeasurementInfo.ProductState.ToApi(),
                 location: x.MeasurementInfo.Location,
                 matchId: x.MeasurementInfo.MatchId,
                 lotId: x.MeasurementInfo.LotId,
-                measurementState: x.MeasurementInfo.MeasurementState.ToApiMeasurementState(),
+                measurementState: x.MeasurementInfo.MeasurementState.ToApi(),
                 similarMeasurements:
                 [
                     .. x.SimilarMeasurements
@@ -277,7 +279,7 @@ internal class EbayControllerImplementation : IEbayController
             await _measurementService.SaveMeasurement(
                 measurementId: measurementData.MeasurementId,
                 measurementsFile: measurementData.File,
-                productState: measurementData.ProductState.ToDbProductState(),
+                productState: measurementData.ProductState.ToApplication(),
                 manufactureCode: measurementData.ManufactureCode,
                 productId: productId,
                 cancellationToken: cancellationToken);
@@ -367,7 +369,7 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken)
     {
         await _measurementService.UpdateMeasurementState(
-            state: state.ToDbMeasurementState(),
+            state: state.ToApplication(),
             measurementId: measurementId,
             cancellationToken: cancellationToken);
     }
@@ -416,7 +418,7 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken
     )
     {
-        return Task.FromResult(_manualFieldsExtractorService.GetCategories());
+        return Task.FromResult(_manualFieldsExtractorService.GetCategories().Select(x=>x.ToWebApi()));
     }
 
     public Task<ICollection<ShippingType>> GetShippingRatesAsync(
@@ -427,8 +429,8 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken
     )
     {
-        var currencies = await _currenciesService.GetCurrencies();
-        return currencies.Select(x => x.ToApiCurrency()).ToList();
+        var currencies = await _currenciesQueries.GetCurrenciesAsync(cancellationToken);
+        return currencies.Select(x => x.ToApi()).ToList();
 
     }
 
@@ -438,7 +440,7 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken)
     {
         return Task.FromResult(
-            _manualFieldsExtractorService.ExtractManualData(lotInfo).ToApiExtractedData()
+            _manualFieldsExtractorService.ExtractManualData(lotInfo).ToApi()
         );
     }
 

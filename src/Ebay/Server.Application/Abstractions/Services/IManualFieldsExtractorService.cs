@@ -1,4 +1,5 @@
-﻿using Server.Application.Services.LotDataExtractor;
+﻿using Server.Application.Abstractions.Models.EbayLots;
+using Server.Application.Services.LotDataExtractor;
 
 namespace Server.Application.Abstractions.Services;
 

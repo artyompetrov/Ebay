@@ -1,4 +1,5 @@
 
+using Server.Application.Abstractions.Models.EbayLots;
 using Server.Application.Abstractions.Services;
 
 namespace Server.Application.Services.LotDataExtractor;
@@ -31,28 +32,28 @@ internal class ManualFieldsExtractorService : IManualFieldsExtractorService
 
     public ICollection<CategoryType> GetCategories()
     {
-        return Task.FromResult<ICollection<CategoryType>>(
-            [
-                new(
-                    items:
-                    [
-                        new(description: "NEW", id: WellKnown.Categories.Conditions.New),
-                        new(description: "USED", id: WellKnown.Categories.Conditions.Used),
-                        new(description: "NOT WORKING", id: WellKnown.Categories.Conditions.NotWorking)
-                    ],
-                    type: "condition"
-                ),
+        return
+        [
+            new(
+                Items:
+                [
+                    new(Description: "NEW", Id: WellKnown.Categories.Conditions.New),
+                    new(Description: "USED", Id: WellKnown.Categories.Conditions.Used),
+                    new(Description: "NOT WORKING", Id: WellKnown.Categories.Conditions.NotWorking)
+                ],
+                Type: "condition"
+            ),
 
-                new(
-                    items:
-                    [
-                        new(description: "Not tested", id: WellKnown.Categories.TestState.NotTested),
-                        new(description: "Tested", id: WellKnown.Categories.TestState.Tested),
-                        new(description: "Mathced", id: WellKnown.Categories.TestState.Matched)
-                    ],
-                    type: "test_state"
-                )
-            ]
-        );
+            new(
+                Items:
+                [
+                    new(Description: "Not tested", Id: WellKnown.Categories.TestState.NotTested),
+                    new(Description: "Tested", Id: WellKnown.Categories.TestState.Tested),
+                    new(Description: "Mathced", Id: WellKnown.Categories.TestState.Matched)
+                ],
+                Type: "test_state"
+            )
+        ];
+
     }
 }
