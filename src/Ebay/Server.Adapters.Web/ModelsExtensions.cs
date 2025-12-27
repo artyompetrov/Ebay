@@ -189,11 +189,6 @@ internal static class ModelsExtensions
         };
     }
 
-    public static ClientError ToApplication(this ClientErrorInfo error)
-    {
-        return new() { Url = error.Url, ErrorText = error.Error };
-    }
-
     public static Server.Controllers.Generated.Currency ToApi(this CurrencyDetailsReadModel currency)
     {
         return new(

@@ -134,12 +134,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
             _ = entity.HasKey(e => new { e.Key, e.Version });
         });
 
-
-        _ = builder.Entity<ProductPassport>(entity =>
-        {
-            _ = entity.HasIndex(e => new { e.ProductId, e.Order });
-        });
-
+        
         _ = builder.Entity<TubeWorkingPoint>(entity =>
         {
             _ = entity.HasKey(e => e.Id);
@@ -199,13 +194,9 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
     public DbSet<IgnoredLot> IgnoredLots { get; set; } = null!;
 
     public DbSet<Purchase> Purchases { get; set; } = null!;
-
-    public DbSet<ClientError> ClientErrors { get; set; } = null!;
-
+    
     public DbSet<ProductMeasurement> ProductMeasurements { get; set; } = null!;
-
-    public DbSet<ProductPassport> ProductPassports { get; set; } = null!;
-
+    
     public DbSet<Currency> Currencies { get; set; } = null!;
 
     public DbSet<ProductEmailSendHistory> ProductEmailSendHistory { get; set; } = null!;
