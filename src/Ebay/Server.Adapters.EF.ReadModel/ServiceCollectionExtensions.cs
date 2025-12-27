@@ -20,7 +20,6 @@ public static class ServiceCollectionExtensions
     {
         _ = services.AddDbContext<ReadDbContext>(o => o.UseNpgsql(connectionString));
         _ = services.AddScoped<IProductQueries, ProductQueries>();
-        _ = services.AddScoped<IPassportQueries, PassportQueries>();
         _ = services.AddScoped<IMeasurementQueries, MeasurementQueries>();
         _ = services.AddScoped<ITubeWorkingPointQueries, TubeWorkingPointQueries>();
     }

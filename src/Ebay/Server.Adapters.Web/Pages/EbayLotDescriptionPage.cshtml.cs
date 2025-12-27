@@ -9,16 +9,13 @@ public class EbayLotDescriptionPage : PageModel
 {
     private readonly IMeasurementQueries _measurementQueries;
     private readonly IProductQueries _productQueries;
-    private readonly IPassportQueries _passportQueries;
 
     public EbayLotDescriptionPage(
         IMeasurementQueries measurementQueries,
-        IProductQueries productQueries,
-        IPassportQueries passportQueries)
+        IProductQueries productQueries)
     {
         _measurementQueries = measurementQueries;
         _productQueries = productQueries;
-        _passportQueries = passportQueries;
     }
 
     public ProductState State { get; set; }
@@ -26,11 +23,7 @@ public class EbayLotDescriptionPage : PageModel
     public Guid ProductId { get; set; }
     public string? LotId { get; set; }
     public ProductInfo Product { get; set; } = null!;
-
-    public IReadOnlyList<Passport> Passports { get; set; } = null!;
-
-
-
+    
     public IReadOnlyCollection<MeasurementInfoWithSimilarMeasurements> Measurements { get; set; } = null!;
 
     public async Task<IActionResult> OnGet(Guid productId, MeasurementState? measurementState, ProductState? state, CancellationToken cancellationToken, string? lotId = null)
@@ -48,8 +41,7 @@ public class EbayLotDescriptionPage : PageModel
         State = state.Value;
         ProductId = productId;
         LotId = lotId;
-
-
+        
 
         var product = await _productQueries.GetProductAsync(productId, cancellationToken);
 
@@ -60,7 +52,6 @@ public class EbayLotDescriptionPage : PageModel
 
         Measurements = await _measurementQueries.GetMeasurementInfosWithSimilarMeasurements(productId, lotId, productStates:
             [state.Value], measurementStates: [measurementState.Value], cancellationToken: cancellationToken);
-        Passports = await _passportQueries.GetPassports(productId, cancellationToken);
 
         Product = product;
 

@@ -22,8 +22,6 @@ using LotInfoWithProductId = Server.Controllers.Generated.LotInfoWithProductId;
 using LotState = Server.Controllers.Generated.LotState;
 using MeasurementData = Server.Controllers.Generated.MeasurementData;
 using MeasurementState = Server.Controllers.Generated.MeasurementState;
-using ProductPassportInfo = Server.Controllers.Generated.ProductPassportInfo;
-using ProductPassportUpload = Server.Controllers.Generated.ProductPassportUpload;
 using ProductWithId = Server.Controllers.Generated.ProductWithId;
 using ProductWithoutId = Server.Controllers.Generated.ProductWithoutId;
 using SaleAdvertisement = Server.Controllers.Generated.SaleAdvertisement;
@@ -38,7 +36,6 @@ internal class EbayControllerImplementation : IEbayController
     private readonly IMatchedMeasurementService _matchedMeasurementService;
     private readonly ITubeWorkingPointService _tubeWorkingPointService;
     private readonly IProductService _productService;
-    private readonly IProductPassportsService _productPassportsService;
     private readonly ISaleAdvertisementService _saleAdvertisementService;
     private readonly IManualFieldsExtractorService _manualFieldsExtractorService;
     private readonly IExtensionsErrorsService _extensionsErrorsService;
@@ -51,7 +48,6 @@ internal class EbayControllerImplementation : IEbayController
         IMatchedMeasurementService matchedMeasurementService,
         ITubeWorkingPointService tubeWorkingPointService,
         IProductService productService,
-        IProductPassportsService productPassportsService,
         ISaleAdvertisementService saleAdvertisementService,
         IManualFieldsExtractorService manualFieldsExtractorService,
         IExtensionsErrorsService extensionsErrorsService,
@@ -63,40 +59,12 @@ internal class EbayControllerImplementation : IEbayController
         _matchedMeasurementService = matchedMeasurementService;
         _tubeWorkingPointService = tubeWorkingPointService;
         _productService = productService;
-        _productPassportsService = productPassportsService;
         _saleAdvertisementService = saleAdvertisementService;
         _manualFieldsExtractorService = manualFieldsExtractorService;
         _extensionsErrorsService = extensionsErrorsService;
         _currenciesService = currenciesService;
         _lotsService = lotsService;
     }
-
-    public Task<ICollection<ProductPassportInfo>> GetProductPassportsAsync(
-        Guid productId,
-        CancellationToken cancellationToken) =>
-        _productPassportsService.GetProductPassportsAsync(productId, cancellationToken);
-
-    public Task UploadProductPassportAsync(
-        ProductPassportUpload passport,
-        Guid productId,
-        CancellationToken cancellationToken) =>
-        _productPassportsService.UploadProductPassportAsync(passport, productId, cancellationToken);
-
-    public Task UpdateProductPassportAsync(
-        ProductPassportUpdate passport,
-        Guid productId,
-        Guid passportId,
-        CancellationToken cancellationToken) =>
-        _productPassportsService.UpdateProductPassportAsync(passport, productId, passportId, cancellationToken);
-
-    public Task DeleteProductPassportAsync(
-        Guid productId,
-        Guid passportId,
-        CancellationToken cancellationToken) =>
-        _productPassportsService.DeleteProductPassport(
-            productId: productId,
-            passportId: passportId,
-            cancellationToken: cancellationToken);
 
     public async Task<TubeWorkingPoint> GetTubeWorkingPointAsync(
         Guid productId,
@@ -461,9 +429,8 @@ internal class EbayControllerImplementation : IEbayController
         _currenciesService.GetCurrencies();
 
     public Task<ICollection<ExtractedFields>> ExtractDataAsync(
-        LotDataToExtract lotInfo,
-        CancellationToken cancellationToken
-    )
+        Server.Controllers.Generated.LotDataToExtract lotInfo,
+        CancellationToken cancellationToken)
     {
         return Task.FromResult(
             _manualFieldsExtractorService.ExtractManualData(lotInfo).ToApiExtractedData()

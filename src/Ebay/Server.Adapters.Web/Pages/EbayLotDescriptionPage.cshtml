@@ -1,7 +1,8 @@
 ﻿@page "/ebay_description/{productId}"
 @using System.Net
+@using Server.Adapters.Web.Pages
 @using Server.Domain.Measurements
-@model Server.Application.Pages.EbayLotDescriptionPage
+@model Server.Adapters.Web.Pages.EbayLotDescriptionPage
 
 @{
     Layout = null;
@@ -204,23 +205,4 @@ else
             }
         }
     </table>
-}
-
-@if (Model.Passports.Count > 0)
-{
-    <p>You can view the passport scans by expanding the section below.</p>
-    <input type="checkbox" id="passport-toggle" class="passport-toggle" />
-    <label for="passport-toggle" class="passport-label">📄 Product passport (click to expand)</label>
-    <div class="passport-content">
-        @foreach (var passport in Model.Passports)
-        {
-            <img src="@($"{baseUrl}/products/{Model.ProductId}/passports/{passport.Id}")" alt="@passport.FileName" />
-        }
-    </div>
-    <style>
-        .passport-toggle { display: none; }
-        .passport-label { cursor: pointer; color: #0063d1; text-decoration: underline; }
-        .passport-toggle:not(:checked) + .passport-label + .passport-content { display: none; }
-        .passport-content img { max-width: 100%; height: auto; display: block; margin: 10px auto; }
-    </style>
 }
