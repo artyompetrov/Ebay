@@ -254,7 +254,8 @@ internal static class ModelsExtensions
         };
     }
 
-    public static Server.Controllers.Generated.MeasurementState ToApi(this Server.Domain.Measurements.MeasurementState state)
+    public static Server.Controllers.Generated.MeasurementState ToApi(
+        this Server.Domain.Measurements.MeasurementState state)
     {
         return state switch
         {
@@ -287,4 +288,26 @@ internal static class ModelsExtensions
 
     public static CategoryItem ToApi(this Application.Abstractions.Models.EbayLots.Category category) =>
         new(category.Description, category.Id);
+
+
+    public static ShippingType ToApi(this Server.Application.Abstractions.Models.ShippingRates.ShippingType type) =>
+        new(type.Currency, type.Name, type.Rates.Select(x=>x.ToApi()).ToList());
+
+    public static ShippingRates ToApi(this Server.Application.Abstractions.Models.ShippingRates.ShippingRates rate) =>
+        new(
+            rate.PostZone,
+            rate.Rates.Select(x => x.ToApi()).ToList(),
+            rate.SpecifiedCountries?.Select(x => x.ToApi()).ToList());
+
+
+    public static ShippingRate ToApi(
+        this Server.Application.Abstractions.Models.ShippingRates.ShippingRateWithoutCurrency rateWithoutCurrency) =>
+        new(rateWithoutCurrency.WeightFrom, rateWithoutCurrency.WeightTo, rateWithoutCurrency.Price);
+
+    public static ShippingCountry ToApi(this Server.Application.Abstractions.Models.ShippingRates.Country country) =>
+        new(
+            twoLetterCode: country.TwoLetterCode,
+            threeLetterCode: country.ThreeLetterCode,
+            nameRu: country.RuName
+        );
 }

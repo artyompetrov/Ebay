@@ -416,14 +416,12 @@ internal class EbayControllerImplementation : IEbayController
 
     public Task<ICollection<CategoryType>> GetCategoriesAsync(
         CancellationToken cancellationToken
-    )
-    {
-        return Task.FromResult(_manualFieldsExtractorService.GetCategories().Select(x=>x.ToWebApi()));
-    }
+    ) =>
+        Task.FromResult((ICollection<CategoryType>)_manualFieldsExtractorService.GetCategories().Select(x=>x.ToApi()).ToList());
 
     public Task<ICollection<ShippingType>> GetShippingRatesAsync(
         CancellationToken cancellationToken
-    ) => Task.FromResult<ICollection<ShippingType>>([.. _shippingRatesService.ShippingRates]);
+    ) => Task.FromResult<ICollection<ShippingType>>(_shippingRatesService.ShippingRates.Select(x=>x.ToApi()).ToList());
 
     public async Task<ICollection<Currency>> GetCurrenciesAsync(
         CancellationToken cancellationToken
