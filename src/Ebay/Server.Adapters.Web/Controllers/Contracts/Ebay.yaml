@@ -599,20 +599,6 @@ paths:
             items:
               $ref: '#/definitions/ExtractedFields'
 
-  /error/:
-    post:
-      operationId: SaveError
-      summary: Save Error
-      parameters:
-        - name: error
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/ClientErrorInfo'
-      responses:
-        200:
-          description: 'Ok'
-
   /calculate_prices_for_all/:
     post:
       operationId: CalculatePricesForAll
@@ -1254,17 +1240,6 @@ definitions:
     required:
       - lotId
       - lastUpdate
-
-  ClientErrorInfo:
-    type: object
-    properties:
-      url:
-        type: string
-      error:
-        type: string
-    required:
-      - url
-      - error
 
   ShippingType:
     type: object

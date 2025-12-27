@@ -1226,14 +1226,7 @@ class EbaySiteProcessor implements ISiteProcessor {
 
     async saveErrorToBackend(error: Error) {
         let errorText = JSON.stringify(error) + " " + error?.stack
-        try {
-            let errorText = JSON.stringify(error) + " " + error?.stack
-            await this._ebayToolBackendClient.saveError(new EbayToolBackendClient.ClientErrorInfo({
-                error: errorText,
-                url: document.location.href
-            }))
-        } catch {
-            console.log("Unable to save error to backend " + errorText)
-        }
+        
+        console.log("Unable to save error to backend because this functionality was removed from bakend" + errorText)
     }
 }

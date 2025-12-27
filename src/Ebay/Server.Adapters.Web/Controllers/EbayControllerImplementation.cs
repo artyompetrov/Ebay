@@ -14,7 +14,6 @@ using Server.Domain;
 using Server.Domain.Exceptions;
 using Server.Domain.Measurements;
 using ApiSimilarMeasurementInfo = Server.Controllers.Generated.SimilarMeasurementInfo;
-using ClientErrorInfo = Server.Controllers.Generated.ClientErrorInfo;
 using Currency = Server.Controllers.Generated.Currency;
 using LotDataToExtract = Client.Clients.Generated.LotDataToExtract;
 using LotInfo = Server.Controllers.Generated.LotInfo;
@@ -39,7 +38,6 @@ internal class EbayControllerImplementation : IEbayController
     private readonly IProductService _productService;
     private readonly ISaleAdvertisementService _saleAdvertisementService;
     private readonly IManualFieldsExtractorService _manualFieldsExtractorService;
-    private readonly IExtensionsErrorsService _extensionsErrorsService;
     private readonly ICurrenciesQueries _currenciesQueries;
 
     private readonly ILotsService _lotsService;
@@ -52,7 +50,6 @@ internal class EbayControllerImplementation : IEbayController
         IProductService productService,
         ISaleAdvertisementService saleAdvertisementService,
         IManualFieldsExtractorService manualFieldsExtractorService,
-        IExtensionsErrorsService extensionsErrorsService,
         ICurrenciesQueries currenciesQueries,
         ILotsService lotsService)
     {
@@ -63,7 +60,6 @@ internal class EbayControllerImplementation : IEbayController
         _productService = productService;
         _saleAdvertisementService = saleAdvertisementService;
         _manualFieldsExtractorService = manualFieldsExtractorService;
-        _extensionsErrorsService = extensionsErrorsService;
         _currenciesQueries = currenciesQueries;
         _lotsService = lotsService;
     }
@@ -441,9 +437,6 @@ internal class EbayControllerImplementation : IEbayController
             _manualFieldsExtractorService.ExtractManualData(lotInfo).ToApi()
         );
     }
-
-    public Task SaveErrorAsync(ClientErrorInfo error, CancellationToken cancellationToken) =>
-        _extensionsErrorsService.SaveError(error, cancellationToken);
 
     public async Task CalculatePricesForAllAsync(CancellationToken cancellationToken) =>
         await _productService.CalculatePricesForAllAsync(cancellationToken);
