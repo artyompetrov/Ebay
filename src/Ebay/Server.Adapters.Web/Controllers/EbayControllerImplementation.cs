@@ -423,10 +423,15 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken
     ) => Task.FromResult<ICollection<ShippingType>>([.. _shippingRatesService.ShippingRates]);
 
-    public Task<ICollection<Currency>> GetCurrenciesAsync(
+    public async Task<ICollection<Currency>> GetCurrenciesAsync(
         CancellationToken cancellationToken
-    ) =>
-        _currenciesService.GetCurrencies();
+    )
+    {
+        var currencies = await _currenciesService.GetCurrencies();
+        return currencies.Select(x => x.ToApiCurrency()).ToList();
+
+    }
+
 
     public Task<ICollection<ExtractedFields>> ExtractDataAsync(
         Server.Controllers.Generated.LotDataToExtract lotInfo,

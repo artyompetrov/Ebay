@@ -1,4 +1,4 @@
-﻿namespace Server.Application.Abstractions.Models;
+﻿namespace Server.Application.Abstractions.Models.ShippingRates;
 
 public record ShippingRate(int WeightFrom, int WeightTo, double Price, string Currency)
 {

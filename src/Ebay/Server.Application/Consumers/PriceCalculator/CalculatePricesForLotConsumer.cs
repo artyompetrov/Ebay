@@ -2,6 +2,7 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Server.Application.Abstractions.Models;
+using Server.Application.Abstractions.Models.ShippingRates;
 using Server.Application.Data;
 using Server.Application.Infrastructure;
 using Server.Application.Services.LotDataExtractor;

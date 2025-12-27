@@ -1,5 +1,5 @@
 using Server.Application.Abstractions.Models;
-using Server.Controllers.Generated;
+using Server.Application.Abstractions.Models.ShippingRates;
 
 namespace Server.Application.Services.LotDataExtractor;
 
