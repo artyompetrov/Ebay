@@ -26,6 +26,7 @@
   </ItemGroup>
   
   <ItemGroup>
+    <AdditionalFiles Include="Areas\Identity\Pages\Shared\_LoginPartial.cshtml" />
     <AdditionalFiles Include="Pages\EbayLotDescriptionPage.cshtml" />
     <AdditionalFiles Include="Pages\Error.cshtml" />
     <AdditionalFiles Include="Pages\MeasurementPage.cshtml" />

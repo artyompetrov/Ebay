@@ -1,6 +1,7 @@
 using System.Globalization;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Server.Application.Abstractions.Queries;
 using Server.Application.Abstractions.Queries.Currencies;
 using Server.Application.Abstractions.Services;
 using Server.Application.Consumers.PriceCalculator;
@@ -36,11 +37,12 @@ internal class EbayControllerImplementation : IEbayController
     private readonly IMatchedMeasurementService _matchedMeasurementService;
     private readonly ITubeWorkingPointService _tubeWorkingPointService;
     private readonly IProductService _productService;
-    private readonly ISaleAdvertisementService _saleAdvertisementService;
+    private readonly ISaleAdvertisementQueries _saleAdvertisementQueries;
     private readonly IManualFieldsExtractorService _manualFieldsExtractorService;
     private readonly ICurrenciesQueries _currenciesQueries;
 
     private readonly ILotsService _lotsService;
+    private readonly ILotQueries _lotQueries;
 
     public EbayControllerImplementation(
         IShippingRatesService shippingRatesService,
@@ -48,20 +50,22 @@ internal class EbayControllerImplementation : IEbayController
         IMatchedMeasurementService matchedMeasurementService,
         ITubeWorkingPointService tubeWorkingPointService,
         IProductService productService,
-        ISaleAdvertisementService saleAdvertisementService,
+        ISaleAdvertisementQueries saleAdvertisementQueries,
         IManualFieldsExtractorService manualFieldsExtractorService,
         ICurrenciesQueries currenciesQueries,
-        ILotsService lotsService)
+        ILotsService lotsService,
+        ILotQueries lotQueries)
     {
         _shippingRatesService = shippingRatesService;
         _measurementService = measurementService;
         _matchedMeasurementService = matchedMeasurementService;
         _tubeWorkingPointService = tubeWorkingPointService;
         _productService = productService;
-        _saleAdvertisementService = saleAdvertisementService;
+        _saleAdvertisementQueries = saleAdvertisementQueries;
         _manualFieldsExtractorService = manualFieldsExtractorService;
         _currenciesQueries = currenciesQueries;
         _lotsService = lotsService;
+        _lotQueries = lotQueries;
     }
 
     public async Task<TubeWorkingPoint> GetTubeWorkingPointAsync(
@@ -158,7 +162,7 @@ internal class EbayControllerImplementation : IEbayController
         Guid productId,
         CancellationToken cancellationToken)
     {
-        return _saleAdvertisementService.GetSaleAdvertisementsAsync(productId, cancellationToken);
+        return _saleAdvertisementQueries.GetSaleAdvertisementsAsync(productId, cancellationToken);
     }
 
     public Task<ICollection<LotInfoShort>> GetLotsAsync(
@@ -166,19 +170,76 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken
     )
     {
-        return _lotsService.GetLotsAsync(productId, cancellationToken);
+        return _lotQueries.GetLotsAsync(productId, cancellationToken);
     }
-
-
-    public Task UpsertLotInfoAsync(
+    
+    
+    public async Task UpsertLotInfoAsync(
         LotInfo lotInfo,
         Guid productId,
         CancellationToken cancellationToken
-    ) =>
-        _lotsService.UpsertLotInfoAsync(lotInfo, productId, cancellationToken);
+    )
+    {
+        var validationErrors = new List<(string key, string[] value)>();
+
+        if (lotInfo.ShippingAdditional == null)
+        {
+            validationErrors.Add((key: nameof(lotInfo.ShippingAdditional), value: ["Not set"]));
+        }
+        
+        if (lotInfo.Shipping == null)
+        {
+            validationErrors.Add((key: nameof(lotInfo.Shipping), value: ["Not set"]));
+        }
+        
+        if (validationErrors.Count > 0)
+        {
+            throw NonOkHttpAnswerException.ValidationError400(validationErrors);
+        }
+        
+        var maybeLot = Lot.Create(
+            id: lotInfo.LotId,
+            shippingAdditional: lotInfo.ShippingAdditional!.Value,
+            shipping: lotInfo.Shipping!.Value,
+            categories:  lotInfo.Categories.ToDictionary(x=>x.Type, x=> x.Value),
+            titleChangeDate: DateTime.Parse(lotInfo.TitleChangeDate, CultureInfo.InvariantCulture).ToUniversalTime()
+        );
+        
+        await maybeLot.Match<Task>(
+            async lot => await _lotsService.UpsertLotInfoAsync(lot, cancellationToken),
+            error => throw NonOkHttpAnswerException.ValidationError400(error.Message)
+        );
+        
+        
+        //todo закончил тут 
+        var dbLotInfo = lotInfo.ToDbLot(productId: productId, updateDate: DateTime.UtcNow);
+        
+        _ = await _applicationContext.Lots.Upsert(dbLotInfo).RunAsync(cancellationToken);
+
+        var titleChangedDate = DateTime.Parse(lotInfo.TitleChangeDate, CultureInfo.InvariantCulture).ToUniversalTime();
+
+        var filteredPurchaseHistory = lotInfo.PurchaseHistory
+            .Select(x => x.ToDbPurchase(lotId: lotInfo.LotId))
+            .Where(purchase => purchase.Date >= titleChangedDate)
+            .ToList();
+
+        _ = await _applicationContext.Purchases.UpsertRange(filteredPurchaseHistory).RunAsync(cancellationToken);
+
+        _applicationContext.RemoveRange(
+            _applicationContext.Purchases.Where(x => x.LotId == lotInfo.LotId && x.Date < titleChangedDate)
+        );
+
+        _applicationContext.RemoveRange(
+            _applicationContext.IgnoredLots.Where(x => x.ProductId == productId && x.LotId == lotInfo.LotId)
+        );
+
+       
+        
+        
+    }
 
     public Task<ICollection<long>> GetIgnoredLotsAsync(Guid productId, CancellationToken cancellationToken) =>
-        _lotsService.GetIgnoredLotsAsync(productId, cancellationToken);
+        _lotQueries.GetIgnoredLotsAsync(productId, cancellationToken);
 
     public async Task IgnoreLotsAsync(
         IEnumerable<long> ignoredLots,
@@ -199,7 +260,7 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken
     )
     {
-        var lot = await _lotsService.GetIsLotIgnoredForProductAsync(productId, lotId, cancellationToken);
+        var lot = await _lotQueries.GetIsLotIgnoredForProductAsync(productId, lotId, cancellationToken);
 
         return lot;
     }
@@ -255,8 +316,6 @@ internal class EbayControllerImplementation : IEbayController
                             isMatchedPair: similarMeasurement.IsMatchedPair,
                             matchId: similarMeasurement.MatchId,
                             doubleTriodeSectionRmse: similarMeasurement.DoubleTriodeSectionRmse
-
-
                         ))
                 ]))
             .ToList();
@@ -384,7 +443,7 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken
     )
     {
-        var lot = await _lotsService.GetLotInfoAsync(
+        var lot = await _lotQueries.GetLotInfoAsync(
             lotId,
             cancellationToken
         );
@@ -397,14 +456,14 @@ internal class EbayControllerImplementation : IEbayController
         await _lotsService.DeleteLotInfoAsync(lotId: lotId, cancellationToken: cancellationToken);
 
     public Task<ICollection<long>> GetLotIdsAsync(CancellationToken cancellationToken) =>
-        _lotsService.GetLotIdsAsync(cancellationToken);
+        _lotQueries.GetLotIdsAsync(cancellationToken);
 
     public Task<ICollection<LotState>> GetLotStatesAsync(
         IEnumerable<long> lotIds,
         CancellationToken cancellationToken
     )
     {
-        return _lotsService.GetLotStatesAsync(
+        return _lotQueries.GetLotStatesAsync(
             lotIds,
             cancellationToken
         );
@@ -434,7 +493,7 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken)
     {
         return Task.FromResult(
-            _manualFieldsExtractorService.ExtractManualData(lotInfo).ToApi()
+            _manualFieldsExtractorService.ExtractManualData(lotInfo.ToApplication()).ToApi()
         );
     }
 

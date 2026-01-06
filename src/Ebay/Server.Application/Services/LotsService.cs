@@ -1,57 +1,28 @@
-﻿using Server.Application.Abstractions.Services;
+﻿using System.Globalization;
+using Server.Application.Abstractions;
+using Server.Application.Abstractions.Services;
+using Server.Application.Consumers.PriceCalculator;
+using Server.Application.Infrastructure;
+using Server.Domain;
 
 namespace Server.Application.Services;
 
-public class LotsService : ILotsService
+internal class LotsService : ILotsService
 {
-    public ICollection<LotInfoShort> GetLotsAsync(Guid productId, CancellationToken cancellationToken)
+    private readonly IUnitOfWork _unitOfWork;
+
+    public LotsService(IUnitOfWork unitOfWork)
     {
-        var exist = await _applicationContext.Products
-            .AsNoTracking()
-            .AnyAsync(predicate: x => x.Id == productId, cancellationToken: cancellationToken);
-
-        if (!exist)
-        {
-            throw NonOkHttpAnswerException.NotFound400();
-        }
-
-        var lots = await _applicationContext.Lots
-            .AsNoTracking()
-            .Include(x => x.Purchases)
-            .Where(x => x.ProductId == productId).ToListAsync(cancellationToken);
-
-        return [.. lots.Select(x => x.ToApiLotInfoShort())];
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task UpsertLotInfoAsync(LotInfo lotInfo, Guid productId, CancellationToken cancellationToken)
+    public async Task UpsertLotInfoAsync(Lot lot, CancellationToken cancellationToken)
     {
+        await using var tr = await _unitOfWork.BeginTransactionAsync(cancellationToken);
         
-        var validationErrors = new List<(string key, string[] value)>();
-        if (lotInfo.ShippingAdditional == null)
-        {
-            validationErrors.Add((key: nameof(lotInfo.ShippingAdditional), value: ["Not set"]));
-        }
-
-        if (lotInfo.Shipping == null)
-        {
-            validationErrors.Add((key: nameof(lotInfo.Shipping), value: ["Not set"]));
-        }
-
-        if (!new HashSet<string> { WellKnown.Categories.Conditions.CategoryName, WellKnown.Categories.TestState.CategoryName }.SequenceEqual(
-                lotInfo.Categories.Select(x => x.Type)
-            ))
-        {
-            validationErrors.Add((key: nameof(lotInfo.Categories), value: ["Not all categories set"]));
-        }
-
-        if (validationErrors.Count > 0)
-        {
-            throw NonOkHttpAnswerException.ValidationError400(validationErrors);
-        }
 
         var dbLotInfo = lotInfo.ToDbLot(productId: productId, updateDate: DateTime.UtcNow);
-
-        using var transaction = TransactionScopeFactory.Create();
+        
 
         _ = await _applicationContext.Lots.Upsert(dbLotInfo).RunAsync(cancellationToken);
 
@@ -73,20 +44,11 @@ public class LotsService : ILotsService
         );
 
         await _publishEndpoint.Publish(new CalculatePricesForLot(lotInfo.LotId), cancellationToken);
-        _ = await _applicationContext.SaveChangesAsync(cancellationToken);
-        transaction.Complete();
         
-    }
-
-    public async Task<ICollection<long>> GetIgnoredLotsAsync(Guid productId, CancellationToken cancellationToken)
-    {
-        var ignoredLots = await _applicationContext.IgnoredLots
-            .AsNoTracking()
-            .Where(x => x.ProductId == productId)
-            .Select(x => x.LotId)
-            .ToListAsync(cancellationToken);
-
-        return ignoredLots;
+        _ = await _unitOfWork.SaveChangesAsync(cancellationToken);
+        
+        await tr.CommitAsync(cancellationToken);
+        
     }
 
     public async Task IgnoreLotsAsync(IEnumerable<long> ignoredLots, Guid productId, CancellationToken cancellationToken)
@@ -108,35 +70,8 @@ public class LotsService : ILotsService
 
         transaction.Complete();
     }
-
-    public async Task<LotInfoWithProductId?> GetLotInfoAsync(long lotId, CancellationToken cancellationToken)
-    {
-        
-        var dbLot = await _applicationContext.Lots
-            .AsNoTracking()
-            .Include(x => x.Purchases)
-            .SingleOrDefaultAsync(
-                predicate: x => x.Id == lotId,
-                cancellationToken: cancellationToken
-            );
-    }
-
-    public async Task<bool> GetIsLotIgnoredForProductAsync(Guid productId, long lotId, CancellationToken cancellationToken)
-    {
-        
-        await _applicationContext.IgnoredLots.AnyAsync(x => x.LotId == lotId && x.ProductId == productId, cancellationToken: cancellationToken);
-      
-    }
-
-    public async Task<ICollection<long>> GetLotIdsAsync(CancellationToken cancellationToken)
-    {
-        var result = await _applicationContext.Lots
-            .AsNoTracking()
-            .Select(x => x.Id)
-            .ToListAsync(cancellationToken);
-
-        return result;
-    }
+    
+    
 
     public async Task DeleteLotInfoAsync(long lotId, CancellationToken cancellationToken)
     {
@@ -152,24 +87,5 @@ public class LotsService : ILotsService
         _ = await _applicationContext.SaveChangesAsync(cancellationToken);
 
         transaction.Complete();
-    }
-
-    public async Task<ICollection<LotState>> GetLotStatesAsync(IEnumerable<long> lotIds, CancellationToken cancellationToken)
-    {
-        var idsToSelect = lotIds.ToHashSet();
-        var result = await _applicationContext.Lots
-            .AsNoTracking()
-            .Where(x => idsToSelect.Contains(x.Id))
-            .Select(x => new { x.Id, x.UpdateDate })
-            .ToListAsync(cancellationToken);
-
-        return
-        [
-            .. result.Select(x => new LotState(
-                    lastUpdate: x.UpdateDate.ToString(WellKnown.Formats.TimeFormat, CultureInfo.InvariantCulture),
-                    lotId: x.Id
-                )
-            )
-        ];
     }
 }

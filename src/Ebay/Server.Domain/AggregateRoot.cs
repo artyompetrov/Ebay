@@ -1,10 +1,10 @@
-using JetBrains.Annotations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Server.Domain;
 
 public abstract class AggregateRoot<TId> : Entity<TId>, IAggregateRoot
 {
-    public uint Version { get; [UsedImplicitly] private set; }
+    public uint Version { get; private set; }
 
     protected internal AggregateRoot(TId id) : base(id)
     {

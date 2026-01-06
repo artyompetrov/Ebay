@@ -6,7 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="JetBrains.Annotations" />
+      <PackageReference Include="OneOf" />
     </ItemGroup>
 
 </Project>

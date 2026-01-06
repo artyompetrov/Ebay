@@ -21,11 +21,7 @@ internal sealed class ReadDbContext : DbContext
         {
             _ = eb.ToView("ProductMeasurements").HasKey(x => x.Id);
         });
-
-        _ = b.Entity<ProductPassportView>(eb =>
-        {
-            _ = eb.ToView("ProductPassports").HasKey(x => x.Id);
-        });
+        
 
         _ = b.Entity<ProductView>(eb =>
         {
@@ -69,8 +65,6 @@ internal sealed class ReadDbContext : DbContext
     }
 
     public DbSet<ProductMeasurementView> ProductMeasurements { get; set; } = null!;
-
-    public DbSet<ProductPassportView> Passports { get; set; } = null!;
 
     public DbSet<ProductView> Products { get; set; } = null!;
 

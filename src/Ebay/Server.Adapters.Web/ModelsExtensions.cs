@@ -152,32 +152,6 @@ internal static class ModelsExtensions
         );
     }
 
-    public static Lot ToApplication(this LotInfo lotInfo, Guid productId, DateTime updateDate)
-    {
-        return new()
-        {
-            ProductId = productId,
-            Id = lotInfo.LotId,
-            Name = lotInfo.Name,
-            Pcs = lotInfo.Pcs,
-            CurrencyId = lotInfo.Currency,
-            ShippingCountry = lotInfo.ShippingCountry,
-            Price = lotInfo.Price,
-            Shipping = lotInfo.Shipping!.Value,
-            ShippingAdditional = lotInfo.ShippingAdditional!.Value,
-            Description = lotInfo.Description,
-            Condition = lotInfo.Condition,
-            ShortDescription = lotInfo.ShortDescription,
-            ConditionDescription = lotInfo.ConditionDescription,
-            Seller = lotInfo.Seller,
-            LocatedIn = lotInfo.LocatedIn,
-            Categories = lotInfo.Categories.ToDictionary(x => x.Type, x => x.Value),
-            TitleChangeDate = DateTime.Parse(lotInfo.TitleChangeDate, CultureInfo.InvariantCulture).ToUniversalTime(),
-            UpdateDate = updateDate,
-            LotSize = lotInfo.LotSize
-        };
-    }
-
     public static Purchase ToApplication(this PurchaseInfo purchaseInfo, long lotId)
     {
         return new()
@@ -305,4 +279,18 @@ internal static class ModelsExtensions
             threeLetterCode: country.ThreeLetterCode,
             nameRu: country.RuName
         );
+
+
+    public static Server.Application.Services.LotDataExtractor.LotDataToExtract ToApplication(
+        this Server.Controllers.Generated.LotDataToExtract lotDataToExtract)
+    {
+        return new Server.Application.Services.LotDataExtractor.LotDataToExtract(
+            Name: lotDataToExtract.Name,
+            Condition: lotDataToExtract.Condition,
+            ConditionDescription: lotDataToExtract.ConditionDescription,
+            DescriptionText: lotDataToExtract.DescriptionText,
+            ShortDescription: lotDataToExtract.ShortDescription,
+            LotSize: lotDataToExtract.LotSize
+        );
+    }
 }
