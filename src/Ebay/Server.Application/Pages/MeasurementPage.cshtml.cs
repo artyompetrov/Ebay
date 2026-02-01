@@ -12,7 +12,6 @@ public class MeasurementPage : PageModel
 {
     private readonly ApplicationDbContext _applicationContext;
     private readonly IMeasurementQueries _measurementQueries;
-    private readonly IMeasurementFileParser _measurementFileParser;
 
     public MeasurementPage(
         ApplicationDbContext applicationContext,
@@ -21,13 +20,11 @@ public class MeasurementPage : PageModel
     {
         _applicationContext = applicationContext;
         _measurementQueries = measurementQueries;
-        _measurementFileParser = measurementFileParser;
     }
 
     public Product Product { get; set; } = null!;
     public MeasurementInfoWithData Measurement { get; set; } = null!;
-
-    public string QuickTest { get; set; } = null!;
+    
 
 
     public async Task<IActionResult> OnGet(string measurementId, CancellationToken cancellationToken)
@@ -38,11 +35,7 @@ public class MeasurementPage : PageModel
         {
             return NotFound("Measurement not found");
         }
-
-        var parseResult = _measurementFileParser.Parse(measurementInfo.Data);
-
-        QuickTest = parseResult.PrettifiedQuickTest;
-
+        
         var product = await _applicationContext.Products
             .AsNoTracking()
             .Include(x => x.SearchQueries)

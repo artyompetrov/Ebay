@@ -34,6 +34,7 @@ public static class ServiceCollectionExtensions
 
         _ = services.AddSingleton(options);
 
+        services.AddSingleton<MeasurementApproximationService>();
         _ = services.AddDbContext<ApplicationDbContext>(o => o.UseNpgsql(connectionString));
         _ = services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ApplicationDbContext>());
         _ = services.AddScoped<ShippingRatesService>();

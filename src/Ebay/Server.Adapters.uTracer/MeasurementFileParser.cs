@@ -18,7 +18,6 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
                 errors: out var fileErrors,
                 anodeCurvesConfig: out var anodeCurvesConfig,
                 anodeCurves: out var anodeCurves,
-                quickTest: out var quickTest,
                 fileCount: out var fileCount))
         {
             // todo тут не стоит кидать exception по идее
@@ -28,22 +27,14 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
 
         var parsedMeasurement = ParseMeasurement(configBytes: anodeCurvesConfig, measurementBytes: anodeCurves);
 
-        var removeSection2 = parsedMeasurement.AnodeCurves is TriodeAnodeCurves;
-
-        var prettifiedQuickTest = ParseAndPrettifyQuickTest(quickTest: quickTest, removeSection2: removeSection2);
-
         var hashAnodeCurvesConfig = ComputeEntryHashAsync(anodeCurvesConfig);
         var hashAnodeCurves = ComputeEntryHashAsync(anodeCurves);
-
-        var hashQuickTest = ComputeEntryHashAsync(quickTest);
 
         return new MeasurementFileParseResult(
             FileCount: fileCount,
             MeasurementConfigTableParseResult: parsedMeasurement,
-            PrettifiedQuickTest: prettifiedQuickTest,
             HashAnodeCurves: hashAnodeCurves,
-            HashAnodeCurvesConfig: hashAnodeCurvesConfig,
-            HashQuickTest: hashQuickTest);
+            HashAnodeCurvesConfig: hashAnodeCurvesConfig);
     }
 
     public async Task<byte[]> ToPrettifiedZip(byte[] zipBytes, CancellationToken cancellationToken)
@@ -53,7 +44,6 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
                 errors: out var fileErrors,
                 anodeCurvesConfig: out var anodeCurvesConfig,
                 anodeCurves: out var anodeCurves,
-                quickTest: out var quickTest,
                 fileCount: out _))
         {
             // todo тут не стоит кидать exception по идее
@@ -70,7 +60,6 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
                 content: anodeCurvesConfig,
                 cancellationToken);
             await SaveFileToZipArchive(archive: archive, fileName: "anode_curves.utd", content: anodeCurves, cancellationToken);
-            await SaveFileToZipArchive(archive: archive, fileName: "quick_test.txt", content: quickTest, cancellationToken);
         }
 
         zipStream.Position = 0;
@@ -170,13 +159,11 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
         [NotNullWhen(false)] out List<string>? errors,
         [NotNullWhen(true)] out byte[]? anodeCurvesConfig,
         [NotNullWhen(true)] out byte[]? anodeCurves,
-        [NotNullWhen(true)] out byte[]? quickTest,
         out int fileCount)
     {
         errors = [];
         anodeCurves = [];
         anodeCurvesConfig = [];
-        quickTest = [];
 
         using var inputMemoryStream = new MemoryStream(measurementData);
         using var archive = new ZipArchive(inputMemoryStream, ZipArchiveMode.Read, leaveOpen: true);
@@ -207,7 +194,7 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
             }
             else if (fileName.EndsWith(".txt", StringComparison.Ordinal))
             {
-                quickTest = GetBytes(entry);
+                // quick test больше не делается
             }
             else if (fileName.EndsWith("anode_curves.uts", StringComparison.Ordinal))
             {
@@ -227,9 +214,9 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
             }
         }
 
-        if (fileCount is not 5 and not 3)
+        if (fileCount is not 2 and not 5 and not 3)
         {
-            errors.Add("exactly 5 or 3 files expected");
+            errors.Add("exactly 2 files expected (or 5 or 3 for legacy files)");
         }
 
         if (errors.Count <= 0)
@@ -238,7 +225,6 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
         }
 
         anodeCurves = null;
-        quickTest = null;
         anodeCurvesConfig = null;
         return false;
     }
@@ -293,62 +279,6 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
 
         return rows.GroupBy(x => x.Curve)
             .ToDictionary(x => x.Key, x => x.Select(x => x.Data).ToArray());
-    }
-
-
-    private static string ParseAndPrettifyQuickTest(byte[] quickTest, bool removeSection2)
-    {
-        var quickTestOriginal = System.Text.Encoding.UTF8.GetString(quickTest);
-
-        var quickTestStr = Regex.Replace(
-            quickTestOriginal,
-            @"(\r?\n[ \t]*){2,}",
-            "\n\n"
-        );
-
-        quickTestStr = Regex.Replace(
-            quickTestStr,
-            @"\s+\d+\s*% of nominal [\d\.,]+ ?\([^)]+\)",
-            m => new string(' ', m.Value.Length));
-
-        quickTestStr = Regex.Replace(quickTestStr, @"[ ]{3,}", "|");
-
-        quickTestStr = Regex.Replace(quickTestStr, @"[ ]{3,}", "");
-
-        if (removeSection2)
-        {
-            var parts = quickTestStr.Split("SECTION 2", StringSplitOptions.None);
-            quickTestStr = parts[0];
-        }
-
-        var matches = Regex.Matches(quickTestStr, @"^(.*?)\|", RegexOptions.Multiline);
-        var maxWidth = matches.Cast<Match>().Select(m => m.Groups[1].Value.Length).DefaultIfEmpty(0).Max();
-        var tabSize = 8; // браузер чаще всего 8
-
-        // Шаг 2: Заменить каждое "до |" на выровненное + табы
-        var aligned = Regex.Replace(
-            quickTestStr,
-            @"^(.*?)\|",
-            m =>
-            {
-                var left = m.Groups[1].Value.TrimEnd();
-                // Сколько надо символов до maxWidth
-                var padLen = maxWidth - left.Length;
-                // Сколько табов (с учётом табуляции 8)
-                var tabsNeeded = (left.Length + padLen) / tabSize + 1 - left.Length / tabSize;
-                if (tabsNeeded < 1)
-                {
-                    tabsNeeded = 1;
-                }
-
-                return left + new string('\t', tabsNeeded);
-            },
-            RegexOptions.Multiline
-        );
-
-        return quickTestOriginal == quickTestStr
-            ? throw new InvalidOperationException("Nothing has changed after quick test prettification")
-            : aligned.Trim();
     }
 
     private static string ComputeEntryHashAsync(byte[] bytes)

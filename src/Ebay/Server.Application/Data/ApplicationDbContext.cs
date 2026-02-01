@@ -117,7 +117,6 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
             _ = entity.HasIndex(p => p.LotId);
 
             _ = entity.HasIndex(x => x.HashAnodeCurves).IsUnique();
-            _ = entity.HasIndex(x => x.HashQuickTest).IsUnique();
         });
 
         _ = builder.Entity<ProductEmailSendHistory>(entity =>

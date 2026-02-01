@@ -13,7 +13,6 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
         Guid productId,
         byte[] measurements,
         string hashAnodeCurves,
-        string hashQuickTest,
         string manufactureCode,
         ProductState productState,
         string? location,
@@ -25,7 +24,7 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
         MeasurementState = MeasurementState.Created;
         Measurements = measurements;
         HashAnodeCurves = hashAnodeCurves;
-        HashQuickTest = hashQuickTest;
+
         ManufactureCode = manufactureCode;
         ProductState = productState;
         Location = location;
@@ -55,9 +54,9 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
 
         var parsedMeasurements = measurementFileParser.Parse(measurements);
 
-        if (parsedMeasurements.FileCount != 3)
+        if (parsedMeasurements.FileCount != 2)
         {
-            throw new MeasurementException($"Exactly 3 files is expected but was {parsedMeasurements.FileCount}");
+            throw new MeasurementException($"Exactly 2 files is expected but was {parsedMeasurements.FileCount}");
         }
 
         if (parsedMeasurements.MeasurementConfigTableParseResult.NumberOfIntervals < 30)
@@ -80,11 +79,10 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
         var hashes = new HashSet<string>
         {
             parsedMeasurements.HashAnodeCurvesConfig,
-            parsedMeasurements.HashAnodeCurves,
-            parsedMeasurements.HashQuickTest
+            parsedMeasurements.HashAnodeCurves
         };
 
-        if (hashes.Count != 3)
+        if (hashes.Count != 2)
         {
             throw new MeasurementException("File duplicates");
         }
@@ -94,7 +92,6 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
             productId: productId,
             measurements: measurements,
             hashAnodeCurves: parsedMeasurements.HashAnodeCurves,
-            hashQuickTest: parsedMeasurements.HashQuickTest,
             manufactureCode: manufactureCode,
             productState: productState,
             location: null,
@@ -151,9 +148,6 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
 
     [MaxLength(128)]
     public string HashAnodeCurves { get; private set; }
-
-    [MaxLength(128)]
-    public string HashQuickTest { get; private set; }
 
     public DateTime CreatedAt { get; private set; }
 

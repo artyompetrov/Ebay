@@ -7,6 +7,7 @@ using Server.Application.Abstractions.Queries;
 using Server.Application.Consumers.MeasurementWatching;
 using Server.Application.Infrastructure;
 using Server.Domain.Measurements;
+using Server.Domain.Measurements.MeasurementTypes;
 using Server.Domain.Measurements.MeasurementTypes.Base;
 
 namespace Server.Application.Services.MeasurementPlot;
@@ -18,19 +19,26 @@ public class MeasurementPlotService : IMeasurementPlotService
     private readonly IMeasurementQueries _measurementQueries;
     private readonly IMeasurementFileParser _measurementFileParser;
     private readonly IPublishEndpoint _publishEndpoint;
+    private readonly ITubeWorkingPointQueries _workingPointQueries;
+    private readonly MeasurementApproximationService _measurementApproximationService;
     private readonly IUnitOfWork _unitOfWork;
+    
 
     public MeasurementPlotService(
         DbCache cache,
         IMeasurementQueries measurementQueries,
         IMeasurementFileParser measurementFileParser,
         IPublishEndpoint publishEndpoint,
+        ITubeWorkingPointQueries workingPointQueries,
+        MeasurementApproximationService measurementApproximationService,
         IUnitOfWork unitOfWork)
     {
         _cache = cache;
         _measurementQueries = measurementQueries;
         _measurementFileParser = measurementFileParser;
         _publishEndpoint = publishEndpoint;
+        _workingPointQueries = workingPointQueries;
+        _measurementApproximationService = measurementApproximationService;
         _unitOfWork = unitOfWork;
     }
 
@@ -134,6 +142,8 @@ public class MeasurementPlotService : IMeasurementPlotService
                 var result = _measurementFileParser.Parse(measurementInfo.Data);
                 var anodeCurves = result.MeasurementConfigTableParseResult.AnodeCurves;
                 var gridCurves = anodeCurves.ConvertToGridCurves();
+                
+                var quickTestData = addQuickTest ? await GetQuickTestData(cancellationToken: cancellationToken, measurementInfo: measurementInfo, anodeCurves: anodeCurves) : null;
 
                 var minMaxCoordinates = await GetMinMaxCoordinates(
                     cancellationToken: cancellationToken,
@@ -146,8 +156,7 @@ public class MeasurementPlotService : IMeasurementPlotService
                     legendVertical: legendVertical,
                     width: width,
                     height: height,
-                    addQuickTest: addQuickTest,
-                    quickTest: result.PrettifiedQuickTest,
+                    quickTestData,
                     minMaxCoordinates: minMaxCoordinates,
                     anodeCurves: result.MeasurementConfigTableParseResult.AnodeCurves,
                     gridCurves: gridCurves);
@@ -156,6 +165,30 @@ public class MeasurementPlotService : IMeasurementPlotService
             cancellationToken: cancellationToken
         );
     }
+
+    private async Task<QuickTestData?> GetQuickTestData(MeasurementInfoWithData measurementInfo,
+        AnodeCurvesBase anodeCurves, CancellationToken cancellationToken)
+    {
+        var workingPointInfo = await _workingPointQueries.GetWorkingPointInfo(measurementInfo.ProductId, cancellationToken);
+        if (workingPointInfo == null)
+        {
+            return null;
+        }
+        var model = _measurementApproximationService.GetModel(anodeCurves, x => x.I1, workingPointInfo);
+        var i = model.IatWorkingPoint();
+
+
+        double? i2 = null;
+        if (anodeCurves is DoubleTriodeAnodeCurves doubleTriodeAnodeCurves)
+        {
+            var model2 = _measurementApproximationService.GetModel(doubleTriodeAnodeCurves, x => x.I2!, workingPointInfo);
+            i2 = model2.IatWorkingPoint();
+        }
+
+        return new QuickTestData(Ua: workingPointInfo.AnodeVoltage, Ug: workingPointInfo.GridVoltage, Ia: i, Ia2: i2);
+    }
+
+    private record QuickTestData(double Ua, double Ug, double Ia, double? Ia2);
 
     private async Task<MinMaxCoordinates> GetMinMaxCoordinates(
         AnodeCurvesBase anodeCurves,
@@ -238,8 +271,7 @@ public class MeasurementPlotService : IMeasurementPlotService
         bool legendVertical,
         int width,
         int height,
-        bool addQuickTest,
-        string quickTest,
+        QuickTestData? quickTestData,
         MinMaxCoordinates minMaxCoordinates,
         AnodeCurvesBase anodeCurves,
         GridCurvesBase gridCurves)
@@ -262,7 +294,7 @@ public class MeasurementPlotService : IMeasurementPlotService
             curvesMaxX: minMaxCoordinates.GridCurvesMaxX,
             curvesMaxY: minMaxCoordinates.AnodeCurvesMaxY /*используем анодный максимум, чтобы было симметрично*/);
 
-        var quickTestSvg = addQuickTest ? QuickTestSvg(quickTest) : null;
+        var quickTestSvg = quickTestData != null ? QuickTestSvg(quickTestData) : null;
 
         var result = SvgMerger.MergeSvgs(
             mergeVertical: mergeVertical,
@@ -415,30 +447,32 @@ public class MeasurementPlotService : IMeasurementPlotService
         return quickTestSvg;
     }
 
-
-    private static readonly Regex[] HighlightPatterns =
-    [
-        new Regex(@"^Ia\s", RegexOptions.Compiled),
-        new Regex(@"^Gm(a)?\s", RegexOptions.Compiled)
-    ];
-
-
-    private static bool ShouldHighlight(string s) => HighlightPatterns.Any(rx => rx.IsMatch(s));
-
-    private static string QuickTestSvg(string quickTest)
+    
+    private static string QuickTestSvg(QuickTestData quickTest)
     {
-        var lines = System.Security.SecurityElement
-            .Escape(quickTest)
-            .Split('\n');
         var lineHight = 16;
-        var tspans = string.Join(
-            "\n",
-            values: lines.Skip(1)
-                .Select((line, i) =>
-                    $"""<tspan x="20" {(ShouldHighlight(line) ? "fill=\"#8B2E2E\" font-weight=\"bold\"" : "")} y="{lineHight + i * lineHight}">{line.Split('\t')[0]}</tspan>"""));
+        
+        var lines = new List<string>
+        {
+            $"""<tspan x="20" y="{lineHight + 1 * lineHight}">Measurement point:</tspan>""",
+            $"""<tspan x="20" font-weight="bold" y="{lineHight + 2 * lineHight}">Ua: {quickTest.Ua:F0} V</tspan>""",
+            $"""<tspan x="20" font-weight="bold" y="{lineHight + 3 * lineHight}">Ug: {quickTest.Ug:F1} V</tspan>""",
+            "",
+            $"""<tspan x="20" y="{lineHight + 5 * lineHight}">Anode current:</tspan>""",
+            $"""<tspan x="20" fill="#8B2E2E" font-weight="bold" y="{lineHight + 6 * lineHight}">Ia{(quickTest.Ia2.HasValue?" (sect.1)":"")}: {quickTest.Ia:F1} mA</tspan>""",
+        };
+
+        if (quickTest.Ia2 != null)
+        {
+            lines.Add(
+                $"""<tspan x="20" fill="#8B2E2E" font-weight="bold" y="{lineHight + 7 * lineHight}">Ia (sect.2): {quickTest.Ia2.Value:F1} mA</tspan>""");
+        }
+
+        
+        var tspans = string.Join("\n", values: lines);
 
         var quickTestSvg = $"""
-                            <svg width="160" height="{lineHight + lines.Length * lineHight}" xmlns="http://www.w3.org/2000/svg">
+                            <svg width="160" height="{lineHight + lines.Count * lineHight}" xmlns="http://www.w3.org/2000/svg">
                                 <text font-size="14" fill="black" xml:space="preserve" font-family="monospace">
                                     {tspans}
                                 </text>

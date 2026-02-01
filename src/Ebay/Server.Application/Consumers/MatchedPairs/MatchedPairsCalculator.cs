@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Server.Application.Abstractions;
 using Server.Application.Abstractions.Queries;
 using Server.Application.Abstractions.Repositories;
+using Server.Application.Services;
 using Server.Domain.Measurements;
 using Server.Domain.Measurements.MeasurementTypes;
 using Server.Domain.Measurements.MeasurementTypes.Base;
@@ -18,6 +19,7 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
     private readonly IMatchedPairDifferenceRepository _matchedPairDifferenceRepository;
     private readonly ITubeWorkingPointQueries _tubeWorkingPointQueries;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly MeasurementApproximationService _measurementApproximationService;
 
     public MatchedPairsCalculator(
         ILogger<MatchedPairsCalculator> logger,
@@ -25,7 +27,8 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         IMeasurementFileParser measurementFileParser,
         IMatchedPairDifferenceRepository matchedPairDifferenceRepository,
         ITubeWorkingPointQueries tubeWorkingPointQueries,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        MeasurementApproximationService measurementApproximationService)
     {
         _logger = logger;
         _measurementQueries = measurementQueries;
@@ -33,6 +36,7 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         _matchedPairDifferenceRepository = matchedPairDifferenceRepository;
         _tubeWorkingPointQueries = tubeWorkingPointQueries;
         _unitOfWork = unitOfWork;
+        _measurementApproximationService = measurementApproximationService;
     }
 
     private record MeasurementInfoWithAnodeCurves(MeasurementInfoWithData MeasurementInfoWithData, AnodeCurvesBase AnodeCurves);
@@ -180,19 +184,13 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         int radialBands, int pointsPerBand,
         CancellationToken cancellationToken)
     {
-        var measurement1I1 = GetPoints(measurement1.AnodeCurves, x => x.I1);
-        var measurement2I1 = GetPoints(measurement2.AnodeCurves, x => x.I1);
-        var measurement1I1Model = RbfModel(measurement1I1, workingPoint);
-        var measurement2I1Model = RbfModel(measurement2I1, workingPoint);
-
-        var measurement1I2 = GetPoints(
-             measurement1.AnodeCurves,
-            x => x.I2 ?? throw new InvalidOperationException("I2 is expected to be not null"));
-        var measurement2I2 = GetPoints(
-            measurement2.AnodeCurves,
-            x => x.I2 ?? throw new InvalidOperationException("I2 is expected to be not null"));
-        var measurement1I2Model = RbfModel(measurement1I2, workingPoint);
-        var measurement2I2Model = RbfModel(measurement2I2, workingPoint);
+        var measurement1I1Model = _measurementApproximationService.GetModel(measurement1.AnodeCurves, x => x.I1, workingPoint);
+        var measurement2I1Model = _measurementApproximationService.GetModel(measurement2.AnodeCurves, x => x.I1, workingPoint);
+        
+        var measurement1I2Model = _measurementApproximationService.GetModel(measurement1.AnodeCurves,
+            x => x.I2 ?? throw new InvalidOperationException("I2 is expected to be not null"), workingPoint);
+        var measurement2I2Model = _measurementApproximationService.GetModel(measurement2.AnodeCurves,
+            x => x.I2 ?? throw new InvalidOperationException("I2 is expected to be not null"), workingPoint);
 
         if (measurement1.MeasurementInfoWithData.Id != measurement2.MeasurementInfoWithData.Id) // не делаем Direct в кейсе когда мы сравниваем две секции двойного триода между собой
         {
@@ -258,11 +256,9 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         int pointsPerBand,
         CancellationToken cancellationToken)
     {
-        var measurement1I1 = GetPoints(measurement1.AnodeCurves, x => x.I1);
-        var measurement2I1 = GetPoints(measurement2.AnodeCurves, x => x.I1);
 
-        var measurement1I1Model = RbfModel(measurement1I1, workingPoint);
-        var measurement2I1Model = RbfModel(measurement2I1, workingPoint);
+        var measurement1I1Model = _measurementApproximationService.GetModel(measurement1.AnodeCurves, x => x.I1, workingPoint);
+        var measurement2I1Model = _measurementApproximationService.GetModel(measurement2.AnodeCurves, x => x.I1, workingPoint);
 
         var (mse, rmse, maxAbs) = SquaredDiffPointsInEllipse(
             model1: measurement1I1Model,
@@ -320,51 +316,7 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         await transaction.CommitAsync(cancellationToken);
     }
 
-    private static List<MeasurementPoint> GetPoints(AnodeCurvesBase anodeCurves, Func<CurveSet, IReadOnlyCollection<double>> iExtractor)
-    {
-        var points = new List<MeasurementPoint>();
-        foreach (var result in anodeCurves.CurveSets)
-        {
-            foreach (var (va, ia) in result.V.Zip(second: iExtractor(result), (va, ia) => (va, ia)))
-            {
-                points.Add(new(
-                    Va: va,
-                    Vg: result.VSteppingValue,
-                    Ia: ia));
-            }
-
-        }
-
-        return points;
-    }
-
-    private record struct MeasurementPoint(double Va, double Vg, double Ia);
-
-    /// <summary>
-    /// Функция создает модель при помощи RBF интерполяции
-    /// </summary>
-    private static alglib.rbfmodel RbfModel(List<MeasurementPoint> points, TubeWorkingPointInfo wp)
-    {
-        var baseX = Math.Max(1e-9, wp.AnodeVoltageHalfWidth);
-        var baseY = Math.Max(1e-9, wp.GridVoltageHalfWidth);
-        var baseZ = Math.Max(1e-9, wp.NominalCurrent);
-
-        var xy = new double[points.Count, 3];
-        for (var i = 0; i < points.Count; i++)
-        {
-            // нормализация относительно рабочей точки и полуосей эллипса
-            xy[i, 0] = (points[i].Va - wp.AnodeVoltage) / baseX;
-            xy[i, 1] = (points[i].Vg - wp.GridVoltage) / baseY;
-            xy[i, 2] = points[i].Ia / baseZ * 100.0; // нормализуем и приводим к процентам
-        }
-
-        alglib.rbfcreate(2, 1, out var model);
-        alglib.rbfsetpoints(model, xy);
-        alglib.rbfsetalgomultilayer(model, rbase: 1.0, nlayers: 6, lambdav: 1e-5);
-        alglib.rbfbuildmodel(model, out _);
-        return model;
-    }
-
+    
     /// <summary>
     /// Функция считает ошибку между двумя интерполированными плоскостями
     /// </summary>
@@ -376,8 +328,8 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
     /// <param name="phiRad">Поворот эллипса</param>
     /// <returns></returns>
     private static (double mse, double rmse, double maxAbs) SquaredDiffPointsInEllipse(
-        alglib.rbfmodel model1,
-        alglib.rbfmodel model2,
+        MeasurementApproximationService.Model model1,
+        MeasurementApproximationService.Model model2,
         int radialBands,        // колец по радиусу
         int pointsPerBand,      // точек на кольцо
         TubeWorkingPointInfo workingPoint,
@@ -414,7 +366,7 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
                 var x = rx / anodeBase; // Делим для нормализации
                 var y = ry / gridBase; // Делим для нормализации
 
-                var d = alglib.rbfcalc2(s: model1, x0: x, x1: y) - alglib.rbfcalc2(s: model2, x0: x, x1: y);
+                var d = model1.ApproximateRelative(x,  y) - model2.ApproximateRelative(x, y);
                 var ad = Math.Abs(d);
 
                 sse += d * d;
