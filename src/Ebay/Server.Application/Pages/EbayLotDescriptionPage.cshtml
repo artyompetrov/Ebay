@@ -90,6 +90,11 @@ else
             word-break: break-all;
         }
 
+        .tube-number {
+            text-align: left;
+            padding: 10px;
+        }
+
         .nowrap {
             white-space: nowrap;
             font-weight: bold;
@@ -113,7 +118,10 @@ else
     
     <table >
 
-        @{ var matchIndex = 1; }
+        @{
+            var matchIndex = 1;
+            var tubeIndex = 2;
+        }
         
         @{
             var groupedCollection =  Model.Measurements.GroupBy(x => x.MeasurementInfo.MatchId)
@@ -140,18 +148,23 @@ else
         </tr>
         
         <tr class="match-group-odd">
+        @if (hasMatchedPairs)
+        {
             <td rowspan="2">
-                <text>Match #@matchIndex</text>
+                <text>Match #1</text>
             </td>
-            <td class="tube-col">
-                <img src="@($"{baseUrl}/m/sold")" alt=""/>
-            </td>
+        }
+        <td class="tube-col">
+            <div class="tube-number">Tube #1</div>
+            <img src="@($"{baseUrl}/m/sold")" alt=""/>
+        </td>
             <td>
                 <img src="@($"{baseUrl}/m/sold")" alt=""/>
             </td>
         </tr>
         <tr class="match-group-odd">
             <td class="tube-col">
+                <div class="tube-number">Tube #2</div>
                 <img src="@($"{baseUrl}/m/sold")" alt=""/>
             </td>
             <td>
@@ -192,8 +205,12 @@ else
                     }
                     @{
                         var lotIdPart = meas.MeasurementInfo.LotId == null ? "" : $"?lotId={WebUtility.UrlDecode(meas.MeasurementInfo.LotId)}";
+                        tubeIndex++;
                     }
+                    
+                    
                     <td class="tube-col">
+                        <div class="tube-number">Tube #@tubeIndex</div>
                         <img src="@($"{baseUrl}/m/{meas.MeasurementInfo.Id}/ebay_tube_description{lotIdPart}")"
                              alt="@meas.MeasurementInfo.Id"/>
                     </td>

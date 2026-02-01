@@ -532,7 +532,7 @@ public class MeasurementPlotService : IMeasurementPlotService
         ProductState productState,
         double? doubleTriodeSectionRmse)
     {
-        var manufactureCodeSplited = manufactureCode.Split('_', ' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var manufactureCodeSplited = manufactureCode.Split(['_', ' '], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
 
         string? badgeText = null;
@@ -561,29 +561,7 @@ public class MeasurementPlotService : IMeasurementPlotService
                 case < 30:
                     badgeText = "DECENT";
                     badgeSub = "(&lt; 30%)";
-                    badgeFill = "#d4a017";
-                    break;
-                case < 40:
-                    badgeText = "DECENT";
-                    badgeSub = "(&lt; 40%)";
-                    badgeFill = "#d4a017";
-                    break;
-                case < 50:
-                    badgeText = "BAD";
-                    badgeSub = "(&lt; 50%)";
-                    badgeFill = "#c75c5c";
-                    break;
-                case < 60:
-                    badgeText = "BAD";
-                    badgeSub = "(&lt; 60%)";
-                    badgeFill = "#c75c5c";
-                    break;
-                case < 70:
-                    badgeText = "BAD";
-                    badgeSub = "(&lt; 70%)";
-                    badgeFill = "#c75c5c";
-                    break;
-                default:
+                    badgeFill = "#16a34a";
                     break;
             }
         }
