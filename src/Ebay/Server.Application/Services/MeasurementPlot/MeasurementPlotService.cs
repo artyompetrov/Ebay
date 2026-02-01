@@ -223,8 +223,7 @@ public class MeasurementPlotService : IMeasurementPlotService
             AnodeCurvesMaxX: anodeCurvesMaxX,
             AnodeCurvesMaxY: anodeCurvesMaxY,
             GridCurvesMinX: gridCurvesMinX,
-            GridCurvesMaxX: gridCurvesMaxX,
-            GridCurvesMaxY: gridCurvesMaxY);
+            GridCurvesMaxX: gridCurvesMaxX);
     }
 
     private record MinMaxCoordinates(
@@ -232,8 +231,7 @@ public class MeasurementPlotService : IMeasurementPlotService
         double AnodeCurvesMaxX,
         double AnodeCurvesMaxY,
         double GridCurvesMinX,
-        double GridCurvesMaxX,
-        double GridCurvesMaxY);
+        double GridCurvesMaxX);
 
     private static string CreateMergedPlot(
         bool mergeVertical,
@@ -262,7 +260,7 @@ public class MeasurementPlotService : IMeasurementPlotService
             height: height,
             curvesMinX: minMaxCoordinates.GridCurvesMinX,
             curvesMaxX: minMaxCoordinates.GridCurvesMaxX,
-            curvesMaxY: minMaxCoordinates.GridCurvesMaxY);
+            curvesMaxY: minMaxCoordinates.AnodeCurvesMaxY /*используем анодный максимум, чтобы было симметрично*/);
 
         var quickTestSvg = addQuickTest ? QuickTestSvg(quickTest) : null;
 
