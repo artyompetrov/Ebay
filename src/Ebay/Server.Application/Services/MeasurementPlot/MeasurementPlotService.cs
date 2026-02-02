@@ -454,18 +454,18 @@ public class MeasurementPlotService : IMeasurementPlotService
         
         var lines = new List<string>
         {
-            $"""<tspan x="20" y="{lineHight + 1 * lineHight}">Measurement point:</tspan>""",
-            $"""<tspan x="20" font-weight="bold" y="{lineHight + 2 * lineHight}">Ua: {quickTest.Ua:F0} V</tspan>""",
-            $"""<tspan x="20" font-weight="bold" y="{lineHight + 3 * lineHight}">Ug: {quickTest.Ug:F1} V</tspan>""",
+            $"""<tspan x="10" y="{lineHight + 1 * lineHight}">Measurement point:</tspan>""",
+            $"""<tspan x="10" font-weight="bold" y="{lineHight + 2 * lineHight}">Vanode: {quickTest.Ua:F0} V</tspan>""",
+            $"""<tspan x="10" font-weight="bold" y="{lineHight + 3 * lineHight}">Vgrid: {quickTest.Ug:F1} V</tspan>""",
             "",
-            $"""<tspan x="20" y="{lineHight + 5 * lineHight}">Anode current:</tspan>""",
-            $"""<tspan x="20" fill="#8B2E2E" font-weight="bold" y="{lineHight + 6 * lineHight}">Ia{(quickTest.Ia2.HasValue?" (sect.1)":"")}: {quickTest.Ia:F1} mA</tspan>""",
+            $"""<tspan x="10" y="{lineHight + 5 * lineHight}">Anode current:</tspan>""",
+            $"""<tspan x="10" fill="#8B2E2E" font-weight="bold" y="{lineHight + 6 * lineHight}">Ianode{(quickTest.Ia2.HasValue?"1":"")}: {quickTest.Ia:F1} mA</tspan>""",
         };
 
         if (quickTest.Ia2 != null)
         {
             lines.Add(
-                $"""<tspan x="20" fill="#8B2E2E" font-weight="bold" y="{lineHight + 7 * lineHight}">Ia (sect.2): {quickTest.Ia2.Value:F1} mA</tspan>""");
+                $"""<tspan x="10" fill="#8B2E2E" font-weight="bold" y="{lineHight + 7 * lineHight}">Ianode2: {quickTest.Ia2.Value:F1} mA</tspan>""");
         }
 
         
