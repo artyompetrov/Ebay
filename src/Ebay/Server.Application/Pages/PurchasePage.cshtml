@@ -71,23 +71,61 @@
 </div>
 
 <table>
+    
+    @{
+        var matchIndex = 1;
+        
+        var groupedCollection =  Model.Measurements.GroupBy(x => x.MatchId)
+            .OrderByDescending(x=>x.Key).ToList();
+
+        var hasMatchedPairs = groupedCollection.Select(x => x.Key).Distinct().Any(x => x is not null);
+    }
+    
+    
+    
+    
     <tr>
+        @if (hasMatchedPairs)
+        {
+            <th>Match #</th>
+        }
         <th>Tube #</th>
         <th>Curves</th>
     </tr>
-    @foreach (var measurement in Model.Measurements)
+    @foreach (var grouping in groupedCollection)
     {
-        <tr>
-            <td>
-                #@measurement.Id
-                <br /><br />
-                @measurement.ManufactureCode
-                <br /><br />
-                @measurement.ProductState
-            </td>
-            <td>
-                <img src="@($"{baseUrl}/m/{measurement.Id}/ebay_curves?sellingOnly=false")" alt="@measurement.Id" />
-            </td>
-        </tr>
+        var first = true;
+        foreach (var measurement in grouping)
+        {
+            <tr>
+                @if (first && hasMatchedPairs)
+                {
+                    <td rowspan="@grouping.Count()">
+                        @if (grouping.Key is not null)
+                        {
+                            <text>Match @matchIndex</text>
+                            matchIndex += 1;
+                        }
+                        else
+                        {
+                            <text>Not matched</text>
+                        }
+                    </td>
+                    
+                    first = false;
+                }
+                <td>
+                    #@measurement.Id
+                    <br/><br/>
+                    @measurement.ManufactureCode
+                    <br/><br/>
+                    @measurement.ProductState
+                </td>
+                <td>
+                    <img src="@($"{baseUrl}/m/{measurement.Id}/ebay_curves?sellingOnly=false")" alt="@measurement.Id"/>
+                </td>
+            </tr>
+        }
+
     }
 </table>
