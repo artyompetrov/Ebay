@@ -73,7 +73,7 @@
 <table>
     
     @{
-        var matchIndex = 1;
+        var matchIndex = 0;
         
         var groupedCollection =  Model.Measurements.GroupBy(x => x.MatchId)
             .OrderByDescending(x=>x.Key).ToList();
@@ -94,25 +94,22 @@
     </tr>
     @foreach (var grouping in groupedCollection)
     {
-        var first = true;
+        matchIndex += 1;
         foreach (var measurement in grouping)
         {
             <tr>
-                @if (first && hasMatchedPairs)
+                @if (hasMatchedPairs)
                 {
-                    <td rowspan="@grouping.Count()">
+                    <td>
                         @if (grouping.Key is not null)
                         {
                             <text>Match @matchIndex</text>
-                            matchIndex += 1;
                         }
                         else
                         {
                             <text>Not matched</text>
                         }
                     </td>
-                    
-                    first = false;
                 }
                 <td>
                     #@measurement.Id
