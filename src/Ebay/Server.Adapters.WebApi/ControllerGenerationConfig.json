@@ -3,7 +3,7 @@
   "defaultVariables": null,
   "documentGenerator": {
     "fromDocument": {
-      "url": "Contracts/WebApi.yaml"
+      "url": "../Server.Contracts/WebApi/WebApi.yaml"
     }
   },
   "codeGenerators": {

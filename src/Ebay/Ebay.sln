@@ -32,6 +32,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.Adapters.EF.WriteMod
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.Adapters.WebApi", "Server.Adapters.WebApi\Server.Adapters.WebApi.csproj", "{F4D3E744-B35A-4C86-AD58-A837DB1CDAD1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.Contracts", "Server.Contracts\Server.Contracts.csproj", "{36BB1DC5-9A70-47D7-8119-FF3401416514}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -186,6 +188,18 @@ Global
 		{F4D3E744-B35A-4C86-AD58-A837DB1CDAD1}.Release|x64.Build.0 = Release|Any CPU
 		{F4D3E744-B35A-4C86-AD58-A837DB1CDAD1}.Release|x86.ActiveCfg = Release|Any CPU
 		{F4D3E744-B35A-4C86-AD58-A837DB1CDAD1}.Release|x86.Build.0 = Release|Any CPU
+		{36BB1DC5-9A70-47D7-8119-FF3401416514}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36BB1DC5-9A70-47D7-8119-FF3401416514}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36BB1DC5-9A70-47D7-8119-FF3401416514}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{36BB1DC5-9A70-47D7-8119-FF3401416514}.Debug|x64.Build.0 = Debug|Any CPU
+		{36BB1DC5-9A70-47D7-8119-FF3401416514}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{36BB1DC5-9A70-47D7-8119-FF3401416514}.Debug|x86.Build.0 = Debug|Any CPU
+		{36BB1DC5-9A70-47D7-8119-FF3401416514}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36BB1DC5-9A70-47D7-8119-FF3401416514}.Release|Any CPU.Build.0 = Release|Any CPU
+		{36BB1DC5-9A70-47D7-8119-FF3401416514}.Release|x64.ActiveCfg = Release|Any CPU
+		{36BB1DC5-9A70-47D7-8119-FF3401416514}.Release|x64.Build.0 = Release|Any CPU
+		{36BB1DC5-9A70-47D7-8119-FF3401416514}.Release|x86.ActiveCfg = Release|Any CPU
+		{36BB1DC5-9A70-47D7-8119-FF3401416514}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

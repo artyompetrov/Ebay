@@ -1,6 +1,9 @@
 ﻿swagger: '2.0'
 info:
-  description: EbayApi
+  description: |
+    [LEGACY] Этот контракт больше не развиваем.
+    Для новых endpoint'ов и изменений используйте контракты из Server.Contracts/WebApi в рамках перехода к архитектуре порты и адаптеры.
+  x-legacy: true
   title: EbayApi
   version: 1.0.0
 consumes:
