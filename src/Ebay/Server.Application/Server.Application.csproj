@@ -38,14 +38,6 @@
       <ProjectReference Include="..\Server.Domain\Server.Domain.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Compile Remove="Migrations\20250808163246_BatchToMatchRename.cs" />
-      <Compile Remove="Migrations\20250808163246_BatchToMatchRename.Designer.cs" />
-    </ItemGroup>
-    <ItemGroup>
-      <Compile Remove="Controllers\Generated\**\*.cs" />
-    </ItemGroup>
-
     <Target Name="GenerateLegacyApiClients" BeforeTargets="CoreCompile">
         <Exec Command="$(NSwagExe_Net100) openapi2cscontroller /input:../Server.Contracts/Legacy/Ebay.yaml /classname:Ebay /namespace:Server.Controllers.Generated /output:$(BaseIntermediateOutputPath)Generated/Controllers/EbayController.cs /ControllerBaseClass:Microsoft.AspNetCore.Mvc.Controller /UseCancellationToken:true /GenerateImmutableArrayProperties:true /GenerateImmutableDictionaryProperties:true /GenerateNullableReferenceTypes:true /GenerateOptionalPropertiesAsNullable:true /ClassStyle:Record /ExcludedTypeNames:ProblemDetails,ValidationProblemDetails /RequiredPropertiesMustBeDefined:false" />
         <Exec Command="$(NSwagExe_Net100) openapi2tsclient /input:../Server.Contracts/Legacy/Ebay.yaml /output:../../ChromeExtension/src/clients/Generated/EbayToolBackendClient.ts /ClassName:EbayToolBackendClient" />
