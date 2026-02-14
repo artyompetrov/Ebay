@@ -38,8 +38,8 @@ var keyStoragePath = Environment.GetEnvironmentVariable("DATA_PROTECTION_KEYS_DI
 
 var clientId = Environment.GetEnvironmentVariable(WellKnown.Authorization.ClientId)
                ?? "client_id";
-var scope = Environment.GetEnvironmentVariable(WellKnown.Authorization.Scope)
-           ?? "scope";
+var authScope = Environment.GetEnvironmentVariable(WellKnown.Authorization.Scope)
+               ?? "scope";
 var clientSecret = Environment.GetEnvironmentVariable(WellKnown.Authorization.ClientSecret)
                   ?? "secret";
 
@@ -74,7 +74,7 @@ builder.Services.AddIdentityServer()
                     AllowedGrantTypes = GrantTypes.ClientCredentials,
                     AllowedScopes =
                     {
-                        scope
+                        authScope
                     }
                 }
             );
@@ -105,9 +105,9 @@ builder.Services.AddResponseCaching();
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+using (var serviceScope = app.Services.CreateScope())
 {
-    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var dbContext = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     if (app.Environment.IsEnvironment("Testing"))
     {
         _ = dbContext.Database.EnsureCreated();
@@ -146,4 +146,3 @@ app.MapFallbackToFile("index.html");
 
 app.Run();
 
-public partial class Program;

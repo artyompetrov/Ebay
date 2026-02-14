@@ -49,10 +49,15 @@ jobs:
         with:
           node-version: 20
 
-      - name: Restore and build .NET
+      - name: Restore and generate contracts
         run: |
           cd ./src/Ebay
           dotnet restore
+          dotnet msbuild -t:BeforeBuild
+
+      - name: Build .NET
+        run: |
+          cd ./src/Ebay
           dotnet build --configuration Release
 
       - name: Initialize integration test database
