@@ -41,13 +41,10 @@
 # Как работает кодогенерация в этом проекте
 `/Server.Contracts/Legacy/Ebay.yaml` Legacy-контракт приложения (новые изменения в него не добавляем)
 `/Server.Contracts/WebApi/*.yaml` Новые контракты для WebApi адаптеров
-кодогенерация осуществляется через msbuild таргеты NSWag,
-чтобы выполнить кодогенерацию надо выполнить следующую команду
-`cd /workspace/Ebay/src/Ebay/ && dotnet msbuild -t:BeforeBuild`
-после чего будут сгенерированы C# Client и Controller и TypeScript client
+кодогенерация осуществляется через msbuild таргеты NSWag и выполняется автоматически во время сборки (CoreCompile), после чего генерируются C# Client и Controller и TypeScript client
 
 # Билд проекта
-C# - `cd /workspace/Ebay/src/Ebay/ && dotnet build` (если менялись контракты, нужно сначала выполнить таргет BeforeBuild, как написано выше)
+C# - `cd /workspace/Ebay/src/Ebay/ && dotnet build`
 ChromeExtension - `cd /workspace/Ebay/src/ChromeExtension/ && npm run build`
 
 # Присылай Pull request только если получается успешно сбилдать проект
