@@ -60,6 +60,13 @@ cd /workspace/Ebay/src/Ebay/ && dotnet ef migrations add NewMigrationName --proj
 Проект собирается в Docker при помощи Github CI CD.
 Не забывай верифицировать `src/ebay_helper.Dockerfile` и `.github/workflows/*.yaml` на корректность если изменялись параметры билда.
 
+# DDD
+Мы пишем по DDD
+Агрегаты располагаются в сборке Server.Domain
+Репозитории в сборке Server.Adapters.EF.WriteModel
+Ридмодели в сборке Server.Adapters.EF.ReadModel
+Server.Application должен содержать только порты и бизнес сценарии (сейчас не совсем так - но это легаси, сейчас стараемся выносить взаимодействие с внешним миром в адаптеры)
+
 
 # Иконки
 На UI используются иконки из коллекции https://icones.js.org/collection/oi https://github.com/iconic/open-iconic или emoji 

@@ -12,6 +12,7 @@ public record MeasurementInfoWithData(
     ProductState ProductState,
     string ManufactureCode,
     DateTime? LastTimeWatchedOnEbay,
+    DateTime CreatedAt,
     byte[] Data) :
     MeasurementInfo(
         Id: Id,
@@ -23,4 +24,5 @@ public record MeasurementInfoWithData(
         MeasurementState: MeasurementState,
         ProductState: ProductState,
         ManufactureCode: ManufactureCode,
+        CreatedAt: CreatedAt,
         LastTimeWatchedOnEbay: LastTimeWatchedOnEbay);

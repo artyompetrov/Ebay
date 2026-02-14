@@ -832,11 +832,15 @@ definitions:
         description: "Похожие измерения, отсортированные по возрастанию ошибки первой секции"
         items:
           $ref: '#/definitions/SimilarMeasurementInfo'
+      createdAt:
+        type: string
+        format: date-time
     required:
       - measurementId
       - manufactureCode
       - productState
       - measurementState
+      - createdAt
 
   SimilarMeasurementInfo:
     type: object

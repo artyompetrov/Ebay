@@ -26,6 +26,7 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                 x.MeasurementState,
                 x.ProductState,
                 x.ManufactureCode,
+                x.CreatedAt,
                 x.LastTimeWatchedOnEbay
             ))
             .SingleOrDefaultAsync(cancellationToken);
@@ -48,6 +49,7 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                 pm.ProductState,
                 pm.ManufactureCode,
                 pm.LastTimeWatchedOnEbay,
+                pm.CreatedAt,
                 pm.Measurements
 
             ))
@@ -109,6 +111,7 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                     x.MeasurementState,
                     x.ProductState,
                     x.ManufactureCode,
+                    x.CreatedAt,
                     x.LastTimeWatchedOnEbay
                 ))
             .ToHashSetAsync(cancellationToken: cancellationToken);
@@ -189,6 +192,7 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                                         measurement.MeasurementState,
                                         measurement.ProductState,
                                         measurement.ManufactureCode,
+                                        measurement.CreatedAt,
                                         measurement.LastTimeWatchedOnEbay
                                     ),
                                     difference == null ? null : difference.RmseSection1,
@@ -327,6 +331,7 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                 x.ProductState,
                 x.ManufactureCode,
                 x.LastTimeWatchedOnEbay,
+                x.CreatedAt,
                 x.Measurements))
             .SingleOrDefaultAsync(cancellationToken: cancellationToken);
 

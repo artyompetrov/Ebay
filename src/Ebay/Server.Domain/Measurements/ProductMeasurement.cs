@@ -6,8 +6,6 @@ namespace Server.Domain.Measurements;
 
 public sealed partial class ProductMeasurement : AggregateRoot<string>
 {
-
-
     private ProductMeasurement(
         string id,
         Guid productId,
@@ -30,7 +28,6 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
         Location = location;
         MatchId = matchId;
         LotId = lotId;
-        CreatedAt = DateTime.UtcNow; // todo перенести на уровень обертки
 
         Validate();
     }
@@ -148,8 +145,7 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
 
     [MaxLength(128)]
     public string HashAnodeCurves { get; private set; }
-
-    public DateTime CreatedAt { get; private set; }
+    
 
     /// <summary>
     /// Дата производства или код

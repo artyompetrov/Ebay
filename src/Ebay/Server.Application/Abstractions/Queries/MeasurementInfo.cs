@@ -11,6 +11,7 @@ public record MeasurementInfo(
     MeasurementState MeasurementState,
     ProductState ProductState,
     string ManufactureCode,
+    DateTime CreatedAt,
     DateTime? LastTimeWatchedOnEbay)
 {
     public bool IsPublishedOnEbay => LastTimeWatchedOnEbay > DateTime.UtcNow.AddDays(-7);

@@ -454,7 +454,8 @@ internal class EbayControllerImplementation : IEbayController
                         doubleTriodeSectionRmse: similarMeasurement.DoubleTriodeSectionRmse
 
 
-                    ))]))
+                    ))],
+                createdAt: x.MeasurementInfo.CreatedAt))
             .ToList();
 
         return result;
