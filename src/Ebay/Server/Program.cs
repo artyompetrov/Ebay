@@ -8,6 +8,7 @@ using Server.Adapters.ChipFind;
 using Server.Adapters.EF.WriteModel;
 using Server.Adapters.Smtp;
 using Server.Adapters.uTracer;
+using Server.Adapters.WebApi.Controllers;
 using Server.Application;
 using Server.Application.Data;
 using Sever.Adapters.EF.ReadModel;
@@ -27,6 +28,7 @@ builder.Services.AddUTracerAdapter();
 builder.Services.AddChipFindAdapter();
 builder.Services.AddEfReadModelAdapter(connectionString);
 builder.Services.AddApplicationServices(options, connectionString);
+builder.Services.AddControllers().AddApplicationPart(typeof(WebApiController).Assembly);
 builder.Services.AddEfWriteModelAdapter();
 
 var keyStoragePath = Environment.GetEnvironmentVariable("DATA_PROTECTION_KEYS_DIR") ??

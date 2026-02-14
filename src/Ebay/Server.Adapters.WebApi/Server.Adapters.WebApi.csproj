@@ -12,12 +12,14 @@
     </PackageReference>
   </ItemGroup>
 
-  <Target Name="GenerateControllers" BeforeTargets="BeforeBuild">
+  <Target Name="GenerateControllers" BeforeTargets="CoreCompile">
     <Exec Command="$(NSwagExe_Net100) run ControllerGenerationConfig.json" />
   </Target>
 
-  <ItemGroup>
-    <Compile Include="$(BaseIntermediateOutputPath)Generated/Controllers/**/*.cs" />
-  </ItemGroup>
+  <Target Name="IncludeGeneratedControllers" BeforeTargets="CoreCompile" DependsOnTargets="GenerateControllers">
+    <ItemGroup>
+      <Compile Include="$(BaseIntermediateOutputPath)Generated/Controllers/**/*.cs" />
+    </ItemGroup>
+  </Target>
 
 </Project>
