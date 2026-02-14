@@ -16,6 +16,65 @@ env:
   EBAY_NGINX_IMAGE_NAME: ${{ github.actor }}/nginx:latest
 
 jobs:
+
+  dotnet_and_extension_build:
+    name: Build .NET, run tests and build extension
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ebay_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d ebay_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Restore and build .NET
+        run: |
+          cd ./src/Ebay
+          dotnet restore
+          dotnet build --configuration Release
+
+      - name: Initialize integration test database
+        run: ./scripts/init-test-db.sh
+
+      - name: Run integration tests
+        env:
+          ConnectionStrings__DefaultConnection: Host=localhost;Port=5432;Database=ebay_test;Username=postgres;Password=postgres
+          EbayServer__TargetEmail: integration-tests@localhost
+          EbayServer__IsLocalRun: true
+          RunDbMigrations: false
+        run: |
+          cd ./src/Ebay
+          dotnet test --configuration Release --filter "FullyQualifiedName~HealthCheckTest"
+
+      - name: Build Chrome extension
+        run: |
+          cd ./src/ChromeExtension
+          npm ci
+          npm run build
+
+
   build_docker:
     name: Build Docker Images
     runs-on: ubuntu-latest
