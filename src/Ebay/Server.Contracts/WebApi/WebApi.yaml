@@ -16,6 +16,28 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PingResponse'
+  /api/webapi/v1/sale-lots/{id}:
+    get:
+      operationId: GetSaleLotById
+      summary: Get sale lot by identifier
+      tags:
+        - SaleLots
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 7
+      responses:
+        '200':
+          description: Sale lot response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaleLotResponse'
+        '404':
+          description: Sale lot not found
 components:
   schemas:
     PingResponse:
@@ -25,4 +47,16 @@ components:
         - message
       properties:
         message:
+          type: string
+    SaleLotResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          maxLength: 7
+        name:
           type: string

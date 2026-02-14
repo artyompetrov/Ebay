@@ -12,6 +12,10 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Server.Application\Server.Application.csproj" />
+  </ItemGroup>
+
   <Target Name="GenerateControllers" BeforeTargets="CoreCompile">
     <Exec Command="$(NSwagExe_Net100) run ControllerGenerationConfig.json" />
   </Target>

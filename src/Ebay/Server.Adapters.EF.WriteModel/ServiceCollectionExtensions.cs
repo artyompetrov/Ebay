@@ -13,5 +13,6 @@ public static class ServiceCollectionExtensions
         _ = services.AddScoped<IMatchedPairDifferenceRepository, MatchedPairDifferenceRepository>();
         _ = services.AddScoped<ITubeWorkingPointsRepository, TubeWorkingPointsRepository>();
         _ = services.AddScoped<IProductRepository, ProductRepository>();
+        _ = services.AddScoped<ISaleLotRepository, SaleLotRepository>();
     }
 }

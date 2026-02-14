@@ -66,6 +66,12 @@ internal sealed class ReadDbContext : DbContext
         {
             _ = x.ToView("TubeWorkingPoints").HasKey(x => x.Id);
         });
+
+        _ = b.Entity<SaleLotView>(x =>
+        {
+            _ = x.ToView("SaleLots").HasKey(x => x.Id);
+        });
+
     }
 
     public DbSet<ProductMeasurementView> ProductMeasurements { get; set; } = null!;
@@ -77,4 +83,6 @@ internal sealed class ReadDbContext : DbContext
     public DbSet<MatchedPairDifferenceView> MatchedPairDifferences { get; set; } = null!;
 
     public DbSet<TubeWorkingPointView> TubeWorkingPoints { get; set; } = null!;
+
+    public DbSet<SaleLotView> SaleLots { get; set; } = null!;
 }

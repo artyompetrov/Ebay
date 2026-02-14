@@ -92,6 +92,19 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
                 v => JsonSerializer.Deserialize<PurchaseCalculationResult?>(v, (JsonSerializerOptions?)null)
             ));
 
+        _ = builder.Entity<SaleLot>(entity =>
+        {
+            _ = entity.HasKey(x => x.Id);
+
+            _ = entity.Property(x => x.Id)
+                .HasMaxLength(7)
+                .ValueGeneratedNever();
+
+            _ = entity.Property(x => x.Name)
+                .HasMaxLength(128)
+                .IsRequired();
+        });
+
         _ = builder.Entity<ProductMeasurement>(entity =>
         {
             _ = entity.HasKey(x => x.Id);
@@ -115,6 +128,12 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
             _ = entity.HasIndex(p => p.CreatedAt);
             _ = entity.HasIndex(p => p.MatchId);
             _ = entity.HasIndex(p => p.LotId);
+
+            _ = entity.HasOne<SaleLot>()
+                .WithMany()
+                .HasForeignKey(x => x.LotId)
+                .HasPrincipalKey(x => x.Id)
+                .OnDelete(DeleteBehavior.Restrict);
 
             _ = entity.HasIndex(x => x.HashAnodeCurves).IsUnique();
         });
@@ -194,6 +213,8 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
     public DbSet<Product> Products { get; set; } = null!;
 
     public DbSet<Lot> Lots { get; set; } = null!;
+
+    public DbSet<SaleLot> SaleLots { get; set; } = null!;
 
     public DbSet<IgnoredLot> IgnoredLots { get; set; } = null!;
 

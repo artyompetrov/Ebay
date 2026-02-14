@@ -135,6 +135,11 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
         {
             throw new ValidationException($"{nameof(LotId)} cannot be empty string");
         }
+
+        if (LotId is not null && LotId.Length > 7)
+        {
+            throw new ValidationException($"{nameof(LotId)} should be 7 characters or less");
+        }
     }
 
     public Guid ProductId { get; private set; }
@@ -177,7 +182,7 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
         }
     }
 
-    [MaxLength(100)]
+    [MaxLength(7)]
     public string? LotId
     {
         get;
