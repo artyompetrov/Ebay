@@ -7,6 +7,7 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.NET.Test.Sdk"/>
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing"/>
         <PackageReference Include="NUnit"/>
         <PackageReference Include="NUnit3TestAdapter"/>
         <PackageReference Include="NUnit.Analyzers"/>
@@ -14,7 +15,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Client\Client.csproj" />
+      <ProjectReference Include="..\Server.Client\Server.Client.csproj" />
       <ProjectReference Include="..\Server\Server.csproj" />
       <ProjectReference Include="..\Server.Adapters.ChipFind\Server.Adapters.ChipFind.csproj" />
     </ItemGroup>

@@ -30,6 +30,7 @@ builder.Services.AddEfReadModelAdapter(connectionString);
 builder.Services.AddApplicationServices(options, connectionString);
 builder.Services.AddControllers().AddApplicationPart(typeof(WebApiController).Assembly);
 builder.Services.AddEfWriteModelAdapter();
+builder.Services.AddHealthChecks();
 
 var keyStoragePath = Environment.GetEnvironmentVariable("DATA_PROTECTION_KEYS_DIR") ??
                      Path.Join(path1: Path.GetTempPath(), path2: "data_protection_keys_dir");
@@ -103,7 +104,11 @@ builder.Services.AddResponseCaching();
 
 var app = builder.Build();
 
-app.Services.InitializeApplication();
+var shouldRunMigrations = builder.Configuration.GetValue("RunDbMigrations", true);
+if (shouldRunMigrations)
+{
+    app.Services.InitializeApplication();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -128,6 +133,9 @@ app.UseIdentityServer();
 app.UseAuthorization();
 app.MapRazorPages();
 app.MapControllers();
+app.MapHealthChecks("/api/health");
 app.MapFallbackToFile("index.html");
 
 app.Run();
+
+public partial class Program;
