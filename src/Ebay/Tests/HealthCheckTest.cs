@@ -7,12 +7,12 @@ namespace Tests;
 [Parallelizable(ParallelScope.Self)]
 public class HealthCheckTest
 {
-    private WebApplicationFactory<Program> _factory = null!;
+    private WebApplicationFactory<Server.Program> _factory = null!;
 
     [OneTimeSetUp]
     public void OneTimeSetUp()
     {
-        _factory = new WebApplicationFactory<Program>()
+        _factory = new WebApplicationFactory<Server.Program>()
             .WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Testing");
@@ -33,7 +33,7 @@ public class HealthCheckTest
     public void OneTimeTearDown() => _factory.Dispose();
 
     [Test]
-    public async Task ExampleTest()
+    public async Task HealthCheck()
     {
         using var client = _factory.CreateClient();
 
