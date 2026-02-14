@@ -1,0 +1,28 @@
+openapi: 3.1.0
+info:
+  title: Ebay WebApi Adapter Contract
+  version: 1.0.0
+paths:
+  /api/webapi/v1/ping:
+    get:
+      operationId: GetPing
+      summary: Ping endpoint for new WebApi adapter contract
+      tags:
+        - WebApi
+      responses:
+        '200':
+          description: Pong response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PingResponse'
+components:
+  schemas:
+    PingResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - message
+      properties:
+        message:
+          type: string

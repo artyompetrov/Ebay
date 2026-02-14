@@ -1,18 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <ItemGroup>
-        <PackageReference Include="Newtonsoft.Json"/>
         <PackageReference Include="NSwag.MSBuild">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Generated\" />
-    </ItemGroup>
-
-    <Target Name="NSwag" BeforeTargets="BeforeBuild">
-        <Exec Command="$(NSwagExe_Net100) openapi2csclient /input:../Server.Application/Controllers/Contracts/Ebay.yaml /classname:EbayClient /namespace:Client.Clients.Generated /output:./Generated/EbayClient.cs /RequiredPropertiesMustBeDefined:false"/>
+    <Target Name="GenerateClients" BeforeTargets="CoreCompile">
+        <Exec Command="$(NSwagExe_Net100) run ClientGeneration.Legacy.json" />
+        <Exec Command="$(NSwagExe_Net100) run ClientGeneration.WebApi.json" />
     </Target>
+
+    <Target Name="IncludeGeneratedClients" BeforeTargets="CoreCompile" DependsOnTargets="GenerateClients">
+        <ItemGroup>
+            <Compile Include="$(BaseIntermediateOutputPath)Generated/Clients/**/*.cs" />
+        </ItemGroup>
+    </Target>
+
 </Project>

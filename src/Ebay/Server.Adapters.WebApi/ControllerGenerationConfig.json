@@ -1,0 +1,26 @@
+{
+  "runtime": "Net100",
+  "defaultVariables": null,
+  "documentGenerator": {
+    "fromDocument": {
+      "url": "../Server.Contracts/WebApi/WebApi.yaml"
+    }
+  },
+  "codeGenerators": {
+    "openApiToCSharpController": {
+      "namespace": "Server.Adapters.WebApi.Generated",
+      "className": "WebApi",
+      "output": "obj/Generated/Controllers/WebApiController.cs",
+      "controllerBaseClass": "Microsoft.AspNetCore.Mvc.Controller",
+      "controllerStyle": "Abstract",
+      "useCancellationToken": true,
+      "useActionResultType": true,
+      "generateOptionalPropertiesAsNullable": true,
+      "generateNullableReferenceTypes": true,
+      "classStyle": "Record",
+      "newLineBehavior": "LF",
+      "jsonLibrary": "SystemTextJson",
+      "requiredPropertiesMustBeDefined": false
+    }
+  }
+}

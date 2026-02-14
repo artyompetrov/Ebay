@@ -12,6 +12,8 @@ COPY Ebay/Server.Adapters.uTracer/*.csproj Ebay/Server.Adapters.uTracer/
 COPY Ebay/Server.Adapters.EF.ReadModel/*.csproj Ebay/Server.Adapters.EF.ReadModel/
 COPY Ebay/Server.Adapters.EF.WriteModel/*.csproj Ebay/Server.Adapters.EF.WriteModel/
 COPY Ebay/Server.Adapters.ChipFind/*.csproj Ebay/Server.Adapters.ChipFind/
+COPY Ebay/Server.Adapters.WebApi/*.csproj Ebay/Server.Adapters.WebApi/
+COPY Ebay/Server.Contracts/*.csproj Ebay/Server.Contracts/
 COPY Ebay/Server.Application/*.csproj Ebay/Server.Application/
 COPY Ebay/Server.Domain/*.csproj Ebay/Server.Domain/
 COPY Ebay/Server.Client/*.csproj Ebay/Server.Client/

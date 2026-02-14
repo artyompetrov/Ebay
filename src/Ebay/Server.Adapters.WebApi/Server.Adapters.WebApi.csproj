@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Server.Adapters.WebApi</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="NSwag.MSBuild">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <Target Name="GenerateControllers" BeforeTargets="CoreCompile">
+    <Exec Command="$(NSwagExe_Net100) run ControllerGenerationConfig.json" />
+  </Target>
+
+  <Target Name="IncludeGeneratedControllers" BeforeTargets="CoreCompile" DependsOnTargets="GenerateControllers">
+    <ItemGroup>
+      <Compile Include="$(BaseIntermediateOutputPath)Generated/Controllers/**/*.cs" />
+    </ItemGroup>
+  </Target>
+
+</Project>

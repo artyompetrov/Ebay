@@ -47,8 +47,8 @@
       <Compile Remove="Migrations\20250808163246_BatchToMatchRename.Designer.cs" />
     </ItemGroup>
     <Target Name="NSwag" BeforeTargets="BeforeBuild">
-        <Exec Command="$(NSwagExe_Net100) openapi2cscontroller /input:Controllers/Contracts/Ebay.yaml /classname:Ebay /namespace:Server.Controllers.Generated /output:Controllers/Generated/EbayController.cs /ControllerBaseClass:Microsoft.AspNetCore.Mvc.Controller /UseCancellationToken:true /GenerateImmutableArrayProperties:true /GenerateImmutableDictionaryProperties:true /GenerateNullableReferenceTypes:true /GenerateOptionalPropertiesAsNullable:true /ClassStyle:Record /ExcludedTypeNames:ProblemDetails,ValidationProblemDetails /RequiredPropertiesMustBeDefined:false" />
-        <Exec Command="$(NSwagExe_Net100) openapi2tsclient /input:Controllers/Contracts/Ebay.yaml /output:../../ChromeExtension/src/clients/Generated/EbayToolBackendClient.ts /ClassName:EbayToolBackendClient" />
+        <Exec Command="$(NSwagExe_Net100) openapi2cscontroller /input:../Server.Contracts/Legacy/Ebay.yaml /classname:Ebay /namespace:Server.Controllers.Generated /output:Controllers/Generated/EbayController.cs /ControllerBaseClass:Microsoft.AspNetCore.Mvc.Controller /UseCancellationToken:true /GenerateImmutableArrayProperties:true /GenerateImmutableDictionaryProperties:true /GenerateNullableReferenceTypes:true /GenerateOptionalPropertiesAsNullable:true /ClassStyle:Record /ExcludedTypeNames:ProblemDetails,ValidationProblemDetails /RequiredPropertiesMustBeDefined:false" />
+        <Exec Command="$(NSwagExe_Net100) openapi2tsclient /input:../Server.Contracts/Legacy/Ebay.yaml /output:../../ChromeExtension/src/clients/Generated/EbayToolBackendClient.ts /ClassName:EbayToolBackendClient" />
     </Target>
 
 </Project>
