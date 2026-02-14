@@ -210,6 +210,7 @@
             <th>Код</th>
             <th>Состояние</th>
             <th>Статус</th>
+            <th>Добавлено</th>
             <th>Опубликован на eBay</th>
             <th>Расположение</th>
             <th>Lot ID</th>
@@ -239,44 +240,101 @@
             <tr class="@matchRowClass">
                 <td><NavLink href="@($"m/{measurement.MeasurementId}")" target="_blank">#@measurement.MeasurementId</NavLink></td>
                 <td>
-                    <input type="text"
-                           class="form-control"
-                           value="@measurement.ManufactureCode"
-                           @oninput="async e => await OnManufactureCodeChanged(measurement, e.Value?.ToString())" />
+                    @if (IsMeasurementFieldInEditMode(measurement.MeasurementId, EditableMeasurementField.ManufactureCode))
+                    {
+                        <div class="d-flex gap-2 align-items-center">
+                            <input type="text" class="form-control" value="@GetMeasurementDraft(measurement.MeasurementId, EditableMeasurementField.ManufactureCode)" @oninput="e => UpdateMeasurementDraft(measurement.MeasurementId, EditableMeasurementField.ManufactureCode, e.Value?.ToString())" />
+                            <button class="btn btn-primary btn-sm" @onclick="async () => await SaveMeasurementFieldAsync(measurement, EditableMeasurementField.ManufactureCode)">💾</button>
+                            <button class="btn btn-secondary btn-sm" @onclick="() => CancelMeasurementFieldEditing(measurement.MeasurementId, EditableMeasurementField.ManufactureCode)">✖</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex gap-2 align-items-center">
+                            <span>@measurement.ManufactureCode</span>
+                            <button class="btn btn-outline-secondary btn-sm oi oi-pencil" @onclick="() => StartMeasurementFieldEditing(measurement, EditableMeasurementField.ManufactureCode)"></button>
+                        </div>
+                    }
                 </td>
                 <td>@measurement.ProductState.ToString("G")</td>
                 <td>
-                    <select class="form-select"
-                            value="@measurement.MeasurementState"
-                            @onchange="async e => await OnMeasurementStateChanged(measurement, Enum.Parse<MeasurementState>(e.Value!.ToString()!))">
-                        @foreach (var state in _measurementStates)
-                        {
-                            <option value="@state" selected="@(state == measurement.MeasurementState)">
-                                @GetMeasurementStateEmoji(state) @state.ToString("G")
-                            </option>
-                        }
-                    </select>
+                    @if (IsMeasurementFieldInEditMode(measurement.MeasurementId, EditableMeasurementField.MeasurementState))
+                    {
+                        <div class="d-flex gap-2 align-items-center">
+                            <select class="form-select" value="@GetMeasurementStateDraft(measurement.MeasurementId)" @onchange="e => UpdateMeasurementStateDraft(measurement.MeasurementId, e.Value)">
+                                @foreach (var state in _measurementStates)
+                                {
+                                    <option value="@state">
+                                        @GetMeasurementStateEmoji(state) @state.ToString("G")
+                                    </option>
+                                }
+                            </select>
+                            <button class="btn btn-primary btn-sm" @onclick="() => OnMeasurementStateSaveButtonClick(measurement)">💾</button>
+                            <button class="btn btn-secondary btn-sm" @onclick="() => CancelMeasurementFieldEditing(measurement.MeasurementId, EditableMeasurementField.MeasurementState)">✖</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex gap-2 align-items-center">
+                            <span>@GetMeasurementStateEmoji(measurement.MeasurementState) @measurement.MeasurementState.ToString("G")</span>
+                            <button class="btn btn-outline-secondary btn-sm oi oi-pencil" @onclick="() => StartMeasurementFieldEditing(measurement, EditableMeasurementField.MeasurementState)"></button>
+                        </div>
+                    }
                 </td>
+                <td>@measurement.CreatedAt.LocalDateTime.ToString("yyyy-MM-dd HH:mm")</td>
                 <td class="text-center">
                     <input type="checkbox" class="form-check-input" disabled checked="@(measurement.IsPublishedOnEbay == true)" />
                 </td>
                 <td>
-                    <input type="text"
-                           class="form-control"
-                           value="@measurement.Location"
-                           @oninput="async e => await OnLocationChanged(measurement, e.Value?.ToString())" />
+                    @if (IsMeasurementFieldInEditMode(measurement.MeasurementId, EditableMeasurementField.Location))
+                    {
+                        <div class="d-flex gap-2 align-items-center">
+                            <input type="text" class="form-control" value="@GetMeasurementDraft(measurement.MeasurementId, EditableMeasurementField.Location)" @oninput="e => UpdateMeasurementDraft(measurement.MeasurementId, EditableMeasurementField.Location, e.Value?.ToString())" />
+                            <button class="btn btn-primary btn-sm" @onclick="async () => await SaveMeasurementFieldAsync(measurement, EditableMeasurementField.Location)">💾</button>
+                            <button class="btn btn-secondary btn-sm" @onclick="() => CancelMeasurementFieldEditing(measurement.MeasurementId, EditableMeasurementField.Location)">✖</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex gap-2 align-items-center">
+                            <span>@measurement.Location</span>
+                            <button class="btn btn-outline-secondary btn-sm oi oi-pencil" @onclick="() => StartMeasurementFieldEditing(measurement, EditableMeasurementField.Location)"></button>
+                        </div>
+                    }
                 </td>
                 <td>
-                    <input type="text"
-                           class="form-control"
-                           value="@measurement.LotId"
-                           @oninput="async e => await OnLotIdChanged(measurement, e.Value?.ToString())" />
+                    @if (IsMeasurementFieldInEditMode(measurement.MeasurementId, EditableMeasurementField.LotId))
+                    {
+                        <div class="d-flex gap-2 align-items-center">
+                            <input type="text" class="form-control" value="@GetMeasurementDraft(measurement.MeasurementId, EditableMeasurementField.LotId)" @oninput="e => UpdateMeasurementDraft(measurement.MeasurementId, EditableMeasurementField.LotId, e.Value?.ToString())" />
+                            <button class="btn btn-primary btn-sm" @onclick="async () => await SaveMeasurementFieldAsync(measurement, EditableMeasurementField.LotId)">💾</button>
+                            <button class="btn btn-secondary btn-sm" @onclick="() => CancelMeasurementFieldEditing(measurement.MeasurementId, EditableMeasurementField.LotId)">✖</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex gap-2 align-items-center">
+                            <span>@measurement.LotId</span>
+                            <button class="btn btn-outline-secondary btn-sm oi oi-pencil" @onclick="() => StartMeasurementFieldEditing(measurement, EditableMeasurementField.LotId)"></button>
+                        </div>
+                    }
                 </td>
                 <td>
-                    <input type="text"
-                           class="form-control"
-                           value="@measurement.MatchId"
-                           @oninput="async e => await OnMatchIdChanged(measurement, e.Value?.ToString())" />
+                    @if (IsMeasurementFieldInEditMode(measurement.MeasurementId, EditableMeasurementField.MatchId))
+                    {
+                        <div class="d-flex gap-2 align-items-center">
+                            <input type="text" class="form-control" value="@GetMeasurementDraft(measurement.MeasurementId, EditableMeasurementField.MatchId)" @oninput="e => UpdateMeasurementDraft(measurement.MeasurementId, EditableMeasurementField.MatchId, e.Value?.ToString())" />
+                            <button class="btn btn-primary btn-sm" @onclick="async () => await SaveMeasurementFieldAsync(measurement, EditableMeasurementField.MatchId)">💾</button>
+                            <button class="btn btn-secondary btn-sm" @onclick="() => CancelMeasurementFieldEditing(measurement.MeasurementId, EditableMeasurementField.MatchId)">✖</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex gap-2 align-items-center">
+                            <span>@measurement.MatchId</span>
+                            <button class="btn btn-outline-secondary btn-sm oi oi-pencil" @onclick="() => StartMeasurementFieldEditing(measurement, EditableMeasurementField.MatchId)"></button>
+                        </div>
+                    }
                 </td>
                 <td class="@GetPercentCellClass(measurement.DoubleTriodeSectionRmse)">
                     @FormatPercent(measurement.DoubleTriodeSectionRmse)
@@ -360,6 +418,18 @@
     private string? _matchingError;
     private bool _hasWorkingPoint;
     private ReadOnlyCollection<string?>? _lotIds;
+    private HashSet<string> _editingMeasurementFields = new();
+    private Dictionary<string, string?> _measurementTextDrafts = new();
+    private Dictionary<string, MeasurementState> _measurementStateDrafts = new();
+
+    private enum EditableMeasurementField
+    {
+        ManufactureCode,
+        MeasurementState,
+        Location,
+        LotId,
+        MatchId
+    }
 
     [Parameter]
     public ProductWithId Product { get; set; } = null!;
@@ -556,6 +626,128 @@
             });
     }
 
+    private static string GetMeasurementFieldKey(string measurementId, EditableMeasurementField field)
+    {
+        return $"{measurementId}:{field:G}";
+    }
+
+    private bool IsMeasurementFieldInEditMode(string measurementId, EditableMeasurementField field)
+    {
+        return _editingMeasurementFields.Contains(GetMeasurementFieldKey(measurementId, field));
+    }
+
+    private void StartMeasurementFieldEditing(MeasurementData measurement, EditableMeasurementField field)
+    {
+        _editingMeasurementFields.Add(GetMeasurementFieldKey(measurement.MeasurementId, field));
+
+        switch (field)
+        {
+            case EditableMeasurementField.ManufactureCode:
+                _measurementTextDrafts[GetMeasurementFieldKey(measurement.MeasurementId, field)] = measurement.ManufactureCode;
+                break;
+            case EditableMeasurementField.Location:
+                _measurementTextDrafts[GetMeasurementFieldKey(measurement.MeasurementId, field)] = measurement.Location;
+                break;
+            case EditableMeasurementField.LotId:
+                _measurementTextDrafts[GetMeasurementFieldKey(measurement.MeasurementId, field)] = measurement.LotId;
+                break;
+            case EditableMeasurementField.MatchId:
+                _measurementTextDrafts[GetMeasurementFieldKey(measurement.MeasurementId, field)] = measurement.MatchId;
+                break;
+            case EditableMeasurementField.MeasurementState:
+                _measurementStateDrafts[GetMeasurementFieldKey(measurement.MeasurementId, field)] = measurement.MeasurementState;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(field), field, null);
+        }
+    }
+
+    private void CancelMeasurementFieldEditing(string measurementId, EditableMeasurementField field)
+    {
+        var key = GetMeasurementFieldKey(measurementId, field);
+        _editingMeasurementFields.Remove(key);
+        _measurementTextDrafts.Remove(key);
+        _measurementStateDrafts.Remove(key);
+    }
+
+    private string? GetMeasurementDraft(string measurementId, EditableMeasurementField field)
+    {
+        return _measurementTextDrafts.TryGetValue(GetMeasurementFieldKey(measurementId, field), out var value)
+            ? value
+            : null;
+    }
+
+    private void UpdateMeasurementDraft(string measurementId, EditableMeasurementField field, string? value)
+    {
+        _measurementTextDrafts[GetMeasurementFieldKey(measurementId, field)] = value;
+    }
+
+    private MeasurementState GetMeasurementStateDraft(string measurementId)
+    {
+        return _measurementStateDrafts.TryGetValue(GetMeasurementFieldKey(measurementId, EditableMeasurementField.MeasurementState), out var value)
+            ? value
+            : MeasurementState.Created;
+    }
+
+    private void UpdateMeasurementStateDraft(string measurementId, object? value)
+    {
+        if (value is null)
+        {
+            return;
+        }
+
+        _measurementStateDrafts[GetMeasurementFieldKey(measurementId, EditableMeasurementField.MeasurementState)] = Enum.Parse<MeasurementState>(value.ToString()!);
+    }
+
+    private async Task SaveMeasurementFieldAsync(MeasurementData measurement, EditableMeasurementField field)
+    {
+        var key = GetMeasurementFieldKey(measurement.MeasurementId, field);
+        var draftValue = _measurementTextDrafts.TryGetValue(key, out var value) ? value : null;
+
+        switch (field)
+        {
+            case EditableMeasurementField.ManufactureCode:
+                await OnManufactureCodeChanged(measurement, draftValue);
+                break;
+            case EditableMeasurementField.Location:
+                await OnLocationChanged(measurement, draftValue);
+                break;
+            case EditableMeasurementField.LotId:
+                await OnLotIdChanged(measurement, draftValue);
+                break;
+            case EditableMeasurementField.MatchId:
+                await OnMatchIdChanged(measurement, draftValue);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(field), field, null);
+        }
+
+        if (_error is null)
+        {
+            CancelMeasurementFieldEditing(measurement.MeasurementId, field);
+        }
+    }
+
+    private void OnMeasurementStateSaveButtonClick(MeasurementData measurement)
+    {
+        var key = GetMeasurementFieldKey(measurement.MeasurementId, EditableMeasurementField.MeasurementState);
+        var newState = _measurementStateDrafts.TryGetValue(key, out var value)
+            ? value
+            : measurement.MeasurementState;
+
+        _questionPopup.AskQuestion(
+            $"Вы действительно хотите изменить статус измерения '{measurement.MeasurementId}' на '{newState:G}'?",
+            async () =>
+            {
+                await OnMeasurementStateChanged(measurement, newState);
+
+                if (_error is null)
+                {
+                    CancelMeasurementFieldEditing(measurement.MeasurementId, EditableMeasurementField.MeasurementState);
+                }
+            });
+    }
+
     private async Task OnLocationChanged(MeasurementData measurement, string? newValue)
     {
         try
@@ -563,6 +755,7 @@
             measurement.Location = newValue;
             await EbayClient.UpdateMeasurementLocationAsync(newValue, ProductId, measurement.MeasurementId);
             Logger.LogInformation("Updated note for {Id}: {Note}", measurement.MeasurementId, newValue);
+            _error = null;
         }
         catch (Exception ex)
         {
@@ -598,6 +791,7 @@
             measurement.MatchId = newValue;
             await EbayClient.UpdateMeasurementMatchIdAsync(newValue, ProductId, measurement.MeasurementId);
             Logger.LogInformation("Updated Match Id for {Id}: {Match}", measurement.MeasurementId, newValue);
+            _error = null;
         }
         catch (Exception ex)
         {
@@ -713,6 +907,7 @@
             await EbayClient.UpdateMeasurementStateAsync(newState, ProductId, measurement.MeasurementId);
             Logger.LogInformation("Updated state for {Id}: {State}", measurement.MeasurementId, newState);
             ApplyMeasurementFilters();
+            _error = null;
         }
         catch (Exception ex)
         {
