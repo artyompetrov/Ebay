@@ -1,8 +1,10 @@
 using MassTransit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Server.Application.Abstractions;
 using Server.Application.Consumers.EbayCurvesCacheWarmUp;
 using Server.Application.Consumers.MatchedPairs;
@@ -29,19 +31,32 @@ public static class ServiceCollectionExtensions
 {
     public static void AddApplicationServices(
         this IServiceCollection services,
-        EbayServerOptions options,
-        string connectionString)
+        IConfiguration configuration,
+        IHostEnvironment environment)
     {
         var appAssembly = typeof(ServiceCollectionExtensions).Assembly;
+        var isTesting = environment.IsEnvironment("Testing");
 
-        _ = services.AddSingleton(options);
+        _ = services.AddOptions<EbayServerOptions>()
+            .Bind(configuration.GetSection("EbayServer"));
+        _ = services.AddSingleton(sp => sp.GetRequiredService<IOptions<EbayServerOptions>>().Value);
 
         services.AddSingleton<MeasurementApproximationService>();
-        _ = services.AddDbContext<ApplicationDbContext>(o => o.UseNpgsql(connectionString));
+        _ = services.AddDbContext<ApplicationDbContext>((sp, o) =>
+        {
+            var connectionString = sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection")
+                                   ?? throw new InvalidOperationException("Connection string cannot be null");
+            o.UseNpgsql(connectionString);
+        });
         _ = services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ApplicationDbContext>());
         _ = services.AddScoped<ShippingRatesService>();
-        _ = services.AddSingleton(new DatabaseConcurrentAccessSemaphore(
-                maxConcurrent: new Npgsql.NpgsqlConnectionStringBuilder(connectionString).MaxPoolSize / 2));
+        _ = services.AddSingleton(sp =>
+        {
+            var connectionString = sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection")
+                                   ?? throw new InvalidOperationException("Connection string cannot be null");
+            return new DatabaseConcurrentAccessSemaphore(
+                maxConcurrent: new Npgsql.NpgsqlConnectionStringBuilder(connectionString).MaxPoolSize / 2);
+        });
         _ = services.AddScoped<DbCache>();
         _ = services.AddScoped<MeasurementService>();
         _ = services.AddScoped<MatchedMeasurementService>();
@@ -57,55 +72,62 @@ public static class ServiceCollectionExtensions
         _ = services.AddDefaultIdentity<ApplicationUser>(o => o.SignIn.RequireConfirmedAccount = true)
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
-        _ = services.AddHostedService<CurrencyRateBackgroundTask>();
-        _ = services.AddHostedService<ChipfindBackgroundTask>();
-        _ = services.AddHostedService<SaleAdvertisementCleanupBackgroundTask>();
-
-        _ = services.AddOptions<SqlTransportOptions>()
-            .Configure(o => { o.ConnectionString = connectionString; });
-
-        _ = services.AddPostgresMigrationHostedService(x =>
+        if (!isTesting)
         {
-            x.CreateDatabase = false;
-            x.CreateInfrastructure = true;
-        });
-        _ = services.AddMassTransit(x =>
-        {
-            _ = x.AddConsumer<CalculatePricesForAllConsumer>();
-            _ = x.AddConsumer<CalculatePricesForProductConsumer>();
-            _ = x.AddConsumer<CalculatePricesForLotConsumer>();
-            _ = x.AddConsumer<MeasurementWatchedOnEbayConsumer>();
-            _ = x.AddConsumer<CalculateEbayCurvesForMeasurementConsumer>(c =>
-            {
-                c.UseConcurrencyLimit(10);
-            });
-            _ = x.AddConsumer<MatchedPairsCalculator>(c =>
-            {
-                c.UseConcurrencyLimit(1);
-            });
-            _ = x.AddConsumer<CalculateTotalAveragePriceForProductConsumer>(c => c.Options<BatchOptions>(o =>
-            {
-                o.ConcurrencyLimit = 1;
-                o.MessageLimit = 100;
-            }));
-            x.AddEntityFrameworkOutbox<ApplicationDbContext>(o =>
-            {
-                _ = o.UsePostgres();
-                o.UseBusOutbox();
-            });
+            _ = services.AddHostedService<CurrencyRateBackgroundTask>();
+            _ = services.AddHostedService<ChipfindBackgroundTask>();
+            _ = services.AddHostedService<SaleAdvertisementCleanupBackgroundTask>();
 
-            x.AddSqlMessageScheduler();
+            _ = services.AddOptions<SqlTransportOptions>()
+                .Configure<IConfiguration>((o, cfg) =>
+                {
+                    o.ConnectionString = cfg.GetConnectionString("DefaultConnection")
+                                        ?? throw new InvalidOperationException("Connection string cannot be null");
+                });
 
-            x.UsingPostgres((context, cfg) =>
+            _ = services.AddPostgresMigrationHostedService(x =>
             {
-                cfg.UseSqlMessageScheduler();
-
-                cfg.ConfigureEndpoints(context);
+                x.CreateDatabase = false;
+                x.CreateInfrastructure = true;
             });
+            _ = services.AddMassTransit(x =>
+            {
+                _ = x.AddConsumer<CalculatePricesForAllConsumer>();
+                _ = x.AddConsumer<CalculatePricesForProductConsumer>();
+                _ = x.AddConsumer<CalculatePricesForLotConsumer>();
+                _ = x.AddConsumer<MeasurementWatchedOnEbayConsumer>();
+                _ = x.AddConsumer<CalculateEbayCurvesForMeasurementConsumer>(c =>
+                {
+                    c.UseConcurrencyLimit(10);
+                });
+                _ = x.AddConsumer<MatchedPairsCalculator>(c =>
+                {
+                    c.UseConcurrencyLimit(1);
+                });
+                _ = x.AddConsumer<CalculateTotalAveragePriceForProductConsumer>(c => c.Options<BatchOptions>(o =>
+                {
+                    o.ConcurrencyLimit = 1;
+                    o.MessageLimit = 100;
+                }));
+                x.AddEntityFrameworkOutbox<ApplicationDbContext>(o =>
+                {
+                    _ = o.UsePostgres();
+                    o.UseBusOutbox();
+                });
 
-        });
-        _ = services.AddHostedService<DbCacheCleanupHostedService>();
-        _ = services.AddHostedService<MeasurementPlotWarmupHostedService>();
+                x.AddSqlMessageScheduler();
+
+                x.UsingPostgres((context, cfg) =>
+                {
+                    cfg.UseSqlMessageScheduler();
+
+                    cfg.ConfigureEndpoints(context);
+                });
+
+            });
+            _ = services.AddHostedService<DbCacheCleanupHostedService>();
+            _ = services.AddHostedService<MeasurementPlotWarmupHostedService>();
+        }
         _ = services.AddDatabaseDeveloperPageExceptionFilter();
 
         _ = services.AddControllersWithViews(options =>
@@ -124,15 +146,13 @@ public static class ServiceCollectionExtensions
         // Migrate DB
         using var serviceScope = app.Services.CreateScope();
         
-        var dbContext = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         if (app.Environment.IsEnvironment("Testing"))
         {
-            _ = dbContext.Database.EnsureCreated();
+            return;
         }
-        else
-        {
-            dbContext.Database.Migrate();
-        }
+
+        var dbContext = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        dbContext.Database.Migrate();
     }
 
 }
