@@ -1,0 +1,18 @@
+{
+  "runtime": "Net100",
+  "defaultVariables": null,
+  "documentGenerator": {
+    "fromDocument": {
+      "url": "../Server.Contracts/Legacy/Ebay.yaml"
+    }
+  },
+  "codeGenerators": {
+    "openApiToCSharpClient": {
+      "namespace": "Client.Clients.Generated",
+      "className": "EbayClient",
+      "output": "obj/Generated/Clients/EbayClient.cs",
+      "jsonLibrary": "SystemTextJson",
+      "requiredPropertiesMustBeDefined": false
+    }
+  }
+}

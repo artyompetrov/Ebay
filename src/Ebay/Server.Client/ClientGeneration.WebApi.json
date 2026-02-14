@@ -1,0 +1,19 @@
+{
+  "runtime": "Net100",
+  "defaultVariables": null,
+  "documentGenerator": {
+    "fromDocument": {
+      "url": "../Server.Contracts/WebApi/WebApi.yaml"
+    }
+  },
+  "codeGenerators": {
+    "openApiToCSharpClient": {
+      "namespace": "Client.Clients.Generated",
+      "className": "WebApiClient",
+      "output": "obj/Generated/Clients/WebApiClient.cs",
+      "jsonLibrary": "SystemTextJson",
+      "requiredPropertiesMustBeDefined": false,
+      "generateExceptionClasses": false
+    }
+  }
+}
