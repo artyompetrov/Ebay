@@ -1,6 +1,8 @@
 using MassTransit;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Server.Application.Abstractions;
 using Server.Application.Consumers.EbayCurvesCacheWarmUp;
 using Server.Application.Consumers.MatchedPairs;
@@ -117,12 +119,20 @@ public static class ServiceCollectionExtensions
             .AddApplicationPart(typeof(ServiceCollectionExtensions).Assembly);
     }
 
-    public static void InitializeApplication(this IServiceProvider serviceProvider)
+    public static void UseApplication(this WebApplication app)
     {
         // Migrate DB
-        using var scope = serviceProvider.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        dbContext.Database.Migrate();
+        using var serviceScope = app.Services.CreateScope();
+        
+        var dbContext = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        if (app.Environment.IsEnvironment("Testing"))
+        {
+            _ = dbContext.Database.EnsureCreated();
+        }
+        else
+        {
+            dbContext.Database.Migrate();
+        }
     }
 
 }

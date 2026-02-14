@@ -1,20 +1,18 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Tests;
 
 [Parallelizable(ParallelScope.Self)]
 public class HealthCheckTest
 {
-    private WebApplicationFactory<Program> factory = null!;
+    private WebApplicationFactory<Program> _factory = null!;
 
     [OneTimeSetUp]
     public void OneTimeSetUp()
     {
-        factory = new WebApplicationFactory<Program>()
+        _factory = new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Testing");
@@ -28,24 +26,16 @@ public class HealthCheckTest
                         ["EbayServer:IsLocalRun"] = "true"
                     });
                 });
-
-                builder.ConfigureServices(services =>
-                {
-                    services.RemoveAll<IHostedService>();
-                });
             });
     }
 
     [OneTimeTearDown]
-    public void OneTimeTearDown()
-    {
-        factory.Dispose();
-    }
+    public void OneTimeTearDown() => _factory.Dispose();
 
     [Test]
     public async Task ExampleTest()
     {
-        using var client = factory.CreateClient();
+        using var client = _factory.CreateClient();
 
         var response = await client.GetAsync("/api/health");
 
