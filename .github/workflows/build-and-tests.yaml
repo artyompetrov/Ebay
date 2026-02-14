@@ -56,14 +56,23 @@ jobs:
           dotnet build --configuration Release
 
       - name: Initialize integration test database
-        run: ./scripts/init-test-db.sh
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -p 5432 -U postgres -d postgres -v ON_ERROR_STOP=1 <<'SQL'
+          SELECT 'CREATE DATABASE ebay_test'
+          WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'ebay_test')\gexec
+          SQL
+
+          psql -h localhost -p 5432 -U postgres -d ebay_test -v ON_ERROR_STOP=1 <<'SQL'
+          CREATE EXTENSION IF NOT EXISTS hstore;
+          SQL
 
       - name: Run integration tests
         env:
           ConnectionStrings__DefaultConnection: Host=localhost;Port=5432;Database=ebay_test;Username=postgres;Password=postgres
           EbayServer__TargetEmail: integration-tests@localhost
           EbayServer__IsLocalRun: true
-          RunDbMigrations: false
         run: |
           cd ./src/Ebay
           dotnet test --configuration Release --filter "FullyQualifiedName~HealthCheckTest"

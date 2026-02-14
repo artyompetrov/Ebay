@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Server.Application.Data;
 
 namespace Tests;
 
@@ -26,15 +25,13 @@ public class HealthCheckTest
                         ["ConnectionStrings:DefaultConnection"] =
                             "Host=localhost;Port=5432;Database=ebay_test;Username=postgres;Password=postgres",
                         ["EbayServer:TargetEmail"] = "integration-tests@localhost",
-                        ["EbayServer:IsLocalRun"] = "true",
-                        ["RunDbMigrations"] = "false"
+                        ["EbayServer:IsLocalRun"] = "true"
                     });
                 });
 
                 builder.ConfigureServices(services =>
                 {
                     services.RemoveAll<IHostedService>();
-                    services.RemoveAll<ApplicationDbContext>();
                 });
             });
     }

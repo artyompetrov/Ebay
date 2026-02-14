@@ -2,6 +2,7 @@ using Duende.IdentityServer.Models;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Logs;
 using Server;
 using Server.Adapters.ChipFind;
@@ -104,10 +105,17 @@ builder.Services.AddResponseCaching();
 
 var app = builder.Build();
 
-var shouldRunMigrations = builder.Configuration.GetValue("RunDbMigrations", true);
-if (shouldRunMigrations)
+using (var scope = app.Services.CreateScope())
 {
-    app.Services.InitializeApplication();
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    if (app.Environment.IsEnvironment("Testing"))
+    {
+        _ = dbContext.Database.EnsureCreated();
+    }
+    else
+    {
+        dbContext.Database.Migrate();
+    }
 }
 
 // Configure the HTTP request pipeline.
