@@ -48,6 +48,51 @@
 C# - `cd /workspace/Ebay/src/Ebay/ && dotnet build`
 ChromeExtension - `cd /workspace/Ebay/src/ChromeExtension/ && npm run build`
 
+# Локальная отладка backend (PostgreSQL + API)
+Ниже минимальная рабочая инструкция, которую можно выполнить в чистом Linux-окружении агента.
+
+1. Установить PostgreSQL:
+   - `sudo apt-get update`
+   - `sudo apt-get install -y postgresql`
+
+2. Запустить кластер и проверить статус:
+   - `sudo pg_ctlcluster 16 main start`
+   - `pg_lsclusters`
+
+3. Создать пользователя и БД под текущие dev-настройки проекта:
+   - ```bash
+     sudo -u postgres psql -v ON_ERROR_STOP=1 <<'SQL'
+     DO $$
+     BEGIN
+       IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='ebay') THEN
+         CREATE ROLE ebay LOGIN PASSWORD 'catnip0-spoil4-untrimmed';
+       ELSE
+         ALTER ROLE ebay WITH LOGIN PASSWORD 'catnip0-spoil4-untrimmed';
+       END IF;
+     END
+     $$;
+     SELECT 'CREATE DATABASE ebay OWNER ebay'
+     WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname='ebay')\gexec
+     ALTER ROLE ebay CREATEROLE CREATEDB;
+     SQL
+     ```
+
+4. Запустить backend (без launch profile, чтобы переопределить порт БД на 5432):
+   - ```bash
+     ASPNETCORE_ENVIRONMENT=Development \
+     ConnectionStrings__DefaultConnection='User ID=ebay;Password=catnip0-spoil4-untrimmed;Server=localhost;Port=5432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=60;Enlist=true;Include Error Detail=true;' \
+     dotnet run --no-launch-profile --project /workspace/Ebay/src/Ebay/Server/Server.csproj --urls http://0.0.0.0:5080
+     ```
+
+5. Проверить, что API отвечает:
+   - `curl -i http://127.0.0.1:5080/chrome_extensions/auth` (ожидается `200 OK`)
+   - `curl -i http://127.0.0.1:5080/chrome_extensions/<extension>.xml`
+
+6. Полезные замечания для отладки:
+   - В `launchSettings.json` по умолчанию указан Postgres `Port=15432`, поэтому для локального PostgreSQL по умолчанию нужно либо запускать БД на 15432, либо передавать `ConnectionStrings__DefaultConnection` как в п.4.
+   - Первый запуск может применять EF Core миграции и миграции MassTransit в БД.
+   - Если не нужен полный стек фоновых задач, все равно проверяйте, что приложение поднимается и слушает порт (`Now listening on: http://0.0.0.0:5080`).
+
 # Присылай Pull Request только если проект успешно собирается
 После завершения кодирования проверяй, что у тебя собираются и C#-проект, и Chrome extension.
 Если проект не собирается — нужно исправить билд перед созданием Pull Request.
