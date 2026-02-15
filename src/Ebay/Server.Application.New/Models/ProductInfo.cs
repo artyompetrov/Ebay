@@ -3,6 +3,12 @@ using Server.Domain;
 
 namespace Server.Application.New.Models;
 
+// TODO(architecture): Этот тип уже не "просто модель":
+// 1) Здесь зашиты бизнес-правила: RecheckTimeInDays, IsInterestingRevenueUsd, IsInterestingRelevantStatistics, EbayWeightMultiplier.
+// 2) Здесь есть поведение: IsCheckRequired, CalculatedEbayWeight, GetIsInteresting().
+// 3) Здесь есть техническая логика матчинга текста: ProductRegex + набор Regex/replace-правил.
+// Нужно разрезать по смыслу: оставить в модели только данные, правила вынести в policy/бизнес-сервис,
+// а regex-логику вынести в отдельный matcher/search-компонент.
 public record ProductInfo(
     Guid Id,
     string Name,
