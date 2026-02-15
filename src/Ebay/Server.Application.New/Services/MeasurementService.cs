@@ -1,12 +1,13 @@
 using Server.Application.New.Abstractions;
 using Server.Application.New.Abstractions.Queries;
 using Server.Application.New.Abstractions.Repositories;
+using Server.Application.New.Abstractions.Services;
 using Server.Application.New.Models;
 using Server.Domain.Measurements;
 
-namespace Server.Application.Services.Measurement;
+namespace Server.Application.New.Services;
 
-public class MeasurementService
+internal sealed class MeasurementService : IMeasurementService
 {
     private readonly IMeasurementRepository _productMeasurementRepository;
     private readonly IMatchedPairDifferenceRepository _matchedPairDifferenceRepository;

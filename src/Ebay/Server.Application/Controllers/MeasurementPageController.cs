@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Server.Application.New.Abstractions.Services;
 using Server.Application.Services.GeoIp;
-using Server.Application.Services.Measurement;
 using Server.Application.Services.MeasurementPlot;
 
 namespace Server.Application.Controllers;
@@ -9,7 +9,7 @@ namespace Server.Application.Controllers;
 public class MeasurementPageController : ControllerBase
 {
     public MeasurementPageController(
-        MeasurementService measurementService,
+        IMeasurementService measurementService,
         MeasurementPlotService measurementPlotService,
         GeoIpService geoIpService)
     {
@@ -18,7 +18,7 @@ public class MeasurementPageController : ControllerBase
         _geoIpService = geoIpService;
     }
 
-    private readonly MeasurementService _measurementService;
+    private readonly IMeasurementService _measurementService;
     private readonly MeasurementPlotService _measurementPlotService;
     private readonly GeoIpService _geoIpService;
 

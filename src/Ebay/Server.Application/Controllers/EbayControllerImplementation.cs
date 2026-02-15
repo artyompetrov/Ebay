@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Server.Application.Consumers.PriceCalculator;
 using Server.Application.Data;
 using Server.Application.Infrastructure;
+using Server.Application.New.Abstractions.Services;
 using Server.Application.Services;
 using Server.Application.Services.LotDataExtractor;
 using Server.Application.Services.Measurement;
@@ -34,7 +35,7 @@ internal class EbayControllerImplementation : IEbayController
     private readonly ApplicationDbContext _applicationContext;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly ShippingRatesService _shippingRatesService;
-    private readonly MeasurementService _measurementService;
+    private readonly IMeasurementService _measurementService;
     private readonly MatchedMeasurementService _matchedMeasurementService;
     private readonly TubeWorkingPointService _tubeWorkingPointService;
     private readonly ProductService _productService;
@@ -43,7 +44,7 @@ internal class EbayControllerImplementation : IEbayController
         ApplicationDbContext applicationContext,
         IPublishEndpoint publishEndpoint,
         ShippingRatesService shippingRatesService,
-        MeasurementService measurementService,
+        IMeasurementService measurementService,
         MatchedMeasurementService matchedMeasurementService,
         TubeWorkingPointService tubeWorkingPointService,
         ProductService productService)

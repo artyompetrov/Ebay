@@ -16,6 +16,7 @@ using Server.Application.HostedServices.DbCache;
 using Server.Application.HostedServices.Measurements;
 using Server.Application.HostedServices.SaleAdvertisements;
 using Server.Application.Infrastructure;
+using Server.Application.New;
 using Server.Application.New.Abstractions;
 using Server.Application.Services;
 using Server.Application.Services.GeoIp;
@@ -56,7 +57,7 @@ public static class ServiceCollectionExtensions
                 maxConcurrent: new Npgsql.NpgsqlConnectionStringBuilder(connectionString).MaxPoolSize / 2);
         });
         _ = services.AddScoped<DbCache>();
-        _ = services.AddScoped<MeasurementService>();
+        services.AddApplicationNewServices();
         _ = services.AddScoped<MatchedMeasurementService>();
         _ = services.AddScoped<MeasurementPlotService>();
         _ = services.AddScoped<TubeWorkingPointService>();
