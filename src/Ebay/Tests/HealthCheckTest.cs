@@ -79,24 +79,6 @@ public class HealthCheckTest
         }
     }
 
-    [Test]
-    public async Task OidcConfiguration_ReturnsClientParameters()
-    {
-        using var client = _factory.CreateClient();
-        await RetryUntilValidationSuccessAsync(
-            async () =>
-            {
-                using var response = await client.GetAsync("/_configuration/Client");
-                var mediaType = response.Content.Headers.ContentType?.MediaType;
-
-                if (response.StatusCode != HttpStatusCode.OK || mediaType != "application/json")
-                {
-                    throw new AssertionException(
-                        $"Expected (status: {(int)HttpStatusCode.OK}, mediaType: application/json), but got (status: {(int)response.StatusCode}, mediaType: {mediaType ?? "null"}).");
-                }
-            });
-    }
-
     protected static Task RetryUntilValidationSuccessAsync(
         Func<Task> assertAction,
         int timeout = 20)

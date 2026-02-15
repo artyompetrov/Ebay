@@ -12,19 +12,5 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services)
     {
         _ = services.AddControllers().AddApplicationPart(typeof(WebApiController).Assembly);
-        services.TryAddTransient<IClientRequestParametersProvider, FallbackClientRequestParametersProvider>();
-    }
-
-    private sealed class FallbackClientRequestParametersProvider : IClientRequestParametersProvider
-    {
-        public IDictionary<string, string> GetClientParameters(
-            HttpContext context,
-            string clientId)
-        {
-            return new Dictionary<string, string>
-            {
-                ["client_id"] = clientId
-            };
-        }
     }
 }
