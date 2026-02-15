@@ -53,7 +53,6 @@ jobs:
         run: |
           cd ./src/Ebay
           dotnet restore
-          dotnet msbuild -t:BeforeBuild
 
       - name: Build .NET
         run: |
@@ -75,15 +74,7 @@ jobs:
           EbayServer__IsLocalRun: true
         run: |
           cd ./src/Ebay
-          dotnet test --configuration Release --filter "FullyQualifiedName~HealthCheckTest"
-
-      - name: Build Chrome extension
-        env:
-          EBAY_HELPER_BACKEND_DOMAIN: ${{ secrets.EBAY_HELPER_BACKEND_DOMAIN != '' && secrets.EBAY_HELPER_BACKEND_DOMAIN || 'localhost:7095' }}
-        run: |
-          cd ./src/ChromeExtension
-          npm ci
-          npm run build
+          dotnet test --configuration Release
 
 
   build_docker:
