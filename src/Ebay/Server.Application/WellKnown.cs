@@ -2,21 +2,6 @@ namespace Server.Application;
 
 internal static class WellKnown
 {
-    public const int RecheckTimeInDays = 360 * 2;
-
-    public static class IsInteresting
-    {
-        /// <summary>
-        /// Сумма выручки за штуку от которой интересно работать с товаром
-        /// </summary>
-        public static int RevenueUsd = 12;
-
-        /// <summary>
-        /// Количество штук на ebay продано минимум, для репрезентативности
-        /// </summary>
-        public static int RelevantStatistics = 3;
-    }
-
     public static class Formats
     {
         public static string TimeFormat = "yyyy-MM-ddTHH:mm:ss.fffZ";

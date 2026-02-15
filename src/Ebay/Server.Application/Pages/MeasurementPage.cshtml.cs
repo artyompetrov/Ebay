@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using Server.Application.Abstractions.Queries;
 using Server.Application.Data;
+using Server.Application.New.Abstractions.Queries;
+using Server.Application.New.Models;
 using Server.Domain;
 using Server.Domain.Measurements;
 
@@ -52,3 +53,4 @@ public class MeasurementPage : PageModel
         return Page();
     }
 }
+

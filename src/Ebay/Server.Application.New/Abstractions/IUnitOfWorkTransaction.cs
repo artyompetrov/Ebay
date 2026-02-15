@@ -1,4 +1,4 @@
-namespace Server.Application.Abstractions;
+namespace Server.Application.New.Abstractions;
 
 public interface IUnitOfWorkTransaction : IDisposable, IAsyncDisposable
 {

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Server.Application.Abstractions.Queries;
+using Server.Application.New.Abstractions.Queries;
+using Server.Application.New.Models;
 
 namespace Server.Application.Pages;
 
@@ -51,3 +52,4 @@ public class PurchasePage : PageModel
         return Page();
     }
 }
+

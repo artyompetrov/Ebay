@@ -1,9 +1,10 @@
 using System.Diagnostics;
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using Server.Application.Abstractions;
-using Server.Application.Abstractions.Queries;
-using Server.Application.Abstractions.Repositories;
+using Server.Application.New.Abstractions;
+using Server.Application.New.Abstractions.Queries;
+using Server.Application.New.Models;
+using Server.Application.New.Abstractions.Repositories;
 using Server.Application.Services;
 using Server.Domain.Measurements;
 using Server.Domain.Measurements.MeasurementTypes;
@@ -389,3 +390,4 @@ public record CalculateMatchedPair(string MeasurementId1, string MeasurementId2)
 {
     public override string ToString() => $"{MeasurementId1}-{MeasurementId2}";
 }
+

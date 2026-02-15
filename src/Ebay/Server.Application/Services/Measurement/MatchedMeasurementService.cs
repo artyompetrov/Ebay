@@ -1,10 +1,11 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using Server.Application.Abstractions;
-using Server.Application.Abstractions.Queries;
-using Server.Application.Abstractions.Repositories;
 using Server.Application.Consumers.MatchedPairs;
 using Server.Application.Controllers;
+using Server.Application.New.Abstractions;
+using Server.Application.New.Abstractions.Queries;
+using Server.Application.New.Models;
+using Server.Application.New.Abstractions.Repositories;
 using Server.Domain.Measurements;
 
 namespace Server.Application.Services.Measurement;
@@ -88,3 +89,4 @@ internal class MatchedMeasurementService
         _ = await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }
+

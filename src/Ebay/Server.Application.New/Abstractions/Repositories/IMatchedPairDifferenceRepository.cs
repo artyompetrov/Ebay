@@ -1,6 +1,6 @@
 using Server.Domain.Measurements;
 
-namespace Server.Application.Abstractions.Repositories;
+namespace Server.Application.New.Abstractions.Repositories;
 
 public interface IMatchedPairDifferenceRepository : IRepository<MatchedPairDifference, MatchedPairDifferenceId>
 {

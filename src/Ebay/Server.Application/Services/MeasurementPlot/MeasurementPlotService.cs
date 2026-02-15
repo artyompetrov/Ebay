@@ -2,10 +2,11 @@ using System.Text.RegularExpressions;
 using MassTransit;
 using ScottPlot;
 using ScottPlot.PlotStyles;
-using Server.Application.Abstractions;
-using Server.Application.Abstractions.Queries;
 using Server.Application.Consumers.MeasurementWatching;
 using Server.Application.Infrastructure;
+using Server.Application.New.Abstractions;
+using Server.Application.New.Abstractions.Queries;
+using Server.Application.New.Models;
 using Server.Domain.Measurements;
 using Server.Domain.Measurements.MeasurementTypes;
 using Server.Domain.Measurements.MeasurementTypes.Base;
@@ -650,3 +651,4 @@ public class MeasurementPlotService : IMeasurementPlotService
                   """;
     }
 }
+

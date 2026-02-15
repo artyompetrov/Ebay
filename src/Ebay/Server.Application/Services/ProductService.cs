@@ -1,9 +1,10 @@
 using System.Data;
 using MassTransit;
-using Server.Application.Abstractions;
-using Server.Application.Abstractions.Queries;
-using Server.Application.Abstractions.Repositories;
 using Server.Application.Consumers.PriceCalculator;
+using Server.Application.New.Abstractions;
+using Server.Application.New.Abstractions.Queries;
+using Server.Application.New.Models;
+using Server.Application.New.Abstractions.Repositories;
 using Server.Domain;
 
 namespace Server.Application.Services;
@@ -94,3 +95,4 @@ internal class ProductService
         return result;
     }
 }
+

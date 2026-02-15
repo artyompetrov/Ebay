@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using Server.Application.Abstractions.Queries;
+using Server.Application.New.Abstractions.Queries;
+using Server.Application.New.Models;
 
 namespace Sever.Adapters.EF.ReadModel.Queries;
 
