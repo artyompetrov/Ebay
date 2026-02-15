@@ -587,9 +587,19 @@ public class MeasurementPlotService : IMeasurementPlotService
                     badgeSub = "(&lt; 10%)";
                     badgeFill = "#16a34a";
                     break;
+                case < 15:
+                    badgeText = "GOOD";
+                    badgeSub = "(&lt; 15%)";
+                    badgeFill = "#16a34a";
+                    break;
                 case < 20:
                     badgeText = "GOOD";
                     badgeSub = "(&lt; 20%)";
+                    badgeFill = "#16a34a";
+                    break;
+                case < 25:
+                    badgeText = "GOOD";
+                    badgeSub = "(&lt; 25%)";
                     badgeFill = "#16a34a";
                     break;
                 case < 30:

@@ -22,7 +22,6 @@ RUN dotnet restore "Ebay/Ebay.sln"
 # Копируем остальной исходный код
 COPY Ebay/ Ebay/
 WORKDIR "/src/Ebay/"
-RUN dotnet msbuild -t:BeforeBuild
 WORKDIR "/src/Ebay/Server"
 ARG BUILD_VERSION="1.0.0.0"
 RUN dotnet publish "Server.csproj" -c Release -o /app/publish /p:UseAppHost=false /p:Version=$BUILD_VERSION
