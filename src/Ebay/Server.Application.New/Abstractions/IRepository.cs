@@ -1,6 +1,6 @@
 using Server.Domain;
 
-namespace Server.Application.Abstractions;
+namespace Server.Application.New.Abstractions;
 
 /// <summary>
 /// Репозиторий для работы агрегатами

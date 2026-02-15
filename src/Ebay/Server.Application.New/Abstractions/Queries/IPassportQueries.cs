@@ -1,4 +1,6 @@
-namespace Server.Application.Abstractions.Queries;
+using Server.Application.New.Models;
+
+namespace Server.Application.New.Abstractions.Queries;
 
 public interface IPassportQueries
 {

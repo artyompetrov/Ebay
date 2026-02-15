@@ -1,8 +1,14 @@
 using System.Text.RegularExpressions;
 using Server.Domain;
 
-namespace Server.Application.Abstractions.Queries;
+namespace Server.Application.New.Models;
 
+// TODO(architecture): Этот тип уже не "просто модель":
+// 1) Здесь зашиты бизнес-правила: RecheckTimeInDays, IsInterestingRevenueUsd, IsInterestingRelevantStatistics, EbayWeightMultiplier.
+// 2) Здесь есть поведение: IsCheckRequired, CalculatedEbayWeight, GetIsInteresting().
+// 3) Здесь есть техническая логика матчинга текста: ProductRegex + набор Regex/replace-правил.
+// Нужно разрезать по смыслу: оставить в модели только данные, правила вынести в policy/бизнес-сервис,
+// а regex-логику вынести в отдельный matcher/search-компонент.
 public record ProductInfo(
     Guid Id,
     string Name,
@@ -13,16 +19,29 @@ public record ProductInfo(
     DateTime LastCheckTime
 )
 {
-    public bool IsCheckRequired => DateTime.UtcNow - LastCheckTime > TimeSpan.FromDays(WellKnown.RecheckTimeInDays);
+    private const int RecheckTimeInDays = 360 * 2;
+    
+    /// <summary>
+    /// Сумма выручки за штуку от которой интересно работать с товаром
+    /// </summary>
+    private const int IsInterestingRevenueUsd = 12;
+    
+    /// <summary>
+    /// Количество штук на ebay продано минимум, для репрезентативности
+    /// </summary>
+    private const int IsInterestingRelevantStatistics = 3;
+    private const double EbayWeightMultiplier = 1.5;
+
+    public bool IsCheckRequired => DateTime.UtcNow - LastCheckTime > TimeSpan.FromDays(RecheckTimeInDays);
 
     public int CalculatedEbayWeight =>
-        (int)Math.Ceiling(Weight * WellKnown.Ebay.множительДляУчетаВесаУпаковки / 100.0);
+        (int)Math.Ceiling(Weight * EbayWeightMultiplier / 100.0);
 
 
     public bool GetIsInteresting()
     {
-        return CalculationResult?.RevenueAvg > WellKnown.IsInteresting.RevenueUsd &&
-        CalculationResult?.QuantityTotal >= WellKnown.IsInteresting.RelevantStatistics;
+        return CalculationResult?.RevenueAvg > IsInterestingRevenueUsd &&
+        CalculationResult?.QuantityTotal >= IsInterestingRelevantStatistics;
     }
 
     private static readonly Dictionary<string, string> SimpleReplacements = new()

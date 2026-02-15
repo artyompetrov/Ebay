@@ -1,9 +1,10 @@
 using Microsoft.EntityFrameworkCore;
-using Server.Application.Abstractions;
-using Server.Application.Abstractions.Queries;
-using Server.Application.Abstractions.Repositories;
 using Server.Application.Controllers;
 using Server.Application.Data;
+using Server.Application.New.Abstractions;
+using Server.Application.New.Abstractions.Queries;
+using Server.Application.New.Models;
+using Server.Application.New.Abstractions.Repositories;
 using Server.Domain.Measurements;
 
 namespace Server.Application.Services;
@@ -76,3 +77,4 @@ public class TubeWorkingPointService
 
     public Task<TubeWorkingPointInfo?> GetWorkingPointInfo(Guid productId, CancellationToken cancellationToken) => _tubeWorkingPointQueries.GetWorkingPointInfo(productId, cancellationToken);
 }
+

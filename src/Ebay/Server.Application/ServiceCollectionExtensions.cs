@@ -5,7 +5,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Server.Application.Abstractions;
 using Server.Application.Consumers.EbayCurvesCacheWarmUp;
 using Server.Application.Consumers.MatchedPairs;
 using Server.Application.Consumers.MeasurementWatching;
@@ -18,6 +17,7 @@ using Server.Application.HostedServices.DbCache;
 using Server.Application.HostedServices.Measurements;
 using Server.Application.HostedServices.SaleAdvertisements;
 using Server.Application.Infrastructure;
+using Server.Application.New.Abstractions;
 using Server.Application.Services;
 using Server.Application.Services.GeoIp;
 using Server.Application.Services.LotDataExtractor;
@@ -29,6 +29,7 @@ namespace Server.Application;
 
 public static class ServiceCollectionExtensions
 {
+    [Obsolete("Legacy registration from Server.Application. This assembly is being split into multiple projects; do not expand it with new code. Place new application composition in Server.Application.New and DB infrastructure in DB adapters.")]
     public static void AddApplicationServices(
         this IServiceCollection services,
         IConfiguration configuration)

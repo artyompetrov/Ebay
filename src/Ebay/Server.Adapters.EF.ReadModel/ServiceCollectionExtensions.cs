@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Server.Application.Abstractions.Queries;
+using Server.Application.New.Abstractions.Queries;
 using Sever.Adapters.EF.ReadModel.Queries;
 
 namespace Sever.Adapters.EF.ReadModel;

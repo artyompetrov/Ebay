@@ -1,7 +1,7 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using Server.Application.Abstractions;
-using Server.Application.Abstractions.Repositories;
+using Server.Application.New.Abstractions;
+using Server.Application.New.Abstractions.Repositories;
 
 namespace Server.Application.Consumers.MeasurementWatching;
 

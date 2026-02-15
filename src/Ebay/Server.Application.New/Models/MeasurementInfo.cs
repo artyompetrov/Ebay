@@ -1,7 +1,10 @@
 using Server.Domain.Measurements;
 
-namespace Server.Application.Abstractions.Queries;
+namespace Server.Application.New.Models;
 
+// TODO(architecture): Тип содержит не только данные, но и поведение/бизнес-правило
+// (IsPublishedOnEbay с фиксированным окном в 7 дней).
+// Позже вынести это правило в policy/сервис и оставить здесь только DTO-данные.
 public record MeasurementInfo(
     string Id,
     Guid ProductId,

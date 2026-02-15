@@ -2,9 +2,10 @@ using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Server.Application.Abstractions.Queries;
 using Server.Application.Data;
 using Server.Application.Infrastructure;
+using Server.Application.New.Abstractions.Queries;
+using Server.Application.New.Models;
 using Server.Domain;
 
 namespace Server.Application.HostedServices.ChipFind;
@@ -188,3 +189,4 @@ public class ChipfindBackgroundTask : BackgroundTask
         return productsArray;
     }
 }
+

@@ -15,6 +15,7 @@ COPY Ebay/Server.Adapters.ChipFind/*.csproj Ebay/Server.Adapters.ChipFind/
 COPY Ebay/Server.Adapters.WebApi/*.csproj Ebay/Server.Adapters.WebApi/
 COPY Ebay/Server.Contracts/*.csproj Ebay/Server.Contracts/
 COPY Ebay/Server.Application/*.csproj Ebay/Server.Application/
+COPY Ebay/Server.Application.New/*.csproj Ebay/Server.Application.New/
 COPY Ebay/Server.Domain/*.csproj Ebay/Server.Domain/
 COPY Ebay/Server.Client/*.csproj Ebay/Server.Client/
 COPY Ebay/Tests/*.csproj Ebay/Tests/

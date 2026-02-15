@@ -1,4 +1,5 @@
-﻿using Server.Application.Abstractions.Queries;
+using Server.Application.New.Abstractions.Queries;
+using Server.Application.New.Models;
 using Server.Domain.Measurements;
 using Server.Domain.Measurements.MeasurementTypes.Base;
 
@@ -72,3 +73,4 @@ public class MeasurementApproximationService
     }
 }
 #pragma warning restore CA1822
+

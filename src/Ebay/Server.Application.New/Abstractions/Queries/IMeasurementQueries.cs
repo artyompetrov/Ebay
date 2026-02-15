@@ -1,6 +1,7 @@
 using Server.Domain.Measurements;
+using Server.Application.New.Models;
 
-namespace Server.Application.Abstractions.Queries;
+namespace Server.Application.New.Abstractions.Queries;
 
 public interface IMeasurementQueries
 {
