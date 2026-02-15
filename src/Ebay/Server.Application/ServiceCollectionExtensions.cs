@@ -31,11 +31,9 @@ public static class ServiceCollectionExtensions
 {
     public static void AddApplicationServices(
         this IServiceCollection services,
-        IConfiguration configuration,
-        IHostEnvironment environment)
+        IConfiguration configuration)
     {
         var appAssembly = typeof(ServiceCollectionExtensions).Assembly;
-        var isTesting = environment.IsEnvironment("Testing");
 
         _ = services.AddOptions<EbayServerOptions>()
             .Bind(configuration.GetSection("EbayServer"));
@@ -72,8 +70,6 @@ public static class ServiceCollectionExtensions
         _ = services.AddDefaultIdentity<ApplicationUser>(o => o.SignIn.RequireConfirmedAccount = true)
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
-        if (!isTesting)
-        {
             _ = services.AddHostedService<CurrencyRateBackgroundTask>();
             _ = services.AddHostedService<ChipfindBackgroundTask>();
             _ = services.AddHostedService<SaleAdvertisementCleanupBackgroundTask>();
@@ -127,7 +123,7 @@ public static class ServiceCollectionExtensions
             });
             _ = services.AddHostedService<DbCacheCleanupHostedService>();
             _ = services.AddHostedService<MeasurementPlotWarmupHostedService>();
-        }
+
         _ = services.AddDatabaseDeveloperPageExceptionFilter();
 
         _ = services.AddControllersWithViews(options =>
@@ -141,18 +137,21 @@ public static class ServiceCollectionExtensions
             .AddApplicationPart(typeof(ServiceCollectionExtensions).Assembly);
     }
 
-    public static void UseApplication(this WebApplication app)
+    public static void UseApplication(this WebApplication app, bool ensureCreatedInsteadOfMigrate)
     {
         // Migrate DB
         using var serviceScope = app.Services.CreateScope();
         
-        if (app.Environment.IsEnvironment("Testing"))
-        {
-            return;
-        }
-
         var dbContext = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        dbContext.Database.Migrate();
+
+        if (ensureCreatedInsteadOfMigrate)
+        {
+            dbContext.Database.EnsureCreated();
+        }
+        else
+        {
+            dbContext.Database.Migrate();
+        }
     }
 
 }

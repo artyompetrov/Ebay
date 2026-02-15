@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
@@ -21,7 +22,7 @@ public class HealthCheckTest
                     configBuilder.AddInMemoryCollection(new Dictionary<string, string?>
                     {
                         ["ConnectionStrings:DefaultConnection"] =
-                            "Host=localhost;Port=5432;Database=ebay_test;Username=postgres;Password=postgres",
+                            "User ID=ebay;Password=catnip0-spoil4-untrimmed;Server=localhost;Port=15432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=60;Enlist=true;Include Error Detail=true;",
                         ["EbayServer:TargetEmail"] = "integration-tests@localhost",
                         ["EbayServer:IsLocalRun"] = "true"
                     });
@@ -36,9 +37,26 @@ public class HealthCheckTest
     public async Task HealthCheck()
     {
         using var client = _factory.CreateClient();
+        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
 
-        var response = await client.GetAsync("/api/health");
+        var stopwatch = Stopwatch.StartNew();
+        string? lastError = null;
 
-        Assert.That(response.IsSuccessStatusCode, Is.True);
+        while (!timeoutCts.IsCancellationRequested)
+        {
+            using var response = await client.GetAsync("/api/health", timeoutCts.Token);
+            if (response.IsSuccessStatusCode)
+            {
+                return;
+            }
+
+            var responseBody = await response.Content.ReadAsStringAsync(timeoutCts.Token);
+            lastError = $"status={(int)response.StatusCode}, body={responseBody}";
+
+            await Task.Delay(TimeSpan.FromMilliseconds(250), timeoutCts.Token);
+        }
+
+        Assert.Fail(
+            $"Health endpoint did not become healthy in {stopwatch.Elapsed.TotalSeconds:F1}s. Last response: {lastError}");
     }
 }

@@ -32,7 +32,7 @@ public class Program
         builder.Services.AddUTracerAdapter();
         builder.Services.AddChipFindAdapter();
         builder.Services.AddEfReadModelAdapter(builder.Configuration);
-        builder.Services.AddApplicationServices(builder.Configuration, builder.Environment);
+        builder.Services.AddApplicationServices(builder.Configuration);
         builder.Services.AddControllers().AddApplicationPart(typeof(WebApiController).Assembly);
         builder.Services.AddEfWriteModelAdapter();
         builder.Services.AddHealthChecks();
@@ -103,7 +103,7 @@ public class Program
         builder.Services.AddResponseCaching();
         
         var app = builder.Build();
-        app.UseApplication();
+        app.UseApplication(ensureCreatedInsteadOfMigrate: app.Environment.IsEnvironment("Testing"));
         
 // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())

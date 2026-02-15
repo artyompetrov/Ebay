@@ -25,13 +25,13 @@ jobs:
       postgres:
         image: postgres:16
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: ebay_test
+          POSTGRES_USER: ebay
+          POSTGRES_PASSWORD: catnip0-spoil4-untrimmed
+          POSTGRES_DB: ebay
         ports:
-          - 5432:5432
+          - 15432:5432
         options: >-
-          --health-cmd="pg_isready -U postgres -d ebay_test"
+          --health-cmd="pg_isready -U ebay -d ebay"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
@@ -62,20 +62,15 @@ jobs:
 
       - name: Initialize integration test database
         env:
-          PGPASSWORD: postgres
+          PGPASSWORD: catnip0-spoil4-untrimmed
         run: |
-          psql -h localhost -p 5432 -U postgres -d postgres -v ON_ERROR_STOP=1 <<'SQL'
-          SELECT 'CREATE DATABASE ebay_test'
-          WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'ebay_test')\gexec
-          SQL
-
-          psql -h localhost -p 5432 -U postgres -d ebay_test -v ON_ERROR_STOP=1 <<'SQL'
+          psql -h localhost -p 15432 -U ebay -d ebay -v ON_ERROR_STOP=1 <<'SQL'
           CREATE EXTENSION IF NOT EXISTS hstore;
           SQL
 
       - name: Run integration tests
         env:
-          ConnectionStrings__DefaultConnection: Host=localhost;Port=5432;Database=ebay_test;Username=postgres;Password=postgres
+          ConnectionStrings__DefaultConnection: User ID=ebay;Password=catnip0-spoil4-untrimmed;Server=localhost;Port=15432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=60;Enlist=true;Include Error Detail=true;
           EbayServer__TargetEmail: integration-tests@localhost
           EbayServer__IsLocalRun: true
         run: |
