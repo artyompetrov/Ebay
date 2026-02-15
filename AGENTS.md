@@ -33,6 +33,8 @@
       - `/src/infrastructure`: общие утилиты и вспомогательные функции расширения. Добавляйте сюда переиспользуемые функции, чтобы избегать дублирования кода.
     - `/Ebay`: C# проект
       - `/Client`: Фронтенд на blazor webassembly
+      - `/Server.Application`: новая чистая application-сборка для поэтапной миграции на порты и адаптеры
+      - `/Server.Application.Legacy`: легаси-сборка со старым смешанным кодом, из которой функциональность переносится постепенно
       - `/Server.*`: Серверные сборки (проект чуть-чуть разбит на порты и адаптеры, но не до конца)
       - `/Server.Contracts`: OpenAPI контракты (legacy и новые контракты для поэтапной миграции)
       - `/Tests`: тесты, запускаемые вручную (в основном для валидации продакшен-базы)
@@ -109,7 +111,7 @@ ChromeExtension - `cd /workspace/Ebay/src/ChromeExtension/ && npm run build`
 Миграции находятся в проекте Server.Application в папке migrations.
 Также обрати внимание на файл ApplicationDbContext.cs при изменении схемы БД.
 Миграции БД не пишем вручную — генерируем миграции через Entity Framework. Пример запуска кодогенератора миграций:
-cd /workspace/Ebay/src/Ebay/ && dotnet ef migrations add NewMigrationName --project Server.Application --startup-project Server
+cd /workspace/Ebay/src/Ebay/ && dotnet ef migrations add NewMigrationName --project Server.Application.Legacy --startup-project Server
 
 # Сборка в docker и CI CD
 Проект собирается в Docker при помощи Github CI CD.
