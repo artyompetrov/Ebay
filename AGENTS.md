@@ -33,6 +33,8 @@
       - `/src/infrastructure`: общие утилиты и вспомогательные функции расширения. Добавляйте сюда переиспользуемые функции, чтобы избегать дублирования кода.
     - `/Ebay`: C# проект
       - `/Client`: Фронтенд на blazor webassembly
+      - `/Server.Application`: legacy application-слой, в котором пока остается исторический код
+      - `/Server.Application.New`: новый чистый application-слой (порты и бизнес-сценарии для поэтапной миграции)
       - `/Server.*`: Серверные сборки (проект чуть-чуть разбит на порты и адаптеры, но не до конца)
       - `/Server.Contracts`: OpenAPI контракты (legacy и новые контракты для поэтапной миграции)
       - `/Tests`: тесты, запускаемые вручную (в основном для валидации продакшен-базы)
@@ -112,6 +114,8 @@ ChromeExtension - `cd /workspace/Ebay/src/ChromeExtension/ && npm run build`
 
 # Миграция БД
 Миграции находятся в проекте Server.Application в папке migrations.
+Инфраструктура БД должна находиться в адаптере БД, а не в `Server.Application.New`.
+Новые EF-миграции продолжаем генерировать в legacy-проекте `Server.Application`, пока миграции не будут полностью перенесены в соответствующий DB-адаптер.
 Также обрати внимание на файл ApplicationDbContext.cs при изменении схемы БД.
 Миграции БД не пишем вручную — генерируем миграции через Entity Framework. Пример запуска кодогенератора миграций:
 cd /workspace/Ebay/src/Ebay/ && dotnet ef migrations add NewMigrationName --project Server.Application --startup-project Server
@@ -125,7 +129,8 @@ cd /workspace/Ebay/src/Ebay/ && dotnet ef migrations add NewMigrationName --proj
 Агрегаты располагаются в сборке Server.Domain
 Репозитории в сборке Server.Adapters.EF.WriteModel
 Ридмодели в сборке Server.Adapters.EF.ReadModel
-Server.Application должен содержать только порты и бизнес сценарии (сейчас не совсем так - но это легаси, сейчас стараемся выносить взаимодействие с внешним миром в адаптеры)
+`Server.Application` — legacy-слой, который пока содержит нарушения ports-and-adapters.
+Новый код application-слоя нужно добавлять в `Server.Application.New`, сохраняя чистую архитектуру (порты и бизнес-сценарии без инфраструктурных зависимостей).
 
 
 # Иконки

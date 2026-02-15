@@ -29,6 +29,7 @@ namespace Server.Application;
 
 public static class ServiceCollectionExtensions
 {
+    [Obsolete("Legacy registration from Server.Application. This assembly is being split into multiple projects; do not expand it with new code. Place new application composition in Server.Application.New and DB infrastructure in DB adapters.")]
     public static void AddApplicationServices(
         this IServiceCollection services,
         IConfiguration configuration)
