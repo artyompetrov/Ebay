@@ -48,6 +48,56 @@
 C# - `cd /workspace/Ebay/src/Ebay/ && dotnet build`
 ChromeExtension - `cd /workspace/Ebay/src/ChromeExtension/ && npm run build`
 
+# Локальная отладка backend (PostgreSQL + API)
+> ⚠️ Эта секция актуальна только для запуска Codex-агента в облаке (Linux-машина без заранее подготовленной инфраструктуры).
+> Если разработка ведется не в облаке, в локальной dev-среде инфраструктура обычно уже настроена (PostgreSQL уже установлен и запущен, отдельная ручная установка не требуется).
+
+Ниже минимальная рабочая инструкция для cloud Linux-окружения агента.
+
+1. Установить PostgreSQL:
+   - `sudo apt-get update`
+   - `sudo apt-get install -y postgresql`
+
+2. Запустить кластер и проверить статус:
+   - `sudo pg_ctlcluster 16 main start`
+   - `pg_lsclusters`
+
+3. Создать пользователя и БД под текущие dev-настройки проекта:
+   - ```bash
+     sudo -u postgres psql -v ON_ERROR_STOP=1 <<'SQL'
+     DO $$
+     BEGIN
+       IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='ebay') THEN
+         CREATE ROLE ebay LOGIN PASSWORD 'catnip0-spoil4-untrimmed';
+       ELSE
+         ALTER ROLE ebay WITH LOGIN PASSWORD 'catnip0-spoil4-untrimmed';
+       END IF;
+     END
+     $$;
+     SELECT 'CREATE DATABASE ebay OWNER ebay'
+     WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname='ebay')\gexec
+     ALTER ROLE ebay CREATEROLE CREATEDB;
+     SQL
+     ```
+
+4. Запустить backend (без launch profile, с рабочим портом БД `15432`):
+   - ```bash
+     ASPNETCORE_ENVIRONMENT=Development \
+     ConnectionStrings__DefaultConnection='User ID=ebay;Password=catnip0-spoil4-untrimmed;Server=localhost;Port=15432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=60;Enlist=true;Include Error Detail=true;' \
+     dotnet run --no-launch-profile --project /workspace/Ebay/src/Ebay/Server/Server.csproj --urls http://0.0.0.0:5080
+     ```
+
+5. Проверить, что API отвечает:
+   - `curl -i http://127.0.0.1:5080/chrome_extensions/auth` (ожидается `200 OK`)
+   - `curl -i http://127.0.0.1:5080/chrome_extensions/<extension>.xml`
+
+6. Полезные замечания для отладки:
+   - В проекте для Postgres используем порт `15432`.
+   - Первый запуск может применять EF Core миграции и миграции MassTransit в БД.
+   - Тесты проекта требуют наличия установленной и доступной БД (PostgreSQL).
+   - При разработке UI-фич агенту полезно открыть приложение в браузере и визуально проверить финальный результат (клики по основным сценариям + скриншоты при заметных UI-изменениях).
+   - Если не нужен полный стек фоновых задач, все равно проверяйте, что приложение поднимается и слушает порт (`Now listening on: http://0.0.0.0:5080`).
+
 # Присылай Pull Request только если проект успешно собирается
 После завершения кодирования проверяй, что у тебя собираются и C#-проект, и Chrome extension.
 Если проект не собирается — нужно исправить билд перед созданием Pull Request.
