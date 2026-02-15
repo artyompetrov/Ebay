@@ -16,6 +16,62 @@ env:
   EBAY_NGINX_IMAGE_NAME: ${{ github.actor }}/nginx:latest
 
 jobs:
+
+  dotnet_and_extension_build:
+    name: Build .NET, run tests and build extension
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ebay
+          POSTGRES_PASSWORD: catnip0-spoil4-untrimmed
+          POSTGRES_DB: ebay
+        ports:
+          - 15432:5432
+        options: >-
+          --health-cmd="pg_isready -U ebay -d ebay"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore and generate contracts
+        run: |
+          cd ./src/Ebay
+          dotnet restore
+
+      - name: Build .NET
+        run: |
+          cd ./src/Ebay
+          dotnet build --configuration Release
+
+      - name: Initialize integration test database
+        env:
+          PGPASSWORD: catnip0-spoil4-untrimmed
+        run: |
+          psql -h localhost -p 15432 -U ebay -d ebay -v ON_ERROR_STOP=1 <<'SQL'
+          CREATE EXTENSION IF NOT EXISTS hstore;
+          SQL
+
+      - name: Run integration tests
+        env:
+          ConnectionStrings__DefaultConnection: User ID=ebay;Password=catnip0-spoil4-untrimmed;Server=localhost;Port=15432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=60;Enlist=true;Include Error Detail=true;
+          EbayServer__TargetEmail: integration-tests@localhost
+          EbayServer__IsLocalRun: true
+        run: |
+          cd ./src/Ebay
+          dotnet test --configuration Release
+
+
   build_docker:
     name: Build Docker Images
     runs-on: ubuntu-latest
@@ -39,7 +95,7 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    needs: [ build_docker ]
+    needs: [ dotnet_and_extension_build, build_docker ]
     if: github.ref == 'refs/heads/main'  # Запускается только на ветке main
 
     steps:
@@ -55,3 +111,4 @@ jobs:
 
       - name: Cleanup SSH
         run: rm -rf ~/.ssh
+
