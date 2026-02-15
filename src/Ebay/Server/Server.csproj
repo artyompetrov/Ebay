@@ -12,7 +12,7 @@
       <ProjectReference Include="..\Server.Adapters.EF.WriteModel\Server.Adapters.EF.WriteModel.csproj" />
       <ProjectReference Include="..\Server.Adapters.Smtp\Server.Adapters.Smtp.csproj" />
       <ProjectReference Include="..\Server.Adapters.uTracer\Server.Adapters.uTracer.csproj" />
-      <ProjectReference Include="..\Server.Application\Server.Application.csproj" />
+      <ProjectReference Include="..\Server.Application.Legacy\Server.Application.Legacy.csproj" />
       <ProjectReference Include="..\Server.Adapters.WebApi\Server.Adapters.WebApi.csproj" />
   </ItemGroup>
 

@@ -1,54 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+<Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <RazorCompileOnBuild>true</RazorCompileOnBuild>
-        <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
-    </PropertyGroup>
-
-    <ItemGroup>
-        <PackageReference Include="alglib.net" />
-        <PackageReference Include="FlexLabs.EntityFrameworkCore.Upsert" />
-        <PackageReference Include="HtmlAgilityPack" />
-        <PackageReference Include="JetBrains.Annotations" />
-        <PackageReference Include="MassTransit" />
-        <PackageReference Include="MassTransit.EntityFrameworkCore" />
-        <PackageReference Include="MassTransit.SqlTransport.PostgreSQL" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" />
-        <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />
-        <PackageReference Include="Npgsql.DependencyInjection" />
-        <PackageReference Include="NSwag.MSBuild">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="OpenExchangeRates.NET" />
-        <PackageReference Include="ScottPlot" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" />
-        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
-        <PackageReference Include="Microsoft.AspNetCore.Identity.UI" />
-        <PackageReference Include="Microsoft.AspNetCore.ApiAuthorization.IdentityServer" />
-        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\Client\Client.csproj" />
-      <ProjectReference Include="..\Server.Domain\Server.Domain.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Controllers\Generated\" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Compile Remove="Migrations\20250808163246_BatchToMatchRename.cs" />
-      <Compile Remove="Migrations\20250808163246_BatchToMatchRename.Designer.cs" />
-    </ItemGroup>
-    <Target Name="NSwag" BeforeTargets="BeforeBuild">
-        <Exec Command="$(NSwagExe_Net100) openapi2cscontroller /input:../Server.Contracts/Legacy/Ebay.yaml /classname:Ebay /namespace:Server.Controllers.Generated /output:Controllers/Generated/EbayController.cs /ControllerBaseClass:Microsoft.AspNetCore.Mvc.Controller /UseCancellationToken:true /GenerateImmutableArrayProperties:true /GenerateImmutableDictionaryProperties:true /GenerateNullableReferenceTypes:true /GenerateOptionalPropertiesAsNullable:true /ClassStyle:Record /ExcludedTypeNames:ProblemDetails,ValidationProblemDetails /RequiredPropertiesMustBeDefined:false" />
-        <Exec Command="$(NSwagExe_Net100) openapi2tsclient /input:../Server.Contracts/Legacy/Ebay.yaml /output:../../ChromeExtension/src/clients/Generated/EbayToolBackendClient.ts /ClassName:EbayToolBackendClient" />
-    </Target>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
 
 </Project>

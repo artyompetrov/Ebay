@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <ItemGroup>
-      <ProjectReference Include="..\Server.Application\Server.Application.csproj" />
+      <ProjectReference Include="..\Server.Application.Legacy\Server.Application.Legacy.csproj" />
     </ItemGroup>
 
     <ItemGroup>
