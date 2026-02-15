@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace Server.Application.Controllers;
+namespace Server.Adapters.WebApi.Controllers;
 
 [ApiController]
 public class RobotsController : ControllerBase

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Server.Application.Controllers;
+namespace Server.Adapters.WebApi.Controllers;
 
 [ApiController]
 [Route("chrome_extensions")]

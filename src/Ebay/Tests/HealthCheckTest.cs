@@ -1,7 +1,9 @@
-using System.Diagnostics;
+using System.Net;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
+using Polly;
+using Polly.Timeout;
 
 namespace Tests;
 
@@ -11,7 +13,7 @@ public class HealthCheckTest
     private WebApplicationFactory<Server.Program> _factory = null!;
 
     [OneTimeSetUp]
-    public void OneTimeSetUp()
+    public async Task OneTimeSetUp()
     {
         _factory = new WebApplicationFactory<Server.Program>()
             .WithWebHostBuilder(builder =>
@@ -28,35 +30,82 @@ public class HealthCheckTest
                     });
                 });
             });
+
+        using var client = _factory.CreateClient();
+        await RetryUntilValidationSuccessAsync(
+            async () =>
+            {
+                using var response = await client.GetAsync("/api/health");
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+                    throw new AssertionException(
+                        $"Expected status OK, but got {(int)response.StatusCode} ({response.StatusCode}).");
+                }
+            },
+            timeout: 30);
     }
 
     [OneTimeTearDown]
     public void OneTimeTearDown() => _factory.Dispose();
 
+
     [Test]
-    public async Task HealthCheck()
+    public async Task RobotsTxt_ReturnsExpectedContent()
     {
         using var client = _factory.CreateClient();
-        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+        using var response = await client.GetAsync("/robots.txt");
+        var body = await response.Content.ReadAsStringAsync();
 
-        var stopwatch = Stopwatch.StartNew();
-        string? lastError = null;
-
-        while (!timeoutCts.IsCancellationRequested)
+        using (Assert.EnterMultipleScope())
         {
-            using var response = await client.GetAsync("/api/health", timeoutCts.Token);
-            if (response.IsSuccessStatusCode)
-            {
-                return;
-            }
-
-            var responseBody = await response.Content.ReadAsStringAsync(timeoutCts.Token);
-            lastError = $"status={(int)response.StatusCode}, body={responseBody}";
-
-            await Task.Delay(TimeSpan.FromMilliseconds(250), timeoutCts.Token);
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(response.Content.Headers.ContentType?.MediaType, Is.EqualTo("text/plain"));
+            Assert.That(body, Is.EqualTo("User-agent: *\nDisallow: /"));
         }
+    }
 
-        Assert.Fail(
-            $"Health endpoint did not become healthy in {stopwatch.Elapsed.TotalSeconds:F1}s. Last response: {lastError}");
+    [Test]
+    public async Task ChromeExtensionAuth_ReturnsHtmlPage()
+    {
+        using var client = _factory.CreateClient();
+        using var response = await client.GetAsync("/chrome_extensions/auth");
+        var body = await response.Content.ReadAsStringAsync();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(response.Content.Headers.ContentType?.MediaType, Is.EqualTo("text/html"));
+            Assert.That(body, Does.Contain("Chrome extension auth page"));
+        }
+    }
+
+    protected static Task RetryUntilValidationSuccessAsync(
+        Func<Task> assertAction,
+        int timeout = 20)
+    {
+        AssertionException? lastAssertion = null;
+
+        var retryPolicy = Policy
+            .Handle<AssertionException>()
+            .WaitAndRetryForeverAsync(
+                sleepDurationProvider: _ => TimeSpan.FromMilliseconds(250),
+                onRetry: (exception, _) => lastAssertion = exception as AssertionException);
+        var timeoutPolicy = Policy.TimeoutAsync(TimeSpan.FromSeconds(timeout));
+        var policy = Policy.WrapAsync(timeoutPolicy, retryPolicy);
+
+        return ExecuteAsync();
+
+        async Task ExecuteAsync()
+        {
+            try
+            {
+                await policy.ExecuteAsync(_ => assertAction(), CancellationToken.None);
+            }
+            catch (TimeoutRejectedException) when (lastAssertion != null)
+            {
+                Assert.Fail(
+                    $"Assertion did not pass in {timeout:F1}s. Last assertion: {lastAssertion.Message}");
+            }
+        }
     }
 }
