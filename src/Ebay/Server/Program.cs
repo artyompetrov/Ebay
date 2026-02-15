@@ -9,7 +9,7 @@ using Server.Adapters.ChipFind;
 using Server.Adapters.EF.WriteModel;
 using Server.Adapters.Smtp;
 using Server.Adapters.uTracer;
-using Server.Adapters.WebApi.Controllers;
+using Server.Adapters.WebApi;
 using Server.Application;
 using Server.Application.Data;
 using Sever.Adapters.EF.ReadModel;
@@ -33,7 +33,7 @@ public class Program
         builder.Services.AddChipFindAdapter();
         builder.Services.AddEfReadModelAdapter(builder.Configuration);
         builder.Services.AddApplicationServices(builder.Configuration);
-        builder.Services.AddControllers().AddApplicationPart(typeof(WebApiController).Assembly);
+        builder.Services.AddWebApiAdapter();
         builder.Services.AddEfWriteModelAdapter();
         builder.Services.AddHealthChecks();
 
