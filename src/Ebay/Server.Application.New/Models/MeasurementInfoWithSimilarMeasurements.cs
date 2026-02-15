@@ -1,4 +1,4 @@
-using Server.Domain.Measurements;
+﻿using Server.Domain.Measurements;
 
 namespace Server.Application.New.Models;
 
@@ -13,6 +13,9 @@ public record MeasurementInfoWithSimilarMeasurements(
     double? ScorePlusBalance
 );
 
+/// <summary>
+/// DTO-модель.
+/// </summary>
 public record SimilarMeasurementInfo(
     string MeasurementId,
     string ManufactureCode,

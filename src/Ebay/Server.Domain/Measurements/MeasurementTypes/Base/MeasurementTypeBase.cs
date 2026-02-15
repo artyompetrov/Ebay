@@ -1,7 +1,13 @@
-namespace Server.Domain.Measurements.MeasurementTypes.Base;
+﻿namespace Server.Domain.Measurements.MeasurementTypes.Base;
 
+/// <summary>
+/// класс доменной модели.
+/// </summary>
 public abstract class MeasurementTypeBase
 {
+    /// <summary>
+    /// Нормализованные точки измерений, сгруппированные по кривым.
+    /// </summary>
     protected Dictionary<int, MeasurementPoint[]> MeasurementPoints { get; }
 
     /// <param name="pmaxWatt">Максимальная мощность замера в ваттах</param>
@@ -185,10 +191,19 @@ public abstract class MeasurementTypeBase
     private record GetMaxIAnalysis(double MaxI, bool HasValuesAbovePmax);
 
     // Максимальное dI - чтобы отсечь некорректные изменения из-за compliance, в долях от максимального тока
+    /// <summary>
+    /// Минимально допустимая дельта тока для фильтрации некорректных точек.
+    /// </summary>
     protected const double IgnoreDi = -0.1;
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public IReadOnlyCollection<CurveSet> CurveSets { get; }
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public abstract string Curve1Name { get; }
 
     /// <summary>
@@ -196,20 +211,41 @@ public abstract class MeasurementTypeBase
     /// </summary>
     public abstract string? Curve2Name { get; }
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public bool HasSecondCurve => Curve2Name != null;
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public abstract string XLabel { get; }
 
 #pragma warning disable CA1822
+    /// <summary>
+    /// операция.
+    /// </summary>
     public string YLabel => "I (mA)";
 #pragma warning restore CA1822
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public bool HasValuesAbovePmax { get; }
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public abstract string CurveTitle { get; }
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public double PmaxWatt { get; }
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public abstract bool PlotPmax { get; }
 
     /// <summary>
@@ -217,10 +253,22 @@ public abstract class MeasurementTypeBase
     /// </summary>
     public double MaxI(double v) => PmaxWatt * 1000.0 / v;
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public double MinX { get; }
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public double MaxX { get; }
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public double MaxY { get; }
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public abstract string SteppingVariableName { get; }
 
 }

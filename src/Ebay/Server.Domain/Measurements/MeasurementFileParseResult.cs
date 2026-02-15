@@ -1,7 +1,10 @@
-using Server.Domain.Measurements.MeasurementTypes;
+﻿using Server.Domain.Measurements.MeasurementTypes;
 
 namespace Server.Domain.Measurements;
 
+/// <summary>
+/// DTO-модель.
+/// </summary>
 public record MeasurementFileParseResult(
     int FileCount,
     MeasurementConfigTableParseResult MeasurementConfigTableParseResult,

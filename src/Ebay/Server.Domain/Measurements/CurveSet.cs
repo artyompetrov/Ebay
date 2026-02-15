@@ -1,12 +1,30 @@
-namespace Server.Domain.Measurements;
+﻿namespace Server.Domain.Measurements;
 
+/// <summary>
+/// класс доменной модели.
+/// </summary>
 public class CurveSet
 {
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public double VSteppingValue { get; }
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public IReadOnlyCollection<double> V { get; }
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public IReadOnlyCollection<double> I1 { get; }
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public IReadOnlyCollection<double>? I2 { get; }
 
+    /// <summary>
+    /// операция.
+    /// </summary>
     public CurveSet(double vSteppingValue, IReadOnlyCollection<double> v, IReadOnlyCollection<double> i1, IReadOnlyCollection<double>? i2)
     {
         VSteppingValue = vSteppingValue;

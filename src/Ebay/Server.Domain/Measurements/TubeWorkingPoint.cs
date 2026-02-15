@@ -1,7 +1,10 @@
-using Server.Domain.Exceptions;
+﻿using Server.Domain.Exceptions;
 
 namespace Server.Domain.Measurements;
 
+/// <summary>
+/// класс доменной модели.
+/// </summary>
 public sealed class TubeWorkingPoint : AggregateRoot<Guid>
 {
     private TubeWorkingPoint(
@@ -24,6 +27,9 @@ public sealed class TubeWorkingPoint : AggregateRoot<Guid>
         }
     }
 
+    /// <summary>
+    /// элемент.
+    /// </summary>
     public static TubeWorkingPoint Create(
         Guid productId,
         double anodeVoltage,
@@ -41,6 +47,9 @@ public sealed class TubeWorkingPoint : AggregateRoot<Guid>
             nominalCurrent: nominalCurrent);
     }
 
+    /// <summary>
+    /// элемент.
+    /// </summary>
     public void Update(
         double anodeVoltage,
         double gridVoltage,
@@ -62,14 +71,29 @@ public sealed class TubeWorkingPoint : AggregateRoot<Guid>
     }
 
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public double AnodeVoltage { get; private set; }
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public double GridVoltage { get; private set; }
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public double AnodeVoltageHalfWidth { get; private set; }
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public double GridVoltageHalfWidth { get; private set; }
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public double NominalCurrent { get; private set; }
 
 

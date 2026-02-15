@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using Server.Domain;
 
 namespace Server.Application.New.Models;
@@ -9,6 +9,9 @@ namespace Server.Application.New.Models;
 // 3) Здесь есть техническая логика матчинга текста: ProductRegex + набор Regex/replace-правил.
 // Нужно разрезать по смыслу: оставить в модели только данные, правила вынести в policy/бизнес-сервис,
 // а regex-логику вынести в отдельный matcher/search-компонент.
+/// <summary>
+/// DTO-модель.
+/// </summary>
 public record ProductInfo(
     Guid Id,
     string Name,
@@ -32,12 +35,21 @@ public record ProductInfo(
     private const int IsInterestingRelevantStatistics = 3;
     private const double EbayWeightMultiplier = 1.5;
 
+    /// <summary>
+    /// операция.
+    /// </summary>
     public bool IsCheckRequired => DateTime.UtcNow - LastCheckTime > TimeSpan.FromDays(RecheckTimeInDays);
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public int CalculatedEbayWeight =>
         (int)Math.Ceiling(Weight * EbayWeightMultiplier / 100.0);
 
 
+    /// <summary>
+    /// операция.
+    /// </summary>
     public bool GetIsInteresting()
     {
         return CalculationResult?.RevenueAvg > IsInterestingRevenueUsd &&
@@ -85,6 +97,9 @@ public record ProductInfo(
         { "9", "[- ]?9[- ]?" }
     };
 
+    /// <summary>
+    /// элемент.
+    /// </summary>
     public Regex ProductRegex
     {
         get

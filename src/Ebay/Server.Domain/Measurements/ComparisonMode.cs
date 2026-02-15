@@ -1,5 +1,8 @@
-namespace Server.Domain.Measurements;
+﻿namespace Server.Domain.Measurements;
 
+/// <summary>
+/// перечисление.
+/// </summary>
 public enum ComparisonMode
 {
     /// <summary>

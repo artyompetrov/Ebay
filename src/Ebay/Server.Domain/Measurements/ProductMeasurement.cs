@@ -1,9 +1,12 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 using Server.Domain.Measurements.MeasurementTypes;
 
 namespace Server.Domain.Measurements;
 
+/// <summary>
+/// класс доменной модели.
+/// </summary>
 public sealed partial class ProductMeasurement : AggregateRoot<string>
 {
     private ProductMeasurement(
@@ -35,6 +38,9 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
     [GeneratedRegex("^[A-Z0-9]+$")]
     private static partial Regex MeasurementIdRegex();
 
+    /// <summary>
+    /// элемент.
+    /// </summary>
     public static ProductMeasurement Create(
         string id,
         Guid productId,
@@ -100,6 +106,9 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
     }
 
 
+    /// <summary>
+    /// операция.
+    /// </summary>
     public void UpdateManufactureCode(string manufactureCode)
     {
         if (string.IsNullOrWhiteSpace(manufactureCode))
@@ -137,12 +146,24 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
         }
     }
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public Guid ProductId { get; private set; }
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public MeasurementState MeasurementState { get; set; }
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public byte[] Measurements { get; private set; }
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     [MaxLength(128)]
     public string HashAnodeCurves { get; private set; }
 
@@ -150,11 +171,20 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
     /// <summary>
     /// Дата производства или код
     /// </summary>
+    /// <summary>
+    /// свойство.
+    /// </summary>
     [MaxLength(128)]
     public string ManufactureCode { get; private set; }
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public ProductState ProductState { get; private set; }
 
+    /// <summary>
+    /// элемент.
+    /// </summary>
     [MaxLength(200)]
     public string? Location
     {
@@ -166,6 +196,9 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
         }
     }
 
+    /// <summary>
+    /// элемент.
+    /// </summary>
     [MaxLength(100)]
     public string? MatchId
     {
@@ -177,6 +210,9 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
         }
     }
 
+    /// <summary>
+    /// элемент.
+    /// </summary>
     [MaxLength(100)]
     public string? LotId
     {
@@ -188,8 +224,14 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
         }
     }
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public DateTime? LastTimeWatchedOnEbay { get; private set; }
 
+    /// <summary>
+    /// операция.
+    /// </summary>
     public void MarkWatchedOnEbay(DateTime watchedAtUtc)
     {
         LastTimeWatchedOnEbay = watchedAtUtc.Kind == DateTimeKind.Utc

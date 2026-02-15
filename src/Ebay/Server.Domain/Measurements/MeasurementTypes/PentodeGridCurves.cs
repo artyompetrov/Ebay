@@ -1,9 +1,15 @@
-using Server.Domain.Measurements.MeasurementTypes.Base;
+﻿using Server.Domain.Measurements.MeasurementTypes.Base;
 
 namespace Server.Domain.Measurements.MeasurementTypes;
 
+/// <summary>
+/// класс доменной модели.
+/// </summary>
 public class PentodeGridCurves : GridCurvesBase
 {
+    /// <summary>
+    /// операция.
+    /// </summary>
     public PentodeGridCurves(double pmaxWatt, Dictionary<int, MeasurementPoint[]> measurementPoints)
         : base(
             pmaxWatt: pmaxWatt,
@@ -24,6 +30,12 @@ public class PentodeGridCurves : GridCurvesBase
     {
     }
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public override string Curve1Name => "Ianode";
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public override string? Curve2Name => "Iscreen";
 }

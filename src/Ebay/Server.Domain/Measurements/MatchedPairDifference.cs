@@ -1,7 +1,10 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Server.Domain.Measurements;
 
+/// <summary>
+/// класс доменной модели.
+/// </summary>
 public class MatchedPairDifference : AggregateRoot<MatchedPairDifferenceId>
 {
     private MatchedPairDifference(
@@ -25,6 +28,9 @@ public class MatchedPairDifference : AggregateRoot<MatchedPairDifferenceId>
         MaxAbsSection2 = maxAbsSection2;
     }
 
+    /// <summary>
+    /// элемент.
+    /// </summary>
     public static MatchedPairDifference Create(
         MatchedPairDifferenceId id,
         ComparisonMode comparisonMode,
@@ -46,11 +52,20 @@ public class MatchedPairDifference : AggregateRoot<MatchedPairDifferenceId>
             maxAbsSection2: maxAbsSection2);
     }
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public ComparisonMode ComparisonMode { get; private set; }
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     [MaxLength(100)]
     public string Measurement1Id { get; private set; }
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     [MaxLength(100)]
     public string Measurement2Id { get; private set; }
 
@@ -62,6 +77,9 @@ public class MatchedPairDifference : AggregateRoot<MatchedPairDifferenceId>
     /// Измеряется в %^2.
     /// </summary>
     public double MseSection1 { get; private set; }
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public double? MseSection2 { get; private set; }
 
     /// <summary>
@@ -72,6 +90,9 @@ public class MatchedPairDifference : AggregateRoot<MatchedPairDifferenceId>
     /// Измеряется в %.
     /// </summary>
     public double RmseSection1 { get; private set; }
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public double? RmseSection2 { get; private set; }
 
     /// <summary>
@@ -82,5 +103,8 @@ public class MatchedPairDifference : AggregateRoot<MatchedPairDifferenceId>
     /// Измеряется в %.
     /// </summary>
     public double MaxAbsSection1 { get; private set; }
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public double? MaxAbsSection2 { get; private set; }
 }

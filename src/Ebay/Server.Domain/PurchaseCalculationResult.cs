@@ -1,7 +1,10 @@
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace Server.Domain;
 
+/// <summary>
+/// класс доменной модели.
+/// </summary>
 public class PurchaseCalculationResult
 {
     /// <summary>
@@ -27,11 +30,17 @@ public class PurchaseCalculationResult
     /// <summary>
     /// Средняя выручка для продажи
     /// </summary>
+    /// <summary>
+    /// свойство.
+    /// </summary>
     [JsonIgnore]
     public double RevenueAvg => QuantityTotal == 0.0 ? 0.0 : Revenue / QuantityTotal;
 
     /// <summary>
     /// Средняя цена листинга
+    /// </summary>
+    /// <summary>
+    /// свойство.
     /// </summary>
     [JsonIgnore]
     public double ListingPriceAvg => QuantityTotal == 0.0 ? 0.0 : ListingPrice / QuantityTotal;

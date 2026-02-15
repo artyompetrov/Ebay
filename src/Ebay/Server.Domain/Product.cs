@@ -1,5 +1,8 @@
-namespace Server.Domain;
+﻿namespace Server.Domain;
 
+/// <summary>
+/// класс доменной модели.
+/// </summary>
 public sealed class Product : AggregateRoot<Guid>
 {
     private readonly List<SearchQuery> _ruSearchQueries = [];
@@ -12,6 +15,9 @@ public sealed class Product : AggregateRoot<Guid>
         Weight = weight;
     }
 
+    /// <summary>
+    /// элемент.
+    /// </summary>
     public static Product Create(
         string name,
         int weight,
@@ -35,6 +41,9 @@ public sealed class Product : AggregateRoot<Guid>
         return product;
     }
 
+    /// <summary>
+    /// элемент.
+    /// </summary>
     public void Update(
         string name,
         int weight,
@@ -79,14 +88,35 @@ public sealed class Product : AggregateRoot<Guid>
         }
     }
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public string Name { get; private set; } = default!;
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public DateTime LastCheckTime { get; private set; }
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public int Weight { get; private set; }
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public ProductCalculationResult? ProductCalculationResult { get; set; }
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public IReadOnlyList<SearchQuery> RuSearchQueries => _ruSearchQueries;
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public IReadOnlyList<SearchQuery> SearchQueries => _searchQueries;
 
+    /// <summary>
+    /// операция.
+    /// </summary>
     public void MarkAsChecked() => LastCheckTime = DateTime.UtcNow;
 }

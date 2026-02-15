@@ -1,7 +1,13 @@
-namespace Server.Domain.Measurements.MeasurementTypes.Base;
+﻿namespace Server.Domain.Measurements.MeasurementTypes.Base;
 
+/// <summary>
+/// класс доменной модели.
+/// </summary>
 public abstract class AnodeCurvesBase : MeasurementTypeBase
 {
+    /// <summary>
+    /// Создает базовый тип анодных характеристик для конкретного типа лампы.
+    /// </summary>
     protected AnodeCurvesBase(
         double pmaxWatt,
         Dictionary<int, MeasurementPoint[]> measurementPoints,
@@ -15,12 +21,24 @@ public abstract class AnodeCurvesBase : MeasurementTypeBase
     {
     }
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public override bool PlotPmax => true;
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public override string CurveTitle => "Anode curves";
 
+    /// <summary>
+    /// операция.
+    /// </summary>
     public override string XLabel => "Vanode (V)";
 
+    /// <summary>
+    /// свойство.
+    /// </summary>
     public override string SteppingVariableName => "Vgrid";
 
     /// <summary>

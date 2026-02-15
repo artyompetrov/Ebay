@@ -1,5 +1,8 @@
-namespace Server.Domain.Measurements;
+﻿namespace Server.Domain.Measurements;
 
+/// <summary>
+/// DTO-модель.
+/// </summary>
 public record MeasurementPoint(
     double Ia,
     double Is,
