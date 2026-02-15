@@ -52,4 +52,3 @@ public class PurchasePage : PageModel
         return Page();
     }
 }
-

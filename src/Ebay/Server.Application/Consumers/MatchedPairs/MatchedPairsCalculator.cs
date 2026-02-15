@@ -3,8 +3,8 @@ using MassTransit;
 using Microsoft.Extensions.Logging;
 using Server.Application.New.Abstractions;
 using Server.Application.New.Abstractions.Queries;
-using Server.Application.New.Models;
 using Server.Application.New.Abstractions.Repositories;
+using Server.Application.New.Models;
 using Server.Application.Services;
 using Server.Domain.Measurements;
 using Server.Domain.Measurements.MeasurementTypes;
@@ -187,7 +187,7 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
     {
         var measurement1I1Model = _measurementApproximationService.GetModel(measurement1.AnodeCurves, x => x.I1, workingPoint);
         var measurement2I1Model = _measurementApproximationService.GetModel(measurement2.AnodeCurves, x => x.I1, workingPoint);
-        
+
         var measurement1I2Model = _measurementApproximationService.GetModel(measurement1.AnodeCurves,
             x => x.I2 ?? throw new InvalidOperationException("I2 is expected to be not null"), workingPoint);
         var measurement2I2Model = _measurementApproximationService.GetModel(measurement2.AnodeCurves,
@@ -317,7 +317,7 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         await transaction.CommitAsync(cancellationToken);
     }
 
-    
+
     /// <summary>
     /// Функция считает ошибку между двумя интерполированными плоскостями
     /// </summary>
@@ -367,7 +367,7 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
                 var x = rx / anodeBase; // Делим для нормализации
                 var y = ry / gridBase; // Делим для нормализации
 
-                var d = model1.ApproximateRelative(x,  y) - model2.ApproximateRelative(x, y);
+                var d = model1.ApproximateRelative(x, y) - model2.ApproximateRelative(x, y);
                 var ad = Math.Abs(d);
 
                 sse += d * d;
@@ -390,4 +390,3 @@ public record CalculateMatchedPair(string MeasurementId1, string MeasurementId2)
 {
     public override string ToString() => $"{MeasurementId1}-{MeasurementId2}";
 }
-

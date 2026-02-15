@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Logs;
-using Server;
 using Server.Adapters.ChipFind;
 using Server.Adapters.EF.WriteModel;
 using Server.Adapters.Smtp;
@@ -22,11 +21,11 @@ public class Program
     public static void Main(string[] args)
     {
 
-//IdentityModelEventSource.ShowPII = true;
+        //IdentityModelEventSource.ShowPII = true;
 
         var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+        // Add services to the container.
         builder.Services.AddMemoryCache();
         builder.Services.AddEmailAdapter(builder.Configuration);
         builder.Services.AddUTracerAdapter();
@@ -101,11 +100,11 @@ public class Program
         });
 
         builder.Services.AddResponseCaching();
-        
+
         var app = builder.Build();
         app.UseApplication(ensureCreatedInsteadOfMigrate: app.Environment.IsEnvironment("Testing"));
-        
-// Configure the HTTP request pipeline.
+
+        // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
         {
             _ = app.UseMigrationsEndPoint();

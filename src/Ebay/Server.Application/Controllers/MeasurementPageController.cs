@@ -1,6 +1,4 @@
-using MassTransit;
 using Microsoft.AspNetCore.Mvc;
-using Server.Application.Consumers.MeasurementWatching;
 using Server.Application.Services.GeoIp;
 using Server.Application.Services.Measurement;
 using Server.Application.Services.MeasurementPlot;

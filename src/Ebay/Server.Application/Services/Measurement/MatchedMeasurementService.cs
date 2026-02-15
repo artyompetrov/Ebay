@@ -4,7 +4,6 @@ using Server.Application.Consumers.MatchedPairs;
 using Server.Application.Controllers;
 using Server.Application.New.Abstractions;
 using Server.Application.New.Abstractions.Queries;
-using Server.Application.New.Models;
 using Server.Application.New.Abstractions.Repositories;
 using Server.Domain.Measurements;
 
@@ -89,4 +88,3 @@ internal class MatchedMeasurementService
         _ = await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }
-

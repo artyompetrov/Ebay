@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using MassTransit;
 using ScottPlot;
 using ScottPlot.PlotStyles;
@@ -23,7 +22,7 @@ public class MeasurementPlotService : IMeasurementPlotService
     private readonly ITubeWorkingPointQueries _workingPointQueries;
     private readonly MeasurementApproximationService _measurementApproximationService;
     private readonly IUnitOfWork _unitOfWork;
-    
+
 
     public MeasurementPlotService(
         DbCache cache,
@@ -58,8 +57,8 @@ public class MeasurementPlotService : IMeasurementPlotService
             sellingOnly: sellingOnly,
             cancellationToken: cancellationToken);
 
-        await  PublishWatchedOnEbayMessage(measurementId: measurementId, cancellationToken: cancellationToken);
-        
+        await PublishWatchedOnEbayMessage(measurementId: measurementId, cancellationToken: cancellationToken);
+
         return plotTask;
     }
 
@@ -143,7 +142,7 @@ public class MeasurementPlotService : IMeasurementPlotService
                 var result = _measurementFileParser.Parse(measurementInfo.Data);
                 var anodeCurves = result.MeasurementConfigTableParseResult.AnodeCurves;
                 var gridCurves = anodeCurves.ConvertToGridCurves();
-                
+
                 var quickTestData = addQuickTest ? await GetQuickTestData(cancellationToken: cancellationToken, measurementInfo: measurementInfo, anodeCurves: anodeCurves) : null;
 
                 var minMaxCoordinates = await GetMinMaxCoordinates(
@@ -448,11 +447,11 @@ public class MeasurementPlotService : IMeasurementPlotService
         return quickTestSvg;
     }
 
-    
+
     private static string QuickTestSvg(QuickTestData quickTest)
     {
         var lineHight = 16;
-        
+
         var lines = new List<string>
         {
             $"""<tspan x="10" y="{lineHight + 1 * lineHight}">Measurement point:</tspan>""",
@@ -469,7 +468,7 @@ public class MeasurementPlotService : IMeasurementPlotService
                 $"""<tspan x="10" fill="#8B2E2E" font-weight="bold" y="{lineHight + 7 * lineHight}">Ianode2: {quickTest.Ia2.Value:F1} mA</tspan>""");
         }
 
-        
+
         var tspans = string.Join("\n", values: lines);
 
         var quickTestSvg = $"""
@@ -608,6 +607,8 @@ public class MeasurementPlotService : IMeasurementPlotService
                     badgeSub = "(&lt; 30%)";
                     badgeFill = "#16a34a";
                     break;
+                default:
+                    break;
             }
         }
 
@@ -651,4 +652,3 @@ public class MeasurementPlotService : IMeasurementPlotService
                   """;
     }
 }
-

@@ -1,5 +1,1 @@
-*.cs eol=crlf
-dockerfile eol=lf
-*.dockerfile eol=lf
-*.yaml eol=lf
-*.sh eol=lf
+* text eol=lf

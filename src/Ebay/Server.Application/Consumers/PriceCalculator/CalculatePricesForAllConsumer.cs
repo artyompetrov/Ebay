@@ -1,6 +1,5 @@
 using MassTransit;
 using Server.Application.New.Abstractions.Queries;
-using Server.Application.New.Models;
 
 namespace Server.Application.Consumers.PriceCalculator;
 
@@ -27,4 +26,3 @@ internal class CalculatePricesForAllConsumer : IConsumer<CalculatePricesForAll>
 }
 
 public record CalculatePricesForAll;
-

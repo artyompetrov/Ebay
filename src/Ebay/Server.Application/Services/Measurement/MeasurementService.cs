@@ -1,7 +1,7 @@
 using Server.Application.New.Abstractions;
 using Server.Application.New.Abstractions.Queries;
-using Server.Application.New.Models;
 using Server.Application.New.Abstractions.Repositories;
+using Server.Application.New.Models;
 using Server.Domain.Measurements;
 
 namespace Server.Application.Services.Measurement;
@@ -153,4 +153,3 @@ public class MeasurementService
 
     public async Task<IReadOnlySet<string?>> GetLotIdsForProductAsync(Guid productId, CancellationToken cancellationToken) => await _measurementQueries.GetLotIds(productId, cancellationToken);
 }
-

@@ -145,7 +145,7 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
 
     [MaxLength(128)]
     public string HashAnodeCurves { get; private set; }
-    
+
 
     /// <summary>
     /// Дата производства или код

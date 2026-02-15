@@ -1,4 +1,3 @@
-using Server.Application.New.Abstractions.Queries;
 using Server.Application.New.Models;
 using Server.Domain.Measurements;
 using Server.Domain.Measurements.MeasurementTypes.Base;
@@ -22,7 +21,7 @@ public class MeasurementApproximationService
         public double ApproximateRelative(double anodeVoltage, double gridVoltage) => alglib.rbfcalc2(s: _rbf, x0: anodeVoltage, x1: gridVoltage);
         public double IatWorkingPoint() => alglib.rbfcalc2(s: _rbf, x0: 0, x1: 0) * _baseAnodeCurrent / 100.0;
     }
-    
+
 
     public Model GetModel(AnodeCurvesBase anodeCurves, Func<CurveSet, IReadOnlyCollection<double>> iExtractor, TubeWorkingPointInfo wp)
 
@@ -42,7 +41,7 @@ public class MeasurementApproximationService
 
         return RbfModel(points, wp);
     }
-    
+
     private record struct MeasurementPoint(double Va, double Vg, double Ia);
 
     /// <summary>
@@ -73,4 +72,3 @@ public class MeasurementApproximationService
     }
 }
 #pragma warning restore CA1822
-

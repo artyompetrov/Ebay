@@ -235,13 +235,13 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
 
         public void Dispose() => _transaction.Dispose();
     }
-    
+
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         ApplyAudit();
         return base.SaveChangesAsync(cancellationToken);
     }
-    
+
     private void ApplyAudit()
     {
         var now = DateTime.UtcNow;
@@ -260,6 +260,14 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
 
                     // защита от случайного апдейта CreatedAt
                     entry.Property(x => x.CreatedAt).IsModified = false;
+                    break;
+                case EntityState.Detached:
+                    break;
+                case EntityState.Unchanged:
+                    break;
+                case EntityState.Deleted:
+                    break;
+                default:
                     break;
             }
         }

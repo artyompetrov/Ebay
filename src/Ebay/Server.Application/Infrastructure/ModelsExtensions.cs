@@ -1,5 +1,4 @@
 using System.Globalization;
-using Server.Application.New.Abstractions.Queries;
 using Server.Application.New.Models;
 using Server.Application.Services.LotDataExtractor;
 using Server.Controllers.Generated;
@@ -263,4 +262,3 @@ internal static class ModelsExtensions
         };
     }
 }
-

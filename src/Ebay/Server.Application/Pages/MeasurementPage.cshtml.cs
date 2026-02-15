@@ -25,7 +25,7 @@ public class MeasurementPage : PageModel
 
     public Product Product { get; set; } = null!;
     public MeasurementInfoWithData Measurement { get; set; } = null!;
-    
+
 
 
     public async Task<IActionResult> OnGet(string measurementId, CancellationToken cancellationToken)
@@ -36,7 +36,7 @@ public class MeasurementPage : PageModel
         {
             return NotFound("Measurement not found");
         }
-        
+
         var product = await _applicationContext.Products
             .AsNoTracking()
             .Include(x => x.SearchQueries)
@@ -53,4 +53,3 @@ public class MeasurementPage : PageModel
         return Page();
     }
 }
-

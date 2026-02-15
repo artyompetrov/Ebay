@@ -20,12 +20,12 @@ public record ProductInfo(
 )
 {
     private const int RecheckTimeInDays = 360 * 2;
-    
+
     /// <summary>
     /// Сумма выручки за штуку от которой интересно работать с товаром
     /// </summary>
     private const int IsInterestingRevenueUsd = 12;
-    
+
     /// <summary>
     /// Количество штук на ebay продано минимум, для репрезентативности
     /// </summary>
