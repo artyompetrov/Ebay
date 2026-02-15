@@ -9,6 +9,16 @@ namespace Server.Application.New.Models;
 // 3) Здесь есть техническая логика матчинга текста: ProductRegex + набор Regex/replace-правил.
 // Нужно разрезать по смыслу: оставить в модели только данные, правила вынести в policy/бизнес-сервис,
 // а regex-логику вынести в отдельный matcher/search-компонент.
+/// <summary>
+/// Информация о товаре и связанных с ним параметрах для расчетов и поиска.
+/// </summary>
+/// <param name="Id">Идентификатор товара.</param>
+/// <param name="Name">Наименование товара.</param>
+/// <param name="SearchQueries">Поисковые запросы для eBay.</param>
+/// <param name="RuSearchQueries">Поисковые запросы для русскоязычных площадок.</param>
+/// <param name="Weight">Вес товара в условной шкале приоритета.</param>
+/// <param name="CalculationResult">Результат расчета цены и статистики продаж.</param>
+/// <param name="LastCheckTime">Дата и время последней проверки товара.</param>
 public record ProductInfo(
     Guid Id,
     string Name,
@@ -32,12 +42,22 @@ public record ProductInfo(
     private const int IsInterestingRelevantStatistics = 3;
     private const double EbayWeightMultiplier = 1.5;
 
+    /// <summary>
+    /// Признак, что товар пора повторно проверять.
+    /// </summary>
     public bool IsCheckRequired => DateTime.UtcNow - LastCheckTime > TimeSpan.FromDays(RecheckTimeInDays);
 
+    /// <summary>
+    /// Вес товара, скорректированный для eBay-алгоритма.
+    /// </summary>
     public int CalculatedEbayWeight =>
         (int)Math.Ceiling(Weight * EbayWeightMultiplier / 100.0);
 
 
+    /// <summary>
+    /// Возвращает признак, что товар интересен для закупки по текущим метрикам.
+    /// </summary>
+    /// <returns><see langword="true" />, если товар удовлетворяет порогам по выручке и статистике продаж.</returns>
     public bool GetIsInteresting()
     {
         return CalculationResult?.RevenueAvg > IsInterestingRevenueUsd &&
@@ -85,6 +105,9 @@ public record ProductInfo(
         { "9", "[- ]?9[- ]?" }
     };
 
+    /// <summary>
+    /// Регулярное выражение для поиска товарных обозначений с учетом вариаций написания.
+    /// </summary>
     public Regex ProductRegex
     {
         get
