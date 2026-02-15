@@ -1,5 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+    <!--
+      Архитектурное правило (Domain):
+      - доменный слой является независимым ядром системы;
+      - запрещены ссылки на Server.Application*, Server.Adapters*, Server и любую инфраструктуру
+        (ASP.NET Core, EF Core, Npgsql, MassTransit, HTTP/SMTP/очереди и т.п.);
+      - допустимы только платформенные зависимости и редкие внешние библиотеки,
+        не привязывающие домен к инфраструктуре.
+    -->
     <PropertyGroup>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>

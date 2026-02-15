@@ -134,6 +134,18 @@ cd /workspace/Ebay/src/Ebay/ && dotnet ef migrations add NewMigrationName --proj
 `Server.Application` — legacy-слой, который пока содержит нарушения ports-and-adapters.
 Новый код application-слоя нужно добавлять в `Server.Application.New`, сохраняя чистую архитектуру (порты и бизнес-сценарии без инфраструктурных зависимостей).
 
+# Hexagonal Architecture (Ports & Adapters)
+К проекту применяем hexagonal architecture: зависимости должны быть направлены внутрь, к домену.
+
+- `Server.Domain` — центр системы: доменные правила и инварианты, без зависимостей на БД, HTTP, UI, брокеры и фреймворки инфраструктуры.
+- `Server.Application.New` — application-слой use-case'ов и портов:
+  - входные порты (что предоставляет application) — интерфейсы сценариев;
+  - выходные порты (что нужно application) — интерфейсы репозиториев/запросов/внешних шлюзов.
+- `Server.Adapters.*` — реализации портов (EF, SMTP, WebApi, внешние сервисы и т.д.).
+- В `Server.Application.New` запрещены ссылки на адаптеры (`Server.Adapters.*`) и инфраструктурные детали.
+- `Server.Application.New` может ссылаться на `Server.Domain`; внешние библиотеки в `Server.Application.New` подключаем только в порядке исключения и с явным обоснованием.
+- Composition Root (сборка контейнера DI) по умолчанию должен быть на уровне хоста/адаптеров; временные исключения фиксируем явно в PR/AGENTS.md.
+
 
 # Иконки
 На UI используются иконки из коллекции https://icones.js.org/collection/oi https://github.com/iconic/open-iconic или emoji 
