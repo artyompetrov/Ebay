@@ -1,3 +1,3 @@
 namespace Server.Domain;
 
-public record ProductUpdated(Guid ProductId);
+public record ProductUpdated(Guid ProductId) : IDomainEvent;

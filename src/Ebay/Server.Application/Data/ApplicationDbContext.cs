@@ -18,16 +18,14 @@ namespace Server.Application.Data;
 
 public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, IUnitOfWork
 {
-    private readonly IPublishEndpoint? _publishEndpoint;
-
+    
     public ApplicationDbContext(
         DbContextOptions<ApplicationDbContext> options,
-        IOptions<OperationalStoreOptions> operationalStoreOptions,
-        IPublishEndpoint? publishEndpoint = null)
+        IOptions<OperationalStoreOptions> operationalStoreOptions)
         : base(options: options, operationalStoreOptions: operationalStoreOptions)
     {
-        _publishEndpoint = publishEndpoint;
     }
+    
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -252,7 +250,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
     private async Task PublishDomainEventsAsync(CancellationToken cancellationToken)
     {
         var aggregateEntries = ChangeTracker.Entries<IAggregateRoot>()
-            .Where(entry => entry.State != EntityState.Detached && entry.Entity.GetDomainEvents().Count > 0)
+            .Where(entry => entry.State != EntityState.Detached && entry.Entity.HasEvents)
             .ToList();
 
         if (aggregateEntries.Count == 0)
@@ -260,7 +258,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
             return;
         }
 
-        var publishEndpoint = _publishEndpoint ?? this.GetService<IPublishEndpoint>();
+        var publishEndpoint = this.GetService<IPublishEndpoint>();
         var domainEvents = aggregateEntries
             .SelectMany(entry => entry.Entity.GetDomainEvents())
             .ToArray();

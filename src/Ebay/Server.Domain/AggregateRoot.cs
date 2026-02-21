@@ -10,11 +10,14 @@ public abstract class AggregateRoot<TId> : Entity<TId>, IAggregateRoot
     {
     }
 
-    private readonly List<object> _domainEvents = [];
+    private readonly List<IDomainEvent> _domainEvents = [];
 
-    protected internal void AddDomainEvent(object domainEvent) => _domainEvents.Add(domainEvent);
+    public void AddDomainEvent(IDomainEvent domainEvent) => _domainEvents.Add(domainEvent);
 
-    public IReadOnlyCollection<object> GetDomainEvents() => _domainEvents.AsReadOnly();
+    public IReadOnlyCollection<IDomainEvent> GetDomainEvents() => _domainEvents.AsReadOnly();
+    
+    public bool HasEvents => _domainEvents.Count != 0;
+    
 
     public void ClearDomainEvents() => _domainEvents.Clear();
 }
