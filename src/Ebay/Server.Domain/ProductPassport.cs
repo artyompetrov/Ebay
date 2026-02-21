@@ -9,7 +9,7 @@ public sealed class ProductPassport
     public Guid Id { get; set; }
 
     public Guid ProductId { get; set; }
-    public Product Product { get; set; } = null!;
+    public Product.Product Product { get; set; } = null!;
 
     [MaxLength(200)]
     public required string FileName { get; set; } = null!;

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Server.Adapters.Driven.EF.ReadModel.ReadModelSchema;
 using Server.Domain;
+using Server.Domain.Product;
 
 namespace Server.Adapters.Driven.EF.ReadModel;
 

@@ -6,6 +6,7 @@ using Server.Application.Abstractions.Driven.Models;
 using Server.Application.Data;
 using Server.Domain;
 using Server.Domain.Measurements;
+using Server.Domain.Product;
 
 namespace Server.Application.Pages;
 

@@ -1,4 +1,6 @@
-namespace Server.Domain;
+using Server.Domain.Abstractions;
+
+namespace Server.Domain.Product;
 
 public sealed class Product : AggregateRoot<Guid>
 {
@@ -10,6 +12,8 @@ public sealed class Product : AggregateRoot<Guid>
         Name = name;
         LastCheckTime = lastCheckTime;
         Weight = weight;
+        
+        AddDomainEvent(new ProductUpdated(Id));
     }
 
     public static Product Create(
@@ -32,6 +36,8 @@ public sealed class Product : AggregateRoot<Guid>
         product._searchQueries.AddRange(
             searchQueries.Select(x => new SearchQuery(Guid.NewGuid(), x, productId)));
 
+        
+        
         return product;
     }
 
@@ -81,7 +87,7 @@ public sealed class Product : AggregateRoot<Guid>
         AddDomainEvent(new ProductUpdated(Id));
     }
 
-    public string Name { get; private set; } = default!;
+    public string Name { get; private set; }
     public DateTime LastCheckTime { get; private set; }
     public int Weight { get; private set; }
 

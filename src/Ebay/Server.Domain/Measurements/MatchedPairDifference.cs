@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Server.Domain.Abstractions;
 
 namespace Server.Domain.Measurements;
 

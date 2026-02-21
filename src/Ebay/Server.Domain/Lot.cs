@@ -9,7 +9,7 @@ public class Lot
     public long Id { get; set; }
 
     public Guid ProductId { get; set; }
-    public Product Product { get; set; } = null!;
+    public Product.Product Product { get; set; } = null!;
 
     // Тоже самое, что и title, но в коде везде ипользуется Name
     public string Name { get; set; } = null!;

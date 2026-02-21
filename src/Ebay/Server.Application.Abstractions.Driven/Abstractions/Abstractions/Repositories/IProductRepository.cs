@@ -1,4 +1,5 @@
 using Server.Domain;
+using Server.Domain.Product;
 
 namespace Server.Application.Abstractions.Driven.Abstractions.Abstractions.Repositories;
 

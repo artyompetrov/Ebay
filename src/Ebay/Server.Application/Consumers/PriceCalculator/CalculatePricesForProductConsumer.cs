@@ -2,6 +2,7 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Data;
 using Server.Domain;
+using Server.Domain.Product;
 
 namespace Server.Application.Consumers.PriceCalculator;
 

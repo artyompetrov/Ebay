@@ -4,6 +4,7 @@ using Server.Application.Abstractions.Driving.Models;
 using Server.Application.Services.LotDataExtractor;
 using Server.Controllers.Generated;
 using Server.Domain;
+using Server.Domain.Product;
 using ApiCurrency = Server.Controllers.Generated.Currency;
 using ApiMeasurementState = Server.Controllers.Generated.MeasurementState;
 using DbCurrency = Server.Domain.Currency;

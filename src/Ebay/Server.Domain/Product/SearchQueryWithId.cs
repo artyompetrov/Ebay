@@ -1,3 +1,3 @@
-namespace Server.Domain;
+namespace Server.Domain.Product;
 
 public record SearchQueryWithId(Guid Id, string Query);

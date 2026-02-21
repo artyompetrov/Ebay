@@ -6,7 +6,7 @@ public class ProductEmailSendHistory
 
     public Guid ProductId { get; set; }
 
-    public Product Product { get; set; } = null!;
+    public Product.Product Product { get; set; } = null!;
 
     public string Seller { get; set; } = null!;
 

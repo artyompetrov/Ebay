@@ -1,4 +1,6 @@
-namespace Server.Domain;
+using Server.Domain.Abstractions;
+
+namespace Server.Domain.Product;
 
 public sealed class SearchQuery : Entity<Guid>
 {

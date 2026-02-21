@@ -6,6 +6,7 @@ using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Models;
 using Server.Application.Abstractions.Driving.Models;
 using Server.Domain;
+using Server.Domain.Product;
 
 namespace Server.Application.New;
 

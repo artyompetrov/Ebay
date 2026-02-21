@@ -13,6 +13,7 @@ using Server.Controllers.Generated;
 using Server.Domain;
 using Server.Domain.Exceptions;
 using Server.Domain.Measurements;
+using Server.Domain.Product;
 using ApiSimilarMeasurementInfo = Server.Controllers.Generated.SimilarMeasurementInfo;
 using ClientErrorInfo = Server.Controllers.Generated.ClientErrorInfo;
 using Currency = Server.Controllers.Generated.Currency;

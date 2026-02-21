@@ -1,4 +1,4 @@
-namespace Server.Domain;
+namespace Server.Domain.Abstractions;
 
 public abstract class Entity<TId>
 {

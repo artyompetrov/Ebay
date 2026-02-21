@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
+using Server.Domain.Abstractions;
 using Server.Domain.Measurements.MeasurementTypes;
 
 namespace Server.Domain.Measurements;

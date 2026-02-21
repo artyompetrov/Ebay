@@ -1,3 +1,4 @@
+using Server.Domain.Abstractions;
 using Server.Domain.Exceptions;
 
 namespace Server.Domain.Measurements;

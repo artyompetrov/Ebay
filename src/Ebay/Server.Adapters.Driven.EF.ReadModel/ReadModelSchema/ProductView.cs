@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Server.Domain;
+using Server.Domain.Product;
 
 namespace Server.Adapters.Driven.EF.ReadModel.ReadModelSchema;
 

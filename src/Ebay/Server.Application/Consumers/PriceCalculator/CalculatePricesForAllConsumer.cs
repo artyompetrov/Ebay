@@ -1,6 +1,7 @@
 using MassTransit;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Domain;
+using Server.Domain.Product;
 
 namespace Server.Application.Consumers.PriceCalculator;
 

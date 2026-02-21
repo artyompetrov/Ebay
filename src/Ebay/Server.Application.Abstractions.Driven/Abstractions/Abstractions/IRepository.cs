@@ -1,4 +1,5 @@
 using Server.Domain;
+using Server.Domain.Abstractions;
 
 namespace Server.Application.Abstractions.Driven.Abstractions.Abstractions;
 

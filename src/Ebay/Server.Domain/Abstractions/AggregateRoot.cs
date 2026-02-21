@@ -1,6 +1,6 @@
 using JetBrains.Annotations;
 
-namespace Server.Domain;
+namespace Server.Domain.Abstractions;
 
 public abstract class AggregateRoot<TId> : Entity<TId>, IAggregateRoot
 {
@@ -12,7 +12,7 @@ public abstract class AggregateRoot<TId> : Entity<TId>, IAggregateRoot
 
     private readonly List<IDomainEvent> _domainEvents = [];
 
-    public void AddDomainEvent(IDomainEvent domainEvent) => _domainEvents.Add(domainEvent);
+    protected void AddDomainEvent(IDomainEvent domainEvent) => _domainEvents.Add(domainEvent);
 
     public IReadOnlyCollection<IDomainEvent> GetDomainEvents() => _domainEvents.AsReadOnly();
     
