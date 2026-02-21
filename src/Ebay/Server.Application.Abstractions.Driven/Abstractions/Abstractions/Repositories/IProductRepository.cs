@@ -1,7 +1,6 @@
-using Server.Application.Abstractions.Driven.Abstractions.Abstractions;
 using Server.Domain;
 
-namespace Server.Application.Abstractions.Driven.Abstractions.Repositories;
+namespace Server.Application.Abstractions.Driven.Abstractions.Abstractions.Repositories;
 
 /// <summary>
 /// Репозиторий агрегата товара.

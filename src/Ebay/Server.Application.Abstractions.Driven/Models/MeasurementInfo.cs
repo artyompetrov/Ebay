@@ -26,10 +26,4 @@ public record MeasurementInfo(
     ProductState ProductState,
     string ManufactureCode,
     DateTime CreatedAt,
-    DateTime? LastTimeWatchedOnEbay)
-{
-    /// <summary>
-    /// Признак, что замер был замечен на eBay в течение последних 7 дней.
-    /// </summary>
-    public bool IsPublishedOnEbay => LastTimeWatchedOnEbay > DateTime.UtcNow.AddDays(-7);
-}
+    DateTime? LastTimeWatchedOnEbay);

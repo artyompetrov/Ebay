@@ -1,8 +1,9 @@
 using Server.Application.Abstractions.Driven.Abstractions.Abstractions;
+using Server.Application.Abstractions.Driven.Abstractions.Abstractions.Repositories;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
-using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Abstractions.Driven.Models;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
+using Server.Application.Abstractions.Driving.Models;
 using Server.Domain.Measurements;
 
 namespace Server.Application.New;
@@ -127,14 +128,22 @@ internal sealed class MeasurementService : IMeasurementService
         await transaction.CommitAsync(cancellationToken);
     }
 
-    public Task<IReadOnlyCollection<MeasurementInfoWithSimilarMeasurements>> GetMeasurementInfos(
+    public async Task<IReadOnlyCollection<MeasurementInfoWithSimilarMeasurementsView>> GetMeasurementInfos(
         Guid productId,
         IReadOnlyCollection<ProductState> productState,
         IReadOnlyCollection<MeasurementState> measurementStates,
         CancellationToken cancellationToken)
     {
-        return _measurementQueries.GetMeasurementInfosWithSimilarMeasurements(
-            productId, productState, measurementStates, cancellationToken);
+        var result = await _measurementQueries.GetMeasurementInfosWithSimilarMeasurements(
+            productId: productId,
+            productStates: productState,
+            measurementStates: measurementStates,
+            cancellationToken: cancellationToken);
+
+        return result.Select(x => new MeasurementInfoWithSimilarMeasurementsView(
+            Data: x,
+            IsPublishedOnEbay: x.MeasurementInfo.LastTimeWatchedOnEbay > DateTime.UtcNow.AddDays(-7)
+        )).ToList();
     }
 
     public async Task<byte[]?> GetMeasurementFile(string measurementId, CancellationToken cancellationToken)

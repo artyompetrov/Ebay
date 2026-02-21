@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Abstractions.Driven.Abstractions.Abstractions;
+using Server.Application.Abstractions.Driven.Abstractions.Abstractions.Repositories;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
-using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Abstractions.Driven.Models;
 using Server.Application.Controllers;
 using Server.Application.Data;

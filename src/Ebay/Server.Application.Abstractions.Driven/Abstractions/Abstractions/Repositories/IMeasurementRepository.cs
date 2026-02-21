@@ -1,7 +1,6 @@
-using Server.Application.Abstractions.Driven.Abstractions.Abstractions;
 using Server.Domain.Measurements;
 
-namespace Server.Application.Abstractions.Driven.Abstractions.Repositories;
+namespace Server.Application.Abstractions.Driven.Abstractions.Abstractions.Repositories;
 
 /// <summary>
 /// Репозиторий агрегата замера товара.

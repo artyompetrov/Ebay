@@ -432,16 +432,16 @@ internal class EbayControllerImplementation : IEbayController
 
         var result = measurements
             .Select(x => new MeasurementData(
-                doubleTriodeSectionRmse: x.DoubleTriodeSectionRmse,
-                manufactureCode: x.MeasurementInfo.ManufactureCode,
-                measurementId: x.MeasurementInfo.Id,
-                isPublishedOnEbay: x.MeasurementInfo.IsPublishedOnEbay,
-                productState: x.MeasurementInfo.ProductState.ToApiProductState(),
-                location: x.MeasurementInfo.Location,
-                matchId: x.MeasurementInfo.MatchId,
-                lotId: x.MeasurementInfo.LotId,
-                measurementState: x.MeasurementInfo.MeasurementState.ToApiMeasurementState(),
-                similarMeasurements: [.. x.SimilarMeasurements
+                doubleTriodeSectionRmse: x.Data.DoubleTriodeSectionRmse,
+                manufactureCode:  x.Data.MeasurementInfo.ManufactureCode,
+                measurementId:  x.Data.MeasurementInfo.Id,
+                isPublishedOnEbay:  x.IsPublishedOnEbay,
+                productState: x.Data.MeasurementInfo.ProductState.ToApiProductState(),
+                location: x.Data.MeasurementInfo.Location,
+                matchId: x.Data.MeasurementInfo.MatchId,
+                lotId: x.Data.MeasurementInfo.LotId,
+                measurementState: x.Data.MeasurementInfo.MeasurementState.ToApiMeasurementState(),
+                similarMeasurements: [.. x.Data.SimilarMeasurements
                     .Select(similarMeasurement => new ApiSimilarMeasurementInfo(
                         measurementId: similarMeasurement.MeasurementId,
                         manufactureCode: similarMeasurement.ManufactureCode,
@@ -449,14 +449,14 @@ internal class EbayControllerImplementation : IEbayController
                         rmseSection2: similarMeasurement.RmseSection2,
                         score: similarMeasurement.Score,
                         isCrossMatch: similarMeasurement.ComparisonMode == ComparisonMode.Cross,
-                        sameDate: x.MeasurementInfo.ManufactureCode.Equals(similarMeasurement.ManufactureCode, StringComparison.OrdinalIgnoreCase),
+                        sameDate: x.Data.MeasurementInfo.ManufactureCode.Equals(similarMeasurement.ManufactureCode, StringComparison.OrdinalIgnoreCase),
                         isMatchedPair: similarMeasurement.IsMatchedPair,
                         matchId: similarMeasurement.MatchId,
                         doubleTriodeSectionRmse: similarMeasurement.DoubleTriodeSectionRmse
 
 
                     ))],
-                createdAt: x.MeasurementInfo.CreatedAt))
+                createdAt: x.Data.MeasurementInfo.CreatedAt))
             .ToList();
 
         return result;

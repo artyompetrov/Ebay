@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Server.Adapters.Driven.EF.WriteModel.Repositories;
-using Server.Application.Abstractions.Driven.Abstractions.Repositories;
+using Server.Application.Abstractions.Driven.Abstractions.Abstractions.Repositories;
 
 namespace Server.Adapters.Driven.EF.WriteModel;
 

@@ -1,4 +1,5 @@
 using Server.Application.Abstractions.Driven.Models;
+using Server.Application.Abstractions.Driving.Models;
 using Server.Domain.Measurements;
 
 namespace Server.Application.Abstractions.Driving.Abstractions.Services;
@@ -97,7 +98,7 @@ public interface IMeasurementService
     /// <param name="measurementStates">Фильтр по состояниям замера.</param>
     /// <param name="cancellationToken">Токен отмены операции.</param>
     /// <returns>Коллекция замеров с похожими измерениями.</returns>
-    Task<IReadOnlyCollection<MeasurementInfoWithSimilarMeasurements>> GetMeasurementInfos(
+    Task<IReadOnlyCollection<MeasurementInfoWithSimilarMeasurementsView>> GetMeasurementInfos(
         Guid productId,
         IReadOnlyCollection<ProductState> productState,
         IReadOnlyCollection<MeasurementState> measurementStates,
