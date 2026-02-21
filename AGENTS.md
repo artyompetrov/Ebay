@@ -34,10 +34,13 @@
     - `/ChromeExtension`: Хром расширение
       - `/src/infrastructure`: общие утилиты и вспомогательные функции расширения. Добавляйте сюда переиспользуемые функции, чтобы избегать дублирования кода.
     - `/Ebay`: C# проект
-      - `/Client`: Фронтенд на blazor webassembly
+      - `/Frontend`: Фронтенд на blazor webassembly
+      - `/Server`: backend host (точка входа API и composition root)
+      - `/Server.Adapters.Driven.*`: реализации driven-адаптеров (EF, SMTP, внешние интеграции и т.д.)
+      - `/Server.Adapters.Driving.WebApi`: driving-адаптер WebApi
       - `/Server.Application`: legacy application-слой, в котором пока остается исторический код
       - `/Server.Application.New`: новый чистый application-слой (порты и бизнес-сценарии для поэтапной миграции)
-      - `/Server.*`: Серверные сборки (проект чуть-чуть разбит на порты и адаптеры, но не до конца)
+      - `/Server.Application.Abstractions.*`: контракты driving/driven портов
       - `/Server.Contracts`: OpenAPI контракты (legacy и новые контракты для поэтапной миграции)
       - `/Tests`: тесты, запускаемые вручную (в основном для валидации продакшен-базы)
     - `Dockerfile` - Докер файл, который осуществляет сборку решения в единый контейнер, подлежащий развертыванию.
@@ -115,7 +118,7 @@ ChromeExtension - `cd /workspace/Ebay/src/ChromeExtension/ && npm run build`
 Если в рамках задачи изменились правила разработки, структура проекта, процесс сборки/тестирования, кодогенерации, деплоя или другие договоренности, которые должны быть зафиксированы для следующих задач — обнови `AGENTS.md` в этом же PR.
 
 # Миграция БД
-Миграции находятся в проекте Server.Application в папке migrations.
+Миграции находятся в проекте Server.Application в папке Migrations.
 Инфраструктура БД должна находиться в адаптере БД, а не в `Server.Application.New`.
 Новые EF-миграции продолжаем генерировать в legacy-проекте `Server.Application`, пока миграции не будут полностью перенесены в соответствующий DB-адаптер.
 Также обрати внимание на файл ApplicationDbContext.cs при изменении схемы БД.
@@ -129,8 +132,8 @@ cd /workspace/Ebay/src/Ebay/ && dotnet ef migrations add NewMigrationName --proj
 # DDD
 Мы пишем по DDD
 Агрегаты располагаются в сборке Server.Domain
-Репозитории в сборке Server.Adapters.EF.WriteModel
-Ридмодели в сборке Server.Adapters.EF.ReadModel
+Репозитории в сборке Server.Adapters.Driven.EF.WriteModel
+Ридмодели в сборке Server.Adapters.Driven.EF.ReadModel
 `Server.Application` — legacy-слой, который пока содержит нарушения ports-and-adapters.
 Новый код application-слоя нужно добавлять в `Server.Application.New`, сохраняя чистую архитектуру (порты и бизнес-сценарии без инфраструктурных зависимостей).
 
