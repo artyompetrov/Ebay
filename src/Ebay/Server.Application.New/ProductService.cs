@@ -1,18 +1,15 @@
 using System.Data;
 using System.Text.RegularExpressions;
-
 using Server.Application.Abstractions.Driven.Abstractions.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Abstractions.Repositories;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Models;
 using Server.Application.Abstractions.Driving.Models;
-using Server.Application.Consumers.PriceCalculator;
-using Server.Application.New;
 using Server.Domain;
 
-namespace Server.Application.Services;
+namespace Server.Application.New;
 
-internal class ProductService
+public class ProductService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IProductRepository _productRepository;

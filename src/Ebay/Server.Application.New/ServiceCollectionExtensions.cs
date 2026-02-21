@@ -14,6 +14,7 @@ public static class ServiceCollectionExtensions
     /// <param name="services">Коллекция сервисов приложения.</param>
     public static void AddApplicationNewServices(this IServiceCollection services)
     {
-        _ = services.AddScoped<IMeasurementService, MeasurementService>();
+        services.AddScoped<IMeasurementService, MeasurementService>();
+        services.AddScoped<ProductService>();
     }
 }

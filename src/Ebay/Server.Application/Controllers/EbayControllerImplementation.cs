@@ -5,6 +5,7 @@ using Server.Application.Abstractions.Driving.Abstractions.Services;
 using Server.Application.Consumers.PriceCalculator;
 using Server.Application.Data;
 using Server.Application.Infrastructure;
+using Server.Application.New;
 using Server.Application.Services;
 using Server.Application.Services.LotDataExtractor;
 using Server.Application.Services.Measurement;

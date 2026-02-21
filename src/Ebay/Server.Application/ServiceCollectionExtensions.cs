@@ -61,7 +61,6 @@ public static class ServiceCollectionExtensions
         _ = services.AddScoped<MatchedMeasurementService>();
         _ = services.AddScoped<MeasurementPlotService>();
         _ = services.AddScoped<TubeWorkingPointService>();
-        _ = services.AddScoped<ProductService>();
         _ = services.AddHttpClient<GeoIpService>(c =>
         {
             c.Timeout = TimeSpan.FromSeconds(2);
