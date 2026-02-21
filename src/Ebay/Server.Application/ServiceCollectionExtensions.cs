@@ -144,6 +144,13 @@ public static class ServiceCollectionExtensions
 
         var dbContext = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
+        if (!dbContext.Database.CanConnect())
+        {
+            throw new InvalidOperationException(
+                "Cannot connect to PostgreSQL. Check ConnectionStrings:DefaultConnection, " +
+                "ensure ASPNETCORE_ENVIRONMENT=Development for local run, and verify Postgres is available on the configured host/port.");
+        }
+
         if (ensureCreatedInsteadOfMigrate)
         {
             dbContext.Database.EnsureCreated();
