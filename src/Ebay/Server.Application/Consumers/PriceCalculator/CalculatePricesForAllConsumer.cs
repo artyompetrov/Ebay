@@ -21,9 +21,10 @@ internal class CalculatePricesForAllConsumer : IConsumer<CalculatePricesForAll>
 
         foreach (var productId in productIds)
         {
-            await _publishEndpoint.Publish(message: new ProductUpdated(productId), context.CancellationToken);
+            await _publishEndpoint.Publish(message: new CalculatePricesForProductRequested(productId), context.CancellationToken);
         }
     }
 }
 
 public record CalculatePricesForAll;
+public record CalculatePricesForProductRequested(Guid ProductId);
