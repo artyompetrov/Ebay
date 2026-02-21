@@ -6,7 +6,7 @@ using Server.Domain.Product;
 
 namespace Server.Application.Consumers.PriceCalculator;
 
-internal class CalculatePricesForProductConsumer : IConsumer<ProductUpdated>
+internal class CalculatePricesForProductConsumer : IConsumer<CalculatePricesForProductRequested>, IConsumer<ProductUpdated>
 {
     public CalculatePricesForProductConsumer(
         ApplicationDbContext applicationContext,
@@ -19,17 +19,24 @@ internal class CalculatePricesForProductConsumer : IConsumer<ProductUpdated>
     private readonly ApplicationDbContext _applicationContext;
     private readonly IPublishEndpoint _publishEndpoint;
 
-    public async Task Consume(ConsumeContext<ProductUpdated> context)
+    public Task Consume(ConsumeContext<CalculatePricesForProductRequested> context) =>
+        CalculatePricesForProductAsync(context.Message.ProductId, context.CancellationToken);
+
+    public Task Consume(ConsumeContext<ProductUpdated> context) =>
+        CalculatePricesForProductAsync(context.Message.ProductId, context.CancellationToken);
+
+    private async Task CalculatePricesForProductAsync(Guid productId, CancellationToken cancellationToken)
     {
         var lotIds = await _applicationContext.Lots.AsNoTracking()
-            .Where(x => x.ProductId == context.Message.ProductId).Select(x => x.Id)
-            .ToListAsync(context.CancellationToken);
+            .Where(x => x.ProductId == productId)
+            .Select(x => x.Id)
+            .ToListAsync(cancellationToken);
 
         foreach (var lotId in lotIds)
         {
-            await _publishEndpoint.Publish(new CalculatePricesForLot(lotId), context.CancellationToken);
+            await _publishEndpoint.Publish(new CalculatePricesForLot(lotId), cancellationToken);
         }
 
-        _ = await _applicationContext.SaveChangesAsync(context.CancellationToken);
+        _ = await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 }
