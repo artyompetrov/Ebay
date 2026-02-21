@@ -222,13 +222,14 @@ internal sealed class MeasurementQueries : IMeasurementQueries
             {
                 if (similarMeasurementsLookup.TryGetValue(measurement.MeasurementInfo.Id, out var similar))
                 {
-                    var withSimilar = measurement with
-                    {
-                        SimilarMeasurements = similar,
-                        ScorePlusBalance = similar.Min(x => x.Score) + (measurement.DoubleTriodeSectionRmse ?? 0.0)
-                    };
+                    var scorePlusBalance = similar.Min(x => x.Score) + (measurement.DoubleTriodeSectionRmse ?? 0.0);
 
-                    return withSimilar;
+                    return new MeasurementInfoWithSimilarMeasurements(
+                        measurement.MeasurementInfo,
+                        measurement.DoubleTriodeSectionRmse,
+                        similar,
+                        scorePlusBalance
+                    );
                 }
 
                 return measurement;
@@ -280,12 +281,12 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                 x => x.Key,
                 x => (IReadOnlyCollection<SimilarMeasurementInfo>)[.. x
                     .Select(measurement => new SimilarMeasurementInfo(
-                        MeasurementId: measurement.MeasurementId2,
-                        ManufactureCode: measurement.ManufactureCode2,
-                        RmseSection1: measurement.RmseSection1,
-                        RmseSection2: measurement.RmseSection2,
-                        ComparisonMode: measurement.ComparisonMode,
-                        Score:
+                        measurement.MeasurementId2,
+                        measurement.ManufactureCode2,
+                        measurement.RmseSection1,
+                        measurement.RmseSection2,
+                        measurement.ComparisonMode,
+                        // Score:
                                 //берем максимальную ошибку из двух секций
                                 Math.Max(
                                    measurement.RmseSection1,
@@ -304,9 +305,9 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                                    : 0.0)
                                // добавляем разность балансов для двоиных триодов
                                + Math.Abs(measurement.DoubleTriodeSectionRmseTube1 - measurement.DoubleTriodeSectionRmseTube2),
-                        IsMatchedPair: measurement.IsMatchedPair,
-                        MatchId: measurement.MatchId,
-                        DoubleTriodeSectionRmse: measurement.DoubleTriodeSectionRmseTube2
+                        measurement.IsMatchedPair,
+                        measurement.DoubleTriodeSectionRmseTube2,
+                        measurement.MatchId
                     ))
                     .OrderBy(measurement => !measurement.IsMatchedPair)
                     .ThenBy(measurement => measurement.Score)

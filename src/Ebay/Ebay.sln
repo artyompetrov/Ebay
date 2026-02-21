@@ -35,7 +35,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.Adapters.WebApi", "S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.Contracts", "Server.Contracts\Server.Contracts.csproj", "{36BB1DC5-9A70-47D7-8119-FF3401416514}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.Application.New", "Server.Application.New\Server.Application.New.csproj", "{1413A349-EE93-4A2A-81C5-C0C31B2C4484}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Server.Application.New", "Server.Application.New\Server.Application.New.fsproj", "{1413A349-EE93-4A2A-81C5-C0C31B2C4484}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
