@@ -5,7 +5,7 @@ COPY .editorconfig /
 COPY Ebay/*.sln Ebay/
 COPY Ebay/*.props Ebay/
 COPY Ebay/nuget.config Ebay/
-COPY Ebay/Client/*.csproj Ebay/Client/
+COPY Ebay/Frontend/*.csproj Ebay/Frontend/
 COPY Ebay/Server/*.csproj Ebay/Server/
 COPY Ebay/Server.Adapters.Driven.Smtp/*.csproj Ebay/Server.Adapters.Driven.Smtp/
 COPY Ebay/Server.Adapters.Driven.uTracer/*.csproj Ebay/Server.Adapters.Driven.uTracer/
