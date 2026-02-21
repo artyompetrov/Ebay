@@ -1,5 +1,6 @@
 using MassTransit;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
+using Server.Domain;
 
 namespace Server.Application.Consumers.PriceCalculator;
 
@@ -20,7 +21,7 @@ internal class CalculatePricesForAllConsumer : IConsumer<CalculatePricesForAll>
 
         foreach (var productId in productIds)
         {
-            await _publishEndpoint.Publish(message: new CalculatePricesForProduct(productId), context.CancellationToken);
+            await _publishEndpoint.Publish(message: new ProductUpdated(productId), context.CancellationToken);
         }
     }
 }

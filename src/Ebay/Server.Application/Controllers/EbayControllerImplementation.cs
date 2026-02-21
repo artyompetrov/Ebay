@@ -406,7 +406,7 @@ internal class EbayControllerImplementation : IEbayController
 
     public async Task CalculatePricesForProductAsync(Guid productId, CancellationToken cancellationToken)
     {
-        await _publishEndpoint.Publish(new CalculatePricesForProduct(productId), cancellationToken);
+        await _publishEndpoint.Publish(new ProductUpdated(productId), cancellationToken);
         _ = await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 
@@ -599,7 +599,7 @@ internal class EbayControllerImplementation : IEbayController
                       .SingleOrDefaultAsync(predicate: x => x.Id == lotId, cancellationToken: cancellationToken) ??
                   throw new InvalidOperationException($"Lot with id {lotId} not found");
 
-        await _publishEndpoint.Publish(new CalculatePricesForProduct(lot.ProductId), cancellationToken);
+        await _publishEndpoint.Publish(new ProductUpdated(lot.ProductId), cancellationToken);
 
         _ = _applicationContext.Lots.Remove(lot);
         _ = await _applicationContext.SaveChangesAsync(cancellationToken);

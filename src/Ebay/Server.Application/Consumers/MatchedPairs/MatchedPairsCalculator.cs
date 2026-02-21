@@ -308,7 +308,7 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
             newMatchedPairDifference.Id,
             cancellationToken);
 
-        await _matchedPairDifferenceRepository.SaveAsync(
+        await _matchedPairDifferenceRepository.AddAsync(
             newMatchedPairDifference,
             cancellationToken);
 

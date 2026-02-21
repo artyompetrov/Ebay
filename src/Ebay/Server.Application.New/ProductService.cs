@@ -9,25 +9,31 @@ using Server.Domain;
 
 namespace Server.Application.New;
 
+/// <summary>
+/// Сервис сценариев работы с агрегатом товара.
+/// </summary>
 public class ProductService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IProductRepository _productRepository;
-    private readonly IPublishEndpoint _publishEndpoint;
     private readonly IProductQueries _productQueries;
 
+    /// <summary>
+    /// Создает сервис сценариев работы с товарами.
+    /// </summary>
     public ProductService(
         IUnitOfWork unitOfWork,
         IProductRepository productRepository,
-        IPublishEndpoint publishEndpoint,
         IProductQueries productQueries)
     {
         _unitOfWork = unitOfWork;
         _productRepository = productRepository;
-        _publishEndpoint = publishEndpoint;
         _productQueries = productQueries;
     }
 
+    /// <summary>
+    /// Создает новый товар.
+    /// </summary>
     public async Task<Product> CreateProductAsync(
         string name,
         int weight,
@@ -41,11 +47,14 @@ public class ProductService
             searchQueries: searchQueries,
             ruSearchQueries: ruSearchQueries);
 
-        await _productRepository.SaveAsync(aggregate: product, cancellationToken: cancellationToken);
+        await _productRepository.AddAsync(aggregate: product, cancellationToken: cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken: cancellationToken);
         return product;
     }
 
+    /// <summary>
+    /// Обновляет товар и инициирует обработку доменных событий агрегата.
+    /// </summary>
     public async Task UpdateProductAsync(
         Guid productId,
         string name,
@@ -62,18 +71,21 @@ public class ProductService
                       throw new InvalidOperationException("product not found");
         product.Update(name: name, weight: weight, searchQueries: searchQueries, ruSearchQueries: ruSearchQueries);
 
-        // todo переделать в доменное событие 
-        await _publishEndpoint.Publish(new CalculatePricesForProduct(productId), cancellationToken);
-
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Удаляет товар по идентификатору.
+    /// </summary>
     public async Task DeleteProductAsync(
         Guid id,
         CancellationToken cancellationToken) => await _productRepository.RemoveAsync(id, cancellationToken);
 
+    /// <summary>
+    /// Обновляет время последней проверки товара.
+    /// </summary>
     public async Task MarkProductAsCheckedAsync(
         Guid id,
         CancellationToken cancellationToken
@@ -86,6 +98,9 @@ public class ProductService
         _ = await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Возвращает информацию о товаре.
+    /// </summary>
     public async Task<ProductInfoView?> GetProductAsync(Guid id, CancellationToken cancellationToken)
     {
 
@@ -99,7 +114,7 @@ public class ProductService
     private static ProductInfoView Map(ProductInfo product)
     {
         return new ProductInfoView(
-            ProductInfo: product,
+            Data: product,
             IsCheckRequired: DateTime.UtcNow - product.LastCheckTime > TimeSpan.FromDays(WellKnown.RecheckTimeInDays),
             CalculatedEbayWeight: (int)Math.Ceiling(product.Weight * WellKnown.EbayWeightMultiplier / 100.0),
             ProductRegex: GetProductRegex(product),
@@ -108,6 +123,9 @@ public class ProductService
         );
     }
 
+    /// <summary>
+    /// Возвращает список всех товаров.
+    /// </summary>
     public async Task<IEnumerable<ProductInfoView>> GetAllProductsAsync(CancellationToken cancellationToken)
     {
         var result = await _productQueries.GetAllProductsAsync(cancellationToken);

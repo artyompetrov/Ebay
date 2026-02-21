@@ -50,7 +50,7 @@ internal sealed class MeasurementService : IMeasurementService
             measurementFileParser: _measurementFileParser
         );
 
-        await _productMeasurementRepository.SaveAsync(measurement, cancellationToken);
+        await _productMeasurementRepository.AddAsync(measurement, cancellationToken);
 
         _ = await _unitOfWork.SaveChangesAsync(cancellationToken);
     }

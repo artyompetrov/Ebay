@@ -24,7 +24,7 @@ public class HealthCheckTest
                     configBuilder.AddInMemoryCollection(new Dictionary<string, string?>
                     {
                         ["ConnectionStrings:DefaultConnection"] =
-                            "User ID=ebay;Password=catnip0-spoil4-untrimmed;Server=localhost;Port=15432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=60;Enlist=true;Include Error Detail=true;",
+                            "User ID=ebay;Password=catnip0-spoil4-untrimmed;Server=localhost;Port=15432;Database=test_ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=60;Enlist=true;Include Error Detail=true;",
                         ["EbayServer:TargetEmail"] = "integration-tests@localhost",
                         ["EbayServer:IsLocalRun"] = "true"
                     });
@@ -42,7 +42,7 @@ public class HealthCheckTest
                         $"Expected status OK, but got {(int)response.StatusCode} ({response.StatusCode}).");
                 }
             },
-            timeout: 30);
+            timeout: 20);
     }
 
     [OneTimeTearDown]

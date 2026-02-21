@@ -4,7 +4,7 @@ using Server.Application.Abstractions.Driven.Models;
 namespace Server.Application.Abstractions.Driving.Models;
 
 public record ProductInfoView(
-    ProductInfo ProductInfo,
+    ProductInfo Data,
     bool IsCheckRequired,
     int CalculatedEbayWeight,
     Regex ProductRegex,

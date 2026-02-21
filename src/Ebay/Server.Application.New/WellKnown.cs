@@ -1,5 +1,8 @@
-﻿namespace Server.Application.New;
+namespace Server.Application.New;
 
+/// <summary>
+/// Константы application-слоя.
+/// </summary>
 public static class WellKnown
 {
     /// <summary>
@@ -16,5 +19,9 @@ public static class WellKnown
     /// Количество штук на ebay продано минимум, для репрезентативности
     /// </summary>
     public const int IsInterestingRelevantStatistics = 3;
+
+    /// <summary>
+    /// Коэффициент увеличения веса товара для расчета логистики Ebay.
+    /// </summary>
     public const double EbayWeightMultiplier = 1.5;
 }

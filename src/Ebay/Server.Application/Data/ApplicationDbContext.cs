@@ -4,6 +4,7 @@ using Duende.IdentityServer.EntityFramework.Options;
 using MassTransit;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Options;
@@ -17,11 +18,15 @@ namespace Server.Application.Data;
 
 public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, IUnitOfWork
 {
+    private readonly IPublishEndpoint? _publishEndpoint;
+
     public ApplicationDbContext(
         DbContextOptions<ApplicationDbContext> options,
-        IOptions<OperationalStoreOptions> operationalStoreOptions)
+        IOptions<OperationalStoreOptions> operationalStoreOptions,
+        IPublishEndpoint? publishEndpoint = null)
         : base(options: options, operationalStoreOptions: operationalStoreOptions)
     {
+        _publishEndpoint = publishEndpoint;
     }
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -236,10 +241,39 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
         public void Dispose() => _transaction.Dispose();
     }
 
-    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         ApplyAudit();
-        return base.SaveChangesAsync(cancellationToken);
+        // Publish before EF save so MT bus outbox stores messages in the same transaction.
+        await PublishDomainEventsAsync(cancellationToken);
+        return await base.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task PublishDomainEventsAsync(CancellationToken cancellationToken)
+    {
+        var aggregateEntries = ChangeTracker.Entries<IAggregateRoot>()
+            .Where(entry => entry.State != EntityState.Detached && entry.Entity.GetDomainEvents().Count > 0)
+            .ToList();
+
+        if (aggregateEntries.Count == 0)
+        {
+            return;
+        }
+
+        var publishEndpoint = _publishEndpoint ?? this.GetService<IPublishEndpoint>();
+        var domainEvents = aggregateEntries
+            .SelectMany(entry => entry.Entity.GetDomainEvents())
+            .ToArray();
+
+        foreach (var domainEvent in domainEvents)
+        {
+            await publishEndpoint.Publish(domainEvent, cancellationToken);
+        }
+
+        foreach (var aggregateEntry in aggregateEntries)
+        {
+            aggregateEntry.Entity.ClearDomainEvents();
+        }
     }
 
     private void ApplyAudit()

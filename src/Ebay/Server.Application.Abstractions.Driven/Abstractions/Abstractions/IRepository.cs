@@ -19,12 +19,11 @@ public interface IRepository<TAggregate, TId>
     Task<TAggregate?> GetByIdAsync(TId id, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Сохранить агрегат
+    /// Добавить новый агрегат.
     /// </summary>
-    /// <param name="aggregate">Инстанс агрегата</param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    Task SaveAsync(TAggregate aggregate, CancellationToken cancellationToken);
+    /// <param name="aggregate">Инстанс агрегата.</param>
+    /// <param name="cancellationToken">Токен отмены.</param>
+    Task AddAsync(TAggregate aggregate, CancellationToken cancellationToken);
 
     //todo удаление сейчас выполняется не по DDD что не совсем корректно
 

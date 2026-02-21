@@ -77,6 +77,8 @@ public sealed class Product : AggregateRoot<Guid>
                 existing.SetQuery(kv.Value.Query);
             }
         }
+
+        AddDomainEvent(new ProductUpdated(Id));
     }
 
     public string Name { get; private set; } = default!;

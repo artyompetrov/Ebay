@@ -69,7 +69,7 @@ public class TubeWorkingPointService
                 gridVoltageHalfWidth: gridVoltageHalfWidth,
                 nominalCurrent: nominalCurrent);
 
-            await _tubeWorkingPointsRepository.SaveAsync(tubeWorkingPoint, cancellationToken);
+            await _tubeWorkingPointsRepository.AddAsync(tubeWorkingPoint, cancellationToken);
         }
 
         _ = await _unitOfWork.SaveChangesAsync(cancellationToken);

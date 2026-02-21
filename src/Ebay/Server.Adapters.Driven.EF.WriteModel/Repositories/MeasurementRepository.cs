@@ -16,7 +16,7 @@ internal sealed class MeasurementRepository : IMeasurementRepository
 
     public async Task<ProductMeasurement?> GetByIdAsync(string id, CancellationToken cancellationToken) => await _dbContext.ProductMeasurements.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
 
-    public async Task SaveAsync(ProductMeasurement aggregate, CancellationToken cancellationToken) => _ = await _dbContext.ProductMeasurements.AddAsync(aggregate, cancellationToken);
+    public async Task AddAsync(ProductMeasurement aggregate, CancellationToken cancellationToken) => _ = await _dbContext.ProductMeasurements.AddAsync(aggregate, cancellationToken);
 
     public async Task RemoveAsync(string id, CancellationToken cancellationToken)
     {

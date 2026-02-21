@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Data;
 using Server.Application.Infrastructure;
+using Server.Application.New;
 using Server.Domain;
 
 namespace Server.Application.HostedServices.ChipFind;
@@ -43,7 +44,7 @@ public class ChipfindBackgroundTask : BackgroundTask
         var applicationDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var chipfindAdapter = scope.ServiceProvider.GetRequiredService<IChipfindAdapter>();
         var emailSender = scope.ServiceProvider.GetRequiredService<IEmailSender>();
-        var productQueries = scope.ServiceProvider.GetRequiredService<IProductQueries>();
+        var productQueries = scope.ServiceProvider.GetRequiredService<ProductService>();
 
         var products = await GetProducts(
             cancellationToken: cancellationToken,
@@ -174,7 +175,7 @@ public class ChipfindBackgroundTask : BackgroundTask
     }
 
     private static async Task<IReadOnlyCollection<ProductInner>> GetProducts(
-        IProductQueries productQueries,
+        ProductService productQueries,
         CancellationToken cancellationToken)
     {
         var products = await productQueries.GetAllProductsAsync(cancellationToken);
@@ -183,9 +184,9 @@ public class ChipfindBackgroundTask : BackgroundTask
         
         
         var productsArray = products.Select(x => new ProductInner(
-                ProductId: x.Id,
+                ProductId: x.Data.Id,
                 Regex: x.ProductRegex,
-                IsInteresting: x.GetIsInteresting()))
+                IsInteresting: x.IsInteresting))
             .ToArray();
 
         return productsArray;

@@ -28,13 +28,13 @@ internal static class ModelsExtensions
     public static ProductWithId ToApiProduct(this ProductInfoView productInfo)
     {
         return new(
-        id: productInfo.ProductInfo.Id,
-        name: productInfo.ProductInfo.Name,
-        searchQueries: [.. productInfo.ProductInfo.SearchQueries.Select(x => x.ToApiSearchQuery())],
-        ruSearchQueries: [.. productInfo.ProductInfo.RuSearchQueries.Select(x => x.ToApiRuSearchQuery())],
+        id: productInfo.Data.Id,
+        name: productInfo.Data.Name,
+        searchQueries: [.. productInfo.Data.SearchQueries.Select(x => x.ToApiSearchQuery())],
+        ruSearchQueries: [.. productInfo.Data.RuSearchQueries.Select(x => x.ToApiRuSearchQuery())],
         isCheckRequired: productInfo.IsCheckRequired,
-        weight: productInfo.ProductInfo.Weight,
-        productCalculationResult: productInfo.ProductInfo.CalculationResult.ToApiLotCalculationResult(),
+        weight: productInfo.Data.Weight,
+        productCalculationResult: productInfo.Data.CalculationResult.ToApiLotCalculationResult(),
         productRegex: productInfo.ProductRegex.ToString(),
         isInteresting: productInfo.IsInteresting,
         calculatedEbayWeight: productInfo.CalculatedEbayWeight
