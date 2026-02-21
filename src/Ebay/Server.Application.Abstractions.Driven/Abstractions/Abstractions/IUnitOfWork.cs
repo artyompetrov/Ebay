@@ -1,6 +1,6 @@
 using System.Data;
 
-namespace Server.Application.New.Abstractions;
+namespace Server.Application.Abstractions.Driven.Abstractions.Abstractions;
 
 /// <summary>
 /// Контракт Unit of Work для сохранения изменений и управления транзакциями.

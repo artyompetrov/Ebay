@@ -1,5 +1,5 @@
 using MassTransit;
-using Server.Application.New.Abstractions.Queries;
+using Server.Application.Abstractions.Driven.Abstractions.Queries;
 
 namespace Server.Application.Consumers.PriceCalculator;
 

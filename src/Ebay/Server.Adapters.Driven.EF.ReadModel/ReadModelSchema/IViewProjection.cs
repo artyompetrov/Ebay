@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
 using JetBrains.Annotations;
 
-namespace Sever.Adapters.EF.ReadModel.ReadModelSchema;
+namespace Server.Adapters.Driven.EF.ReadModel.ReadModelSchema;
 
 internal interface IViewProjection<TDomain, TView>
 {

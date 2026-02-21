@@ -1,10 +1,10 @@
 using System.Data;
 using Microsoft.EntityFrameworkCore;
-using Server.Application.New.Abstractions.Queries;
-using Server.Application.New.Models;
+using Server.Application.Abstractions.Driven.Abstractions.Queries;
+using Server.Application.Abstractions.Driven.Models;
 using Server.Domain;
 
-namespace Sever.Adapters.EF.ReadModel.Queries;
+namespace Server.Adapters.Driven.EF.ReadModel.Queries;
 
 internal sealed class ProductQueries : IProductQueries
 {

@@ -1,4 +1,4 @@
-namespace Server.Application.New.Models;
+namespace Server.Application.Abstractions.Driven.Models;
 
 /// <summary>
 /// Параметры рабочей точки лампы.

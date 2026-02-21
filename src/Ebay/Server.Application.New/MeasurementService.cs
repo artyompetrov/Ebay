@@ -1,11 +1,11 @@
-using Server.Application.New.Abstractions;
-using Server.Application.New.Abstractions.Queries;
-using Server.Application.New.Abstractions.Repositories;
-using Server.Application.New.Abstractions.Services;
-using Server.Application.New.Models;
+using Server.Application.Abstractions.Driven.Abstractions.Abstractions;
+using Server.Application.Abstractions.Driven.Abstractions.Queries;
+using Server.Application.Abstractions.Driven.Abstractions.Repositories;
+using Server.Application.Abstractions.Driven.Models;
+using Server.Application.Abstractions.Driving.Abstractions.Services;
 using Server.Domain.Measurements;
 
-namespace Server.Application.New.Services;
+namespace Server.Application.New;
 
 internal sealed class MeasurementService : IMeasurementService
 {

@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Server.Application.New.Abstractions.Services;
+using Server.Application.Abstractions.Driving.Abstractions.Services;
 using Server.Application.Services.GeoIp;
 using Server.Application.Services.MeasurementPlot;
 

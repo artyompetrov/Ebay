@@ -1,5 +1,5 @@
 using System.Globalization;
-using Server.Application.New.Models;
+using Server.Application.Abstractions.Driven.Models;
 using Server.Application.Services.LotDataExtractor;
 using Server.Controllers.Generated;
 using Server.Domain;

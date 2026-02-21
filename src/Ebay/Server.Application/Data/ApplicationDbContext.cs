@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Server.Application.New.Abstractions;
+using Server.Application.Abstractions.Driven.Abstractions.Abstractions;
 using Server.Domain;
 using Server.Domain.Measurements;
 using JsonSerializer = System.Text.Json.JsonSerializer;

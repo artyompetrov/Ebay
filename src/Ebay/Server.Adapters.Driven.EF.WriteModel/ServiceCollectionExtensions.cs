@@ -1,8 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
-using Server.Adapters.EF.WriteModel.Repositories;
-using Server.Application.New.Abstractions.Repositories;
+using Server.Adapters.Driven.EF.WriteModel.Repositories;
+using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 
-namespace Server.Adapters.EF.WriteModel;
+namespace Server.Adapters.Driven.EF.WriteModel;
 
 public static class ServiceCollectionExtensions
 {

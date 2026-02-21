@@ -1,6 +1,7 @@
+using Server.Application.Abstractions.Driven.Abstractions.Abstractions;
 using Server.Domain.Measurements;
 
-namespace Server.Application.New.Abstractions.Repositories;
+namespace Server.Application.Abstractions.Driven.Abstractions.Repositories;
 
 /// <summary>
 /// Репозиторий агрегата разницы между замерами для задач подбора пар.

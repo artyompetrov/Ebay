@@ -1,10 +1,9 @@
 using Server.Domain.Measurements;
 
-namespace Server.Application.New.Models;
-
+namespace Server.Application.Abstractions.Driven.Models;
 
 /// <summary>
-/// Краткая информация о замере товара для отображения в интерфейсе.
+/// Информация о замере вместе с бинарными данными файла измерения.
 /// </summary>
 /// <param name="Id">Идентификатор замера.</param>
 /// <param name="ProductId">Идентификатор товара, к которому относится замер.</param>
@@ -14,9 +13,10 @@ namespace Server.Application.New.Models;
 /// <param name="MeasurementState">Текущее состояние замера.</param>
 /// <param name="ProductState">Состояние товара.</param>
 /// <param name="ManufactureCode">Код производителя лампы.</param>
-/// <param name="CreatedAt">Дата и время создания замера.</param>
 /// <param name="LastTimeWatchedOnEbay">Дата и время последнего обнаружения на eBay.</param>
-public record MeasurementInfo(
+/// <param name="CreatedAt">Дата и время создания замера.</param>
+/// <param name="Data">Сырые бинарные данные файла измерений.</param>
+public record MeasurementInfoWithData(
     string Id,
     Guid ProductId,
     string? MatchId,
@@ -25,11 +25,18 @@ public record MeasurementInfo(
     MeasurementState MeasurementState,
     ProductState ProductState,
     string ManufactureCode,
+    DateTime? LastTimeWatchedOnEbay,
     DateTime CreatedAt,
-    DateTime? LastTimeWatchedOnEbay)
-{
-    /// <summary>
-    /// Признак, что замер был замечен на eBay в течение последних 7 дней.
-    /// </summary>
-    public bool IsPublishedOnEbay => LastTimeWatchedOnEbay > DateTime.UtcNow.AddDays(-7);
-}
+    byte[] Data) :
+    MeasurementInfo(
+        Id: Id,
+        ProductId:
+        ProductId,
+        MatchId: MatchId,
+        LotId: LotId,
+        Location: Location,
+        MeasurementState: MeasurementState,
+        ProductState: ProductState,
+        ManufactureCode: ManufactureCode,
+        CreatedAt: CreatedAt,
+        LastTimeWatchedOnEbay: LastTimeWatchedOnEbay);

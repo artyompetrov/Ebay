@@ -1,6 +1,6 @@
-using Server.Application.New.Models;
+using Server.Application.Abstractions.Driven.Models;
 
-namespace Server.Application.New.Abstractions.Queries;
+namespace Server.Application.Abstractions.Driven.Abstractions.Queries;
 
 /// <summary>
 /// Порт чтения рабочей точки лампы для товара.

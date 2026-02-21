@@ -1,7 +1,7 @@
-using Server.Application.New.Models;
+using Server.Application.Abstractions.Driven.Models;
 using Server.Domain.Measurements;
 
-namespace Server.Application.New.Abstractions.Services;
+namespace Server.Application.Abstractions.Driving.Abstractions.Services;
 
 /// <summary>
 /// Порт бизнес-сценариев для управления замерами товара.

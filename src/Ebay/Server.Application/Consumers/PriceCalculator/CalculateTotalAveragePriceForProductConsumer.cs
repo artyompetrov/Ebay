@@ -1,9 +1,9 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Server.Application.Abstractions.Driven.Abstractions.Abstractions;
+using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Data;
-using Server.Application.New.Abstractions;
-using Server.Application.New.Abstractions.Repositories;
 using Server.Domain;
 
 namespace Server.Application.Consumers.PriceCalculator;

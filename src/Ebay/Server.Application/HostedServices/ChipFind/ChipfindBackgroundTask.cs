@@ -2,9 +2,9 @@ using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Data;
 using Server.Application.Infrastructure;
-using Server.Application.New.Abstractions.Queries;
 using Server.Domain;
 
 namespace Server.Application.HostedServices.ChipFind;

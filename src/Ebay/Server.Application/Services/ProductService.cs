@@ -1,10 +1,10 @@
 using System.Data;
 using MassTransit;
+using Server.Application.Abstractions.Driven.Abstractions.Abstractions;
+using Server.Application.Abstractions.Driven.Abstractions.Queries;
+using Server.Application.Abstractions.Driven.Abstractions.Repositories;
+using Server.Application.Abstractions.Driven.Models;
 using Server.Application.Consumers.PriceCalculator;
-using Server.Application.New.Abstractions;
-using Server.Application.New.Abstractions.Queries;
-using Server.Application.New.Abstractions.Repositories;
-using Server.Application.New.Models;
 using Server.Domain;
 
 namespace Server.Application.Services;

@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Server.Application.New.Abstractions.Queries;
-using Sever.Adapters.EF.ReadModel.Queries;
+using Server.Adapters.Driven.EF.ReadModel.Queries;
+using Server.Application.Abstractions.Driven.Abstractions.Queries;
 
-namespace Sever.Adapters.EF.ReadModel;
+namespace Server.Adapters.Driven.EF.ReadModel;
 
 /// <summary>
 /// Регистрация в контейнере

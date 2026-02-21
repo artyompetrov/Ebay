@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Data;
-using Server.Application.New.Abstractions.Repositories;
 using Server.Domain;
 
-namespace Server.Adapters.EF.WriteModel.Repositories;
+namespace Server.Adapters.Driven.EF.WriteModel.Repositories;
 
 internal sealed class ProductRepository : IProductRepository
 {

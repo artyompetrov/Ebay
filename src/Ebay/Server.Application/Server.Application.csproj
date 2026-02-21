@@ -36,6 +36,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Frontend\Frontend.csproj" />
+      <ProjectReference Include="..\Server.Adapters.Driving.WebApi\Server.Adapters.Driving.WebApi.csproj" />
       <ProjectReference Include="..\Server.Application.New\Server.Application.New.csproj" />
       <ProjectReference Include="..\Server.Domain\Server.Domain.csproj" />
     </ItemGroup>

@@ -1,4 +1,4 @@
-namespace Server.Application.New.Abstractions;
+namespace Server.Application.Abstractions.Driven.Abstractions.Abstractions;
 
 /// <summary>
 /// Контракт транзакции Unit of Work.

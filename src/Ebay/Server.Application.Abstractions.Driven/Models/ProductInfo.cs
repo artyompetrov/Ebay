@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
 using Server.Domain;
 
-namespace Server.Application.New.Models;
+namespace Server.Application.Abstractions.Driven.Models;
 
 // TODO(architecture): Этот тип уже не "просто модель":
 // 1) Здесь зашиты бизнес-правила: RecheckTimeInDays, IsInterestingRevenueUsd, IsInterestingRelevantStatistics, EbayWeightMultiplier.

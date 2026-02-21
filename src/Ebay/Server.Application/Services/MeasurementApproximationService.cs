@@ -1,4 +1,4 @@
-using Server.Application.New.Models;
+using Server.Application.Abstractions.Driven.Models;
 using Server.Domain.Measurements;
 using Server.Domain.Measurements.MeasurementTypes.Base;
 

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Server.Application.New.Abstractions.Queries;
-using Server.Application.New.Models;
+using Server.Application.Abstractions.Driven.Abstractions.Queries;
+using Server.Application.Abstractions.Driven.Models;
 using Server.Domain.Measurements;
 
 namespace Server.Adapters.Driving.WebApi.Pages;

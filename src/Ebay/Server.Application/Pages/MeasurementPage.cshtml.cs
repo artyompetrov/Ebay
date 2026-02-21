@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using Server.Application.Abstractions.Driven.Abstractions.Queries;
+using Server.Application.Abstractions.Driven.Models;
 using Server.Application.Data;
-using Server.Application.New.Abstractions.Queries;
-using Server.Application.New.Models;
 using Server.Domain;
 using Server.Domain.Measurements;
 

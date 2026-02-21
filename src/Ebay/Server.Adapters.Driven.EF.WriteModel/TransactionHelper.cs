@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Server.Application.Data;
 
-namespace Server.Adapters.EF.WriteModel;
+namespace Server.Adapters.Driven.EF.WriteModel;
 
 internal static class TransactionHelper
 {
