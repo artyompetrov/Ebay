@@ -18,6 +18,7 @@ public abstract class BackgroundTask : IHostedService, IDisposable
     public Task StartAsync(CancellationToken cancellationToken)
     {
         var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        _logger.LogInformation("Started");
 
         var backgroundTask = Task.Run(
             async () =>
@@ -43,6 +44,7 @@ public abstract class BackgroundTask : IHostedService, IDisposable
 
         _state = new State(Task: backgroundTask, Cts: cts);
 
+        _logger.LogInformation("Finished");
         return Task.CompletedTask;
     }
 

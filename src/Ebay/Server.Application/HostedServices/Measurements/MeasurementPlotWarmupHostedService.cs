@@ -31,6 +31,7 @@ public class MeasurementPlotWarmupHostedService : IHostedService
         {
             return;
         }
+        _logger.LogInformation("Started");
 
         using var scope = _serviceScopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();

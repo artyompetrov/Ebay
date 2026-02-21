@@ -20,6 +20,8 @@ public class DbCacheCleanupHostedService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        _logger.LogInformation("Service started");
+        
         using var scope = _serviceScopeFactory.CreateScope();
         var dbCache = scope.ServiceProvider.GetRequiredService<InfrastructureDbCache>();
 
