@@ -2,9 +2,7 @@ using Server.Domain.Measurements;
 
 namespace Server.Application.New.Models;
 
-// TODO(architecture): Тип содержит не только данные, но и поведение/бизнес-правило
-// (IsPublishedOnEbay с фиксированным окном в 7 дней).
-// Позже вынести это правило в policy/сервис и оставить здесь только DTO-данные.
+
 /// <summary>
 /// Краткая информация о замере товара для отображения в интерфейсе.
 /// </summary>
@@ -34,4 +32,4 @@ public record MeasurementInfo(
     /// Признак, что замер был замечен на eBay в течение последних 7 дней.
     /// </summary>
     public bool IsPublishedOnEbay => LastTimeWatchedOnEbay > DateTime.UtcNow.AddDays(-7);
-};
+}

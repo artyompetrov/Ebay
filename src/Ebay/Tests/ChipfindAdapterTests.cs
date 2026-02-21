@@ -1,7 +1,7 @@
 using System.Net;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using Server.Adapters.ChipFind;
+using Server.Adapters.Driven.ChipFind;
 using Server.Application.HostedServices.ChipFind;
 
 namespace Tests;

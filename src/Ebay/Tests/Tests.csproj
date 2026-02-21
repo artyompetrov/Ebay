@@ -19,7 +19,7 @@
     <ItemGroup>
       <ProjectReference Include="..\Server.Client\Server.Client.csproj" />
       <ProjectReference Include="..\Server\Server.csproj" />
-      <ProjectReference Include="..\Server.Adapters.ChipFind\Server.Adapters.ChipFind.csproj" />
+      <ProjectReference Include="..\Server.Adapters.Driven.ChipFind\Server.Adapters.Driven.ChipFind.csproj" />
     </ItemGroup>
 
 </Project>

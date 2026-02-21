@@ -7,13 +7,13 @@
     </PropertyGroup>
 
   <ItemGroup>
-      <ProjectReference Include="..\Server.Adapters.ChipFind\Server.Adapters.ChipFind.csproj" />
-      <ProjectReference Include="..\Server.Adapters.EF.ReadModel\Server.Adapters.EF.ReadModel.csproj" />
-      <ProjectReference Include="..\Server.Adapters.EF.WriteModel\Server.Adapters.EF.WriteModel.csproj" />
-      <ProjectReference Include="..\Server.Adapters.Smtp\Server.Adapters.Smtp.csproj" />
-      <ProjectReference Include="..\Server.Adapters.uTracer\Server.Adapters.uTracer.csproj" />
+      <ProjectReference Include="..\Server.Adapters.Driven.ChipFind\Server.Adapters.Driven.ChipFind.csproj" />
+      <ProjectReference Include="..\Server.Adapters.Driven.EF.ReadModel\Server.Adapters.Driven.EF.ReadModel.csproj" />
+      <ProjectReference Include="..\Server.Adapters.Driven.EF.WriteModel\Server.Adapters.Driven.EF.WriteModel.csproj" />
+      <ProjectReference Include="..\Server.Adapters.Driven.Smtp\Server.Adapters.Driven.Smtp.csproj" />
+      <ProjectReference Include="..\Server.Adapters.Driven.uTracer\Server.Adapters.Driven.uTracer.csproj" />
       <ProjectReference Include="..\Server.Application\Server.Application.csproj" />
-      <ProjectReference Include="..\Server.Adapters.WebApi\Server.Adapters.WebApi.csproj" />
+      <ProjectReference Include="..\Server.Adapters.Driving.WebApi\Server.Adapters.Driving.WebApi.csproj" />
   </ItemGroup>
 
   <ItemGroup>
