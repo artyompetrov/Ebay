@@ -22,10 +22,10 @@ internal sealed class TubeWorkingPointQueries : ITubeWorkingPointQueries
         return tubeWorkingPoint == null
             ? null
             : new TubeWorkingPointInfo(
-                tubeWorkingPoint.AnodeVoltage,
-                tubeWorkingPoint.GridVoltage,
-                tubeWorkingPoint.AnodeVoltageHalfWidth,
-                tubeWorkingPoint.GridVoltageHalfWidth,
-                tubeWorkingPoint.NominalCurrent);
+            AnodeVoltage: tubeWorkingPoint.AnodeVoltage,
+            GridVoltage: tubeWorkingPoint.GridVoltage,
+            AnodeVoltageHalfWidth: tubeWorkingPoint.AnodeVoltageHalfWidth,
+            GridVoltageHalfWidth: tubeWorkingPoint.GridVoltageHalfWidth,
+            NominalCurrent: tubeWorkingPoint.NominalCurrent);
     }
 }

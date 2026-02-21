@@ -36,7 +36,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Client\Client.csproj" />
-      <ProjectReference Include="..\Server.Application.New\Server.Application.New.fsproj" />
+      <ProjectReference Include="..\Server.Application.New\Server.Application.New.csproj" />
       <ProjectReference Include="..\Server.Domain\Server.Domain.csproj" />
     </ItemGroup>
 
