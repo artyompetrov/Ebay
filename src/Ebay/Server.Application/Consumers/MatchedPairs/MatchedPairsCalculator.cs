@@ -301,9 +301,7 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
             rmseSection2: rmseSection2,
             maxAbsSection1: maxAbsSection1,
             maxAbsSection2: maxAbsSection2);
-
-        await using var transaction = await _unitOfWork.BeginTransactionAsync(cancellationToken);
-
+        
         await _matchedPairDifferenceRepository.RemoveAsync(
             newMatchedPairDifference.Id,
             cancellationToken);
@@ -312,9 +310,7 @@ internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
             newMatchedPairDifference,
             cancellationToken);
 
-        _ = await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-        await transaction.CommitAsync(cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
 

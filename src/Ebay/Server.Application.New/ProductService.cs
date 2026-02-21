@@ -65,16 +65,11 @@ public class ProductService
         CancellationToken cancellationToken
     )
     {
-        await using var transaction =
-            await _unitOfWork.BeginTransactionAsync(cancellationToken, IsolationLevel.RepeatableRead);
-
         var product = await _productRepository.GetByIdAsync(id: productId, cancellationToken: cancellationToken) ??
                       throw new InvalidOperationException("product not found");
         product.Update(name: name, weight: weight, searchQueries: searchQueries, ruSearchQueries: ruSearchQueries);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-        await transaction.CommitAsync(cancellationToken);
     }
 
     /// <summary>
