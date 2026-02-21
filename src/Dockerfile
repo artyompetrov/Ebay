@@ -14,7 +14,7 @@ COPY Ebay/Server.Adapters.Driven.EF.WriteModel/*.csproj Ebay/Server.Adapters.Dri
 COPY Ebay/Server.Adapters.Driven.ChipFind/*.csproj Ebay/Server.Adapters.Driven.ChipFind/
 COPY Ebay/Server.Application.Abstractions.Driven/*.csproj Ebay/Server.Application.Abstractions.Driven/
 COPY Ebay/Server.Application.Abstractions.Driving/*.csproj Ebay/Server.Application.Abstractions.Driving/
-COPY Ebay/Server.Adapters.Driving.WebApi/*.csproj Ebay/Server.Adapters.Driven.WebApi/
+COPY Ebay/Server.Adapters.Driving.WebApi/*.csproj Ebay/Server.Adapters.Driving.WebApi/
 COPY Ebay/Server.Contracts/*.csproj Ebay/Server.Contracts/
 COPY Ebay/Server.Application/*.csproj Ebay/Server.Application/
 COPY Ebay/Server.Application.New/*.csproj Ebay/Server.Application.New/
