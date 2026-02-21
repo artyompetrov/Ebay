@@ -1,5 +1,6 @@
 using System.Globalization;
 using Server.Application.Abstractions.Driven.Models;
+using Server.Application.Abstractions.Driving.Models;
 using Server.Application.Services.LotDataExtractor;
 using Server.Controllers.Generated;
 using Server.Domain;
@@ -24,18 +25,18 @@ namespace Server.Application.Infrastructure;
 
 internal static class ModelsExtensions
 {
-    public static ProductWithId ToApiProduct(this ProductInfo productInfo)
+    public static ProductWithId ToApiProduct(this ProductInfoView productInfo)
     {
         return new(
-        id: productInfo.Id,
-        name: productInfo.Name,
-        searchQueries: [.. productInfo.SearchQueries.Select(x => x.ToApiSearchQuery())],
-        ruSearchQueries: [.. productInfo.RuSearchQueries.Select(x => x.ToApiRuSearchQuery())],
+        id: productInfo.ProductInfo.Id,
+        name: productInfo.ProductInfo.Name,
+        searchQueries: [.. productInfo.ProductInfo.SearchQueries.Select(x => x.ToApiSearchQuery())],
+        ruSearchQueries: [.. productInfo.ProductInfo.RuSearchQueries.Select(x => x.ToApiRuSearchQuery())],
         isCheckRequired: productInfo.IsCheckRequired,
-        weight: productInfo.Weight,
-        productCalculationResult: productInfo.CalculationResult.ToApiLotCalculationResult(),
+        weight: productInfo.ProductInfo.Weight,
+        productCalculationResult: productInfo.ProductInfo.CalculationResult.ToApiLotCalculationResult(),
         productRegex: productInfo.ProductRegex.ToString(),
-        isInteresting: productInfo.GetIsInteresting(),
+        isInteresting: productInfo.IsInteresting,
         calculatedEbayWeight: productInfo.CalculatedEbayWeight
     );
     }

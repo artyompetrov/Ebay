@@ -1,0 +1,207 @@
+using System.Data;
+using System.Text.RegularExpressions;
+
+using Server.Application.Abstractions.Driven.Abstractions.Abstractions;
+using Server.Application.Abstractions.Driven.Abstractions.Abstractions.Repositories;
+using Server.Application.Abstractions.Driven.Abstractions.Queries;
+using Server.Application.Abstractions.Driven.Models;
+using Server.Application.Abstractions.Driving.Models;
+using Server.Application.Consumers.PriceCalculator;
+using Server.Application.New;
+using Server.Domain;
+
+namespace Server.Application.Services;
+
+internal class ProductService
+{
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IProductRepository _productRepository;
+    private readonly IPublishEndpoint _publishEndpoint;
+    private readonly IProductQueries _productQueries;
+
+    public ProductService(
+        IUnitOfWork unitOfWork,
+        IProductRepository productRepository,
+        IPublishEndpoint publishEndpoint,
+        IProductQueries productQueries)
+    {
+        _unitOfWork = unitOfWork;
+        _productRepository = productRepository;
+        _publishEndpoint = publishEndpoint;
+        _productQueries = productQueries;
+    }
+
+    public async Task<Product> CreateProductAsync(
+        string name,
+        int weight,
+        IReadOnlyList<string> searchQueries,
+        IReadOnlyList<string> ruSearchQueries,
+        CancellationToken cancellationToken)
+    {
+        var product = Product.Create(
+            name: name,
+            weight: weight,
+            searchQueries: searchQueries,
+            ruSearchQueries: ruSearchQueries);
+
+        await _productRepository.SaveAsync(aggregate: product, cancellationToken: cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken: cancellationToken);
+        return product;
+    }
+
+    public async Task UpdateProductAsync(
+        Guid productId,
+        string name,
+        int weight,
+        IReadOnlyList<SearchQueryWithId> searchQueries,
+        IReadOnlyList<SearchQueryWithId> ruSearchQueries,
+        CancellationToken cancellationToken
+    )
+    {
+        await using var transaction =
+            await _unitOfWork.BeginTransactionAsync(cancellationToken, IsolationLevel.RepeatableRead);
+
+        var product = await _productRepository.GetByIdAsync(id: productId, cancellationToken: cancellationToken) ??
+                      throw new InvalidOperationException("product not found");
+        product.Update(name: name, weight: weight, searchQueries: searchQueries, ruSearchQueries: ruSearchQueries);
+
+        // todo переделать в доменное событие 
+        await _publishEndpoint.Publish(new CalculatePricesForProduct(productId), cancellationToken);
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
+    }
+
+    public async Task DeleteProductAsync(
+        Guid id,
+        CancellationToken cancellationToken) => await _productRepository.RemoveAsync(id, cancellationToken);
+
+    public async Task MarkProductAsCheckedAsync(
+        Guid id,
+        CancellationToken cancellationToken
+    )
+    {
+        var product = await _productRepository.GetByIdAsync(id, cancellationToken) ??
+                      throw new InvalidOperationException("Product not found");
+        product.MarkAsChecked();
+
+        _ = await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<ProductInfoView?> GetProductAsync(Guid id, CancellationToken cancellationToken)
+    {
+
+        var product = await _productQueries.GetProductAsync(id, cancellationToken);
+
+        if (product == null) return null;
+
+        return Map(product);
+    }
+
+    private static ProductInfoView Map(ProductInfo product)
+    {
+        return new ProductInfoView(
+            ProductInfo: product,
+            IsCheckRequired: DateTime.UtcNow - product.LastCheckTime > TimeSpan.FromDays(WellKnown.RecheckTimeInDays),
+            CalculatedEbayWeight: (int)Math.Ceiling(product.Weight * WellKnown.EbayWeightMultiplier / 100.0),
+            ProductRegex: GetProductRegex(product),
+            IsInteresting: product.CalculationResult?.RevenueAvg > WellKnown.IsInterestingRevenueUsd &&
+                           product.CalculationResult?.QuantityTotal >= WellKnown.IsInterestingRelevantStatistics
+        );
+    }
+
+    public async Task<IEnumerable<ProductInfoView>> GetAllProductsAsync(CancellationToken cancellationToken)
+    {
+        var result = await _productQueries.GetAllProductsAsync(cancellationToken);
+        return result.Select(Map);
+    }
+
+    private static readonly Dictionary<string, string> SimpleReplacements = new()
+    {
+        { "(", "\\(" },
+        { ")", "\\)" },
+        { "/", "\\/" },
+        { ".", "," },
+        { ",", "[,.]" },
+    };
+
+    private static readonly (Regex Pattern, string Replacement)[] RegexReplacements =
+    [
+        (new Regex("[- ]"), "[- ]?"),
+        (new Regex("[aа]"), "[aа]"),
+        (new Regex("[cс]"), "[cс]"),
+        (new Regex("[pр]"), "[pр]"),
+        (new Regex("[eе]"), "[eе]"),
+        (new Regex("[oо]"), "[oо]"),
+        (new Regex("[xх]"), "[xх]"),
+        (new Regex("[yу]"), "[yу]"),
+        (new Regex("[bв]"), "[bв]"),
+        (new Regex("[hн]"), "[hн]"),
+        (new Regex("[kк]"), "[kк]"),
+        (new Regex("[mм]"), "[mм]"),
+        (new Regex("[l]"), "[lл]"),
+        (new Regex("[tт]"), "[tт]")
+    ];
+
+    private static readonly Dictionary<string, string> DigitReplacements = new()
+    {
+        { "0", "[- ]?[0оo][- ]?" },
+        { "1", "[- ]?1[- ]?" },
+        { "2", "[- ]?2[- ]?" },
+        { "3", "[- ]?[3з][- ]?" },
+        { "4", "[- ]?4[- ]?" },
+        { "5", "[- ]?5[- ]?" },
+        { "6", "[- ]?6[- ]?" },
+        { "7", "[- ]?7[- ]?" },
+        { "8", "[- ]?8[- ]?" },
+        { "9", "[- ]?9[- ]?" }
+    };
+
+    private static Regex GetProductRegex(ProductInfo productInfo)
+    {
+        var productNames = new HashSet<string>();
+
+        productNames.Add(productInfo.Name);
+
+        if (productInfo.RuSearchQueries == null)
+        {
+            throw new InvalidOperationException($"{nameof(productInfo.RuSearchQueries)} is null");
+        }
+
+        foreach (var ruSearchQuery in productInfo.RuSearchQueries)
+        {
+            productNames.Add(ruSearchQuery.Query);
+        }
+
+        var processed = productNames.Select(word =>
+        {
+            var w = word.ToLowerInvariant().Trim();
+
+            // Simple string replacements
+            foreach (var kvp in SimpleReplacements)
+            {
+                w = w.Replace(kvp.Key, kvp.Value);
+            }
+
+            // Regex replacements
+            foreach (var (pattern, replacement) in RegexReplacements)
+            {
+                w = pattern.Replace(w, replacement);
+            }
+
+            // Digits replacements
+            foreach (var kvp in DigitReplacements)
+            {
+                w = w.Replace(kvp.Key, kvp.Value);
+            }
+
+            return w;
+        });
+
+        var pattern =
+            $"(?:^|\\b|[\\s\\.,\\(\\)\"\\-_])({string.Join("|", processed)})(?:$|\\b|[\\s\\-,:;=\\(\\)\\.\"_])";
+
+        return new Regex(pattern, RegexOptions.IgnoreCase);
+    }
+}

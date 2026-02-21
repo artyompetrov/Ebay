@@ -83,4 +83,5 @@ internal static class WellKnown
     {
         public static IReadOnlyCollection<string> ExcludeCountries = ["Russia", "Kazakhstan"];
     }
+    
 }

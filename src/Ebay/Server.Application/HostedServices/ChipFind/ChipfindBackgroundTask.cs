@@ -179,6 +179,9 @@ public class ChipfindBackgroundTask : BackgroundTask
     {
         var products = await productQueries.GetAllProductsAsync(cancellationToken);
 
+        
+        
+        
         var productsArray = products.Select(x => new ProductInner(
                 ProductId: x.Id,
                 Regex: x.ProductRegex,
