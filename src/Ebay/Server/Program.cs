@@ -134,6 +134,13 @@ public class Program
                 {
                     var authorizationOptions = authorizationClientOptions.Value;
 
+                    var frontendClient = ClientBuilder
+                        .SPA("Frontend")
+                        .WithRedirectUri("/authentication/login-callback")
+                        .WithLogoutRedirectUri("/authentication/logout-callback")
+                        .Build();
+                    options.Clients.Add(frontendClient);
+
                     var spaClient = ClientBuilder
                         .SPA(WellKnown.ChromeExtension.ClientId)
                         .WithRedirectUri($"https://{authorizationOptions.Domain}/chrome_extensions/auth")
