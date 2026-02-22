@@ -22,7 +22,6 @@ internal sealed class LotForSaleRepository : ILotForSaleRepository
     public async Task AddAsync(LotForSale aggregate, CancellationToken cancellationToken)
     {
         _ = await _dbContext.LotForSales.AddAsync(aggregate, cancellationToken);
-        _ = await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task RemoveAsync(string id, CancellationToken cancellationToken)

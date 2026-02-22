@@ -16,7 +16,7 @@ public sealed class WebApiController : WebApiControllerBase
 
     public override async Task<IActionResult> CreateLotForSale(LotForSaleCreateRequest body, CancellationToken cancellationToken = default)
     {
-        await _lotForSaleService.CreateLotForSaleAsync(body.Id, body.Name, body.ProductId, cancellationToken);
+        await _lotForSaleService.CreateLotForSaleAsync(body.Name, body.ProductId, cancellationToken);
         return Ok();
     }
 

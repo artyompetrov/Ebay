@@ -180,11 +180,7 @@
     }
 
     <div class="row g-2 align-items-end">
-        <div class="col-sm-3">
-            <label class="form-label">Lot ID</label>
-            <InputText class="form-control" @bind-Value="_newLotForSaleId" maxlength="7" />
-        </div>
-        <div class="col-sm-5">
+        <div class="col-sm-8">
             <label class="form-label">Название</label>
             <InputText class="form-control" @bind-Value="_newLotForSaleName" />
         </div>
@@ -384,7 +380,6 @@
     private string? _matchingError;
     private bool _hasWorkingPoint;
     private ReadOnlyCollection<LotForSaleResponse>? _lotForSales;
-    private string _newLotForSaleId = string.Empty;
     private string _newLotForSaleName = string.Empty;
     private bool _isCreatingLotForSale;
     private string? _lotForSaleError;
@@ -425,17 +420,14 @@
             _lotForSaleError = null;
             _isCreatingLotForSale = true;
 
-            var lotId = _newLotForSaleId.Trim();
             var lotName = _newLotForSaleName.Trim();
 
             await WebApiClient.CreateLotForSaleAsync(new LotForSaleCreateRequest
             {
-                Id = lotId,
                 Name = lotName,
                 ProductId = ProductId
             });
 
-            _newLotForSaleId = string.Empty;
             _newLotForSaleName = string.Empty;
             await LoadLotForSales();
         }
