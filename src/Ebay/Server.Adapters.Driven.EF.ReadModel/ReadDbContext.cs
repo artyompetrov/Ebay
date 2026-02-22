@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Server.Adapters.Driven.EF.ReadModel.ReadModelSchema;
 using Server.Domain;
+using Server.Domain.LotForSale;
 using Server.Domain.Product;
 
 namespace Server.Adapters.Driven.EF.ReadModel;
@@ -67,6 +68,11 @@ internal sealed class ReadDbContext : DbContext
         {
             _ = x.ToView("TubeWorkingPoints").HasKey(x => x.Id);
         });
+        _ = b.Entity<LotForSaleView>(eb =>
+        {
+            _ = eb.ToView("LotForSales").HasKey(x => x.Id);
+        });
+
     }
 
     public DbSet<ProductMeasurementView> ProductMeasurements { get; set; } = null!;
@@ -78,4 +84,6 @@ internal sealed class ReadDbContext : DbContext
     public DbSet<MatchedPairDifferenceView> MatchedPairDifferences { get; set; } = null!;
 
     public DbSet<TubeWorkingPointView> TubeWorkingPoints { get; set; } = null!;
+
+    public DbSet<LotForSaleView> LotForSales { get; set; } = null!;
 }
