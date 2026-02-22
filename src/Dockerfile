@@ -1,31 +1,10 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build_dotnet
 WORKDIR /src
-# Сначала копируем файлы проектов для использования кэша слоёв при restore
+# Копируем весь исходный код сразу, чтобы не поддерживать вручную список *.csproj
+# при добавлении новых проектов в solution.
 COPY .editorconfig /
-COPY Ebay/*.sln Ebay/
-COPY Ebay/*.props Ebay/
-COPY Ebay/nuget.config Ebay/
-COPY Ebay/Frontend/*.csproj Ebay/Frontend/
-COPY Ebay/Server/*.csproj Ebay/Server/
-COPY Ebay/Server.Adapters.Driven.Smtp/*.csproj Ebay/Server.Adapters.Driven.Smtp/
-COPY Ebay/Server.Adapters.Driven.uTracer/*.csproj Ebay/Server.Adapters.Driven.uTracer/
-COPY Ebay/Server.Adapters.Driven.EF.ReadModel/*.csproj Ebay/Server.Adapters.Driven.EF.ReadModel/
-COPY Ebay/Server.Adapters.Driven.EF.WriteModel/*.csproj Ebay/Server.Adapters.Driven.EF.WriteModel/
-COPY Ebay/Server.Adapters.Driven.EF.WriteModel.Migrations/*.csproj Ebay/Server.Adapters.Driven.EF.WriteModel.Migrations/
-COPY Ebay/Server.Adapters.Driven.ChipFind/*.csproj Ebay/Server.Adapters.Driven.ChipFind/
-COPY Ebay/Server.Application.Abstractions.Driven/*.csproj Ebay/Server.Application.Abstractions.Driven/
-COPY Ebay/Server.Application.Abstractions.Driving/*.csproj Ebay/Server.Application.Abstractions.Driving/
-COPY Ebay/Server.Adapters.Driving.WebApi/*.csproj Ebay/Server.Adapters.Driving.WebApi/
-COPY Ebay/Server.Contracts/*.csproj Ebay/Server.Contracts/
-COPY Ebay/Server.Application/*.csproj Ebay/Server.Application/
-COPY Ebay/Server.Application.New/*.csproj Ebay/Server.Application.New/
-COPY Ebay/Server.Domain/*.csproj Ebay/Server.Domain/
-COPY Ebay/Server.Client/*.csproj Ebay/Server.Client/
-COPY Ebay/Tests/*.csproj Ebay/Tests/
-COPY Ebay/Tests.Integration/*.csproj Ebay/Tests.Integration/
-RUN dotnet restore "Ebay/Ebay.sln"
-# Копируем остальной исходный код
 COPY Ebay/ Ebay/
+RUN dotnet restore "Ebay/Ebay.sln"
 WORKDIR "/src/Ebay/"
 WORKDIR "/src/Ebay/Server"
 ARG BUILD_VERSION="1.0.0.0"
