@@ -13,12 +13,6 @@ public sealed class WebApiController : WebApiControllerBase
         _lotForSaleService = lotForSaleService;
     }
 
-    public override Task<ActionResult<PingResponse>> GetPing(CancellationToken cancellationToken = default)
-    {
-        var response = new PingResponse("pong");
-        return Task.FromResult<ActionResult<PingResponse>>(Ok(response));
-    }
-
     public override async Task<ActionResult<ICollection<LotForSaleResponse>>> GetLotForSales(CancellationToken cancellationToken = default)
     {
         var lotForSales = await _lotForSaleService.GetLotForSalesAsync(cancellationToken);
