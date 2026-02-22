@@ -3,6 +3,21 @@ info:
   title: Ebay WebApi Adapter Contract
   version: 1.0.0
 paths:
+  /api/webapi/v1/lot-for-sales:
+    get:
+      operationId: GetLotForSales
+      summary: Returns lot-for-sale aggregates
+      tags:
+        - WebApi
+      responses:
+        '200':
+          description: List of lot-for-sale aggregates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LotForSaleResponse'
   /api/webapi/v1/ping:
     get:
       operationId: GetPing
@@ -25,4 +40,17 @@ components:
         - message
       properties:
         message:
+          type: string
+    LotForSaleResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          minLength: 7
+          maxLength: 7
+        name:
           type: string

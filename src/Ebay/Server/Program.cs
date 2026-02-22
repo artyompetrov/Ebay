@@ -24,7 +24,12 @@ public class Program
         //IdentityModelEventSource.ShowPII = true;
 
         var builder = WebApplication.CreateBuilder(args);
-
+        builder.Host.UseDefaultServiceProvider(options =>
+        {
+            options.ValidateOnBuild = true;
+            options.ValidateScopes = true;
+        });
+        
         // Add services to the container.
         builder.Services.AddMemoryCache();
         builder.Services.AddEmailAdapter(builder.Configuration);
@@ -33,7 +38,7 @@ public class Program
         builder.Services.AddEfReadModelAdapter(builder.Configuration);
         builder.Services.AddApplicationServices(builder.Configuration);
         builder.Services.AddWebApiAdapter();
-        builder.Services.AddEfWriteModelAdapter();
+        builder.Services.AddEfWriteModelAdapter(builder.Configuration);
         builder.Services.AddHealthChecks();
 
         ConfigureIdentity(builder.Services, builder.Configuration);
@@ -55,6 +60,8 @@ public class Program
 
         var app = builder.Build();
         app.UseApplication(ensureCreatedInsteadOfMigrate: app.Environment.IsEnvironment("Testing"));
+
+        app.Services.UseEfWriteModelAdapter(ensureCreatedInsteadOfMigrate: app.Environment.IsEnvironment("Testing"));
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
