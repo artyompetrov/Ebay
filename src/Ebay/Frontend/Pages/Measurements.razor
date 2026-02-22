@@ -287,10 +287,18 @@
                            @oninput="async e => await OnLocationChanged(measurement, e.Value?.ToString())" />
                 </td>
                 <td>
-                    <input type="text"
-                           class="form-control"
-                           value="@measurement.LotId"
-                           @oninput="async e => await OnLotIdChanged(measurement, e.Value?.ToString())" />
+                    <select class="form-select"
+                            value="@measurement.LotId"
+                            @onchange="async e => await OnLotIdChanged(measurement, e.Value?.ToString())">
+                        <option value="">Основной лот</option>
+                        @if (_lotForSales is not null)
+                        {
+                            foreach (var lot in _lotForSales)
+                            {
+                                <option value="@lot.Id">@lot.Name (@lot.Id)</option>
+                            }
+                        }
+                    </select>
                 </td>
                 <td>
                     <input type="text"

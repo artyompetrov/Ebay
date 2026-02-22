@@ -2,11 +2,11 @@ using Server.Application.Abstractions.Driven.Abstractions.Abstractions;
 
 namespace Server.Adapters.Driven.EF.WriteModel;
 
-internal sealed class LotForSaleUnitOfWork : ILotForSaleUnitOfWork
+internal sealed class WriteModelUnitOfWork : IWriteModelUnitOfWork
 {
     private readonly WriteModelDbContext _dbContext;
 
-    public LotForSaleUnitOfWork(WriteModelDbContext dbContext)
+    public WriteModelUnitOfWork(WriteModelDbContext dbContext)
     {
         _dbContext = dbContext;
     }

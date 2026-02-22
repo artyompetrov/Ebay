@@ -1,12 +1,12 @@
 namespace Server.Application.Abstractions.Driven.Abstractions.Abstractions;
 
 /// <summary>
-/// Unit of Work для агрегата лота для продажи.
+/// Unit of Work для write-model адаптера.
 /// </summary>
-public interface ILotForSaleUnitOfWork
+public interface IWriteModelUnitOfWork
 {
     /// <summary>
-    /// Сохраняет изменения по агрегатам лотов для продажи.
+    /// Сохраняет изменения в write-model.
     /// </summary>
     /// <param name="cancellationToken">Токен отмены операции.</param>
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);

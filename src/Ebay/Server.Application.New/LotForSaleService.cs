@@ -13,22 +13,22 @@ public sealed class LotForSaleService
 {
     private readonly ILotForSaleQueries _lotForSaleQueries;
     private readonly ILotForSaleRepository _lotForSaleRepository;
-    private readonly ILotForSaleUnitOfWork _lotForSaleUnitOfWork;
+    private readonly IWriteModelUnitOfWork _writeModelUnitOfWork;
 
     /// <summary>
     /// Создает сервис сценариев чтения лотов для продажи.
     /// </summary>
     /// <param name="lotForSaleQueries">Запросы для чтения лотов для продажи.</param>
     /// <param name="lotForSaleRepository">Репозиторий агрегата лота для продажи.</param>
-    /// <param name="lotForSaleUnitOfWork">Unit of Work для сохранения лотов для продажи.</param>
+    /// <param name="writeModelUnitOfWork">Unit of Work для сохранения изменений write-model.</param>
     public LotForSaleService(
         ILotForSaleQueries lotForSaleQueries,
         ILotForSaleRepository lotForSaleRepository,
-        ILotForSaleUnitOfWork lotForSaleUnitOfWork)
+        IWriteModelUnitOfWork writeModelUnitOfWork)
     {
         _lotForSaleQueries = lotForSaleQueries;
         _lotForSaleRepository = lotForSaleRepository;
-        _lotForSaleUnitOfWork = lotForSaleUnitOfWork;
+        _writeModelUnitOfWork = writeModelUnitOfWork;
     }
 
     /// <summary>
@@ -51,6 +51,6 @@ public sealed class LotForSaleService
     {
         var aggregate = LotForSale.Create(name, productId);
         await _lotForSaleRepository.AddAsync(aggregate, cancellationToken);
-        _ = await _lotForSaleUnitOfWork.SaveChangesAsync(cancellationToken);
+        _ = await _writeModelUnitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

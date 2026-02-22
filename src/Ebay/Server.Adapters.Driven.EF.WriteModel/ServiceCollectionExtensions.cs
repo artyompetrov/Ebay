@@ -39,6 +39,6 @@ public static class ServiceCollectionExtensions
         _ = services.AddScoped<ITubeWorkingPointsRepository, TubeWorkingPointsRepository>();
         _ = services.AddScoped<IProductRepository, ProductRepository>();
         _ = services.AddScoped<ILotForSaleRepository, LotForSaleRepository>();
-        _ = services.AddScoped<ILotForSaleUnitOfWork, LotForSaleUnitOfWork>();
+        _ = services.AddScoped<IWriteModelUnitOfWork, WriteModelUnitOfWork>();
     }
 }
