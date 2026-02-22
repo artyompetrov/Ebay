@@ -8,7 +8,7 @@ using Server.Adapters.Driven.EF.WriteModel;
 
 #nullable disable
 
-namespace Server.Adapters.Driven.EF.WriteModel.Migrations.LotForSaleDb
+namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.LotForSaleDb
 {
     [DbContext(typeof(LotForSaleDbContext))]
     partial class LotForSaleDbContextModelSnapshot : ModelSnapshot

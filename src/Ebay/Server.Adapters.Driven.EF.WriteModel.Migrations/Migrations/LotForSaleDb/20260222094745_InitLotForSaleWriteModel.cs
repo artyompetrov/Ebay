@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Server.Adapters.Driven.EF.WriteModel.Migrations.LotForSaleDb
+namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.LotForSaleDb
 {
     /// <inheritdoc />
     public partial class InitLotForSaleWriteModel : Migration

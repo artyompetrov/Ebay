@@ -16,7 +16,8 @@ public static class ServiceCollectionExtensions
         {
             var connectionString = sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection")
                                    ?? throw new InvalidOperationException("Connection string cannot be null");
-            o.UseNpgsql(connectionString);
+            o.UseNpgsql(connectionString, b =>
+                b.MigrationsAssembly("Server.Adapters.Driven.EF.WriteModel.Migrations"));
         });
 
         _ = services.AddScoped<IMeasurementRepository, MeasurementRepository>();
