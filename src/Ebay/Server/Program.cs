@@ -104,8 +104,19 @@ public class Program
             ?? throw new InvalidOperationException(
                 $"{AuthorizationClientOptions.SectionName} configuration section is required.");
 
+        var keyStoragePath = Environment.GetEnvironmentVariable("DATA_PROTECTION_KEYS_DIR")
+                             ?? options.DataProtectionKeysDirectory;
+        var domain = Environment.GetEnvironmentVariable("DOMAIN")
+                     ?? options.Domain;
+        var clientId = Environment.GetEnvironmentVariable(WellKnown.Authorization.ClientId)
+                       ?? options.ClientId;
+        var authScope = Environment.GetEnvironmentVariable(WellKnown.Authorization.Scope)
+                        ?? options.Scope;
+        var clientSecret = Environment.GetEnvironmentVariable(WellKnown.Authorization.ClientSecret)
+                           ?? options.ClientSecret;
+
         services.AddDataProtection()
-            .PersistKeysToFileSystem(new DirectoryInfo(options.DataProtectionKeysDirectory))
+            .PersistKeysToFileSystem(new DirectoryInfo(keyStoragePath))
             .SetApplicationName("EbayHelper")
             .SetDefaultKeyLifetime(TimeSpan.FromDays(90));
 
@@ -114,13 +125,13 @@ public class Program
                 {
                     var spaClient = ClientBuilder
                         .SPA(WellKnown.ChromeExtension.ClientId)
-                        .WithRedirectUri($"https://{options.Domain}/chrome_extensions/auth")
-                        .WithLogoutRedirectUri($"https://{options.Domain}/chrome_extensions/logout")
+                        .WithRedirectUri($"https://{domain}/chrome_extensions/auth")
+                        .WithLogoutRedirectUri($"https://{domain}/chrome_extensions/logout")
                         .Build();
                     spaClient.AllowedCorsOrigins =
                     [
                         $"chrome-extension://{WellKnown.ChromeExtension.Id}",
-                        "https://" + options.Domain
+                        "https://" + domain
                     ];
                     spaClient.AccessTokenLifetime = (int)TimeSpan.FromDays(30).TotalSeconds;
                     o.Clients.Add(spaClient);
@@ -128,10 +139,10 @@ public class Program
                     o.Clients.Add(
                         new Duende.IdentityServer.Models.Client
                         {
-                            ClientId = options.ClientId,
-                            ClientSecrets = [new Secret(options.ClientSecret.Sha256())],
+                            ClientId = clientId,
+                            ClientSecrets = [new Secret(clientSecret.Sha256())],
                             AllowedGrantTypes = GrantTypes.ClientCredentials,
-                            AllowedScopes = { options.Scope }
+                            AllowedScopes = { authScope }
                         }
                     );
                 }
