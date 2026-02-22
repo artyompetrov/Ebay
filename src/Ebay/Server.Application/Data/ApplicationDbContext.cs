@@ -12,13 +12,15 @@ using Newtonsoft.Json;
 using Server.Application.Abstractions.Driven.Abstractions.Abstractions;
 using Server.Domain;
 using Server.Domain.Abstractions;
-using Server.Domain.LotForSale;
 using Server.Domain.Measurements;
 using Server.Domain.Product;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Server.Application.Data;
 
+[Obsolete(
+    "Legacy монолитный DbContext. Он объединяет Identity, outbox/inbox, legacy доменные модели и инфраструктурные аспекты, что нарушает границы портов и адаптеров. Новый код и новые агрегаты нужно размещать в отдельных DbContext внутри соответствующих адаптеров (например, Server.Adapters.Driven.EF.WriteModel) с миграциями в этих же сборках. Класс оставлен только для совместимости со старым кодом и поэтапной миграции.",
+    false)]
 public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, IUnitOfWork
 {
     
@@ -97,18 +99,6 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
                 v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
                 v => JsonSerializer.Deserialize<PurchaseCalculationResult?>(v, (JsonSerializerOptions?)null)
             ));
-
-        _ = builder.Entity<LotForSale>(entity =>
-        {
-            _ = entity.HasKey(x => x.Id);
-
-            _ = entity.Property(x => x.Id)
-                .HasMaxLength(7)
-                .ValueGeneratedNever();
-
-            _ = entity.Property(x => x.Name)
-                .IsRequired();
-        });
 
         _ = builder.Entity<ProductMeasurement>(entity =>
         {
@@ -233,7 +223,6 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
 
     public DbSet<MatchedPairDifference> MatchedPairDifferences { get; set; } = null!;
 
-    public DbSet<LotForSale> LotForSales { get; set; } = null!;
 
 
     public async Task<IUnitOfWorkTransaction> BeginTransactionAsync(

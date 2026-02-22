@@ -1,15 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Abstractions.Driven.Abstractions.Abstractions.Repositories;
-using Server.Application.Data;
 using Server.Domain.LotForSale;
 
 namespace Server.Adapters.Driven.EF.WriteModel.Repositories;
 
 internal sealed class LotForSaleRepository : ILotForSaleRepository
 {
-    private readonly ApplicationDbContext _dbContext;
+    private readonly LotForSaleDbContext _dbContext;
 
-    public LotForSaleRepository(ApplicationDbContext dbContext)
+    public LotForSaleRepository(LotForSaleDbContext dbContext)
     {
         _dbContext = dbContext;
     }
