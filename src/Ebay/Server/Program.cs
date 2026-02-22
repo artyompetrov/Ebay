@@ -23,7 +23,12 @@ public class Program
         //IdentityModelEventSource.ShowPII = true;
 
         var builder = WebApplication.CreateBuilder(args);
-
+        builder.Host.UseDefaultServiceProvider(options =>
+        {
+            options.ValidateOnBuild = true;
+            options.ValidateScopes = true;
+        });
+        
         // Add services to the container.
         builder.Services.AddMemoryCache();
         builder.Services.AddEmailAdapter(builder.Configuration);
