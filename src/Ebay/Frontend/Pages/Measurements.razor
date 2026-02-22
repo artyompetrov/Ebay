@@ -8,8 +8,8 @@
 @using Newtonsoft.Json
 @attribute [Authorize]
 @inject EbayClient EbayClient
+@inject WebApiClient WebApiClient
 @inject ILogger<Measurements> Logger
-@inject IHttpClientFactory HttpClientFactory
 
 <script src="https://unpkg.com/html5-qrcode"></script>
 <style>
@@ -384,7 +384,6 @@
     private string? _matchingError;
     private bool _hasWorkingPoint;
     private ReadOnlyCollection<LotForSaleResponse>? _lotForSales;
-    private WebApiClient? _webApiClient;
     private string _newLotForSaleId = string.Empty;
     private string _newLotForSaleName = string.Empty;
     private bool _isCreatingLotForSale;
@@ -403,7 +402,6 @@
         _matchingError = null;
         _hasWorkingPoint = false;
 
-        _webApiClient = new WebApiClient(EbayClient.BaseUrl, HttpClientFactory.CreateClient("ServerAPI"));
         await LoadLotForSales();
         await LoadTubeWorkingPointAsync();
         await UpdateMeasurementsAsync();
@@ -411,12 +409,7 @@
 
     private async Task LoadLotForSales()
     {
-        if (_webApiClient is null)
-        {
-            return;
-        }
-
-        var lotForSales = await _webApiClient.GetLotForSalesAsync();
+        var lotForSales = await WebApiClient.GetLotForSalesAsync();
         _lotForSales = lotForSales
             .Where(x => x.ProductId == ProductId)
             .OrderBy(x => x.Id)
@@ -427,12 +420,6 @@
 
     private async Task CreateLotForSaleAsync()
     {
-        if (_webApiClient is null)
-        {
-            _lotForSaleError = "WebApi клиент не инициализирован.";
-            return;
-        }
-
         try
         {
             _lotForSaleError = null;
@@ -441,7 +428,7 @@
             var lotId = _newLotForSaleId.Trim();
             var lotName = _newLotForSaleName.Trim();
 
-            await _webApiClient.CreateLotForSaleAsync(new LotForSaleCreateRequest
+            await WebApiClient.CreateLotForSaleAsync(new LotForSaleCreateRequest
             {
                 Id = lotId,
                 Name = lotName,
