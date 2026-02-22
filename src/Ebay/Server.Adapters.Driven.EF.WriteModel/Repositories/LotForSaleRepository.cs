@@ -6,9 +6,9 @@ namespace Server.Adapters.Driven.EF.WriteModel.Repositories;
 
 internal sealed class LotForSaleRepository : ILotForSaleRepository
 {
-    private readonly LotForSaleDbContext _dbContext;
+    private readonly WriteModelDbContext _dbContext;
 
-    public LotForSaleRepository(LotForSaleDbContext dbContext)
+    public LotForSaleRepository(WriteModelDbContext dbContext)
     {
         _dbContext = dbContext;
     }

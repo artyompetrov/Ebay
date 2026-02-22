@@ -12,7 +12,7 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        _ = services.AddDbContext<LotForSaleDbContext>((sp, o) =>
+        _ = services.AddDbContext<WriteModelDbContext>((sp, o) =>
         {
             var connectionString = sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection")
                                    ?? throw new InvalidOperationException("Connection string cannot be null");

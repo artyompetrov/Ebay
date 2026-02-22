@@ -3,9 +3,9 @@ using Server.Domain.LotForSale;
 
 namespace Server.Adapters.Driven.EF.WriteModel;
 
-public sealed class LotForSaleDbContext : DbContext
+public sealed class WriteModelDbContext : DbContext
 {
-    public LotForSaleDbContext(DbContextOptions<LotForSaleDbContext> options) : base(options)
+    public WriteModelDbContext(DbContextOptions<WriteModelDbContext> options) : base(options)
     {
     }
 

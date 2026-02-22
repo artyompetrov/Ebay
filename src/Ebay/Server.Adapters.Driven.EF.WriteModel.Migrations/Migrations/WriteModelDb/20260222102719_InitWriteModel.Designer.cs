@@ -9,11 +9,11 @@ using Server.Adapters.Driven.EF.WriteModel;
 
 #nullable disable
 
-namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.LotForSaleDb
+namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelDb
 {
-    [DbContext(typeof(LotForSaleDbContext))]
-    [Migration("20260222094745_InitLotForSaleWriteModel")]
-    partial class InitLotForSaleWriteModel
+    [DbContext(typeof(WriteModelDbContext))]
+    [Migration("20260222102719_InitWriteModel")]
+    partial class InitWriteModel
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

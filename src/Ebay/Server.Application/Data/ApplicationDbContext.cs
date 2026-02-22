@@ -19,7 +19,7 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 namespace Server.Application.Data;
 
 [Obsolete(
-    "Legacy монолитный DbContext. Он объединяет Identity, outbox/inbox, legacy доменные модели и инфраструктурные аспекты, что нарушает границы портов и адаптеров. Новый код и новые агрегаты нужно размещать в отдельных DbContext внутри соответствующих адаптеров (например, Server.Adapters.Driven.EF.WriteModel) с миграциями в этих же сборках. Класс оставлен только для совместимости со старым кодом и поэтапной миграции.",
+    "Legacy монолитный DbContext. Он объединяет Identity, outbox/inbox, legacy доменные модели и инфраструктурные аспекты, что нарушает границы портов и адаптеров. Новый write-model код и новые агрегаты нужно размещать в адаптере БД в едином WriteModelDbContext и развивать его миграции в отдельной сборке миграций адаптера. Класс оставлен только для совместимости со старым кодом и поэтапной миграции.",
     false)]
 public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, IUnitOfWork
 {

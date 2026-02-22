@@ -8,10 +8,10 @@ using Server.Adapters.Driven.EF.WriteModel;
 
 #nullable disable
 
-namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.LotForSaleDb
+namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelDb
 {
-    [DbContext(typeof(LotForSaleDbContext))]
-    partial class LotForSaleDbContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(WriteModelDbContext))]
+    partial class WriteModelDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {

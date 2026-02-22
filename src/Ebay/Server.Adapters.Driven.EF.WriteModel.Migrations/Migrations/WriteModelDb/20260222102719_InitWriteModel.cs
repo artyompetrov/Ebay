@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.LotForSaleDb
+namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelDb
 {
     /// <inheritdoc />
-    public partial class InitLotForSaleWriteModel : Migration
+    public partial class InitWriteModel : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
