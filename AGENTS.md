@@ -118,12 +118,21 @@ ChromeExtension - `cd /workspace/Ebay/src/ChromeExtension/ && npm run build`
 Если в рамках задачи изменились правила разработки, структура проекта, процесс сборки/тестирования, кодогенерации, деплоя или другие договоренности, которые должны быть зафиксированы для следующих задач — обнови `AGENTS.md` в этом же PR.
 
 # Миграция БД
-Миграции находятся в проекте Server.Application в папке Migrations.
+Legacy-миграции находятся в проекте `Server.Application` в папке `Migrations`.
 Инфраструктура БД должна находиться в адаптере БД, а не в `Server.Application.New`.
-Новые EF-миграции продолжаем генерировать в legacy-проекте `Server.Application`, пока миграции не будут полностью перенесены в соответствующий DB-адаптер.
-Также обрати внимание на файл ApplicationDbContext.cs при изменении схемы БД.
-Миграции БД не пишем вручную — генерируем миграции через Entity Framework. Пример запуска кодогенератора миграций:
-cd /workspace/Ebay/src/Ebay/ && dotnet ef migrations add NewMigrationName --project Server.Application --startup-project Server
+
+Для нового write-model адаптера используем:
+- контекст: `Server.Adapters.Driven.EF.WriteModel/WriteModelDbContext`
+- сборку миграций: `Server.Adapters.Driven.EF.WriteModel.Migrations`
+- схема БД для новых write-model сущностей: `wm`
+
+Новые EF-миграции для `WriteModelDbContext` генерируем в `Server.Adapters.Driven.EF.WriteModel.Migrations`.
+Legacy-миграции продолжаем поддерживать в `Server.Application` до полного переноса.
+
+Миграции БД не пишем вручную — генерируем миграции через Entity Framework.
+Примеры запуска:
+- legacy: `cd /workspace/Ebay/src/Ebay/ && dotnet ef migrations add NewMigrationName --project Server.Application --startup-project Server`
+- write-model: `cd /workspace/Ebay/ && dotnet ef migrations add NewMigrationName --project src/Ebay/Server.Adapters.Driven.EF.WriteModel.Migrations/Server.Adapters.Driven.EF.WriteModel.Migrations.csproj --startup-project src/Ebay/Server/Server.csproj --context Server.Adapters.Driven.EF.WriteModel.WriteModelDbContext --output-dir Migrations/WriteModelDb`
 
 # Сборка в docker и CI CD
 Проект собирается в Docker при помощи Github CI CD.
