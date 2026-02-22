@@ -29,7 +29,6 @@
 ## Project Structure for OpenAI Codex Navigation
 
 - `.github/workflows/build-and-tests.yaml` - основная CI/CD сборка docker-образов и деплой
-- `.github/workflows/mega-linter.yml.todo` - заготовка для линтера (пока не активна как workflow)
 - `/src`: исходный код
     - `/ChromeExtension`: Хром расширение
       - `/src/infrastructure`: общие утилиты и вспомогательные функции расширения. Добавляйте сюда переиспользуемые функции, чтобы избегать дублирования кода.
