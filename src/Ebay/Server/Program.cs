@@ -138,7 +138,7 @@ public class Program
                         .IdentityServerSPA("Frontend")
                         .WithRedirectUri("/authentication/login-callback")
                         .WithLogoutRedirectUri("/authentication/logout-callback")
-                        .WithScopes("ServerAPI")
+                        .WithScopes("openid", "profile", "ServerAPI")
                         .Build();
                     options.Clients.Add(frontendClient);
 
