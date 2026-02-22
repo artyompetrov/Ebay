@@ -23,7 +23,7 @@ public class Program
         builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("ServerAPI"));
         builder.Services.AddScoped<EbayClient>();
         builder.Services.AddScoped(sp => new WebApiClient(
-            sp.GetRequiredService<EbayClient>().BaseUrl,
+            builder.HostEnvironment.BaseAddress,
             sp.GetRequiredService<IHttpClientFactory>().CreateClient("ServerAPI")));
 
         builder.Services.AddApiAuthorization();
