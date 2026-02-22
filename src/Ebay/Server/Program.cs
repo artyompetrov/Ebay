@@ -135,9 +135,10 @@ public class Program
                     var authorizationOptions = authorizationClientOptions.Value;
 
                     var frontendClient = ClientBuilder
-                        .SPA("Frontend")
+                        .IdentityServerSPA("Frontend")
                         .WithRedirectUri("/authentication/login-callback")
                         .WithLogoutRedirectUri("/authentication/logout-callback")
+                        .WithScopes("ServerAPI")
                         .Build();
                     options.Clients.Add(frontendClient);
 
