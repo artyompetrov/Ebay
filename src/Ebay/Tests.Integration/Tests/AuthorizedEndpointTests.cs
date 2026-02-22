@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
 
-namespace IntegrationTests;
+namespace Tests.Integration.Tests;
 
 [Parallelizable(ParallelScope.Self)]
 public class AuthorizedEndpointTests

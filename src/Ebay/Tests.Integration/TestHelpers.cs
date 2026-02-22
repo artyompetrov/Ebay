@@ -1,7 +1,7 @@
 using Polly;
 using Polly.Timeout;
 
-namespace IntegrationTests;
+namespace Tests.Integration;
 
 public static class TestHelpers
 {

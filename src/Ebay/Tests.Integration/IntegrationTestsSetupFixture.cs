@@ -1,9 +1,9 @@
-using Npgsql;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
+using Npgsql;
 
-namespace IntegrationTests;
+namespace Tests.Integration;
 
 [SetUpFixture]
 public class IntegrationTestsSetupFixture

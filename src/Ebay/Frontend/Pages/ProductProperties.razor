@@ -2,7 +2,7 @@
 @using Client.Clients.Generated
 @using System.IO
 @using System.Linq
-@inject EbayClient EbayClient
+@inject EbayClient EbayClientInstance
 
 @if (_product != null)
 {
@@ -69,11 +69,11 @@
             switch (_actionType)
             {
                 case ActionType.Create:
-                    await EbayClient.CreateProductAsync(_product);
+                    await EbayClientInstance.CreateProductAsync(_product);
                     break;
                 case ActionType.Edit:
                     if (_id == null) throw new InvalidOperationException($"{nameof(_id)} expected to be not null");
-                    await EbayClient.UpdateProductAsync(product: _product, id: _id.Value);
+                    await EbayClientInstance.UpdateProductAsync(product: _product, id: _id.Value);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -138,7 +138,7 @@
             return;
         }
 
-        var passports = await EbayClient.GetProductPassportsAsync(_id.Value);
+        var passports = await EbayClientInstance.GetProductPassportsAsync(_id.Value);
         _passports = passports.OrderBy(x => x.Order).ToList();
     }
 
@@ -153,7 +153,7 @@
             using var ms = new MemoryStream();
             await stream.CopyToAsync(ms);
 
-            await EbayClient.UploadProductPassportAsync(
+            await EbayClientInstance.UploadProductPassportAsync(
                 new ProductPassportUpload
                 {
                     File = ms.ToArray(),
@@ -171,7 +171,7 @@
         if (_id == null)
             return;
 
-        await EbayClient.DeleteProductPassportAsync(_id.Value, passportId);
+        await EbayClientInstance.DeleteProductPassportAsync(_id.Value, passportId);
         await LoadPassportsAsync();
     }
 
@@ -184,13 +184,13 @@
         var swap = _passports.FirstOrDefault(p => p.Order == newOrder);
         if (swap != null)
         {
-            await EbayClient.UpdateProductPassportAsync(
+            await EbayClientInstance.UpdateProductPassportAsync(
                 new ProductPassportUpdate { Order = passport.Order },
                 _id.Value,
                 swap.Id);
         }
 
-        await EbayClient.UpdateProductPassportAsync(
+        await EbayClientInstance.UpdateProductPassportAsync(
             new ProductPassportUpdate { Order = newOrder },
             _id.Value,
             passport.Id);
@@ -198,7 +198,7 @@
         await LoadPassportsAsync();
     }
 
-    private string GetPassportUrl(Guid passportId) => $"{EbayClient.BaseUrl}products/{_id}/passports/{passportId}";
+    private string GetPassportUrl(Guid passportId) => $"{EbayClientInstance.BaseUrl}products/{_id}/passports/{passportId}";
 
     private RenderFragment FormFields => @<div class="row">
         <div class="col-md-6 pe-4 border-end border-secondary">
