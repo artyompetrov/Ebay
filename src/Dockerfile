@@ -22,6 +22,7 @@ COPY Ebay/Server.Application.New/*.csproj Ebay/Server.Application.New/
 COPY Ebay/Server.Domain/*.csproj Ebay/Server.Domain/
 COPY Ebay/Server.Client/*.csproj Ebay/Server.Client/
 COPY Ebay/Tests/*.csproj Ebay/Tests/
+COPY Ebay/Tests.Integration/*.csproj Ebay/Tests.Integration/
 RUN dotnet restore "Ebay/Ebay.sln"
 # Копируем остальной исходный код
 COPY Ebay/ Ebay/

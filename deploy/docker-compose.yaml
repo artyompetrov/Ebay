@@ -28,7 +28,6 @@ services:
       - ${NETCORE_CERTIFICATE}:/certs/cert.pfx:ro
       - ebay_helper_keys:/app/DataProtection-Keys/
     environment:
-      - DOMAIN=${DOMAIN}
       - ASPNETCORE_HTTP_PORTS="80"
       - ASPNETCORE_HTTPS_PORTS="443"
       - ASPNETCORE_Kestrel__Certificates__Default__Password=${NETCORE_CERTIFICATE_PASSWORD}
@@ -37,7 +36,8 @@ services:
       - ASPNETCORE_IdentityServer__Key__Password=${NETCORE_CERTIFICATE_PASSWORD}
       - ASPNETCORE_IdentityServer__Key__Type=File
       - ASPNETCORE_ConnectionStrings__DefaultConnection=User ID=ebay;Password=${PG_PASSWORD};Server=ebay_postgres;Port=5432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=60;Enlist=true;
-      - DATA_PROTECTION_KEYS_DIR=/app/DataProtection-Keys/
+      - ASPNETCORE_AuthorizationClient__DataProtectionKeysDirectory=/app/DataProtection-Keys/
+      - ASPNETCORE_AuthorizationClient__Domain=${DOMAIN}
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://ebay_otelcollector:4318
       - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
       - OTEL_SERVICE_NAME=ebay_helper
@@ -48,9 +48,9 @@ services:
       - Smtp__Login=${SMTP_LOGIN}
       - Smtp__Password=${SMTP_PASSWORD}
       - Smtp__Email=${EMAIL}
-      - CLIENT_ID=${CLIENT_ID}
-      - AUTH_SCOPE=${AUTH_SCOPE}
-      - AUTH_CLIENT_SECRET=${AUTH_CLIENT_SECRET}
+      - ASPNETCORE_AuthorizationClient__ClientId=${CLIENT_ID}
+      - ASPNETCORE_AuthorizationClient__Scope=${AUTH_SCOPE}
+      - ASPNETCORE_AuthorizationClient__ClientSecret=${AUTH_CLIENT_SECRET}
       - RESTORE=${RESTORE:-false}
     networks:
       - internal_network
@@ -79,7 +79,6 @@ services:
       - ./mount/nginx/logs/:/var/log/nginx/
       - ./mount/nginx/certs/:/etc/letsencrypt/
     environment:
-      - DOMAIN=${DOMAIN}
       - SELF_SIGNED_CERTIFICATE=${LOCAL_RUN}
       - EMAIL=${EMAIL}
     networks:
