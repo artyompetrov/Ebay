@@ -11,6 +11,7 @@ using Server.Adapters.Driven.uTracer;
 using Server.Adapters.Driving.WebApi;
 using Server.Application;
 using Server.Application.Data;
+using Server.Configuration;
 using Secret = Duende.IdentityServer.Models.Secret;
 
 namespace Server;
@@ -35,55 +36,13 @@ public class Program
         builder.Services.AddEfWriteModelAdapter();
         builder.Services.AddHealthChecks();
 
-        if (!builder.Environment.IsEnvironment("Testing"))
-        {
-            var keyStoragePath = Environment.GetEnvironmentVariable("DATA_PROTECTION_KEYS_DIR") ??
-                                 Path.Join(path1: Path.GetTempPath(), path2: "data_protection_keys_dir");
+        builder.Services
+            .AddOptions<AuthorizationClientOptions>()
+            .Bind(builder.Configuration.GetSection(AuthorizationClientOptions.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
 
-            var clientId = Environment.GetEnvironmentVariable(WellKnown.Authorization.ClientId)
-                           ?? "client_id";
-            var authScope = Environment.GetEnvironmentVariable(WellKnown.Authorization.Scope)
-                            ?? "scope";
-            var clientSecret = Environment.GetEnvironmentVariable(WellKnown.Authorization.ClientSecret)
-                               ?? "secret";
-
-            builder.Services.AddDataProtection()
-                .PersistKeysToFileSystem(new DirectoryInfo(keyStoragePath))
-                .SetApplicationName("EbayHelper")
-                .SetDefaultKeyLifetime(TimeSpan.FromDays(90));
-
-            builder.Services.AddIdentityServer()
-                .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(o =>
-                    {
-                        var domain = Environment.GetEnvironmentVariable("DOMAIN") ?? "localhost";
-
-                        var spaClient = ClientBuilder
-                            .SPA(WellKnown.ChromeExtension.ClientId)
-                            .WithRedirectUri($"https://{domain}/chrome_extensions/auth")
-                            .WithLogoutRedirectUri($"https://{domain}/chrome_extensions/logout")
-                            .Build();
-                        spaClient.AllowedCorsOrigins =
-                        [
-                            $"chrome-extension://{WellKnown.ChromeExtension.Id}",
-                            "https://" + domain
-                        ];
-                        spaClient.AccessTokenLifetime = (int)TimeSpan.FromDays(30).TotalSeconds;
-                        o.Clients.Add(spaClient);
-
-                        o.Clients.Add(
-                            new Duende.IdentityServer.Models.Client
-                            {
-                                ClientId = clientId,
-                                ClientSecrets = [new Secret(clientSecret.Sha256())],
-                                AllowedGrantTypes = GrantTypes.ClientCredentials,
-                                AllowedScopes = { authScope }
-                            }
-                        );
-                    }
-                );
-
-            builder.Services.AddAuthentication().AddIdentityServerJwt();
-        }
+        ConfigureIdentity(builder.Services, builder.Configuration);
 
         builder.Logging.ClearProviders();
 
@@ -135,5 +94,49 @@ public class Program
         app.MapFallbackToFile("index.html");
 
         app.Run();
+    }
+
+    private static void ConfigureIdentity(IServiceCollection services, IConfiguration configuration)
+    {
+        var options = configuration
+            .GetRequiredSection(AuthorizationClientOptions.SectionName)
+            .Get<AuthorizationClientOptions>()
+            ?? throw new InvalidOperationException(
+                $"{AuthorizationClientOptions.SectionName} configuration section is required.");
+
+        services.AddDataProtection()
+            .PersistKeysToFileSystem(new DirectoryInfo(options.DataProtectionKeysDirectory))
+            .SetApplicationName("EbayHelper")
+            .SetDefaultKeyLifetime(TimeSpan.FromDays(90));
+
+        services.AddIdentityServer()
+            .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(o =>
+                {
+                    var spaClient = ClientBuilder
+                        .SPA(WellKnown.ChromeExtension.ClientId)
+                        .WithRedirectUri($"https://{options.Domain}/chrome_extensions/auth")
+                        .WithLogoutRedirectUri($"https://{options.Domain}/chrome_extensions/logout")
+                        .Build();
+                    spaClient.AllowedCorsOrigins =
+                    [
+                        $"chrome-extension://{WellKnown.ChromeExtension.Id}",
+                        "https://" + options.Domain
+                    ];
+                    spaClient.AccessTokenLifetime = (int)TimeSpan.FromDays(30).TotalSeconds;
+                    o.Clients.Add(spaClient);
+
+                    o.Clients.Add(
+                        new Duende.IdentityServer.Models.Client
+                        {
+                            ClientId = options.ClientId,
+                            ClientSecrets = [new Secret(options.ClientSecret.Sha256())],
+                            AllowedGrantTypes = GrantTypes.ClientCredentials,
+                            AllowedScopes = { options.Scope }
+                        }
+                    );
+                }
+            );
+
+        services.AddAuthentication().AddIdentityServerJwt();
     }
 }
