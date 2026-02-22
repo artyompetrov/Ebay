@@ -94,15 +94,12 @@ public class Program
     {
         services
             .AddOptions<AuthorizationClientOptions>()
-            .Bind(configuration.GetSection(AuthorizationClientOptions.SectionName))
+            .BindConfiguration(AuthorizationClientOptions.SectionName)
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        var options = configuration
-            .GetRequiredSection(AuthorizationClientOptions.SectionName)
-            .Get<AuthorizationClientOptions>()
-            ?? throw new InvalidOperationException(
-                $"{AuthorizationClientOptions.SectionName} configuration section is required.");
+        var options = new AuthorizationClientOptions();
+        configuration.Bind(AuthorizationClientOptions.SectionName, options);
 
         services.AddDataProtection()
             .PersistKeysToFileSystem(new DirectoryInfo(options.DataProtectionKeysDirectory))
