@@ -9,6 +9,7 @@ namespace IntegrationTests;
 public class IntegrationTestsSetupFixture
 {
     private static readonly string DatabaseName = $"test_ebay_{Guid.NewGuid():N}";
+    private static readonly string ServerConnectionString = BuildServerConnectionString();
 
     public static WebApplicationFactory<Server.Program> Factory { get; private set; } = null!;
 
@@ -24,8 +25,7 @@ public class IntegrationTestsSetupFixture
                 {
                     configBuilder.AddInMemoryCollection(new Dictionary<string, string?>
                     {
-                        ["ConnectionStrings:DefaultConnection"] =
-                            $"User ID=ebay;Password=catnip0-spoil4-untrimmed;Server=localhost;Port=15432;Database={DatabaseName};Pooling=true;MinPoolSize=1;MaxPoolSize=60;Enlist=true;Include Error Detail=true;",
+                        ["ConnectionStrings:DefaultConnection"] = ServerConnectionString,
                         ["EbayServer:TargetEmail"] = "integration-tests@localhost",
                         ["EbayServer:IsLocalRun"] = "true",
                         ["AuthorizationClient:DataProtectionKeysDirectory"] = Path.Join(Path.GetTempPath(), "data_protection_keys_dir_tests"),
@@ -58,12 +58,38 @@ public class IntegrationTestsSetupFixture
         await DropTestDatabaseAsync();
     }
 
+
+    private static string BuildServerConnectionString()
+    {
+        var serverProjectDirectory = Path.GetFullPath(
+            Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../Server"));
+
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(serverProjectDirectory)
+            .AddJsonFile("appsettings.json", optional: false)
+            .AddJsonFile("appsettings.Development.json", optional: true)
+            .Build();
+
+        var defaultConnectionString = configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection is required.");
+
+        var connectionStringBuilder = new NpgsqlConnectionStringBuilder(defaultConnectionString)
+        {
+            Database = DatabaseName
+        };
+
+        return connectionStringBuilder.ConnectionString;
+    }
+
     private static async Task DropTestDatabaseAsync()
     {
-        var adminConnectionString =
-            "Host=localhost;Port=15432;Database=postgres;Username=ebay;Password=catnip0-spoil4-untrimmed;Pooling=false;Include Error Detail=true;";
+        var adminConnectionStringBuilder = new NpgsqlConnectionStringBuilder(ServerConnectionString)
+        {
+            Database = "postgres",
+            Pooling = false
+        };
 
-        await using var connection = new NpgsqlConnection(adminConnectionString);
+        await using var connection = new NpgsqlConnection(adminConnectionStringBuilder.ConnectionString);
         await connection.OpenAsync();
 
         await using (var terminateCommand = connection.CreateCommand())
