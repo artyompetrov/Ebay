@@ -64,7 +64,7 @@ public class Program
         var app = builder.Build();
         app.UseApplication(ensureCreatedInsteadOfMigrate: app.Environment.IsEnvironment("Testing"));
 
-        app.Services.UseEfWriteModelAdapter(ensureCreatedInsteadOfMigrate: app.Environment.IsEnvironment("Testing"));
+        app.Services.UseEfWriteModelAdapter();
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
@@ -84,14 +84,11 @@ public class Program
         app.UseStaticFiles();
         app.UseRouting();
         app.UseResponseCaching();
-
-        if (!app.Environment.IsEnvironment("Testing"))
-        {
-            app.UseAuthentication();
-            app.UseIdentityServer();
-            app.UseAuthorization();
-        }
-
+        
+        app.UseAuthentication();
+        app.UseIdentityServer();
+        app.UseAuthorization();
+        
         app.MapRazorPages();
         app.MapControllers();
         app.MapHealthChecks("/api/health");

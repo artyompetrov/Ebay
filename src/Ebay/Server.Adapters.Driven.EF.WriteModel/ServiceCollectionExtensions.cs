@@ -9,15 +9,12 @@ namespace Server.Adapters.Driven.EF.WriteModel;
 public static class ServiceCollectionExtensions
 {
 
-    public static void UseEfWriteModelAdapter(
-        this IServiceProvider serviceProvider,
-        bool ensureCreatedInsteadOfMigrate)
+    public static void UseEfWriteModelAdapter(this IServiceProvider serviceProvider)
     {
         using var serviceScope = serviceProvider.CreateScope();
 
         var writeModelDbContext = serviceScope.ServiceProvider.GetRequiredService<WriteModelDbContext>();
-
-        _ = ensureCreatedInsteadOfMigrate;
+        
         writeModelDbContext.Database.Migrate();
     }
 
