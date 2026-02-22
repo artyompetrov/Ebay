@@ -36,12 +36,6 @@ public class Program
         builder.Services.AddEfWriteModelAdapter();
         builder.Services.AddHealthChecks();
 
-        builder.Services
-            .AddOptions<AuthorizationClientOptions>()
-            .Bind(builder.Configuration.GetSection(AuthorizationClientOptions.SectionName))
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-
         ConfigureIdentity(builder.Services, builder.Configuration);
 
         builder.Logging.ClearProviders();
@@ -96,27 +90,22 @@ public class Program
         app.Run();
     }
 
-    private static void ConfigureIdentity(IServiceCollection services, IConfiguration configuration)
+    private static void ConfigureIdentity(IServiceCollection services, ConfigurationManager configuration)
     {
+        services
+            .AddOptions<AuthorizationClientOptions>()
+            .Bind(configuration.GetSection(AuthorizationClientOptions.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
         var options = configuration
             .GetRequiredSection(AuthorizationClientOptions.SectionName)
             .Get<AuthorizationClientOptions>()
             ?? throw new InvalidOperationException(
                 $"{AuthorizationClientOptions.SectionName} configuration section is required.");
 
-        var keyStoragePath = Environment.GetEnvironmentVariable("DATA_PROTECTION_KEYS_DIR")
-                             ?? options.DataProtectionKeysDirectory;
-        var domain = Environment.GetEnvironmentVariable("DOMAIN")
-                     ?? options.Domain;
-        var clientId = Environment.GetEnvironmentVariable(WellKnown.Authorization.ClientId)
-                       ?? options.ClientId;
-        var authScope = Environment.GetEnvironmentVariable(WellKnown.Authorization.Scope)
-                        ?? options.Scope;
-        var clientSecret = Environment.GetEnvironmentVariable(WellKnown.Authorization.ClientSecret)
-                           ?? options.ClientSecret;
-
         services.AddDataProtection()
-            .PersistKeysToFileSystem(new DirectoryInfo(keyStoragePath))
+            .PersistKeysToFileSystem(new DirectoryInfo(options.DataProtectionKeysDirectory))
             .SetApplicationName("EbayHelper")
             .SetDefaultKeyLifetime(TimeSpan.FromDays(90));
 
@@ -125,13 +114,13 @@ public class Program
                 {
                     var spaClient = ClientBuilder
                         .SPA(WellKnown.ChromeExtension.ClientId)
-                        .WithRedirectUri($"https://{domain}/chrome_extensions/auth")
-                        .WithLogoutRedirectUri($"https://{domain}/chrome_extensions/logout")
+                        .WithRedirectUri($"https://{options.Domain}/chrome_extensions/auth")
+                        .WithLogoutRedirectUri($"https://{options.Domain}/chrome_extensions/logout")
                         .Build();
                     spaClient.AllowedCorsOrigins =
                     [
                         $"chrome-extension://{WellKnown.ChromeExtension.Id}",
-                        "https://" + domain
+                        "https://" + options.Domain
                     ];
                     spaClient.AccessTokenLifetime = (int)TimeSpan.FromDays(30).TotalSeconds;
                     o.Clients.Add(spaClient);
@@ -139,10 +128,10 @@ public class Program
                     o.Clients.Add(
                         new Duende.IdentityServer.Models.Client
                         {
-                            ClientId = clientId,
-                            ClientSecrets = [new Secret(clientSecret.Sha256())],
+                            ClientId = options.ClientId,
+                            ClientSecrets = [new Secret(options.ClientSecret.Sha256())],
                             AllowedGrantTypes = GrantTypes.ClientCredentials,
-                            AllowedScopes = { authScope }
+                            AllowedScopes = { options.Scope }
                         }
                     );
                 }
