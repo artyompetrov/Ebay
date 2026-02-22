@@ -61,7 +61,6 @@ ChromeExtension - `cd /workspace/Ebay/src/ChromeExtension/ && npm run build`
    - ```bash
      dotnet run --launch-profile Server --project /workspace/Ebay/src/Ebay/Server/Server.csproj
      ```
-   - Не добавляем локальные параметры в `appsettings.Development.json` и не запускаем `--no-launch-profile` для локальной отладки.
    - `appsettings.json` / `appsettings.Development.json` не используем для локального запуска backend.
 
 2. Проверить, что API отвечает:
