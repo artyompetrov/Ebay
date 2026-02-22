@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
@@ -32,7 +33,8 @@ public class IntegrationTestsSetupFixture
                         ["AuthorizationClient:Domain"] = "localhost",
                         ["AuthorizationClient:ClientId"] = AuthorizationConstants.TestClientId,
                         ["AuthorizationClient:Scope"] = AuthorizationConstants.TestScope,
-                        ["AuthorizationClient:ClientSecret"] = AuthorizationConstants.TestClientSecret
+                        ["AuthorizationClient:ClientSecret"] = AuthorizationConstants.TestClientSecret,
+                        ["IdentityServer:Key:Type"] = "Development"
                     });
                 });
             });
@@ -64,13 +66,8 @@ public class IntegrationTestsSetupFixture
         var serverProjectDirectory = Path.GetFullPath(
             Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../Server"));
 
-        var configuration = new ConfigurationBuilder()
-            .SetBasePath(serverProjectDirectory)
-            .AddJsonFile("appsettings.json", optional: false)
-            .AddJsonFile("appsettings.Development.json", optional: true)
-            .Build();
-
-        var defaultConnectionString = configuration.GetConnectionString("DefaultConnection")
+        var defaultConnectionString =
+            TryReadConnectionStringFromLaunchSettings(serverProjectDirectory)
             ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection is required.");
 
         var connectionStringBuilder = new NpgsqlConnectionStringBuilder(defaultConnectionString)
@@ -79,6 +76,28 @@ public class IntegrationTestsSetupFixture
         };
 
         return connectionStringBuilder.ConnectionString;
+    }
+
+
+    private static string? TryReadConnectionStringFromLaunchSettings(string serverProjectDirectory)
+    {
+        var launchSettingsPath = Path.Combine(serverProjectDirectory, "Properties", "launchSettings.json");
+        if (!File.Exists(launchSettingsPath))
+        {
+            return null;
+        }
+
+        using var document = JsonDocument.Parse(File.ReadAllText(launchSettingsPath));
+
+        if (!document.RootElement.TryGetProperty("profiles", out var profiles)
+            || !profiles.TryGetProperty("Server", out var serverProfile)
+            || !serverProfile.TryGetProperty("environmentVariables", out var environmentVariables)
+            || !environmentVariables.TryGetProperty("ConnectionStrings__DefaultConnection", out var connectionStringValue))
+        {
+            return null;
+        }
+
+        return connectionStringValue.GetString();
     }
 
     private static async Task DropTestDatabaseAsync()

@@ -57,12 +57,12 @@ ChromeExtension - `cd /workspace/Ebay/src/ChromeExtension/ && npm run build`
 
 # Локальная отладка backend (PostgreSQL + API)
 
-1. Запустить backend (без launch profile, с рабочим портом БД `15432`):
+1. Запустить backend через `launchSettings.json` (локальные параметры и секреты задаем только там):
    - ```bash
-     ASPNETCORE_ENVIRONMENT=Development \
-     ConnectionStrings__DefaultConnection='User ID=ebay;Password=catnip0-spoil4-untrimmed;Server=localhost;Port=15432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=60;Enlist=true;Include Error Detail=true;' \
-     dotnet run --no-launch-profile --project /workspace/Ebay/src/Ebay/Server/Server.csproj --urls http://0.0.0.0:5080
+     dotnet run --launch-profile Server --project /workspace/Ebay/src/Ebay/Server/Server.csproj
      ```
+   - Не добавляем локальные параметры в `appsettings.Development.json` и не запускаем `--no-launch-profile` для локальной отладки.
+   - `appsettings.json` / `appsettings.Development.json` не используем для локального запуска backend.
 
 2. Проверить, что API отвечает:
    - `curl -i http://127.0.0.1:5080/chrome_extensions/auth` (ожидается `200 OK`)
@@ -139,6 +139,13 @@ Legacy-миграции продолжаем поддерживать в `Server
 # Сборка в docker и CI CD
 Проект собирается в Docker при помощи Github CI CD.
 Не забывай верифицировать `src/Dockerfile` и `.github/workflows/*.yaml` на корректность если изменялись параметры билда.
+
+
+# Конфигурация и DI
+- В composition root (`Program.cs`) не читаем параметры через `GetSection`/`GetRequiredSection` во время регистрации контейнера.
+- Для параметров используем декларативную регистрацию через `AddOptions(...).BindConfiguration(...).Validate...`, а значения для зависимых настроек получаем через `IOptions<T>` внутри DI-конфигурации.
+- Конфигурационные файлы `src/Ebay/Server/appsettings.json` и `appsettings.Development.json` не используем для runtime-настроек backend.
+- Локальные параметры запуска backend храним в `src/Ebay/Server/Properties/launchSettings.json`.
 
 # DDD
 Мы пишем по DDD

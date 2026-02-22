@@ -2,6 +2,9 @@ using Duende.IdentityServer.Models;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.AspNetCore.DataProtection.Repositories;
+using Microsoft.Extensions.Options;
 using OpenTelemetry.Logs;
 using Server.Adapters.Driven.ChipFind;
 using Server.Adapters.Driven.EF.ReadModel;
@@ -41,7 +44,7 @@ public class Program
         builder.Services.AddEfWriteModelAdapter(builder.Configuration);
         builder.Services.AddHealthChecks();
 
-        ConfigureIdentity(builder.Services, builder.Configuration);
+        ConfigureIdentity(builder.Services);
 
         builder.Logging.ClearProviders();
 
@@ -97,7 +100,7 @@ public class Program
         app.Run();
     }
 
-    private static void ConfigureIdentity(IServiceCollection services, ConfigurationManager configuration)
+    private static void ConfigureIdentity(IServiceCollection services)
     {
         services
             .AddOptions<AuthorizationClientOptions>()
@@ -105,37 +108,52 @@ public class Program
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        var options = new AuthorizationClientOptions();
-        configuration.Bind(AuthorizationClientOptions.SectionName, options);
-
-        services.AddDataProtection()
-            .PersistKeysToFileSystem(new DirectoryInfo(options.DataProtectionKeysDirectory))
+        services
+            .AddDataProtection()
             .SetApplicationName("EbayHelper")
             .SetDefaultKeyLifetime(TimeSpan.FromDays(90));
 
-        services.AddIdentityServer()
-            .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(o =>
+        services.AddOptions<KeyManagementOptions>()
+            .Configure<IOptions<AuthorizationClientOptions>, ILoggerFactory>(
+                (options, authorizationClientOptions, loggerFactory) =>
                 {
+                    var directory = Directory.CreateDirectory(
+                        authorizationClientOptions.Value.DataProtectionKeysDirectory
+                    );
+
+                    options.XmlRepository = new FileSystemXmlRepository(directory, loggerFactory);
+                }
+            );
+
+        services.AddIdentityServer()
+            .AddApiAuthorization<ApplicationUser, ApplicationDbContext>();
+
+        services.AddOptions<ApiAuthorizationOptions>()
+            .PostConfigure<IOptions<AuthorizationClientOptions>>(
+                (options, authorizationClientOptions) =>
+                {
+                    var authorizationOptions = authorizationClientOptions.Value;
+
                     var spaClient = ClientBuilder
                         .SPA(WellKnown.ChromeExtension.ClientId)
-                        .WithRedirectUri($"https://{options.Domain}/chrome_extensions/auth")
-                        .WithLogoutRedirectUri($"https://{options.Domain}/chrome_extensions/logout")
+                        .WithRedirectUri($"https://{authorizationOptions.Domain}/chrome_extensions/auth")
+                        .WithLogoutRedirectUri($"https://{authorizationOptions.Domain}/chrome_extensions/logout")
                         .Build();
                     spaClient.AllowedCorsOrigins =
                     [
                         $"chrome-extension://{WellKnown.ChromeExtension.Id}",
-                        "https://" + options.Domain
+                        "https://" + authorizationOptions.Domain
                     ];
                     spaClient.AccessTokenLifetime = (int)TimeSpan.FromDays(30).TotalSeconds;
-                    o.Clients.Add(spaClient);
+                    options.Clients.Add(spaClient);
 
-                    o.Clients.Add(
+                    options.Clients.Add(
                         new Duende.IdentityServer.Models.Client
                         {
-                            ClientId = options.ClientId,
-                            ClientSecrets = [new Secret(options.ClientSecret.Sha256())],
+                            ClientId = authorizationOptions.ClientId,
+                            ClientSecrets = [new Secret(authorizationOptions.ClientSecret.Sha256())],
                             AllowedGrantTypes = GrantTypes.ClientCredentials,
-                            AllowedScopes = { options.Scope }
+                            AllowedScopes = { authorizationOptions.Scope }
                         }
                     );
                 }
