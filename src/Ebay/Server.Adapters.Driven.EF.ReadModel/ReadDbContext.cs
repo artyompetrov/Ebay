@@ -70,7 +70,7 @@ internal sealed class ReadDbContext : DbContext
         });
         _ = b.Entity<LotForSaleView>(eb =>
         {
-            _ = eb.ToView("LotForSales").HasKey(x => x.Id);
+            _ = eb.ToView("LotForSales", "wm").HasKey(x => x.Id);
         });
 
     }

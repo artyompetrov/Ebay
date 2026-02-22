@@ -13,6 +13,8 @@ public sealed class WriteModelDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        _ = modelBuilder.HasDefaultSchema("wm");
+
         _ = modelBuilder.Entity<LotForSale>(entity =>
         {
             _ = entity.HasKey(x => x.Id);

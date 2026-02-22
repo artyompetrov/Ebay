@@ -11,8 +11,12 @@ namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelD
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.EnsureSchema(
+                name: "wm");
+
             migrationBuilder.CreateTable(
                 name: "LotForSales",
+                schema: "wm",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "character varying(7)", maxLength: 7, nullable: false),
@@ -31,7 +35,8 @@ namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelD
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "LotForSales");
+                name: "LotForSales",
+                schema: "wm");
         }
     }
 }

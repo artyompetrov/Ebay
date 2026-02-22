@@ -17,6 +17,7 @@ namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelD
         {
 #pragma warning disable 612, 618
             modelBuilder
+                .HasDefaultSchema("wm")
                 .HasAnnotation("ProductVersion", "10.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
@@ -43,7 +44,7 @@ namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelD
 
                     b.HasKey("Id");
 
-                    b.ToTable("LotForSales");
+                    b.ToTable("LotForSales", "wm");
                 });
 #pragma warning restore 612, 618
         }
