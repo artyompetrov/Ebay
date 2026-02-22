@@ -2,7 +2,6 @@ using Duende.IdentityServer.Models;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Logs;
 using Server.Adapters.Driven.ChipFind;
 using Server.Adapters.Driven.EF.ReadModel;
@@ -104,18 +103,7 @@ public class Program
         var app = builder.Build();
         app.UseApplication(ensureCreatedInsteadOfMigrate: app.Environment.IsEnvironment("Testing"));
 
-        using (var serviceScope = app.Services.CreateScope())
-        {
-            var writeModelDbContext = serviceScope.ServiceProvider.GetRequiredService<WriteModelDbContext>();
-            if (app.Environment.IsEnvironment("Testing"))
-            {
-                writeModelDbContext.Database.EnsureCreated();
-            }
-            else
-            {
-                writeModelDbContext.Database.Migrate();
-            }
-        }
+        app.Services.UseEfWriteModelAdapter(ensureCreatedInsteadOfMigrate: app.Environment.IsEnvironment("Testing"));
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
