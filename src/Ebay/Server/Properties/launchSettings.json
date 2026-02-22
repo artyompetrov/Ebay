@@ -20,7 +20,7 @@
         "AuthorizationClient__DataProtectionKeysDirectory": "/tmp/data_protection_keys_dir",
         "AuthorizationClient__Domain": "localhost",
         "AuthorizationClient__ClientId": "client_id",
-        "AuthorizationClient__Scope": "scope",
+        "AuthorizationClient__Scope": "ServerAPI",
         "AuthorizationClient__ClientSecret": "secret",
         "IdentityServer__Key__Type": "Development"
       }
