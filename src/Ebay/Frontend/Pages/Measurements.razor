@@ -190,6 +190,11 @@
     </div>
 </div>
 
+<NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}?measurementState={MeasurementState.Created}&state={ProductState.New}")" target="_blank">Основной лот (New)</NavLink>
+<NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}?measurementState={MeasurementState.Created}&state={ProductState.Used}")" target="_blank">Основной лот (Used)</NavLink>
+<br>
+<br>
+
 @if (_lotForSales is not null)
 {
     foreach (var lot in _lotForSales)
