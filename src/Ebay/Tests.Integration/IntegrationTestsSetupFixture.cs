@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
@@ -9,7 +10,14 @@ namespace Tests.Integration;
 public class IntegrationTestsSetupFixture
 {
     private static readonly string DatabaseName = $"test_ebay_{Guid.NewGuid():N}";
+    private static readonly LaunchSettingsParameters LaunchSettings = ReadLaunchSettings();
     private static readonly string ServerConnectionString = BuildServerConnectionString();
+
+    public static string AuthorizationClientId => LaunchSettings.AuthorizationClientId;
+
+    public static string AuthorizationClientScope => LaunchSettings.AuthorizationClientScope;
+
+    public static string AuthorizationClientSecret => LaunchSettings.AuthorizationClientSecret;
 
     public static WebApplicationFactory<Server.Program> Factory { get; private set; } = null!;
 
@@ -30,9 +38,10 @@ public class IntegrationTestsSetupFixture
                         ["EbayServer:IsLocalRun"] = "true",
                         ["AuthorizationClient:DataProtectionKeysDirectory"] = Path.Join(Path.GetTempPath(), "data_protection_keys_dir_tests"),
                         ["AuthorizationClient:Domain"] = "localhost",
-                        ["AuthorizationClient:ClientId"] = AuthorizationConstants.TestClientId,
-                        ["AuthorizationClient:Scope"] = AuthorizationConstants.TestScope,
-                        ["AuthorizationClient:ClientSecret"] = AuthorizationConstants.TestClientSecret
+                        ["AuthorizationClient:ClientId"] = LaunchSettings.AuthorizationClientId,
+                        ["AuthorizationClient:Scope"] = LaunchSettings.AuthorizationClientScope,
+                        ["AuthorizationClient:ClientSecret"] = LaunchSettings.AuthorizationClientSecret,
+                        ["IdentityServer:Key:Type"] = "Development"
                     });
                 });
             });
@@ -61,24 +70,50 @@ public class IntegrationTestsSetupFixture
 
     private static string BuildServerConnectionString()
     {
-        var serverProjectDirectory = Path.GetFullPath(
-            Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../Server"));
-
-        var configuration = new ConfigurationBuilder()
-            .SetBasePath(serverProjectDirectory)
-            .AddJsonFile("appsettings.json", optional: false)
-            .AddJsonFile("appsettings.Development.json", optional: true)
-            .Build();
-
-        var defaultConnectionString = configuration.GetConnectionString("DefaultConnection")
-            ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection is required.");
-
-        var connectionStringBuilder = new NpgsqlConnectionStringBuilder(defaultConnectionString)
+        var connectionStringBuilder = new NpgsqlConnectionStringBuilder(LaunchSettings.ConnectionString)
         {
             Database = DatabaseName
         };
 
         return connectionStringBuilder.ConnectionString;
+    }
+
+    private static LaunchSettingsParameters ReadLaunchSettings()
+    {
+        var serverProjectDirectory = Path.GetFullPath(
+            Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../Server"));
+
+        var launchSettingsPath = Path.Combine(serverProjectDirectory, "Properties", "launchSettings.json");
+        if (!File.Exists(launchSettingsPath))
+        {
+            throw new InvalidOperationException($"Launch settings file not found: {launchSettingsPath}");
+        }
+
+        using var document = JsonDocument.Parse(File.ReadAllText(launchSettingsPath));
+        if (!document.RootElement.TryGetProperty("profiles", out var profiles)
+            || !profiles.TryGetProperty("Server", out var serverProfile)
+            || !serverProfile.TryGetProperty("environmentVariables", out var environmentVariables))
+        {
+            throw new InvalidOperationException("Profile 'Server' with environmentVariables is required in launchSettings.json.");
+        }
+
+        return new LaunchSettingsParameters(
+            ConnectionString: ReadRequiredEnvironmentVariable(environmentVariables, "ConnectionStrings__DefaultConnection"),
+            AuthorizationClientId: ReadRequiredEnvironmentVariable(environmentVariables, "AuthorizationClient__ClientId"),
+            AuthorizationClientScope: ReadRequiredEnvironmentVariable(environmentVariables, "AuthorizationClient__Scope"),
+            AuthorizationClientSecret: ReadRequiredEnvironmentVariable(environmentVariables, "AuthorizationClient__ClientSecret")
+        );
+    }
+
+    private static string ReadRequiredEnvironmentVariable(JsonElement environmentVariables, string key)
+    {
+        if (!environmentVariables.TryGetProperty(key, out var valueElement)
+            || string.IsNullOrWhiteSpace(valueElement.GetString()))
+        {
+            throw new InvalidOperationException($"{key} is required in Server launchSettings.json.");
+        }
+
+        return valueElement.GetString()!;
     }
 
     private static async Task DropTestDatabaseAsync()
@@ -108,11 +143,11 @@ public class IntegrationTestsSetupFixture
         dropCommand.CommandText = $"""DROP DATABASE IF EXISTS "{DatabaseName}";""";
         await dropCommand.ExecuteNonQueryAsync();
     }
-}
 
-public static class AuthorizationConstants
-{
-    public const string TestClientId = "client_id";
-    public const string TestClientSecret = "secret";
-    public const string TestScope = "ServerAPI";
+    private sealed record LaunchSettingsParameters(
+        string ConnectionString,
+        string AuthorizationClientId,
+        string AuthorizationClientScope,
+        string AuthorizationClientSecret
+    );
 }

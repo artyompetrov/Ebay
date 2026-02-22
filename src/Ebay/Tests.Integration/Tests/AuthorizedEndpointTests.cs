@@ -20,9 +20,9 @@ public class AuthorizedEndpointTests
             new FormUrlEncodedContent(
             [
                 new KeyValuePair<string, string>("grant_type", "client_credentials"),
-                new KeyValuePair<string, string>("client_id", AuthorizationConstants.TestClientId),
-                new KeyValuePair<string, string>("client_secret", AuthorizationConstants.TestClientSecret),
-                new KeyValuePair<string, string>("scope", AuthorizationConstants.TestScope)
+                new KeyValuePair<string, string>("client_id", IntegrationTestsSetupFixture.AuthorizationClientId),
+                new KeyValuePair<string, string>("client_secret", IntegrationTestsSetupFixture.AuthorizationClientSecret),
+                new KeyValuePair<string, string>("scope", IntegrationTestsSetupFixture.AuthorizationClientScope)
             ]));
 
         var tokenPayload = await tokenResponse.Content.ReadAsStringAsync();
