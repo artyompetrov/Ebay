@@ -7,18 +7,17 @@ public class AuthorizationClientOptions
     public const string SectionName = "AuthorizationClient";
 
     [Required]
-    public string DataProtectionKeysDirectory { get; init; } =
-        Path.Join(path1: Path.GetTempPath(), path2: "data_protection_keys_dir");
+    public string DataProtectionKeysDirectory { get; init; } = null!;
 
     [Required]
-    public string Domain { get; init; } = "localhost";
+    public string Domain { get; init; } = null!;
 
     [Required]
-    public string ClientId { get; init; } = "client_id";
+    public string ClientId { get; init; } = null!;
 
     [Required]
-    public string Scope { get; init; } = "scope";
+    public string Scope { get; init; } = null!;
 
     [Required]
-    public string ClientSecret { get; init; } = "secret";
+    public string ClientSecret { get; init; } = null!;
 }
