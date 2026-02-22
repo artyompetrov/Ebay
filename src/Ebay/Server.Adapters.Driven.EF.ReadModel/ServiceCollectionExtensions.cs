@@ -16,8 +16,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     /// <param name="services">Сервисы</param>
     /// <param name="configuration">Конфигурация приложения</param>
-    public static void AddEfReadModelAdapter(
-        this IServiceCollection services, IConfiguration configuration)
+    public static void AddEfReadModelAdapter(this IServiceCollection services)
     {
         _ = services.AddDbContext<ReadDbContext>((sp, o) =>
         {

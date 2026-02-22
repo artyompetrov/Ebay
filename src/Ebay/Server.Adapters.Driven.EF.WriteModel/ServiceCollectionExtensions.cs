@@ -20,8 +20,7 @@ public static class ServiceCollectionExtensions
     }
 
     public static void AddEfWriteModelAdapter(
-        this IServiceCollection services,
-        IConfiguration configuration)
+        this IServiceCollection services)
     {
         _ = services.AddDbContext<WriteModelDbContext>((sp, o) =>
         {
@@ -36,6 +35,6 @@ public static class ServiceCollectionExtensions
         _ = services.AddScoped<ITubeWorkingPointsRepository, TubeWorkingPointsRepository>();
         _ = services.AddScoped<IProductRepository, ProductRepository>();
         _ = services.AddScoped<ILotForSaleRepository, LotForSaleRepository>();
-        _ = services.AddScoped<IWriteModelUnitOfWork, WriteModelUnitOfWork>();
+        _ = services.AddScoped<IWriteModelUnitOfWork>(sp => sp.GetRequiredService<WriteModelDbContext>());
     }
 }

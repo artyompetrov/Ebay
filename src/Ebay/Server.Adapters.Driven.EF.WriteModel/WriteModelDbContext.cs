@@ -1,10 +1,11 @@
 using Microsoft.EntityFrameworkCore;
+using Server.Application.Abstractions.Driven.Abstractions.Abstractions;
 using Server.Domain.Abstractions;
 using Server.Domain.LotForSale;
 
 namespace Server.Adapters.Driven.EF.WriteModel;
 
-public sealed class WriteModelDbContext : DbContext
+public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
 {
     public WriteModelDbContext(DbContextOptions<WriteModelDbContext> options) : base(options)
     {

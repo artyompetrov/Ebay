@@ -33,37 +33,28 @@ public class Program
             options.ValidateScopes = true;
         });
         
+
         // Add services to the container.
         builder.Services.AddMemoryCache();
-        builder.Services.AddEmailAdapter(builder.Configuration);
+        builder.Services.AddEmailAdapter();
         builder.Services.AddUTracerAdapter();
         builder.Services.AddChipFindAdapter();
-        builder.Services.AddEfReadModelAdapter(builder.Configuration);
-        builder.Services.AddApplicationServices(builder.Configuration);
+        builder.Services.AddEfReadModelAdapter();
+        builder.Services.AddApplicationServices();
         builder.Services.AddWebApiAdapter();
-        builder.Services.AddEfWriteModelAdapter(builder.Configuration);
+        builder.Services.AddEfWriteModelAdapter();
         builder.Services.AddHealthChecks();
 
         ConfigureIdentity(builder.Services);
-
-        builder.Logging.ClearProviders();
-
-        builder.Logging.AddConsole();
-        builder.Logging.SetMinimumLevel(LogLevel.Information);
-
-        builder.Logging.AddOpenTelemetry(o =>
-        {
-            o.IncludeScopes = true;
-            o.IncludeFormattedMessage = true;
-            o.ParseStateValues = true;
-            _ = o.AddOtlpExporter();
-        });
-
+        AddOpenTelemetry(builder);
+        
+        
         builder.Services.AddResponseCaching();
 
         var app = builder.Build();
+        
         app.UseApplication(ensureCreatedInsteadOfMigrate: app.Environment.IsEnvironment("Testing"));
-
+        
         app.Services.UseEfWriteModelAdapter();
 
         // Configure the HTTP request pipeline.
@@ -95,6 +86,22 @@ public class Program
         app.MapFallbackToFile("index.html");
 
         app.Run();
+    }
+
+    private static void AddOpenTelemetry(WebApplicationBuilder builder)
+    {
+        builder.Logging.ClearProviders();
+
+        builder.Logging.AddConsole();
+        builder.Logging.SetMinimumLevel(LogLevel.Information);
+
+        builder.Logging.AddOpenTelemetry(o =>
+        {
+            o.IncludeScopes = true;
+            o.IncludeFormattedMessage = true;
+            o.ParseStateValues = true;
+            _ = o.AddOtlpExporter();
+        });
     }
 
     private static void ConfigureIdentity(IServiceCollection services)
