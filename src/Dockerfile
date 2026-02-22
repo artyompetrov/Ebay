@@ -11,6 +11,7 @@ COPY Ebay/Server.Adapters.Driven.Smtp/*.csproj Ebay/Server.Adapters.Driven.Smtp/
 COPY Ebay/Server.Adapters.Driven.uTracer/*.csproj Ebay/Server.Adapters.Driven.uTracer/
 COPY Ebay/Server.Adapters.Driven.EF.ReadModel/*.csproj Ebay/Server.Adapters.Driven.EF.ReadModel/
 COPY Ebay/Server.Adapters.Driven.EF.WriteModel/*.csproj Ebay/Server.Adapters.Driven.EF.WriteModel/
+COPY Ebay/Server.Adapters.Driven.EF.WriteModel.Migrations/*.csproj Ebay/Server.Adapters.Driven.EF.WriteModel.Migrations/
 COPY Ebay/Server.Adapters.Driven.ChipFind/*.csproj Ebay/Server.Adapters.Driven.ChipFind/
 COPY Ebay/Server.Application.Abstractions.Driven/*.csproj Ebay/Server.Application.Abstractions.Driven/
 COPY Ebay/Server.Application.Abstractions.Driving/*.csproj Ebay/Server.Application.Abstractions.Driving/
