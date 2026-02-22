@@ -27,6 +27,6 @@ public sealed class WebApiController : WebApiControllerBase
             .Select(x => new LotForSaleResponse(x.Id, x.Name))
             .ToList();
 
-        return Ok(response);
+        return response;
     }
 }
