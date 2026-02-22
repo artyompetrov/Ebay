@@ -1,3 +1,4 @@
+using Npgsql;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
@@ -51,7 +52,36 @@ public class IntegrationTestsSetupFixture
     }
 
     [OneTimeTearDown]
-    public void OneTimeTearDown() => Factory.Dispose();
+    public async Task OneTimeTearDown()
+    {
+        Factory.Dispose();
+        await DropTestDatabaseAsync();
+    }
+
+    private static async Task DropTestDatabaseAsync()
+    {
+        var adminConnectionString =
+            "Host=localhost;Port=15432;Database=postgres;Username=ebay;Password=catnip0-spoil4-untrimmed;Pooling=false;Include Error Detail=true;";
+
+        await using var connection = new NpgsqlConnection(adminConnectionString);
+        await connection.OpenAsync();
+
+        await using (var terminateCommand = connection.CreateCommand())
+        {
+            terminateCommand.CommandText =
+                $"""
+                 SELECT pg_terminate_backend(pid)
+                 FROM pg_stat_activity
+                 WHERE datname = '{DatabaseName}'
+                   AND pid <> pg_backend_pid();
+                 """;
+            await terminateCommand.ExecuteNonQueryAsync();
+        }
+
+        await using var dropCommand = connection.CreateCommand();
+        dropCommand.CommandText = $"""DROP DATABASE IF EXISTS "{DatabaseName}";""";
+        await dropCommand.ExecuteNonQueryAsync();
+    }
 }
 
 public static class AuthorizationConstants

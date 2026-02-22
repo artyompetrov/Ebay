@@ -37,6 +37,7 @@ public class AuthorizedEndpointTests
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         using var authorizedResponse = await client.GetAsync("/api/ebay/v1/products");
-        Assert.That(authorizedResponse.StatusCode, Is.Not.EqualTo(HttpStatusCode.Unauthorized));
+        var authorizedPayload = await authorizedResponse.Content.ReadAsStringAsync();
+        Assert.That(authorizedResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK), authorizedPayload);
     }
 }
