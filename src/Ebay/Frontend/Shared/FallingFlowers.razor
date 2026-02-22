@@ -1,0 +1,37 @@
+@if (IsVisible)
+{
+    <div class="flower-fall-overlay" aria-hidden="true">
+        @for (var index = 0; index < FlowerCount; index++)
+        {
+            <span class="flower">@GetFlowerByIndex(index)</span>
+        }
+    </div>
+}
+
+@code {
+    private const int FlowerCount = 16;
+
+    private static readonly string[] FlowerTypes =
+    [
+        "🌸",
+        "🌺",
+        "🌷",
+        "💮",
+        "🪷"
+    ];
+
+    private static bool IsVisible
+    {
+        get
+        {
+            var currentDate = DateTime.Now.Date;
+            var womenDay = new DateTime(year: currentDate.Year, month: 3, day: 8);
+            return currentDate >= womenDay.AddDays(-7) && currentDate <= womenDay.AddDays(7);
+        }
+    }
+
+    private static string GetFlowerByIndex(int index)
+    {
+        return FlowerTypes[index % FlowerTypes.Length];
+    }
+}

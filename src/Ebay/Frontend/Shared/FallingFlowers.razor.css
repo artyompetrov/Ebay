@@ -1,0 +1,133 @@
+.flower-fall-overlay {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 50;
+}
+
+.flower {
+  position: absolute;
+  top: -10%;
+  font-size: 1.4rem;
+  animation: flower-fall linear infinite;
+  opacity: 0.85;
+}
+
+.flower:nth-child(1) {
+  left: 4%;
+  animation-duration: 10s;
+  animation-delay: -2s;
+}
+
+.flower:nth-child(2) {
+  left: 10%;
+  animation-duration: 13s;
+  animation-delay: -6s;
+}
+
+.flower:nth-child(3) {
+  left: 16%;
+  animation-duration: 11s;
+  animation-delay: -4s;
+}
+
+.flower:nth-child(4) {
+  left: 24%;
+  animation-duration: 15s;
+  animation-delay: -7s;
+}
+
+.flower:nth-child(5) {
+  left: 31%;
+  animation-duration: 9s;
+  animation-delay: -3s;
+}
+
+.flower:nth-child(6) {
+  left: 38%;
+  animation-duration: 14s;
+  animation-delay: -8s;
+}
+
+.flower:nth-child(7) {
+  left: 45%;
+  animation-duration: 12s;
+  animation-delay: -5s;
+}
+
+.flower:nth-child(8) {
+  left: 52%;
+  animation-duration: 10s;
+  animation-delay: -9s;
+}
+
+.flower:nth-child(9) {
+  left: 58%;
+  animation-duration: 16s;
+  animation-delay: -6s;
+}
+
+.flower:nth-child(10) {
+  left: 64%;
+  animation-duration: 11s;
+  animation-delay: -10s;
+}
+
+.flower:nth-child(11) {
+  left: 71%;
+  animation-duration: 14s;
+  animation-delay: -11s;
+}
+
+.flower:nth-child(12) {
+  left: 78%;
+  animation-duration: 12s;
+  animation-delay: -12s;
+}
+
+.flower:nth-child(13) {
+  left: 84%;
+  animation-duration: 15s;
+  animation-delay: -13s;
+}
+
+.flower:nth-child(14) {
+  left: 89%;
+  animation-duration: 10s;
+  animation-delay: -4s;
+}
+
+.flower:nth-child(15) {
+  left: 94%;
+  animation-duration: 13s;
+  animation-delay: -8s;
+}
+
+.flower:nth-child(16) {
+  left: 97%;
+  animation-duration: 11s;
+  animation-delay: -14s;
+}
+
+@keyframes flower-fall {
+  0% {
+    transform: translate3d(0, -15vh, 0) rotate(0deg);
+  }
+
+  25% {
+    transform: translate3d(-25px, 25vh, 0) rotate(90deg);
+  }
+
+  50% {
+    transform: translate3d(20px, 55vh, 0) rotate(180deg);
+  }
+
+  75% {
+    transform: translate3d(-15px, 85vh, 0) rotate(270deg);
+  }
+
+  100% {
+    transform: translate3d(0, 120vh, 0) rotate(360deg);
+  }
+}

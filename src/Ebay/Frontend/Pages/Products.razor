@@ -6,127 +6,12 @@
 @inject EbayClient EbayClient
 
 <PageTitle>Перечень товаров</PageTitle>
-<div class="flower-fall-overlay" aria-hidden="true">
-    @for (var index = 0; index < 12; index++)
-    {
-        <span class="flower">🌸</span>
-    }
-</div>
+<FallingFlowers />
 <div style="display: flex; align-items: center; gap: 10px;">
     <h2>Перечень товаров</h2>
     <button class="btn btn-primary btn-sm" @onclick="UpdateAllPrices">Пересчитать цены</button>
 </div>
 <style>
-    .flower-fall-overlay {
-      position: fixed;
-      inset: 0;
-      overflow: hidden;
-      pointer-events: none;
-      z-index: 50;
-    }
-
-    .flower {
-      position: absolute;
-      top: -10%;
-      font-size: 1.4rem;
-      animation: flower-fall linear infinite;
-      opacity: 0.85;
-    }
-
-    .flower:nth-child(1) {
-      left: 5%;
-      animation-duration: 10s;
-      animation-delay: -2s;
-    }
-
-    .flower:nth-child(2) {
-      left: 14%;
-      animation-duration: 12s;
-      animation-delay: -4s;
-    }
-
-    .flower:nth-child(3) {
-      left: 22%;
-      animation-duration: 14s;
-      animation-delay: -6s;
-    }
-
-    .flower:nth-child(4) {
-      left: 33%;
-      animation-duration: 9s;
-      animation-delay: -3s;
-    }
-
-    .flower:nth-child(5) {
-      left: 42%;
-      animation-duration: 11s;
-      animation-delay: -8s;
-    }
-
-    .flower:nth-child(6) {
-      left: 51%;
-      animation-duration: 13s;
-      animation-delay: -5s;
-    }
-
-    .flower:nth-child(7) {
-      left: 60%;
-      animation-duration: 10s;
-      animation-delay: -7s;
-    }
-
-    .flower:nth-child(8) {
-      left: 69%;
-      animation-duration: 15s;
-      animation-delay: -1s;
-    }
-
-    .flower:nth-child(9) {
-      left: 77%;
-      animation-duration: 12s;
-      animation-delay: -10s;
-    }
-
-    .flower:nth-child(10) {
-      left: 86%;
-      animation-duration: 16s;
-      animation-delay: -9s;
-    }
-
-    .flower:nth-child(11) {
-      left: 92%;
-      animation-duration: 11s;
-      animation-delay: -11s;
-    }
-
-    .flower:nth-child(12) {
-      left: 96%;
-      animation-duration: 14s;
-      animation-delay: -12s;
-    }
-
-    @@keyframes flower-fall {
-      0% {
-        transform: translate3d(0, -15vh, 0) rotate(0deg);
-      }
-
-      25% {
-        transform: translate3d(-25px, 25vh, 0) rotate(90deg);
-      }
-
-      50% {
-        transform: translate3d(20px, 55vh, 0) rotate(180deg);
-      }
-
-      75% {
-        transform: translate3d(-15px, 85vh, 0) rotate(270deg);
-      }
-
-      100% {
-        transform: translate3d(0, 120vh, 0) rotate(360deg);
-      }
-    }
-
     #productTable th {
       position: sticky;
       top: 3.5rem;
