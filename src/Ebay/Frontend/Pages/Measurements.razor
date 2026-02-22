@@ -9,6 +9,7 @@
 @attribute [Authorize]
 @inject EbayClient EbayClient
 @inject ILogger<Measurements> Logger
+@inject IHttpClientFactory HttpClientFactory
 
 <script src="https://unpkg.com/html5-qrcode"></script>
 <style>
@@ -170,13 +171,36 @@
         </div>
     </div>
 <br>
-@if (_lotIds!= null) {
-    @foreach (var lotId in _lotIds)
+<div class="mb-3">
+    <h4>Лоты для продажи</h4>
+
+    @if (!string.IsNullOrWhiteSpace(_lotForSaleError))
     {
-        var lotIdPart = lotId == null ? "" : $"&lotId={lotId}";
-        var lotName = lotId ?? "Основной лот";
-        <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}?measurementState={MeasurementState.Created}&state={ProductState.New}{lotIdPart}")" target="_blank">@lotName (New)</NavLink>
-        <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}?measurementState={MeasurementState.Created}&state={ProductState.Used}{lotIdPart}")" target="_blank">@lotName (Used)</NavLink>
+        <p class="text-danger">@_lotForSaleError</p>
+    }
+
+    <div class="row g-2 align-items-end">
+        <div class="col-sm-3">
+            <label class="form-label">Lot ID</label>
+            <InputText class="form-control" @bind-Value="_newLotForSaleId" maxlength="7" />
+        </div>
+        <div class="col-sm-5">
+            <label class="form-label">Название</label>
+            <InputText class="form-control" @bind-Value="_newLotForSaleName" />
+        </div>
+        <div class="col-sm-4">
+            <button class="btn btn-primary btn-sm" @onclick="CreateLotForSaleAsync" disabled="@_isCreatingLotForSale">Создать лот</button>
+        </div>
+    </div>
+</div>
+
+@if (_lotForSales is not null)
+{
+    foreach (var lot in _lotForSales)
+    {
+        var lotIdPart = $"&lotId={lot.Id}";
+        <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}?measurementState={MeasurementState.Created}&state={ProductState.New}{lotIdPart}")" target="_blank">@lot.Name (New)</NavLink>
+        <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}?measurementState={MeasurementState.Created}&state={ProductState.Used}{lotIdPart}")" target="_blank">@lot.Name (Used)</NavLink>
         <br>
         <br>
     }
@@ -359,7 +383,12 @@
     private string? _workingPointSaveMessage;
     private string? _matchingError;
     private bool _hasWorkingPoint;
-    private ReadOnlyCollection<string?>? _lotIds;
+    private ReadOnlyCollection<LotForSaleResponse>? _lotForSales;
+    private WebApiClient? _webApiClient;
+    private string _newLotForSaleId = string.Empty;
+    private string _newLotForSaleName = string.Empty;
+    private bool _isCreatingLotForSale;
+    private string? _lotForSaleError;
 
     [Parameter]
     public ProductWithId Product { get; set; } = null!;
@@ -374,14 +403,64 @@
         _matchingError = null;
         _hasWorkingPoint = false;
 
-        await LoadLotIds();
+        _webApiClient = new WebApiClient(EbayClient.BaseUrl, HttpClientFactory.CreateClient("ServerAPI"));
+        await LoadLotForSales();
         await LoadTubeWorkingPointAsync();
         await UpdateMeasurementsAsync();
     }
 
-    private async Task LoadLotIds()
+    private async Task LoadLotForSales()
     {
-         _lotIds = (await EbayClient.GetLotIdsForProductAsync(ProductId)).ToList().AsReadOnly();
+        if (_webApiClient is null)
+        {
+            return;
+        }
+
+        var lotForSales = await _webApiClient.GetLotForSalesAsync();
+        _lotForSales = lotForSales
+            .Where(x => x.ProductId == ProductId)
+            .OrderBy(x => x.Id)
+            .ToList()
+            .AsReadOnly();
+    }
+
+
+    private async Task CreateLotForSaleAsync()
+    {
+        if (_webApiClient is null)
+        {
+            _lotForSaleError = "WebApi клиент не инициализирован.";
+            return;
+        }
+
+        try
+        {
+            _lotForSaleError = null;
+            _isCreatingLotForSale = true;
+
+            var lotId = _newLotForSaleId.Trim();
+            var lotName = _newLotForSaleName.Trim();
+
+            await _webApiClient.CreateLotForSaleAsync(new LotForSaleCreateRequest
+            {
+                Id = lotId,
+                Name = lotName,
+                ProductId = ProductId
+            });
+
+            _newLotForSaleId = string.Empty;
+            _newLotForSaleName = string.Empty;
+            await LoadLotForSales();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error creating lot for sale for product {ProductId}", ProductId);
+            _lotForSaleError = "Ошибка при создании лота для продажи.";
+        }
+        finally
+        {
+            _isCreatingLotForSale = false;
+        }
     }
 
     private async Task UpdateMeasurementsAsync()

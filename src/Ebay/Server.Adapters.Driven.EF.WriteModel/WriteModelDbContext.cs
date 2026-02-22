@@ -35,6 +35,9 @@ public sealed class WriteModelDbContext : DbContext
 
             _ = entity.Property(x => x.Name)
                 .IsRequired();
+
+            _ = entity.Property(x => x.ProductId)
+                .IsRequired();
         });
     }
 

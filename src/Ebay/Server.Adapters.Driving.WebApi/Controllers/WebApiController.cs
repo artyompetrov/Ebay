@@ -13,12 +13,19 @@ public sealed class WebApiController : WebApiControllerBase
         _lotForSaleService = lotForSaleService;
     }
 
+
+    public override async Task<IActionResult> CreateLotForSale(LotForSaleCreateRequest body, CancellationToken cancellationToken = default)
+    {
+        await _lotForSaleService.CreateLotForSaleAsync(body.Id, body.Name, body.ProductId, cancellationToken);
+        return Ok();
+    }
+
     public override async Task<ActionResult<ICollection<LotForSaleResponse>>> GetLotForSales(CancellationToken cancellationToken = default)
     {
         var lotForSales = await _lotForSaleService.GetLotForSalesAsync(cancellationToken);
 
         var response = lotForSales
-            .Select(x => new LotForSaleResponse(x.Id, x.Name))
+            .Select(x => new LotForSaleResponse(x.Id, x.Name, x.ProductId))
             .ToList();
 
         return response;
