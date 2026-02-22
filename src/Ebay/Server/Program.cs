@@ -37,7 +37,7 @@ public class Program
         builder.Services.AddEfReadModelAdapter(builder.Configuration);
         builder.Services.AddApplicationServices(builder.Configuration);
         builder.Services.AddWebApiAdapter();
-        builder.Services.AddEfWriteModelAdapter();
+        builder.Services.AddEfWriteModelAdapter(builder.Configuration);
         builder.Services.AddHealthChecks();
 
         if (!builder.Environment.IsEnvironment("Testing"))
@@ -107,6 +107,8 @@ public class Program
 
         var app = builder.Build();
         app.UseApplication(ensureCreatedInsteadOfMigrate: app.Environment.IsEnvironment("Testing"));
+
+        app.Services.UseEfWriteModelAdapter(ensureCreatedInsteadOfMigrate: app.Environment.IsEnvironment("Testing"));
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())

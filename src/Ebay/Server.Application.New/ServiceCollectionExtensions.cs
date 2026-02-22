@@ -16,5 +16,6 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<IMeasurementService, MeasurementService>();
         services.AddScoped<ProductService>();
+        services.AddScoped<LotForSaleService>();
     }
 }
