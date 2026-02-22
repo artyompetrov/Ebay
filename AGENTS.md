@@ -55,53 +55,54 @@ C# - `cd /workspace/Ebay/src/Ebay/ && dotnet build`
 ChromeExtension - `cd /workspace/Ebay/src/ChromeExtension/ && npm run build`
 
 # Локальная отладка backend (PostgreSQL + API)
-> ⚠️ Эта секция актуальна только для запуска Codex-агента в облаке (Linux-машина без заранее подготовленной инфраструктуры).
-> Если разработка ведется не в облаке, в локальной dev-среде инфраструктура обычно уже настроена (PostgreSQL уже установлен и запущен, отдельная ручная установка не требуется).
 
-Если для выполнения валидаций измененного кода требуется PostgreSQL, её надо дополнительно установить и настроить агенту (в скрипте инициализации PostgreSQL не устанавливается).
-Ниже минимальная рабочая инструкция для cloud Linux-окружения агента.
-
-1. Установить PostgreSQL:
-   - `sudo apt-get update`
-   - `sudo apt-get install -y postgresql`
-
-2. Запустить кластер и проверить статус:
-   - `sudo pg_ctlcluster 16 main start`
-   - `pg_lsclusters`
-
-3. Создать пользователя и БД под текущие dev-настройки проекта:
-   - ```bash
-     sudo -u postgres psql -v ON_ERROR_STOP=1 <<'SQL'
-     DO $$
-     BEGIN
-       IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='ebay') THEN
-         CREATE ROLE ebay LOGIN PASSWORD 'catnip0-spoil4-untrimmed';
-       ELSE
-         ALTER ROLE ebay WITH LOGIN PASSWORD 'catnip0-spoil4-untrimmed';
-       END IF;
-     END
-     $$;
-     SELECT 'CREATE DATABASE ebay OWNER ebay'
-     WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname='ebay')\gexec
-     ALTER ROLE ebay CREATEROLE CREATEDB;
-     SQL
-     ```
-
-4. Запустить backend (без launch profile, с рабочим портом БД `15432`):
+1. Запустить backend (без launch profile, с рабочим портом БД `15432`):
    - ```bash
      ASPNETCORE_ENVIRONMENT=Development \
      ConnectionStrings__DefaultConnection='User ID=ebay;Password=catnip0-spoil4-untrimmed;Server=localhost;Port=15432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=60;Enlist=true;Include Error Detail=true;' \
      dotnet run --no-launch-profile --project /workspace/Ebay/src/Ebay/Server/Server.csproj --urls http://0.0.0.0:5080
      ```
 
-5. Проверить, что API отвечает:
+2. Проверить, что API отвечает:
    - `curl -i http://127.0.0.1:5080/chrome_extensions/auth` (ожидается `200 OK`)
    - `curl -i http://127.0.0.1:5080/chrome_extensions/<extension>.xml`
+
+3. Создать/обновить тестового пользователя SQL-скриптом (для UI-валидации):
+   - ```bash
+     psql "postgresql://ebay:catnip0-spoil4-untrimmed@localhost:15432/ebay" -v ON_ERROR_STOP=1 -f /workspace/Ebay/scripts/sql/create_or_update_test_user.sql
+     ```
+   - SQL-файл: `/workspace/Ebay/scripts/sql/create_or_update_test_user.sql`.
+   - Учетные данные тестового пользователя: `agent_test@example.com` / `Agent123!`.
+
+4. Примеры авторизации через `curl` и запросов к API с авторизацией:
+   - Получить access token (client_credentials):
+     ```bash
+     TOKEN=$(curl -s -X POST http://127.0.0.1:5080/connect/token \
+       -H 'Content-Type: application/x-www-form-urlencoded' \
+       -d 'client_id=client_id&client_secret=secret&grant_type=client_credentials&scope=ServerAPI' \
+       | python -c 'import sys, json; print(json.load(sys.stdin)["access_token"])')
+     ```
+   - Запрос к защищенному API:
+     ```bash
+     curl -i -H "Authorization: Bearer $TOKEN" http://127.0.0.1:5080/api/ebay/v1/products
+     ```
+   - Пример POST-запроса к защищенному API:
+     ```bash
+     curl -i -X POST http://127.0.0.1:5080/api/ebay/v1/products \
+       -H "Authorization: Bearer $TOKEN" \
+       -H 'Content-Type: application/json' \
+       -d '{"name":"curl-test-product","weight":100,"searchQueries":[{"id":"11111111-1111-1111-1111-111111111111","query":"curl test"}],"ruSearchQueries":[]}'
+     ```
+
+5. Мануальная проверка определяется типом задачи:
+   - Для UI-задач: зайти в браузер, пройти ключевой сценарий и проверить визуальный результат.
+   - Для API-задач: выполнить релевантные запросы (минимум happy-path + один негативный сценарий).
 
 6. Полезные замечания для отладки:
    - В проекте для Postgres используем порт `15432`.
    - Первый запуск может применять EF Core миграции и миграции MassTransit в БД.
    - Тесты проекта требуют наличия установленной и доступной БД (PostgreSQL).
+   - Для корректной авторизации по cookie в Dev-режиме лучше поднимать backend и по HTTPS (например, `--urls "https://0.0.0.0:5443;http://0.0.0.0:5080"`) и открывать UI через `https://127.0.0.1:5443`.
    - При разработке UI-фич агенту полезно открыть приложение в браузере и визуально проверить финальный результат (клики по основным сценариям + скриншоты при заметных UI-изменениях).
    - Если не нужен полный стек фоновых задач, все равно проверяйте, что приложение поднимается и слушает порт (`Now listening on: http://0.0.0.0:5080`).
 
