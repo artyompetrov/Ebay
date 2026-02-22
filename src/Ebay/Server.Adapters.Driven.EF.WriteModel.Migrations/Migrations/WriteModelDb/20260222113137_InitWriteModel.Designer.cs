@@ -12,7 +12,7 @@ using Server.Adapters.Driven.EF.WriteModel;
 namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelDb
 {
     [DbContext(typeof(WriteModelDbContext))]
-    [Migration("20260222110437_InitWriteModel")]
+    [Migration("20260222113137_InitWriteModel")]
     partial class InitWriteModel
     {
         /// <inheritdoc />
@@ -42,8 +42,11 @@ namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelD
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long>("Version")
-                        .HasColumnType("bigint");
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.HasKey("Id");
 

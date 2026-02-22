@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Server.Domain.Abstractions;
 using Server.Domain.LotForSale;
 
 namespace Server.Adapters.Driven.EF.WriteModel;
@@ -14,6 +15,15 @@ public sealed class WriteModelDbContext : DbContext
         base.OnModelCreating(modelBuilder);
 
         _ = modelBuilder.HasDefaultSchema("wm");
+
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes()
+                     .Where(t => typeof(IAggregateRoot).IsAssignableFrom(t.ClrType)))
+        {
+            _ = modelBuilder.Entity(entityType.ClrType)
+                .Property(nameof(IAggregateRoot.Version))
+                .IsRowVersion()
+                .ValueGeneratedOnAddOrUpdate();
+        }
 
         _ = modelBuilder.Entity<LotForSale>(entity =>
         {

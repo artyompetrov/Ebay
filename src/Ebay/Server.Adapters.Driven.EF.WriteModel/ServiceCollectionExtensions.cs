@@ -17,8 +17,14 @@ public static class ServiceCollectionExtensions
 
         var writeModelDbContext = serviceScope.ServiceProvider.GetRequiredService<WriteModelDbContext>();
 
-        _ = ensureCreatedInsteadOfMigrate;
-        writeModelDbContext.Database.Migrate();
+        if (ensureCreatedInsteadOfMigrate)
+        {
+            writeModelDbContext.Database.EnsureCreated();
+        }
+        else
+        {
+            writeModelDbContext.Database.Migrate();
+        }
     }
 
     public static void AddEfWriteModelAdapter(
