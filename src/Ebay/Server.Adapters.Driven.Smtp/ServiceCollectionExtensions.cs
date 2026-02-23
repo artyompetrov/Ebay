@@ -10,7 +10,10 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services, IConfiguration configuration)
     {
         _ = services.AddOptions<SmtpSettings>()
-            .BindConfiguration("Smtp");
+            .BindConfiguration("Smtp")
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+        
         _ = services.AddScoped<IEmailSender, EmailSender>();
     }
 }

@@ -144,7 +144,7 @@ Legacy-миграции продолжаем поддерживать в `Server
 
 # Конфигурация и DI
 - В composition root (`Program.cs`) не читаем параметры через `GetSection`/`GetRequiredSection` во время регистрации контейнера.
-- Для параметров используем декларативную регистрацию через `AddOptions(...).BindConfiguration(...).Validate...`, а значения для зависимых настроек получаем через `IOptions<T>` внутри DI-конфигурации.
+- Для параметров используем декларативную регистрацию через `AddOptions<...>().BindConfiguration("...").ValidateDataAnnotations().ValidateOnStart()`, а значения для зависимых настроек получаем через `IOptions<T>` внутри DI-конфигурации.
 - Конфигурационные файлы `src/Ebay/Server/appsettings.json` и `appsettings.Development.json` не используем для runtime-настроек backend.
 - Локальные параметры запуска backend храним в `src/Ebay/Server/Properties/launchSettings.json`.
 
