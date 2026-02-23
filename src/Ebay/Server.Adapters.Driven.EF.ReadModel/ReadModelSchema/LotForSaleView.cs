@@ -9,10 +9,13 @@ internal sealed class LotForSaleView : IViewProjection<LotForSale, LotForSaleVie
 
     public required string Name { get; set; }
 
+    public required Guid ProductId { get; set; }
+
     public static Expression<Func<LotForSale, LotForSaleView>> ToView => x =>
         new()
         {
             Id = x.Id,
-            Name = x.Name
+            Name = x.Name,
+            ProductId = x.ProductId
         };
 }

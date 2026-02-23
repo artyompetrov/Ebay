@@ -31,8 +31,7 @@ public static class ServiceCollectionExtensions
 {
     [Obsolete("Legacy registration from Server.Application. This assembly is being split into multiple projects; do not expand it with new code. Place new application composition in Server.Application.New and DB infrastructure in DB adapters.")]
     public static void AddApplicationServices(
-        this IServiceCollection services,
-        IConfiguration configuration)
+        this IServiceCollection services)
     {
         var appAssembly = typeof(ServiceCollectionExtensions).Assembly;
 
@@ -140,21 +139,14 @@ public static class ServiceCollectionExtensions
             .AddApplicationPart(typeof(ServiceCollectionExtensions).Assembly);
     }
 
-    public static void UseApplication(this WebApplication app, bool ensureCreatedInsteadOfMigrate)
+    public static void UseApplication(this IServiceProvider serviceProvider)
     {
         // Migrate DB
-        using var serviceScope = app.Services.CreateScope();
+        using var serviceScope = serviceProvider.CreateScope();
 
         var dbContext = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-        if (ensureCreatedInsteadOfMigrate)
-        {
-            dbContext.Database.EnsureCreated();
-        }
-        else
-        {
-            dbContext.Database.Migrate();
-        }
+        
+        dbContext.Database.Migrate();
     }
 
 }

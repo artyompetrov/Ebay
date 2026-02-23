@@ -18,14 +18,41 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/LotForSaleResponse'
+    post:
+      operationId: CreateLotForSale
+      summary: Creates lot-for-sale aggregate
+      tags:
+        - WebApi
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LotForSaleCreateRequest'
+      responses:
+        '200':
+          description: Ok
 components:
   schemas:
+    LotForSaleCreateRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - productId
+      properties:
+        name:
+          type: string
+        productId:
+          type: string
+          format: uuid
     LotForSaleResponse:
       type: object
       additionalProperties: false
       required:
         - id
         - name
+        - productId
       properties:
         id:
           type: string
@@ -33,3 +60,6 @@ components:
           maxLength: 7
         name:
           type: string
+        productId:
+          type: string
+          format: uuid

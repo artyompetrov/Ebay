@@ -6,8 +6,7 @@ namespace Server.Adapters.Driven.Smtp;
 
 public static class ServiceCollectionExtensions
 {
-    public static void AddEmailAdapter(
-        this IServiceCollection services, IConfiguration configuration)
+    public static void AddEmailAdapter(this IServiceCollection services)
     {
         _ = services.AddOptions<SmtpSettings>()
             .BindConfiguration("Smtp")

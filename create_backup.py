@@ -55,7 +55,6 @@ subprocess.run([
     "--format=c",
     "--compress=6",
     "--file", os.path.join(backup_path, "ebay"),
-    "-n", "public",
     "ebay"
 ])
 

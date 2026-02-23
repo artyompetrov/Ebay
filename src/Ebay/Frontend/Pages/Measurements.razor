@@ -8,6 +8,7 @@
 @using Newtonsoft.Json
 @attribute [Authorize]
 @inject EbayClient EbayClient
+@inject WebApiClient WebApiClient
 @inject ILogger<Measurements> Logger
 
 <script src="https://unpkg.com/html5-qrcode"></script>
@@ -170,13 +171,37 @@
         </div>
     </div>
 <br>
-@if (_lotIds!= null) {
-    @foreach (var lotId in _lotIds)
+<div class="mb-3">
+    <h4>Лоты для продажи</h4>
+
+    @if (!string.IsNullOrWhiteSpace(_lotForSaleError))
     {
-        var lotIdPart = lotId == null ? "" : $"&lotId={lotId}";
-        var lotName = lotId ?? "Основной лот";
-        <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}?measurementState={MeasurementState.Created}&state={ProductState.New}{lotIdPart}")" target="_blank">@lotName (New)</NavLink>
-        <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}?measurementState={MeasurementState.Created}&state={ProductState.Used}{lotIdPart}")" target="_blank">@lotName (Used)</NavLink>
+        <p class="text-danger">@_lotForSaleError</p>
+    }
+
+    <div class="row g-2 align-items-end">
+        <div class="col-sm-8">
+            <label class="form-label">Название</label>
+            <InputText class="form-control" @bind-Value="_newLotForSaleName" />
+        </div>
+        <div class="col-sm-4">
+            <button class="btn btn-primary btn-sm" @onclick="CreateLotForSaleAsync" disabled="@_isCreatingLotForSale">Создать лот</button>
+        </div>
+    </div>
+</div>
+
+<NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}?measurementState={MeasurementState.Created}&state={ProductState.New}")" target="_blank">Основной лот (New)</NavLink>
+<NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}?measurementState={MeasurementState.Created}&state={ProductState.Used}")" target="_blank">Основной лот (Used)</NavLink>
+<br>
+<br>
+
+@if (_lotForSales is not null)
+{
+    foreach (var lot in _lotForSales)
+    {
+        var lotIdPart = $"&lotId={lot.Id}";
+        <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}?measurementState={MeasurementState.Created}&state={ProductState.New}{lotIdPart}")" target="_blank">@lot.Name (New)</NavLink>
+        <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}?measurementState={MeasurementState.Created}&state={ProductState.Used}{lotIdPart}")" target="_blank">@lot.Name (Used)</NavLink>
         <br>
         <br>
     }
@@ -267,10 +292,18 @@
                            @oninput="async e => await OnLocationChanged(measurement, e.Value?.ToString())" />
                 </td>
                 <td>
-                    <input type="text"
-                           class="form-control"
-                           value="@measurement.LotId"
-                           @oninput="async e => await OnLotIdChanged(measurement, e.Value?.ToString())" />
+                    <select class="form-select"
+                            value="@measurement.LotId"
+                            @onchange="async e => await OnLotIdChanged(measurement, e.Value?.ToString())">
+                        <option value="">Основной лот</option>
+                        @if (_lotForSales is not null)
+                        {
+                            foreach (var lot in _lotForSales)
+                            {
+                                <option value="@lot.Id">@lot.Name (@lot.Id)</option>
+                            }
+                        }
+                    </select>
                 </td>
                 <td>
                     <input type="text"
@@ -359,7 +392,10 @@
     private string? _workingPointSaveMessage;
     private string? _matchingError;
     private bool _hasWorkingPoint;
-    private ReadOnlyCollection<string?>? _lotIds;
+    private ReadOnlyCollection<LotForSaleResponse>? _lotForSales;
+    private string _newLotForSaleName = string.Empty;
+    private bool _isCreatingLotForSale;
+    private string? _lotForSaleError;
 
     [Parameter]
     public ProductWithId Product { get; set; } = null!;
@@ -374,14 +410,49 @@
         _matchingError = null;
         _hasWorkingPoint = false;
 
-        await LoadLotIds();
+        await LoadLotForSales();
         await LoadTubeWorkingPointAsync();
         await UpdateMeasurementsAsync();
     }
 
-    private async Task LoadLotIds()
+    private async Task LoadLotForSales()
     {
-         _lotIds = (await EbayClient.GetLotIdsForProductAsync(ProductId)).ToList().AsReadOnly();
+        var lotForSales = await WebApiClient.GetLotForSalesAsync();
+        _lotForSales = lotForSales
+            .Where(x => x.ProductId == ProductId)
+            .OrderBy(x => x.Id)
+            .ToList()
+            .AsReadOnly();
+    }
+
+
+    private async Task CreateLotForSaleAsync()
+    {
+        try
+        {
+            _lotForSaleError = null;
+            _isCreatingLotForSale = true;
+
+            var lotName = _newLotForSaleName.Trim();
+
+            await WebApiClient.CreateLotForSaleAsync(new LotForSaleCreateRequest
+            {
+                Name = lotName,
+                ProductId = ProductId
+            });
+
+            _newLotForSaleName = string.Empty;
+            await LoadLotForSales();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error creating lot for sale for product {ProductId}", ProductId);
+            _lotForSaleError = "Ошибка при создании лота для продажи.";
+        }
+        finally
+        {
+            _isCreatingLotForSale = false;
+        }
     }
 
     private async Task UpdateMeasurementsAsync()
