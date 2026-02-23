@@ -211,9 +211,10 @@
     foreach (var lot in _lotForSales)
     {
         var lotIdPart = $"&lotId={lot.Id}";
-        <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}?measurementState={MeasurementState.Created}&state={lot.ProductState}{lotIdPart}")" target="_blank">@lot.Name (@lot.ProductState)</NavLink>
-        <br>
-        <br>
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}?measurementState={MeasurementState.Created}&state={lot.ProductState}{lotIdPart}")" target="_blank">@lot.Name (@lot.ProductState)</NavLink>
+            <button class="btn btn-danger btn-sm oi oi-trash" title="Удалить лот" @onclick="() => OnDeleteLotForSaleClick(lot)"></button>
+        </div>
     }
 }
 @if (_measurements != null)
@@ -437,6 +438,27 @@
             .AsReadOnly();
     }
 
+
+    private void OnDeleteLotForSaleClick(LotForSaleResponse lot)
+    {
+        _questionPopup.AskQuestion(
+            $"Вы действительно хотите удалить лот '{lot.Name}' ({lot.Id})?",
+            async () =>
+            {
+                try
+                {
+                    _lotForSaleError = null;
+                    await WebApiClient.DeleteLotForSaleAsync(lot.Id);
+                    await LoadLotForSales();
+                    await UpdateMeasurementsAsync();
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "Error deleting lot for sale {LotId} for product {ProductId}", lot.Id, ProductId);
+                    _lotForSaleError = "Невозможно удалить лот: он используется в замерах или произошла ошибка.";
+                }
+            });
+    }
 
     private async Task CreateLotForSaleAsync()
     {

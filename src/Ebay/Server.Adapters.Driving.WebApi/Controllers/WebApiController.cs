@@ -21,6 +21,13 @@ public sealed class WebApiController : WebApiControllerBase
         return Ok();
     }
 
+
+    public override async Task<IActionResult> DeleteLotForSale(string lotId, CancellationToken cancellationToken = default)
+    {
+        await _lotForSaleService.DeleteLotForSaleAsync(lotId, cancellationToken);
+        return Ok();
+    }
+
     public override async Task<ActionResult<ICollection<LotForSaleResponse>>> GetLotForSales(CancellationToken cancellationToken = default)
     {
         var lotForSales = await _lotForSaleService.GetLotForSalesAsync(cancellationToken);
