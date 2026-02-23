@@ -1,33 +1,27 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Models;
-using Server.Application.Data;
-using Server.Domain;
 using Server.Domain.Measurements;
-using Server.Domain.Product;
 
-namespace Server.Application.Pages;
+namespace Server.Adapters.Driving.WebApi.Pages;
 
 public class MeasurementPage : PageModel
 {
-    private readonly ApplicationDbContext _applicationContext;
     private readonly IMeasurementQueries _measurementQueries;
+    private readonly IProductQueries _productQueries;
 
     public MeasurementPage(
-        ApplicationDbContext applicationContext,
         IMeasurementQueries measurementQueries,
+        IProductQueries productQueries,
         IMeasurementFileParser measurementFileParser)
     {
-        _applicationContext = applicationContext;
         _measurementQueries = measurementQueries;
+        _productQueries = productQueries;
     }
 
-    public Product Product { get; set; } = null!;
+    public ProductInfo Product { get; set; } = null!;
     public MeasurementInfoWithData Measurement { get; set; } = null!;
-
-
 
     public async Task<IActionResult> OnGet(string measurementId, CancellationToken cancellationToken)
     {
@@ -38,10 +32,7 @@ public class MeasurementPage : PageModel
             return NotFound("Measurement not found");
         }
 
-        var product = await _applicationContext.Products
-            .AsNoTracking()
-            .Include(x => x.SearchQueries)
-            .SingleOrDefaultAsync(x => x.Id == measurementInfo.ProductId, cancellationToken: cancellationToken);
+        var product = await _productQueries.GetProductAsync(measurementInfo.ProductId, cancellationToken);
 
         if (product == null)
         {
