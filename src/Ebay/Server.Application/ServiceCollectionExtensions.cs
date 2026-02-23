@@ -1,14 +1,9 @@
-using MassTransit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Server.Application.Abstractions.Driven.Abstractions.Abstractions;
-using Server.Application.Consumers.EbayCurvesCacheWarmUp;
-using Server.Application.Consumers.MatchedPairs;
-using Server.Application.Consumers.MeasurementWatching;
-using Server.Application.Consumers.PriceCalculator;
 using Server.Application.Controllers;
 using Server.Application.Data;
 using Server.Application.HostedServices.ChipFind;
@@ -79,53 +74,6 @@ public static class ServiceCollectionExtensions
         _ = services.AddHostedService<ChipfindBackgroundTask>();
         _ = services.AddHostedService<SaleAdvertisementCleanupBackgroundTask>();
 
-        _ = services.AddOptions<SqlTransportOptions>()
-            .Configure<IConfiguration>((o, cfg) =>
-            {
-                o.ConnectionString = cfg.GetConnectionString("DefaultConnection")
-                                    ?? throw new InvalidOperationException("Connection string cannot be null");
-            });
-
-        _ = services.AddPostgresMigrationHostedService(x =>
-        {
-            x.CreateDatabase = false;
-            x.CreateInfrastructure = true;
-        });
-        _ = services.AddMassTransit(x =>
-        {
-            _ = x.AddConsumer<CalculatePricesForAllConsumer>();
-            _ = x.AddConsumer<CalculatePricesForProductConsumer>();
-            _ = x.AddConsumer<CalculatePricesForLotConsumer>();
-            _ = x.AddConsumer<MeasurementWatchedOnEbayConsumer>();
-            _ = x.AddConsumer<CalculateEbayCurvesForMeasurementConsumer>(c =>
-            {
-                c.UseConcurrencyLimit(10);
-            });
-            _ = x.AddConsumer<MatchedPairsCalculator>(c =>
-            {
-                c.UseConcurrencyLimit(1);
-            });
-            _ = x.AddConsumer<CalculateTotalAveragePriceForProductConsumer>(c => c.Options<BatchOptions>(o =>
-            {
-                o.ConcurrencyLimit = 1;
-                o.MessageLimit = 100;
-            }));
-            x.AddEntityFrameworkOutbox<ApplicationDbContext>(o =>
-            {
-                _ = o.UsePostgres();
-                o.UseBusOutbox();
-            });
-
-            x.AddSqlMessageScheduler();
-
-            x.UsingPostgres((context, cfg) =>
-            {
-                cfg.UseSqlMessageScheduler();
-
-                cfg.ConfigureEndpoints(context);
-            });
-
-        });
         _ = services.AddHostedService<DbCacheCleanupHostedService>();
         _ = services.AddHostedService<MeasurementPlotWarmupHostedService>();
 
@@ -141,6 +89,7 @@ public static class ServiceCollectionExtensions
         _ = services.AddRazorPages()
             .AddApplicationPart(typeof(ServiceCollectionExtensions).Assembly);
     }
+
 
     public static void UseApplication(this IServiceProvider serviceProvider)
     {

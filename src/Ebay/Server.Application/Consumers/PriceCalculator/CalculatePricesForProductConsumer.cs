@@ -7,7 +7,7 @@ using Server.Domain.Product;
 
 namespace Server.Application.Consumers.PriceCalculator;
 
-internal class CalculatePricesForProductConsumer : IConsumer<CalculatePricesForProductRequested>, IConsumer<ProductUpdated>
+public class CalculatePricesForProductConsumer : IConsumer<CalculatePricesForProductRequested>, IConsumer<ProductUpdated>
 {
     public CalculatePricesForProductConsumer(
         ApplicationDbContext applicationContext,

@@ -5,7 +5,7 @@ using Server.Domain.Product;
 
 namespace Server.Application.Consumers.PriceCalculator;
 
-internal class CalculatePricesForAllConsumer : IConsumer<CalculatePricesForAll>
+public class CalculatePricesForAllConsumer : IConsumer<CalculatePricesForAll>
 {
     private readonly IProductQueries _productQueries;
     private readonly IPublishEndpoint _publishEndpoint;

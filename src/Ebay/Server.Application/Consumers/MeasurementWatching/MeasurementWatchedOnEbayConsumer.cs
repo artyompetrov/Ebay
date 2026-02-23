@@ -5,7 +5,7 @@ using Server.Application.Abstractions.Driven.Abstractions.Abstractions.Repositor
 
 namespace Server.Application.Consumers.MeasurementWatching;
 
-internal sealed class MeasurementWatchedOnEbayConsumer : IConsumer<MeasurementWatchedOnEbay>
+public sealed class MeasurementWatchedOnEbayConsumer : IConsumer<MeasurementWatchedOnEbay>
 {
     private readonly ILogger<MeasurementWatchedOnEbayConsumer> _logger;
     private readonly IMeasurementRepository _measurementRepository;

@@ -26,12 +26,15 @@ namespace Server.Application.Data;
 /// </summary>
 public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, IUnitOfWork
 {
+    private readonly IWriteModelUnitOfWork? _writeModelUnitOfWork;
     
     public ApplicationDbContext(
         DbContextOptions<ApplicationDbContext> options,
-        IOptions<OperationalStoreOptions> operationalStoreOptions)
+        IOptions<OperationalStoreOptions> operationalStoreOptions,
+        IWriteModelUnitOfWork? writeModelUnitOfWork = null)
         : base(options: options, operationalStoreOptions: operationalStoreOptions)
     {
+        _writeModelUnitOfWork = writeModelUnitOfWork;
     }
     
     protected override void OnModelCreating(ModelBuilder builder)
@@ -253,7 +256,14 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
         ApplyAudit();
         // Publish before EF save so MT bus outbox stores messages in the same transaction.
         await PublishDomainEventsAsync(cancellationToken);
-        return await base.SaveChangesAsync(cancellationToken);
+        var changedRows = await base.SaveChangesAsync(cancellationToken);
+
+        if (_writeModelUnitOfWork is not null && !ReferenceEquals(_writeModelUnitOfWork, this))
+        {
+            _ = await _writeModelUnitOfWork.SaveChangesAsync(cancellationToken);
+        }
+
+        return changedRows;
     }
 
     private async Task PublishDomainEventsAsync(CancellationToken cancellationToken)

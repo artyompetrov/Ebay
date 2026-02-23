@@ -8,7 +8,7 @@ using Server.Domain;
 
 namespace Server.Application.Consumers.PriceCalculator;
 
-internal class CalculateTotalAveragePriceForProductConsumer : IConsumer<Batch<CalculateTotalAveragePriceForProduct>>
+public class CalculateTotalAveragePriceForProductConsumer : IConsumer<Batch<CalculateTotalAveragePriceForProduct>>
 {
     private readonly ApplicationDbContext _applicationDbContext;
     private readonly IProductRepository _productRepository;

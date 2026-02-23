@@ -12,7 +12,7 @@ using Server.Domain.Measurements.MeasurementTypes.Base;
 
 namespace Server.Application.Consumers.MatchedPairs;
 
-internal class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
+public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
 {
     private readonly ILogger<MatchedPairsCalculator> _logger;
     private readonly IMeasurementQueries _measurementQueries;
