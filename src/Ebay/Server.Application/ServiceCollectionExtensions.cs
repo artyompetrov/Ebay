@@ -36,7 +36,10 @@ public static class ServiceCollectionExtensions
         var appAssembly = typeof(ServiceCollectionExtensions).Assembly;
 
         _ = services.AddOptions<EbayServerOptions>()
-            .BindConfiguration("EbayServer");
+            .BindConfiguration("EbayServer")
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+        
         _ = services.AddSingleton(sp => sp.GetRequiredService<IOptions<EbayServerOptions>>().Value);
 
         services.AddSingleton<MeasurementApproximationService>();
