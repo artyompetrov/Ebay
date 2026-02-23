@@ -55,9 +55,9 @@ public class Program
 
         var app = builder.Build();
         
-        app.Services.UseEfWriteModelAdapter();
         app.Services.UseApplication();
-        
+        app.Services.UseEfWriteModelAdapter();
+
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
         {
