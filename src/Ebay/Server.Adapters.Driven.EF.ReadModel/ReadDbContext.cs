@@ -71,6 +71,9 @@ internal sealed class ReadDbContext : DbContext
         _ = b.Entity<LotForSaleView>(eb =>
         {
             _ = eb.ToView("LotForSales", "wm").HasKey(x => x.Id);
+
+            _ = eb.Property(x => x.ProductState)
+                .HasConversion<string>();
         });
 
     }
