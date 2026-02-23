@@ -61,6 +61,7 @@ public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
         return await base.SaveChangesAsync(cancellationToken);
     }
 
+    
     private async Task PublishDomainEventsAsync(CancellationToken cancellationToken)
     {
         var aggregateEntries = ChangeTracker.Entries<IAggregateRoot>()
@@ -85,6 +86,9 @@ public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
         }
     }
 
+    /// <summary>
+    /// Добавляем метки времени изменеиния для сущностей
+    /// </summary>
     private void ApplyAudit()
     {
         var now = DateTime.UtcNow;
