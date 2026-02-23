@@ -2,11 +2,11 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace Server.Application.Pages;
+namespace Server.Adapters.Driving.WebApi.Pages;
 
 [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
 [IgnoreAntiforgeryToken]
-internal class ErrorModel : PageModel
+internal sealed class ErrorModel : PageModel
 {
 
     public string? RequestId { get; set; }
