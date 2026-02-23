@@ -94,6 +94,102 @@ public class ChipfindAdapterTests
         }
     }
 
+    private const string ValidAdvertisementItem = """
+<item>
+<title>Valid title [Seller]</title>
+<description><![CDATA[line1<br />line2]]></description>
+<pubDate>Sun, 31 Aug 2025 18:12:16 +0300</pubDate>
+<link>http://example.com/valid</link>
+</item>
+""";
+
+    private static IEnumerable<TestCaseData> InvalidAdvertisementPartsForFeedParsing()
+    {
+        yield return new TestCaseData(
+            """
+<title></title>
+<description><![CDATA[ item 1 ]]></description>
+<pubDate>Sun, 31 Aug 2025 18:12:16 +0300</pubDate>
+<link>http://example.com/broken</link>
+""").SetName("GetRecentSaleAdvertisements_SkipsItem_WithMissingTitle");
+
+        yield return new TestCaseData(
+            """
+<title>Broken title [Seller]</title>
+<description><![CDATA[ item 1 ]]></description>
+<pubDate>Sun, 31 Aug 2025 18:12:16 +0300</pubDate>
+<link></link>
+""").SetName("GetRecentSaleAdvertisements_SkipsItem_WithMissingLink");
+
+        yield return new TestCaseData(
+            """
+<title>Broken title [Seller]</title>
+<description></description>
+<pubDate>Sun, 31 Aug 2025 18:12:16 +0300</pubDate>
+<link>http://example.com/broken</link>
+""").SetName("GetRecentSaleAdvertisements_SkipsItem_WithMissingDescription");
+
+        yield return new TestCaseData(
+            """
+<title>Broken title [Seller]</title>
+<description><![CDATA[ item 1 ]]></description>
+<pubDate></pubDate>
+<link>http://example.com/broken</link>
+""").SetName("GetRecentSaleAdvertisements_SkipsItem_WithMissingPubDate");
+
+        yield return new TestCaseData(
+            """
+<title>invalid without seller suffix</title>
+<description><![CDATA[ item 1 ]]></description>
+<pubDate>Sun, 31 Aug 2025 18:12:16 +0300</pubDate>
+<link>http://example.com/broken</link>
+""").SetName("GetRecentSaleAdvertisements_SkipsItem_WithInvalidTitleFormat");
+
+        yield return new TestCaseData(
+            """
+<title>Broken title [Seller]</title>
+<description><![CDATA[ item 1 ]]></description>
+<pubDate>not-a-date</pubDate>
+<link>http://example.com/broken</link>
+""").SetName("GetRecentSaleAdvertisements_SkipsItem_WithInvalidPubDate");
+
+        yield return new TestCaseData(
+            """
+<title>Broken title [Seller]</title>
+<description><![CDATA[ item 1 ]]></description>
+<pubDate>Sun, 31 Aug 2025 18:12:16 +0300</pubDate>
+<link>not-a-link</link>
+""").SetName("GetRecentSaleAdvertisements_SkipsItem_WithInvalidLink");
+    }
+
+    [TestCaseSource(nameof(InvalidAdvertisementPartsForFeedParsing))]
+    public async Task GetRecentSaleAdvertisements_WhenFeedContainsInvalidItem_DoesNotThrowAndParsesValidItems(string invalidAdvertisementPart)
+    {
+        var xml = $"""
+<rss><channel>
+<item>
+{invalidAdvertisementPart}
+</item>
+{ValidAdvertisementItem}
+</channel></rss>
+""";
+
+        var handler = new StaticMessageHandler(xml);
+        var httpClient = new HttpClient(handler);
+        var factory = new TestHttpClientFactory(httpClient);
+        var logger = new TestLogger<ChipfindAdapter>();
+        var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
+
+        var ads = await adapter.GetRecentSaleAdvertisements(CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(ads, Has.Count.EqualTo(1));
+            Assert.That(ads.Single().Link, Is.EqualTo(new Uri("http://example.com/valid")));
+            Assert.That(logger.HasWarning, Is.True);
+        }
+    }
+
     [Test]
     public async Task TryGetAdvertisementContactAsync_WhenContactContainsMailto_ReturnsPlainTextContact()
     {

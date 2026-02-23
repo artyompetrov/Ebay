@@ -44,10 +44,19 @@ public class ChipfindAdapter : IChipfindAdapter
 
         foreach (var item in xdoc.Descendants("item"))
         {
-            var titleAndSeller = item.Element("title")?.Value ?? throw new InvalidOperationException("title");
-            var link = item.Element("link")?.Value ?? throw new InvalidOperationException("link");
-            var description = item.Element("description")?.Value ?? throw new InvalidOperationException("description");
-            var pubDate = item.Element("pubDate")?.Value ?? throw new InvalidOperationException("pubDate");
+            var titleAndSeller = item.Element("title")?.Value;
+            var link = item.Element("link")?.Value;
+            var description = item.Element("description")?.Value;
+            var pubDate = item.Element("pubDate")?.Value;
+
+            if (string.IsNullOrWhiteSpace(titleAndSeller)
+                || string.IsNullOrWhiteSpace(link)
+                || string.IsNullOrWhiteSpace(description)
+                || string.IsNullOrWhiteSpace(pubDate))
+            {
+                _logger.LogWarning("Skipping chipfind advertisement due to missing required fields");
+                continue;
+            }
 
             var doc = new HtmlDocument();
             doc.LoadHtml(description);
@@ -73,7 +82,8 @@ public class ChipfindAdapter : IChipfindAdapter
 
             if (!matchingResult.Success)
             {
-                throw new InvalidOperationException("Unable to parse title");
+                _logger.LogWarning("Skipping chipfind advertisement due to invalid title format: {Title}", titleAndSeller);
+                continue;
             }
 
             var title = matchingResult.Groups[1].Value.Trim();
@@ -85,12 +95,25 @@ public class ChipfindAdapter : IChipfindAdapter
                 _logger.LogWarning("Suspicious huge items in advertisement: {Description}", description[..1000]);
             }
 
+
+            if (!DateTime.TryParse(pubDate, CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out var parsedDate))
+            {
+                _logger.LogWarning("Skipping chipfind advertisement due to invalid publication date: {PubDate}", pubDate);
+                continue;
+            }
+
+            if (!Uri.TryCreate(link, UriKind.Absolute, out var advertisementLink))
+            {
+                _logger.LogWarning("Skipping chipfind advertisement due to invalid link: {Link}", link);
+                continue;
+            }
+
             result.Add(
                 new SaleAdvertisement(
                     Title: title,
                     Seller: seller.ToLower(CultureInfo.InvariantCulture),
-                    Date: DateTime.Parse(pubDate, CultureInfo.InvariantCulture).ToUniversalTime(),
-                    Link: new Uri(link),
+                    Date: parsedDate.ToUniversalTime(),
+                    Link: advertisementLink,
                     Items: items,
                     Body: description));
         }
