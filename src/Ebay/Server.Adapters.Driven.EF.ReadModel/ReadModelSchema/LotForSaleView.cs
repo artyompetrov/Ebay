@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Server.Domain.LotForSale;
+using Server.Domain.Measurements;
 
 namespace Server.Adapters.Driven.EF.ReadModel.ReadModelSchema;
 
@@ -11,11 +12,14 @@ internal sealed class LotForSaleView : IViewProjection<LotForSale, LotForSaleVie
 
     public required Guid ProductId { get; set; }
 
+    public required ProductState ProductState { get; set; }
+
     public static Expression<Func<LotForSale, LotForSaleView>> ToView => x =>
         new()
         {
             Id = x.Id,
             Name = x.Name,
-            ProductId = x.ProductId
+            ProductId = x.ProductId,
+            ProductState = x.ProductState
         };
 }

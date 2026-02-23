@@ -1,4 +1,5 @@
 using Server.Domain.Abstractions;
+using Server.Domain.Measurements;
 
 namespace Server.Domain.LotForSale;
 
@@ -8,18 +9,21 @@ public sealed class LotForSale : AggregateRoot<string>
     private const string IdAlphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_";
     private static readonly DateTime IdEpoch = new(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
-    private LotForSale(string id, string name, Guid productId) : base(id)
+    private LotForSale(string id, string name, Guid productId, ProductState productState) : base(id)
     {
         ValidateId(id);
         Name = name;
         ProductId = productId;
+        ProductState = productState;
     }
 
     public string Name { get; private set; }
 
     public Guid ProductId { get; private set; }
 
-    public static LotForSale Create(string name, Guid productId)
+    public ProductState ProductState { get; private set; }
+
+    public static LotForSale Create(string name, Guid productId, ProductState productState)
     {
         ValidateName(name);
         ValidateProductId(productId);
@@ -27,7 +31,8 @@ public sealed class LotForSale : AggregateRoot<string>
         return new LotForSale(
             id: GenerateId(),
             name: name.Trim(),
-            productId: productId);
+            productId: productId,
+            productState: productState);
     }
 
     public void Rename(string name)
