@@ -3,6 +3,7 @@ using Server.Application.Abstractions.Driven.Abstractions.Abstractions.Repositor
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Models;
 using Server.Domain.LotForSale;
+using Server.Domain.Measurements;
 
 namespace Server.Application.New;
 
@@ -46,10 +47,11 @@ public sealed class LotForSaleService
     /// </summary>
     /// <param name="name">Название лота.</param>
     /// <param name="productId">Идентификатор связанного продукта.</param>
+    /// <param name="productState">Состояние товара для лота.</param>
     /// <param name="cancellationToken">Токен отмены операции.</param>
-    public async Task CreateLotForSaleAsync(string name, Guid productId, CancellationToken cancellationToken)
+    public async Task CreateLotForSaleAsync(string name, Guid productId, ProductState productState, CancellationToken cancellationToken)
     {
-        var aggregate = LotForSale.Create(name, productId);
+        var aggregate = LotForSale.Create(name, productId, productState);
         await _lotForSaleRepository.AddAsync(aggregate, cancellationToken);
         _ = await _writeModelUnitOfWork.SaveChangesAsync(cancellationToken);
     }

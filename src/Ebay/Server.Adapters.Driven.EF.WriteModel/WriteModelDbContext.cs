@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Server.Application.Abstractions.Driven.Abstractions.Abstractions;
 using Server.Domain.Abstractions;
 using Server.Domain.LotForSale;
+using Server.Domain.Measurements;
 
 namespace Server.Adapters.Driven.EF.WriteModel;
 
@@ -38,6 +39,10 @@ public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
                 .IsRequired();
 
             _ = entity.Property(x => x.ProductId)
+                .IsRequired();
+
+            _ = entity.Property(x => x.ProductState)
+                .HasConversion<string>()
                 .IsRequired();
         });
     }

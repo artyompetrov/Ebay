@@ -96,7 +96,7 @@
             <label for="typeSelect">Тип измерения:</label>
             <select id="typeSelect" class="form-control" @bind="_selectedState">
                 <option value="">-- выберите тип --</option>
-                @foreach (var state in _productStates)
+                @foreach (var state in _lotForSaleProductStates)
                 {
                     <option value="@state">@state</option>
                 }
@@ -180,18 +180,29 @@
     }
 
     <div class="row g-2 align-items-end">
-        <div class="col-sm-8">
+        <div class="col-sm-6">
             <label class="form-label">Название</label>
             <InputText class="form-control" @bind-Value="_newLotForSaleName" />
         </div>
-        <div class="col-sm-4">
+        <div class="col-sm-3">
+            <label class="form-label">Состояние</label>
+            <InputSelect class="form-select" @bind-Value="_newLotForSaleState">
+                @foreach (var state in _lotForSaleProductStates)
+                {
+                    <option value="@state">@state</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="col-sm-3">
             <button class="btn btn-primary btn-sm" @onclick="CreateLotForSaleAsync" disabled="@_isCreatingLotForSale">Создать лот</button>
         </div>
     </div>
 </div>
 
-<NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}?measurementState={MeasurementState.Created}&state={ProductState.New}")" target="_blank">Основной лот (New)</NavLink>
-<NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}?measurementState={MeasurementState.Created}&state={ProductState.Used}")" target="_blank">Основной лот (Used)</NavLink>
+@foreach (var state in _productStates)
+{
+    <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}?measurementState={MeasurementState.Created}&state={state}")" target="_blank">Основной лот (@state)</NavLink>
+}
 <br>
 <br>
 
@@ -200,8 +211,7 @@
     foreach (var lot in _lotForSales)
     {
         var lotIdPart = $"&lotId={lot.Id}";
-        <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}?measurementState={MeasurementState.Created}&state={ProductState.New}{lotIdPart}")" target="_blank">@lot.Name (New)</NavLink>
-        <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}?measurementState={MeasurementState.Created}&state={ProductState.Used}{lotIdPart}")" target="_blank">@lot.Name (Used)</NavLink>
+        <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}?measurementState={MeasurementState.Created}&state={lot.ProductState}{lotIdPart}")" target="_blank">@lot.Name (@lot.ProductState)</NavLink>
         <br>
         <br>
     }
@@ -374,6 +384,7 @@
     private string? _message;
     private ProductState? _selectedState;
     private List<ProductState> _productStates = Enum.GetValues(typeof(ProductState)).Cast<ProductState>().ToList();
+    private List<LotForSaleProductState> _lotForSaleProductStates = Enum.GetValues(typeof(LotForSaleProductState)).Cast<LotForSaleProductState>().ToList();
     private List<MeasurementState> _measurementStates = Enum.GetValues(typeof(MeasurementState)).Cast<MeasurementState>().ToList();
     private HashSet<MeasurementState> _selectedMeasurementStates = new()
     {
@@ -394,6 +405,7 @@
     private bool _hasWorkingPoint;
     private ReadOnlyCollection<LotForSaleResponse>? _lotForSales;
     private string _newLotForSaleName = string.Empty;
+    private LotForSaleProductState _newLotForSaleState = LotForSaleProductState.New;
     private bool _isCreatingLotForSale;
     private string? _lotForSaleError;
 
@@ -438,7 +450,8 @@
             await WebApiClient.CreateLotForSaleAsync(new LotForSaleCreateRequest
             {
                 Name = lotName,
-                ProductId = ProductId
+                ProductId = ProductId,
+                ProductState = _newLotForSaleState
             });
 
             _newLotForSaleName = string.Empty;
