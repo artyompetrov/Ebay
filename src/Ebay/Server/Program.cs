@@ -1,4 +1,9 @@
 using Duende.IdentityServer.Models;
+using MassTransit;
+using Server.Application.Consumers.EbayCurvesCacheWarmUp;
+using Server.Application.Consumers.MatchedPairs;
+using Server.Application.Consumers.MeasurementWatching;
+using Server.Application.Consumers.PriceCalculator;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
@@ -46,6 +51,7 @@ public class Program
         builder.Services.AddWebApiAdapter();
         builder.Services.AddEfWriteModelAdapter();
         builder.Services.AddHealthChecks();
+        ConfigureMassTransit(builder.Services);
 
         ConfigureIdentity(builder.Services);
         AddOpenTelemetry(builder);
@@ -87,6 +93,58 @@ public class Program
         app.MapFallbackToFile("index.html");
 
         app.Run();
+    }
+
+
+    private static void ConfigureMassTransit(IServiceCollection services)
+    {
+        _ = services.AddOptions<SqlTransportOptions>()
+            .Configure<IConfiguration>((o, cfg) =>
+            {
+                o.ConnectionString = cfg.GetConnectionString("DefaultConnection")
+                                    ?? throw new InvalidOperationException("Connection string cannot be null");
+            });
+
+        _ = services.AddPostgresMigrationHostedService(x =>
+        {
+            x.CreateDatabase = false;
+            x.CreateInfrastructure = true;
+        });
+
+        _ = services.AddMassTransit(x =>
+        {
+            _ = x.AddConsumer<CalculatePricesForAllConsumer>();
+            _ = x.AddConsumer<CalculatePricesForProductConsumer>();
+            _ = x.AddConsumer<CalculatePricesForLotConsumer>();
+            _ = x.AddConsumer<MeasurementWatchedOnEbayConsumer>();
+            _ = x.AddConsumer<CalculateEbayCurvesForMeasurementConsumer>(c =>
+            {
+                c.UseConcurrencyLimit(10);
+            });
+            _ = x.AddConsumer<MatchedPairsCalculator>(c =>
+            {
+                c.UseConcurrencyLimit(1);
+            });
+            _ = x.AddConsumer<CalculateTotalAveragePriceForProductConsumer>(c => c.Options<BatchOptions>(o =>
+            {
+                o.ConcurrencyLimit = 1;
+                o.MessageLimit = 100;
+            }));
+
+            x.AddEntityFrameworkOutbox<WriteModelDbContext>(o =>
+            {
+                _ = o.UsePostgres();
+                o.UseBusOutbox();
+            });
+
+            x.AddSqlMessageScheduler();
+
+            x.UsingPostgres((context, cfg) =>
+            {
+                cfg.UseSqlMessageScheduler();
+                cfg.ConfigureEndpoints(context);
+            });
+        });
     }
 
     private static void AddOpenTelemetry(WebApplicationBuilder builder)

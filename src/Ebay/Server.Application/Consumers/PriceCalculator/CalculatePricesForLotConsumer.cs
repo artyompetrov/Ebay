@@ -8,7 +8,7 @@ using Server.Domain;
 
 namespace Server.Application.Consumers.PriceCalculator;
 
-internal class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
+public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
 {
     private readonly ApplicationDbContext _applicationContext;
     private readonly ILogger<CalculatePricesForProductConsumer> _logger;

@@ -1,4 +1,6 @@
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Server.Application.Abstractions.Driven.Abstractions.Abstractions;
 using Server.Domain.Abstractions;
 using Server.Domain.LotForSale;
@@ -17,6 +19,9 @@ public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
         base.OnModelCreating(modelBuilder);
 
         _ = modelBuilder.HasDefaultSchema("wm");
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
 
         foreach (var entityType in modelBuilder.Model.GetEntityTypes()
                      .Where(t => typeof(IAggregateRoot).IsAssignableFrom(t.ClrType)))
@@ -48,4 +53,68 @@ public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
     }
 
     public DbSet<LotForSale> LotForSales { get; set; } = null!;
+
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        ApplyAudit();
+        await PublishDomainEventsAsync(cancellationToken);
+        return await base.SaveChangesAsync(cancellationToken);
+    }
+
+    
+    private async Task PublishDomainEventsAsync(CancellationToken cancellationToken)
+    {
+        var aggregateEntries = ChangeTracker.Entries<IAggregateRoot>()
+            .Where(entry => entry.State != EntityState.Detached && entry.Entity.HasEvents)
+            .ToList();
+
+        if (aggregateEntries.Count == 0)
+        {
+            return;
+        }
+
+        var publishEndpoint = this.GetService<IPublishEndpoint>();
+
+        foreach (var domainEvent in aggregateEntries.SelectMany(entry => entry.Entity.GetDomainEvents()))
+        {
+            await publishEndpoint.Publish((object)domainEvent, cancellationToken);
+        }
+
+        foreach (var aggregateEntry in aggregateEntries)
+        {
+            aggregateEntry.Entity.ClearDomainEvents();
+        }
+    }
+
+    /// <summary>
+    /// Добавляем метки времени изменеиния для сущностей
+    /// </summary>
+    private void ApplyAudit()
+    {
+        var now = DateTime.UtcNow;
+
+        foreach (var entry in ChangeTracker.Entries()
+                     .Where(entry => entry.Entity is Entity<string> or Entity<Guid>))
+        {
+            var hasCreatedAt = entry.Metadata.FindProperty(nameof(Entity<Guid>.CreatedAt)) is not null;
+            var hasChangedAt = entry.Metadata.FindProperty(nameof(Entity<Guid>.ChangedAt)) is not null;
+
+            if (!hasCreatedAt || !hasChangedAt)
+            {
+                continue;
+            }
+
+            if (entry.State == EntityState.Added)
+            {
+                entry.Property(nameof(Entity<Guid>.CreatedAt)).CurrentValue = now;
+                entry.Property(nameof(Entity<Guid>.ChangedAt)).CurrentValue = now;
+            }
+
+            if (entry.State == EntityState.Modified)
+            {
+                entry.Property(nameof(Entity<Guid>.ChangedAt)).CurrentValue = now;
+                entry.Property(nameof(Entity<Guid>.CreatedAt)).IsModified = false;
+            }
+        }
+    }
 }
