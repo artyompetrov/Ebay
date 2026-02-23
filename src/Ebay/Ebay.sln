@@ -4,7 +4,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "Server\Server.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Frontend", "Frontend\Frontend.csproj", "{53BBA863-3953-4946-AC44-A985C0ABD7DE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{32D70E53-E75F-4585-B006-5F787BD9BC84}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Unit", "Tests.Unit\Tests.Unit.csproj", "{32D70E53-E75F-4585-B006-5F787BD9BC84}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.Adapters.Driven.ChipFind", "Server.Adapters.Driven.ChipFind\Server.Adapters.Driven.ChipFind.csproj", "{E5CBCFA8-C0F4-4E31-9A3A-12F7E6F36C4C}"
 EndProject
