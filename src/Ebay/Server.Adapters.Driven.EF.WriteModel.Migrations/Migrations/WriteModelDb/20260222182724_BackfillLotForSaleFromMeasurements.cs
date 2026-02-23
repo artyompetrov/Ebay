@@ -90,6 +90,11 @@ namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelD
                      """);
 
             migrationBuilder.Sql(
+                """
+                DROP TABLE wm."LotForSale_BackfillMap"
+                """);
+            
+            migrationBuilder.Sql(
                 sql: """
                      DO $$
                      BEGIN

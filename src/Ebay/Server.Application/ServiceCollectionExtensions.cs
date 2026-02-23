@@ -139,21 +139,14 @@ public static class ServiceCollectionExtensions
             .AddApplicationPart(typeof(ServiceCollectionExtensions).Assembly);
     }
 
-    public static void UseApplication(this WebApplication app, bool ensureCreatedInsteadOfMigrate)
+    public static void UseApplication(this IServiceProvider serviceProvider)
     {
         // Migrate DB
-        using var serviceScope = app.Services.CreateScope();
+        using var serviceScope = serviceProvider.CreateScope();
 
         var dbContext = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-        if (ensureCreatedInsteadOfMigrate)
-        {
-            dbContext.Database.EnsureCreated();
-        }
-        else
-        {
-            dbContext.Database.Migrate();
-        }
+        
+        dbContext.Database.Migrate();
     }
 
 }

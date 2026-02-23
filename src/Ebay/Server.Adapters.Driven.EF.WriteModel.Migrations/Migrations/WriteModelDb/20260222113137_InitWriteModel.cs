@@ -11,6 +11,8 @@ namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelD
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.Sql("CREATE SCHEMA IF NOT EXISTS wm;");
+            
             migrationBuilder.EnsureSchema(
                 name: "wm");
 

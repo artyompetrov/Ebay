@@ -11,6 +11,7 @@ namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelD
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            
             migrationBuilder.AddColumn<Guid>(
                 name: "ProductId",
                 schema: "wm",

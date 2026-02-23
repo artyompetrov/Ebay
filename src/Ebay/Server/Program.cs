@@ -55,10 +55,9 @@ public class Program
 
         var app = builder.Build();
         
-        app.UseApplication(ensureCreatedInsteadOfMigrate: app.Environment.IsEnvironment("Testing"));
-        
         app.Services.UseEfWriteModelAdapter();
-
+        app.Services.UseApplication();
+        
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
         {
