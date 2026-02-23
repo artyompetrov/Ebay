@@ -288,3 +288,17 @@ resharper_suggest_var_or_type_simple_types_highlighting = hint
 resharper_web_config_module_not_resolved_highlighting = warning
 resharper_web_config_type_not_resolved_highlighting = warning
 resharper_web_config_wrong_module_highlighting = warning
+# Configure Meziantou.Analyzer diagnostics as warnings during async remediation
+# MA* categories: Usage, Design, Performance, Style, Security, Naming
+dotnet_analyzer_diagnostic.category-Usage.severity = warning
+dotnet_analyzer_diagnostic.category-Design.severity = warning
+dotnet_analyzer_diagnostic.category-Performance.severity = warning
+dotnet_analyzer_diagnostic.category-Style.severity = warning
+dotnet_analyzer_diagnostic.category-Security.severity = warning
+dotnet_analyzer_diagnostic.category-Naming.severity = warning
+dotnet_analyzer_diagnostic.category-Meziantou.Analyzer.severity = warning
+# MA0049: Type name should not match containing namespace
+dotnet_diagnostic.MA0049.severity = warning
+
+# Configure Roslynator diagnostics as warnings during async remediation
+dotnet_analyzer_diagnostic.category-Roslynator.severity = warning
