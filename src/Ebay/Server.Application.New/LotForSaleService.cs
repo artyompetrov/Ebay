@@ -70,13 +70,14 @@ public sealed class LotForSaleService
         var lotForSale = await _lotForSaleRepository.GetByIdAsync(lotId, cancellationToken)
             ?? throw new InvalidOperationException("Lot for sale not found.");
 
+        // todo тут надо наверное переделать на генерацию события и потом удаление 
         await lotForSale.EnsureCanBeDeletedAsync(async (productId, linkedLotId, productState, ct) =>
             {
                 var linkedMeasurements = await _measurementQueries.GetMeasurementInfosWithSimilarMeasurements(
                     productId,
                     linkedLotId,
                     [productState],
-                    [MeasurementState.Created, MeasurementState.Selling, MeasurementState.Sold],
+                    Enum.GetValues<MeasurementState>(),
                     ct);
 
                 return linkedMeasurements.Count > 0;
