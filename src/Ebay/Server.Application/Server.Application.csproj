@@ -3,6 +3,7 @@
     <PropertyGroup>
         <RazorCompileOnBuild>true</RazorCompileOnBuild>
         <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+        <NoWarn>CS0618</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
