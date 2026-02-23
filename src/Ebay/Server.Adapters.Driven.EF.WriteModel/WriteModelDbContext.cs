@@ -93,27 +93,18 @@ public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
     {
         var now = DateTime.UtcNow;
 
-        foreach (var entry in ChangeTracker.Entries()
-                     .Where(entry => entry.Entity is Entity<string> or Entity<Guid>))
+        foreach (var entry in ChangeTracker.Entries<IAuditable>())
         {
-            var hasCreatedAt = entry.Metadata.FindProperty(nameof(Entity<Guid>.CreatedAt)) is not null;
-            var hasChangedAt = entry.Metadata.FindProperty(nameof(Entity<Guid>.ChangedAt)) is not null;
-
-            if (!hasCreatedAt || !hasChangedAt)
-            {
-                continue;
-            }
-
             if (entry.State == EntityState.Added)
             {
-                entry.Property(nameof(Entity<Guid>.CreatedAt)).CurrentValue = now;
-                entry.Property(nameof(Entity<Guid>.ChangedAt)).CurrentValue = now;
+                entry.Entity.CreatedAt = now;
+                entry.Entity.ChangedAt = now;
             }
 
             if (entry.State == EntityState.Modified)
             {
-                entry.Property(nameof(Entity<Guid>.ChangedAt)).CurrentValue = now;
-                entry.Property(nameof(Entity<Guid>.CreatedAt)).IsModified = false;
+                entry.Entity.ChangedAt = now;
+                entry.Property(x => x.CreatedAt).IsModified = false;
             }
         }
     }
