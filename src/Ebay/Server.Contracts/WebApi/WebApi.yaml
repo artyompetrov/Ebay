@@ -32,6 +32,23 @@ paths:
       responses:
         '200':
           description: Ok
+  /api/webapi/v1/lot-for-sales/{lotId}:
+    delete:
+      operationId: DeleteLotForSale
+      summary: Deletes lot-for-sale aggregate
+      tags:
+        - WebApi
+      parameters:
+        - in: path
+          name: lotId
+          required: true
+          schema:
+            type: string
+            minLength: 7
+            maxLength: 7
+      responses:
+        '200':
+          description: Ok
 components:
   schemas:
     LotForSaleCreateRequest:

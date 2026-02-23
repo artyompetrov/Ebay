@@ -1,4 +1,5 @@
 using Server.Domain.Abstractions;
+using Server.Domain.Exceptions;
 using Server.Domain.Measurements;
 
 namespace Server.Domain.LotForSale;
@@ -39,6 +40,19 @@ public sealed class LotForSale : AggregateRoot<string>
     {
         ValidateName(name);
         Name = name.Trim();
+    }
+
+    public async Task EnsureCanBeDeletedAsync(
+        Func<Guid, string, ProductState, CancellationToken, Task<bool>> hasLinkedMeasurements,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(hasLinkedMeasurements);
+
+        var hasLinkedMeasurementsResult = await hasLinkedMeasurements(ProductId, Id, ProductState, cancellationToken);
+        if (hasLinkedMeasurementsResult)
+        {
+            throw new DomainException($"Lot '{Id}' cannot be deleted because it has linked measurements.");
+        }
     }
 
     private static string GenerateId()
