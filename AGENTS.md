@@ -35,13 +35,16 @@
     - `/Ebay`: C# проект
       - `/Frontend`: Фронтенд на blazor webassembly
       - `/Server`: backend host (точка входа API и composition root)
+      - `/Server.Client`: сгенерированный/вспомогательный клиент для API
       - `/Server.Adapters.Driven.*`: реализации driven-адаптеров (EF, SMTP, внешние интеграции и т.д.)
       - `/Server.Adapters.Driving.WebApi`: driving-адаптер WebApi
       - `/Server.Application`: legacy application-слой, в котором пока остается исторический код
       - `/Server.Application.New`: новый чистый application-слой (порты и бизнес-сценарии для поэтапной миграции)
       - `/Server.Application.Abstractions.*`: контракты driving/driven портов
       - `/Server.Contracts`: OpenAPI контракты (legacy и новые контракты для поэтапной миграции)
-      - `/Tests`: тесты, запускаемые вручную (в основном для валидации продакшен-базы)
+      - `/Tests.Unit`: unit-тесты
+      - `/Tests.Integration`: интеграционные тесты
+      - `/Tests.Explicit`: явно запускаемые сценарные/проверочные тесты
     - `Dockerfile` - Докер файл, который осуществляет сборку решения в единый контейнер, подлежащий развертыванию.
 - `/deploy`: docker-compose обвязка для запуска проекта
 

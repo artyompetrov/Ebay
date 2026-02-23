@@ -27,6 +27,8 @@ public class Program
         //IdentityModelEventSource.ShowPII = true;
 
         var builder = WebApplication.CreateBuilder(args);
+        builder.Configuration.AddEnvironmentVariables(prefix: "ASPNETCORE_");
+
         builder.Host.UseDefaultServiceProvider(options =>
         {
             options.ValidateOnBuild = true;

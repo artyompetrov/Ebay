@@ -87,7 +87,7 @@ public class ExtensionController : ControllerBase
     {
         var extensionsFolder = GetExtensionsFolder();
         var crxFilePath = GetVersionedFiles(folder: extensionsFolder, extensionName: extensionName)
-            .OrderBy(x => x.Version)
+            .OrderByDescending(x => x.Version)
             .FirstOrDefault()
             .FilePath;
 
