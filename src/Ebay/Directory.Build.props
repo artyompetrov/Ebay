@@ -9,7 +9,6 @@
             NU1903, <!-- Package has a known high severity vulnerability -->
             CS0612, <!-- A class member was marked with the Obsolete attribute -->
             CS0618, <!-- Static member was marked with the Obsolete attribute -->
-            $(WarningsNotAsErrors),
             RCS0001, <!-- Roslynator analyzer warning RCS0001 -->
             RCS0002, <!-- Roslynator analyzer warning RCS0002 -->
             RCS0003, <!-- Roslynator analyzer warning RCS0003 -->
