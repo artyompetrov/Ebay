@@ -1,14 +1,13 @@
 using System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using Server.Application.Data;
 
 namespace Server.Adapters.Driven.EF.WriteModel;
 
 internal static class TransactionHelper
 {
     public static async Task<TransactionWrapper> EnsureRepeatableReadOrStartAsync(
-        ApplicationDbContext dbContext,
+        WriteModelDbContext dbContext,
         CancellationToken ct)
     {
         // 1) Запрещаем ambient TransactionScope

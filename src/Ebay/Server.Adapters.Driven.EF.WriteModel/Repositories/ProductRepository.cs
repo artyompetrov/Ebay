@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Abstractions.Driven.Abstractions.Abstractions.Repositories;
-using Server.Application.Data;
 using Server.Domain;
 using Server.Domain.Product;
 
@@ -8,9 +7,9 @@ namespace Server.Adapters.Driven.EF.WriteModel.Repositories;
 
 internal sealed class ProductRepository : IProductRepository
 {
-    private readonly ApplicationDbContext _dbContext;
+    private readonly WriteModelDbContext _dbContext;
 
-    public ProductRepository(ApplicationDbContext dbContext)
+    public ProductRepository(WriteModelDbContext dbContext)
     {
         _dbContext = dbContext;
     }

@@ -1,15 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Abstractions.Driven.Abstractions.Abstractions.Repositories;
-using Server.Application.Data;
 using Server.Domain.Measurements;
 
 namespace Server.Adapters.Driven.EF.WriteModel.Repositories;
 
 internal sealed class MatchedPairDifferenceRepository : IMatchedPairDifferenceRepository
 {
-    private readonly ApplicationDbContext _dbContext;
+    private readonly WriteModelDbContext _dbContext;
 
-    public MatchedPairDifferenceRepository(ApplicationDbContext dbContext)
+    public MatchedPairDifferenceRepository(WriteModelDbContext dbContext)
     {
         _dbContext = dbContext;
     }

@@ -21,7 +21,7 @@ internal sealed class ReadDbContext : DbContext
     {
         _ = b.Entity<ProductMeasurementView>(eb =>
         {
-            _ = eb.ToView("ProductMeasurements").HasKey(x => x.Id);
+            _ = eb.ToView("ProductMeasurements", "wm").HasKey(x => x.Id);
         });
 
         _ = b.Entity<ProductPassportView>(eb =>
@@ -31,7 +31,7 @@ internal sealed class ReadDbContext : DbContext
 
         _ = b.Entity<ProductView>(eb =>
         {
-            _ = eb.ToView("Products").HasKey(x => x.Id);
+            _ = eb.ToView("Products", "wm").HasKey(x => x.Id);
 
             _ = eb.HasOne(x => x.TubeWorkingPoint)
                 .WithOne(x => x.Product)
@@ -42,14 +42,14 @@ internal sealed class ReadDbContext : DbContext
             {
                 _ = q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
                 _ = q.HasKey(x => x.Id);
-                _ = q.ToTable("Product_SearchQueries");
+                _ = q.ToTable("Product_SearchQueries", "wm");
             });
 
             _ = eb.OwnsMany(p => p.RuSearchQueries, q =>
             {
                 _ = q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
                 _ = q.HasKey(x => x.Id);
-                _ = q.ToTable("Product_RuSearchQueries");
+                _ = q.ToTable("Product_RuSearchQueries", "wm");
             });
 
             _ = eb.Property(o => o.ProductCalculationResult)
@@ -61,7 +61,7 @@ internal sealed class ReadDbContext : DbContext
 
         _ = b.Entity<MatchedPairDifferenceView>(eb =>
         {
-            _ = eb.ToView("MatchedPairDifferences").HasKey(x => new { MeasurementId1 = x.Measurement1Id, MeasurementId2 = x.Measurement2Id, x.ComparisonMode });
+            _ = eb.ToView("MatchedPairDifferences", "wm").HasKey(x => new { MeasurementId1 = x.Measurement1Id, MeasurementId2 = x.Measurement2Id, x.ComparisonMode });
         });
 
         _ = b.Entity<TubeWorkingPointView>(x =>
