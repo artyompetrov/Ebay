@@ -78,11 +78,6 @@ public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
         {
             await publishEndpoint.Publish((object)domainEvent, cancellationToken);
         }
-
-        foreach (var aggregateEntry in aggregateEntries)
-        {
-            aggregateEntry.Entity.ClearDomainEvents();
-        }
     }
 
     /// <summary>

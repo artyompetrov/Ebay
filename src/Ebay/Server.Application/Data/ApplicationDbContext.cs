@@ -283,11 +283,6 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
         {
             await publishEndpoint.Publish((object)domainEvent /*без приведения к object не работает*/, cancellationToken);
         }
-
-        foreach (var aggregateEntry in aggregateEntries)
-        {
-            aggregateEntry.Entity.ClearDomainEvents();
-        }
     }
 
     private void ApplyAudit()
