@@ -4,7 +4,7 @@ using ScottPlot.PlotStyles;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Models;
-using Server.Application.Consumers.MeasurementWatching;
+using Server.Application.Abstractions.Driving.Abstractions.Messages;
 using Server.Application.Infrastructure;
 using Server.Application.New.Services;
 using Server.Domain.Measurements;

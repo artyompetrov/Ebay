@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Server.Application.Abstractions.Driven.Abstractions;
+using Server.Application.Abstractions.Driving.Abstractions.Services;
 using Server.Application.Controllers;
 using Server.Application.Data;
 using Server.Application.HostedServices.ChipFind;
@@ -17,6 +18,7 @@ using Server.Application.Services.GeoIp;
 using Server.Application.Services.LotDataExtractor;
 using Server.Application.Services.Measurement;
 using Server.Application.Services.MeasurementPlot;
+using Server.Application.Services.MeasurementWatching;
 using Server.Controllers.Generated;
 
 namespace Server.Application;
@@ -58,6 +60,7 @@ public static class ServiceCollectionExtensions
         services.AddApplicationNewServices();
         _ = services.AddScoped<MatchedMeasurementService>();
         _ = services.AddScoped<MeasurementPlotService>();
+        _ = services.AddScoped<IMeasurementWatchedOnEbayHandler, MeasurementWatchedOnEbayHandler>();
         _ = services.AddScoped<TubeWorkingPointService>();
         _ = services.AddHttpClient<GeoIpService>(c =>
         {
