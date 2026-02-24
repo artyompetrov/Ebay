@@ -18,6 +18,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Server.Client\Server.Client.csproj" />
+      <ProjectReference Include="..\Server.Application.New\Server.Application.New.csproj" />
       <ProjectReference Include="..\Server\Server.csproj" />
       <ProjectReference Include="..\Server.Adapters.Driven.ChipFind\Server.Adapters.Driven.ChipFind.csproj" />
     </ItemGroup>
