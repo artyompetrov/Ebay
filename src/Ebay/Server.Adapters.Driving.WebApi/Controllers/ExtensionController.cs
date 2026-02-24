@@ -36,12 +36,16 @@ public class ExtensionController : ControllerBase
     [HttpGet("{extensionName}.xml")]
     public IActionResult Get(string extensionName)
     {
-        var extensionsFolder = GetExtensionsFolder();
+        var extensionsFolder = TryGetExtensionsFolder();
+        if (extensionsFolder == null)
+        {
+            return NotFound("Extensions folder not found.");
+        }
 
         var versionedFiles = GetVersionedFiles(folder: extensionsFolder, extensionName: extensionName).ToList();
         if (versionedFiles.Count == 0)
         {
-            return StatusCode(statusCode: 500, value: $"No properly versioned CRX files found for extension '{extensionName}'.");
+            return NotFound($"No properly versioned CRX files found for extension '{extensionName}'.");
         }
 
         var (filePath, latestVersion) = versionedFiles.MaxBy(x => x.Version);
@@ -68,7 +72,12 @@ public class ExtensionController : ControllerBase
     [HttpGet("download/{extensionName}_{version}.crx")]
     public IActionResult Download(string extensionName, string version)
     {
-        var extensionsFolder = GetExtensionsFolder();
+        var extensionsFolder = TryGetExtensionsFolder();
+        if (extensionsFolder == null)
+        {
+            return NotFound("Extensions folder not found.");
+        }
+
         if (Version.TryParse(input: version, result: out var parsedVersion))
         {
             var crxFilePath = GetVersionedFiles(folder: extensionsFolder, extensionName: extensionName)
@@ -85,7 +94,12 @@ public class ExtensionController : ControllerBase
     [HttpGet("download/{extensionName}.zip")]
     public IActionResult DownloadAsZip(string extensionName)
     {
-        var extensionsFolder = GetExtensionsFolder();
+        var extensionsFolder = TryGetExtensionsFolder();
+        if (extensionsFolder == null)
+        {
+            return NotFound("Extensions folder not found.");
+        }
+
         var crxFilePath = GetVersionedFiles(folder: extensionsFolder, extensionName: extensionName)
             .OrderByDescending(x => x.Version)
             .FirstOrDefault()
@@ -115,10 +129,18 @@ public class ExtensionController : ControllerBase
         return File(fileStream: memoryStream, contentType: "application/zip", fileDownloadName: zipFileName);
     }
 
-    private string GetExtensionsFolder()
+    private string? TryGetExtensionsFolder()
     {
-        var extensionsFolder = Path.Combine(path1: _env.WebRootPath, path2: "chrome_extensions");
-        return !Directory.Exists(extensionsFolder) ? throw new InvalidOperationException("Extensions folder not found.") : extensionsFolder;
+        var webRoot = _env.WebRootPath;
+        if (string.IsNullOrWhiteSpace(webRoot))
+        {
+            webRoot = Path.Combine(path1: _env.ContentRootPath, path2: "wwwroot");
+        }
+
+        var extensionsFolder = Path.Combine(path1: webRoot, path2: "chrome_extensions");
+        return Directory.Exists(extensionsFolder)
+            ? extensionsFolder
+            : null;
     }
 
     private static IEnumerable<(string FilePath, Version Version)> GetVersionedFiles(string folder, string extensionName)
