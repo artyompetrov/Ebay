@@ -1,5 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
+using Server.Application.New.MatchedPairs;
+using Server.Application.New.Services;
 
 namespace Server.Application.New;
 
@@ -14,7 +16,9 @@ public static class ServiceCollectionExtensions
     /// <param name="services">Коллекция сервисов приложения.</param>
     public static void AddApplicationNewServices(this IServiceCollection services)
     {
+        services.AddSingleton<MeasurementApproximationService>();
         services.AddScoped<IMeasurementService, MeasurementService>();
+        services.AddScoped<IMatchedPairsCalculator, MatchedPairsCalculator>();
         services.AddScoped<ProductService>();
         services.AddScoped<LotForSaleService>();
     }

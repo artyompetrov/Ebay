@@ -13,7 +13,9 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="alglib.net" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     </ItemGroup>
 
     <ItemGroup>
