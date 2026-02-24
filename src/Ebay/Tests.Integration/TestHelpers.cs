@@ -1,3 +1,6 @@
+using System.Net.Http.Headers;
+using System.Text.Json;
+using Client.Clients.Generated;
 using Polly;
 using Polly.Timeout;
 
@@ -33,5 +36,37 @@ public static class TestHelpers
                     $"Assertion did not pass in {timeout:F1}s. Last assertion: {lastAssertion.Message}");
             }
         }
+    }
+
+    public static async Task AuthenticateWithClientCredentialsAsync(HttpClient client)
+    {
+        var token = await RequestClientCredentialsTokenAsync(client);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+    }
+
+    public static EbayClient CreateEbayClient(HttpClient httpClient) => new(httpClient);
+
+    private static async Task<string> RequestClientCredentialsTokenAsync(HttpClient client)
+    {
+        using var tokenResponse = await client.PostAsync(
+            "/connect/token",
+            new FormUrlEncodedContent(
+            [
+                new KeyValuePair<string, string>("grant_type", "client_credentials"),
+                new KeyValuePair<string, string>("client_id", IntegrationTestsSetupFixture.AuthorizationClientId),
+                new KeyValuePair<string, string>("client_secret", IntegrationTestsSetupFixture.AuthorizationClientSecret),
+                new KeyValuePair<string, string>("scope", IntegrationTestsSetupFixture.AuthorizationClientScope)
+            ]));
+
+        var tokenPayload = await tokenResponse.Content.ReadAsStringAsync();
+        Assert.That(tokenResponse.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.OK), tokenPayload);
+
+        var token = JsonDocument.Parse(tokenPayload)
+            .RootElement
+            .GetProperty("access_token")
+            .GetString();
+
+        Assert.That(token, Is.Not.Null.And.Not.Empty);
+        return token!;
     }
 }

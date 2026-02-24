@@ -18,6 +18,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Server\Server.csproj" />
+      <ProjectReference Include="..\Server.Client\Server.Client.csproj" />
     </ItemGroup>
 
 </Project>
