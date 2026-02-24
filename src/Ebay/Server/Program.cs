@@ -1,6 +1,7 @@
 using Duende.IdentityServer.Models;
 using MassTransit;
 using Server.Application.Consumers.EbayCurvesCacheWarmUp;
+using Server.Adapters.Driving.MassTransit.Consumers.MatchedPairs;
 using Server.Application.Consumers.MatchedPairs;
 using Server.Application.Consumers.MeasurementWatching;
 using Server.Application.Consumers.PriceCalculator;
@@ -121,7 +122,7 @@ public class Program
             {
                 c.UseConcurrencyLimit(10);
             });
-            _ = x.AddConsumer<MatchedPairsCalculator>(c =>
+            _ = x.AddConsumer<MatchedPairsCalculatorConsumer>(c =>
             {
                 c.UseConcurrencyLimit(1);
             });

@@ -2,29 +2,48 @@ using Server.Application.Abstractions.Driven.Models;
 using Server.Domain.Measurements;
 using Server.Domain.Measurements.MeasurementTypes.Base;
 
-namespace Server.Application.Services;
+namespace Server.Application.New.Services;
+
 #pragma warning disable CA1822
+/// <summary>
+/// Строит аппроксимационные модели анодных кривых для сравнения замеров.
+/// </summary>
 public class MeasurementApproximationService
 {
+    /// <summary>
+    /// Интерполяционная модель анодных кривых в нормализованных координатах.
+    /// </summary>
     public class Model
     {
         private readonly alglib.rbfmodel _rbf;
-
         private readonly double _baseAnodeCurrent;
 
+        /// <summary>
+        /// Создает экземпляр интерполяционной модели.
+        /// </summary>
+        /// <param name="rbf">RBF-модель из библиотеки alglib.</param>
+        /// <param name="baseAnodeCurrent">Базовое значение анодного тока для денормализации.</param>
         public Model(alglib.rbfmodel rbf, double baseAnodeCurrent)
         {
             _rbf = rbf;
             _baseAnodeCurrent = baseAnodeCurrent;
         }
 
+        /// <summary>
+        /// Возвращает относительное значение тока в заданной нормализованной точке.
+        /// </summary>
         public double ApproximateRelative(double anodeVoltage, double gridVoltage) => alglib.rbfcalc2(s: _rbf, x0: anodeVoltage, x1: gridVoltage);
+
+        /// <summary>
+        /// Возвращает оценку тока в рабочей точке в абсолютных единицах.
+        /// </summary>
         public double IatWorkingPoint() => alglib.rbfcalc2(s: _rbf, x0: 0, x1: 0) * _baseAnodeCurrent / 100.0;
     }
 
-
+    /// <summary>
+    /// Строит модель по кривым анодного тока и рабочей точке.
+    /// </summary>
     public Model GetModel(AnodeCurvesBase anodeCurves, Func<CurveSet, IReadOnlyCollection<double>> iExtractor, TubeWorkingPointInfo wp)
-
     {
         var points = new List<MeasurementPoint>();
         foreach (var result in anodeCurves.CurveSets)
@@ -45,7 +64,7 @@ public class MeasurementApproximationService
     private record struct MeasurementPoint(double Va, double Vg, double Ia);
 
     /// <summary>
-    /// Функция создает модель при помощи RBF интерполяции
+    /// Функция создает модель при помощи RBF интерполяции.
     /// </summary>
     private Model RbfModel(List<MeasurementPoint> points, TubeWorkingPointInfo wp)
     {

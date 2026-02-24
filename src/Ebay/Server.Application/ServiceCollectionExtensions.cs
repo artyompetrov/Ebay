@@ -40,7 +40,6 @@ public static class ServiceCollectionExtensions
         
         _ = services.AddSingleton(sp => sp.GetRequiredService<IOptions<EbayServerOptions>>().Value);
 
-        services.AddSingleton<MeasurementApproximationService>();
         _ = services.AddDbContext<ApplicationDbContext>((sp, o) =>
         {
             var connectionString = sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection")

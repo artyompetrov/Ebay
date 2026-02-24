@@ -1,18 +1,18 @@
 using System.Diagnostics;
-using MassTransit;
 using Microsoft.Extensions.Logging;
 using Server.Application.Abstractions.Driven.Abstractions.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Abstractions.Repositories;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Models;
-using Server.Application.Services;
+using Server.Application.Abstractions.Driving.Abstractions.Services;
+using Server.Application.New.Services;
 using Server.Domain.Measurements;
 using Server.Domain.Measurements.MeasurementTypes;
 using Server.Domain.Measurements.MeasurementTypes.Base;
 
-namespace Server.Application.Consumers.MatchedPairs;
+namespace Server.Application.New.MatchedPairs;
 
-public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
+internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
 {
     private readonly ILogger<MatchedPairsCalculator> _logger;
     private readonly IMeasurementQueries _measurementQueries;
@@ -40,18 +40,18 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         _measurementApproximationService = measurementApproximationService;
     }
 
-    private record MeasurementInfoWithAnodeCurves(MeasurementInfoWithData MeasurementInfoWithData, AnodeCurvesBase AnodeCurves);
+    private sealed record MeasurementInfoWithAnodeCurves(MeasurementInfoWithData MeasurementInfoWithData, AnodeCurvesBase AnodeCurves);
 
-    public async Task Consume(ConsumeContext<CalculateMatchedPair> context)
+    public async Task CalculateAsync(string measurementId1, string measurementId2, CancellationToken cancellationToken)
     {
         _logger.LogInformation(
             "Processing {MeasurementId1} {MeasurementId2} in {ServiceName}",
-            context.Message.MeasurementId1,
-            context.Message.MeasurementId2,
-            nameof(CalculateMatchedPair));
+            measurementId1,
+            measurementId2,
+            nameof(IMatchedPairsCalculator));
 
-        var measurement1dto = await _measurementQueries.GetMeasurementInfoWithData(context.Message.MeasurementId1, context.CancellationToken);
-        var measurement2dto = await _measurementQueries.GetMeasurementInfoWithData(context.Message.MeasurementId2, context.CancellationToken);
+        var measurement1dto = await _measurementQueries.GetMeasurementInfoWithData(measurementId1, cancellationToken);
+        var measurement2dto = await _measurementQueries.GetMeasurementInfoWithData(measurementId2, cancellationToken);
 
         if (measurement1dto == null || measurement2dto == null)
         {
@@ -62,8 +62,8 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         {
             _logger.LogInformation(
                 message: "Measurement pair skipped {MeasurementId1} {MeasurementId2} because one of them is sold",
-                context.Message.MeasurementId1,
-                context.Message.MeasurementId2
+                measurementId1,
+                measurementId2
             );
 
             return;
@@ -79,8 +79,8 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         {
             _logger.LogError(
                 message: "Trying to compare different product measurements {MeasurementId1} {MeasurementId2} ProductIds {ProductId1}, {ProductId2}",
-                context.Message.MeasurementId1,
-                context.Message.MeasurementId2,
+                measurementId1,
+                measurementId2,
                 measurement1dto.ProductId,
                 measurement2dto.ProductId
                 );
@@ -91,7 +91,7 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         var pointsPerBand = 36;
 
         var workingPoint =
-            await _tubeWorkingPointQueries.GetWorkingPointInfo(measurement1dto.ProductId, context.CancellationToken);
+            await _tubeWorkingPointQueries.GetWorkingPointInfo(measurement1dto.ProductId, cancellationToken);
 
         if (workingPoint == null)
         {
@@ -112,66 +112,66 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         switch (measurement1.AnodeCurves)
         {
             case PentodeAnodeCurves:
+            {
+                if (measurement2.AnodeCurves is not PentodeAnodeCurves)
                 {
-                    if (measurement2.AnodeCurves is not PentodeAnodeCurves)
-                    {
-                        throw new UnreachableException($"{nameof(measurement2)} is expected to be PentodeAnodeCurves");
-                    }
-
-                    if (measurement1 == measurement2)
-                    {
-                        // игнорируем сравнение сами собой
-                        return;
-                    }
-
-                    await CalculateForOneSectionTubes(
-                        measurement1: measurement1,
-                        measurement2: measurement2,
-                        cancellationToken: context.CancellationToken,
-                        workingPoint: workingPoint,
-                        radialBands: radialBands,
-                        pointsPerBand: pointsPerBand);
+                    throw new UnreachableException($"{nameof(measurement2)} is expected to be PentodeAnodeCurves");
                 }
+
+                if (measurement1 == measurement2)
+                {
+                    // игнорируем сравнение сами собой
+                    return;
+                }
+
+                await CalculateForOneSectionTubes(
+                    measurement1: measurement1,
+                    measurement2: measurement2,
+                    cancellationToken: cancellationToken,
+                    workingPoint: workingPoint,
+                    radialBands: radialBands,
+                    pointsPerBand: pointsPerBand);
+            }
                 break;
 
             case TriodeAnodeCurves:
+            {
+                if (measurement2.AnodeCurves is not TriodeAnodeCurves)
                 {
-                    if (measurement2.AnodeCurves is not TriodeAnodeCurves)
-                    {
-                        throw new UnreachableException($"{nameof(measurement2)} is expected to be TriodeAnodeCurves");
-                    }
-
-                    if (measurement1.MeasurementInfoWithData.Id == measurement2.MeasurementInfoWithData.Id)
-                    {
-                        // игнорируем сравнение сами собой
-                        return;
-                    }
-
-                    await CalculateForOneSectionTubes(
-                        measurement1: measurement1,
-                        measurement2: measurement2,
-                        cancellationToken: context.CancellationToken,
-                        workingPoint: workingPoint,
-                        radialBands: radialBands,
-                        pointsPerBand: pointsPerBand);
+                    throw new UnreachableException($"{nameof(measurement2)} is expected to be TriodeAnodeCurves");
                 }
+
+                if (measurement1.MeasurementInfoWithData.Id == measurement2.MeasurementInfoWithData.Id)
+                {
+                    // игнорируем сравнение сами собой
+                    return;
+                }
+
+                await CalculateForOneSectionTubes(
+                    measurement1: measurement1,
+                    measurement2: measurement2,
+                    cancellationToken: cancellationToken,
+                    workingPoint: workingPoint,
+                    radialBands: radialBands,
+                    pointsPerBand: pointsPerBand);
+            }
                 break;
 
             case DoubleTriodeAnodeCurves:
+            {
+                if (measurement2.AnodeCurves is not DoubleTriodeAnodeCurves)
                 {
-                    if (measurement2.AnodeCurves is not DoubleTriodeAnodeCurves)
-                    {
-                        throw new UnreachableException($"{nameof(measurement2)} is expected to be DoubleTriodeAnodeCurves");
-                    }
-
-                    await CalculateForTwoSectionTubes(
-                        measurement1: measurement1,
-                        measurement2: measurement2,
-                        cancellationToken: context.CancellationToken,
-                        workingPoint: workingPoint,
-                        radialBands: radialBands,
-                        pointsPerBand: pointsPerBand);
+                    throw new UnreachableException($"{nameof(measurement2)} is expected to be DoubleTriodeAnodeCurves");
                 }
+
+                await CalculateForTwoSectionTubes(
+                    measurement1: measurement1,
+                    measurement2: measurement2,
+                    cancellationToken: cancellationToken,
+                    workingPoint: workingPoint,
+                    radialBands: radialBands,
+                    pointsPerBand: pointsPerBand);
+            }
                 break;
             default:
                 throw new NotSupportedException($"Unsupported subtype of {nameof(MeasurementTypeBase)}");
@@ -182,7 +182,8 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         MeasurementInfoWithAnodeCurves measurement1,
         MeasurementInfoWithAnodeCurves measurement2,
         TubeWorkingPointInfo workingPoint,
-        int radialBands, int pointsPerBand,
+        int radialBands,
+        int pointsPerBand,
         CancellationToken cancellationToken)
     {
         var measurement1I1Model = _measurementApproximationService.GetModel(measurement1.AnodeCurves, x => x.I1, workingPoint);
@@ -193,7 +194,7 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         var measurement2I2Model = _measurementApproximationService.GetModel(measurement2.AnodeCurves,
             x => x.I2 ?? throw new InvalidOperationException("I2 is expected to be not null"), workingPoint);
 
-        if (measurement1.MeasurementInfoWithData.Id != measurement2.MeasurementInfoWithData.Id) // не делаем Direct в кейсе когда мы сравниваем две секции двойного триода между собой
+        if (measurement1.MeasurementInfoWithData.Id != measurement2.MeasurementInfoWithData.Id)
         {
             var (mseDirect1, rmseDirect1, maxAbsDirect1) = SquaredDiffPointsInEllipse(
                 model1: measurement1I1Model,
@@ -257,7 +258,6 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         int pointsPerBand,
         CancellationToken cancellationToken)
     {
-
         var measurement1I1Model = _measurementApproximationService.GetModel(measurement1.AnodeCurves, x => x.I1, workingPoint);
         var measurement2I1Model = _measurementApproximationService.GetModel(measurement2.AnodeCurves, x => x.I1, workingPoint);
 
@@ -267,7 +267,7 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
             radialBands: radialBands,
             pointsPerBand: pointsPerBand,
             workingPoint: workingPoint
-            );
+        );
 
         await SaveToDatabase(
             measurementId1: measurement1.MeasurementInfoWithData.Id,
@@ -277,7 +277,7 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
             mseSection1: mse,
             rmseSection1: rmse,
             maxAbsSection1: maxAbs
-            );
+        );
     }
 
     private async Task SaveToDatabase(
@@ -301,7 +301,7 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
             rmseSection2: rmseSection2,
             maxAbsSection1: maxAbsSection1,
             maxAbsSection2: maxAbsSection2);
-        
+
         await _matchedPairDifferenceRepository.RemoveAsync(
             newMatchedPairDifference.Id,
             cancellationToken);
@@ -313,30 +313,28 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
-
     /// <summary>
-    /// Функция считает ошибку между двумя интерполированными плоскостями
+    /// Функция считает ошибку между двумя интерполированными плоскостями.
     /// </summary>
-    /// <param name="model1">Модель 1</param>
-    /// <param name="model2">Модель 2</param>
-    /// <param name="radialBands">Количество эллипсов вокруг рабочей точки</param>
-    /// <param name="pointsPerBand">Количество точек на эллипсе</param>
-    /// <param name="workingPoint">Рабочая точка</param>
-    /// <param name="phiRad">Поворот эллипса</param>
-    /// <returns></returns>
+    /// <param name="model1">Модель 1.</param>
+    /// <param name="model2">Модель 2.</param>
+    /// <param name="radialBands">Количество эллипсов вокруг рабочей точки.</param>
+    /// <param name="pointsPerBand">Количество точек на эллипсе.</param>
+    /// <param name="workingPoint">Рабочая точка.</param>
+    /// <param name="phiRad">Поворот эллипса.</param>
+    /// <returns>Среднеквадратичная, корневая и максимальная абсолютная ошибка.</returns>
     private static (double mse, double rmse, double maxAbs) SquaredDiffPointsInEllipse(
         MeasurementApproximationService.Model model1,
         MeasurementApproximationService.Model model2,
-        int radialBands,        // колец по радиусу
-        int pointsPerBand,      // точек на кольцо
+        int radialBands,
+        int pointsPerBand,
         TubeWorkingPointInfo workingPoint,
-        double phiRad = 0.0     // поворот (рад)
-    )
+        double phiRad = 0.0)
     {
         var c = Math.Cos(phiRad);
         var s = Math.Sin(phiRad);
 
-        var sse = 0.0;     // sum of squared errors
+        var sse = 0.0;
         var maxAbs = 0.0;
         long count = 0;
 
@@ -345,23 +343,20 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
 
         for (var i = 1; i <= radialBands; i++)
         {
-            // midpoint по радиусу, чтобы не попадать на границы
             var r = (i - 0.5) / radialBands;
 
             for (var j = 0; j < pointsPerBand; j++)
             {
                 var theta = 2 * Math.PI * j / pointsPerBand;
 
-                // точка эллипса до поворота
                 var ex = workingPoint.AnodeVoltageHalfWidth * r * Math.Cos(theta);
                 var ey = workingPoint.GridVoltageHalfWidth * r * Math.Sin(theta);
 
-                // поворот
                 var rx = c * ex - s * ey;
                 var ry = s * ex + c * ey;
 
-                var x = rx / anodeBase; // Делим для нормализации
-                var y = ry / gridBase; // Делим для нормализации
+                var x = rx / anodeBase;
+                var y = ry / gridBase;
 
                 var d = model1.ApproximateRelative(x, y) - model2.ApproximateRelative(x, y);
                 var ad = Math.Abs(d);
@@ -380,9 +375,4 @@ public class MatchedPairsCalculator : IConsumer<CalculateMatchedPair>
         var rmse = Math.Sqrt(mse);
         return (mse, rmse, maxAbs);
     }
-}
-
-public record CalculateMatchedPair(string MeasurementId1, string MeasurementId2)
-{
-    public override string ToString() => $"{MeasurementId1}-{MeasurementId2}";
 }
