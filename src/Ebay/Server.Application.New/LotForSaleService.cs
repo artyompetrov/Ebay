@@ -1,9 +1,8 @@
-using Server.Application.Abstractions.Driven.Abstractions.Abstractions;
-using Server.Application.Abstractions.Driven.Abstractions.Abstractions.Repositories;
+using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
+using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Abstractions.Driven.Models;
 using Server.Application.New.LotForSale;
-using Server.Domain.LotForSale;
 using Server.Domain.Measurements;
 
 namespace Server.Application.New;
@@ -61,7 +60,7 @@ public sealed class LotForSaleService
     public async Task CreateLotForSaleAsync(string name, Guid productId, ProductState productState, CancellationToken cancellationToken)
     {
         var lotId = _lotForSaleIdGenerator.GenerateNextId();
-        var aggregate = global::Server.Domain.LotForSale.LotForSale.Create(lotId, name, productId, productState);
+        var aggregate = Domain.LotForSale.LotForSale.Create(lotId, name, productId, productState);
         await _lotForSaleRepository.AddAsync(aggregate, cancellationToken);
         _ = await _writeModelUnitOfWork.SaveChangesAsync(cancellationToken);
     }

@@ -1,10 +1,9 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Server.Application.Abstractions.Driven.Abstractions.Abstractions;
+using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Domain.Abstractions;
 using Server.Domain.LotForSale;
-using Server.Domain.Measurements;
 
 namespace Server.Adapters.Driven.EF.WriteModel;
 
@@ -61,7 +60,7 @@ public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
         return await base.SaveChangesAsync(cancellationToken);
     }
 
-    
+
     private async Task PublishDomainEventsAsync(CancellationToken cancellationToken)
     {
         var aggregateEntries = ChangeTracker.Entries<IAggregateRoot>()

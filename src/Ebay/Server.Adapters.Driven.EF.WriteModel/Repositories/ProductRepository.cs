@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using Server.Application.Abstractions.Driven.Abstractions.Abstractions.Repositories;
+using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Data;
-using Server.Domain;
 using Server.Domain.Product;
 
 namespace Server.Adapters.Driven.EF.WriteModel.Repositories;

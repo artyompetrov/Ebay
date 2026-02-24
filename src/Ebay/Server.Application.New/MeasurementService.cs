@@ -1,7 +1,6 @@
-using Server.Application.Abstractions.Driven.Abstractions.Abstractions;
-using Server.Application.Abstractions.Driven.Abstractions.Abstractions.Repositories;
+using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
-using Server.Application.Abstractions.Driven.Models;
+using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
 using Server.Application.Abstractions.Driving.Models;
 using Server.Domain.Measurements;
@@ -123,7 +122,7 @@ internal sealed class MeasurementService : IMeasurementService
         await _matchedPairDifferenceRepository.RemoveByMeasurementIds(
             measurementIds: new HashSet<string> { measurementId },
             cancellationToken);
-        
+
         await _productMeasurementRepository.RemoveAsync(measurementId, cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
@@ -141,10 +140,10 @@ internal sealed class MeasurementService : IMeasurementService
             measurementStates: measurementStates,
             cancellationToken: cancellationToken);
 
-        return result.Select(x => new MeasurementInfoWithSimilarMeasurementsView(
+        return [.. result.Select(x => new MeasurementInfoWithSimilarMeasurementsView(
             Data: x,
             IsPublishedOnEbay: x.MeasurementInfo.LastTimeWatchedOnEbay > DateTime.UtcNow.AddDays(-7)
-        )).ToList();
+        ))];
     }
 
     public async Task<byte[]?> GetMeasurementFile(string measurementId, CancellationToken cancellationToken)

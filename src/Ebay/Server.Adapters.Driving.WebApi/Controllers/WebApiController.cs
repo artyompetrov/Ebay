@@ -39,22 +39,22 @@ public sealed class WebApiController : WebApiControllerBase
         return response;
     }
 
-    private static DomainProductState ToDomainProductState(Generated.LotForSaleProductState productState)
+    private static DomainProductState ToDomainProductState(LotForSaleProductState productState)
     {
         return productState switch
         {
-            Generated.LotForSaleProductState.New => DomainProductState.New,
-            Generated.LotForSaleProductState.Used => DomainProductState.Used,
+            LotForSaleProductState.New => DomainProductState.New,
+            LotForSaleProductState.Used => DomainProductState.Used,
             _ => throw new ArgumentOutOfRangeException(nameof(productState), productState, null)
         };
     }
 
-    private static Generated.LotForSaleProductState ToApiProductState(DomainProductState productState)
+    private static LotForSaleProductState ToApiProductState(DomainProductState productState)
     {
         return productState switch
         {
-            DomainProductState.New => Generated.LotForSaleProductState.New,
-            DomainProductState.Used => Generated.LotForSaleProductState.Used,
+            DomainProductState.New => LotForSaleProductState.New,
+            DomainProductState.Used => LotForSaleProductState.Used,
             _ => throw new ArgumentOutOfRangeException(nameof(productState), productState, null)
         };
     }

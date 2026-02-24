@@ -3,7 +3,7 @@ using Client.Clients.Generated;
 using Newtonsoft.Json.Linq;
 using Server;
 
-namespace Tests;
+namespace Tests.Explicit;
 
 public abstract class ExplicitTestsBase
 {

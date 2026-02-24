@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 using Server.Application.Abstractions.Driven.Models;
 
 namespace Server.Application.Abstractions.Driving.Models;

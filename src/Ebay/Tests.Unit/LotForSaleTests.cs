@@ -1,8 +1,7 @@
 using Server.Application.New.LotForSale;
-using Server.Domain.LotForSale;
 using Server.Domain.Measurements;
 
-namespace Tests;
+namespace Tests.Unit;
 
 [TestFixture]
 public sealed class LotForSaleTests
@@ -10,7 +9,7 @@ public sealed class LotForSaleTests
     [Test]
     public void Create_AcceptsProvidedId()
     {
-        var lot = global::Server.Domain.LotForSale.LotForSale.Create("ABCdef1", "lot", Guid.NewGuid(), ProductState.New);
+        var lot = Server.Domain.LotForSale.LotForSale.Create("ABCdef1", "lot", Guid.NewGuid(), ProductState.New);
 
         Assert.That(lot.Id, Is.EqualTo("ABCdef1"));
     }
@@ -19,7 +18,7 @@ public sealed class LotForSaleTests
     public void Create_Throws_WhenIdLengthIsInvalid()
     {
         Assert.Throws<ArgumentException>(() =>
-            _ = global::Server.Domain.LotForSale.LotForSale.Create("short", "lot", Guid.NewGuid(), ProductState.New));
+            _ = Server.Domain.LotForSale.LotForSale.Create("short", "lot", Guid.NewGuid(), ProductState.New));
     }
 
     [Test]

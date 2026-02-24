@@ -435,9 +435,9 @@ internal class EbayControllerImplementation : IEbayController
         var result = measurements
             .Select(x => new MeasurementData(
                 doubleTriodeSectionRmse: x.Data.DoubleTriodeSectionRmse,
-                manufactureCode:  x.Data.MeasurementInfo.ManufactureCode,
-                measurementId:  x.Data.MeasurementInfo.Id,
-                isPublishedOnEbay:  x.IsPublishedOnEbay,
+                manufactureCode: x.Data.MeasurementInfo.ManufactureCode,
+                measurementId: x.Data.MeasurementInfo.Id,
+                isPublishedOnEbay: x.IsPublishedOnEbay,
                 productState: x.Data.MeasurementInfo.ProductState.ToApiProductState(),
                 location: x.Data.MeasurementInfo.Location,
                 matchId: x.Data.MeasurementInfo.MatchId,

@@ -2,7 +2,6 @@ using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Data;
 using Server.Application.Infrastructure;
 using Server.Application.New;
@@ -180,9 +179,9 @@ public class ChipfindBackgroundTask : BackgroundTask
     {
         var products = await productQueries.GetAllProductsAsync(cancellationToken);
 
-        
-        
-        
+
+
+
         var productsArray = products.Select(x => new ProductInner(
                 ProductId: x.Data.Id,
                 Regex: x.ProductRegex,

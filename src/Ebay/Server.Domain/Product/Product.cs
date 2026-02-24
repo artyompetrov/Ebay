@@ -12,7 +12,7 @@ public sealed class Product : AggregateRoot<Guid>
         Name = name;
         LastCheckTime = lastCheckTime;
         Weight = weight;
-        
+
         AddDomainEvent(new ProductUpdated(Id));
     }
 
@@ -36,7 +36,7 @@ public sealed class Product : AggregateRoot<Guid>
         product._searchQueries.AddRange(
             searchQueries.Select(x => new SearchQuery(Guid.NewGuid(), x, productId)));
 
-        
+
         return product;
     }
 

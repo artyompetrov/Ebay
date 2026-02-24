@@ -1,4 +1,4 @@
-namespace Tests;
+namespace Tests.Explicit;
 
 [Category("ExplicitOnly")]
 [Explicit]

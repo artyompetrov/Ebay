@@ -1,11 +1,10 @@
 using System.Data;
 using System.Text.RegularExpressions;
-using Server.Application.Abstractions.Driven.Abstractions.Abstractions;
-using Server.Application.Abstractions.Driven.Abstractions.Abstractions.Repositories;
+using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
+using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Abstractions.Driven.Models;
 using Server.Application.Abstractions.Driving.Models;
-using Server.Domain;
 using Server.Domain.Product;
 
 namespace Server.Application.New;
@@ -171,9 +170,10 @@ public class ProductService
 
     private static Regex GetProductRegex(ProductInfo productInfo)
     {
-        var productNames = new HashSet<string>();
-
-        productNames.Add(productInfo.Name);
+        var productNames = new HashSet<string>
+        {
+            productInfo.Name
+        };
 
         if (productInfo.RuSearchQueries == null)
         {

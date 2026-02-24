@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Server.Application.Abstractions.Driven.Abstractions.Abstractions;
+using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Domain;
 using Server.Domain.Abstractions;
 using Server.Domain.Measurements;
@@ -27,7 +27,7 @@ namespace Server.Application.Data;
 public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, IUnitOfWork
 {
     private readonly IWriteModelUnitOfWork? _writeModelUnitOfWork;
-    
+
     public ApplicationDbContext(
         DbContextOptions<ApplicationDbContext> options,
         IOptions<OperationalStoreOptions> operationalStoreOptions,
@@ -36,7 +36,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
     {
         _writeModelUnitOfWork = writeModelUnitOfWork;
     }
-    
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

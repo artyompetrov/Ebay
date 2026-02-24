@@ -2,7 +2,6 @@ using System.Data;
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Models;
-using Server.Domain;
 using Server.Domain.Product;
 
 namespace Server.Adapters.Driven.EF.ReadModel.Queries;

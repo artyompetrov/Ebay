@@ -1,4 +1,4 @@
-namespace Server.Application.Abstractions.Driven.Abstractions.Abstractions;
+namespace Server.Application.Abstractions.Driven.Abstractions;
 
 /// <summary>
 /// Unit of Work для write-model адаптера.

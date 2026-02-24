@@ -1,3 +1,4 @@
+
 namespace Server.Application.New.LotForSale;
 
 /// <summary>
@@ -12,7 +13,7 @@ public sealed class LotForSaleIdGenerator : ILotForSaleIdGenerator
     private const int MaxSecondsSinceEpoch = (1 << (IdLength * 6 - SequenceBits)) - 1;
     private static readonly DateTime IdEpoch = new(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
-    private readonly object _sync = new();
+    private readonly Lock _sync = new();
     private readonly ICurrentTimeProvider _currentTimeProvider;
     private readonly IRandomNumberProvider _randomNumberProvider;
 

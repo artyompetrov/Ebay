@@ -3,7 +3,7 @@ using Server.Application;
 using Server.Application.Services.LotDataExtractor;
 using LotDataToExtract = Server.Controllers.Generated.LotDataToExtract;
 
-namespace Tests;
+namespace Tests.Explicit;
 
 [Category("ExplicitOnly")]
 [Explicit]

@@ -1,6 +1,6 @@
-﻿namespace Server.Domain.Abstractions;
+namespace Server.Domain.Abstractions;
 
 public interface IDomainEvent
 {
-    
+
 }

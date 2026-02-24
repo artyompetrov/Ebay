@@ -2,7 +2,6 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Server.Application.Data;
-using Server.Domain;
 using Server.Domain.Product;
 
 namespace Server.Application.Consumers.PriceCalculator;
@@ -32,7 +31,7 @@ public class CalculatePricesForProductConsumer : IConsumer<CalculatePricesForPro
     private async Task CalculatePricesForProductAsync(Guid productId, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Handling updated product command: {ProductId}", productId);
-        
+
         var lotIds = await _applicationContext.Lots.AsNoTracking()
             .Where(x => x.ProductId == productId)
             .Select(x => x.Id)

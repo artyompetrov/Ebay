@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Application.HostedServices.ChipFind;
 
@@ -12,7 +11,7 @@ public static class ServiceCollectionExtensions
             .BindConfiguration("Smtp")
             .ValidateDataAnnotations()
             .ValidateOnStart();
-        
+
         _ = services.AddScoped<IEmailSender, EmailSender>();
     }
 }

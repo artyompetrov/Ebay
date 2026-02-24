@@ -1,7 +1,6 @@
-using Server.Application.Abstractions.Driven.Abstractions.Abstractions;
 using Server.Domain.LotForSale;
 
-namespace Server.Application.Abstractions.Driven.Abstractions.Abstractions.Repositories;
+namespace Server.Application.Abstractions.Driven.Abstractions.Repositories;
 
 /// <summary>
 /// Репозиторий агрегата лота для продажи.

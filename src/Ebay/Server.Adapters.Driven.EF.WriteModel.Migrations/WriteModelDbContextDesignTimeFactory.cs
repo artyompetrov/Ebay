@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
-using Server.Adapters.Driven.EF.WriteModel;
 
 namespace Server.Adapters.Driven.EF.WriteModel.Migrations;
 

@@ -1,8 +1,8 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using Server.Application.Abstractions.Driven.Abstractions.Abstractions;
-using Server.Application.Abstractions.Driven.Abstractions.Abstractions.Repositories;
+using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
+using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Consumers.MatchedPairs;
 using Server.Application.Controllers;
 using Server.Domain.Measurements;

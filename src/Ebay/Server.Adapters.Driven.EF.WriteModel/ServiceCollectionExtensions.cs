@@ -2,8 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Adapters.Driven.EF.WriteModel.Repositories;
-using Server.Application.Abstractions.Driven.Abstractions.Abstractions;
-using Server.Application.Abstractions.Driven.Abstractions.Abstractions.Repositories;
+using Server.Application.Abstractions.Driven.Abstractions;
+using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 
 namespace Server.Adapters.Driven.EF.WriteModel;
 
@@ -15,7 +15,7 @@ public static class ServiceCollectionExtensions
         using var serviceScope = serviceProvider.CreateScope();
 
         var writeModelDbContext = serviceScope.ServiceProvider.GetRequiredService<WriteModelDbContext>();
-        
+
         writeModelDbContext.Database.Migrate();
     }
 

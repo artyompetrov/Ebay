@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using Server.Adapters.Driven.ChipFind;
 using Server.Application.HostedServices.ChipFind;
 
-namespace Tests;
+namespace Tests.Unit;
 
 [TestFixture]
 public class ChipfindAdapterTests

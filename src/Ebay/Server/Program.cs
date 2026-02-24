@@ -1,10 +1,5 @@
 using Duende.IdentityServer.Models;
 using MassTransit;
-using Server.Application.Consumers.EbayCurvesCacheWarmUp;
-using Server.Adapters.Driving.MassTransit.Consumers.MatchedPairs;
-using Server.Application.Consumers.MatchedPairs;
-using Server.Application.Consumers.MeasurementWatching;
-using Server.Application.Consumers.PriceCalculator;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
@@ -17,8 +12,12 @@ using Server.Adapters.Driven.EF.ReadModel;
 using Server.Adapters.Driven.EF.WriteModel;
 using Server.Adapters.Driven.Smtp;
 using Server.Adapters.Driven.uTracer;
+using Server.Adapters.Driving.MassTransit.Consumers.MatchedPairs;
 using Server.Adapters.Driving.WebApi;
 using Server.Application;
+using Server.Application.Consumers.EbayCurvesCacheWarmUp;
+using Server.Application.Consumers.MeasurementWatching;
+using Server.Application.Consumers.PriceCalculator;
 using Server.Application.Data;
 using Server.Configuration;
 using Secret = Duende.IdentityServer.Models.Secret;
@@ -40,7 +39,7 @@ public class Program
             options.ValidateOnBuild = true;
             options.ValidateScopes = true;
         });
-        
+
 
         // Add services to the container.
         builder.Services.AddMemoryCache();
@@ -56,12 +55,12 @@ public class Program
 
         ConfigureIdentity(builder.Services);
         AddOpenTelemetry(builder);
-        
-        
+
+
         builder.Services.AddResponseCaching();
 
         var app = builder.Build();
-        
+
         app.Services.UseApplication();
         app.Services.UseEfWriteModelAdapter();
 
@@ -83,11 +82,11 @@ public class Program
         app.UseStaticFiles();
         app.UseRouting();
         app.UseResponseCaching();
-        
+
         app.UseAuthentication();
         app.UseIdentityServer();
         app.UseAuthorization();
-        
+
         app.MapRazorPages();
         app.MapControllers();
         app.MapHealthChecks("/api/health");

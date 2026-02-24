@@ -1,9 +1,8 @@
-using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Server.Application.Abstractions.Driven.Abstractions.Abstractions;
+using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Controllers;
 using Server.Application.Data;
 using Server.Application.HostedServices.ChipFind;
@@ -37,7 +36,7 @@ public static class ServiceCollectionExtensions
             .BindConfiguration("EbayServer")
             .ValidateDataAnnotations()
             .ValidateOnStart();
-        
+
         _ = services.AddSingleton(sp => sp.GetRequiredService<IOptions<EbayServerOptions>>().Value);
 
         _ = services.AddDbContext<ApplicationDbContext>((sp, o) =>
@@ -96,7 +95,7 @@ public static class ServiceCollectionExtensions
         using var serviceScope = serviceProvider.CreateScope();
 
         var dbContext = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        
+
         dbContext.Database.Migrate();
     }
 

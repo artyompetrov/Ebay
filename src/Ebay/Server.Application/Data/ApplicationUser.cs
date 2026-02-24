@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Server.Domain;
 using Server.Domain.Product;
 
 namespace Server.Application.Data;
