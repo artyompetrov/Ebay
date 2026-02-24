@@ -16,7 +16,7 @@ using Server.Adapters.Driving.MassTransit.Consumers.MatchedPairs;
 using Server.Adapters.Driving.WebApi;
 using Server.Application;
 using Server.Application.Consumers.EbayCurvesCacheWarmUp;
-using Server.Application.Consumers.MeasurementWatching;
+using Server.Adapters.Driving.MassTransit.Consumers.MeasurementWatching;
 using Server.Application.Consumers.PriceCalculator;
 using Server.Application.Data;
 using Server.Configuration;
