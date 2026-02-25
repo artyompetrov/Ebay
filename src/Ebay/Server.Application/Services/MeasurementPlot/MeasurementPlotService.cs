@@ -95,11 +95,12 @@ public class MeasurementPlotService : IMeasurementPlotService
             {
                 return StatusSvg(info.MeasurementState.ToString());
             }
-
+            /* todo после изменения lot id эта проверка стала работать неправильно
             if (lotId != info.LotId)
             {
                 return StatusSvg("Listed in other lot");
             }
+            */
         }
 
         return await PlotForMeasurementId(
@@ -509,11 +510,12 @@ public class MeasurementPlotService : IMeasurementPlotService
             {
                 return StatusSvg(info.MeasurementState.ToString());
             }
-
+            /* todo после изменения lotid эта проверка стала работать неправильно
             if (lotId != info.LotId)
             {
                 return StatusSvg("Listed in other lot");
             }
+            */
         }
 
         var matchedPairMeasurementsIds =
