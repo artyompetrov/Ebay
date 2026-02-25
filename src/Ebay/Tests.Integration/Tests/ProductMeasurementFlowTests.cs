@@ -1,4 +1,5 @@
 using System.IO.Compression;
+using System.Net;
 using Client.Clients.Generated;
 
 namespace Tests.Integration.Tests;
@@ -37,7 +38,34 @@ public class ProductMeasurementFlowTests
             Assert.That(measurement.ManufactureCode, Is.EqualTo("2026-02"));
             Assert.That(measurement.ProductState, Is.EqualTo(ProductState.New));
             Assert.That(measurement.MeasurementState, Is.EqualTo(MeasurementState.Created));
+            Assert.That(measurement.IsPublishedOnEbay, Is.False);
         }
+
+        using var ebayCurvesResponse = await httpClient.GetAsync($"/m/{measurementId}/ebay_curves");
+        var ebayCurvesContent = await ebayCurvesResponse.Content.ReadAsStringAsync();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(ebayCurvesResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK), ebayCurvesContent);
+            Assert.That(ebayCurvesContent, Does.Contain("<svg"));
+        }
+
+        var isPublishedOnEbay = false;
+        var startedAt = DateTime.UtcNow;
+
+        while (!isPublishedOnEbay && DateTime.UtcNow - startedAt < TimeSpan.FromSeconds(20))
+        {
+            var updatedMeasurements = await ebayClient.GetMeasurementsAsync(measurementState: null, productId: productId);
+            var updatedMeasurement = updatedMeasurements.SingleOrDefault(x => x.MeasurementId == measurementId);
+            isPublishedOnEbay = updatedMeasurement?.IsPublishedOnEbay == true;
+
+            if (!isPublishedOnEbay)
+            {
+                await Task.Delay(250);
+            }
+        }
+
+        Assert.That(isPublishedOnEbay, Is.True);
     }
 
     private static async Task<Guid> CreateProductAsync(EbayClient ebayClient)
