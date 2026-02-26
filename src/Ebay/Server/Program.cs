@@ -12,6 +12,7 @@ using Server.Adapters.Driven.EF.ReadModel;
 using Server.Adapters.Driven.EF.WriteModel;
 using Server.Adapters.Driven.Smtp;
 using Server.Adapters.Driven.uTracer;
+using Server.Adapters.Driving.BackgroundTasks;
 using Server.Adapters.Driving.MassTransit.Consumers.MatchedPairs;
 using Server.Adapters.Driving.WebApi;
 using Server.Application;
@@ -48,6 +49,7 @@ public class Program
         builder.Services.AddChipFindAdapter();
         builder.Services.AddEfReadModelAdapter();
         builder.Services.AddApplicationServices();
+        builder.Services.AddBackgroundTasksAdapter();
         builder.Services.AddWebApiAdapter();
         builder.Services.AddEfWriteModelAdapter();
         builder.Services.AddHealthChecks();

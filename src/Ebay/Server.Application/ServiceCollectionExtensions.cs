@@ -6,11 +6,12 @@ using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
 using Server.Application.Controllers;
 using Server.Application.Data;
+using Server.Application.Data.HostedServices;
 using Server.Application.HostedServices.ChipFind;
 using Server.Application.HostedServices.Currencies;
 using Server.Application.HostedServices.DbCache;
-using Server.Application.HostedServices.Measurements;
 using Server.Application.HostedServices.SaleAdvertisements;
+using Server.Application.HostedServices.Measurements;
 using Server.Application.Infrastructure;
 using Server.Application.New;
 using Server.Application.Services;
@@ -58,6 +59,12 @@ public static class ServiceCollectionExtensions
         });
         _ = services.AddScoped<DbCache>();
         services.AddApplicationNewServices();
+        _ = services.AddScoped<ICurrencyQueries, CurrencyDataAccess>();
+        _ = services.AddScoped<ICurrencyRateRepository, CurrencyDataAccess>();
+        _ = services.AddScoped<IProductEmailSendHistoryRepository, ProductEmailSendHistoryRepository>();
+        _ = services.AddScoped<CurrencyRateRefreshService>();
+        _ = services.AddScoped<ChipfindMonitoringService>();
+        _ = services.AddScoped<SaleAdvertisementCleanupService>();
         _ = services.AddScoped<MatchedMeasurementService>();
         _ = services.AddScoped<MeasurementPlotService>();
         _ = services.AddScoped<IMeasurementWatchedOnEbayHandler, MeasurementWatchedOnEbayHandler>();
@@ -71,9 +78,6 @@ public static class ServiceCollectionExtensions
         _ = services.AddDefaultIdentity<ApplicationUser>(o => o.SignIn.RequireConfirmedAccount = true)
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
-        _ = services.AddHostedService<CurrencyRateBackgroundTask>();
-        _ = services.AddHostedService<ChipfindBackgroundTask>();
-        _ = services.AddHostedService<SaleAdvertisementCleanupBackgroundTask>();
 
         _ = services.AddHostedService<DbCacheCleanupHostedService>();
         _ = services.AddHostedService<MeasurementPlotWarmupHostedService>();

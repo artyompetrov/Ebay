@@ -55,6 +55,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Explicit", "Tests.Exp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.Adapters.Driving.MassTransit", "Server.Adapters.Driving.MassTransit\Server.Adapters.Driving.MassTransit.csproj", "{82B05674-4B9A-420A-ACA7-6BC50B0E92A3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.Adapters.Driving.BackgroundTasks", "Server.Adapters.Driving.BackgroundTasks\Server.Adapters.Driving.BackgroundTasks.csproj", "{801FEF40-BDCC-4586-83A7-174086E1ED01}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -305,6 +307,18 @@ Global
 		{82B05674-4B9A-420A-ACA7-6BC50B0E92A3}.Release|x64.Build.0 = Release|Any CPU
 		{82B05674-4B9A-420A-ACA7-6BC50B0E92A3}.Release|x86.ActiveCfg = Release|Any CPU
 		{82B05674-4B9A-420A-ACA7-6BC50B0E92A3}.Release|x86.Build.0 = Release|Any CPU
+		{801FEF40-BDCC-4586-83A7-174086E1ED01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{801FEF40-BDCC-4586-83A7-174086E1ED01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{801FEF40-BDCC-4586-83A7-174086E1ED01}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{801FEF40-BDCC-4586-83A7-174086E1ED01}.Debug|x64.Build.0 = Debug|Any CPU
+		{801FEF40-BDCC-4586-83A7-174086E1ED01}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{801FEF40-BDCC-4586-83A7-174086E1ED01}.Debug|x86.Build.0 = Debug|Any CPU
+		{801FEF40-BDCC-4586-83A7-174086E1ED01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{801FEF40-BDCC-4586-83A7-174086E1ED01}.Release|Any CPU.Build.0 = Release|Any CPU
+		{801FEF40-BDCC-4586-83A7-174086E1ED01}.Release|x64.ActiveCfg = Release|Any CPU
+		{801FEF40-BDCC-4586-83A7-174086E1ED01}.Release|x64.Build.0 = Release|Any CPU
+		{801FEF40-BDCC-4586-83A7-174086E1ED01}.Release|x86.ActiveCfg = Release|Any CPU
+		{801FEF40-BDCC-4586-83A7-174086E1ED01}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
