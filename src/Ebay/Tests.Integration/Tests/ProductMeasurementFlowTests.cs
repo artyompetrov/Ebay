@@ -41,31 +41,25 @@ public class ProductMeasurementFlowTests
             Assert.That(measurement.IsPublishedOnEbay, Is.False);
         }
 
-        using var ebayCurvesResponse = await httpClient.GetAsync($"/m/{measurementId}/ebay_curves");
-        var ebayCurvesContent = await ebayCurvesResponse.Content.ReadAsStringAsync();
-
-        using (Assert.EnterMultipleScope())
+        await TestHelpers.RetryUntilValidationSuccessAsync(async () =>
         {
-            Assert.That(ebayCurvesResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK), ebayCurvesContent);
-            Assert.That(ebayCurvesContent, Does.Contain("<svg"));
-        }
+            using var ebayCurvesResponse = await httpClient.GetAsync($"/m/{measurementId}/ebay_curves");
+            var ebayCurvesContent = await ebayCurvesResponse.Content.ReadAsStringAsync();
 
-        var isPublishedOnEbay = false;
-        var startedAt = DateTime.UtcNow;
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(ebayCurvesResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK), ebayCurvesContent);
+                Assert.That(ebayCurvesContent, Does.Contain("<svg"));
+            }
 
-        while (!isPublishedOnEbay && DateTime.UtcNow - startedAt < TimeSpan.FromSeconds(20))
-        {
             var updatedMeasurements = await ebayClient.GetMeasurementsAsync(measurementState: null, productId: productId);
             var updatedMeasurement = updatedMeasurements.SingleOrDefault(x => x.MeasurementId == measurementId);
-            isPublishedOnEbay = updatedMeasurement?.IsPublishedOnEbay == true;
 
-            if (!isPublishedOnEbay)
+            if (updatedMeasurement?.IsPublishedOnEbay != true)
             {
-                await Task.Delay(250);
+                throw new AssertionException("Measurement was not marked as published on eBay yet.");
             }
-        }
-
-        Assert.That(isPublishedOnEbay, Is.True);
+        }, timeout: 30);
     }
 
     private static async Task<Guid> CreateProductAsync(EbayClient ebayClient)
