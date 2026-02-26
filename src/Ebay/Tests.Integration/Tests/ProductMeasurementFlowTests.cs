@@ -1,4 +1,5 @@
 using System.IO.Compression;
+using System.Net;
 using Client.Clients.Generated;
 
 namespace Tests.Integration.Tests;
@@ -37,7 +38,28 @@ public class ProductMeasurementFlowTests
             Assert.That(measurement.ManufactureCode, Is.EqualTo("2026-02"));
             Assert.That(measurement.ProductState, Is.EqualTo(ProductState.New));
             Assert.That(measurement.MeasurementState, Is.EqualTo(MeasurementState.Created));
+            Assert.That(measurement.IsPublishedOnEbay, Is.False);
         }
+
+        await TestHelpers.RetryUntilValidationSuccessAsync(async () =>
+        {
+            using var ebayCurvesResponse = await httpClient.GetAsync($"/m/{measurementId}/ebay_curves");
+            var ebayCurvesContent = await ebayCurvesResponse.Content.ReadAsStringAsync();
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(ebayCurvesResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK), ebayCurvesContent);
+                Assert.That(ebayCurvesContent, Does.Contain("<svg"));
+            }
+
+            var updatedMeasurements = await ebayClient.GetMeasurementsAsync(measurementState: null, productId: productId);
+            var updatedMeasurement = updatedMeasurements.SingleOrDefault(x => x.MeasurementId == measurementId);
+
+            if (updatedMeasurement?.IsPublishedOnEbay != true)
+            {
+                throw new AssertionException("Measurement was not marked as published on eBay yet.");
+            }
+        });
     }
 
     private static async Task<Guid> CreateProductAsync(EbayClient ebayClient)

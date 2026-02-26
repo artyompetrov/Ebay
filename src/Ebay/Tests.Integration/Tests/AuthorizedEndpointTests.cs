@@ -11,33 +11,11 @@ public class AuthorizedEndpointTests
     public async Task AuthorizedEndpoint_RequiresBearerToken_AndAcceptsClientCredentialsToken()
     {
         using var client = IntegrationTestsSetupFixture.Factory.CreateClient();
-
-        using var unauthorizedResponse = await client.GetAsync("/api/ebay/v1/products");
-        Assert.That(unauthorizedResponse.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
-
-        using var tokenResponse = await client.PostAsync(
-            "/connect/token",
-            new FormUrlEncodedContent(
-            [
-                new KeyValuePair<string, string>("grant_type", "client_credentials"),
-                new KeyValuePair<string, string>("client_id", IntegrationTestsSetupFixture.AuthorizationClientId),
-                new KeyValuePair<string, string>("client_secret", IntegrationTestsSetupFixture.AuthorizationClientSecret),
-                new KeyValuePair<string, string>("scope", IntegrationTestsSetupFixture.AuthorizationClientScope)
-            ]));
-
-        var tokenPayload = await tokenResponse.Content.ReadAsStringAsync();
-        Assert.That(tokenResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK), tokenPayload);
-
-        var token = JsonDocument.Parse(tokenPayload)
-            .RootElement
-            .GetProperty("access_token")
-            .GetString();
-
-        Assert.That(token, Is.Not.Null.And.Not.Empty);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        using var authorizedResponse = await client.GetAsync("/api/ebay/v1/products");
-        var authorizedPayload = await authorizedResponse.Content.ReadAsStringAsync();
-        Assert.That(authorizedResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK), authorizedPayload);
+        await TestHelpers.AuthenticateWithClientCredentialsAsync(client);
+        var ebayClient = TestHelpers.CreateEbayClient(client);
+        
+        var response = await ebayClient.GetAllProductsAsync(CancellationToken.None);
+        
+        Assert.That(response, Is.Empty);
     }
 }

@@ -18,8 +18,7 @@ public class HealthCheckTests
                     throw new AssertionException(
                         $"Expected status OK, but got {(int)response.StatusCode} ({response.StatusCode}).");
                 }
-            },
-            timeout: 20);
+            });
     }
 
     [Test]
