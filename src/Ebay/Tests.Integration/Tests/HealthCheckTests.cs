@@ -2,7 +2,6 @@ using System.Net;
 
 namespace Tests.Integration.Tests;
 
-[Parallelizable(ParallelScope.Self)]
 public class HealthCheckTests
 {
     [Test]

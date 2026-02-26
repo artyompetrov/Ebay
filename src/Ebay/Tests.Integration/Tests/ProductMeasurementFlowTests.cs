@@ -4,7 +4,6 @@ using Client.Clients.Generated;
 
 namespace Tests.Integration.Tests;
 
-[Parallelizable(ParallelScope.Self)]
 public class ProductMeasurementFlowTests
 {
     [Test]

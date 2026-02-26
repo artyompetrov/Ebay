@@ -4,7 +4,6 @@ using System.Text.Json;
 
 namespace Tests.Integration.Tests;
 
-[Parallelizable(ParallelScope.Self)]
 public class AuthorizedEndpointTests
 {
     [Test]
