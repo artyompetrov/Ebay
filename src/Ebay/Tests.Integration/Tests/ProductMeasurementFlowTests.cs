@@ -59,6 +59,46 @@ public class ProductMeasurementFlowTests
                 throw new AssertionException("Measurement was not marked as published on eBay yet.");
             }
         });
+
+        await AssertMeasurementPageEndpointsAsync(httpClient, measurementId);
+    }
+
+    private static async Task AssertMeasurementPageEndpointsAsync(HttpClient httpClient, string measurementId)
+    {
+        await AssertDownloadZipAsync(httpClient, measurementId);
+        await AssertSvgResponseAsync(httpClient, $"/m/{measurementId}/ebay_tube_description");
+        await AssertSvgResponseAsync(httpClient, "/m/sold");
+        await AssertSvgResponseAsync(httpClient, $"/m/{measurementId}/curves");
+        await AssertSvgResponseAsync(httpClient, "/empty_picture?product=test-product&lotId=test-lot");
+    }
+
+    private static async Task AssertDownloadZipAsync(HttpClient httpClient, string measurementId)
+    {
+        using var response = await httpClient.GetAsync($"/m/{measurementId}/download");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(response.Content.Headers.ContentType?.MediaType, Is.EqualTo("application/zip"));
+            Assert.That(response.Content.Headers.ContentDisposition?.FileName, Is.EqualTo($"{measurementId}.zip"));
+        }
+
+        var zipContent = await response.Content.ReadAsByteArrayAsync();
+        using var zipStream = new MemoryStream(zipContent);
+        using var archive = new ZipArchive(zipStream, ZipArchiveMode.Read);
+        Assert.That(archive.Entries, Is.Not.Empty);
+    }
+
+    private static async Task AssertSvgResponseAsync(HttpClient httpClient, string url)
+    {
+        using var response = await httpClient.GetAsync(url);
+        var content = await response.Content.ReadAsStringAsync();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK), content);
+            Assert.That(response.Content.Headers.ContentType?.MediaType, Is.EqualTo("image/svg+xml"));
+            Assert.That(content, Does.Contain("<svg"));
+        }
     }
 
     private static async Task<Guid> CreateProductAsync(EbayClient ebayClient)
