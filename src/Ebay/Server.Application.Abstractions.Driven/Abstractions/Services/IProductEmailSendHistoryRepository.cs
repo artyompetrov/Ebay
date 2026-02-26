@@ -2,7 +2,7 @@ using Server.Application.Abstractions.Driven.Models.Services;
 
 namespace Server.Application.Abstractions.Driven.Abstractions.Services;
 
-public interface IProductEmailSendHistoryRepository : IRepository
+public interface IProductEmailSendHistoryRepository
 {
     Task<ProductEmailSendHistoryRecord?> GetByProductAndSellerAsync(
         Guid productId,

@@ -37,7 +37,6 @@ public static class ServiceCollectionExtensions
         _ = services.AddScoped<IProductRepository, ProductRepository>();
         _ = services.AddScoped<ILotForSaleRepository, LotForSaleRepository>();
         _ = services.AddScoped<IWriteModelUnitOfWork>(sp => sp.GetRequiredService<WriteModelDbContext>());
-        _ = services.AddScoped<ICurrencyQueries, CurrencyQueries>();
         _ = services.AddScoped<ICurrencyRateRepository, CurrencyRateRepository>();
         _ = services.AddScoped<IProductEmailSendHistoryRepository, ProductEmailSendHistoryRepository>();
     }

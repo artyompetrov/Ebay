@@ -1,22 +1,21 @@
 using Microsoft.EntityFrameworkCore;
-using Server.Application.Abstractions.Driven.Abstractions.Services;
+using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Models.Services;
-using Server.Application.Data;
 
-namespace Server.Adapters.Driven.EF.WriteModel;
+namespace Server.Adapters.Driven.EF.ReadModel.Queries;
 
-public class CurrencyQueries : ICurrencyQueries
+internal sealed class CurrencyQueries : ICurrencyQueries
 {
-    private readonly ApplicationDbContext _dbContext;
+    private readonly ReadDbContext _readDbContext;
 
-    public CurrencyQueries(ApplicationDbContext dbContext)
+    public CurrencyQueries(ReadDbContext readDbContext)
     {
-        _dbContext = dbContext;
+        _readDbContext = readDbContext;
     }
 
     public async Task<IReadOnlyCollection<CurrencyInfoRecord>> GetCurrenciesAsync(CancellationToken cancellationToken)
     {
-        return await _dbContext.Currencies
+        return await _readDbContext.Currencies
             .Select(x => new CurrencyInfoRecord(x.CurrencyApiName, x.CurrencyEbayName))
             .ToListAsync(cancellationToken);
     }

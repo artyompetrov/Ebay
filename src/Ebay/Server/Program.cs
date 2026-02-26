@@ -14,6 +14,7 @@ using Server.Adapters.Driven.Smtp;
 using Server.Adapters.Driven.uTracer;
 using Server.Adapters.Driving.BackgroundTasks;
 using Server.Adapters.Driving.MassTransit.Consumers.MatchedPairs;
+using Server.Adapters.Driving.OpenExchangeRates;
 using Server.Adapters.Driving.WebApi;
 using Server.Application;
 using Server.Application.Consumers.EbayCurvesCacheWarmUp;
@@ -49,6 +50,7 @@ public class Program
         builder.Services.AddChipFindAdapter();
         builder.Services.AddEfReadModelAdapter();
         builder.Services.AddApplicationServices();
+        builder.Services.AddOpenExchangeRatesAdapter();
         builder.Services.AddBackgroundTasksAdapter();
         builder.Services.AddWebApiAdapter();
         builder.Services.AddEfWriteModelAdapter();

@@ -1,7 +1,7 @@
 using OpenExchangeRates;
 using Server.Application.Abstractions.Driven.Abstractions.Services;
 
-namespace Server.Adapters.Driving.BackgroundTasks.Currencies;
+namespace Server.Adapters.Driving.OpenExchangeRates;
 
 public class OpenExchangeRatesGateway : ICurrencyRatesGateway
 {

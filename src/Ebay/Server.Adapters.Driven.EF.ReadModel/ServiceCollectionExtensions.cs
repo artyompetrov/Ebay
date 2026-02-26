@@ -29,5 +29,6 @@ public static class ServiceCollectionExtensions
         _ = services.AddScoped<IMeasurementQueries, MeasurementQueries>();
         _ = services.AddScoped<ITubeWorkingPointQueries, TubeWorkingPointQueries>();
         _ = services.AddScoped<ILotForSaleQueries, LotForSaleQueries>();
+        _ = services.AddScoped<ICurrencyQueries, CurrencyQueries>();
     }
 }

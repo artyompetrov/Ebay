@@ -1,9 +1,12 @@
+using Server.Application.Abstractions.Driven.Models.Services;
+
 namespace Server.Application.Abstractions.Driven.Abstractions.Services;
 
-public interface ICurrencyRateRepository : IRepository
+public interface ICurrencyRateRepository
 {
-    Task UpdateRatesAsync(
-        IReadOnlyDictionary<string, double> ratesByCurrencyEbayName,
-        DateTime updateTimeUtc,
-        CancellationToken cancellationToken);
+    Task<CurrencyRateRecord?> GetByEbayNameAsync(string currencyEbayName, CancellationToken cancellationToken);
+
+    Task UpsertAsync(CurrencyRateRecord currencyRate, CancellationToken cancellationToken);
+
+    Task SaveChangesAsync(CancellationToken cancellationToken);
 }

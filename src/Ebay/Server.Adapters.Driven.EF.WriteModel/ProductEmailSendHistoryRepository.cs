@@ -28,7 +28,7 @@ public class ProductEmailSendHistoryRepository : IProductEmailSendHistoryReposit
 
         return entity is null
             ? null
-            : Map(entity);
+            : new ProductEmailSendHistoryRecord(entity.ProductId, entity.Seller, entity.Link, entity.Contact, entity.Marketplace, entity.IsAmbiguous, entity.CreatedAt, entity.Id);
     }
 
     public async Task AddAsync(ProductEmailSendHistoryRecord entity, CancellationToken cancellationToken)
@@ -59,9 +59,6 @@ public class ProductEmailSendHistoryRepository : IProductEmailSendHistoryReposit
     {
         return _dbContext.ProductEmailSendHistory.Where(e => e.CreatedAt < thresholdUtc).ExecuteDeleteAsync(cancellationToken);
     }
-
-    private static ProductEmailSendHistoryRecord Map(ProductEmailSendHistory entity) =>
-        new(entity.ProductId, entity.Seller, entity.Link, entity.Contact, entity.Marketplace, entity.IsAmbiguous, entity.CreatedAt, entity.Id);
 
     private static ProductEmailSendHistory Map(ProductEmailSendHistoryRecord entity) =>
         new()

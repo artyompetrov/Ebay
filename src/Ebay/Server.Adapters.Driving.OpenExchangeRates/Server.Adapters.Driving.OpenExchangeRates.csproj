@@ -7,12 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="OpenExchangeRates.NET" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Server.Application.Abstractions.Driven\Server.Application.Abstractions.Driven.csproj" />
-    <ProjectReference Include="..\Server.Application.Abstractions.Driving\Server.Application.Abstractions.Driving.csproj" />
   </ItemGroup>
 
 </Project>

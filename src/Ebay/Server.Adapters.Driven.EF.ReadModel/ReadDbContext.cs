@@ -67,6 +67,12 @@ internal sealed class ReadDbContext : DbContext
         {
             _ = x.ToView("TubeWorkingPoints").HasKey(x => x.Id);
         });
+        _ = b.Entity<Currency>(eb =>
+        {
+            _ = eb.ToTable("Currencies");
+            _ = eb.HasKey(x => x.CurrencyEbayName);
+        });
+
         _ = b.Entity<LotForSaleView>(eb =>
         {
             _ = eb.ToView("LotForSales", "wm").HasKey(x => x.Id);
@@ -88,4 +94,6 @@ internal sealed class ReadDbContext : DbContext
     public DbSet<TubeWorkingPointView> TubeWorkingPoints { get; set; } = null!;
 
     public DbSet<LotForSaleView> LotForSales { get; set; } = null!;
+
+    public DbSet<Currency> Currencies { get; set; } = null!;
 }

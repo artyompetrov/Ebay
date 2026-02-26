@@ -1,3 +1,4 @@
+using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Services;
 
 namespace Server.Application.New.Services;
@@ -45,9 +46,21 @@ public class CurrencyRateRefreshService : Server.Application.Abstractions.Drivin
             cancellationToken: cancellationToken);
 
         var currencyByApiName = currencies.ToDictionary(x => x.CurrencyApiName);
-        var ratesByEbayName = ratesByApiName
-            .ToDictionary(x => currencyByApiName[x.Key].CurrencyEbayName, x => x.Value);
 
-        await _currencyRateRepository.UpdateRatesAsync(ratesByEbayName, DateTime.UtcNow, cancellationToken);
+        foreach (var (apiName, rate) in ratesByApiName)
+        {
+            var ebayName = currencyByApiName[apiName].CurrencyEbayName;
+            var currency = await _currencyRateRepository.GetByEbayNameAsync(ebayName, cancellationToken);
+            if (currency is null)
+            {
+                continue;
+            }
+
+            await _currencyRateRepository.UpsertAsync(
+                currency with { CurrencyRate = rate, LastUpdate = DateTime.UtcNow },
+                cancellationToken);
+        }
+
+        await _currencyRateRepository.SaveChangesAsync(cancellationToken);
     }
 }

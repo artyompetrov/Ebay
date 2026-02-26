@@ -133,6 +133,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
             _ = entity.HasIndex(x => x.HashAnodeCurves).IsUnique();
         });
 
+
         _ = builder.Entity<ProductEmailSendHistory>(entity =>
         {
             _ = entity.ToTable("SaleAdvertisements");

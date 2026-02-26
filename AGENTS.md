@@ -27,6 +27,8 @@
 
 Для `Server.Application.New` обязательно документируй все `public` объекты и их `public` члены через XML-комментарии (`///`), иначе сборка может падать из-за генерации документации.
 
+- Перед добавлением новых портов/репозиториев сначала проверьте существующие интерфейсы в `Server.Application.Abstractions.Driven` и `Server.Application.Abstractions.Driving`: по умолчанию переиспользуем их и расширяем существующие контракты, а не вводим параллельные базовые абстракции.
+
 ## Настройки сборки
 - Файл `src/Ebay/Directory.Build.props` включает проверки на nullable reference types, implicit usings и рассматривает предупреждения как ошибки. Убедитесь, что проекты .NET собираются без предупреждений.
 
@@ -164,6 +166,8 @@ Legacy-миграции продолжаем поддерживать в `Server
 
 Агрегаты располагаются в сборке Server.Domain
 Репозитории в сборке Server.Adapters.Driven.EF.WriteModel
+- CQRS-правило: чтение (queries) размещаем в `Server.Adapters.Driven.EF.ReadModel`, а запись и изменение агрегатов — в `Server.Adapters.Driven.EF.WriteModel` через репозитории агрегатов.
+- Репозиторий write-model должен работать с агрегатом (загрузка/сохранение агрегата и его инварианты), а не выполнять ad-hoc массовые обновления полей в стиле data-script.
 Ридмодели в сборке Server.Adapters.Driven.EF.ReadModel
 `Server.Application` — legacy-слой, который пока содержит нарушения ports-and-adapters.
 Новый код application-слоя нужно добавлять в `Server.Application.New`, сохраняя чистую архитектуру (порты и бизнес-сценарии без инфраструктурных зависимостей).
@@ -176,6 +180,7 @@ Legacy-миграции продолжаем поддерживать в `Server
   - входные порты (что предоставляет application) — интерфейсы сценариев;
   - выходные порты (что нужно application) — интерфейсы репозиториев/запросов/внешних шлюзов.
 - `Server.Adapters.*` — реализации портов (EF, SMTP, WebApi, внешние сервисы и т.д.).
+- Интеграции с внешними сервисами (HTTP/API/SDK) размещаем в отдельных специализированных адаптерах по домену интеграции (например, `Server.Adapters.Driving.OpenExchangeRates`), а не смешиваем с адаптерами orchestration/hosted-задач.
 - Адаптеры по умолчанию должны ссылаться на application только через портовые сборки `Server.Application.Abstractions.Driven` и `Server.Application.Abstractions.Driving`. Прямые ссылки адаптеров на `Server.Application.New`/`Server.Application` допускаются только как временное исключение и должны быть отдельно обоснованы в PR.
 - В `Server.Application.New` запрещены ссылки на адаптеры (`Server.Adapters.*`) и инфраструктурные детали.
 - `Server.Application.New` может ссылаться на `Server.Domain`; внешние библиотеки в `Server.Application.New` подключаем только в порядке исключения и с явным обоснованием.

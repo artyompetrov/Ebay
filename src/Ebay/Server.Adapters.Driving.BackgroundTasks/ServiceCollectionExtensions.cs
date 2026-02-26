@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Server.Adapters.Driving.BackgroundTasks.Currencies;
 using Server.Adapters.Driving.BackgroundTasks.Infrastructure;
 using Server.Application.Abstractions.Driven.Abstractions.Services;
 using Server.Application.Abstractions.Driving.Abstractions.Services.BackgroundProcessing;
@@ -11,8 +10,6 @@ public static class ServiceCollectionExtensions
 {
     public static void AddBackgroundTasksAdapter(this IServiceCollection services)
     {
-        _ = services.AddScoped<ICurrencyRatesGateway, OpenExchangeRatesGateway>();
-
         _ = services.AddHostedService(sp => CreateHostedService<ICurrencyRateRefreshService>(
             sp,
             BackgroundTaskSchedule.CurrencyUpdateTime,

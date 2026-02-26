@@ -57,6 +57,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.Adapters.Driving.Mas
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.Adapters.Driving.BackgroundTasks", "Server.Adapters.Driving.BackgroundTasks\Server.Adapters.Driving.BackgroundTasks.csproj", "{801FEF40-BDCC-4586-83A7-174086E1ED01}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.Adapters.Driving.OpenExchangeRates", "Server.Adapters.Driving.OpenExchangeRates\Server.Adapters.Driving.OpenExchangeRates.csproj", "{9093211B-77DD-41B3-B13E-43C1678B7F74}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -319,6 +321,18 @@ Global
 		{801FEF40-BDCC-4586-83A7-174086E1ED01}.Release|x64.Build.0 = Release|Any CPU
 		{801FEF40-BDCC-4586-83A7-174086E1ED01}.Release|x86.ActiveCfg = Release|Any CPU
 		{801FEF40-BDCC-4586-83A7-174086E1ED01}.Release|x86.Build.0 = Release|Any CPU
+		{9093211B-77DD-41B3-B13E-43C1678B7F74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9093211B-77DD-41B3-B13E-43C1678B7F74}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9093211B-77DD-41B3-B13E-43C1678B7F74}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9093211B-77DD-41B3-B13E-43C1678B7F74}.Debug|x64.Build.0 = Debug|Any CPU
+		{9093211B-77DD-41B3-B13E-43C1678B7F74}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9093211B-77DD-41B3-B13E-43C1678B7F74}.Debug|x86.Build.0 = Debug|Any CPU
+		{9093211B-77DD-41B3-B13E-43C1678B7F74}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9093211B-77DD-41B3-B13E-43C1678B7F74}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9093211B-77DD-41B3-B13E-43C1678B7F74}.Release|x64.ActiveCfg = Release|Any CPU
+		{9093211B-77DD-41B3-B13E-43C1678B7F74}.Release|x64.Build.0 = Release|Any CPU
+		{9093211B-77DD-41B3-B13E-43C1678B7F74}.Release|x86.ActiveCfg = Release|Any CPU
+		{9093211B-77DD-41B3-B13E-43C1678B7F74}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

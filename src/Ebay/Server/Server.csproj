@@ -15,6 +15,7 @@
       <ProjectReference Include="..\Server.Adapters.Driven.uTracer\Server.Adapters.Driven.uTracer.csproj" />
       <ProjectReference Include="..\Server.Adapters.Driving.MassTransit\Server.Adapters.Driving.MassTransit.csproj" />
       <ProjectReference Include="..\Server.Adapters.Driving.BackgroundTasks\Server.Adapters.Driving.BackgroundTasks.csproj" />
+      <ProjectReference Include="..\Server.Adapters.Driving.OpenExchangeRates\Server.Adapters.Driving.OpenExchangeRates.csproj" />
       <ProjectReference Include="..\Server.Application\Server.Application.csproj" />
       <ProjectReference Include="..\Server.Adapters.Driving.WebApi\Server.Adapters.Driving.WebApi.csproj" />
   </ItemGroup>
