@@ -1,0 +1,74 @@
+@page "/dog-images"
+@inject IHttpClientFactory HttpClientFactory
+
+<PageTitle>Собачьи картинки</PageTitle>
+
+<h1>Собачьи картинки</h1>
+
+<p>Нажмите кнопку, чтобы загрузить случайные фотографии собак.</p>
+
+<button class="btn btn-primary mb-3" @onclick="LoadImagesAsync" disabled="@_isLoading">
+    @(_isLoading ? "Загрузка..." : "Обновить картинки")
+</button>
+
+@if (!string.IsNullOrWhiteSpace(_errorMessage))
+{
+    <div class="alert alert-danger" role="alert">@_errorMessage</div>
+}
+
+@if (_imageUrls.Count > 0)
+{
+    <div class="dog-images-grid">
+        @foreach (var imageUrl in _imageUrls)
+        {
+            <img class="dog-image" src="@imageUrl" alt="Случайная фотография собаки" />
+        }
+    </div>
+}
+
+@code {
+    private readonly List<string> _imageUrls = [];
+    private bool _isLoading;
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadImagesAsync();
+    }
+
+    private async Task LoadImagesAsync()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+
+        try
+        {
+            var httpClient = HttpClientFactory.CreateClient();
+            var response = await httpClient.GetFromJsonAsync<DogImagesResponse>("https://dog.ceo/api/breeds/image/random/6");
+
+            if (response?.Message is null || response.Message.Count == 0)
+            {
+                _errorMessage = "Не удалось получить картинки собак.";
+                _imageUrls.Clear();
+                return;
+            }
+
+            _imageUrls.Clear();
+            _imageUrls.AddRange(response.Message);
+        }
+        catch
+        {
+            _errorMessage = "Ошибка при загрузке картинок собак. Попробуйте еще раз.";
+            _imageUrls.Clear();
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private sealed class DogImagesResponse
+    {
+        public required List<string> Message { get; init; }
+    }
+}
