@@ -4,11 +4,12 @@ using System.Xml.Linq;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using Server.Application.HostedServices.ChipFind;
+using Server.Application.Abstractions.Driven.Abstractions.BackgroundTasks;
+using Server.Application.Abstractions.Driven.Models.BackgroundTasks;
 
 namespace Server.Adapters.Driven.ChipFind;
 
-public class ChipfindAdapter : IChipfindAdapter
+public class ChipfindAdapter : IChipfindGateway
 {
     private readonly ILogger<ChipfindAdapter> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
@@ -27,7 +28,7 @@ public class ChipfindAdapter : IChipfindAdapter
         _options = options;
     }
 
-    public async Task<IReadOnlyCollection<SaleAdvertisement>> GetRecentSaleAdvertisements(
+    public async Task<IReadOnlyCollection<SaleAdvertisementDto>> GetRecentSaleAdvertisementsAsync(
         CancellationToken cancellationToken)
     {
         var url = "https://www.chipfind.ru/market/sale_full.xml";
@@ -40,7 +41,7 @@ public class ChipfindAdapter : IChipfindAdapter
 
         var titleRegex = new Regex(@"^(.*?)[\.\s]*\[(.+?)\]\s*$");
 
-        var result = new List<SaleAdvertisement>();
+        var result = new List<SaleAdvertisementDto>();
 
         foreach (var item in xdoc.Descendants("item"))
         {
@@ -109,7 +110,7 @@ public class ChipfindAdapter : IChipfindAdapter
             }
 
             result.Add(
-                new SaleAdvertisement(
+                new SaleAdvertisementDto(
                     Title: title,
                     Seller: seller.ToLower(CultureInfo.InvariantCulture),
                     Date: parsedDate.ToUniversalTime(),
@@ -122,7 +123,7 @@ public class ChipfindAdapter : IChipfindAdapter
         return result;
     }
 
-    public async Task<string?> TryGetAdvertisementContactAsync(SaleAdvertisement saleAdvertisement, CancellationToken cancellationToken)
+    public async Task<string?> TryGetAdvertisementContactAsync(SaleAdvertisementDto saleAdvertisement, CancellationToken cancellationToken)
     {
         var cacheKey = $"seller_contact_information_{saleAdvertisement.Seller}";
 

@@ -2,7 +2,7 @@ using System.Net;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Server.Adapters.Driven.ChipFind;
-using Server.Application.HostedServices.ChipFind;
+using Server.Application.Abstractions.Driven.Models.BackgroundTasks;
 
 namespace Tests.Unit;
 
@@ -28,7 +28,7 @@ public class ChipfindAdapterTests
         var logger = new TestLogger<ChipfindAdapter>();
         var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
 
-        var ads = await adapter.GetRecentSaleAdvertisements(CancellationToken.None);
+        var ads = await adapter.GetRecentSaleAdvertisementsAsync(CancellationToken.None);
         Assert.That(ads, Has.Count.EqualTo(1));
         var ad = ads.Single();
         using (Assert.EnterMultipleScope())
@@ -57,7 +57,7 @@ public class ChipfindAdapterTests
         var logger = new TestLogger<ChipfindAdapter>();
         var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
 
-        var ads = await adapter.GetRecentSaleAdvertisements(CancellationToken.None);
+        var ads = await adapter.GetRecentSaleAdvertisementsAsync(CancellationToken.None);
         var ad = ads.Single();
         using (Assert.EnterMultipleScope())
         {
@@ -85,7 +85,7 @@ public class ChipfindAdapterTests
         var logger = new TestLogger<ChipfindAdapter>();
         var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
 
-        var ads = await adapter.GetRecentSaleAdvertisements(CancellationToken.None);
+        var ads = await adapter.GetRecentSaleAdvertisementsAsync(CancellationToken.None);
         var ad = ads.Single();
         using (Assert.EnterMultipleScope())
         {
@@ -180,7 +180,7 @@ public class ChipfindAdapterTests
         var logger = new TestLogger<ChipfindAdapter>();
         var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
 
-        var ads = await adapter.GetRecentSaleAdvertisements(CancellationToken.None);
+        var ads = await adapter.GetRecentSaleAdvertisementsAsync(CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -206,7 +206,7 @@ public class ChipfindAdapterTests
         var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
 
         var contact = await adapter.TryGetAdvertisementContactAsync(
-            saleAdvertisement: new SaleAdvertisement(
+            saleAdvertisement: new SaleAdvertisementDto(
                 Title: "title",
                 Seller: "seller",
                 Date: DateTime.MaxValue,
@@ -234,7 +234,7 @@ public class ChipfindAdapterTests
         var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
 
         var contact = await adapter.TryGetAdvertisementContactAsync(
-            saleAdvertisement: new SaleAdvertisement(
+            saleAdvertisement: new SaleAdvertisementDto(
                 Title: "title",
                 Seller: "seller",
                 Date: DateTime.MaxValue,
@@ -262,7 +262,7 @@ public class ChipfindAdapterTests
         var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
 
         var contact = await adapter.TryGetAdvertisementContactAsync(
-            saleAdvertisement: new SaleAdvertisement(
+            saleAdvertisement: new SaleAdvertisementDto(
                 Title: "title",
                 Seller: "seller",
                 Date: DateTime.MaxValue,

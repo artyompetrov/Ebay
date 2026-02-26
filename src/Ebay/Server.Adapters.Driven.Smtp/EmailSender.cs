@@ -1,12 +1,12 @@
 using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
-using Server.Application.HostedServices.ChipFind;
+using Server.Application.Abstractions.Driven.Abstractions.BackgroundTasks;
 using SmtpClient = MailKit.Net.Smtp.SmtpClient;
 
 namespace Server.Adapters.Driven.Smtp;
 
-public class EmailSender : IEmailSender
+public class EmailSender : IEmailGateway
 {
     private readonly SmtpSettings _settings;
 
@@ -15,7 +15,7 @@ public class EmailSender : IEmailSender
         _settings = options.Value;
     }
 
-    public async Task Send(string targetAddress, string topic, string messageText)
+    public async Task SendAsync(string targetAddress, string topic, string messageText)
     {
         var message = new MimeMessage();
         message.From.Add(new MailboxAddress(_settings.Email, _settings.Email));

@@ -1,37 +1,46 @@
 using OpenExchangeRates;
-using Server.Application.Data.HostedServices;
-using Server.Domain;
+using Server.Application.Abstractions.Driven.Abstractions.BackgroundTasks;
 
-namespace Server.Application.HostedServices.Currencies;
+namespace Server.Application.New.BackgroundTasks;
 
+/// <summary>
+/// Обновляет курсы валют для фоновой задачи.
+/// </summary>
 public class CurrencyRateRefreshService
 {
     private readonly ICurrencyQueries _currencyQueries;
     private readonly ICurrencyRateRepository _currencyRateRepository;
-    private readonly EbayServerOptions _options;
+    private readonly IBackgroundTaskSettings _settings;
 
+    /// <summary>
+    /// Создает сервис обновления курсов валют.
+    /// </summary>
     public CurrencyRateRefreshService(
         ICurrencyQueries currencyQueries,
         ICurrencyRateRepository currencyRateRepository,
-        EbayServerOptions options)
+        IBackgroundTaskSettings settings)
     {
         _currencyQueries = currencyQueries;
         _currencyRateRepository = currencyRateRepository;
-        _options = options;
+        _settings = settings;
     }
 
+    /// <summary>
+    /// Загружает и сохраняет актуальные курсы валют.
+    /// </summary>
     public async Task RefreshAsync(CancellationToken cancellationToken)
     {
-        if (_options.IsLocalRun)
+        if (_settings.IsLocalRun)
         {
             return;
         }
 
         var currencies = await _currencyQueries.GetCurrenciesAsync(cancellationToken);
-        using var client = new OpenExchangeRatesClient(WellKnown.CurrencyRate.AppId);
+
+        using var client = new OpenExchangeRatesClient(BackgroundTaskSchedule.OpenExchangeRatesAppId);
 
         var response = await client.GetLatestRatesAsync(
-            baseCurrency: WellKnown.CurrencyRate.BaseCurrency,
+            baseCurrency: BackgroundTaskSchedule.CurrencyBase,
             currencies: currencies.Select(x => x.CurrencyApiName),
             cancellationToken: cancellationToken) ?? throw new InvalidOperationException("Server returned null response");
 

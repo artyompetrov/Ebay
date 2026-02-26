@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Server.Adapters.Driven.EF.WriteModel.Repositories;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
+using Server.Application.Abstractions.Driven.Abstractions.BackgroundTasks;
 
 namespace Server.Adapters.Driven.EF.WriteModel;
 
@@ -36,5 +37,8 @@ public static class ServiceCollectionExtensions
         _ = services.AddScoped<IProductRepository, ProductRepository>();
         _ = services.AddScoped<ILotForSaleRepository, LotForSaleRepository>();
         _ = services.AddScoped<IWriteModelUnitOfWork>(sp => sp.GetRequiredService<WriteModelDbContext>());
+        _ = services.AddScoped<ICurrencyQueries, CurrencyDataAccess>();
+        _ = services.AddScoped<ICurrencyRateRepository, CurrencyDataAccess>();
+        _ = services.AddScoped<IProductEmailSendHistoryRepository, ProductEmailSendHistoryRepository>();
     }
 }

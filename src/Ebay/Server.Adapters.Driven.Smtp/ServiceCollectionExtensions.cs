@@ -1,5 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
-using Server.Application.HostedServices.ChipFind;
+using Server.Application.Abstractions.Driven.Abstractions.BackgroundTasks;
 
 namespace Server.Adapters.Driven.Smtp;
 
@@ -12,6 +12,6 @@ public static class ServiceCollectionExtensions
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        _ = services.AddScoped<IEmailSender, EmailSender>();
+        _ = services.AddScoped<IEmailGateway, EmailSender>();
     }
 }

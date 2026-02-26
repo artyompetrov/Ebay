@@ -1,5 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
-using Server.Application.HostedServices.ChipFind;
+using Server.Application.Abstractions.Driven.Abstractions.BackgroundTasks;
 
 namespace Server.Adapters.Driven.ChipFind;
 
@@ -10,6 +10,6 @@ public static class ServiceCollectionExtensions
     {
         _ = services.AddHttpClient();
         _ = services.AddSingleton(new ChipFindAdapterOptions(DelayMilliseconds: 5000));
-        _ = services.AddScoped<IChipfindAdapter, ChipfindAdapter>();
+        _ = services.AddScoped<IChipfindGateway, ChipfindAdapter>();
     }
 }
