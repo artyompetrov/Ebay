@@ -63,7 +63,7 @@ public class IntegrationTestsSetupFixture
     [OneTimeTearDown]
     public async Task OneTimeTearDown()
     {
-        Factory.Dispose();
+        await Factory.DisposeAsync();
         await DropTestDatabaseAsync();
     }
 

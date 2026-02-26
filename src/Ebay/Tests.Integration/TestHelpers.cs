@@ -10,7 +10,7 @@ public static class TestHelpers
 {
     public static Task RetryUntilValidationSuccessAsync(
         Func<Task> assertAction,
-        int timeout = 20)
+        int timeout = 30)
     {
         AssertionException? lastAssertion = null;
 

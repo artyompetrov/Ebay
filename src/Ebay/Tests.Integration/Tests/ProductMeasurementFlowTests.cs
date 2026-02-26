@@ -59,7 +59,7 @@ public class ProductMeasurementFlowTests
             {
                 throw new AssertionException("Measurement was not marked as published on eBay yet.");
             }
-        }, timeout: 30);
+        });
     }
 
     private static async Task<Guid> CreateProductAsync(EbayClient ebayClient)
