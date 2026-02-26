@@ -1,4 +1,4 @@
-namespace Server.Application.Abstractions.Driven.Abstractions.BackgroundTasks;
+namespace Server.Application.Abstractions.Driven.Abstractions.Services;
 
 public interface IEmailGateway
 {

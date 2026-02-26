@@ -1,7 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Server.Adapters.Driving.BackgroundTasks.Currencies;
 using Server.Adapters.Driving.BackgroundTasks.Infrastructure;
-using Server.Application.New.BackgroundTasks;
+using Server.Application.Abstractions.Driven.Abstractions.Services;
+using Server.Application.Abstractions.Driving.Abstractions.Services.BackgroundProcessing;
 
 namespace Server.Adapters.Driving.BackgroundTasks;
 
@@ -9,19 +11,21 @@ public static class ServiceCollectionExtensions
 {
     public static void AddBackgroundTasksAdapter(this IServiceCollection services)
     {
-        _ = services.AddHostedService(sp => CreateHostedService<CurrencyRateRefreshService>(
+        _ = services.AddScoped<ICurrencyRatesGateway, OpenExchangeRatesGateway>();
+
+        _ = services.AddHostedService(sp => CreateHostedService<ICurrencyRateRefreshService>(
             sp,
             BackgroundTaskSchedule.CurrencyUpdateTime,
             BackgroundTaskSchedule.ErrorDelay,
             static (service, token) => service.RefreshAsync(token)));
 
-        _ = services.AddHostedService(sp => CreateHostedService<ChipfindMonitoringService>(
+        _ = services.AddHostedService(sp => CreateHostedService<IChipfindMonitoringService>(
             sp,
             BackgroundTaskSchedule.ChipfindUpdateTime,
             BackgroundTaskSchedule.ErrorDelay,
             static (service, token) => service.ProcessRecentAdvertisementsAsync(token)));
 
-        _ = services.AddHostedService(sp => CreateHostedService<SaleAdvertisementCleanupService>(
+        _ = services.AddHostedService(sp => CreateHostedService<ISaleAdvertisementCleanupService>(
             sp,
             BackgroundTaskSchedule.SaleAdvertisementCleanupUpdateTime,
             BackgroundTaskSchedule.ErrorDelay,

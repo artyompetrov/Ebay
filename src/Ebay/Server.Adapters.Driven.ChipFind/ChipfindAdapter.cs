@@ -4,8 +4,8 @@ using System.Xml.Linq;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using Server.Application.Abstractions.Driven.Abstractions.BackgroundTasks;
-using Server.Application.Abstractions.Driven.Models.BackgroundTasks;
+using Server.Application.Abstractions.Driven.Abstractions.Services;
+using Server.Application.Abstractions.Driven.Models.Services;
 
 namespace Server.Adapters.Driven.ChipFind;
 

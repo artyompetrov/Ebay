@@ -1,13 +1,13 @@
 using System.Text.RegularExpressions;
-using Server.Application.Abstractions.Driven.Abstractions.BackgroundTasks;
-using Server.Application.Abstractions.Driven.Models.BackgroundTasks;
+using Server.Application.Abstractions.Driven.Abstractions.Services;
+using Server.Application.Abstractions.Driven.Models.Services;
 
-namespace Server.Application.New.BackgroundTasks;
+namespace Server.Application.New.Services;
 
 /// <summary>
 /// Обрабатывает объявления Chipfind в фоне.
 /// </summary>
-public class ChipfindMonitoringService
+public class ChipfindMonitoringService : Server.Application.Abstractions.Driving.Abstractions.Services.BackgroundProcessing.IChipfindMonitoringService
 {
     private const int DelayMilliseconds = 5000;
     private readonly IBackgroundTaskSettings _settings;
@@ -76,7 +76,7 @@ public class ChipfindMonitoringService
                 var record = await _productEmailSendHistoryRepository.GetByProductAndSellerAsync(
                     product.ProductId,
                     saleAdvertisement.Seller,
-                    BackgroundTaskSchedule.ChipfindMarketplace,
+                    "Chipfind",
                     cancellationToken);
 
                 if (record is null)
@@ -86,7 +86,7 @@ public class ChipfindMonitoringService
                         saleAdvertisement.Seller,
                         saleAdvertisement.Link.ToString(),
                         advertisementContact,
-                        BackgroundTaskSchedule.ChipfindMarketplace,
+                        "Chipfind",
                         isAmbiguous,
                         saleAdvertisement.Date);
 

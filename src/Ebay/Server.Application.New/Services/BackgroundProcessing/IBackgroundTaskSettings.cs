@@ -1,4 +1,4 @@
-namespace Server.Application.New.BackgroundTasks;
+namespace Server.Application.New.Services;
 
 /// <summary>
 /// Настройки фоновых сценариев application-слоя.

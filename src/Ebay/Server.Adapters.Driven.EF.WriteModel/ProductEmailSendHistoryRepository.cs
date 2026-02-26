@@ -1,45 +1,10 @@
 using Microsoft.EntityFrameworkCore;
-using Server.Application.Abstractions.Driven.Abstractions.BackgroundTasks;
-using Server.Application.Abstractions.Driven.Models.BackgroundTasks;
+using Server.Application.Abstractions.Driven.Abstractions.Services;
+using Server.Application.Abstractions.Driven.Models.Services;
 using Server.Application.Data;
 using Server.Domain;
 
 namespace Server.Adapters.Driven.EF.WriteModel;
-
-public class CurrencyDataAccess : ICurrencyQueries, ICurrencyRateRepository
-{
-    private readonly ApplicationDbContext _dbContext;
-
-    public CurrencyDataAccess(ApplicationDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
-    public async Task<IReadOnlyCollection<CurrencyInfoRecord>> GetCurrenciesAsync(CancellationToken cancellationToken)
-    {
-        return await _dbContext.Currencies
-            .Select(x => new CurrencyInfoRecord(x.CurrencyApiName, x.CurrencyEbayName))
-            .ToListAsync(cancellationToken);
-    }
-
-    public async Task UpdateRatesAsync(
-        IReadOnlyDictionary<string, double> ratesByCurrencyEbayName,
-        DateTime updateTimeUtc,
-        CancellationToken cancellationToken)
-    {
-        var currencies = await _dbContext.Currencies
-            .Where(x => ratesByCurrencyEbayName.Keys.Contains(x.CurrencyEbayName))
-            .ToListAsync(cancellationToken);
-
-        foreach (var currency in currencies)
-        {
-            currency.CurrencyRate = ratesByCurrencyEbayName[currency.CurrencyEbayName];
-            currency.LastUpdate = updateTimeUtc;
-        }
-
-        _ = await _dbContext.SaveChangesAsync(cancellationToken);
-    }
-}
 
 public class ProductEmailSendHistoryRepository : IProductEmailSendHistoryRepository
 {
@@ -73,7 +38,6 @@ public class ProductEmailSendHistoryRepository : IProductEmailSendHistoryReposit
 
     public async Task UpdateAsync(ProductEmailSendHistoryRecord entity, CancellationToken cancellationToken)
     {
-        _ = cancellationToken;
         if (entity.Id is null)
         {
             throw new InvalidOperationException("Record id is required for update");

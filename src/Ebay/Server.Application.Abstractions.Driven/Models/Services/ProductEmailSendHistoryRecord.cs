@@ -1,4 +1,4 @@
-namespace Server.Application.Abstractions.Driven.Models.BackgroundTasks;
+namespace Server.Application.Abstractions.Driven.Models.Services;
 
 public sealed record ProductEmailSendHistoryRecord(
     Guid ProductId,

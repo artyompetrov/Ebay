@@ -1,5 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
-using Server.Application.Abstractions.Driven.Abstractions.BackgroundTasks;
+using Server.Application.Abstractions.Driven.Abstractions.Services;
 
 namespace Server.Adapters.Driven.Smtp;
 

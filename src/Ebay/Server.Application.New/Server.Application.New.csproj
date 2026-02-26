@@ -16,7 +16,6 @@
         <PackageReference Include="alglib.net" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
-        <PackageReference Include="OpenExchangeRates.NET" />
     </ItemGroup>
 
     <ItemGroup>

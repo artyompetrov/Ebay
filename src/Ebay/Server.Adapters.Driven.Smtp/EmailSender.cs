@@ -1,7 +1,7 @@
 using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
-using Server.Application.Abstractions.Driven.Abstractions.BackgroundTasks;
+using Server.Application.Abstractions.Driven.Abstractions.Services;
 using SmtpClient = MailKit.Net.Smtp.SmtpClient;
 
 namespace Server.Adapters.Driven.Smtp;

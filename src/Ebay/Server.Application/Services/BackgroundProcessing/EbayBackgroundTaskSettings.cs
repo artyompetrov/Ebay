@@ -1,6 +1,6 @@
-using Server.Application.New.BackgroundTasks;
+using Server.Application.New.Services;
 
-namespace Server.Application.BackgroundTasks;
+namespace Server.Application.Services.BackgroundProcessing;
 
 public class EbayBackgroundTaskSettings : IBackgroundTaskSettings
 {

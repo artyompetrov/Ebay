@@ -1,9 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
+using Server.Application.Abstractions.Driving.Abstractions.Services.BackgroundProcessing;
 using Server.Application.New.LotForSale;
 using Server.Application.New.MatchedPairs;
 using Server.Application.New.Services;
-using Server.Application.New.BackgroundTasks;
 
 namespace Server.Application.New;
 
@@ -26,8 +26,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ILotForSaleIdGenerator, LotForSaleIdGenerator>();
         services.AddScoped<ProductService>();
         services.AddScoped<LotForSaleService>();
-        services.AddScoped<SaleAdvertisementCleanupService>();
-        services.AddScoped<ChipfindMonitoringService>();
-        services.AddScoped<CurrencyRateRefreshService>();
+        services.AddScoped<ISaleAdvertisementCleanupService, SaleAdvertisementCleanupService>();
+        services.AddScoped<IChipfindMonitoringService, ChipfindMonitoringService>();
+        services.AddScoped<ICurrencyRateRefreshService, CurrencyRateRefreshService>();
     }
 }
