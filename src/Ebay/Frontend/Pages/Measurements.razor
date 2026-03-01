@@ -199,13 +199,6 @@
     </div>
 </div>
 
-@foreach (var state in _productStates)
-{
-    <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}?measurementState={MeasurementState.Created}&state={state}")" target="_blank">Основной лот (@state)</NavLink>
-}
-<br>
-<br>
-
 @if (_lotForSales is not null)
 {
     foreach (var lot in _lotForSales)
@@ -307,7 +300,7 @@
                     <select class="form-select"
                             value="@measurement.LotId"
                             @onchange="async e => await OnLotIdChanged(measurement, e.Value?.ToString())">
-                        <option value="">Основной лот</option>
+                        <option value="">Lot ID не задан</option>
                         @if (_lotForSales is not null)
                         {
                             foreach (var lot in _lotForSales)
