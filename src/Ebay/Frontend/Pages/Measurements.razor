@@ -206,7 +206,7 @@
         var lotIdPart = $"&lotId={lot.Id}";
         <div class="d-flex align-items-center gap-2 mb-2">
             <NavLink class="btn btn-primary btn-sm" href="@($"/ebay_description/{ProductId}?measurementState={MeasurementState.Created}&state={lot.ProductState}{lotIdPart}")" target="_blank">@lot.Name (@lot.ProductState)</NavLink>
-            <span class="user-select-all" title="ID Product for sale">ID: @lot.Id</span>
+            <span class="user-select-all" title="Lot for sale SKU">@lot.Id</span>
             <button class="btn btn-danger btn-sm oi oi-trash" title="Удалить лот" @onclick="() => OnDeleteLotForSaleClick(lot)"></button>
         </div>
     }
