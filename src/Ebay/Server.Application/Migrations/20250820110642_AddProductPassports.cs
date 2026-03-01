@@ -10,7 +10,7 @@ public partial class AddProductPassports : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
             name: "ProductPassports",
             columns: table => new
             {
@@ -23,8 +23,8 @@ public partial class AddProductPassports : Migration
             },
             constraints: table =>
             {
-                _ = table.PrimaryKey("PK_ProductPassports", x => x.Id);
-                _ = table.ForeignKey(
+                table.PrimaryKey("PK_ProductPassports", x => x.Id);
+                table.ForeignKey(
                     name: "FK_ProductPassports_Products_ProductId",
                     column: x => x.ProductId,
                     principalTable: "Products",
@@ -32,7 +32,7 @@ public partial class AddProductPassports : Migration
                     onDelete: ReferentialAction.Cascade);
             });
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_ProductPassports_ProductId_Order",
             table: "ProductPassports",
             columns:
@@ -42,7 +42,7 @@ public partial class AddProductPassports : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.DropTable(
+        migrationBuilder.DropTable(
             name: "ProductPassports");
     }
 }

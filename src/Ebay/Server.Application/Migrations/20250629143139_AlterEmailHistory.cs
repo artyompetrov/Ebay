@@ -10,12 +10,12 @@ public partial class AlterEmailHistory : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.RenameColumn(
+        migrationBuilder.RenameColumn(
             name: "EmailId",
             table: "EmailSendHistories",
             newName: "ProductKey");
 
-        _ = migrationBuilder.RenameIndex(
+        migrationBuilder.RenameIndex(
             name: "IX_EmailSendHistories_EmailId",
             table: "EmailSendHistories",
             newName: "IX_EmailSendHistories_ProductKey");
@@ -24,12 +24,12 @@ public partial class AlterEmailHistory : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.RenameColumn(
+        migrationBuilder.RenameColumn(
             name: "ProductKey",
             table: "EmailSendHistories",
             newName: "EmailId");
 
-        _ = migrationBuilder.RenameIndex(
+        migrationBuilder.RenameIndex(
             name: "IX_EmailSendHistories_ProductKey",
             table: "EmailSendHistories",
             newName: "IX_EmailSendHistories_EmailId");

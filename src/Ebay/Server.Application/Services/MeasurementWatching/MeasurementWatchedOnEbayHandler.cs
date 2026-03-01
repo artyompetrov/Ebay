@@ -36,6 +36,6 @@ public sealed class MeasurementWatchedOnEbayHandler : IMeasurementWatchedOnEbayH
 
         measurement.MarkWatchedOnEbay(message.WatchedAtUtc);
 
-        _ = await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

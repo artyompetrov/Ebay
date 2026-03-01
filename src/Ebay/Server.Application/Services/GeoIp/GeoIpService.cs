@@ -64,14 +64,14 @@ public class GeoIpService : IDisposable
                 return;
             }
 
-            _ = _cache.Set(key, true, TimeSpan.FromDays(1));
+            _cache.Set(key, true, TimeSpan.FromDays(1));
 
             _ = LogRequestAsyncInternal(prefix, realIp, ua, token);
 
         }
         finally
         {
-            _ = _semaphore.Release();
+            _semaphore.Release();
         }
     }
 

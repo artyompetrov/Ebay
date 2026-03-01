@@ -18,7 +18,7 @@ public sealed class LotForSaleTests
     public void Create_Throws_WhenIdLengthIsInvalid()
     {
         Assert.Throws<ArgumentException>(() =>
-            _ = Server.Domain.LotForSale.LotForSale.Create("short", "lot", Guid.NewGuid(), ProductState.New));
+            Server.Domain.LotForSale.LotForSale.Create("short", "lot", Guid.NewGuid(), ProductState.New));
     }
 
     [Test]

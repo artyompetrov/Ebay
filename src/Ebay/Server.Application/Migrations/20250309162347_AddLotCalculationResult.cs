@@ -10,7 +10,7 @@ public partial class AddLotCalculationResult : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.AddColumn<string>(
+        migrationBuilder.AddColumn<string>(
             name: "LotCalculationResult",
             table: "Lots",
             type: "text",
@@ -20,7 +20,7 @@ public partial class AddLotCalculationResult : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.DropColumn(
+        migrationBuilder.DropColumn(
             name: "LotCalculationResult",
             table: "Lots");
     }

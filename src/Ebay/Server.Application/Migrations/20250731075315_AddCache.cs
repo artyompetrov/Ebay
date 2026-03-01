@@ -10,7 +10,7 @@ public partial class AddCache : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
             name: "CacheEntries",
             columns: table => new
             {
@@ -20,14 +20,14 @@ public partial class AddCache : Migration
             },
             constraints: table =>
             {
-                _ = table.PrimaryKey("PK_CacheEntries", x => x.Key);
+                table.PrimaryKey("PK_CacheEntries", x => x.Key);
             });
     }
 
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.DropTable(
+        migrationBuilder.DropTable(
             name: "CacheEntries");
     }
 }

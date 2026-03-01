@@ -52,7 +52,7 @@ public sealed class Product : AggregateRoot<Guid>
         // en
         var incomingEn = searchQueries.ToDictionary(x => x.Id);
         // удалить те, которых нет во входе
-        _ = _searchQueries.RemoveAll(sq => !incomingEn.ContainsKey(sq.Id));
+        _searchQueries.RemoveAll(sq => !incomingEn.ContainsKey(sq.Id));
         // обновить существующие и добавить новые
         foreach (var kv in incomingEn)
         {
@@ -69,7 +69,7 @@ public sealed class Product : AggregateRoot<Guid>
 
         // ru
         var incomingRu = ruSearchQueries.ToDictionary(x => x.Id);
-        _ = _ruSearchQueries.RemoveAll(sq => !incomingRu.ContainsKey(sq.Id));
+        _ruSearchQueries.RemoveAll(sq => !incomingRu.ContainsKey(sq.Id));
         foreach (var kv in incomingRu)
         {
             var existing = _ruSearchQueries.FirstOrDefault(x => x.Id == kv.Key);

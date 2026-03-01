@@ -51,7 +51,7 @@ internal sealed class MeasurementService : IMeasurementService
 
         await _productMeasurementRepository.AddAsync(measurement, cancellationToken);
 
-        _ = await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     public async Task UpdateMeasurementLocation(
@@ -64,7 +64,7 @@ internal sealed class MeasurementService : IMeasurementService
             ? null
             : location.Trim();
 
-        _ = await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     public async Task UpdateMeasurementManufactureCode(
@@ -75,7 +75,7 @@ internal sealed class MeasurementService : IMeasurementService
         var productMeasurement = await _productMeasurementRepository.GetByIdAsync(measurementId, cancellationToken) ?? throw new InvalidOperationException("Measurement not found.");
         productMeasurement.UpdateManufactureCode(manufactureCode);
 
-        _ = await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     public async Task UpdateMeasurementMatchId(
@@ -88,7 +88,7 @@ internal sealed class MeasurementService : IMeasurementService
             ? null
             : matchId.Trim();
 
-        _ = await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     public async Task UpdateMeasurementLotId(
@@ -99,7 +99,7 @@ internal sealed class MeasurementService : IMeasurementService
         var productMeasurement = await _productMeasurementRepository.GetByIdAsync(measurementId, cancellationToken) ?? throw new InvalidOperationException("Measurement not found.");
         productMeasurement.LotId = string.IsNullOrWhiteSpace(lotId) ? null : lotId.Trim();
 
-        _ = await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     public async Task UpdateMeasurementState(
@@ -110,7 +110,7 @@ internal sealed class MeasurementService : IMeasurementService
         var productMeasurement = await _productMeasurementRepository.GetByIdAsync(measurementId, cancellationToken) ?? throw new InvalidOperationException("Measurement not found.");
         productMeasurement.MeasurementState = state;
 
-        _ = await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     public async Task DeleteMeasurement(

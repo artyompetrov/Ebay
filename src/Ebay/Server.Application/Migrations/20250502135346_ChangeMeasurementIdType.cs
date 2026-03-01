@@ -10,7 +10,7 @@ public partial class ChangeMeasurementIdType : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.AlterColumn<string>(
+        migrationBuilder.AlterColumn<string>(
             name: "Id",
             table: "ProductMeasurements",
             type: "character varying(100)",
@@ -23,7 +23,7 @@ public partial class ChangeMeasurementIdType : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.AlterColumn<Guid>(
+        migrationBuilder.AlterColumn<Guid>(
             name: "Id",
             table: "ProductMeasurements",
             type: "uuid",

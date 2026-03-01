@@ -46,21 +46,21 @@ public class DbCache
 
             if (entry is null)
             {
-                _ = _context.Add(new CacheEntry { Key = key, Version = WellKnown.DbCache.Version, Value = json, ExpiresAt = expiresAt });
+                _context.Add(new CacheEntry { Key = key, Version = WellKnown.DbCache.Version, Value = json, ExpiresAt = expiresAt });
             }
             else
             {
                 entry.Value = json;
                 entry.ExpiresAt = expiresAt;
-                _ = _context.Update(entry);
+                _context.Update(entry);
             }
 
-            _ = await _context.SaveChangesAsync(cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
             return value;
         }
         finally
         {
-            _ = _semaphore.Semaphore.Release();
+            _semaphore.Semaphore.Release();
         }
     }
 

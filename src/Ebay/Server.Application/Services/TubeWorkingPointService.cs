@@ -72,7 +72,7 @@ public class TubeWorkingPointService
             await _tubeWorkingPointsRepository.AddAsync(tubeWorkingPoint, cancellationToken);
         }
 
-        _ = await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     public Task<TubeWorkingPointInfo?> GetWorkingPointInfo(Guid productId, CancellationToken cancellationToken) => _tubeWorkingPointQueries.GetWorkingPointInfo(productId, cancellationToken);

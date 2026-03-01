@@ -14,7 +14,7 @@ public partial class AddMassTransit : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
             name: "InboxState",
             columns: table => new
             {
@@ -33,11 +33,11 @@ public partial class AddMassTransit : Migration
             },
             constraints: table =>
             {
-                _ = table.PrimaryKey("PK_InboxState", x => x.Id);
-                _ = table.UniqueConstraint("AK_InboxState_MessageId_ConsumerId", x => new { x.MessageId, x.ConsumerId });
+                table.PrimaryKey("PK_InboxState", x => x.Id);
+                table.UniqueConstraint("AK_InboxState_MessageId_ConsumerId", x => new { x.MessageId, x.ConsumerId });
             });
 
-        _ = migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
             name: "OutboxState",
             columns: table => new
             {
@@ -50,10 +50,10 @@ public partial class AddMassTransit : Migration
             },
             constraints: table =>
             {
-                _ = table.PrimaryKey("PK_OutboxState", x => x.OutboxId);
+                table.PrimaryKey("PK_OutboxState", x => x.OutboxId);
             });
 
-        _ = migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
             name: "OutboxMessage",
             columns: table => new
             {
@@ -82,47 +82,47 @@ public partial class AddMassTransit : Migration
             },
             constraints: table =>
             {
-                _ = table.PrimaryKey("PK_OutboxMessage", x => x.SequenceNumber);
-                _ = table.ForeignKey(
+                table.PrimaryKey("PK_OutboxMessage", x => x.SequenceNumber);
+                table.ForeignKey(
                     name: "FK_OutboxMessage_InboxState_InboxMessageId_InboxConsumerId",
                     columns: x => new { x.InboxMessageId, x.InboxConsumerId },
                     principalTable: "InboxState",
                     principalColumns: principalColumns);
-                _ = table.ForeignKey(
+                table.ForeignKey(
                     name: "FK_OutboxMessage_OutboxState_OutboxId",
                     column: x => x.OutboxId,
                     principalTable: "OutboxState",
                     principalColumn: "OutboxId");
             });
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_InboxState_Delivered",
             table: "InboxState",
             column: "Delivered");
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_OutboxMessage_EnqueueTime",
             table: "OutboxMessage",
             column: "EnqueueTime");
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_OutboxMessage_ExpirationTime",
             table: "OutboxMessage",
             column: "ExpirationTime");
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_OutboxMessage_InboxMessageId_InboxConsumerId_SequenceNumber",
             table: "OutboxMessage",
             columns: ["InboxMessageId", "InboxConsumerId", "SequenceNumber"],
             unique: true);
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_OutboxMessage_OutboxId_SequenceNumber",
             table: "OutboxMessage",
             columns: columns,
             unique: true);
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_OutboxState_Created",
             table: "OutboxState",
             column: "Created");
@@ -131,13 +131,13 @@ public partial class AddMassTransit : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.DropTable(
+        migrationBuilder.DropTable(
             name: "OutboxMessage");
 
-        _ = migrationBuilder.DropTable(
+        migrationBuilder.DropTable(
             name: "InboxState");
 
-        _ = migrationBuilder.DropTable(
+        migrationBuilder.DropTable(
             name: "OutboxState");
     }
 }

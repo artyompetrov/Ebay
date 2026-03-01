@@ -11,10 +11,10 @@ public partial class Initial : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.AlterDatabase()
+        migrationBuilder.AlterDatabase()
             .Annotation("Npgsql:PostgresExtension:hstore", ",,");
 
-        _ = migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
             name: "AspNetRoles",
             columns: table => new
             {
@@ -25,10 +25,10 @@ public partial class Initial : Migration
             },
             constraints: table =>
             {
-                _ = table.PrimaryKey("PK_AspNetRoles", x => x.Id);
+                table.PrimaryKey("PK_AspNetRoles", x => x.Id);
             });
 
-        _ = migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
             name: "AspNetUsers",
             columns: table => new
             {
@@ -50,10 +50,10 @@ public partial class Initial : Migration
             },
             constraints: table =>
             {
-                _ = table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                table.PrimaryKey("PK_AspNetUsers", x => x.Id);
             });
 
-        _ = migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
             name: "ClientErrors",
             columns: table => new
             {
@@ -63,10 +63,10 @@ public partial class Initial : Migration
             },
             constraints: table =>
             {
-                _ = table.PrimaryKey("PK_ClientErrors", x => x.Id);
+                table.PrimaryKey("PK_ClientErrors", x => x.Id);
             });
 
-        _ = migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
             name: "Currencies",
             columns: table => new
             {
@@ -78,10 +78,10 @@ public partial class Initial : Migration
             },
             constraints: table =>
             {
-                _ = table.PrimaryKey("PK_Currencies", x => x.CurrencyEbayName);
+                table.PrimaryKey("PK_Currencies", x => x.CurrencyEbayName);
             });
 
-        _ = migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
             name: "DeviceCodes",
             columns: table => new
             {
@@ -97,10 +97,10 @@ public partial class Initial : Migration
             },
             constraints: table =>
             {
-                _ = table.PrimaryKey("PK_DeviceCodes", x => x.UserCode);
+                table.PrimaryKey("PK_DeviceCodes", x => x.UserCode);
             });
 
-        _ = migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
             name: "Keys",
             columns: table => new
             {
@@ -115,10 +115,10 @@ public partial class Initial : Migration
             },
             constraints: table =>
             {
-                _ = table.PrimaryKey("PK_Keys", x => x.Id);
+                table.PrimaryKey("PK_Keys", x => x.Id);
             });
 
-        _ = migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
             name: "PersistedGrants",
             columns: table => new
             {
@@ -135,10 +135,10 @@ public partial class Initial : Migration
             },
             constraints: table =>
             {
-                _ = table.PrimaryKey("PK_PersistedGrants", x => x.Key);
+                table.PrimaryKey("PK_PersistedGrants", x => x.Key);
             });
 
-        _ = migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
             name: "AspNetRoleClaims",
             columns: table => new
             {
@@ -150,8 +150,8 @@ public partial class Initial : Migration
             },
             constraints: table =>
             {
-                _ = table.PrimaryKey("PK_AspNetRoleClaims", x => x.Id);
-                _ = table.ForeignKey(
+                table.PrimaryKey("PK_AspNetRoleClaims", x => x.Id);
+                table.ForeignKey(
                     name: "FK_AspNetRoleClaims_AspNetRoles_RoleId",
                     column: x => x.RoleId,
                     principalTable: "AspNetRoles",
@@ -159,7 +159,7 @@ public partial class Initial : Migration
                     onDelete: ReferentialAction.Cascade);
             });
 
-        _ = migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
             name: "AspNetUserClaims",
             columns: table => new
             {
@@ -171,8 +171,8 @@ public partial class Initial : Migration
             },
             constraints: table =>
             {
-                _ = table.PrimaryKey("PK_AspNetUserClaims", x => x.Id);
-                _ = table.ForeignKey(
+                table.PrimaryKey("PK_AspNetUserClaims", x => x.Id);
+                table.ForeignKey(
                     name: "FK_AspNetUserClaims_AspNetUsers_UserId",
                     column: x => x.UserId,
                     principalTable: "AspNetUsers",
@@ -180,7 +180,7 @@ public partial class Initial : Migration
                     onDelete: ReferentialAction.Cascade);
             });
 
-        _ = migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
             name: "AspNetUserLogins",
             columns: table => new
             {
@@ -191,8 +191,8 @@ public partial class Initial : Migration
             },
             constraints: table =>
             {
-                _ = table.PrimaryKey("PK_AspNetUserLogins", x => new { x.LoginProvider, x.ProviderKey });
-                _ = table.ForeignKey(
+                table.PrimaryKey("PK_AspNetUserLogins", x => new { x.LoginProvider, x.ProviderKey });
+                table.ForeignKey(
                     name: "FK_AspNetUserLogins_AspNetUsers_UserId",
                     column: x => x.UserId,
                     principalTable: "AspNetUsers",
@@ -200,7 +200,7 @@ public partial class Initial : Migration
                     onDelete: ReferentialAction.Cascade);
             });
 
-        _ = migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
             name: "AspNetUserRoles",
             columns: table => new
             {
@@ -209,14 +209,14 @@ public partial class Initial : Migration
             },
             constraints: table =>
             {
-                _ = table.PrimaryKey("PK_AspNetUserRoles", x => new { x.UserId, x.RoleId });
-                _ = table.ForeignKey(
+                table.PrimaryKey("PK_AspNetUserRoles", x => new { x.UserId, x.RoleId });
+                table.ForeignKey(
                     name: "FK_AspNetUserRoles_AspNetRoles_RoleId",
                     column: x => x.RoleId,
                     principalTable: "AspNetRoles",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Cascade);
-                _ = table.ForeignKey(
+                table.ForeignKey(
                     name: "FK_AspNetUserRoles_AspNetUsers_UserId",
                     column: x => x.UserId,
                     principalTable: "AspNetUsers",
@@ -224,7 +224,7 @@ public partial class Initial : Migration
                     onDelete: ReferentialAction.Cascade);
             });
 
-        _ = migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
             name: "AspNetUserTokens",
             columns: table => new
             {
@@ -235,8 +235,8 @@ public partial class Initial : Migration
             },
             constraints: table =>
             {
-                _ = table.PrimaryKey("PK_AspNetUserTokens", x => new { x.UserId, x.LoginProvider, x.Name });
-                _ = table.ForeignKey(
+                table.PrimaryKey("PK_AspNetUserTokens", x => new { x.UserId, x.LoginProvider, x.Name });
+                table.ForeignKey(
                     name: "FK_AspNetUserTokens_AspNetUsers_UserId",
                     column: x => x.UserId,
                     principalTable: "AspNetUsers",
@@ -244,7 +244,7 @@ public partial class Initial : Migration
                     onDelete: ReferentialAction.Cascade);
             });
 
-        _ = migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
             name: "Products",
             columns: table => new
             {
@@ -256,15 +256,15 @@ public partial class Initial : Migration
             },
             constraints: table =>
             {
-                _ = table.PrimaryKey("PK_Products", x => x.Id);
-                _ = table.ForeignKey(
+                table.PrimaryKey("PK_Products", x => x.Id);
+                table.ForeignKey(
                     name: "FK_Products_AspNetUsers_ApplicationUserId",
                     column: x => x.ApplicationUserId,
                     principalTable: "AspNetUsers",
                     principalColumn: "Id");
             });
 
-        _ = migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
             name: "IgnoredLots",
             columns: table => new
             {
@@ -273,8 +273,8 @@ public partial class Initial : Migration
             },
             constraints: table =>
             {
-                _ = table.PrimaryKey("PK_IgnoredLots", x => new { x.ProductId, x.LotId });
-                _ = table.ForeignKey(
+                table.PrimaryKey("PK_IgnoredLots", x => new { x.ProductId, x.LotId });
+                table.ForeignKey(
                     name: "FK_IgnoredLots_Products_ProductId",
                     column: x => x.ProductId,
                     principalTable: "Products",
@@ -282,7 +282,7 @@ public partial class Initial : Migration
                     onDelete: ReferentialAction.Cascade);
             });
 
-        _ = migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
             name: "Lots",
             columns: table => new
             {
@@ -308,14 +308,14 @@ public partial class Initial : Migration
             },
             constraints: table =>
             {
-                _ = table.PrimaryKey("PK_Lots", x => x.Id);
-                _ = table.ForeignKey(
+                table.PrimaryKey("PK_Lots", x => x.Id);
+                table.ForeignKey(
                     name: "FK_Lots_Currencies_CurrencyId",
                     column: x => x.CurrencyId,
                     principalTable: "Currencies",
                     principalColumn: "CurrencyEbayName",
                     onDelete: ReferentialAction.Cascade);
-                _ = table.ForeignKey(
+                table.ForeignKey(
                     name: "FK_Lots_Products_ProductId",
                     column: x => x.ProductId,
                     principalTable: "Products",
@@ -323,7 +323,7 @@ public partial class Initial : Migration
                     onDelete: ReferentialAction.Cascade);
             });
 
-        _ = migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
             name: "SearchQueries",
             columns: table => new
             {
@@ -333,8 +333,8 @@ public partial class Initial : Migration
             },
             constraints: table =>
             {
-                _ = table.PrimaryKey("PK_SearchQueries", x => x.Id);
-                _ = table.ForeignKey(
+                table.PrimaryKey("PK_SearchQueries", x => x.Id);
+                table.ForeignKey(
                     name: "FK_SearchQueries_Products_ProductId",
                     column: x => x.ProductId,
                     principalTable: "Products",
@@ -342,7 +342,7 @@ public partial class Initial : Migration
                     onDelete: ReferentialAction.Cascade);
             });
 
-        _ = migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
             name: "Purchases",
             columns: table => new
             {
@@ -353,8 +353,8 @@ public partial class Initial : Migration
             },
             constraints: table =>
             {
-                _ = table.PrimaryKey("PK_Purchases", x => new { x.LotId, x.Date });
-                _ = table.ForeignKey(
+                table.PrimaryKey("PK_Purchases", x => new { x.LotId, x.Date });
+                table.ForeignKey(
                     name: "FK_Purchases_Lots_LotId",
                     column: x => x.LotId,
                     principalTable: "Lots",
@@ -362,95 +362,95 @@ public partial class Initial : Migration
                     onDelete: ReferentialAction.Cascade);
             });
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_AspNetRoleClaims_RoleId",
             table: "AspNetRoleClaims",
             column: "RoleId");
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "RoleNameIndex",
             table: "AspNetRoles",
             column: "NormalizedName",
             unique: true);
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_AspNetUserClaims_UserId",
             table: "AspNetUserClaims",
             column: "UserId");
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_AspNetUserLogins_UserId",
             table: "AspNetUserLogins",
             column: "UserId");
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_AspNetUserRoles_RoleId",
             table: "AspNetUserRoles",
             column: "RoleId");
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "EmailIndex",
             table: "AspNetUsers",
             column: "NormalizedEmail");
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "UserNameIndex",
             table: "AspNetUsers",
             column: "NormalizedUserName",
             unique: true);
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_DeviceCodes_DeviceCode",
             table: "DeviceCodes",
             column: "DeviceCode",
             unique: true);
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_DeviceCodes_Expiration",
             table: "DeviceCodes",
             column: "Expiration");
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_Keys_Use",
             table: "Keys",
             column: "Use");
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_Lots_CurrencyId",
             table: "Lots",
             column: "CurrencyId");
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_Lots_ProductId",
             table: "Lots",
             column: "ProductId");
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_PersistedGrants_ConsumedTime",
             table: "PersistedGrants",
             column: "ConsumedTime");
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_PersistedGrants_Expiration",
             table: "PersistedGrants",
             column: "Expiration");
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_PersistedGrants_SubjectId_ClientId_Type",
             table: "PersistedGrants",
             columns: ["SubjectId", "ClientId", "Type"]);
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_PersistedGrants_SubjectId_SessionId_Type",
             table: "PersistedGrants",
             columns: ["SubjectId", "SessionId", "Type"]);
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_Products_ApplicationUserId",
             table: "Products",
             column: "ApplicationUserId");
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_SearchQueries_ProductId",
             table: "SearchQueries",
             column: "ProductId");
@@ -459,55 +459,55 @@ public partial class Initial : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.DropTable(
+        migrationBuilder.DropTable(
             name: "AspNetRoleClaims");
 
-        _ = migrationBuilder.DropTable(
+        migrationBuilder.DropTable(
             name: "AspNetUserClaims");
 
-        _ = migrationBuilder.DropTable(
+        migrationBuilder.DropTable(
             name: "AspNetUserLogins");
 
-        _ = migrationBuilder.DropTable(
+        migrationBuilder.DropTable(
             name: "AspNetUserRoles");
 
-        _ = migrationBuilder.DropTable(
+        migrationBuilder.DropTable(
             name: "AspNetUserTokens");
 
-        _ = migrationBuilder.DropTable(
+        migrationBuilder.DropTable(
             name: "ClientErrors");
 
-        _ = migrationBuilder.DropTable(
+        migrationBuilder.DropTable(
             name: "DeviceCodes");
 
-        _ = migrationBuilder.DropTable(
+        migrationBuilder.DropTable(
             name: "IgnoredLots");
 
-        _ = migrationBuilder.DropTable(
+        migrationBuilder.DropTable(
             name: "Keys");
 
-        _ = migrationBuilder.DropTable(
+        migrationBuilder.DropTable(
             name: "PersistedGrants");
 
-        _ = migrationBuilder.DropTable(
+        migrationBuilder.DropTable(
             name: "Purchases");
 
-        _ = migrationBuilder.DropTable(
+        migrationBuilder.DropTable(
             name: "SearchQueries");
 
-        _ = migrationBuilder.DropTable(
+        migrationBuilder.DropTable(
             name: "AspNetRoles");
 
-        _ = migrationBuilder.DropTable(
+        migrationBuilder.DropTable(
             name: "Lots");
 
-        _ = migrationBuilder.DropTable(
+        migrationBuilder.DropTable(
             name: "Currencies");
 
-        _ = migrationBuilder.DropTable(
+        migrationBuilder.DropTable(
             name: "Products");
 
-        _ = migrationBuilder.DropTable(
+        migrationBuilder.DropTable(
             name: "AspNetUsers");
     }
 }

@@ -108,7 +108,7 @@ internal class ConditionExtractor : ExtractorBase, IExtractor
             if (extractionResult.ContainsKey(WellKnown.Categories.Conditions.Used))
 #pragma warning restore CA1853
             {
-                _ = extractionResult.Remove(NosOrOpenBox);
+                extractionResult.Remove(NosOrOpenBox);
             }
             else
             {
@@ -117,7 +117,7 @@ internal class ConditionExtractor : ExtractorBase, IExtractor
                     extractionResult.AppendOrCreateNewCollection(key: WellKnown.Categories.Conditions.New, value: result);
                 }
 
-                _ = extractionResult.Remove(NosOrOpenBox);
+                extractionResult.Remove(NosOrOpenBox);
             }
         }
     }
@@ -174,7 +174,7 @@ internal class ConditionExtractor : ExtractorBase, IExtractor
                             Match: match.ToString()
                         )
                     );
-                    _ = successfulExtractions.Add(match.ToString());
+                    successfulExtractions.Add(match.ToString());
                 }
             }
         }

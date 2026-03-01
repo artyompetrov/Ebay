@@ -10,7 +10,7 @@ public partial class AddLocation : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.AddColumn<string>(
+        migrationBuilder.AddColumn<string>(
             name: "Location",
             table: "ProductMeasurements",
             type: "character varying(200)",
@@ -21,7 +21,7 @@ public partial class AddLocation : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.DropColumn(
+        migrationBuilder.DropColumn(
             name: "Location",
             table: "ProductMeasurements");
     }

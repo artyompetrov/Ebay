@@ -10,7 +10,7 @@ public partial class AddMatchedPairDifferences : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
             name: "MatchedPairDifferences",
             columns: table => new
             {
@@ -22,14 +22,14 @@ public partial class AddMatchedPairDifferences : Migration
             },
             constraints: table =>
             {
-                _ = table.PrimaryKey("PK_MatchedPairDifferences", x => new { x.MeasurementId1, x.MeasurementId2 });
-                _ = table.ForeignKey(
+                table.PrimaryKey("PK_MatchedPairDifferences", x => new { x.MeasurementId1, x.MeasurementId2 });
+                table.ForeignKey(
                     name: "FK_MatchedPairDifferences_ProductMeasurements_MeasurementId1",
                     column: x => x.MeasurementId1,
                     principalTable: "ProductMeasurements",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Cascade);
-                _ = table.ForeignKey(
+                table.ForeignKey(
                     name: "FK_MatchedPairDifferences_ProductMeasurements_MeasurementId2",
                     column: x => x.MeasurementId2,
                     principalTable: "ProductMeasurements",
@@ -37,7 +37,7 @@ public partial class AddMatchedPairDifferences : Migration
                     onDelete: ReferentialAction.Cascade);
             });
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_MatchedPairDifferences_MeasurementId2",
             table: "MatchedPairDifferences",
             column: "MeasurementId2");
@@ -46,7 +46,7 @@ public partial class AddMatchedPairDifferences : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.DropTable(
+        migrationBuilder.DropTable(
             name: "MatchedPairDifferences");
     }
 }

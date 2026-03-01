@@ -10,12 +10,12 @@ public partial class RenameGridCurves : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.RenameColumn(
+        migrationBuilder.RenameColumn(
             name: "HashPlateCurves",
             table: "ProductMeasurements",
             newName: "HashGridCurves");
 
-        _ = migrationBuilder.RenameIndex(
+        migrationBuilder.RenameIndex(
             name: "IX_ProductMeasurements_HashPlateCurves",
             table: "ProductMeasurements",
             newName: "IX_ProductMeasurements_HashGridCurves");
@@ -24,12 +24,12 @@ public partial class RenameGridCurves : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.RenameColumn(
+        migrationBuilder.RenameColumn(
             name: "HashGridCurves",
             table: "ProductMeasurements",
             newName: "HashPlateCurves");
 
-        _ = migrationBuilder.RenameIndex(
+        migrationBuilder.RenameIndex(
             name: "IX_ProductMeasurements_HashGridCurves",
             table: "ProductMeasurements",
             newName: "IX_ProductMeasurements_HashPlateCurves");

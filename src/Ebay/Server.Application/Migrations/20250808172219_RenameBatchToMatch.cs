@@ -10,7 +10,7 @@ public partial class RenameBatchToMatch : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.RenameColumn(
+        migrationBuilder.RenameColumn(
             name: "BatchId",
             table: "ProductMeasurements",
             newName: "MatchId");
@@ -19,7 +19,7 @@ public partial class RenameBatchToMatch : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.RenameColumn(
+        migrationBuilder.RenameColumn(
             name: "MatchId",
             table: "ProductMeasurements",
             newName: "BatchId");

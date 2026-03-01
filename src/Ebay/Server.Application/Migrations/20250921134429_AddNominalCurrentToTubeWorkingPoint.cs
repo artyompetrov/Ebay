@@ -10,7 +10,7 @@ public partial class AddNominalCurrentToTubeWorkingPoint : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.AddColumn<double>(
+        migrationBuilder.AddColumn<double>(
             name: "NominalCurrent",
             table: "TubeWorkingPoints",
             type: "double precision",
@@ -21,7 +21,7 @@ public partial class AddNominalCurrentToTubeWorkingPoint : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.DropColumn(
+        migrationBuilder.DropColumn(
             name: "NominalCurrent",
             table: "TubeWorkingPoints");
     }

@@ -70,8 +70,8 @@ internal class TestStateExtractor : ExtractorBase, IExtractor
         if (extractionResult.ContainsKey(WellKnown.Categories.TestState.Matched))
 #pragma warning restore CA1853
         {
-            _ = extractionResult.Remove(WellKnown.Categories.TestState.Tested);
-            _ = extractionResult.Remove(WellKnown.Categories.TestState.NotTested);
+            extractionResult.Remove(WellKnown.Categories.TestState.Tested);
+            extractionResult.Remove(WellKnown.Categories.TestState.NotTested);
         }
 
 
@@ -130,7 +130,7 @@ internal class TestStateExtractor : ExtractorBase, IExtractor
                             Match: match.ToString()
                         )
                     );
-                    _ = successfulExtractions.Add(match.ToString());
+                    successfulExtractions.Add(match.ToString());
                 }
             }
         }

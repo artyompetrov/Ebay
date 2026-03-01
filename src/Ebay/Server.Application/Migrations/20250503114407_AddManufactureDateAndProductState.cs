@@ -10,12 +10,12 @@ public partial class AddManufactureDateAndProductState : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.RenameColumn(
+        migrationBuilder.RenameColumn(
             name: "State",
             table: "ProductMeasurements",
             newName: "ProductState");
 
-        _ = migrationBuilder.AddColumn<string>(
+        migrationBuilder.AddColumn<string>(
             name: "ManufactureDate",
             table: "ProductMeasurements",
             type: "character varying(7)",
@@ -23,7 +23,7 @@ public partial class AddManufactureDateAndProductState : Migration
             nullable: false,
             defaultValue: "");
 
-        _ = migrationBuilder.AddColumn<int>(
+        migrationBuilder.AddColumn<int>(
             name: "MeasurementState",
             table: "ProductMeasurements",
             type: "integer",
@@ -34,15 +34,15 @@ public partial class AddManufactureDateAndProductState : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.DropColumn(
+        migrationBuilder.DropColumn(
             name: "ManufactureDate",
             table: "ProductMeasurements");
 
-        _ = migrationBuilder.DropColumn(
+        migrationBuilder.DropColumn(
             name: "MeasurementState",
             table: "ProductMeasurements");
 
-        _ = migrationBuilder.RenameColumn(
+        migrationBuilder.RenameColumn(
             name: "ProductState",
             table: "ProductMeasurements",
             newName: "State");

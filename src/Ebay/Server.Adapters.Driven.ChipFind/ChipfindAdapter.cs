@@ -153,7 +153,7 @@ public class ChipfindAdapter : IChipfindAdapter
 
             var result = TryExtractContactFromContactSection(doc);
 
-            _ = _memoryCache.Set(cacheKey, result);
+            _memoryCache.Set(cacheKey, result);
 
             await Task.Delay(_options.DelayMilliseconds, cancellationToken);
 
@@ -188,8 +188,8 @@ public class ChipfindAdapter : IChipfindAdapter
                 var brNode = doc.CreateElement("br");
 
                 // Вставляем перед <pre>
-                _ = pre.ParentNode.InsertBefore(textNode, pre);
-                _ = pre.ParentNode.InsertBefore(brNode, pre);
+                pre.ParentNode.InsertBefore(textNode, pre);
+                pre.ParentNode.InsertBefore(brNode, pre);
 
                 // Удаляем сам <pre>
                 pre.Remove();

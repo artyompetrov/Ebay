@@ -7,11 +7,11 @@ public static class ServiceCollectionExtensions
 {
     public static void AddEmailAdapter(this IServiceCollection services)
     {
-        _ = services.AddOptions<SmtpSettings>()
+        services.AddOptions<SmtpSettings>()
             .BindConfiguration("Smtp")
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        _ = services.AddScoped<IEmailSender, EmailSender>();
+        services.AddScoped<IEmailSender, EmailSender>();
     }
 }

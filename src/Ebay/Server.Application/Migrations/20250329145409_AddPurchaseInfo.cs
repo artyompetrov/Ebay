@@ -10,7 +10,7 @@ public partial class AddPurchaseInfo : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.AddColumn<string>(
+        migrationBuilder.AddColumn<string>(
             name: "PurchaseCalculationResult",
             table: "Purchases",
             type: "text",
@@ -20,7 +20,7 @@ public partial class AddPurchaseInfo : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.DropColumn(
+        migrationBuilder.DropColumn(
             name: "PurchaseCalculationResult",
             table: "Purchases");
     }

@@ -161,7 +161,7 @@ internal class PcsExtractor : ExtractorBase, IExtractor
                             )
                         );
 
-                        _ = successfulExtractions.Add(match.ToString());
+                        successfulExtractions.Add(match.ToString());
                     }
                     else
                     {
@@ -180,7 +180,7 @@ internal class PcsExtractor : ExtractorBase, IExtractor
                                 Match: match.ToString()
                             )
                         );
-                        _ = successfulExtractions.Add(match.ToString());
+                        successfulExtractions.Add(match.ToString());
                     }
                 }
             }

@@ -10,28 +10,28 @@ public partial class AlterMatchedPairs : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.DropPrimaryKey(
+        migrationBuilder.DropPrimaryKey(
             name: "PK_MatchedPairDifferences",
             table: "MatchedPairDifferences");
 
-        _ = migrationBuilder.RenameColumn(
+        migrationBuilder.RenameColumn(
             name: "Rmse",
             table: "MatchedPairDifferences",
             newName: "RmseSumm");
 
-        _ = migrationBuilder.RenameColumn(
+        migrationBuilder.RenameColumn(
             name: "Mse",
             table: "MatchedPairDifferences",
             newName: "MseSumm");
 
-        _ = migrationBuilder.AddColumn<int>(
+        migrationBuilder.AddColumn<int>(
             name: "ComparisonMode",
             table: "MatchedPairDifferences",
             type: "integer",
             nullable: false,
             defaultValue: 0);
 
-        _ = migrationBuilder.AddPrimaryKey(
+        migrationBuilder.AddPrimaryKey(
             name: "PK_MatchedPairDifferences",
             table: "MatchedPairDifferences",
             columns: ["MeasurementId1", "MeasurementId2", "ComparisonMode"]);
@@ -41,25 +41,25 @@ public partial class AlterMatchedPairs : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.DropPrimaryKey(
+        migrationBuilder.DropPrimaryKey(
             name: "PK_MatchedPairDifferences",
             table: "MatchedPairDifferences");
 
-        _ = migrationBuilder.DropColumn(
+        migrationBuilder.DropColumn(
             name: "ComparisonMode",
             table: "MatchedPairDifferences");
 
-        _ = migrationBuilder.RenameColumn(
+        migrationBuilder.RenameColumn(
             name: "RmseSumm",
             table: "MatchedPairDifferences",
             newName: "Rmse");
 
-        _ = migrationBuilder.RenameColumn(
+        migrationBuilder.RenameColumn(
             name: "MseSumm",
             table: "MatchedPairDifferences",
             newName: "Mse");
 
-        _ = migrationBuilder.AddPrimaryKey(
+        migrationBuilder.AddPrimaryKey(
             name: "PK_MatchedPairDifferences",
             table: "MatchedPairDifferences",
             columns: columns);

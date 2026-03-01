@@ -10,11 +10,11 @@ public partial class RemoveGridCurvesHash : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.DropIndex(
+        migrationBuilder.DropIndex(
             name: "IX_ProductMeasurements_HashGridCurves",
             table: "ProductMeasurements");
 
-        _ = migrationBuilder.DropColumn(
+        migrationBuilder.DropColumn(
             name: "HashGridCurves",
             table: "ProductMeasurements");
     }
@@ -22,7 +22,7 @@ public partial class RemoveGridCurvesHash : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.AddColumn<string>(
+        migrationBuilder.AddColumn<string>(
             name: "HashGridCurves",
             table: "ProductMeasurements",
             type: "character varying(128)",
@@ -30,7 +30,7 @@ public partial class RemoveGridCurvesHash : Migration
             nullable: false,
             defaultValue: "");
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_ProductMeasurements_HashGridCurves",
             table: "ProductMeasurements",
             column: "HashGridCurves",

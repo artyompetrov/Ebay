@@ -129,11 +129,11 @@ public class ChipfindBackgroundTask : BackgroundTask
                         newRecord.Contact = advertisementContact;
                     }
 
-                    _ = applicationDbContext.ProductEmailSendHistory.Add(newRecord);
+                    applicationDbContext.ProductEmailSendHistory.Add(newRecord);
 
                     if (product.IsInteresting)
                     {
-                        _ = newInterestingAds.Add((IsAmbiguous: isAmbiguous, Ad: saleAdvertisementItem, Contact: advertisementContact));
+                        newInterestingAds.Add((IsAmbiguous: isAmbiguous, Ad: saleAdvertisementItem, Contact: advertisementContact));
                     }
                 }
                 else
@@ -149,7 +149,7 @@ public class ChipfindBackgroundTask : BackgroundTask
             }
         }
 
-        _ = await applicationDbContext.SaveChangesAsync(cancellationToken);
+        await applicationDbContext.SaveChangesAsync(cancellationToken);
 
         if (newInterestingAds.Count > 0)
         {

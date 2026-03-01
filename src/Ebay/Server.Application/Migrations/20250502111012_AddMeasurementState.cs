@@ -10,7 +10,7 @@ public partial class AddMeasurementState : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.AddColumn<int>(
+        migrationBuilder.AddColumn<int>(
             name: "State",
             table: "ProductMeasurements",
             type: "integer",
@@ -21,7 +21,7 @@ public partial class AddMeasurementState : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.DropColumn(
+        migrationBuilder.DropColumn(
             name: "State",
             table: "ProductMeasurements");
     }

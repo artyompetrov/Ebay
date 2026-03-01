@@ -39,7 +39,7 @@ internal class MatchedMeasurementService
         Guid productId,
         CancellationToken cancellationToken)
     {
-        _ = await _tubeWorkingPointQueries.GetWorkingPointInfo(productId, cancellationToken) ?? throw NonOkHttpAnswerException.ValidationError400(
+        var _ = await _tubeWorkingPointQueries.GetWorkingPointInfo(productId, cancellationToken) ?? throw NonOkHttpAnswerException.ValidationError400(
                 field: "tubeWorkingPoint",
                 errors: "Рабочая точка не задана.");
         await DeletePreviousResults(productId: productId, cancellationToken: cancellationToken);
@@ -70,7 +70,7 @@ internal class MatchedMeasurementService
                 measurements.Add(message.ToString());
             }
             _logger.LogInformation("Publishing {MessageType}, {MessageIds}", nameof(CalculateMatchedPair), string.Join(",", measurements));
-            _ = await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
     }
 
@@ -85,6 +85,6 @@ internal class MatchedMeasurementService
 
         await _matchedPairDifferenceRepository.RemoveByMeasurementIds(measurementIds, cancellationToken);
 
-        _ = await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

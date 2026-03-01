@@ -18,60 +18,60 @@ internal sealed class ReadDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder b)
     {
-        _ = b.Entity<ProductMeasurementView>(eb =>
+        b.Entity<ProductMeasurementView>(eb =>
         {
-            _ = eb.ToView("ProductMeasurements").HasKey(x => x.Id);
+            eb.ToView("ProductMeasurements").HasKey(x => x.Id);
         });
 
-        _ = b.Entity<ProductPassportView>(eb =>
+        b.Entity<ProductPassportView>(eb =>
         {
-            _ = eb.ToView("ProductPassports").HasKey(x => x.Id);
+            eb.ToView("ProductPassports").HasKey(x => x.Id);
         });
 
-        _ = b.Entity<ProductView>(eb =>
+        b.Entity<ProductView>(eb =>
         {
-            _ = eb.ToView("Products").HasKey(x => x.Id);
+            eb.ToView("Products").HasKey(x => x.Id);
 
-            _ = eb.HasOne(x => x.TubeWorkingPoint)
+            eb.HasOne(x => x.TubeWorkingPoint)
                 .WithOne(x => x.Product)
                 .HasForeignKey<TubeWorkingPointView>(tp => tp.Id)
                 .HasPrincipalKey<ProductView>(p => p.Id);
 
-            _ = eb.OwnsMany(p => p.SearchQueries, q =>
+            eb.OwnsMany(p => p.SearchQueries, q =>
             {
-                _ = q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
-                _ = q.HasKey(x => x.Id);
-                _ = q.ToTable("Product_SearchQueries");
+                q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
+                q.HasKey(x => x.Id);
+                q.ToTable("Product_SearchQueries");
             });
 
-            _ = eb.OwnsMany(p => p.RuSearchQueries, q =>
+            eb.OwnsMany(p => p.RuSearchQueries, q =>
             {
-                _ = q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
-                _ = q.HasKey(x => x.Id);
-                _ = q.ToTable("Product_RuSearchQueries");
+                q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
+                q.HasKey(x => x.Id);
+                q.ToTable("Product_RuSearchQueries");
             });
 
-            _ = eb.Property(o => o.ProductCalculationResult)
+            eb.Property(o => o.ProductCalculationResult)
                 .HasConversion(new ValueConverter<ProductCalculationResult?, string>(
                     v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
                     v => JsonSerializer.Deserialize<ProductCalculationResult?>(v, (JsonSerializerOptions?)null)
                 ));
         });
 
-        _ = b.Entity<MatchedPairDifferenceView>(eb =>
+        b.Entity<MatchedPairDifferenceView>(eb =>
         {
-            _ = eb.ToView("MatchedPairDifferences").HasKey(x => new { MeasurementId1 = x.Measurement1Id, MeasurementId2 = x.Measurement2Id, x.ComparisonMode });
+            eb.ToView("MatchedPairDifferences").HasKey(x => new { MeasurementId1 = x.Measurement1Id, MeasurementId2 = x.Measurement2Id, x.ComparisonMode });
         });
 
-        _ = b.Entity<TubeWorkingPointView>(x =>
+        b.Entity<TubeWorkingPointView>(x =>
         {
-            _ = x.ToView("TubeWorkingPoints").HasKey(x => x.Id);
+            x.ToView("TubeWorkingPoints").HasKey(x => x.Id);
         });
-        _ = b.Entity<LotForSaleView>(eb =>
+        b.Entity<LotForSaleView>(eb =>
         {
-            _ = eb.ToView("LotForSales", "wm").HasKey(x => x.Id);
+            eb.ToView("LotForSales", "wm").HasKey(x => x.Id);
 
-            _ = eb.Property(x => x.ProductState)
+            eb.Property(x => x.ProductState)
                 .HasConversion<string>();
         });
 

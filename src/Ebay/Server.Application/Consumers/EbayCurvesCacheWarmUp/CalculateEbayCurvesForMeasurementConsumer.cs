@@ -23,13 +23,13 @@ public class CalculateEbayCurvesForMeasurementConsumer : IConsumer<CalculateEbay
         _logger.LogInformation("Warm-up for {MeasurementId}", context.Message.MeasurementId);
         try
         {
-            _ = await _measurementPlotService.PlotForEbay(
+            await _measurementPlotService.PlotForEbay(
                 context.Message.MeasurementId,
                 lotId: null,
                 sellingOnly: false,
                 cancellationToken: context.CancellationToken);
 
-            _ = await _measurementPlotService.GetEbayTubeDescription(
+            await _measurementPlotService.GetEbayTubeDescription(
                 context.Message.MeasurementId,
                 lotId: null,
                 sellingOnly: false,

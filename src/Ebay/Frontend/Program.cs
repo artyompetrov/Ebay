@@ -30,7 +30,7 @@ public class Program
 
         if (OperatingSystem.IsBrowser())
         {
-            _ = await JSHost.ImportAsync(moduleName: "interop", moduleUrl: "/js/interop.js");
+            await JSHost.ImportAsync(moduleName: "interop", moduleUrl: "/js/interop.js");
         }
 
         await builder.Build().RunAsync();

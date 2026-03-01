@@ -22,7 +22,7 @@ public static class ServiceCollectionExtensions
     public static void AddEfWriteModelAdapter(
         this IServiceCollection services)
     {
-        _ = services.AddDbContext<WriteModelDbContext>((sp, o) =>
+        services.AddDbContext<WriteModelDbContext>((sp, o) =>
         {
             var connectionString = sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection")
                                    ?? throw new InvalidOperationException("Connection string cannot be null");
@@ -30,11 +30,11 @@ public static class ServiceCollectionExtensions
                 b.MigrationsAssembly("Server.Adapters.Driven.EF.WriteModel.Migrations"));
         });
 
-        _ = services.AddScoped<IMeasurementRepository, MeasurementRepository>();
-        _ = services.AddScoped<IMatchedPairDifferenceRepository, MatchedPairDifferenceRepository>();
-        _ = services.AddScoped<ITubeWorkingPointsRepository, TubeWorkingPointsRepository>();
-        _ = services.AddScoped<IProductRepository, ProductRepository>();
-        _ = services.AddScoped<ILotForSaleRepository, LotForSaleRepository>();
-        _ = services.AddScoped<IWriteModelUnitOfWork>(sp => sp.GetRequiredService<WriteModelDbContext>());
+        services.AddScoped<IMeasurementRepository, MeasurementRepository>();
+        services.AddScoped<IMatchedPairDifferenceRepository, MatchedPairDifferenceRepository>();
+        services.AddScoped<ITubeWorkingPointsRepository, TubeWorkingPointsRepository>();
+        services.AddScoped<IProductRepository, ProductRepository>();
+        services.AddScoped<ILotForSaleRepository, LotForSaleRepository>();
+        services.AddScoped<IWriteModelUnitOfWork>(sp => sp.GetRequiredService<WriteModelDbContext>());
     }
 }

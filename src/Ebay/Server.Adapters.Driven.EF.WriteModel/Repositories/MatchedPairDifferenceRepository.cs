@@ -22,7 +22,7 @@ internal sealed class MatchedPairDifferenceRepository : IMatchedPairDifferenceRe
 
     public async Task RemoveAsync(MatchedPairDifferenceId id, CancellationToken cancellationToken)
     {
-        _ = await _dbContext.MatchedPairDifferences.Where(o => o.Id == id)
+        await _dbContext.MatchedPairDifferences.Where(o => o.Id == id)
             .ExecuteDeleteAsync(cancellationToken: cancellationToken);
     }
 
@@ -36,7 +36,7 @@ internal sealed class MatchedPairDifferenceRepository : IMatchedPairDifferenceRe
         const int batchSize = 1000; // безопасный размер IN (...)
         foreach (var batch in ids.Chunk(batchSize))
         {
-            _ = await _dbContext.MatchedPairDifferences
+            await _dbContext.MatchedPairDifferences
                 .Where(x => batch.Contains(x.Id))
                 .ExecuteDeleteAsync(cancellationToken);
         }
@@ -52,7 +52,7 @@ internal sealed class MatchedPairDifferenceRepository : IMatchedPairDifferenceRe
         const int batchSize = 1000; // безопасный размер IN (...)
         foreach (var batch in measurementIds.Chunk(batchSize))
         {
-            _ = await _dbContext.MatchedPairDifferences
+            await _dbContext.MatchedPairDifferences
                 .Where(x => batch.Contains(x.Measurement1Id) || batch.Contains(x.Measurement2Id))
                 .ExecuteDeleteAsync(cancellationToken);
         }

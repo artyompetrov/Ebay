@@ -30,7 +30,7 @@ public class EmailSender : IEmailSender
 
         await client.AuthenticateAsync(_settings.Login, _settings.Password);
 
-        _ = await client.SendAsync(message);
+        await client.SendAsync(message);
 
         await client.DisconnectAsync(true);
     }

@@ -67,14 +67,14 @@ public class Program
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
         {
-            _ = app.UseMigrationsEndPoint();
+            app.UseMigrationsEndPoint();
             app.UseWebAssemblyDebugging();
         }
         else
         {
-            _ = app.UseExceptionHandler("/Error");
+            app.UseExceptionHandler("/Error");
             // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-            _ = app.UseHsts();
+            app.UseHsts();
         }
 
         app.UseHttpsRedirection();
@@ -98,34 +98,34 @@ public class Program
 
     private static void ConfigureMassTransit(IServiceCollection services)
     {
-        _ = services.AddOptions<SqlTransportOptions>()
+        services.AddOptions<SqlTransportOptions>()
             .Configure<IConfiguration>((o, cfg) =>
             {
                 o.ConnectionString = cfg.GetConnectionString("DefaultConnection")
                                     ?? throw new InvalidOperationException("Connection string cannot be null");
             });
 
-        _ = services.AddPostgresMigrationHostedService(x =>
+        services.AddPostgresMigrationHostedService(x =>
         {
             x.CreateDatabase = false;
             x.CreateInfrastructure = true;
         });
 
-        _ = services.AddMassTransit(x =>
+        services.AddMassTransit(x =>
         {
-            _ = x.AddConsumer<CalculatePricesForAllConsumer>();
-            _ = x.AddConsumer<CalculatePricesForProductConsumer>();
-            _ = x.AddConsumer<CalculatePricesForLotConsumer>();
-            _ = x.AddConsumer<MeasurementWatchedOnEbayConsumer>();
-            _ = x.AddConsumer<CalculateEbayCurvesForMeasurementConsumer>(c =>
+            x.AddConsumer<CalculatePricesForAllConsumer>();
+            x.AddConsumer<CalculatePricesForProductConsumer>();
+            x.AddConsumer<CalculatePricesForLotConsumer>();
+            x.AddConsumer<MeasurementWatchedOnEbayConsumer>();
+            x.AddConsumer<CalculateEbayCurvesForMeasurementConsumer>(c =>
             {
                 c.UseConcurrencyLimit(10);
             });
-            _ = x.AddConsumer<MatchedPairsCalculatorConsumer>(c =>
+            x.AddConsumer<MatchedPairsCalculatorConsumer>(c =>
             {
                 c.UseConcurrencyLimit(1);
             });
-            _ = x.AddConsumer<CalculateTotalAveragePriceForProductConsumer>(c => c.Options<BatchOptions>(o =>
+            x.AddConsumer<CalculateTotalAveragePriceForProductConsumer>(c => c.Options<BatchOptions>(o =>
             {
                 o.ConcurrencyLimit = 1;
                 o.MessageLimit = 100;
@@ -133,7 +133,7 @@ public class Program
 
             x.AddEntityFrameworkOutbox<WriteModelDbContext>(o =>
             {
-                _ = o.UsePostgres();
+                o.UsePostgres();
                 o.UseBusOutbox();
             });
 
@@ -159,7 +159,7 @@ public class Program
             o.IncludeScopes = true;
             o.IncludeFormattedMessage = true;
             o.ParseStateValues = true;
-            _ = o.AddOtlpExporter();
+            o.AddOtlpExporter();
         });
     }
 
