@@ -13,10 +13,10 @@ using Server.Adapters.Driven.EF.WriteModel;
 using Server.Adapters.Driven.Smtp;
 using Server.Adapters.Driven.uTracer;
 using Server.Adapters.Driving.MassTransit.Consumers.MatchedPairs;
+using Server.Adapters.Driving.MassTransit.Consumers.MeasurementWatching;
 using Server.Adapters.Driving.WebApi;
 using Server.Application;
 using Server.Application.Consumers.EbayCurvesCacheWarmUp;
-using Server.Adapters.Driving.MassTransit.Consumers.MeasurementWatching;
 using Server.Application.Consumers.PriceCalculator;
 using Server.Application.Data;
 using Server.Configuration;
@@ -211,7 +211,7 @@ public class Program
                         .WithLogoutRedirectUri($"https://{authorizationOptions.Domain}/chrome_extensions/logout")
                         .WithScopes(authorizationOptions.Scope)
                         .Build();
-                    
+
                     spaClient.AllowedCorsOrigins =
                     [
                         $"chrome-extension://{WellKnown.ChromeExtension.Id}",
