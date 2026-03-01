@@ -36,36 +36,31 @@ public sealed class LotForSaleIdGenerator : ILotForSaleIdGenerator
     /// <inheritdoc />
     public string GenerateNextId()
     {
-        var secondsSinceEpoch = GetCurrentSecondSinceEpoch();
-        int sequence;
+        var currentSecond = GetCurrentSecondSinceEpoch();
+        ulong value;
 
         lock (_sync)
         {
-            if (secondsSinceEpoch < _lastGeneratedSecond)
-            {
-                secondsSinceEpoch = _lastGeneratedSecond;
-            }
+            var nextSecond = Math.Max(currentSecond, _lastGeneratedSecond);
 
-            if (secondsSinceEpoch != _lastGeneratedSecond)
+            if (nextSecond != _lastGeneratedSecond)
             {
-                _lastGeneratedSecond = secondsSinceEpoch;
+                _lastGeneratedSecond = nextSecond;
                 _sequence = _randomNumberProvider.Next(0, MaxSequence + 1);
             }
-            else if (_sequence == MaxSequence)
+            else if (_sequence < MaxSequence)
+            {
+                _sequence++;
+            }
+            else
             {
                 _lastGeneratedSecond = Math.Min(_lastGeneratedSecond + 1, MaxSecondsSinceEpoch);
                 _sequence = _randomNumberProvider.Next(0, MaxSequence + 1);
             }
-            else
-            {
-                _sequence++;
-            }
 
-            sequence = _sequence;
-            secondsSinceEpoch = _lastGeneratedSecond;
+            value = ((ulong)(uint)_lastGeneratedSecond << SequenceBits) | (uint)_sequence;
         }
 
-        var value = ((ulong)(uint)secondsSinceEpoch << SequenceBits) | (uint)sequence;
         return Encode(value);
     }
 
