@@ -2,8 +2,10 @@ openapi: 3.1.0
 info:
   title: Ebay WebApi Adapter Contract
   version: 1.0.0
+servers:
+  - url: /api/webapi/v1
 paths:
-  /api/webapi/v1/lot-for-sales:
+  /lot-for-sales:
     get:
       operationId: GetLotForSales
       summary: Returns lot-for-sale aggregates
@@ -32,7 +34,8 @@ paths:
       responses:
         '200':
           description: Ok
-  /api/webapi/v1/lot-for-sales/{lotId}:
+
+  /lot-for-sales/{lotId}:
     delete:
       operationId: DeleteLotForSale
       summary: Deletes lot-for-sale aggregate
@@ -49,6 +52,7 @@ paths:
       responses:
         '200':
           description: Ok
+
 components:
   schemas:
     LotForSaleCreateRequest:

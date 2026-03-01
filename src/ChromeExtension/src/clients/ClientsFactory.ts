@@ -1,5 +1,6 @@
 ﻿import * as EbayClient from "./EbayClient"
 import * as EbayToolBackendClient from "./Generated/EbayToolBackendClient";
+import * as EbayToolWebApiClient from "./Generated/EbayToolWebApiClient";
 import * as constants from '../constants';
 import {generateCodeVerifier, OAuth2Client} from "@badgateway/oauth2-client";
 import {fetchResource} from "../infrastructure/Utils";
@@ -61,6 +62,14 @@ export class ClientsFactory {
         })
     }
 
+    async getEbayToolWebApiClient(): Promise<EbayToolWebApiClient.EbayToolWebApiClient> {
+        await chrome.storage.local.set({return_page: document.location.href});
+
+        return new EbayToolWebApiClient.EbayToolWebApiClient(constants.Urls.backendUrl,
+            this.getAuthorizeFetch(await this.getBackendOAuth2Client(), constants.Auth.Backend.Scope, "ebayToolTokenStore", constants.Urls.extensionAuthRedirectUrl));
+
+    }
+    
     async getEbayToolBackendClient(): Promise<EbayToolBackendClient.EbayToolBackendClient> {
         await chrome.storage.local.set({return_page: document.location.href});
 

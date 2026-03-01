@@ -6,6 +6,7 @@ import {tryGetSearchSitesProcessor} from "./siteProcessors/SearchSitesProcessor"
 import {tryGetAvitoSavedSearchesProcessor} from "./siteProcessors/AvitoSavedSearchesPageProcessor";
 import {Mode} from './mode';
 import {tryGetEbayShippingRateTableSiteProcessor} from "./siteProcessors/EbayShippingRateTableSiteProcessor";
+import {tryGetEbayMagSiteProcessor} from "./siteProcessors/EbayMagSiteProcessor";
 
 async function getMatchingSiteProcessors(): Promise<ISiteProcessor[]> {
     const {mode} = await chrome.storage.local.get(['mode']);
@@ -28,7 +29,8 @@ async function getMatchingSiteProcessors(): Promise<ISiteProcessor[]> {
         case Mode.Seller:
             processors = [
                 tryGetAuthPageProcessor(),
-                tryGetEbayShippingRateTableSiteProcessor()
+                tryGetEbayShippingRateTableSiteProcessor(),
+                tryGetEbayMagSiteProcessor()
             ];
             break;
         case Mode.NotSelected:
