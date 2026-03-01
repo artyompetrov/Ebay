@@ -10,7 +10,7 @@ public partial class AddEmailToSaleAdvertisements : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.AddColumn<string>(
+        migrationBuilder.AddColumn<string>(
             name: "Email",
             table: "SaleAdvertisements",
             type: "text",
@@ -20,7 +20,7 @@ public partial class AddEmailToSaleAdvertisements : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.DropColumn(
+        migrationBuilder.DropColumn(
             name: "Email",
             table: "SaleAdvertisements");
     }

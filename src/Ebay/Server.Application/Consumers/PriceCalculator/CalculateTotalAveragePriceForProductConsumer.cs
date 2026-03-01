@@ -76,9 +76,9 @@ public class CalculateTotalAveragePriceForProductConsumer : IConsumer<Batch<Calc
                 ListingPriceSumm = listingPrice
             };
 
-            _ = await _unitOfWork.SaveChangesAsync(context.CancellationToken);
+            await _unitOfWork.SaveChangesAsync(context.CancellationToken);
 
-            _ = await _applicationDbContext.SaveChangesAsync(context.CancellationToken);
+            await _applicationDbContext.SaveChangesAsync(context.CancellationToken);
         }
     }
 }

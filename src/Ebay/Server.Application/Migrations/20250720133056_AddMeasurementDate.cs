@@ -10,14 +10,14 @@ public partial class AddMeasurementDate : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.AddColumn<DateTime>(
+        migrationBuilder.AddColumn<DateTime>(
             name: "CreatedAt",
             table: "ProductMeasurements",
             type: "timestamp with time zone",
             nullable: false,
             defaultValueSql: "CURRENT_TIMESTAMP");
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_ProductMeasurements_CreatedAt",
             table: "ProductMeasurements",
             column: "CreatedAt");
@@ -26,11 +26,11 @@ public partial class AddMeasurementDate : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.DropIndex(
+        migrationBuilder.DropIndex(
             name: "IX_ProductMeasurements_CreatedAt",
             table: "ProductMeasurements");
 
-        _ = migrationBuilder.DropColumn(
+        migrationBuilder.DropColumn(
             name: "CreatedAt",
             table: "ProductMeasurements");
     }

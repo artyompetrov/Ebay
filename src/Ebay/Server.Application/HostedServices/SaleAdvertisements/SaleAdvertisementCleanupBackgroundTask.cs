@@ -30,7 +30,7 @@ public class SaleAdvertisementCleanupBackgroundTask : BackgroundTask
 
         var staleThreshold = DateTime.UtcNow - WellKnown.SaleAdvertisements.RemoveAdvertisementAfter;
 
-        _ = await applicationDbContext.ProductEmailSendHistory
+        await applicationDbContext.ProductEmailSendHistory
             .Where(e => e.CreatedAt < staleThreshold)
             .ExecuteDeleteAsync(cancellationToken);
 

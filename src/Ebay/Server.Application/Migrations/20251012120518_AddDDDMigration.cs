@@ -10,20 +10,20 @@ public partial class AddDDDMigration : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.DropForeignKey(
+        migrationBuilder.DropForeignKey(
             name: "FK_TubeWorkingPoints_Products_ProductId",
             table: "TubeWorkingPoints");
 
-        _ = migrationBuilder.DropPrimaryKey(
+        migrationBuilder.DropPrimaryKey(
             name: "PK_MatchedPairDifferences",
             table: "MatchedPairDifferences");
 
-        _ = migrationBuilder.RenameColumn(
+        migrationBuilder.RenameColumn(
             name: "ProductId",
             table: "TubeWorkingPoints",
             newName: "Id");
 
-        _ = migrationBuilder.AddColumn<uint>(
+        migrationBuilder.AddColumn<uint>(
             name: "xmin",
             table: "TubeWorkingPoints",
             type: "xid",
@@ -31,16 +31,16 @@ public partial class AddDDDMigration : Migration
             nullable: false,
             defaultValue: 0u);
 
-        _ = migrationBuilder.Sql(@"TRUNCATE TABLE ""MatchedPairDifferences"";");
+        migrationBuilder.Sql(@"TRUNCATE TABLE ""MatchedPairDifferences"";");
 
-        _ = migrationBuilder.AddColumn<string>(
+        migrationBuilder.AddColumn<string>(
             name: "Id",
             table: "MatchedPairDifferences",
             type: "text",
             nullable: false,
             defaultValue: "");
 
-        _ = migrationBuilder.AddColumn<uint>(
+        migrationBuilder.AddColumn<uint>(
             name: "xmin",
             table: "MatchedPairDifferences",
             type: "xid",
@@ -50,17 +50,17 @@ public partial class AddDDDMigration : Migration
 
 
 
-        _ = migrationBuilder.AddPrimaryKey(
+        migrationBuilder.AddPrimaryKey(
             name: "PK_MatchedPairDifferences",
             table: "MatchedPairDifferences",
             column: "Id");
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_MatchedPairDifferences_Measurement1Id",
             table: "MatchedPairDifferences",
             column: "Measurement1Id");
 
-        _ = migrationBuilder.AddForeignKey(
+        migrationBuilder.AddForeignKey(
             name: "FK_TubeWorkingPoints_Products_Id",
             table: "TubeWorkingPoints",
             column: "Id",
@@ -73,41 +73,41 @@ public partial class AddDDDMigration : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.DropForeignKey(
+        migrationBuilder.DropForeignKey(
             name: "FK_TubeWorkingPoints_Products_Id",
             table: "TubeWorkingPoints");
 
-        _ = migrationBuilder.DropPrimaryKey(
+        migrationBuilder.DropPrimaryKey(
             name: "PK_MatchedPairDifferences",
             table: "MatchedPairDifferences");
 
-        _ = migrationBuilder.DropIndex(
+        migrationBuilder.DropIndex(
             name: "IX_MatchedPairDifferences_Measurement1Id",
             table: "MatchedPairDifferences");
 
-        _ = migrationBuilder.DropColumn(
+        migrationBuilder.DropColumn(
             name: "xmin",
             table: "TubeWorkingPoints");
 
-        _ = migrationBuilder.DropColumn(
+        migrationBuilder.DropColumn(
             name: "Id",
             table: "MatchedPairDifferences");
 
-        _ = migrationBuilder.DropColumn(
+        migrationBuilder.DropColumn(
             name: "xmin",
             table: "MatchedPairDifferences");
 
-        _ = migrationBuilder.RenameColumn(
+        migrationBuilder.RenameColumn(
             name: "Id",
             table: "TubeWorkingPoints",
             newName: "ProductId");
 
-        _ = migrationBuilder.AddPrimaryKey(
+        migrationBuilder.AddPrimaryKey(
             name: "PK_MatchedPairDifferences",
             table: "MatchedPairDifferences",
             columns: columns);
 
-        _ = migrationBuilder.AddForeignKey(
+        migrationBuilder.AddForeignKey(
             name: "FK_TubeWorkingPoints_Products_ProductId",
             table: "TubeWorkingPoints",
             column: "ProductId",

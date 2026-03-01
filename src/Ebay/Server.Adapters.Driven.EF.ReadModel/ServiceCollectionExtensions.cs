@@ -18,16 +18,16 @@ public static class ServiceCollectionExtensions
     /// <param name="configuration">Конфигурация приложения</param>
     public static void AddEfReadModelAdapter(this IServiceCollection services)
     {
-        _ = services.AddDbContext<ReadDbContext>((sp, o) =>
+        services.AddDbContext<ReadDbContext>((sp, o) =>
         {
             var connectionString = sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection")
                                    ?? throw new InvalidOperationException("Connection string cannot be null");
             o.UseNpgsql(connectionString);
         });
-        _ = services.AddScoped<IProductQueries, ProductQueries>();
-        _ = services.AddScoped<IPassportQueries, PassportQueries>();
-        _ = services.AddScoped<IMeasurementQueries, MeasurementQueries>();
-        _ = services.AddScoped<ITubeWorkingPointQueries, TubeWorkingPointQueries>();
-        _ = services.AddScoped<ILotForSaleQueries, LotForSaleQueries>();
+        services.AddScoped<IProductQueries, ProductQueries>();
+        services.AddScoped<IPassportQueries, PassportQueries>();
+        services.AddScoped<IMeasurementQueries, MeasurementQueries>();
+        services.AddScoped<ITubeWorkingPointQueries, TubeWorkingPointQueries>();
+        services.AddScoped<ILotForSaleQueries, LotForSaleQueries>();
     }
 }

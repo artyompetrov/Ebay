@@ -10,7 +10,7 @@ public partial class RenameSaleAdvertisementEmailToContact : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.RenameColumn(
+        migrationBuilder.RenameColumn(
             name: "Email",
             table: "SaleAdvertisements",
             newName: "Contact");
@@ -19,7 +19,7 @@ public partial class RenameSaleAdvertisementEmailToContact : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.RenameColumn(
+        migrationBuilder.RenameColumn(
             name: "Contact",
             table: "SaleAdvertisements",
             newName: "Email");

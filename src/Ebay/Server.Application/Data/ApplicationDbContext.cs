@@ -45,7 +45,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
         foreach (var et in builder.Model.GetEntityTypes()
                      .Where(t => typeof(IAggregateRoot).IsAssignableFrom(t.ClrType)))
         {
-            _ = builder.Entity(et.ClrType)
+            builder.Entity(et.ClrType)
                 .Property(nameof(IAggregateRoot.Version))
                 .IsRowVersion()
                 .ValueGeneratedOnAddOrUpdate();
@@ -55,148 +55,148 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
         builder.AddOutboxMessageEntity();
         builder.AddOutboxStateEntity();
 
-        _ = builder.Entity<Lot>()
+        builder.Entity<Lot>()
             .Property(o => o.LotCalculationResult)
             .HasConversion(new ValueConverter<LotCalculationResult?, string>(
                 v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
                 v => JsonSerializer.Deserialize<LotCalculationResult?>(v, (JsonSerializerOptions?)null)
             ));
 
-        _ = builder.Entity<Product>(entity =>
+        builder.Entity<Product>(entity =>
         {
-            _ = entity.HasKey(x => x.Id);
+            entity.HasKey(x => x.Id);
 
-            _ = entity.Property(e => e.Id)
+            entity.Property(e => e.Id)
                 .ValueGeneratedNever();
 
-            _ = entity.Property(o => o.ProductCalculationResult)
+            entity.Property(o => o.ProductCalculationResult)
                 .HasConversion(new ValueConverter<ProductCalculationResult?, string>(
                     v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
                     v => JsonSerializer.Deserialize<ProductCalculationResult?>(v, (JsonSerializerOptions?)null)
                 ));
 
-            _ = entity.Navigation(p => p.SearchQueries)
+            entity.Navigation(p => p.SearchQueries)
                 .UsePropertyAccessMode(PropertyAccessMode.Field);
-            _ = entity.Navigation(p => p.RuSearchQueries)
+            entity.Navigation(p => p.RuSearchQueries)
                 .UsePropertyAccessMode(PropertyAccessMode.Field);
 
-            _ = entity.OwnsMany(p => p.SearchQueries, q =>
+            entity.OwnsMany(p => p.SearchQueries, q =>
             {
-                _ = q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
-                _ = q.HasKey(x => x.Id);
-                _ = q.Property(x => x.Id).ValueGeneratedNever();
-                _ = q.Property(x => x.Query).IsRequired();
-                _ = q.ToTable("Product_SearchQueries");
+                q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
+                q.HasKey(x => x.Id);
+                q.Property(x => x.Id).ValueGeneratedNever();
+                q.Property(x => x.Query).IsRequired();
+                q.ToTable("Product_SearchQueries");
             });
 
-            _ = entity.OwnsMany(p => p.RuSearchQueries, q =>
+            entity.OwnsMany(p => p.RuSearchQueries, q =>
             {
-                _ = q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
-                _ = q.HasKey(x => x.Id);
-                _ = q.Property(x => x.Id).ValueGeneratedNever();
-                _ = q.Property(x => x.Query).IsRequired();
-                _ = q.ToTable("Product_RuSearchQueries");
+                q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
+                q.HasKey(x => x.Id);
+                q.Property(x => x.Id).ValueGeneratedNever();
+                q.Property(x => x.Query).IsRequired();
+                q.ToTable("Product_RuSearchQueries");
             });
         });
 
-        _ = builder.Entity<Purchase>()
+        builder.Entity<Purchase>()
             .Property(o => o.PurchaseCalculationResult)
             .HasConversion(new ValueConverter<PurchaseCalculationResult?, string>(
                 v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
                 v => JsonSerializer.Deserialize<PurchaseCalculationResult?>(v, (JsonSerializerOptions?)null)
             ));
 
-        _ = builder.Entity<ProductMeasurement>(entity =>
+        builder.Entity<ProductMeasurement>(entity =>
         {
-            _ = entity.HasKey(x => x.Id);
+            entity.HasKey(x => x.Id);
 
-            _ = entity.Property(x => x.Id)
+            entity.Property(x => x.Id)
                 .HasMaxLength(100)
                 .ValueGeneratedNever();
 
-            _ = entity.Property(p => p.CreatedAt)
+            entity.Property(p => p.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-            _ = entity.Property(x => x.ProductId).IsRequired();
+            entity.Property(x => x.ProductId).IsRequired();
 
-            _ = entity.HasOne<Product>()
+            entity.HasOne<Product>()
                 .WithMany()
                 .HasForeignKey(x => x.ProductId)
                 .OnDelete(DeleteBehavior.Restrict)
                 .IsRequired();
 
-            _ = entity.HasIndex(x => x.ProductId);
-            _ = entity.HasIndex(p => p.CreatedAt);
-            _ = entity.HasIndex(p => p.MatchId);
-            _ = entity.HasIndex(p => p.LotId);
+            entity.HasIndex(x => x.ProductId);
+            entity.HasIndex(p => p.CreatedAt);
+            entity.HasIndex(p => p.MatchId);
+            entity.HasIndex(p => p.LotId);
 
-            _ = entity.HasIndex(x => x.HashAnodeCurves).IsUnique();
+            entity.HasIndex(x => x.HashAnodeCurves).IsUnique();
         });
 
-        _ = builder.Entity<ProductEmailSendHistory>(entity =>
+        builder.Entity<ProductEmailSendHistory>(entity =>
         {
-            _ = entity.ToTable("SaleAdvertisements");
-            _ = entity.HasIndex(e => e.ProductId);
-            _ = entity.HasIndex(e => new { e.ProductId, e.Seller, e.Marketplace }).IsUnique();
-            _ = entity.HasIndex(e => e.CreatedAt);
-            _ = entity.Property(e => e.IsAmbiguous).HasDefaultValue(false);
+            entity.ToTable("SaleAdvertisements");
+            entity.HasIndex(e => e.ProductId);
+            entity.HasIndex(e => new { e.ProductId, e.Seller, e.Marketplace }).IsUnique();
+            entity.HasIndex(e => e.CreatedAt);
+            entity.Property(e => e.IsAmbiguous).HasDefaultValue(false);
         });
 
-        _ = builder.Entity<CacheEntry>(entity =>
+        builder.Entity<CacheEntry>(entity =>
         {
-            _ = entity.HasKey(e => new { e.Key, e.Version });
+            entity.HasKey(e => new { e.Key, e.Version });
         });
 
 
-        _ = builder.Entity<ProductPassport>(entity =>
+        builder.Entity<ProductPassport>(entity =>
         {
-            _ = entity.HasIndex(e => new { e.ProductId, e.Order });
+            entity.HasIndex(e => new { e.ProductId, e.Order });
         });
 
-        _ = builder.Entity<TubeWorkingPoint>(entity =>
+        builder.Entity<TubeWorkingPoint>(entity =>
         {
-            _ = entity.HasKey(e => e.Id);
-            _ = entity.HasOne<Product>()
+            entity.HasKey(e => e.Id);
+            entity.HasOne<Product>()
                 .WithOne()
                 .HasForeignKey<TubeWorkingPoint>(e => e.Id)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
-        _ = builder.Entity<IgnoredLot>(entity =>
+        builder.Entity<IgnoredLot>(entity =>
         {
-            _ = entity.HasKey(e => new { e.ProductId, e.LotId });
+            entity.HasKey(e => new { e.ProductId, e.LotId });
         });
 
 
-        _ = builder.Entity<Purchase>(entity =>
+        builder.Entity<Purchase>(entity =>
         {
-            _ = entity.HasKey(e => new { e.LotId, e.Date });
+            entity.HasKey(e => new { e.LotId, e.Date });
         });
 
-        _ = builder.Entity<MatchedPairDifference>(entity =>
+        builder.Entity<MatchedPairDifference>(entity =>
         {
-            _ = entity.Property(x => x.Id)
+            entity.Property(x => x.Id)
                 .HasConversion(
                     v => JsonConvert.SerializeObject(v, Formatting.None),
                     v => JsonConvert.DeserializeObject<MatchedPairDifferenceId>(v)!);
 
-            _ = entity.HasKey(e => e.Id);
+            entity.HasKey(e => e.Id);
 
-            _ = entity.Property(e => e.Measurement1Id)
+            entity.Property(e => e.Measurement1Id)
                 .HasMaxLength(100);
 
-            _ = entity.Property(e => e.Measurement2Id)
+            entity.Property(e => e.Measurement2Id)
                 .HasMaxLength(100);
 
-            _ = entity.HasIndex(x => x.Measurement1Id);
-            _ = entity.HasIndex(x => x.Measurement2Id);
+            entity.HasIndex(x => x.Measurement1Id);
+            entity.HasIndex(x => x.Measurement2Id);
 
-            _ = entity.HasOne<ProductMeasurement>()
+            entity.HasOne<ProductMeasurement>()
                 .WithMany()
                 .HasForeignKey(e => e.Measurement1Id)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            _ = entity.HasOne<ProductMeasurement>()
+            entity.HasOne<ProductMeasurement>()
                 .WithMany()
                 .HasForeignKey(e => e.Measurement2Id)
                 .OnDelete(DeleteBehavior.Restrict);
@@ -260,7 +260,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
 
         if (_writeModelUnitOfWork is not null && !ReferenceEquals(_writeModelUnitOfWork, this))
         {
-            _ = await _writeModelUnitOfWork.SaveChangesAsync(cancellationToken);
+            await _writeModelUnitOfWork.SaveChangesAsync(cancellationToken);
         }
 
         return changedRows;

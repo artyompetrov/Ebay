@@ -12,11 +12,11 @@ public partial class AddCacheEntryVersion : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.DropPrimaryKey(
+        migrationBuilder.DropPrimaryKey(
             name: "PK_CacheEntries",
             table: "CacheEntries");
 
-        _ = migrationBuilder.AddColumn<string>(
+        migrationBuilder.AddColumn<string>(
             name: "Version",
             table: "CacheEntries",
             type: "character varying(50)",
@@ -24,7 +24,7 @@ public partial class AddCacheEntryVersion : Migration
             nullable: false,
             defaultValue: "");
 
-        _ = migrationBuilder.AddPrimaryKey(
+        migrationBuilder.AddPrimaryKey(
             name: "PK_CacheEntries",
             table: "CacheEntries",
             columns: columns);
@@ -33,15 +33,15 @@ public partial class AddCacheEntryVersion : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.DropPrimaryKey(
+        migrationBuilder.DropPrimaryKey(
             name: "PK_CacheEntries",
             table: "CacheEntries");
 
-        _ = migrationBuilder.DropColumn(
+        migrationBuilder.DropColumn(
             name: "Version",
             table: "CacheEntries");
 
-        _ = migrationBuilder.AddPrimaryKey(
+        migrationBuilder.AddPrimaryKey(
             name: "PK_CacheEntries",
             table: "CacheEntries",
             column: "Key");

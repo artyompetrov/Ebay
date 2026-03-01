@@ -116,7 +116,7 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
             new CalculateTotalAveragePriceForProduct(lot.ProductId),
             context.CancellationToken);
 
-        _ = await _applicationContext.SaveChangesAsync(context.CancellationToken);
+        await _applicationContext.SaveChangesAsync(context.CancellationToken);
         // ReSharper restore IdentifierTypo
 
         transaction.Complete();

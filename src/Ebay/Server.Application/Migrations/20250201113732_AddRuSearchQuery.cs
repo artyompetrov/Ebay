@@ -10,7 +10,7 @@ public partial class AddRuSearchQuery : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
             name: "RuSearchQueries",
             columns: table => new
             {
@@ -20,8 +20,8 @@ public partial class AddRuSearchQuery : Migration
             },
             constraints: table =>
             {
-                _ = table.PrimaryKey("PK_RuSearchQueries", x => x.Id);
-                _ = table.ForeignKey(
+                table.PrimaryKey("PK_RuSearchQueries", x => x.Id);
+                table.ForeignKey(
                     name: "FK_RuSearchQueries_Products_ProductId",
                     column: x => x.ProductId,
                     principalTable: "Products",
@@ -29,7 +29,7 @@ public partial class AddRuSearchQuery : Migration
                     onDelete: ReferentialAction.Cascade);
             });
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_RuSearchQueries_ProductId",
             table: "RuSearchQueries",
             column: "ProductId");
@@ -38,7 +38,7 @@ public partial class AddRuSearchQuery : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.DropTable(
+        migrationBuilder.DropTable(
             name: "RuSearchQueries");
     }
 }

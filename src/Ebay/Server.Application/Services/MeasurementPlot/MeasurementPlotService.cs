@@ -425,7 +425,7 @@ public class MeasurementPlotService : IMeasurementPlotService
         plt.Legend.ManualItems = legendItems;
         plt.Legend.ShadowColor = new Color(red: 0, green: 0, blue: 0, alpha: 0);
 
-        _ = plt.ShowLegend(legendVertical ? Edge.Right : Edge.Bottom);
+        plt.ShowLegend(legendVertical ? Edge.Right : Edge.Bottom);
 
         return plt.GetSvgXml(width: width, height: height);
     }

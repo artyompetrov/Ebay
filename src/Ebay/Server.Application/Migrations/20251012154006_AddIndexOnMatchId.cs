@@ -10,7 +10,7 @@ public partial class AddIndexOnMatchId : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_ProductMeasurements_MatchId",
             table: "ProductMeasurements",
             column: "MatchId");
@@ -19,7 +19,7 @@ public partial class AddIndexOnMatchId : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.DropIndex(
+        migrationBuilder.DropIndex(
             name: "IX_ProductMeasurements_MatchId",
             table: "ProductMeasurements");
     }

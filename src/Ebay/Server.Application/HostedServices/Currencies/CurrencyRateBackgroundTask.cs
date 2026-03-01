@@ -63,6 +63,6 @@ public class CurrencyRateBackgroundTask : BackgroundTask
             dbProduct.Entity.LastUpdate = currentTime;
         }
 
-        _ = await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 }

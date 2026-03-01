@@ -17,7 +17,7 @@ public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
     {
         base.OnModelCreating(modelBuilder);
 
-        _ = modelBuilder.HasDefaultSchema("wm");
+        modelBuilder.HasDefaultSchema("wm");
         modelBuilder.AddInboxStateEntity();
         modelBuilder.AddOutboxMessageEntity();
         modelBuilder.AddOutboxStateEntity();
@@ -25,27 +25,27 @@ public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
         foreach (var entityType in modelBuilder.Model.GetEntityTypes()
                      .Where(t => typeof(IAggregateRoot).IsAssignableFrom(t.ClrType)))
         {
-            _ = modelBuilder.Entity(entityType.ClrType)
+            modelBuilder.Entity(entityType.ClrType)
                 .Property(nameof(IAggregateRoot.Version))
                 .IsRowVersion()
                 .ValueGeneratedOnAddOrUpdate();
         }
 
-        _ = modelBuilder.Entity<LotForSale>(entity =>
+        modelBuilder.Entity<LotForSale>(entity =>
         {
-            _ = entity.HasKey(x => x.Id);
+            entity.HasKey(x => x.Id);
 
-            _ = entity.Property(x => x.Id)
+            entity.Property(x => x.Id)
                 .HasMaxLength(7)
                 .ValueGeneratedNever();
 
-            _ = entity.Property(x => x.Name)
+            entity.Property(x => x.Name)
                 .IsRequired();
 
-            _ = entity.Property(x => x.ProductId)
+            entity.Property(x => x.ProductId)
                 .IsRequired();
 
-            _ = entity.Property(x => x.ProductState)
+            entity.Property(x => x.ProductState)
                 .HasConversion<string>()
                 .IsRequired();
         });

@@ -119,7 +119,7 @@ public class ExtensionController : ControllerBase
             fileStream.CopyTo(entryStream);
         }
 
-        _ = memoryStream.Seek(offset: 0, loc: SeekOrigin.Begin);
+        memoryStream.Seek(offset: 0, loc: SeekOrigin.Begin);
         var zipFileName = $"{extensionName}.zip";
 
         Response.Headers.Append(key: "Cache-Control", value: "no-cache, no-store, must-revalidate");

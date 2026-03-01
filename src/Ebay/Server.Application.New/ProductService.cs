@@ -90,7 +90,7 @@ public class ProductService
                       throw new InvalidOperationException("Product not found");
         product.MarkAsChecked();
 
-        _ = await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     /// <summary>

@@ -34,60 +34,60 @@ public static class ServiceCollectionExtensions
     {
         var appAssembly = typeof(ServiceCollectionExtensions).Assembly;
 
-        _ = services.AddOptions<EbayServerOptions>()
+        services.AddOptions<EbayServerOptions>()
             .BindConfiguration("EbayServer")
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        _ = services.AddSingleton(sp => sp.GetRequiredService<IOptions<EbayServerOptions>>().Value);
+        services.AddSingleton(sp => sp.GetRequiredService<IOptions<EbayServerOptions>>().Value);
 
-        _ = services.AddDbContext<ApplicationDbContext>((sp, o) =>
+        services.AddDbContext<ApplicationDbContext>((sp, o) =>
         {
             var connectionString = sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection")
                                    ?? throw new InvalidOperationException("Connection string cannot be null");
             o.UseNpgsql(connectionString);
         });
-        _ = services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ApplicationDbContext>());
-        _ = services.AddScoped<ShippingRatesService>();
-        _ = services.AddSingleton(sp =>
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ApplicationDbContext>());
+        services.AddScoped<ShippingRatesService>();
+        services.AddSingleton(sp =>
         {
             var connectionString = sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection")
                                    ?? throw new InvalidOperationException("Connection string cannot be null");
             return new DatabaseConcurrentAccessSemaphore(
                 maxConcurrent: new Npgsql.NpgsqlConnectionStringBuilder(connectionString).MaxPoolSize / 2);
         });
-        _ = services.AddScoped<DbCache>();
+        services.AddScoped<DbCache>();
         services.AddApplicationNewServices();
-        _ = services.AddScoped<MatchedMeasurementService>();
-        _ = services.AddScoped<MeasurementPlotService>();
-        _ = services.AddScoped<IMeasurementWatchedOnEbayHandler, MeasurementWatchedOnEbayHandler>();
-        _ = services.AddScoped<TubeWorkingPointService>();
-        _ = services.AddHttpClient<GeoIpService>(c =>
+        services.AddScoped<MatchedMeasurementService>();
+        services.AddScoped<MeasurementPlotService>();
+        services.AddScoped<IMeasurementWatchedOnEbayHandler, MeasurementWatchedOnEbayHandler>();
+        services.AddScoped<TubeWorkingPointService>();
+        services.AddHttpClient<GeoIpService>(c =>
         {
             c.Timeout = TimeSpan.FromSeconds(2);
         });
 
-        _ = services.AddScoped<IEbayController, EbayControllerImplementation>();
-        _ = services.AddDefaultIdentity<ApplicationUser>(o => o.SignIn.RequireConfirmedAccount = true)
+        services.AddScoped<IEbayController, EbayControllerImplementation>();
+        services.AddDefaultIdentity<ApplicationUser>(o => o.SignIn.RequireConfirmedAccount = true)
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
-        _ = services.AddHostedService<CurrencyRateBackgroundTask>();
-        _ = services.AddHostedService<ChipfindBackgroundTask>();
-        _ = services.AddHostedService<SaleAdvertisementCleanupBackgroundTask>();
+        services.AddHostedService<CurrencyRateBackgroundTask>();
+        services.AddHostedService<ChipfindBackgroundTask>();
+        services.AddHostedService<SaleAdvertisementCleanupBackgroundTask>();
 
-        _ = services.AddHostedService<DbCacheCleanupHostedService>();
-        _ = services.AddHostedService<MeasurementPlotWarmupHostedService>();
+        services.AddHostedService<DbCacheCleanupHostedService>();
+        services.AddHostedService<MeasurementPlotWarmupHostedService>();
 
-        _ = services.AddDatabaseDeveloperPageExceptionFilter();
+        services.AddDatabaseDeveloperPageExceptionFilter();
 
-        _ = services.AddControllersWithViews(options =>
+        services.AddControllersWithViews(options =>
             {
-                _ = options.Filters.Add<ErrorFilter>();
+                options.Filters.Add<ErrorFilter>();
             })
             .AddApplicationPart(appAssembly)
             .AddNewtonsoftJson();
 
-        _ = services.AddRazorPages()
+        services.AddRazorPages()
             .AddApplicationPart(typeof(ServiceCollectionExtensions).Assembly);
     }
 

@@ -49,7 +49,7 @@ public class MeasurementPlotWarmupHostedService : IHostedService
                 await publishEndpoint.Publish(new CalculateEbayCurvesForMeasurement(id), cancellationToken);
             }
 
-            _ = await dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken);
         }
 
         _logger.LogInformation("Published {Count} measurement plot warmup commands", measurementIds.Count);

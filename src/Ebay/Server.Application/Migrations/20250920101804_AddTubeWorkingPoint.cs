@@ -10,7 +10,7 @@ public partial class AddTubeWorkingPoint : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
             name: "TubeWorkingPoints",
             columns: table => new
             {
@@ -22,8 +22,8 @@ public partial class AddTubeWorkingPoint : Migration
             },
             constraints: table =>
             {
-                _ = table.PrimaryKey("PK_TubeWorkingPoints", x => x.ProductId);
-                _ = table.ForeignKey(
+                table.PrimaryKey("PK_TubeWorkingPoints", x => x.ProductId);
+                table.ForeignKey(
                     name: "FK_TubeWorkingPoints_Products_ProductId",
                     column: x => x.ProductId,
                     principalTable: "Products",
@@ -35,7 +35,7 @@ public partial class AddTubeWorkingPoint : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.DropTable(
+        migrationBuilder.DropTable(
             name: "TubeWorkingPoints");
     }
 }

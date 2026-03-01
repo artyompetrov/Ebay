@@ -34,7 +34,7 @@ public class PurchasePage : PageModel
             return BadRequest("measurementIds parameter is required");
         }
 
-        _ = await _measurementQueries.GetMeasurementInfosWithData(ids, cancellationToken);
+        await _measurementQueries.GetMeasurementInfosWithData(ids, cancellationToken);
 
         var measurements = await _measurementQueries.GetMeasurementInfosWithData(ids, cancellationToken);
 

@@ -33,7 +33,7 @@ internal sealed class ProductRepository : IProductRepository
 
     public async Task RemoveAsync(Guid id, CancellationToken cancellationToken)
     {
-        _ = await _dbContext.Products.Where(o => o.Id == id)
+        await _dbContext.Products.Where(o => o.Id == id)
             .ExecuteDeleteAsync(cancellationToken: cancellationToken);
     }
 
@@ -47,7 +47,7 @@ internal sealed class ProductRepository : IProductRepository
         const int batchSize = 1000; // безопасный размер IN (...)
         foreach (var batch in ids.Chunk(batchSize))
         {
-            _ = await _dbContext.Products
+            await _dbContext.Products
                 .Where(x => batch.Contains(x.Id))
                 .ExecuteDeleteAsync(cancellationToken);
         }

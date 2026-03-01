@@ -11,7 +11,7 @@ public partial class AddMessageHistory : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
             name: "EmailSendHistories",
             columns: table => new
             {
@@ -22,10 +22,10 @@ public partial class AddMessageHistory : Migration
             },
             constraints: table =>
             {
-                _ = table.PrimaryKey("PK_EmailSendHistories", x => x.Id);
+                table.PrimaryKey("PK_EmailSendHistories", x => x.Id);
             });
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_EmailSendHistories_EmailId",
             table: "EmailSendHistories",
             column: "EmailId",
@@ -35,7 +35,7 @@ public partial class AddMessageHistory : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.DropTable(
+        migrationBuilder.DropTable(
             name: "EmailSendHistories");
     }
 }

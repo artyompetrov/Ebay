@@ -62,7 +62,7 @@ public sealed class LotForSaleService
         var lotId = _lotForSaleIdGenerator.GenerateNextId();
         var aggregate = Domain.LotForSale.LotForSale.Create(lotId, name, productId, productState);
         await _lotForSaleRepository.AddAsync(aggregate, cancellationToken);
-        _ = await _writeModelUnitOfWork.SaveChangesAsync(cancellationToken);
+        await _writeModelUnitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     /// <summary>
@@ -90,6 +90,6 @@ public sealed class LotForSaleService
             cancellationToken);
 
         await _lotForSaleRepository.RemoveAsync(lotForSale.Id, cancellationToken);
-        _ = await _writeModelUnitOfWork.SaveChangesAsync(cancellationToken);
+        await _writeModelUnitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

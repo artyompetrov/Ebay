@@ -93,8 +93,8 @@ internal class EbayControllerImplementation : IEbayController
             Content = passport.File
         };
 
-        _ = await _applicationContext.ProductPassports.AddAsync(entity, cancellationToken);
-        _ = await _applicationContext.SaveChangesAsync(cancellationToken);
+        await _applicationContext.ProductPassports.AddAsync(entity, cancellationToken);
+        await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 
 
@@ -107,7 +107,7 @@ internal class EbayControllerImplementation : IEbayController
             .SingleOrDefaultAsync(x => x.ProductId == productId && x.Id == passportId, cancellationToken) ?? throw NonOkHttpAnswerException.NotFound400();
         var order = passport.Order;
 
-        _ = _applicationContext.ProductPassports.Remove(passport);
+        _applicationContext.ProductPassports.Remove(passport);
 
         var passportsToUpdate = await _applicationContext.ProductPassports
             .Where(x => x.ProductId == productId && x.Order > order)
@@ -118,7 +118,7 @@ internal class EbayControllerImplementation : IEbayController
             p.Order--;
         }
 
-        _ = await _applicationContext.SaveChangesAsync(cancellationToken);
+        await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 
 
@@ -191,7 +191,7 @@ internal class EbayControllerImplementation : IEbayController
         }
 
         entity.Order = passport.Order;
-        _ = await _applicationContext.SaveChangesAsync(cancellationToken);
+        await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<ICollection<ProductWithId>> GetAllProductsAsync(CancellationToken cancellationToken)
@@ -335,7 +335,7 @@ internal class EbayControllerImplementation : IEbayController
 
         using var transaction = TransactionScopeFactory.Create();
 
-        _ = await _applicationContext.Lots.Upsert(dbLotInfo).RunAsync(cancellationToken);
+        await _applicationContext.Lots.Upsert(dbLotInfo).RunAsync(cancellationToken);
 
         var titleChangedDate = DateTime.Parse(lotInfo.TitleChangeDate, CultureInfo.InvariantCulture).ToUniversalTime();
 
@@ -344,7 +344,7 @@ internal class EbayControllerImplementation : IEbayController
             .Where(purchase => purchase.Date >= titleChangedDate)
             .ToList();
 
-        _ = await _applicationContext.Purchases.UpsertRange(filteredPurchaseHistory).RunAsync(cancellationToken);
+        await _applicationContext.Purchases.UpsertRange(filteredPurchaseHistory).RunAsync(cancellationToken);
 
         _applicationContext.RemoveRange(
             _applicationContext.Purchases.Where(x => x.LotId == lotInfo.LotId && x.Date < titleChangedDate)
@@ -355,7 +355,7 @@ internal class EbayControllerImplementation : IEbayController
         );
 
         await _publishEndpoint.Publish(new CalculatePricesForLot(lotInfo.LotId), cancellationToken);
-        _ = await _applicationContext.SaveChangesAsync(cancellationToken);
+        await _applicationContext.SaveChangesAsync(cancellationToken);
         transaction.Complete();
     }
 
@@ -386,7 +386,7 @@ internal class EbayControllerImplementation : IEbayController
 
         if (!alreadySaved)
         {
-            _ = await _applicationContext.IgnoredLots
+            await _applicationContext.IgnoredLots
                 .UpsertRange(lotIds.Select(x => new IgnoredLot { ProductId = productId, LotId = x }))
                 .RunAsync(cancellationToken);
         }
@@ -408,7 +408,7 @@ internal class EbayControllerImplementation : IEbayController
     public async Task CalculatePricesForProductAsync(Guid productId, CancellationToken cancellationToken)
     {
         await _publishEndpoint.Publish(new CalculatePricesForProductRequested(productId), cancellationToken);
-        _ = await _applicationContext.SaveChangesAsync(cancellationToken);
+        await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<ICollection<MeasurementData>> GetMeasurementsAsync(
@@ -602,8 +602,8 @@ internal class EbayControllerImplementation : IEbayController
 
         await _publishEndpoint.Publish(new CalculatePricesForProductRequested(lot.ProductId), cancellationToken);
 
-        _ = _applicationContext.Lots.Remove(lot);
-        _ = await _applicationContext.SaveChangesAsync(cancellationToken);
+        _applicationContext.Lots.Remove(lot);
+        await _applicationContext.SaveChangesAsync(cancellationToken);
 
         transaction.Complete();
     }
@@ -694,14 +694,14 @@ internal class EbayControllerImplementation : IEbayController
 
     public async Task SaveErrorAsync(ClientErrorInfo error, CancellationToken cancellationToken)
     {
-        _ = _applicationContext.ClientErrors.Add(error.ToDbClientError());
-        _ = await _applicationContext.SaveChangesAsync(cancellationToken);
+        _applicationContext.ClientErrors.Add(error.ToDbClientError());
+        await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task CalculatePricesForAllAsync(CancellationToken cancellationToken)
     {
         await _publishEndpoint.Publish(new CalculatePricesForAll(), cancellationToken);
-        _ = await _applicationContext.SaveChangesAsync(cancellationToken);
+        await _applicationContext.SaveChangesAsync(cancellationToken);
 
     }
 

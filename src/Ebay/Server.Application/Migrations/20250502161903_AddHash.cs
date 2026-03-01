@@ -10,7 +10,7 @@ public partial class AddHash : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.AddColumn<string>(
+        migrationBuilder.AddColumn<string>(
             name: "HashAnodeCurves",
             table: "ProductMeasurements",
             type: "character varying(128)",
@@ -18,7 +18,7 @@ public partial class AddHash : Migration
             nullable: false,
             defaultValue: "");
 
-        _ = migrationBuilder.AddColumn<string>(
+        migrationBuilder.AddColumn<string>(
             name: "HashQuickTest",
             table: "ProductMeasurements",
             type: "character varying(128)",
@@ -26,13 +26,13 @@ public partial class AddHash : Migration
             nullable: false,
             defaultValue: "");
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_ProductMeasurements_HashAnodeCurves",
             table: "ProductMeasurements",
             column: "HashAnodeCurves",
             unique: true);
 
-        _ = migrationBuilder.CreateIndex(
+        migrationBuilder.CreateIndex(
             name: "IX_ProductMeasurements_HashQuickTest",
             table: "ProductMeasurements",
             column: "HashQuickTest",
@@ -42,19 +42,19 @@ public partial class AddHash : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.DropIndex(
+        migrationBuilder.DropIndex(
             name: "IX_ProductMeasurements_HashAnodeCurves",
             table: "ProductMeasurements");
 
-        _ = migrationBuilder.DropIndex(
+        migrationBuilder.DropIndex(
             name: "IX_ProductMeasurements_HashQuickTest",
             table: "ProductMeasurements");
 
-        _ = migrationBuilder.DropColumn(
+        migrationBuilder.DropColumn(
             name: "HashAnodeCurves",
             table: "ProductMeasurements");
 
-        _ = migrationBuilder.DropColumn(
+        migrationBuilder.DropColumn(
             name: "HashQuickTest",
             table: "ProductMeasurements");
     }

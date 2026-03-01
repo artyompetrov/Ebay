@@ -9,10 +9,10 @@ public static class ServiceCollectionExtensions
     {
         var appAssembly = typeof(ServiceCollectionExtensions).Assembly;
 
-        _ = services.AddControllers()
+        services.AddControllers()
             .AddApplicationPart(appAssembly);
 
-        _ = services.AddRazorPages()
+        services.AddRazorPages()
             .AddApplicationPart(appAssembly);
     }
 }

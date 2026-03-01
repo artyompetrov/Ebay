@@ -21,12 +21,12 @@ internal sealed class LotForSaleRepository : ILotForSaleRepository
 
     public async Task AddAsync(LotForSale aggregate, CancellationToken cancellationToken)
     {
-        _ = await _dbContext.LotForSales.AddAsync(aggregate, cancellationToken);
+        await _dbContext.LotForSales.AddAsync(aggregate, cancellationToken);
     }
 
     public async Task RemoveAsync(string id, CancellationToken cancellationToken)
     {
-        _ = await _dbContext.LotForSales
+        await _dbContext.LotForSales
             .Where(x => x.Id == id)
             .ExecuteDeleteAsync(cancellationToken);
     }
@@ -41,7 +41,7 @@ internal sealed class LotForSaleRepository : ILotForSaleRepository
         const int batchSize = 1000;
         foreach (var batch in ids.Chunk(batchSize))
         {
-            _ = await _dbContext.LotForSales
+            await _dbContext.LotForSales
                 .Where(x => batch.Contains(x.Id))
                 .ExecuteDeleteAsync(cancellationToken);
         }

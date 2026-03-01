@@ -19,7 +19,7 @@ public sealed class WriteModelDbContextDesignTimeFactory : IDesignTimeDbContextF
                                ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is required for design-time migrations.");
 
         var optionsBuilder = new DbContextOptionsBuilder<WriteModelDbContext>();
-        _ = optionsBuilder.UseNpgsql(connectionString, b =>
+        optionsBuilder.UseNpgsql(connectionString, b =>
             b.MigrationsAssembly("Server.Adapters.Driven.EF.WriteModel.Migrations"));
 
         return new WriteModelDbContext(optionsBuilder.Options);

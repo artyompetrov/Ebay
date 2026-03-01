@@ -32,7 +32,7 @@ public sealed class ErrorFilter : IAsyncActionFilter, IExceptionFilter
             return;
         }
 
-        _ = await next();
+        await next();
     }
 
     public void OnException(ExceptionContext context)

@@ -20,7 +20,7 @@ internal sealed class MeasurementRepository : IMeasurementRepository
 
     public async Task RemoveAsync(string id, CancellationToken cancellationToken)
     {
-        _ = await _dbContext.ProductMeasurements.Where(o => o.Id == id)
+        await _dbContext.ProductMeasurements.Where(o => o.Id == id)
             .ExecuteDeleteAsync(cancellationToken: cancellationToken);
     }
 
@@ -34,7 +34,7 @@ internal sealed class MeasurementRepository : IMeasurementRepository
         const int batchSize = 1000; // безопасный размер IN (...)
         foreach (var batch in ids.Chunk(batchSize))
         {
-            _ = await _dbContext.ProductMeasurements
+            await _dbContext.ProductMeasurements
                 .Where(x => batch.Contains(x.Id))
                 .ExecuteDeleteAsync(cancellationToken);
         }
