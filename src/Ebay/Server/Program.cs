@@ -209,6 +209,7 @@ public class Program
                         .SPA(WellKnown.ChromeExtension.ClientId)
                         .WithRedirectUri($"https://{authorizationOptions.Domain}/chrome_extensions/auth")
                         .WithLogoutRedirectUri($"https://{authorizationOptions.Domain}/chrome_extensions/logout")
+                        .WithScopes("ServerAPI")
                         .Build();
                     spaClient.AllowedCorsOrigins =
                     [
