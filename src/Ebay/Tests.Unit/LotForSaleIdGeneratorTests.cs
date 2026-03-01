@@ -53,7 +53,7 @@ public sealed class LotForSaleIdGeneratorTests
         var firstTime = new DateTime(2026, 2, 1, 12, 0, 10, DateTimeKind.Utc);
         var secondTime = firstTime.AddSeconds(-5);
         var generator = new LotForSaleIdGenerator(
-            new QueueCurrentTimeProvider(new[] { firstTime, secondTime }),
+            new QueueCurrentTimeProvider([firstTime, secondTime]),
             new DeterministicRandomNumberProvider(100));
 
         var firstId = generator.GenerateNextId();
@@ -95,7 +95,7 @@ public sealed class LotForSaleIdGeneratorTests
         var beforeEpoch = IdEpoch.AddMinutes(-1);
         var afterRange = IdEpoch.AddSeconds(MaxSecondsSinceEpoch + 10L);
         var generator = new LotForSaleIdGenerator(
-            new QueueCurrentTimeProvider(new[] { beforeEpoch, afterRange }),
+            new QueueCurrentTimeProvider([beforeEpoch, afterRange]),
             new DeterministicRandomNumberProvider(1));
 
         var firstId = generator.GenerateNextId();

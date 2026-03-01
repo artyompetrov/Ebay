@@ -53,7 +53,6 @@ public sealed class WebApiController : WebApiControllerBase
         };
     }
 
-
     private static DomainMeasurementState ToDomainMeasurementState(LotForSaleMeasurementState measurementState)
     {
         return measurementState switch
@@ -70,6 +69,7 @@ public sealed class WebApiController : WebApiControllerBase
         {
             DomainMeasurementState.Created => LotForSaleMeasurementState.Created,
             DomainMeasurementState.Selling => LotForSaleMeasurementState.Selling,
+            DomainMeasurementState.Sold => throw new NotImplementedException(),
             _ => throw new ArgumentOutOfRangeException(nameof(measurementState), measurementState, null)
         };
     }
