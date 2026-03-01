@@ -2,7 +2,6 @@ using Server.Domain.Measurements;
 
 namespace Server.Application.Abstractions.Driven.Models;
 
-
 /// <summary>
 /// Краткая информация о замере товара для отображения в интерфейсе.
 /// </summary>

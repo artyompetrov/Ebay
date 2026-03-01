@@ -74,7 +74,6 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
         await entryStream.WriteAsync(content, cancellationToken);
     }
 
-
     private static byte[] GetBytes(ZipArchiveEntry entry)
     {
         using var entryStream = entry.Open();
@@ -110,7 +109,6 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
         };
     }
 
-
     private static MeasurementConfigTableParseResult ParseMeasurement(
         byte[] configBytes,
         byte[] measurementBytes)
@@ -122,7 +120,6 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
 
         var config = new Dictionary<string, int?>();
         var lines = stringData.Split('\n').Select(x => x.Trim());
-
 
         foreach (var line in lines)
         {
@@ -152,7 +149,6 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
             SteppingVariableCount: steppingVariableCount,
             NumberOfIntervals: numberOfIntervals);
     }
-
 
     private static bool ReadMeasurementFile(
         byte[] measurementData,
@@ -247,7 +243,6 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
         var idxVa = Array.IndexOf(array: header, value: "Va (V)");
         var idxVs = Array.IndexOf(array: header, value: "Vs (V)");
         var idxVf = Array.IndexOf(array: header, value: "Vf (V)");
-
 
         var rows = lines.Skip(1)
             .Select(l => l.Split(separator: ["  "], options: StringSplitOptions.RemoveEmptyEntries))

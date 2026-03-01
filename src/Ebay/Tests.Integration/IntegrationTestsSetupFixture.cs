@@ -67,7 +67,6 @@ public class IntegrationTestsSetupFixture
         await DropTestDatabaseAsync();
     }
 
-
     private static string BuildServerConnectionString()
     {
         var connectionStringBuilder = new NpgsqlConnectionStringBuilder(LaunchSettings.ConnectionString)

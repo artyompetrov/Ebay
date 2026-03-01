@@ -52,7 +52,6 @@ public class MeasurementPageController : ControllerBase
             return NotFound("Measurement not found");
         }
 
-
         var response = Content(content: result, contentType: "image/svg+xml");
         return response;
     }
@@ -118,7 +117,6 @@ public class MeasurementPageController : ControllerBase
         var response = Content(result, "image/svg+xml");
         return response;
     }
-
 
     [HttpGet("/empty_picture")]
     public async Task<IActionResult> GetEmptyPicture(

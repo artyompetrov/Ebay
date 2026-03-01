@@ -422,7 +422,6 @@ public class ShippingRatesService : IShippingRatesService
         return rates;
     }
 
-
     public record struct ShippingRateInner(int WeightFrom, int WeightTo, double Price, string Currency)
     {
         public override readonly string ToString() => $"{WeightFrom}-{WeightTo} : {Price} {Currency}";

@@ -60,7 +60,6 @@ public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
         return await base.SaveChangesAsync(cancellationToken);
     }
 
-
     private async Task PublishDomainEventsAsync(CancellationToken cancellationToken)
     {
         var aggregateEntries = ChangeTracker.Entries<IAggregateRoot>()

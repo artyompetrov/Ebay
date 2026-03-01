@@ -97,7 +97,6 @@ internal class EbayControllerImplementation : IEbayController
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 
-
     public async Task DeleteProductPassportAsync(
         Guid productId,
         Guid passportId,
@@ -121,7 +120,6 @@ internal class EbayControllerImplementation : IEbayController
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 
-
     public async Task<TubeWorkingPoint> GetTubeWorkingPointAsync(
         Guid productId,
         CancellationToken cancellationToken)
@@ -130,7 +128,6 @@ internal class EbayControllerImplementation : IEbayController
 
         return workingPoint == null ? throw NonOkHttpAnswerException.NotFound400() : workingPoint.ToApiTubeWorkingPoint();
     }
-
 
     public async Task UpsertTubeWorkingPointAsync(
         TubeWorkingPoint workingPoint,
@@ -153,7 +150,6 @@ internal class EbayControllerImplementation : IEbayController
             throw NonOkHttpAnswerException.ValidationError400(nameof(workingPoint), errors: [ex.Message]);
         }
     }
-
 
     public async Task UpdateProductPassportAsync(
         ProductPassportUpdate passport,
@@ -230,7 +226,6 @@ internal class EbayControllerImplementation : IEbayController
             cancellationToken: cancellationToken);
     }
 
-
     public async Task<ProductWithId> GetProductAsync(
         Guid id,
         CancellationToken cancellationToken
@@ -247,7 +242,6 @@ internal class EbayControllerImplementation : IEbayController
         Guid id,
         CancellationToken cancellationToken
     ) => await _productService.MarkProductAsCheckedAsync(id, cancellationToken);
-
 
     public async Task<ICollection<SaleAdvertisement>> GetSaleAdvertisementsAsync(
         Guid productId,
@@ -278,7 +272,6 @@ internal class EbayControllerImplementation : IEbayController
                 contact: x.Contact))];
     }
 
-
     public async Task<ICollection<LotInfoShort>> GetLotsAsync(
         Guid productId,
         CancellationToken cancellationToken
@@ -300,7 +293,6 @@ internal class EbayControllerImplementation : IEbayController
 
         return [.. lots.Select(x => x.ToApiLotInfoShort())];
     }
-
 
     public async Task UpsertLotInfoAsync(
         LotInfo lotInfo,
@@ -369,7 +361,6 @@ internal class EbayControllerImplementation : IEbayController
 
         return ignoredLots;
     }
-
 
     public async Task IgnoreLotsAsync(
         IEnumerable<long> ignoredLots,
@@ -456,14 +447,12 @@ internal class EbayControllerImplementation : IEbayController
                         matchId: similarMeasurement.MatchId,
                         doubleTriodeSectionRmse: similarMeasurement.DoubleTriodeSectionRmse
 
-
                     ))],
                 createdAt: x.Data.MeasurementInfo.CreatedAt))
             .ToList();
 
         return result;
     }
-
 
     public async Task UploadMeasurementAsync(
         MeasurementDataToUpload measurementData,
@@ -574,7 +563,6 @@ internal class EbayControllerImplementation : IEbayController
             cancellationToken: cancellationToken);
     }
 
-
     public async Task<LotInfoWithProductId> GetLotInfoAsync(
         long lotId,
         CancellationToken cancellationToken
@@ -590,7 +578,6 @@ internal class EbayControllerImplementation : IEbayController
 
         return dbLot == null ? throw NonOkHttpAnswerException.NotFound400() : dbLot.ToApiLot();
     }
-
 
     public async Task DeleteLotInfoAsync(long lotId, CancellationToken cancellationToken)
     {
@@ -704,6 +691,5 @@ internal class EbayControllerImplementation : IEbayController
         await _applicationContext.SaveChangesAsync(cancellationToken);
 
     }
-
 
 }

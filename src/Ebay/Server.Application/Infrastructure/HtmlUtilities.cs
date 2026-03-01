@@ -20,7 +20,6 @@ internal class HtmlUtilities
         return sw.ToString();
     }
 
-
     /// <summary>
     /// Count the words.
     /// The content has to be converted to plain text before (using ConvertToPlainText).
@@ -28,7 +27,6 @@ internal class HtmlUtilities
     /// <param name="plainText">The plain text.</param>
     /// <returns></returns>
     public static int CountWords(string plainText) => !string.IsNullOrEmpty(plainText) ? plainText.Split(' ', '\n').Length : 0;
-
 
     public static string Cut(string text, int length)
     {
@@ -40,7 +38,6 @@ internal class HtmlUtilities
         return text;
     }
 
-
     private static void ConvertContentTo(HtmlNode node, TextWriter outText)
     {
         foreach (var subnode in node.ChildNodes)
@@ -48,7 +45,6 @@ internal class HtmlUtilities
             ConvertTo(node: subnode, outText: outText);
         }
     }
-
 
     private static void ConvertTo(HtmlNode node, TextWriter outText)
     {

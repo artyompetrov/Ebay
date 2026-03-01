@@ -25,7 +25,6 @@ internal static class DictionaryExtensions
         }
     }
 
-
     public static TValue GetOrAdd<TKey, TValue>(
         this IDictionary<TKey, TValue> dictionary,
         TKey key,

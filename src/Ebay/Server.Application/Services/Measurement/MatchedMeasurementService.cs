@@ -34,7 +34,6 @@ internal class MatchedMeasurementService
         _logger = logger;
     }
 
-
     public async Task FindMatchedMeasurementsAsync(
         Guid productId,
         CancellationToken cancellationToken)

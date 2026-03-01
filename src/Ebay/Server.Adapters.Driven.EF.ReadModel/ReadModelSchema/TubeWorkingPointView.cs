@@ -3,7 +3,6 @@ using Server.Domain.Measurements;
 
 namespace Server.Adapters.Driven.EF.ReadModel.ReadModelSchema;
 
-
 internal sealed class TubeWorkingPointView : IViewProjection<TubeWorkingPoint, TubeWorkingPointView>
 {
     public required Guid Id { get; set; }
@@ -12,15 +11,11 @@ internal sealed class TubeWorkingPointView : IViewProjection<TubeWorkingPoint, T
 
     public required double AnodeVoltage { get; set; }
 
-
     public required double GridVoltage { get; set; }
-
 
     public required double AnodeVoltageHalfWidth { get; set; }
 
-
     public required double GridVoltageHalfWidth { get; set; }
-
 
     public required double NominalCurrent { get; set; }
 

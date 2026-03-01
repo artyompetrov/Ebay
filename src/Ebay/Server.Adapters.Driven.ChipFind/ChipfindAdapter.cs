@@ -37,7 +37,6 @@ public class ChipfindAdapter : IChipfindAdapter
 
         var xdoc = XDocument.Parse(xmlContent);
 
-
         var titleRegex = new Regex(@"^(.*?)[\.\s]*\[(.+?)\]\s*$");
 
         var result = new List<SaleAdvertisement>();
@@ -89,12 +88,10 @@ public class ChipfindAdapter : IChipfindAdapter
             var title = matchingResult.Groups[1].Value.Trim();
             var seller = matchingResult.Groups[2].Value.Trim();
 
-
             if (items.Any(x => x.Length > 1000))
             {
                 _logger.LogWarning("Suspicious huge items in advertisement: {Description}", description[..1000]);
             }
-
 
             if (!DateTime.TryParse(pubDate, CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out var parsedDate))
             {
@@ -117,7 +114,6 @@ public class ChipfindAdapter : IChipfindAdapter
                     Items: items,
                     Body: description));
         }
-
 
         return result;
     }

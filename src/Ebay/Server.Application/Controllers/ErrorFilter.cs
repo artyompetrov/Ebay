@@ -63,7 +63,6 @@ public sealed class ErrorFilter : IAsyncActionFilter, IExceptionFilter
             };
         }
 
-
         context.ExceptionHandled = true;
     }
 }

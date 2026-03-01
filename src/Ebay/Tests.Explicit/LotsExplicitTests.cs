@@ -107,7 +107,6 @@ public class LotsExplicitTests : ExplicitTestsBase
         );
     }
 
-
     private static readonly HashSet<long> ExcludedLotIdsState =
     [
         133475288040,
@@ -152,7 +151,6 @@ public class LotsExplicitTests : ExplicitTestsBase
             message: $"{ToStr(result)}{Environment.NewLine}lotId: {lotId}{Environment.NewLine}seller:{lotInfoFull.LotInfo.Seller}"
         );
     }
-
 
     private static IEnumerable<TestCaseData> GetLots()
     {

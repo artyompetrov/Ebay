@@ -2,7 +2,6 @@ using Server.Domain.Measurements;
 
 namespace Server.Application.Abstractions.Driven.Models;
 
-
 /// <summary>
 /// DTO для отображения замера и найденных похожих вариантов.
 /// </summary>

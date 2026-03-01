@@ -74,7 +74,6 @@ internal class TestStateExtractor : ExtractorBase, IExtractor
             extractionResult.Remove(WellKnown.Categories.TestState.NotTested);
         }
 
-
         return extractionResult;
     }
 
