@@ -13,6 +13,10 @@
       "output": "obj/Generated/Clients/EbayClient.cs",
       "jsonLibrary": "SystemTextJson",
       "requiredPropertiesMustBeDefined": false
+    },
+    "openApiToTypeScriptClient": {
+      "className": "EbayToolBackendClient",
+      "output": "../../ChromeExtension/src/clients/Generated/EbayToolBackendClient.ts"
     }
   }
 }
