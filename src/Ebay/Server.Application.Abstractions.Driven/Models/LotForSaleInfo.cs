@@ -6,4 +6,5 @@ public sealed record LotForSaleInfo(
     string Id,
     string Name,
     Guid ProductId,
-    ProductState ProductState);
+    ProductState ProductState,
+    MeasurementState MeasurementState);

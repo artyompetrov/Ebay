@@ -17,7 +17,7 @@ internal sealed class LotForSaleQueries : ILotForSaleQueries
     {
         return await _dbContext.LotForSales
             .OrderBy(x => x.Id)
-            .Select(x => new LotForSaleInfo(x.Id, x.Name, x.ProductId, x.ProductState))
+            .Select(x => new LotForSaleInfo(x.Id, x.Name, x.ProductId, x.ProductState, x.MeasurementState))
             .ToListAsync(cancellationToken);
     }
 }

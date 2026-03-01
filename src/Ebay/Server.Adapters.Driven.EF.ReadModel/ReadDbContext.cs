@@ -73,6 +73,9 @@ internal sealed class ReadDbContext : DbContext
 
             eb.Property(x => x.ProductState)
                 .HasConversion<string>();
+
+            eb.Property(x => x.MeasurementState)
+                .HasConversion<string>();
         });
 
     }

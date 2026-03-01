@@ -14,12 +14,15 @@ internal sealed class LotForSaleView : IViewProjection<LotForSale, LotForSaleVie
 
     public required ProductState ProductState { get; set; }
 
+    public required MeasurementState MeasurementState { get; set; }
+
     public static Expression<Func<LotForSale, LotForSaleView>> ToView => x =>
         new()
         {
             Id = x.Id,
             Name = x.Name,
             ProductId = x.ProductId,
-            ProductState = x.ProductState
+            ProductState = x.ProductState,
+            MeasurementState = x.MeasurementState
         };
 }

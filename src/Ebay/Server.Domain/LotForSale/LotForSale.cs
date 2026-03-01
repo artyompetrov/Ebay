@@ -8,12 +8,13 @@ public sealed class LotForSale : AggregateRoot<string>
 {
     private const int IdLength = 7;
 
-    private LotForSale(string id, string name, Guid productId, ProductState productState) : base(id)
+    private LotForSale(string id, string name, Guid productId, ProductState productState, MeasurementState measurementState) : base(id)
     {
         ValidateId(id);
         Name = name;
         ProductId = productId;
         ProductState = productState;
+        MeasurementState = measurementState;
     }
 
     public string Name { get; private set; }
@@ -22,7 +23,9 @@ public sealed class LotForSale : AggregateRoot<string>
 
     public ProductState ProductState { get; private set; }
 
-    public static LotForSale Create(string id, string name, Guid productId, ProductState productState)
+    public MeasurementState MeasurementState { get; private set; }
+
+    public static LotForSale Create(string id, string name, Guid productId, ProductState productState, MeasurementState measurementState)
     {
         ValidateId(id);
         ValidateName(name);
@@ -32,7 +35,8 @@ public sealed class LotForSale : AggregateRoot<string>
             id: id,
             name: name.Trim(),
             productId: productId,
-            productState: productState);
+            productState: productState,
+            measurementState: measurementState);
     }
 
     public void Rename(string name)

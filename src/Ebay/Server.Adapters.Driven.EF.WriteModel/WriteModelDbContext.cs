@@ -48,6 +48,10 @@ public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
             entity.Property(x => x.ProductState)
                 .HasConversion<string>()
                 .IsRequired();
+
+            entity.Property(x => x.MeasurementState)
+                .HasConversion<string>()
+                .IsRequired();
         });
     }
 

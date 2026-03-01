@@ -9,7 +9,7 @@ public sealed class LotForSaleTests
     [Test]
     public void Create_AcceptsProvidedId()
     {
-        var lot = Server.Domain.LotForSale.LotForSale.Create("ABCdef1", "lot", Guid.NewGuid(), ProductState.New);
+        var lot = Server.Domain.LotForSale.LotForSale.Create("ABCdef1", "lot", Guid.NewGuid(), ProductState.New, MeasurementState.Selling);
 
         Assert.That(lot.Id, Is.EqualTo("ABCdef1"));
     }
@@ -18,7 +18,7 @@ public sealed class LotForSaleTests
     public void Create_Throws_WhenIdLengthIsInvalid()
     {
         Assert.Throws<ArgumentException>(() =>
-            Server.Domain.LotForSale.LotForSale.Create("short", "lot", Guid.NewGuid(), ProductState.New));
+            Server.Domain.LotForSale.LotForSale.Create("short", "lot", Guid.NewGuid(), ProductState.New, MeasurementState.Selling));
     }
 
     [Test]
