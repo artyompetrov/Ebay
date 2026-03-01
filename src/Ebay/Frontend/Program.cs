@@ -22,12 +22,7 @@ public class Program
         // Supply HttpClient instances that include access tokens when making requests to the server project
         builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("ServerAPI"));
         builder.Services.AddScoped<EbayClient>();
-        builder.Services.AddScoped(sp =>
-        {
-            var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient("ServerAPI");
-            httpClient.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
-            return new WebApiClient(httpClient);
-        });
+        builder.Services.AddScoped<WebApiClient>();
 
         builder.Services.AddApiAuthorization();
 

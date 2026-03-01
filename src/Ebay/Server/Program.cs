@@ -201,7 +201,7 @@ public class Program
                         .IdentityServerSPA("Frontend")
                         .WithRedirectUri("/authentication/login-callback")
                         .WithLogoutRedirectUri("/authentication/logout-callback")
-                        .WithScopes("openid", "profile", "ServerAPI")
+                        .WithScopes("openid", "profile", authorizationOptions.Scope)
                         .Build();
                     options.Clients.Add(frontendClient);
 
@@ -209,7 +209,9 @@ public class Program
                         .SPA(WellKnown.ChromeExtension.ClientId)
                         .WithRedirectUri($"https://{authorizationOptions.Domain}/chrome_extensions/auth")
                         .WithLogoutRedirectUri($"https://{authorizationOptions.Domain}/chrome_extensions/logout")
+                        .WithScopes(authorizationOptions.Scope)
                         .Build();
+                    
                     spaClient.AllowedCorsOrigins =
                     [
                         $"chrome-extension://{WellKnown.ChromeExtension.Id}",
