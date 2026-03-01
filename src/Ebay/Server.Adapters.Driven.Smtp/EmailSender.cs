@@ -23,15 +23,10 @@ public class EmailSender : IEmailSender
         message.Subject = topic;
 
         message.Body = new TextPart("html") { Text = messageText };
-
         using var client = new SmtpClient();
-
         await client.ConnectAsync(_settings.Server, _settings.Port, SecureSocketOptions.StartTls);
-
         await client.AuthenticateAsync(_settings.Login, _settings.Password);
-
         await client.SendAsync(message);
-
         await client.DisconnectAsync(true);
     }
 }
