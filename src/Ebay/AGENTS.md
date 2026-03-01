@@ -45,32 +45,7 @@
    curl -i http://127.0.0.1:5080/chrome_extensions/<extension>.xml
    ```
 
-3. Создать/обновить тестового пользователя:
-   ```bash
-   psql "postgresql://ebay:catnip0-spoil4-untrimmed@localhost:15432/ebay" -v ON_ERROR_STOP=1 -f /workspace/Ebay/scripts/sql/create_or_update_test_user.sql
-   ```
-   Учетные данные тестового пользователя: `agent_test@example.com` / `Agent123!`.
-
-4. Авторизация и запросы к API:
-   ```bash
-   TOKEN=$(curl -s -X POST http://127.0.0.1:5080/connect/token \
-     -H 'Content-Type: application/x-www-form-urlencoded' \
-     -d 'client_id=client_id&client_secret=secret&grant_type=client_credentials&scope=ServerAPI' \
-     | python -c 'import sys, json; print(json.load(sys.stdin)["access_token"])')
-
-   curl -i -H "Authorization: Bearer $TOKEN" http://127.0.0.1:5080/api/ebay/v1/products
-
-   curl -i -X POST http://127.0.0.1:5080/api/ebay/v1/products \
-     -H "Authorization: Bearer $TOKEN" \
-     -H 'Content-Type: application/json' \
-     -d '{"name":"curl-test-product","weight":100,"searchQueries":[{"id":"11111111-1111-1111-1111-111111111111","query":"curl test"}],"ruSearchQueries":[]}'
-   ```
-
-5. Мануальная проверка:
-- Для UI-задач: открыть браузер, пройти ключевой сценарий и проверить визуальный результат.
-- Для API-задач: выполнить минимум happy-path + один негативный сценарий.
-
-6. Полезные замечания:
+3. Полезные замечания:
 - Порт Postgres: `15432`.
 - Первый запуск может применять EF Core и MassTransit миграции.
 - Тесты требуют доступной PostgreSQL.

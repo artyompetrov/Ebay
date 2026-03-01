@@ -1,4 +1,4 @@
-# Project Agents.md Guide for OpenAI Codex
+# Project Agents.md Guide
 
 ## О проекте
 Мы разрабатываем приложение, помогающее анализировать стоимость товаров на ebay, для последующей их закупки на сайтах типа avito.ru, chipfind.ru и других.
@@ -20,8 +20,8 @@
 ## Навигация по проекту
 - `.github/workflows/build-and-tests.yaml` — основная CI/CD-сборка docker-образов и деплой.
 - `/src`: исходный код.
-  - `/Ebay`: C# backend и Blazor frontend (подробные правила: `src/Ebay/AGENTS.md`).
-  - `/ChromeExtension`: Chrome extension (подробные правила: `src/ChromeExtension/AGENTS.md`).
+  - `/Ebay`: C# backend и Blazor frontend [подробные правила](src/Ebay/AGENTS.md).
+  - `/ChromeExtension`: Chrome extension [подробные правила](src/ChromeExtension/AGENTS.md).
   - `Dockerfile`: сборка решения в единый контейнер.
 - `/deploy`: docker-compose обвязка для запуска проекта.
 
