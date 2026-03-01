@@ -5,7 +5,7 @@ import {ClientsFactory} from "../clients/ClientsFactory";
 export function tryGetEbayMagSiteProcessor() : ISiteProcessor | null {
     let currentPage = location.protocol + '//' + location.host + location.pathname
 
-    if ((/^https:\/ebaymag\.com\/stock$/.test(currentPage)))
+    if ((/^https:\/\/ebaymag\.com\/stock$/.test(currentPage)))
     {
         return new EbayMagSiteProcessor();
     }
