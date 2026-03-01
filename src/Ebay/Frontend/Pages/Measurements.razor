@@ -387,9 +387,8 @@
     private string? _error;
     private string? _message;
     private ProductState? _selectedState;
-    private List<ProductState> _productStates = Enum.GetValues(typeof(ProductState)).Cast<ProductState>().ToList();
     private List<LotForSaleProductState> _lotForSaleProductStates = Enum.GetValues(typeof(LotForSaleProductState)).Cast<LotForSaleProductState>().ToList();
-    private List<LotForSaleCreateMeasurementState> _lotForSaleMeasurementStates = Enum.GetValues(typeof(LotForSaleCreateMeasurementState)).Cast<LotForSaleCreateMeasurementState>().ToList();
+    private List<LotForSaleMeasurementState> _lotForSaleMeasurementStates = Enum.GetValues(typeof(LotForSaleMeasurementState)).Cast<LotForSaleMeasurementState>().ToList();
     private List<MeasurementState> _measurementStates = Enum.GetValues(typeof(MeasurementState)).Cast<MeasurementState>().ToList();
     private HashSet<MeasurementState> _selectedMeasurementStates = new()
     {
@@ -411,7 +410,7 @@
     private ReadOnlyCollection<LotForSaleResponse>? _lotForSales;
     private string _newLotForSaleName = string.Empty;
     private LotForSaleProductState _newLotForSaleState = LotForSaleProductState.New;
-    private LotForSaleCreateMeasurementState _newLotForSaleMeasurementState = LotForSaleCreateMeasurementState.Selling;
+    private LotForSaleMeasurementState _newLotForSaleMeasurementState = LotForSaleMeasurementState.Selling;
     private bool _isCreatingLotForSale;
     private string? _lotForSaleError;
 

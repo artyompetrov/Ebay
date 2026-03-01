@@ -72,7 +72,8 @@ components:
         productState:
           $ref: '#/components/schemas/LotForSaleProductState'
         measurementState:
-          $ref: '#/components/schemas/LotForSaleCreateMeasurementState'
+          $ref: '#/components/schemas/LotForSaleMeasurementState'
+
     LotForSaleResponse:
       type: object
       additionalProperties: false
@@ -96,17 +97,13 @@ components:
           $ref: '#/components/schemas/LotForSaleProductState'
         measurementState:
           $ref: '#/components/schemas/LotForSaleMeasurementState'
-    LotForSaleCreateMeasurementState:
-      type: string
-      enum:
-        - Created
-        - Selling
+
     LotForSaleMeasurementState:
       type: string
       enum:
         - Created
         - Selling
-        - Sold
+
     LotForSaleProductState:
       type: string
       enum:
