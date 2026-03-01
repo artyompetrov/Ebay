@@ -65,7 +65,7 @@ export class ClientsFactory {
     async getEbayToolWebApiClient(): Promise<EbayToolWebApiClient.EbayToolWebApiClient> {
         await chrome.storage.local.set({return_page: document.location.href});
 
-        return new EbayToolWebApiClient.EbayToolWebApiClient(constants.Urls.backendUrl,
+        return new EbayToolWebApiClient.EbayToolWebApiClient(constants.Urls.backendUrl + 'api/webapi/v1',
             this.getAuthorizeFetch(await this.getBackendOAuth2Client(), constants.Auth.Backend.Scope, "ebayToolTokenStore", constants.Urls.extensionAuthRedirectUrl));
 
     }

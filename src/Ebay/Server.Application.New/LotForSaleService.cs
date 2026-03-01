@@ -56,11 +56,17 @@ public sealed class LotForSaleService
     /// <param name="name">Название лота.</param>
     /// <param name="productId">Идентификатор связанного продукта.</param>
     /// <param name="productState">Состояние товара для лота.</param>
+    /// <param name="measurementState">Статус замера для лота.</param>
     /// <param name="cancellationToken">Токен отмены операции.</param>
-    public async Task CreateLotForSaleAsync(string name, Guid productId, ProductState productState, CancellationToken cancellationToken)
+    public async Task CreateLotForSaleAsync(string name, Guid productId, ProductState productState, MeasurementState measurementState, CancellationToken cancellationToken)
     {
+        if (measurementState == MeasurementState.Sold)
+        {
+            throw new ArgumentException("Sold measurement state is not allowed for lot-for-sale creation.", nameof(measurementState));
+        }
+
         var lotId = _lotForSaleIdGenerator.GenerateNextId();
-        var aggregate = Domain.LotForSale.LotForSale.Create(lotId, name, productId, productState);
+        var aggregate = Domain.LotForSale.LotForSale.Create(lotId, name, productId, productState, measurementState);
         await _lotForSaleRepository.AddAsync(aggregate, cancellationToken);
         await _writeModelUnitOfWork.SaveChangesAsync(cancellationToken);
     }

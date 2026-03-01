@@ -62,6 +62,7 @@ components:
         - name
         - productId
         - productState
+        - measurementState
       properties:
         name:
           type: string
@@ -70,6 +71,9 @@ components:
           format: uuid
         productState:
           $ref: '#/components/schemas/LotForSaleProductState'
+        measurementState:
+          $ref: '#/components/schemas/LotForSaleMeasurementState'
+
     LotForSaleResponse:
       type: object
       additionalProperties: false
@@ -78,6 +82,7 @@ components:
         - name
         - productId
         - productState
+        - measurementState
       properties:
         id:
           type: string
@@ -90,6 +95,15 @@ components:
           format: uuid
         productState:
           $ref: '#/components/schemas/LotForSaleProductState'
+        measurementState:
+          $ref: '#/components/schemas/LotForSaleMeasurementState'
+
+    LotForSaleMeasurementState:
+      type: string
+      enum:
+        - Created
+        - Selling
+
     LotForSaleProductState:
       type: string
       enum:
