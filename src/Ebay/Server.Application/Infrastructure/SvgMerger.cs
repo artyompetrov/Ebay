@@ -30,7 +30,6 @@ public static class SvgMerger
 
             var svgElem = XElement.Parse(svgXml.SvgXml);
 
-
             // Удаляем все font-family у <text>
             if (svgXml.ReplaceFont)
             {

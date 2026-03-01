@@ -30,8 +30,6 @@ public class EbayLotDescriptionPage : PageModel
 
     public IReadOnlyList<Passport> Passports { get; set; } = null!;
 
-
-
     public IReadOnlyCollection<MeasurementInfoWithSimilarMeasurements> Measurements { get; set; } = null!;
 
     public async Task<IActionResult> OnGet(Guid productId, MeasurementState? measurementState, ProductState? state, CancellationToken cancellationToken, string? lotId = null)
@@ -49,8 +47,6 @@ public class EbayLotDescriptionPage : PageModel
         State = state.Value;
         ProductId = productId;
         LotId = lotId;
-
-
 
         var product = await _productQueries.GetProductAsync(productId, cancellationToken);
 

@@ -16,7 +16,6 @@ public class PurchasePage : PageModel
 
     public IReadOnlyList<MeasurementInfoWithData> Measurements { get; private set; } = [];
 
-
     public async Task<IActionResult> OnGet(string measurementIds, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(measurementIds))

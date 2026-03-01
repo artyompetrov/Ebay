@@ -13,7 +13,6 @@ internal sealed class MeasurementQueries : IMeasurementQueries
         _dbContext = dbContext;
     }
 
-
     public async Task<MeasurementInfo?> GetMeasurementInfo(string measurementId, CancellationToken cancellationToken)
     {
         return await _dbContext.ProductMeasurements
@@ -239,8 +238,6 @@ internal sealed class MeasurementQueries : IMeasurementQueries
 
         return result;
     }
-
-
 
     private async Task<Dictionary<string, IReadOnlyCollection<SimilarMeasurementInfo>>> GetSimilarMeasurements(
         string[] measurementIds, CancellationToken cancellationToken)

@@ -63,7 +63,6 @@ public class ChipfindBackgroundTask : BackgroundTask
         }
     }
 
-
     private async Task ProcessAdvertisement(
         IEmailSender emailSender,
         IChipfindAdapter chipfindAdapter,
@@ -178,9 +177,6 @@ public class ChipfindBackgroundTask : BackgroundTask
         CancellationToken cancellationToken)
     {
         var products = await productQueries.GetAllProductsAsync(cancellationToken);
-
-
-
 
         var productsArray = products.Select(x => new ProductInner(
                 ProductId: x.Data.Id,

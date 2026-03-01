@@ -21,7 +21,6 @@ internal sealed class ProductView : IViewProjection<Product, ProductView>
 
     public TubeWorkingPointView TubeWorkingPoint { get; set; } = null!;
 
-
     public static Expression<Func<Product, ProductView>> ToView => x =>
         new()
         {

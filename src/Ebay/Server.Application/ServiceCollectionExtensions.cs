@@ -91,7 +91,6 @@ public static class ServiceCollectionExtensions
             .AddApplicationPart(typeof(ServiceCollectionExtensions).Assembly);
     }
 
-
     public static void UseApplication(this IServiceProvider serviceProvider)
     {
         // Migrate DB

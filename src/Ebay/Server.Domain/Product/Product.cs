@@ -36,7 +36,6 @@ public sealed class Product : AggregateRoot<Guid>
         product._searchQueries.AddRange(
             searchQueries.Select(x => new SearchQuery(Guid.NewGuid(), x, productId)));
 
-
         return product;
     }
 

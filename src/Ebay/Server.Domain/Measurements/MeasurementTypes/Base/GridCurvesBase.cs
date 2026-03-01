@@ -18,7 +18,6 @@ public abstract class GridCurvesBase : MeasurementTypeBase
 
     public override bool PlotPmax => false;
 
-
     public override string SteppingVariableName => "Vanode";
 
     public override string CurveTitle => "Grid curves";

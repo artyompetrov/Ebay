@@ -9,6 +9,5 @@ public class ClientError
 
     public string Url { get; set; } = null!;
 
-
     public string ErrorText { get; set; } = null!;
 }

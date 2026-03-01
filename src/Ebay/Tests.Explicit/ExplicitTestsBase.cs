@@ -19,7 +19,6 @@ public abstract class ExplicitTestsBase
         CreateClient();
     }
 
-
     [OneTimeTearDown]
     public void OneTimeTearDown() => HttpClient?.Dispose();
 

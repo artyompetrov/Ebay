@@ -24,7 +24,6 @@ public class MeasurementPlotService : IMeasurementPlotService
     private readonly MeasurementApproximationService _measurementApproximationService;
     private readonly IUnitOfWork _unitOfWork;
 
-
     public MeasurementPlotService(
         DbCache cache,
         IMeasurementQueries measurementQueries,
@@ -44,7 +43,6 @@ public class MeasurementPlotService : IMeasurementPlotService
     }
 
     public string PlotSold() => StatusSvg(nameof(MeasurementState.Sold));
-
 
     public async Task<string?> PlotForEbayAndSaveLastEbayViewTime(
         string measurementId,
@@ -179,7 +177,6 @@ public class MeasurementPlotService : IMeasurementPlotService
         var model = _measurementApproximationService.GetModel(anodeCurves, x => x.I1, workingPointInfo);
         var i = model.IatWorkingPoint();
 
-
         double? i2 = null;
         if (anodeCurves is DoubleTriodeAnodeCurves doubleTriodeAnodeCurves)
         {
@@ -311,7 +308,6 @@ public class MeasurementPlotService : IMeasurementPlotService
                 new SvgMerger.Svg(result, true),
                 new SvgMerger.Svg(NotEnoughTesterRangeSvg(anodeCurves.PmaxWatt, gridCurves.PmaxWatt), true));
         }
-
 
         return result;
     }
@@ -449,7 +445,6 @@ public class MeasurementPlotService : IMeasurementPlotService
         return quickTestSvg;
     }
 
-
     private static string QuickTestSvg(QuickTestData quickTest)
     {
         var lineHight = 16;
@@ -469,7 +464,6 @@ public class MeasurementPlotService : IMeasurementPlotService
             lines.Add(
                 $"""<tspan x="10" fill="#8B2E2E" font-weight="bold" y="{lineHight + 7 * lineHight}">Ianode2: {quickTest.Ia2.Value:F1} mA</tspan>""");
         }
-
 
         var tspans = string.Join("\n", values: lines);
 
@@ -571,7 +565,6 @@ public class MeasurementPlotService : IMeasurementPlotService
     {
         var manufactureCodeSplited = manufactureCode.Split(['_', ' '], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-
         string? badgeText = null;
         string? badgeSub = null;
         var badgeFill = "none";
@@ -616,8 +609,6 @@ public class MeasurementPlotService : IMeasurementPlotService
         }
 
         var svgHeight = badgeText is null ? 75 + manufactureCodeSplited.Length * 15 : 155 + manufactureCodeSplited.Length * 15;
-
-
 
         var yPosition = 65;
         var manufactureCodePart = string.Join("\n", manufactureCodeSplited.Select(x => $"<text x=\"5\" y=\"{yPosition += 15}\" class=\"important\">{x}</text>"));

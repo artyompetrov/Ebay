@@ -15,7 +15,6 @@ internal sealed class MeasurementService : IMeasurementService
     private readonly IMeasurementFileParser _measurementFileParser;
     private readonly IUnitOfWork _unitOfWork;
 
-
     public MeasurementService(
         IMeasurementRepository productMeasurementRepository,
         IMatchedPairDifferenceRepository matchedPairDifferenceRepository,
@@ -30,7 +29,6 @@ internal sealed class MeasurementService : IMeasurementService
         _measurementFileParser = measurementFileParser;
         _unitOfWork = unitOfWork;
     }
-
 
     public async Task SaveMeasurement(
         string measurementId,

@@ -27,7 +27,6 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
         _shippingRates = shippingRatesService.ShippingRatesDictionary;
     }
 
-
     public async Task Consume(ConsumeContext<CalculatePricesForLot> context)
     {
 
@@ -50,7 +49,6 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
             throw new InvalidOperationException($"Product with {lot.ProductId} not found");
 
         // ReSharper disable IdentifierTypo
-
 
         var общееКоличествоШтукВоВсехПродажах = 0;
         var общаяВыручкаВДолларах = 0.0;
@@ -102,7 +100,6 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
 
         }
 
-
         lot.LotCalculationResult = new LotCalculationResult
         {
             Revenue = общаяВыручкаВДолларах,
@@ -110,7 +107,6 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
             ListingPriceSumm = общаяПолнаяЦенаПродажиВДолларахЗаВычетомДоставки,
             CalculationDate = currentDate
         };
-
 
         await _publishEndpoint.Publish(
             new CalculateTotalAveragePriceForProduct(lot.ProductId),
@@ -121,8 +117,6 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
 
         transaction.Complete();
     }
-
-
 
     private double GetShippingPrice(string shippingCountry, double weight, Dictionary<string, double> currencyRates)
     {

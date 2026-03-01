@@ -100,7 +100,6 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
         return product;
     }
 
-
     public void UpdateManufactureCode(string manufactureCode)
     {
         if (string.IsNullOrWhiteSpace(manufactureCode))
@@ -112,7 +111,6 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
 
         Validate();
     }
-
 
     private void Validate()
     {
@@ -146,7 +144,6 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
 
     [MaxLength(128)]
     public string HashAnodeCurves { get; private set; }
-
 
     /// <summary>
     /// Дата производства или код

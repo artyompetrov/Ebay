@@ -62,7 +62,6 @@ public sealed class TubeWorkingPoint : AggregateRoot<Guid>
         }
     }
 
-
     public double AnodeVoltage { get; private set; }
 
     public double GridVoltage { get; private set; }
@@ -72,7 +71,6 @@ public sealed class TubeWorkingPoint : AggregateRoot<Guid>
     public double GridVoltageHalfWidth { get; private set; }
 
     public double NominalCurrent { get; private set; }
-
 
     /// <summary>
     /// Проверяет корректность рабочей точки:

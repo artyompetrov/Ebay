@@ -20,7 +20,6 @@ public class ProductCalculationResult
     /// </summary>
     public DateTime CalculationDate { get; init; }
 
-
     /// <summary>
     /// суммарная цена листингов
     /// </summary>

@@ -28,7 +28,6 @@ public class CurrencyRateBackgroundTask : BackgroundTask
     public override TimeSpan UpdateTime => WellKnown.CurrencyRate.UpdateTime;
     public override TimeSpan ErrorDelay => WellKnown.CurrencyRate.ErrorDelay;
 
-
     protected override async Task BackgroundTaskImplementation(CancellationToken cancellationToken)
     {
         if (_options.IsLocalRun)

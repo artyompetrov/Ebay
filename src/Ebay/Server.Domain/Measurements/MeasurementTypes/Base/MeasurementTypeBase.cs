@@ -160,7 +160,6 @@ public abstract class MeasurementTypeBase
         return result;
     }
 
-
     /// <summary>
     /// Максимальный ток, для точек, находящихся под кривой допустимой нагрузки
     /// </summary>

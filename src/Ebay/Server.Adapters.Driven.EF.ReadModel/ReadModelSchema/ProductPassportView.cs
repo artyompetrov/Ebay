@@ -12,7 +12,6 @@ internal sealed class ProductPassportView : IViewProjection<ProductPassport, Pro
 
     public required string FileName { get; set; }
 
-
     public static Expression<Func<ProductPassport, ProductPassportView>> ToView => x =>
         new()
         {

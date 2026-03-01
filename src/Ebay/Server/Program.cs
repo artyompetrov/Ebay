@@ -40,7 +40,6 @@ public class Program
             options.ValidateScopes = true;
         });
 
-
         // Add services to the container.
         builder.Services.AddMemoryCache();
         builder.Services.AddEmailAdapter();
@@ -55,7 +54,6 @@ public class Program
 
         ConfigureIdentity(builder.Services);
         AddOpenTelemetry(builder);
-
 
         builder.Services.AddResponseCaching();
 
@@ -94,7 +92,6 @@ public class Program
 
         app.Run();
     }
-
 
     private static void ConfigureMassTransit(IServiceCollection services)
     {

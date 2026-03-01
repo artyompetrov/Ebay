@@ -41,7 +41,6 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
     {
         base.OnModelCreating(builder);
 
-
         foreach (var et in builder.Model.GetEntityTypes()
                      .Where(t => typeof(IAggregateRoot).IsAssignableFrom(t.ClrType)))
         {
@@ -147,7 +146,6 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
             entity.HasKey(e => new { e.Key, e.Version });
         });
 
-
         builder.Entity<ProductPassport>(entity =>
         {
             entity.HasIndex(e => new { e.ProductId, e.Order });
@@ -166,7 +164,6 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
         {
             entity.HasKey(e => new { e.ProductId, e.LotId });
         });
-
 
         builder.Entity<Purchase>(entity =>
         {
@@ -203,8 +200,6 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
         });
     }
 
-
-
     public DbSet<Product> Products { get; set; } = null!;
 
     public DbSet<Lot> Lots { get; set; } = null!;
@@ -228,8 +223,6 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
     public DbSet<TubeWorkingPoint> TubeWorkingPoints { get; set; } = null!;
 
     public DbSet<MatchedPairDifference> MatchedPairDifferences { get; set; } = null!;
-
-
 
     public async Task<IUnitOfWorkTransaction> BeginTransactionAsync(
         CancellationToken cancellationToken,
