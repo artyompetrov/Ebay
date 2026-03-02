@@ -101,7 +101,8 @@ public class ProductService
 
         var product = await _productQueries.GetProductAsync(id, cancellationToken);
 
-        if (product == null) return null;
+        if (product == null)
+            return null;
 
         return Map(product);
     }

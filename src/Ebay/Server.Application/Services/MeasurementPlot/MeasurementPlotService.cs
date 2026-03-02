@@ -174,6 +174,7 @@ public class MeasurementPlotService : IMeasurementPlotService
         {
             return null;
         }
+
         var model = _measurementApproximationService.GetModel(anodeCurves, x => x.I1, workingPointInfo);
         var i = model.IatWorkingPoint();
 

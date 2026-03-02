@@ -143,7 +143,6 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
 
             throw;
         }
-
     }
 }
 

@@ -132,6 +132,7 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
                         radialBands: radialBands,
                         pointsPerBand: pointsPerBand);
                 }
+
                 break;
 
             case TriodeAnodeCurves:
@@ -155,6 +156,7 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
                         radialBands: radialBands,
                         pointsPerBand: pointsPerBand);
                 }
+
                 break;
 
             case DoubleTriodeAnodeCurves:
@@ -172,6 +174,7 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
                         radialBands: radialBands,
                         pointsPerBand: pointsPerBand);
                 }
+
                 break;
             default:
                 throw new NotSupportedException($"Unsupported subtype of {nameof(MeasurementTypeBase)}");

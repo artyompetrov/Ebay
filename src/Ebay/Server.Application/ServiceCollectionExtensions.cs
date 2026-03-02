@@ -100,5 +100,4 @@ public static class ServiceCollectionExtensions
 
         dbContext.Database.Migrate();
     }
-
 }

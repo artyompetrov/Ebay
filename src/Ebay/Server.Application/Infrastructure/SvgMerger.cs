@@ -79,6 +79,7 @@ public static class SvgMerger
                 );
                 outSvg.Add(g);
             }
+
             if (!mergeVertical)
             {
                 offsetX += widths[i];

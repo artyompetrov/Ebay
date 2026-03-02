@@ -691,5 +691,4 @@ internal class EbayControllerImplementation : IEbayController
         await _applicationContext.SaveChangesAsync(cancellationToken);
 
     }
-
 }

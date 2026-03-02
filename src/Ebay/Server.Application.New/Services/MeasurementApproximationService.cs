@@ -55,7 +55,6 @@ public class MeasurementApproximationService
                     Vg: result.VSteppingValue,
                     Ia: ia));
             }
-
         }
 
         return RbfModel(points, wp);

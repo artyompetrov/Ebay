@@ -63,5 +63,4 @@ public class EbayLotDescriptionPage : PageModel
 
         return Page();
     }
-
 }

@@ -221,5 +221,4 @@ public abstract class MeasurementTypeBase
     public double MaxY { get; }
 
     public abstract string SteppingVariableName { get; }
-
 }
