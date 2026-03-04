@@ -24,6 +24,9 @@ public class Program
         builder.Services.AddScoped<EbayClient>();
         builder.Services.AddScoped<WebApiClient>();
 
+        builder.Services.AddHttpClient("DogApi", client =>
+            client.BaseAddress = new Uri("https://dog.ceo/api/"));
+
         builder.Services.AddApiAuthorization();
 
         if (OperatingSystem.IsBrowser())
