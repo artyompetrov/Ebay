@@ -1,0 +1,133 @@
+@page "/weather"
+@using System.Text.Json.Serialization
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inject IHttpClientFactory HttpClientFactory
+
+<PageTitle>Прогноз погоды</PageTitle>
+
+<h2>Прогноз погоды</h2>
+
+@if (!string.IsNullOrWhiteSpace(_errorMessage))
+{
+    <div class="alert alert-warning" role="alert">
+        @_errorMessage
+    </div>
+}
+
+<div class="card mb-3" style="max-width: 28rem;">
+    <div class="card-body">
+        <h5 class="card-title">Текущая погода в Москве</h5>
+        @if (_weather is null)
+        {
+            <p class="card-text">Загрузка...</p>
+        }
+        else
+        {
+            <p class="card-text mb-1"><strong>Температура:</strong> @_weather.Current.Temperature2M °C</p>
+            <p class="card-text mb-1"><strong>Скорость ветра:</strong> @_weather.Current.WindSpeed10M м/с</p>
+            <p class="card-text mb-1"><strong>Время обновления:</strong> @DateTime.Parse(_weather.Current.Time).ToString("yyyy-MM-dd HH:mm")</p>
+            <p class="card-text mb-0"><strong>Состояние:</strong> @GetWeatherDescription(_weather.Current.WeatherCode)</p>
+        }
+    </div>
+</div>
+
+<div class="card" style="max-width: 28rem;">
+    <div class="card-body">
+        <h5 class="card-title">Случайная кошка</h5>
+        @if (string.IsNullOrWhiteSpace(_catImageUrl))
+        {
+            <p class="card-text">Загрузка...</p>
+        }
+        else
+        {
+            <img src="@_catImageUrl" alt="Случайная кошка" class="img-fluid rounded" />
+        }
+    </div>
+</div>
+
+@code {
+    private WeatherApiResponse? _weather;
+    private string _catImageUrl = string.Empty;
+    private string _errorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var httpClient = HttpClientFactory.CreateClient();
+
+        await Task.WhenAll(
+            LoadWeatherAsync(httpClient),
+            LoadCatImageAsync(httpClient));
+    }
+
+    private async Task LoadWeatherAsync(HttpClient httpClient)
+    {
+        try
+        {
+            const string weatherUrl = "https://api.open-meteo.com/v1/forecast?latitude=55.7558&longitude=37.6176&current=temperature_2m,wind_speed_10m,weather_code&timezone=Europe%2FMoscow";
+            _weather = await httpClient.GetFromJsonAsync<WeatherApiResponse>(weatherUrl);
+
+            if (_weather is null)
+            {
+                _errorMessage = "Не удалось получить данные о погоде.";
+            }
+        }
+        catch
+        {
+            _errorMessage = "Не удалось загрузить погоду. Попробуйте обновить страницу позже.";
+        }
+    }
+
+    private async Task LoadCatImageAsync(HttpClient httpClient)
+    {
+        try
+        {
+            const string catImageUrl = "https://cataas.com/cat";
+            using var response = await httpClient.GetAsync(catImageUrl);
+            response.EnsureSuccessStatusCode();
+            _catImageUrl = $"{catImageUrl}?t={DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
+        }
+        catch
+        {
+            if (string.IsNullOrWhiteSpace(_errorMessage))
+            {
+                _errorMessage = "Не удалось загрузить картинку кошки.";
+            }
+        }
+    }
+
+    private static string GetWeatherDescription(int weatherCode) => weatherCode switch
+    {
+        0 => "Ясно",
+        1 or 2 or 3 => "Облачно",
+        45 or 48 => "Туман",
+        51 or 53 or 55 or 56 or 57 => "Морось",
+        61 or 63 or 65 or 66 or 67 => "Дождь",
+        71 or 73 or 75 or 77 => "Снег",
+        80 or 81 or 82 => "Ливень",
+        85 or 86 => "Снегопад",
+        95 or 96 or 99 => "Гроза",
+        _ => "Неизвестно"
+    };
+
+    private sealed class WeatherApiResponse
+    {
+        [JsonPropertyName("current")]
+        public required CurrentWeather Current { get; init; }
+    }
+
+    private sealed class CurrentWeather
+    {
+        [JsonPropertyName("time")]
+        public required string Time { get; init; }
+
+        [JsonPropertyName("temperature_2m")]
+        public double Temperature2M { get; init; }
+
+        [JsonPropertyName("wind_speed_10m")]
+        public double WindSpeed10M { get; init; }
+
+        [JsonPropertyName("weather_code")]
+        public int WeatherCode { get; init; }
+    }
+}
