@@ -53,7 +53,7 @@ class EbayMagSiteProcessor implements ISiteProcessor {
     }
 
     private async searchForDescription() {
-        let element = <HTMLDivElement>await utils.sleepElementLoaded('#productFormScrollarea', document);
+        let element = <HTMLDivElement>await utils.sleepElementLoaded('#productFormScrollarea', document, true);
         if (element.dataset.processed) return
         
         const textarea = <HTMLTextAreaElement>element.querySelector('textarea[placeholder^="Describe the item"]');
