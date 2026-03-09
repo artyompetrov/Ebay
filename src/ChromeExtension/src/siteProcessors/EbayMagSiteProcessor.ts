@@ -35,6 +35,44 @@ class EbayMagSiteProcessor implements ISiteProcessor {
                 skusElement.style.color = 'red';
             }
         }
+
+        const startBackground = async () => {
+            while (true) {
+                try {
+                    await this.searchForDescription();
+                }
+                catch (e) {
+                    console.error(e);
+                }
+                
+                await utils.sleep(1000);
+            }
+        };
+
+        let _ = startBackground()
+    }
+
+    private async searchForDescription() {
+        let element = <HTMLDivElement>await utils.sleepElementLoaded('#productFormScrollarea', document);
+        if (element.dataset.processed) return
+        
+        const textarea = <HTMLTextAreaElement>element.querySelector('textarea[placeholder^="Describe the item"]');
+
+        const match = textarea?.value.match(/<!--\s*(.*?)\s*-->/);
+
+        if (!match) return;
+        
+        const commentContent = match[1].trim(); // текст внутри <!-- -->
+        
+        const descDiv = [...document.querySelectorAll('div[role="presentation"]')].find(el => el.textContent === 'Description');
+
+        const link = document.createElement('a');
+        link.href = 'https://example.com';
+        link.textContent = commentContent;
+        link.style.display = 'block';
+        descDiv.appendChild(link);
+        
+        element.dataset.processed = "true";
     }
 
 }
