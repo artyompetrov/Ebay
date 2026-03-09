@@ -12,10 +12,12 @@ export function getMax(array: number[]) {
 
 
 // Функция для ожидания загрузки элемента
-export async function sleepElementLoaded(selector: string, elementToSearchIn: Document | Element): Promise<Element> {
+export async function sleepElementLoaded(selector: string, elementToSearchIn: Document | Element,  retryForever: boolean = false): Promise<Element> {
     let retry = 0;
     while (true) {
-        retry++;
+        if (!retryForever) {
+            retry++;
+        }
         if (retry > 200) throw new Error("unable to find element by selector " + selector);
 
         let element = elementToSearchIn.querySelector(selector);
