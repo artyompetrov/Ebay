@@ -151,6 +151,8 @@ services:
       AUTH_TYPE: Basic
       USERNAME: ebay
       PASSWORD: ${PG_PASSWORD}
+    networks:
+      - internal_network
     volumes:
       - ./mount/webdav/data/:/var/lib/dav
 
