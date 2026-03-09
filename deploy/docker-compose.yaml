@@ -143,6 +143,17 @@ services:
       - internal_network
     restart: unless-stopped
 
+  ebay_webdav:
+    container_name: ebay_webdav
+    image: bytemark/webdav
+    restart: unless-stopped
+    environment:
+      AUTH_TYPE: Basic
+      USERNAME: ebay
+      PASSWORD: ${PG_PASSWORD}
+    volumes:
+      - ./mount/webdav/data/:/var/lib/dav
+
 networks:
   internal_network:
     driver: bridge
