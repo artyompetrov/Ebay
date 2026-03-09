@@ -10,7 +10,7 @@ upstream ebaygrafana {
   server ebay_grafana:3000 fail_timeout=0;
 }
 
-upstream enpasswebdav {
+upstream ebaywebdav {
   server ebay_webdav:80 fail_timeout=0;
 }
 
@@ -177,7 +177,7 @@ server {
     ssl_protocols TLSv1.2 TLSv1.3;
 
     location / {
-        proxy_pass         http://enpass_webdav;
+        proxy_pass         http://ebaywebdav;
         proxy_http_version 1.1;
 
         proxy_set_header   Host $host;
