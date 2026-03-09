@@ -10,6 +10,7 @@
 <div style="display: flex; align-items: center; gap: 10px;">
     <h2>Перечень товаров</h2>
     <button class="btn btn-primary btn-sm" @onclick="UpdateAllPrices">Пересчитать цены</button>
+    <button class="btn btn-primary btn-sm" @onclick="UpdateAllUnpublishedOnEbayCount">Пересчитать количество невыставленных</button>
 </div>
 <style>
     #productTable th {
@@ -60,6 +61,14 @@
         <th>
             Дата расчета
         </th>
+        <th @onclick="@(() => SortTable(nameof(ProductCalculationResult.UnpublishedOnEbayCount_Created)))">
+            unpublishedOnEbayCount_Created (Невыставленное Кемерово)
+            <span class="sort-icon">@GetSortIcon(nameof(ProductCalculationResult.UnpublishedOnEbayCount_Created))</span>
+        </th>
+        <th @onclick="@(() => SortTable(nameof(ProductCalculationResult.UnpublishedOnEbayCount_Selling)))">
+            unpublishedOnEbayCount_Selling (Невыставленное Кемерово)
+            <span class="sort-icon">@GetSortIcon(nameof(ProductCalculationResult.UnpublishedOnEbayCount_Selling))</span>
+        </th>
     </tr>
     </thead>
 
@@ -101,9 +110,13 @@
                 <td>@product.ProductCalculationResult?.QuantityTotal</td>
                 <td>@((product.ProductCalculationResult?.RevenueAvg * _targetCurrencyRate)?.ToString("N0"))</td>
                 <td>@product.ProductCalculationResult?.CalculationDate</td>
+                <td>@product.ProductCalculationResult?.UnpublishedOnEbayCount_Created</td>
+                <td>@product.ProductCalculationResult?.UnpublishedOnEbayCount_Selling</td>
             }
             else
             {
+                <td></td>
+                <td></td>
                 <td></td>
                 <td></td>
                 <td></td>
@@ -162,6 +175,11 @@
     private void UpdateAllPrices()
     {
         _questionPopup.AskQuestion(questionText: "Пересчитать цены для всех?", async () => { await EbayClient.CalculatePricesForAllAsync(CancellationToken.None); });
+    }
+
+    private void UpdateAllUnpublishedOnEbayCount()
+    {
+        _questionPopup.AskQuestion(questionText: "Пересчитать количество невыставленных для всех?", async () => { await EbayClient.CalculateUnpublishedOnEbayCountForAllAsync(CancellationToken.None); });
     }
 
     private async Task LoadActualProductList()
@@ -230,6 +248,18 @@
                 result = _sortAscending
                     ? result.OrderBy(p => (p.ProductCalculationResult?.RevenueAvg ?? 0) * _targetCurrencyRate).ToList()
                     : result.OrderByDescending(p => (p.ProductCalculationResult?.RevenueAvg ?? 0) * _targetCurrencyRate).ToList();
+                break;
+
+            case nameof(ProductCalculationResult.UnpublishedOnEbayCount_Created):
+                result = _sortAscending
+                    ? result.OrderBy(p => p.ProductCalculationResult?.UnpublishedOnEbayCount_Created ?? 0).ToList()
+                    : result.OrderByDescending(p => p.ProductCalculationResult?.UnpublishedOnEbayCount_Created ?? 0).ToList();
+                break;
+
+            case nameof(ProductCalculationResult.UnpublishedOnEbayCount_Selling):
+                result = _sortAscending
+                    ? result.OrderBy(p => p.ProductCalculationResult?.UnpublishedOnEbayCount_Selling ?? 0).ToList()
+                    : result.OrderByDescending(p => p.ProductCalculationResult?.UnpublishedOnEbayCount_Selling ?? 0).ToList();
                 break;
 
             default: throw new InvalidOperationException(_sortColumn);

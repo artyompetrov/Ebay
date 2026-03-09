@@ -26,6 +26,16 @@ public class ProductCalculationResult
     public double ListingPriceSumm { get; init; }
 
     /// <summary>
+    /// Количество невыставленных на eBay замеров в состоянии Created.
+    /// </summary>
+    public int UnpublishedOnEbayCountCreated { get; init; }
+
+    /// <summary>
+    /// Количество невыставленных на eBay замеров в состоянии Selling.
+    /// </summary>
+    public int UnpublishedOnEbayCountSelling { get; init; }
+
+    /// <summary>
     /// Средняя выручка для продукта
     /// </summary>
     [JsonIgnore]

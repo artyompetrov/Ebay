@@ -113,6 +113,7 @@ public class Program
             x.AddConsumer<CalculatePricesForAllConsumer>();
             x.AddConsumer<CalculatePricesForProductConsumer>();
             x.AddConsumer<CalculatePricesForLotConsumer>();
+            x.AddConsumer<CalculateUnpublishedOnEbayCountForAllConsumer>();
             x.AddConsumer<MeasurementWatchedOnEbayConsumer>();
             x.AddConsumer<CalculateEbayCurvesForMeasurementConsumer>(c =>
             {

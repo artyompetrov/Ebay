@@ -5,6 +5,7 @@ using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Data;
 using Server.Domain;
+using Server.Domain.Measurements;
 
 namespace Server.Application.Consumers.PriceCalculator;
 
@@ -43,6 +44,21 @@ public class CalculateTotalAveragePriceForProductConsumer : IConsumer<Batch<Calc
             var quantityTotal = 0;
 
             var dateTime = DateTime.UtcNow;
+            var publishedThreshold = DateTime.UtcNow.AddDays(-7);
+            var unpublishedOnEbayCountCreated = await _applicationDbContext.ProductMeasurements
+                .AsNoTracking()
+                .CountAsync(
+                    x => x.ProductId == productId &&
+                         x.MeasurementState == MeasurementState.Created &&
+                         (x.LastTimeWatchedOnEbay == null || x.LastTimeWatchedOnEbay <= publishedThreshold),
+                    context.CancellationToken);
+            var unpublishedOnEbayCountSelling = await _applicationDbContext.ProductMeasurements
+                .AsNoTracking()
+                .CountAsync(
+                    x => x.ProductId == productId &&
+                         x.MeasurementState == MeasurementState.Selling &&
+                         (x.LastTimeWatchedOnEbay == null || x.LastTimeWatchedOnEbay <= publishedThreshold),
+                    context.CancellationToken);
             foreach (var lotCalculationResult in lotCalculationResults)
             {
                 if (lotCalculationResult == null)
@@ -73,7 +89,9 @@ public class CalculateTotalAveragePriceForProductConsumer : IConsumer<Batch<Calc
                 Revenue = revenue,
                 QuantityTotal = quantityTotal,
                 CalculationDate = dateTime,
-                ListingPriceSumm = listingPrice
+                ListingPriceSumm = listingPrice,
+                UnpublishedOnEbayCountCreated = unpublishedOnEbayCountCreated,
+                UnpublishedOnEbayCountSelling = unpublishedOnEbayCountSelling
             };
 
             await _unitOfWork.SaveChangesAsync(context.CancellationToken);
