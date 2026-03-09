@@ -114,7 +114,9 @@ internal static class ModelsExtensions
         revenue: productCalculationResult.Revenue,
         revenueAvg: productCalculationResult.RevenueAvg,
         calculationDate: productCalculationResult.CalculationDate.ToString("dd-MM-yy", CultureInfo.InvariantCulture),
-        listingPriceAvg: productCalculationResult.ListingPriceAvg
+        listingPriceAvg: productCalculationResult.ListingPriceAvg,
+        unpublishedOnEbayCount_Created: productCalculationResult.UnpublishedOnEbayCountCreated,
+        unpublishedOnEbayCount_Selling: productCalculationResult.UnpublishedOnEbayCountSelling
     );
     }
 

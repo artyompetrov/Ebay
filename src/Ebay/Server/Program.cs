@@ -122,7 +122,7 @@ public class Program
             {
                 c.UseConcurrencyLimit(1);
             });
-            x.AddConsumer<CalculateTotalAveragePriceForProductConsumer>(c => c.Options<BatchOptions>(o =>
+            x.AddConsumer<CalculateMetricsForProductConsumer>(c => c.Options<BatchOptions>(o =>
             {
                 o.ConcurrencyLimit = 1;
                 o.MessageLimit = 100;

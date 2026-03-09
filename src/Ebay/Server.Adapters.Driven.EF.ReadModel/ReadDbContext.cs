@@ -78,6 +78,17 @@ internal sealed class ReadDbContext : DbContext
                 .HasConversion<string>();
         });
 
+        b.Entity<LotView>(eb =>
+        {
+            eb.ToTable("Lots").HasKey(x => x.Id);
+
+            eb.Property(o => o.LotCalculationResult)
+                .HasConversion(new ValueConverter<LotCalculationResult?, string>(
+                    v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<LotCalculationResult?>(v, (JsonSerializerOptions?)null)
+                ));
+        });
+
     }
 
     public DbSet<ProductMeasurementView> ProductMeasurements { get; set; } = null!;
@@ -91,4 +102,6 @@ internal sealed class ReadDbContext : DbContext
     public DbSet<TubeWorkingPointView> TubeWorkingPoints { get; set; } = null!;
 
     public DbSet<LotForSaleView> LotForSales { get; set; } = null!;
+
+    public DbSet<LotView> Lots { get; set; } = null!;
 }

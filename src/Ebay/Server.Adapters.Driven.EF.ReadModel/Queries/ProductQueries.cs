@@ -2,6 +2,8 @@ using System.Data;
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Models;
+using Server.Domain;
+using Server.Domain.Measurements;
 using Server.Domain.Product;
 
 namespace Server.Adapters.Driven.EF.ReadModel.Queries;
@@ -77,4 +79,30 @@ internal sealed class ProductQueries : IProductQueries
     }
 
     public async Task<IReadOnlyList<Guid>> GetAllProductsIdsAsync(CancellationToken cancellationToken) => await _readDbContext.Products.Select(x => x.Id).ToListAsync(cancellationToken: cancellationToken);
+
+    public async Task<IReadOnlyList<LotCalculationResult>> GetLotCalculationResultsAsync(Guid productId, CancellationToken cancellationToken)
+    {
+        var result = await _readDbContext.Lots
+            .Where(x => x.ProductId == productId && x.LotCalculationResult != null)
+            .Select(x => x.LotCalculationResult!)
+            .ToListAsync(cancellationToken);
+
+        return result;
+    }
+
+    public async Task<int> GetUnpublishedOnEbayCountAsync(
+        Guid productId,
+        MeasurementState measurementState,
+        DateTime publishedThreshold,
+        CancellationToken cancellationToken)
+    {
+        var result = await _readDbContext.ProductMeasurements
+            .CountAsync(
+                x => x.ProductId == productId &&
+                     x.MeasurementState == measurementState &&
+                     (x.LastTimeWatchedOnEbay == null || x.LastTimeWatchedOnEbay <= publishedThreshold),
+                cancellationToken);
+
+        return result;
+    }
 }
