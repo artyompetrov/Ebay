@@ -680,12 +680,6 @@ paths:
         200:
           description: 'Ok'
 
-  /calculate_unpublished_on_ebay_count_for_all/:
-    post:
-      operationId: CalculateUnpublishedOnEbayCountForAll
-      responses:
-        200:
-          description: 'Ok'
 
 definitions:
   ProductState:

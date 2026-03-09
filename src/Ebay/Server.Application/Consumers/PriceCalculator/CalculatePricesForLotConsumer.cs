@@ -109,7 +109,7 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
         };
 
         await _publishEndpoint.Publish(
-            new CalculateTotalAveragePriceForProduct(lot.ProductId),
+            new CalculateMetricsForProduct(lot.ProductId),
             context.CancellationToken);
 
         await _applicationContext.SaveChangesAsync(context.CancellationToken);

@@ -691,10 +691,5 @@ internal class EbayControllerImplementation : IEbayController
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task CalculateUnpublishedOnEbayCountForAllAsync(CancellationToken cancellationToken)
-    {
-        await _publishEndpoint.Publish(new CalculateUnpublishedOnEbayCountForAll(), cancellationToken);
-        await _applicationContext.SaveChangesAsync(cancellationToken);
-    }
 
 }

@@ -10,7 +10,6 @@
 <div style="display: flex; align-items: center; gap: 10px;">
     <h2>Перечень товаров</h2>
     <button class="btn btn-primary btn-sm" @onclick="UpdateAllPrices">Пересчитать цены</button>
-    <button class="btn btn-primary btn-sm" @onclick="UpdateAllUnpublishedOnEbayCount">Пересчитать количество невыставленных</button>
 </div>
 <style>
     #productTable th {
@@ -177,10 +176,6 @@
         _questionPopup.AskQuestion(questionText: "Пересчитать цены для всех?", async () => { await EbayClient.CalculatePricesForAllAsync(CancellationToken.None); });
     }
 
-    private void UpdateAllUnpublishedOnEbayCount()
-    {
-        _questionPopup.AskQuestion(questionText: "Пересчитать количество невыставленных для всех?", async () => { await EbayClient.CalculateUnpublishedOnEbayCountForAllAsync(CancellationToken.None); });
-    }
 
     private async Task LoadActualProductList()
     {
