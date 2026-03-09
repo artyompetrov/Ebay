@@ -49,6 +49,14 @@
             Вес без упаковки
             <span class="sort-icon">@GetSortIcon(nameof(ProductWithId.Weight))</span>
         </th>
+        <th @onclick="@(() => SortTable(nameof(ProductCalculationResult.UnpublishedOnEbayCount_Created)))">
+            Выставить Кемерово
+            <span class="sort-icon">@GetSortIcon(nameof(ProductCalculationResult.UnpublishedOnEbayCount_Created))</span>
+        </th>
+        <th @onclick="@(() => SortTable(nameof(ProductCalculationResult.UnpublishedOnEbayCount_Selling)))">
+            Выставить Астана
+            <span class="sort-icon">@GetSortIcon(nameof(ProductCalculationResult.UnpublishedOnEbayCount_Selling))</span>
+        </th>
         <th @onclick="@(() => SortTable(nameof(ProductWithId.ProductCalculationResult.QuantityTotal)))">
             Шт. продано
             <span class="sort-icon">@GetSortIcon(nameof(ProductWithId.ProductCalculationResult.QuantityTotal))</span>
@@ -59,14 +67,6 @@
         </th>
         <th>
             Дата расчета
-        </th>
-        <th @onclick="@(() => SortTable(nameof(ProductCalculationResult.UnpublishedOnEbayCount_Created)))">
-            unpublishedOnEbayCount_Created (Невыставленное Кемерово)
-            <span class="sort-icon">@GetSortIcon(nameof(ProductCalculationResult.UnpublishedOnEbayCount_Created))</span>
-        </th>
-        <th @onclick="@(() => SortTable(nameof(ProductCalculationResult.UnpublishedOnEbayCount_Selling)))">
-            unpublishedOnEbayCount_Selling (Невыставленное Кемерово)
-            <span class="sort-icon">@GetSortIcon(nameof(ProductCalculationResult.UnpublishedOnEbayCount_Selling))</span>
         </th>
     </tr>
     </thead>
@@ -104,11 +104,9 @@
             {
                 <td>@product.Weight</td>
             }
-            @if (product.ProductCalculationResult?.QuantityTotal > 0)
+            
+            @if (product.ProductCalculationResult?.UnpublishedOnEbayCount_Created > 0 || product.ProductCalculationResult?.UnpublishedOnEbayCount_Selling > 0)
             {
-                <td>@product.ProductCalculationResult?.QuantityTotal</td>
-                <td>@((product.ProductCalculationResult?.RevenueAvg * _targetCurrencyRate)?.ToString("N0"))</td>
-                <td>@product.ProductCalculationResult?.CalculationDate</td>
                 <td>@product.ProductCalculationResult?.UnpublishedOnEbayCount_Created</td>
                 <td>@product.ProductCalculationResult?.UnpublishedOnEbayCount_Selling</td>
             }
@@ -116,10 +114,22 @@
             {
                 <td></td>
                 <td></td>
+            }
+            
+            @if (product.ProductCalculationResult?.QuantityTotal > 0)
+            {
+                <td>@product.ProductCalculationResult?.QuantityTotal</td>
+                <td>@((product.ProductCalculationResult?.RevenueAvg * _targetCurrencyRate)?.ToString("N0"))</td>
+                <td>@product.ProductCalculationResult?.CalculationDate</td>
+
+            }
+            else
+            {
                 <td></td>
                 <td></td>
                 <td></td>
             }
+
         </tr>
     }
     </tbody>
