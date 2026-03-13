@@ -12,8 +12,6 @@ public sealed class Product : AggregateRoot<Guid>
         Name = name;
         LastCheckTime = lastCheckTime;
         Weight = weight;
-
-        AddDomainEvent(new ProductUpdated(Id));
     }
 
     public static Product Create(
@@ -29,6 +27,8 @@ public sealed class Product : AggregateRoot<Guid>
             name: name,
             lastCheckTime: DateTime.MinValue,
             weight: weight);
+
+        product.AddDomainEvent(new ProductUpdated(product.Id));
 
         product._ruSearchQueries.AddRange(
             ruSearchQueries.Select(x => new SearchQuery(Guid.NewGuid(), x, productId)));
