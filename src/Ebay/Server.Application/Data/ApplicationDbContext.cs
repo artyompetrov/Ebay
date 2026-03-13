@@ -272,9 +272,14 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
 
         var publishEndpoint = this.GetService<IPublishEndpoint>();
 
-        foreach (var domainEvent in aggregateEntries.SelectMany(entry => entry.Entity.GetDomainEvents()))
+        foreach (var aggregateEntry in aggregateEntries)
         {
-            await publishEndpoint.Publish((object)domainEvent /*без приведения к object не работает*/, cancellationToken);
+            foreach (var domainEvent in aggregateEntry.Entity.GetDomainEvents())
+            {
+                await publishEndpoint.Publish((object)domainEvent /*без приведения к object не работает*/, cancellationToken);
+            }
+
+            aggregateEntry.Entity.ClearDomainEvents();
         }
     }
 
