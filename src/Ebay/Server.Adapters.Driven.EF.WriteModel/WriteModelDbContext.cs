@@ -77,9 +77,14 @@ public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
 
         var publishEndpoint = this.GetService<IPublishEndpoint>();
 
-        foreach (var domainEvent in aggregateEntries.SelectMany(entry => entry.Entity.GetDomainEvents()))
+        foreach (var aggregateEntry in aggregateEntries)
         {
-            await publishEndpoint.Publish((object)domainEvent, cancellationToken);
+            foreach (var domainEvent in aggregateEntry.Entity.GetDomainEvents())
+            {
+                await publishEndpoint.Publish((object)domainEvent, cancellationToken);
+            }
+
+            aggregateEntry.Entity.ClearDomainEvents();
         }
     }
 
