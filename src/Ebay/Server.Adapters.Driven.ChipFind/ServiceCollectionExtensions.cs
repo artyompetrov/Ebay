@@ -10,6 +10,6 @@ public static class ServiceCollectionExtensions
     {
         services.AddHttpClient();
         services.AddSingleton(new ChipFindAdapterOptions(DelayMilliseconds: 5000));
-        services.AddScoped<IChipfindAdapter, ChipfindAdapter>();
+        services.AddTransient<IChipfindAdapter, ChipfindAdapter>();
     }
 }

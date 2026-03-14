@@ -48,7 +48,7 @@ public static class ServiceCollectionExtensions
             o.UseNpgsql(connectionString);
         });
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ApplicationDbContext>());
-        services.AddScoped<ShippingRatesService>();
+        services.AddTransient<ShippingRatesService>();
         services.AddSingleton(sp =>
         {
             var connectionString = sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection")

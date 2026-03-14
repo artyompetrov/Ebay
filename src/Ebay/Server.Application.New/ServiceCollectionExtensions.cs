@@ -17,13 +17,14 @@ public static class ServiceCollectionExtensions
     /// <param name="services">Коллекция сервисов приложения.</param>
     public static void AddApplicationNewServices(this IServiceCollection services)
     {
-        services.AddSingleton<MeasurementApproximationService>();
-        services.AddScoped<IMeasurementService, MeasurementService>();
-        services.AddScoped<IMatchedPairsCalculator, MatchedPairsCalculator>();
-        services.AddSingleton<ICurrentTimeProvider, SystemCurrentTimeProvider>();
-        services.AddSingleton<IRandomNumberProvider, CryptoRandomNumberProvider>();
+        services.AddTransient<MeasurementApproximationService>();
+        services.AddTransient<IMeasurementService, MeasurementService>();
+        services.AddTransient<IMatchedPairsCalculator, MatchedPairsCalculator>();
+        services.AddTransient<ICurrentTimeProvider, SystemCurrentTimeProvider>();
+        services.AddTransient<IRandomNumberProvider, CryptoRandomNumberProvider>();
+        // Singleton нужен для process-wide монотонной последовательности ID и предотвращения коллизий при параллельном создании лотов.
         services.AddSingleton<ILotForSaleIdGenerator, LotForSaleIdGenerator>();
-        services.AddScoped<ProductService>();
-        services.AddScoped<LotForSaleService>();
+        services.AddTransient<ProductService>();
+        services.AddTransient<LotForSaleService>();
     }
 }
