@@ -12,6 +12,6 @@ public static class ServiceCollectionExtensions
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        services.AddScoped<IEmailSender, EmailSender>();
+        services.AddTransient<IEmailSender, EmailSender>();
     }
 }

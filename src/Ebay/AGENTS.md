@@ -85,6 +85,10 @@
 Если менялись параметры билда — проверьте `src/Dockerfile` и `.github/workflows/*.yaml`.
 
 ## Конфигурация и DI
+- По умолчанию сервисы в DI регистрируем как `Transient`.
+- `Singleton` используем только когда реально нужен один экземпляр на всё приложение, и рядом с регистрацией фиксируем обоснование.
+- `Scoped` применяем только когда нужен общий контекст операции/запроса (в первую очередь EF `DbContext` и зависящие от него компоненты).
+- Предпочитаем stateless-сервисы: не храним изменяемое состояние в полях сервисов без явной необходимости.
 - В `Program.cs` не читаем параметры через `GetSection`/`GetRequiredSection` во время регистрации контейнера.
 - Используем `AddOptions<...>().BindConfiguration("...").ValidateDataAnnotations().ValidateOnStart()`.
 - `src/Ebay/Server/appsettings.json` и `appsettings.Development.json` не используем для runtime-настроек backend.

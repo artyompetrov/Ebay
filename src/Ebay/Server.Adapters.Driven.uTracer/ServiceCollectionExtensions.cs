@@ -6,5 +6,5 @@ namespace Server.Adapters.Driven.uTracer;
 public static class ServiceCollectionExtensions
 {
     public static void AddUTracerAdapter(
-        this IServiceCollection services) => _ = services.AddScoped<IMeasurementFileParser, MeasurementFileParser>();
+        this IServiceCollection services) => _ = services.AddTransient<IMeasurementFileParser, MeasurementFileParser>();
 }
