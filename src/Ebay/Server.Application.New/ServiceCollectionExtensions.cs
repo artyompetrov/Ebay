@@ -22,7 +22,8 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IMatchedPairsCalculator, MatchedPairsCalculator>();
         services.AddTransient<ICurrentTimeProvider, SystemCurrentTimeProvider>();
         services.AddTransient<IRandomNumberProvider, CryptoRandomNumberProvider>();
-        services.AddTransient<ILotForSaleIdGenerator, LotForSaleIdGenerator>();
+        // Singleton нужен для process-wide монотонной последовательности ID и предотвращения коллизий при параллельном создании лотов.
+        services.AddSingleton<ILotForSaleIdGenerator, LotForSaleIdGenerator>();
         services.AddTransient<ProductService>();
         services.AddTransient<LotForSaleService>();
     }
