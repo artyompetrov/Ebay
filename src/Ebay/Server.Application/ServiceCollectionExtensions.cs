@@ -56,18 +56,18 @@ public static class ServiceCollectionExtensions
             return new DatabaseConcurrentAccessSemaphore(
                 maxConcurrent: new Npgsql.NpgsqlConnectionStringBuilder(connectionString).MaxPoolSize / 2);
         });
-        services.AddScoped<DbCache>();
+        services.AddTransient<DbCache>();
         services.AddApplicationNewServices();
-        services.AddScoped<MatchedMeasurementService>();
-        services.AddScoped<MeasurementPlotService>();
-        services.AddScoped<IMeasurementWatchedOnEbayHandler, MeasurementWatchedOnEbayHandler>();
-        services.AddScoped<TubeWorkingPointService>();
+        services.AddTransient<MatchedMeasurementService>();
+        services.AddTransient<MeasurementPlotService>();
+        services.AddTransient<IMeasurementWatchedOnEbayHandler, MeasurementWatchedOnEbayHandler>();
+        services.AddTransient<TubeWorkingPointService>();
         services.AddHttpClient<GeoIpService>(c =>
         {
             c.Timeout = TimeSpan.FromSeconds(2);
         });
 
-        services.AddScoped<IEbayController, EbayControllerImplementation>();
+        services.AddTransient<IEbayController, EbayControllerImplementation>();
         services.AddDefaultIdentity<ApplicationUser>(o => o.SignIn.RequireConfirmedAccount = true)
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
