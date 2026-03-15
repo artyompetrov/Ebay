@@ -66,7 +66,7 @@ public class MeasurementPlotService : IMeasurementPlotService
         return plotTask;
     }
 
-    internal static bool ShouldTrackEbayView(string? referer, string currentHost)
+    private static bool ShouldTrackEbayView(string? referer, string currentHost)
     {
         if (string.IsNullOrWhiteSpace(referer))
         {

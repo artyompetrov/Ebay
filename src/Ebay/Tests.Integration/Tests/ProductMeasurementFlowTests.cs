@@ -40,6 +40,27 @@ public class ProductMeasurementFlowTests
             Assert.That(measurement.IsPublishedOnEbay, Is.False);
         }
 
+        using (var internalRequest = new HttpRequestMessage(HttpMethod.Get, $"/m/{measurementId}/ebay_curves"))
+        {
+            internalRequest.Headers.Referrer = new Uri(httpClient.BaseAddress!, "/ebay_description/internal-preview");
+
+            using var internalResponse = await httpClient.SendAsync(internalRequest);
+            var internalContent = await internalResponse.Content.ReadAsStringAsync();
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(internalResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK), internalContent);
+                Assert.That(internalContent, Does.Contain("<svg"));
+            }
+        }
+
+        var measurementsAfterInternalView = await ebayClient.GetMeasurementsAsync(measurementState: null, productId: productId);
+        var measurementAfterInternalView = measurementsAfterInternalView.Single();
+        Assert.That(
+            measurementAfterInternalView.IsPublishedOnEbay,
+            Is.False,
+            "Measurement should not be marked as published after same-host referer view.");
+
         await TestHelpers.RetryUntilValidationSuccessAsync(async () =>
         {
             using var ebayCurvesResponse = await httpClient.GetAsync($"/m/{measurementId}/ebay_curves");
