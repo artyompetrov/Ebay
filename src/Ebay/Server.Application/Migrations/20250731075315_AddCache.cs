@@ -16,7 +16,7 @@ public partial class AddCache : Migration
             {
                 Key = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                 Value = table.Column<string>(type: "text", nullable: false),
-                ExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                ExpiresAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
             },
             constraints: table =>
             {

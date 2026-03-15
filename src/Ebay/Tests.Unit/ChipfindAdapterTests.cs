@@ -209,7 +209,7 @@ public class ChipfindAdapterTests
             saleAdvertisement: new SaleAdvertisement(
                 Title: "title",
                 Seller: "seller",
-                Date: DateTime.MaxValue,
+                Date: DateTimeOffset.MaxValue,
                 Link: new Uri("https://www.chipfind.ru/market/msg_prodam_1610251451.htm"),
                 Items: [""],
                 Body: ""),
@@ -237,7 +237,7 @@ public class ChipfindAdapterTests
             saleAdvertisement: new SaleAdvertisement(
                 Title: "title",
                 Seller: "seller",
-                Date: DateTime.MaxValue,
+                Date: DateTimeOffset.MaxValue,
                 Link: new Uri("https://www.chipfind.ru/market/msg_prodam_1610251451.htm"),
                 Items: [""],
                 Body: ""),
@@ -265,7 +265,7 @@ public class ChipfindAdapterTests
             saleAdvertisement: new SaleAdvertisement(
                 Title: "title",
                 Seller: "seller",
-                Date: DateTime.MaxValue,
+                Date: DateTimeOffset.MaxValue,
                 Link: new Uri("https://www.chipfind.ru/market/msg_prodam_1610251451.htm"),
                 Items: [""],
                 Body: ""),

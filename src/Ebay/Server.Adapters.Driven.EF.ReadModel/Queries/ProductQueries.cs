@@ -93,7 +93,7 @@ internal sealed class ProductQueries : IProductQueries
     public async Task<int> GetUnpublishedOnEbayCountAsync(
         Guid productId,
         MeasurementState measurementState,
-        DateTime publishedThreshold,
+        DateTimeOffset publishedThreshold,
         CancellationToken cancellationToken)
     {
         var result = await _readDbContext.ProductMeasurements

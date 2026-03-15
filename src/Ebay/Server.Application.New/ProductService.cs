@@ -111,7 +111,7 @@ public class ProductService
     {
         return new ProductInfoView(
             Data: product,
-            IsCheckRequired: DateTime.UtcNow - product.LastCheckTime > TimeSpan.FromDays(WellKnown.RecheckTimeInDays),
+            IsCheckRequired: DateTimeOffset.UtcNow - product.LastCheckTime > TimeSpan.FromDays(WellKnown.RecheckTimeInDays),
             CalculatedEbayWeight: (int)Math.Ceiling(product.Weight * WellKnown.EbayWeightMultiplier / 100.0),
             ProductRegex: GetProductRegex(product),
             IsInteresting: product.CalculationResult?.RevenueAvg > WellKnown.IsInterestingRevenueUsd &&

@@ -24,5 +24,5 @@ public record MeasurementInfo(
     MeasurementState MeasurementState,
     ProductState ProductState,
     string ManufactureCode,
-    DateTime CreatedAt,
-    DateTime? LastTimeWatchedOnEbay);
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? LastTimeWatchedOnEbay);

@@ -11,7 +11,7 @@ namespace Server.Application.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<DateTime>(
+            migrationBuilder.AddColumn<DateTimeOffset>(
                 name: "LastTimeWatchedOnEbay",
                 table: "ProductMeasurements",
                 type: "timestamp with time zone",

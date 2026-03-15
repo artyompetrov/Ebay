@@ -285,7 +285,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
 
     private void ApplyAudit()
     {
-        var now = DateTime.UtcNow;
+        var now = DateTimeOffset.UtcNow;
 
         foreach (var entry in ChangeTracker.Entries<IAuditable>())
         {

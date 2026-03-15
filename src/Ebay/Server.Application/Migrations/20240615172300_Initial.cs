@@ -74,7 +74,7 @@ public partial class Initial : Migration
                 CurrencyRusName = table.Column<string>(type: "text", nullable: false),
                 CurrencyApiName = table.Column<string>(type: "text", nullable: false),
                 CurrencyRate = table.Column<double>(type: "double precision", nullable: false),
-                LastUpdate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                LastUpdate = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
             },
             constraints: table =>
             {
@@ -91,8 +91,8 @@ public partial class Initial : Migration
                 SessionId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                 ClientId = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                 Description = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
-                CreationTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                Expiration = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                CreationTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                Expiration = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                 Data = table.Column<string>(type: "character varying(50000)", maxLength: 50000, nullable: false)
             },
             constraints: table =>
@@ -106,7 +106,7 @@ public partial class Initial : Migration
             {
                 Id = table.Column<string>(type: "text", nullable: false),
                 Version = table.Column<int>(type: "integer", nullable: false),
-                Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                Created = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                 Use = table.Column<string>(type: "text", nullable: true),
                 Algorithm = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                 IsX509Certificate = table.Column<bool>(type: "boolean", nullable: false),
@@ -128,9 +128,9 @@ public partial class Initial : Migration
                 SessionId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                 ClientId = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                 Description = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
-                CreationTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                Expiration = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                ConsumedTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                CreationTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                Expiration = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                ConsumedTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                 Data = table.Column<string>(type: "character varying(50000)", maxLength: 50000, nullable: false)
             },
             constraints: table =>
@@ -250,7 +250,7 @@ public partial class Initial : Migration
             {
                 Id = table.Column<Guid>(type: "uuid", nullable: false),
                 Name = table.Column<string>(type: "text", nullable: false),
-                LastCheckTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                LastCheckTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                 Weight = table.Column<int>(type: "integer", nullable: false),
                 ApplicationUserId = table.Column<string>(type: "text", nullable: true)
             },
@@ -302,8 +302,8 @@ public partial class Initial : Migration
                 ConditionDescription = table.Column<string>(type: "text", nullable: true),
                 Seller = table.Column<string>(type: "text", nullable: false),
                 LocatedIn = table.Column<string>(type: "text", nullable: false),
-                TitleChangeDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                UpdateDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                TitleChangeDate = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                UpdateDate = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                 Categories = table.Column<Dictionary<string, string>>(type: "hstore", nullable: false)
             },
             constraints: table =>
@@ -346,7 +346,7 @@ public partial class Initial : Migration
             name: "Purchases",
             columns: table => new
             {
-                Date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                Date = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                 LotId = table.Column<long>(type: "bigint", nullable: false),
                 Price = table.Column<double>(type: "double precision", nullable: true),
                 Quantity = table.Column<int>(type: "integer", nullable: false)

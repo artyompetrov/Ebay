@@ -186,11 +186,11 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
         }
     }
 
-    public DateTime? LastTimeWatchedOnEbay { get; private set; }
+    public DateTimeOffset? LastTimeWatchedOnEbay { get; private set; }
 
-    public void MarkWatchedOnEbay(DateTime watchedAtUtc)
+    public void MarkWatchedOnEbay(DateTimeOffset watchedAtUtc)
     {
-        LastTimeWatchedOnEbay = watchedAtUtc.Kind == DateTimeKind.Utc
+        LastTimeWatchedOnEbay = watchedAtUtc.Offset == TimeSpan.Zero
             ? watchedAtUtc
             : watchedAtUtc.ToUniversalTime();
     }

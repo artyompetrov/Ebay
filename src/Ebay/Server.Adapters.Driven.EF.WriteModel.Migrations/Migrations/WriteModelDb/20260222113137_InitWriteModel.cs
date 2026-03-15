@@ -20,8 +20,8 @@ public partial class InitWriteModel : Migration
             {
                 Id = table.Column<string>(type: "character varying(7)", maxLength: 7, nullable: false),
                 Name = table.Column<string>(type: "text", nullable: false),
-                CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                ChangedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                ChangedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                 xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false)
             },
             constraints: table =>

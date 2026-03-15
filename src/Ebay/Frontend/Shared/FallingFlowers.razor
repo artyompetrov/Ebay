@@ -24,8 +24,8 @@
     {
         get
         {
-            var currentDate = DateTime.Now.Date;
-            var womenDay = new DateTime(year: currentDate.Year, month: 3, day: 8);
+            var currentDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.UtcDateTime);
+            var womenDay = new DateOnly(currentDate.Year, month: 3, day: 8);
             return currentDate >= womenDay.AddDays(-7) && currentDate <= womenDay.AddDays(7);
         }
     }

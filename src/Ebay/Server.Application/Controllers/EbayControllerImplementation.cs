@@ -323,13 +323,13 @@ internal class EbayControllerImplementation : IEbayController
             throw NonOkHttpAnswerException.ValidationError400(validationErrors);
         }
 
-        var dbLotInfo = lotInfo.ToDbLot(productId: productId, updateDate: DateTime.UtcNow);
+        var dbLotInfo = lotInfo.ToDbLot(productId: productId, updateDate: DateTimeOffset.UtcNow);
 
         using var transaction = TransactionScopeFactory.Create();
 
         await _applicationContext.Lots.Upsert(dbLotInfo).RunAsync(cancellationToken);
 
-        var titleChangedDate = DateTime.Parse(lotInfo.TitleChangeDate, CultureInfo.InvariantCulture).ToUniversalTime();
+        var titleChangedDate = DateTimeOffset.Parse(lotInfo.TitleChangeDate, CultureInfo.InvariantCulture).ToUniversalTime();
 
         var filteredPurchaseHistory = lotInfo.PurchaseHistory
             .Select(x => x.ToDbPurchase(lotId: lotInfo.LotId))

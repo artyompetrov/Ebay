@@ -51,6 +51,6 @@ public interface IProductQueries
     Task<int> GetUnpublishedOnEbayCountAsync(
         Guid productId,
         MeasurementState measurementState,
-        DateTime publishedThreshold,
+        DateTimeOffset publishedThreshold,
         CancellationToken cancellationToken);
 }

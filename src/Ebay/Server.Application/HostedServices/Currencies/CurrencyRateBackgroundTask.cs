@@ -51,7 +51,7 @@ public class CurrencyRateBackgroundTask : BackgroundTask
             cancellationToken: cancellationToken) ?? throw new InvalidOperationException("Server returned null response");
         var currencyByApiName = currencies.ToDictionary(x => x.CurrencyApiName);
 
-        var currentTime = DateTime.UtcNow;
+        var currentTime = DateTimeOffset.UtcNow;
         foreach (var (apiCurrencyName, value) in response.Rates)
         {
             var currency = currencyByApiName[apiCurrencyName];

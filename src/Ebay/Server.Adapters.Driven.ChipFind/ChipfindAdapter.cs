@@ -93,7 +93,7 @@ public class ChipfindAdapter : IChipfindAdapter
                 _logger.LogWarning("Suspicious huge items in advertisement: {Description}", description[..1000]);
             }
 
-            if (!DateTime.TryParse(pubDate, CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out var parsedDate))
+            if (!DateTimeOffset.TryParse(pubDate, CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out var parsedDate))
             {
                 _logger.LogWarning("Skipping chipfind advertisement due to invalid publication date: {PubDate}", pubDate);
                 continue;

@@ -30,7 +30,7 @@ public class DbCache
             var entry = await _context.Set<CacheEntry>()
                 .FirstOrDefaultAsync(x => x.Key == key && x.Version == WellKnown.DbCache.Version, cancellationToken);
 
-            if (entry is not null && entry.ExpiresAt > DateTime.UtcNow)
+            if (entry is not null && entry.ExpiresAt > DateTimeOffset.UtcNow)
             {
                 if (!_options.IsLocalRun)
                 {
@@ -42,7 +42,7 @@ public class DbCache
             // Create new value
             var value = await factory();
             var json = JsonSerializer.Serialize(value, jsonOptions);
-            var expiresAt = DateTime.UtcNow.Add(ttl);
+            var expiresAt = DateTimeOffset.UtcNow.Add(ttl);
 
             if (entry is null)
             {

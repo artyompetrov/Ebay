@@ -16,13 +16,13 @@ public abstract class Entity<TId> : IAuditable
     /// Сеттер намеренно открыт, потому что эти технические audit-поля проставляются на уровне EF DbContext
     /// через ApplyAudit(), а не бизнес-методами агрегатов.
     /// </summary>
-    public DateTime CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
 
     /// <summary>
     /// Время последнего изменения сущности в UTC.
     /// Сеттер намеренно открыт по той же причине: значение централизованно обновляется инфраструктурным слоем при SaveChanges.
     /// </summary>
-    public DateTime ChangedAt { get; set; }
+    public DateTimeOffset ChangedAt { get; set; }
 
     public TId Id { get; }
 

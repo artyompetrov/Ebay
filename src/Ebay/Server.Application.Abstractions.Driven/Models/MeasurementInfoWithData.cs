@@ -25,8 +25,8 @@ public record MeasurementInfoWithData(
     MeasurementState MeasurementState,
     ProductState ProductState,
     string ManufactureCode,
-    DateTime? LastTimeWatchedOnEbay,
-    DateTime CreatedAt,
+    DateTimeOffset? LastTimeWatchedOnEbay,
+    DateTimeOffset CreatedAt,
     byte[] Data) :
     MeasurementInfo(
         Id: Id,

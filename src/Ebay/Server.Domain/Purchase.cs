@@ -2,7 +2,7 @@ namespace Server.Domain;
 
 public class Purchase
 {
-    public DateTime Date { get; set; }
+    public DateTimeOffset Date { get; set; }
 
     public long LotId { get; set; }
     public Lot Lot { get; set; } = null!;

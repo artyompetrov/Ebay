@@ -10,7 +10,7 @@ public partial class AddMeasurementDate : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.AddColumn<DateTime>(
+        migrationBuilder.AddColumn<DateTimeOffset>(
             name: "CreatedAt",
             table: "ProductMeasurements",
             type: "timestamp with time zone",

@@ -6,7 +6,7 @@ namespace Tests.Unit;
 [TestOf(typeof(LotForSaleIdGenerator))]
 public sealed class LotForSaleIdGeneratorTests
 {
-    private static readonly DateTime IdEpoch = new(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTimeOffset IdEpoch = new(2024, 1, 1, 0, 0, 0, TimeSpan.Zero);
     private const int SequenceBits = 12;
     private const int MaxSequence = (1 << SequenceBits) - 1;
     private const int MaxSecondsSinceEpoch = (1 << (7 * 6 - SequenceBits)) - 1;
@@ -16,7 +16,7 @@ public sealed class LotForSaleIdGeneratorTests
     public void GenerateNextId_GeneratesUniqueIds_WhenTimeIsConstant()
     {
         var generator = new LotForSaleIdGenerator(
-            new QueueCurrentTimeProvider(Enumerable.Repeat(new DateTime(2026, 2, 1, 0, 0, 0, DateTimeKind.Utc), 5_000)),
+            new QueueCurrentTimeProvider(Enumerable.Repeat(new DateTimeOffset(2026, 2, 1, 0, 0, 0, TimeSpan.Zero), 5_000)),
             new DeterministicRandomNumberProvider(0));
 
         var ids = Enumerable.Range(0, 5_000)
@@ -33,7 +33,7 @@ public sealed class LotForSaleIdGeneratorTests
     [Test]
     public void GenerateNextId_IsDeterministic_WithFixedDependencies()
     {
-        var now = new DateTime(2026, 2, 1, 0, 0, 0, DateTimeKind.Utc);
+        var now = new DateTimeOffset(2026, 2, 1, 0, 0, 0, TimeSpan.Zero);
         var firstGenerator = new LotForSaleIdGenerator(
             new QueueCurrentTimeProvider(Enumerable.Repeat(now, 3)),
             new DeterministicRandomNumberProvider(42));
@@ -50,7 +50,7 @@ public sealed class LotForSaleIdGeneratorTests
     [Test]
     public void GenerateNextId_UsesLastGeneratedSecond_WhenClockMovesBackwards()
     {
-        var firstTime = new DateTime(2026, 2, 1, 12, 0, 10, DateTimeKind.Utc);
+        var firstTime = new DateTimeOffset(2026, 2, 1, 12, 0, 10, TimeSpan.Zero);
         var secondTime = firstTime.AddSeconds(-5);
         var generator = new LotForSaleIdGenerator(
             new QueueCurrentTimeProvider([firstTime, secondTime]),
@@ -71,7 +71,7 @@ public sealed class LotForSaleIdGeneratorTests
     [Test]
     public void GenerateNextId_AdvancesSecond_WhenSequenceIsExhaustedInSameSecond()
     {
-        var now = new DateTime(2026, 2, 1, 0, 0, 0, DateTimeKind.Utc);
+        var now = new DateTimeOffset(2026, 2, 1, 0, 0, 0, TimeSpan.Zero);
         var generator = new LotForSaleIdGenerator(
             new QueueCurrentTimeProvider(Enumerable.Repeat(now, 2)),
             new DeterministicRandomNumberProvider(MaxSequence));
@@ -123,14 +123,14 @@ public sealed class LotForSaleIdGeneratorTests
 
     private sealed class QueueCurrentTimeProvider : ICurrentTimeProvider
     {
-        private readonly Queue<DateTime> _timestamps;
+        private readonly Queue<DateTimeOffset> _timestamps;
 
-        public QueueCurrentTimeProvider(IEnumerable<DateTime> timestamps)
+        public QueueCurrentTimeProvider(IEnumerable<DateTimeOffset> timestamps)
         {
-            _timestamps = new Queue<DateTime>(timestamps);
+            _timestamps = new Queue<DateTimeOffset>(timestamps);
         }
 
-        public DateTime UtcNow => _timestamps.Count > 0
+        public DateTimeOffset UtcNow => _timestamps.Count > 0
             ? _timestamps.Dequeue()
             : throw new InvalidOperationException("No timestamps left in queue.");
     }

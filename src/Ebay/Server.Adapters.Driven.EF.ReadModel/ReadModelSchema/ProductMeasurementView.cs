@@ -14,7 +14,7 @@ internal sealed class ProductMeasurementView : IViewProjection<ProductMeasuremen
 
     public required Guid ProductId { get; set; }
 
-    public required DateTime CreatedAt { get; set; }
+    public required DateTimeOffset CreatedAt { get; set; }
 
     public required string? Location { get; set; }
 
@@ -22,7 +22,7 @@ internal sealed class ProductMeasurementView : IViewProjection<ProductMeasuremen
 
     public required string? LotId { get; set; }
 
-    public required DateTime? LastTimeWatchedOnEbay { get; set; }
+    public required DateTimeOffset? LastTimeWatchedOnEbay { get; set; }
 
     public required byte[] Measurements { get; set; }
 

@@ -18,5 +18,5 @@ public class Currency
     /// </summary>
     public double CurrencyRate { get; set; }
 
-    public DateTime LastUpdate { get; set; }
+    public DateTimeOffset LastUpdate { get; set; }
 }

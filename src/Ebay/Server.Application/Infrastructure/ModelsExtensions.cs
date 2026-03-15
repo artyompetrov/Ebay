@@ -141,7 +141,7 @@ internal static class ModelsExtensions
     );
     }
 
-    public static PurchaseInfo ToApiPurchaseInfo(this Purchase purchase, DateTime titleChangeDate)
+    public static PurchaseInfo ToApiPurchaseInfo(this Purchase purchase, DateTimeOffset titleChangeDate)
     {
         return new(
         date: purchase.Date.ToString(WellKnown.Formats.TimeFormat, CultureInfo.InvariantCulture),
@@ -152,7 +152,7 @@ internal static class ModelsExtensions
     );
     }
 
-    public static Lot ToDbLot(this LotInfo lotInfo, Guid productId, DateTime updateDate)
+    public static Lot ToDbLot(this LotInfo lotInfo, Guid productId, DateTimeOffset updateDate)
     {
         return new()
         {
@@ -172,7 +172,7 @@ internal static class ModelsExtensions
             Seller = lotInfo.Seller,
             LocatedIn = lotInfo.LocatedIn,
             Categories = lotInfo.Categories.ToDictionary(x => x.Type, x => x.Value),
-            TitleChangeDate = DateTime.Parse(lotInfo.TitleChangeDate, CultureInfo.InvariantCulture).ToUniversalTime(),
+            TitleChangeDate = DateTimeOffset.Parse(lotInfo.TitleChangeDate, CultureInfo.InvariantCulture).ToUniversalTime(),
             UpdateDate = updateDate,
             LotSize = lotInfo.LotSize
         };
@@ -183,7 +183,7 @@ internal static class ModelsExtensions
         return new()
         {
             LotId = lotId,
-            Date = DateTime.Parse(purchaseInfo.Date, CultureInfo.InvariantCulture).ToUniversalTime(),
+            Date = DateTimeOffset.Parse(purchaseInfo.Date, CultureInfo.InvariantCulture).ToUniversalTime(),
             Price = purchaseInfo.Price,
             Quantity = purchaseInfo.Quantity
         };
