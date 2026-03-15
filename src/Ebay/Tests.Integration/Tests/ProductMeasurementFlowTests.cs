@@ -7,22 +7,54 @@ namespace Tests.Integration.Tests;
 public class ProductMeasurementFlowTests
 {
     [Test]
-    public async Task ProductCreation_AndMeasurementRegistration_MainFlow_Works()
+    public async Task MainMeasurementPageEndpoints_Work()
     {
-        using var httpClient = IntegrationTestsSetupFixture.Factory.CreateClient();
+        using var context = await CreateMeasurementContextAsync();
+
+        await AssertMeasurementPageEndpointsAsync(context.HttpClient, context.MeasurementId);
+    }
+
+    [Test]
+    public async Task EbayCurves_WithInternalReferrer_DoesNotMarkMeasurementAsPublished()
+    {
+        using var context = await CreateMeasurementContextAsync();
+
+        using var internalRequest = new HttpRequestMessage(HttpMethod.Get, $"/m/{context.MeasurementId}/ebay_curves");
+        internalRequest.Headers.Referrer = new Uri(context.HttpClient.BaseAddress!, "/ebay_description/internal-preview");
+
+        await AssertSvgResponseAsync(context.HttpClient, internalRequest);
+        await AssertMeasurementPublishedStateAsync(context.EbayClient, context.ProductId, context.MeasurementId, expectedIsPublished: false);
+    }
+
+    [Test]
+    public async Task EbayCurves_WithoutInternalReferrer_MarksMeasurementAsPublished()
+    {
+        using var context = await CreateMeasurementContextAsync();
+
+        await TestHelpers.RetryUntilValidationSuccessAsync(async () =>
+        {
+            await AssertSvgResponseAsync(context.HttpClient, $"/m/{context.MeasurementId}/ebay_curves");
+            await AssertMeasurementPublishedStateAsync(context.EbayClient, context.ProductId, context.MeasurementId, expectedIsPublished: true);
+        });
+    }
+
+    private static async Task<MeasurementContext> CreateMeasurementContextAsync()
+    {
+        var httpClient = IntegrationTestsSetupFixture.Factory.CreateClient();
         await TestHelpers.AuthenticateWithClientCredentialsAsync(httpClient);
 
         var ebayClient = TestHelpers.CreateEbayClient(httpClient);
         var productId = await CreateProductAsync(ebayClient);
 
-        var measurementId = "MEAS001";
+        var randomSeed = Random.Shared.Next(1000, 9999);
+        var measurementId = $"MEA{randomSeed}";
         await ebayClient.UploadMeasurementAsync(
             new MeasurementDataToUpload
             {
                 MeasurementId = measurementId,
                 ManufactureCode = "2026-02",
                 ProductState = ProductState.New,
-                File = CreateValidMeasurementArchive()
+                File = CreateValidMeasurementArchive(randomSeed)
             },
             productId);
 
@@ -40,48 +72,28 @@ public class ProductMeasurementFlowTests
             Assert.That(measurement.IsPublishedOnEbay, Is.False);
         }
 
-        using (var internalRequest = new HttpRequestMessage(HttpMethod.Get, $"/m/{measurementId}/ebay_curves"))
+        return new MeasurementContext(httpClient, ebayClient, productId, measurementId);
+    }
+
+    private static async Task AssertMeasurementPublishedStateAsync(
+        EbayClient ebayClient,
+        Guid productId,
+        string measurementId,
+        bool expectedIsPublished)
+    {
+        var updatedMeasurements = await ebayClient.GetMeasurementsAsync(measurementState: null, productId: productId);
+        var updatedMeasurement = updatedMeasurements.SingleOrDefault(x => x.MeasurementId == measurementId);
+
+        if (updatedMeasurement == null)
         {
-            internalRequest.Headers.Referrer = new Uri(httpClient.BaseAddress!, "/ebay_description/internal-preview");
-
-            using var internalResponse = await httpClient.SendAsync(internalRequest);
-            var internalContent = await internalResponse.Content.ReadAsStringAsync();
-
-            using (Assert.EnterMultipleScope())
-            {
-                Assert.That(internalResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK), internalContent);
-                Assert.That(internalContent, Does.Contain("<svg"));
-            }
+            throw new AssertionException($"Measurement '{measurementId}' was not found.");
         }
 
-        var measurementsAfterInternalView = await ebayClient.GetMeasurementsAsync(measurementState: null, productId: productId);
-        var measurementAfterInternalView = measurementsAfterInternalView.Single();
-        Assert.That(
-            measurementAfterInternalView.IsPublishedOnEbay,
-            Is.False,
-            "Measurement should not be marked as published after same-host referer view.");
-
-        await TestHelpers.RetryUntilValidationSuccessAsync(async () =>
+        if (updatedMeasurement.IsPublishedOnEbay != expectedIsPublished)
         {
-            using var ebayCurvesResponse = await httpClient.GetAsync($"/m/{measurementId}/ebay_curves");
-            var ebayCurvesContent = await ebayCurvesResponse.Content.ReadAsStringAsync();
-
-            using (Assert.EnterMultipleScope())
-            {
-                Assert.That(ebayCurvesResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK), ebayCurvesContent);
-                Assert.That(ebayCurvesContent, Does.Contain("<svg"));
-            }
-
-            var updatedMeasurements = await ebayClient.GetMeasurementsAsync(measurementState: null, productId: productId);
-            var updatedMeasurement = updatedMeasurements.SingleOrDefault(x => x.MeasurementId == measurementId);
-
-            if (updatedMeasurement?.IsPublishedOnEbay != true)
-            {
-                throw new AssertionException("Measurement was not marked as published on eBay yet.");
-            }
-        });
-
-        await AssertMeasurementPageEndpointsAsync(httpClient, measurementId);
+            throw new AssertionException(
+                $"Expected IsPublishedOnEbay={expectedIsPublished} for measurement '{measurementId}', but was {updatedMeasurement.IsPublishedOnEbay}.");
+        }
     }
 
     private static async Task AssertMeasurementPageEndpointsAsync(HttpClient httpClient, string measurementId)
@@ -111,7 +123,13 @@ public class ProductMeasurementFlowTests
 
     private static async Task AssertSvgResponseAsync(HttpClient httpClient, string url)
     {
-        using var response = await httpClient.GetAsync(url);
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        await AssertSvgResponseAsync(httpClient, request);
+    }
+
+    private static async Task AssertSvgResponseAsync(HttpClient httpClient, HttpRequestMessage request)
+    {
+        using var response = await httpClient.SendAsync(request);
         var content = await response.Content.ReadAsStringAsync();
 
         using (Assert.EnterMultipleScope())
@@ -142,7 +160,7 @@ public class ProductMeasurementFlowTests
         return await ebayClient.CreateProductAsync(product);
     }
 
-    private static byte[] CreateValidMeasurementArchive()
+    private static byte[] CreateValidMeasurementArchive(int randomSeed)
     {
         var config = string.Join('\n',
         [
@@ -158,7 +176,7 @@ public class ProductMeasurementFlowTests
             "Curve  Ia (mA)  Is (mA)  Vg (V)  Va (V)  Vs (V)  Vf (V)",
             "1  1.2  0.0  -1.0  100.0  100.0  6.3",
             "1  2.1  0.0  -0.5  150.0  150.0  6.3",
-            "1  2.8  0.0  0.0  200.0  200.0  6.3"
+            $"1  {2.8 + randomSeed / 1000.0:0.000}  0.0  0.0  {200 + randomSeed}.0  {200 + randomSeed}.0  6.3"
         ]);
 
         using var stream = new MemoryStream();
@@ -178,5 +196,14 @@ public class ProductMeasurementFlowTests
         }
 
         return stream.ToArray();
+    }
+
+    private sealed record MeasurementContext(
+        HttpClient HttpClient,
+        EbayClient EbayClient,
+        Guid ProductId,
+        string MeasurementId) : IDisposable
+    {
+        public void Dispose() => HttpClient.Dispose();
     }
 }
