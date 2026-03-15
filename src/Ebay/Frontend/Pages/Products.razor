@@ -244,33 +244,38 @@
                 break;
 
             case nameof(ProductWithId.ProductCalculationResult.QuantityTotal):
-                result = _sortAscending
-                    ? result.OrderBy(p => p.ProductCalculationResult?.QuantityTotal ?? 0).ToList()
-                    : result.OrderByDescending(p => p.ProductCalculationResult?.QuantityTotal ?? 0).ToList();
+                result = SortMetric(result, p => p.ProductCalculationResult?.QuantityTotal ?? 0);
                 break;
                 
             case "RevenueAvgTarget":
-                result = _sortAscending
-                    ? result.OrderBy(p => (p.ProductCalculationResult?.RevenueAvg ?? 0) * _targetCurrencyRate).ToList()
-                    : result.OrderByDescending(p => (p.ProductCalculationResult?.RevenueAvg ?? 0) * _targetCurrencyRate).ToList();
+                result = SortMetric(result, p => (p.ProductCalculationResult?.RevenueAvg ?? 0) * _targetCurrencyRate);
                 break;
 
             case nameof(ProductCalculationResult.UnpublishedOnEbayCount_Created):
-                result = _sortAscending
-                    ? result.OrderBy(p => p.ProductCalculationResult?.UnpublishedOnEbayCount_Created ?? 0).ToList()
-                    : result.OrderByDescending(p => p.ProductCalculationResult?.UnpublishedOnEbayCount_Created ?? 0).ToList();
+                result = SortMetric(result, p => p.ProductCalculationResult?.UnpublishedOnEbayCount_Created ?? 0);
                 break;
 
             case nameof(ProductCalculationResult.UnpublishedOnEbayCount_Selling):
-                result = _sortAscending
-                    ? result.OrderBy(p => p.ProductCalculationResult?.UnpublishedOnEbayCount_Selling ?? 0).ToList()
-                    : result.OrderByDescending(p => p.ProductCalculationResult?.UnpublishedOnEbayCount_Selling ?? 0).ToList();
+                result = SortMetric(result, p => p.ProductCalculationResult?.UnpublishedOnEbayCount_Selling ?? 0);
                 break;
 
             default: throw new InvalidOperationException(_sortColumn);
         }
 
         return result;
+    }
+
+    private List<ProductWithId> SortMetric(List<ProductWithId> products, Func<ProductWithId, double> selector)
+    {
+        return _sortAscending
+            ? products
+                .OrderBy(product => selector(product) <= 0)
+                .ThenBy(selector)
+                .ToList()
+            : products
+                .OrderBy(product => selector(product) <= 0)
+                .ThenByDescending(selector)
+                .ToList();
     }
 
     private void MarkAsChecked(ProductWithId product)
