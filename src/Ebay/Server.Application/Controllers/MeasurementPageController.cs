@@ -41,10 +41,12 @@ public class MeasurementPageController : ControllerBase
         bool? sellingOnly,
         CancellationToken cancellationToken)
     {
-        var result = await _measurementPlotService.PlotForEbayAndSaveLastEbayViewTime(
+        var result = await _measurementPlotService.PlotForEbayWithViewSource(
             measurementId: measurementId,
             lotId: lotId,
             sellingOnly: sellingOnly ?? true,
+            referer: Request.Headers.Referer.ToString(),
+            currentHost: Request.Host.Host,
             cancellationToken: cancellationToken);
 
         if (result == null)
