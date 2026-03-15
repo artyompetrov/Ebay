@@ -44,10 +44,12 @@ public class MeasurementPlotService : IMeasurementPlotService
 
     public string PlotSold() => StatusSvg(nameof(MeasurementState.Sold));
 
-    public async Task<string?> PlotForEbayAndSaveLastEbayViewTime(
+    public async Task<string?> PlotForEbayWithViewSource(
         string measurementId,
         string? lotId,
         bool sellingOnly,
+        string? referer,
+        string currentHost,
         CancellationToken cancellationToken)
     {
         var plotTask = await PlotForEbay(
@@ -56,9 +58,27 @@ public class MeasurementPlotService : IMeasurementPlotService
             sellingOnly: sellingOnly,
             cancellationToken: cancellationToken);
 
-        await PublishWatchedOnEbayMessage(measurementId: measurementId, cancellationToken: cancellationToken);
+        if (ShouldTrackEbayView(referer: referer, currentHost: currentHost))
+        {
+            await PublishWatchedOnEbayMessage(measurementId: measurementId, cancellationToken: cancellationToken);
+        }
 
         return plotTask;
+    }
+
+    internal static bool ShouldTrackEbayView(string? referer, string currentHost)
+    {
+        if (string.IsNullOrWhiteSpace(referer))
+        {
+            return true;
+        }
+
+        if (!Uri.TryCreate(referer, UriKind.Absolute, out var refererUri))
+        {
+            return true;
+        }
+
+        return !string.Equals(refererUri.Host, currentHost, StringComparison.OrdinalIgnoreCase);
     }
 
     private async Task PublishWatchedOnEbayMessage(string measurementId, CancellationToken cancellationToken)

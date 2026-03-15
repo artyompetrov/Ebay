@@ -41,19 +41,13 @@ public class MeasurementPageController : ControllerBase
         bool? sellingOnly,
         CancellationToken cancellationToken)
     {
-        var isInternalReferrer = IsInternalReferrer();
-
-        var result = isInternalReferrer
-            ? await _measurementPlotService.PlotForEbay(
-                measurementId: measurementId,
-                lotId: lotId,
-                sellingOnly: sellingOnly ?? true,
-                cancellationToken: cancellationToken)
-            : await _measurementPlotService.PlotForEbayAndSaveLastEbayViewTime(
-                measurementId: measurementId,
-                lotId: lotId,
-                sellingOnly: sellingOnly ?? true,
-                cancellationToken: cancellationToken);
+        var result = await _measurementPlotService.PlotForEbayWithViewSource(
+            measurementId: measurementId,
+            lotId: lotId,
+            sellingOnly: sellingOnly ?? true,
+            referer: Request.Headers.Referer.ToString(),
+            currentHost: Request.Host.Host,
+            cancellationToken: cancellationToken);
 
         if (result == null)
         {
@@ -62,25 +56,6 @@ public class MeasurementPageController : ControllerBase
 
         var response = Content(content: result, contentType: "image/svg+xml");
         return response;
-    }
-
-    private bool IsInternalReferrer()
-    {
-        var referer = Request.Headers.Referer.ToString();
-        if (string.IsNullOrWhiteSpace(referer))
-        {
-            return false;
-        }
-
-        if (!Uri.TryCreate(referer, UriKind.Absolute, out var refererUri))
-        {
-            return false;
-        }
-
-        return string.Equals(
-            refererUri.Host,
-            Request.Host.Host,
-            StringComparison.OrdinalIgnoreCase);
     }
 
 #if !DEBUG
