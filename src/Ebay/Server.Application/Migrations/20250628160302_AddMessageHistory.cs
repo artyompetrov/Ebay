@@ -18,7 +18,7 @@ public partial class AddMessageHistory : Migration
                 Id = table.Column<int>(type: "integer", nullable: false)
                     .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                 EmailId = table.Column<string>(type: "text", nullable: false),
-                CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
             },
             constraints: table =>
             {

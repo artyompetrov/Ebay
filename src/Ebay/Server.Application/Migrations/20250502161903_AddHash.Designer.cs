@@ -39,7 +39,7 @@ namespace Server.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<DateTime>("CreationTime")
+                    b.Property<DateTimeOffset>("CreationTime")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Data")
@@ -56,7 +56,7 @@ namespace Server.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<DateTime>("Expiration")
+                    b.Property<DateTimeOffset>("Expiration")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("SessionId")
@@ -87,7 +87,7 @@ namespace Server.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<DateTime>("Created")
+                    b.Property<DateTimeOffset>("Created")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Data")
@@ -124,10 +124,10 @@ namespace Server.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<DateTime?>("ConsumedTime")
+                    b.Property<DateTimeOffset?>("ConsumedTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("CreationTime")
+                    b.Property<DateTimeOffset>("CreationTime")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Data")
@@ -139,7 +139,7 @@ namespace Server.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<DateTime?>("Expiration")
+                    b.Property<DateTimeOffset?>("Expiration")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("SessionId")
@@ -176,16 +176,16 @@ namespace Server.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<DateTime?>("Consumed")
+                    b.Property<DateTimeOffset?>("Consumed")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("ConsumerId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime?>("Delivered")
+                    b.Property<DateTimeOffset?>("Delivered")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime?>("ExpirationTime")
+                    b.Property<DateTimeOffset?>("ExpirationTime")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<long?>("LastSequenceNumber")
@@ -200,7 +200,7 @@ namespace Server.Migrations
                     b.Property<int>("ReceiveCount")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("Received")
+                    b.Property<DateTimeOffset>("Received")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<byte[]>("RowVersion")
@@ -242,10 +242,10 @@ namespace Server.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
-                    b.Property<DateTime?>("EnqueueTime")
+                    b.Property<DateTimeOffset?>("EnqueueTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime?>("ExpirationTime")
+                    b.Property<DateTimeOffset?>("ExpirationTime")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("FaultAddress")
@@ -284,7 +284,7 @@ namespace Server.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
-                    b.Property<DateTime>("SentTime")
+                    b.Property<DateTimeOffset>("SentTime")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("SourceAddress")
@@ -312,10 +312,10 @@ namespace Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("Created")
+                    b.Property<DateTimeOffset>("Created")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime?>("Delivered")
+                    b.Property<DateTimeOffset?>("Delivered")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<long?>("LastSequenceNumber")
@@ -571,7 +571,7 @@ namespace Server.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("LastUpdate")
+                    b.Property<DateTimeOffset>("LastUpdate")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("CurrencyEbayName");
@@ -656,10 +656,10 @@ namespace Server.Migrations
                     b.Property<string>("ShortDescription")
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("TitleChangeDate")
+                    b.Property<DateTimeOffset>("TitleChangeDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("UpdateDate")
+                    b.Property<DateTimeOffset>("UpdateDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
@@ -679,7 +679,7 @@ namespace Server.Migrations
                     b.Property<string>("ApplicationUserId")
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("LastCheckTime")
+                    b.Property<DateTimeOffset>("LastCheckTime")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Name")
@@ -743,7 +743,7 @@ namespace Server.Migrations
                     b.Property<long>("LotId")
                         .HasColumnType("bigint");
 
-                    b.Property<DateTime>("Date")
+                    b.Property<DateTimeOffset>("Date")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<double?>("Price")

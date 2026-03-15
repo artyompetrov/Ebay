@@ -8,5 +8,5 @@ public interface ICurrentTimeProvider
     /// <summary>
     /// Текущее время в UTC.
     /// </summary>
-    DateTime UtcNow { get; }
+    DateTimeOffset UtcNow { get; }
 }

@@ -140,7 +140,7 @@ internal sealed class MeasurementService : IMeasurementService
 
         return [.. result.Select(x => new MeasurementInfoWithSimilarMeasurementsView(
             Data: x,
-            IsPublishedOnEbay: x.MeasurementInfo.LastTimeWatchedOnEbay > DateTime.UtcNow.AddDays(-7)
+            IsPublishedOnEbay: x.MeasurementInfo.LastTimeWatchedOnEbay > DateTimeOffset.UtcNow.AddDays(-7)
         ))];
     }
 

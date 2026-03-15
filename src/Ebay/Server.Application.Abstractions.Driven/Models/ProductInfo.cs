@@ -20,5 +20,5 @@ public record ProductInfo(
     IReadOnlyList<SearchQueryWithId> RuSearchQueries,
     int Weight,
     ProductCalculationResult? CalculationResult,
-    DateTime LastCheckTime
+    DateTimeOffset LastCheckTime
 );

@@ -7,7 +7,7 @@ public sealed class Product : AggregateRoot<Guid>
     private readonly List<SearchQuery> _ruSearchQueries = [];
     private readonly List<SearchQuery> _searchQueries = [];
 
-    private Product(Guid id, string name, DateTime lastCheckTime, int weight) : base(id)
+    private Product(Guid id, string name, DateTimeOffset lastCheckTime, int weight) : base(id)
     {
         Name = name;
         LastCheckTime = lastCheckTime;
@@ -25,7 +25,7 @@ public sealed class Product : AggregateRoot<Guid>
         var product = new Product(
             id: productId,
             name: name,
-            lastCheckTime: DateTime.MinValue,
+            lastCheckTime: DateTimeOffset.MinValue,
             weight: weight);
 
         product.AddDomainEvent(new ProductUpdated(product.Id));
@@ -86,7 +86,7 @@ public sealed class Product : AggregateRoot<Guid>
     }
 
     public string Name { get; private set; }
-    public DateTime LastCheckTime { get; private set; }
+    public DateTimeOffset LastCheckTime { get; private set; }
     public int Weight { get; private set; }
 
     public ProductCalculationResult? ProductCalculationResult { get; set; }
@@ -94,5 +94,5 @@ public sealed class Product : AggregateRoot<Guid>
     public IReadOnlyList<SearchQuery> RuSearchQueries => _ruSearchQueries;
     public IReadOnlyList<SearchQuery> SearchQueries => _searchQueries;
 
-    public void MarkAsChecked() => LastCheckTime = DateTime.UtcNow;
+    public void MarkAsChecked() => LastCheckTime = DateTimeOffset.UtcNow;
 }

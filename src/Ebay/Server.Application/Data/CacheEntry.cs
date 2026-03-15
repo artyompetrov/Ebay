@@ -15,5 +15,5 @@ public class CacheEntry
     public string Value { get; set; } = null!;
 
     [Required]
-    public DateTime ExpiresAt { get; set; }
+    public DateTimeOffset ExpiresAt { get; set; }
 }

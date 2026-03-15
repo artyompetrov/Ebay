@@ -25,7 +25,7 @@
             <td>@currency.EbayName</td>
             <td>@currency.RusName</td>
             <td>@currency.Rate</td>
-            <td>@DateTime.Parse(currency.LastUpdate).ToString("yyyy-MM-dd")</td>
+            <td>@DateTimeOffset.Parse(currency.LastUpdate).ToString("yyyy-MM-dd")</td>
         </tr>
     }
     </tbody>

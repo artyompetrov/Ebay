@@ -34,7 +34,7 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
             "Calculation started for {LotId}",
             context.Message.LotId);
 
-        var currentDate = DateTime.UtcNow;
+        var currentDate = DateTimeOffset.UtcNow;
         using var transaction = TransactionScopeFactory.Create();
 
         var currencyRates = await _applicationContext.Currencies

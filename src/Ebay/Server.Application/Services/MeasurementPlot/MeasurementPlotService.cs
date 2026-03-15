@@ -66,7 +66,7 @@ public class MeasurementPlotService : IMeasurementPlotService
         await _publishEndpoint.Publish(
             new MeasurementWatchedOnEbay(
                 MeasurementId: measurementId,
-                WatchedAtUtc: DateTime.UtcNow),
+                WatchedAtUtc: DateTimeOffset.UtcNow),
             cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }

@@ -18,7 +18,7 @@ public class ProductCalculationResult
     /// <summary>
     /// Дата расчета (равно меньшему из всех дочерних расчетов)
     /// </summary>
-    public DateTime CalculationDate { get; init; }
+    public DateTimeOffset CalculationDate { get; init; }
 
     /// <summary>
     /// суммарная цена листингов

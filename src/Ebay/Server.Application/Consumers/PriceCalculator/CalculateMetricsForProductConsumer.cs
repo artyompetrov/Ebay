@@ -39,8 +39,8 @@ public class CalculateMetricsForProductConsumer : IConsumer<Batch<CalculateMetri
             var listingPrice = 0.0;
             var quantityTotal = 0;
 
-            var dateTime = DateTime.UtcNow;
-            var publishedThreshold = DateTime.UtcNow.AddDays(-7);
+            var dateTime = DateTimeOffset.UtcNow;
+            var publishedThreshold = DateTimeOffset.UtcNow.AddDays(-7);
             var unpublishedOnEbayCountCreated = await _productQueries.GetUnpublishedOnEbayCountAsync(
                 productId,
                 MeasurementState.Created,

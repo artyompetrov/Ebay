@@ -28,7 +28,7 @@ public class SaleAdvertisementCleanupBackgroundTask : BackgroundTask
 
         using var transaction = TransactionScopeFactory.Create();
 
-        var staleThreshold = DateTime.UtcNow - WellKnown.SaleAdvertisements.RemoveAdvertisementAfter;
+        var staleThreshold = DateTimeOffset.UtcNow - WellKnown.SaleAdvertisements.RemoveAdvertisementAfter;
 
         await applicationDbContext.ProductEmailSendHistory
             .Where(e => e.CreatedAt < staleThreshold)

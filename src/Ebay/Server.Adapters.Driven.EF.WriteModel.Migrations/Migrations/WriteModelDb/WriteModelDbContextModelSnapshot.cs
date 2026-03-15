@@ -31,16 +31,16 @@ namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelD
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<DateTime?>("Consumed")
+                    b.Property<DateTimeOffset?>("Consumed")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("ConsumerId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime?>("Delivered")
+                    b.Property<DateTimeOffset?>("Delivered")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime?>("ExpirationTime")
+                    b.Property<DateTimeOffset?>("ExpirationTime")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<long?>("LastSequenceNumber")
@@ -55,7 +55,7 @@ namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelD
                     b.Property<int>("ReceiveCount")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("Received")
+                    b.Property<DateTimeOffset>("Received")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<byte[]>("RowVersion")
@@ -97,10 +97,10 @@ namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelD
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
-                    b.Property<DateTime?>("EnqueueTime")
+                    b.Property<DateTimeOffset?>("EnqueueTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime?>("ExpirationTime")
+                    b.Property<DateTimeOffset?>("ExpirationTime")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("FaultAddress")
@@ -139,7 +139,7 @@ namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelD
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
-                    b.Property<DateTime>("SentTime")
+                    b.Property<DateTimeOffset>("SentTime")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("SourceAddress")
@@ -167,10 +167,10 @@ namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelD
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("Created")
+                    b.Property<DateTimeOffset>("Created")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime?>("Delivered")
+                    b.Property<DateTimeOffset?>("Delivered")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<long?>("LastSequenceNumber")
@@ -197,10 +197,10 @@ namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelD
                         .HasMaxLength(7)
                         .HasColumnType("character varying(7)");
 
-                    b.Property<DateTime>("ChangedAt")
+                    b.Property<DateTimeOffset>("ChangedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("MeasurementState")

@@ -43,9 +43,9 @@ public class Lot
 
     public string LocatedIn { get; set; } = null!;
 
-    public DateTime TitleChangeDate { get; set; }
+    public DateTimeOffset TitleChangeDate { get; set; }
 
-    public DateTime UpdateDate { get; set; }
+    public DateTimeOffset UpdateDate { get; set; }
 
     public Dictionary<string, string> Categories { get; set; } = null!;
 

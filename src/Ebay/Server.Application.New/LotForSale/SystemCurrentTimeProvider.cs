@@ -6,5 +6,5 @@ namespace Server.Application.New.LotForSale;
 public sealed class SystemCurrentTimeProvider : ICurrentTimeProvider
 {
     /// <inheritdoc />
-    public DateTime UtcNow => DateTime.UtcNow;
+    public DateTimeOffset UtcNow => DateTimeOffset.UtcNow;
 }

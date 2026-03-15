@@ -13,7 +13,7 @@ internal sealed class ProductView : IViewProjection<Product, ProductView>
     public required List<SearchQueryView> SearchQueries { get; set; }
     public required List<SearchQueryView> RuSearchQueries { get; set; }
 
-    public required DateTime LastCheckTime { get; set; }
+    public required DateTimeOffset LastCheckTime { get; set; }
 
     public required int Weight { get; set; }
 

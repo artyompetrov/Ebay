@@ -93,7 +93,7 @@ public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
     /// </summary>
     private void ApplyAudit()
     {
-        var now = DateTime.UtcNow;
+        var now = DateTimeOffset.UtcNow;
 
         foreach (var entry in ChangeTracker.Entries<IAuditable>())
         {

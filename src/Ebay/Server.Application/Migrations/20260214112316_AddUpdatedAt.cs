@@ -11,82 +11,82 @@ namespace Server.Application.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<DateTime>(
+            migrationBuilder.AddColumn<DateTimeOffset>(
                 name: "ChangedAt",
                 table: "TubeWorkingPoints",
                 type: "timestamp with time zone",
                 nullable: false,
-                defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
+                defaultValue: new DateTimeOffset(1, 1, 1, 0, 0, 0, 0, TimeSpan.Zero));
 
-            migrationBuilder.AddColumn<DateTime>(
+            migrationBuilder.AddColumn<DateTimeOffset>(
                 name: "CreatedAt",
                 table: "TubeWorkingPoints",
                 type: "timestamp with time zone",
                 nullable: false,
-                defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
+                defaultValue: new DateTimeOffset(1, 1, 1, 0, 0, 0, 0, TimeSpan.Zero));
 
-            migrationBuilder.AddColumn<DateTime>(
+            migrationBuilder.AddColumn<DateTimeOffset>(
                 name: "ChangedAt",
                 table: "Products",
                 type: "timestamp with time zone",
                 nullable: false,
-                defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
+                defaultValue: new DateTimeOffset(1, 1, 1, 0, 0, 0, 0, TimeSpan.Zero));
 
-            migrationBuilder.AddColumn<DateTime>(
+            migrationBuilder.AddColumn<DateTimeOffset>(
                 name: "CreatedAt",
                 table: "Products",
                 type: "timestamp with time zone",
                 nullable: false,
-                defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
+                defaultValue: new DateTimeOffset(1, 1, 1, 0, 0, 0, 0, TimeSpan.Zero));
 
-            migrationBuilder.AddColumn<DateTime>(
+            migrationBuilder.AddColumn<DateTimeOffset>(
                 name: "ChangedAt",
                 table: "ProductMeasurements",
                 type: "timestamp with time zone",
                 nullable: false,
-                defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
+                defaultValue: new DateTimeOffset(1, 1, 1, 0, 0, 0, 0, TimeSpan.Zero));
 
-            migrationBuilder.AddColumn<DateTime>(
+            migrationBuilder.AddColumn<DateTimeOffset>(
                 name: "ChangedAt",
                 table: "Product_SearchQueries",
                 type: "timestamp with time zone",
                 nullable: false,
-                defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
+                defaultValue: new DateTimeOffset(1, 1, 1, 0, 0, 0, 0, TimeSpan.Zero));
 
-            migrationBuilder.AddColumn<DateTime>(
+            migrationBuilder.AddColumn<DateTimeOffset>(
                 name: "CreatedAt",
                 table: "Product_SearchQueries",
                 type: "timestamp with time zone",
                 nullable: false,
-                defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
+                defaultValue: new DateTimeOffset(1, 1, 1, 0, 0, 0, 0, TimeSpan.Zero));
 
-            migrationBuilder.AddColumn<DateTime>(
+            migrationBuilder.AddColumn<DateTimeOffset>(
                 name: "ChangedAt",
                 table: "Product_RuSearchQueries",
                 type: "timestamp with time zone",
                 nullable: false,
-                defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
+                defaultValue: new DateTimeOffset(1, 1, 1, 0, 0, 0, 0, TimeSpan.Zero));
 
-            migrationBuilder.AddColumn<DateTime>(
+            migrationBuilder.AddColumn<DateTimeOffset>(
                 name: "CreatedAt",
                 table: "Product_RuSearchQueries",
                 type: "timestamp with time zone",
                 nullable: false,
-                defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
+                defaultValue: new DateTimeOffset(1, 1, 1, 0, 0, 0, 0, TimeSpan.Zero));
 
-            migrationBuilder.AddColumn<DateTime>(
+            migrationBuilder.AddColumn<DateTimeOffset>(
                 name: "ChangedAt",
                 table: "MatchedPairDifferences",
                 type: "timestamp with time zone",
                 nullable: false,
-                defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
+                defaultValue: new DateTimeOffset(1, 1, 1, 0, 0, 0, 0, TimeSpan.Zero));
 
-            migrationBuilder.AddColumn<DateTime>(
+            migrationBuilder.AddColumn<DateTimeOffset>(
                 name: "CreatedAt",
                 table: "MatchedPairDifferences",
                 type: "timestamp with time zone",
                 nullable: false,
-                defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
+                defaultValue: new DateTimeOffset(1, 1, 1, 0, 0, 0, 0, TimeSpan.Zero));
         }
 
         /// <inheritdoc />

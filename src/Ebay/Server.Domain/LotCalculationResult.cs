@@ -22,7 +22,7 @@ public class LotCalculationResult
     /// <summary>
     /// Дата расчета
     /// </summary>
-    public DateTime CalculationDate { get; set; }
+    public DateTimeOffset CalculationDate { get; set; }
 
     /// <summary>
     /// Средняя выручка для лота (после вычета всех расходов)

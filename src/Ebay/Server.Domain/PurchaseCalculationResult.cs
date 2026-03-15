@@ -17,7 +17,7 @@ public class PurchaseCalculationResult
     /// <summary>
     /// Дата расчета
     /// </summary>
-    public DateTime CalculationDate { get; set; }
+    public DateTimeOffset CalculationDate { get; set; }
 
     /// <summary>
     /// Цена листинга
