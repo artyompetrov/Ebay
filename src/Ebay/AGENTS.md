@@ -32,6 +32,8 @@
 ## Локальная отладка backend
 - Запуск: `dotnet run --launch-profile Server --project /workspace/Ebay/src/Ebay/Server/Server.csproj`.
 - Для backend runtime-настроек используем `launchSettings.json`; не используем `appsettings*.json`.
+- Для локальной БД используем PostgreSQL на порту `15432`; backend-тесты зависят от доступной БД.
+- Для eventual consistency в интеграционных тестах используем `Tests.Integration/TestHelpers.RetryUntilValidationSuccessAsync`.
 - Полезные проверки API:
   - `curl -i http://127.0.0.1:5080/chrome_extensions/auth`
   - `curl -i http://127.0.0.1:5080/chrome_extensions/<extension>.xml`
@@ -44,6 +46,9 @@
   - проект миграций: `Server.Adapters.Driven.EF.WriteModel.Migrations`
   - схема БД: `wm`
 - Миграции создаем только через EF CLI (не вручную).
+- Команды:
+  - legacy: `cd /workspace/Ebay/src/Ebay && dotnet ef migrations add NewMigrationName --project Server.Application --startup-project Server`
+  - write-model: `cd /workspace/Ebay && dotnet ef migrations add NewMigrationName --project src/Ebay/Server.Adapters.Driven.EF.WriteModel.Migrations/Server.Adapters.Driven.EF.WriteModel.Migrations.csproj --startup-project src/Ebay/Server/Server.csproj --context Server.Adapters.Driven.EF.WriteModel.WriteModelDbContext --output-dir Migrations/WriteModelDb`
 
 ## Конфигурация и DI
 - По умолчанию сервисы: `Transient`.
@@ -58,6 +63,8 @@
 - Между агрегатами храним ссылки только по AggregateId.
 - Навигационные свойства между агрегатами в write-model запрещены.
 - Полные навигации (`join`/`include`) допустимы только в read-model.
+- Каскадные удаления/обновления допустимы только внутри агрегата; между агрегатами используем `RESTRICT`.
+- `Server.Domain` содержит агрегаты, `Server.Adapters.Driven.EF.WriteModel` — репозитории, `Server.Adapters.Driven.EF.ReadModel` — read-model.
 
 ### Hexagonal
 - `Server.Domain` — доменные правила.
