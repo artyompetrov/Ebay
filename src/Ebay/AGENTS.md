@@ -3,6 +3,7 @@
 Правила для C# backend и Blazor frontend в `src/Ebay`.
 
 ## Code style
+- Перед изменениями в C#-коде изучайте не только `src/.editorconfig`, но и `src/Ebay/Directory.Build.props`.
 - Для новых C#-контрактов/клиентов используем `System.Text.Json`.
 - Для тестируемого кода в domain/application избегаем лишней зависимости от статических методов.
 - В `Server.Application.New` документируем все `public` типы и `public` члены через XML-комментарии (`///`).
