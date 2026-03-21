@@ -1,0 +1,44 @@
+@page "/turtles"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+
+<PageTitle>Картинки черепах</PageTitle>
+
+<h2>Картинки черепах</h2>
+
+<div class="mb-3 d-flex align-items-center gap-2">
+    <button class="btn btn-primary btn-sm" @onclick="ShowPreviousImage">◀ Предыдущая</button>
+    <button class="btn btn-primary btn-sm" @onclick="ShowNextImage">Следующая ▶</button>
+    <span>Изображение @(_currentImageIndex + 1) из @_turtleImageUrls.Count</span>
+</div>
+
+<div class="card" style="max-width: 42rem;">
+    <img class="card-img-top" src="@CurrentImageUrl" alt="Черепаха" />
+    <div class="card-body">
+        <a href="@CurrentImageUrl" target="_blank" rel="noreferrer">Открыть в новой вкладке</a>
+    </div>
+</div>
+
+@code {
+    private readonly IReadOnlyList<string> _turtleImageUrls =
+    [
+        "https://upload.wikimedia.org/wikipedia/commons/f/f8/Green_turtle_swimming_over_coral_reefs_in_Kona.jpg",
+        "https://upload.wikimedia.org/wikipedia/commons/6/6d/Hawksbill_Sea_Turtle_Caretta_caretta.jpg",
+        "https://upload.wikimedia.org/wikipedia/commons/9/95/Leatherback_Sea_Turtle.jpg",
+        "https://upload.wikimedia.org/wikipedia/commons/e/ed/Turtle_in_the_Maldives.jpg"
+    ];
+
+    private int _currentImageIndex;
+
+    private string CurrentImageUrl => _turtleImageUrls[_currentImageIndex];
+
+    private void ShowNextImage()
+    {
+        _currentImageIndex = (_currentImageIndex + 1) % _turtleImageUrls.Count;
+    }
+
+    private void ShowPreviousImage()
+    {
+        _currentImageIndex = (_currentImageIndex - 1 + _turtleImageUrls.Count) % _turtleImageUrls.Count;
+    }
+}
