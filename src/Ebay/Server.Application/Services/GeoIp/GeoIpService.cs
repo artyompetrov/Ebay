@@ -24,41 +24,59 @@ public class GeoIpService : IDisposable
     private async Task<GeoIpLocation?> GetLocationAsync(string? ip, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(ip))
-        {
             return null;
-        }
 
         try
         {
-            var ipApiResponse = await _httpClient.GetFromJsonAsync<IpApiResponse>(
-                $"http://ip-api.com/json/{ip}?fields=status,message,country,city",
-                cancellationToken);
-
-            if (ipApiResponse?.Status == IpApiStatusSuccess)
-            {
-                return new GeoIpLocation(ipApiResponse.Country, ipApiResponse.City);
-            }
-
-            _logger.LogWarning(
-                "ip-api lookup failed for {Ip}. Status: {Status}. Message: {Message}",
-                ip,
-                ipApiResponse?.Status,
-                ipApiResponse?.Message);
-
-            var ipInfoResponse = await _httpClient.GetFromJsonAsync<IpInfoResponse>(
-                $"https://ipinfo.io/{ip}/json",
-                cancellationToken);
-
-            return ipInfoResponse == null ? null : new GeoIpLocation(ipInfoResponse.Country, ipInfoResponse.City);
+            return await GetFromIpApi(ip, cancellationToken)
+                   ?? await GetFromIpInfo(ip, cancellationToken);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             _logger.LogWarning("GeoIP lookup timed out for {Ip}", ip);
             return null;
         }
-        catch (Exception ex)
+    }
+    
+    private async Task<GeoIpLocation?> GetFromIpApi(string ip, CancellationToken cancellationToken)
+    {
+        try
         {
-            _logger.LogError(ex, "Failed to get location for {Ip}", ip);
+            var response = await _httpClient.GetFromJsonAsync<IpApiResponse>(
+                $"http://ip-api.com/json/{ip}?fields=status,message,country,city",
+                cancellationToken);
+
+            if (response?.Status == IpApiStatusSuccess)
+                return new GeoIpLocation(response.Country, response.City);
+
+            _logger.LogWarning(
+                "ip-api lookup failed for {Ip}. Status: {Status}. Message: {Message}",
+                ip, response?.Status, response?.Message);
+
+            return null;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogWarning(ex, "ip-api request failed for {Ip}", ip);
+            return null;
+        }
+    }
+
+    private async Task<GeoIpLocation?> GetFromIpInfo(string ip, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var response = await _httpClient.GetFromJsonAsync<IpInfoResponse>(
+                $"https://ipinfo.io/{ip}/json",
+                cancellationToken);
+
+            return response == null
+                ? null
+                : new GeoIpLocation(response.Country, response.City);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogWarning(ex, "ipinfo.io request failed for {Ip}", ip);
             return null;
         }
     }
@@ -82,7 +100,7 @@ public class GeoIpService : IDisposable
 
             _cache.Set(key, true, TimeSpan.FromDays(1));
 
-            _ = LogRequestAsyncInternal(prefix, realIp, ua, token);
+            _ = LogRequestAsyncInternal(prefix, realIp, ua);
 
         }
         finally
@@ -91,14 +109,16 @@ public class GeoIpService : IDisposable
         }
     }
 
-    private async Task LogRequestAsyncInternal(string prefix, string? realIp, string ua, CancellationToken token)
+    /// <summary>
+    /// Логируем город запроса - задача fire and forget CancellationToken не нужен
+    /// </summary>
+    private async Task LogRequestAsyncInternal(string prefix, string? realIp, string ua)
     {
         GeoIpLocation? location = null;
 
         try
         {
-            using var cts = CancellationTokenSource.CreateLinkedTokenSource(token);
-            cts.CancelAfter(TimeSpan.FromSeconds(60));
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
             location = await GetLocationAsync(realIp, cts.Token);
         }
         catch (Exception ex)
