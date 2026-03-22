@@ -76,7 +76,7 @@ internal static class WellKnown
         /// <summary>
         /// Версия кеша - для сброса кеша при изменении логики расчетов
         /// </summary>
-        public const string Version = "11";
+        public const string Version = "12";
     }
 
     public static class GeoIp
