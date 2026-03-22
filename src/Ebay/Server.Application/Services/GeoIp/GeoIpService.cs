@@ -8,6 +8,7 @@ public sealed record GeoIpLocation(string? Country, string? City);
 
 public class GeoIpService : IDisposable
 {
+    private const string IpApiStatusSuccess = "success";
     private readonly HttpClient _httpClient;
     private readonly ILogger<GeoIpService> _logger;
     private readonly IMemoryCache _cache;
@@ -29,11 +30,26 @@ public class GeoIpService : IDisposable
 
         try
         {
-            var response = await _httpClient.GetFromJsonAsync<IpApiResponse>(
-                $"http://ip-api.com/json/{ip}?fields=country,city",
+            var ipApiResponse = await _httpClient.GetFromJsonAsync<IpApiResponse>(
+                $"http://ip-api.com/json/{ip}?fields=status,message,country,city",
                 cancellationToken);
 
-            return response == null ? null : new GeoIpLocation(response.Country, response.City);
+            if (ipApiResponse?.Status == IpApiStatusSuccess)
+            {
+                return new GeoIpLocation(ipApiResponse.Country, ipApiResponse.City);
+            }
+
+            _logger.LogWarning(
+                "ip-api lookup failed for {Ip}. Status: {Status}. Message: {Message}",
+                ip,
+                ipApiResponse?.Status,
+                ipApiResponse?.Message);
+
+            var ipInfoResponse = await _httpClient.GetFromJsonAsync<IpInfoResponse>(
+                $"https://ipinfo.io/{ip}/json",
+                cancellationToken);
+
+            return ipInfoResponse == null ? null : new GeoIpLocation(ipInfoResponse.Country, ipInfoResponse.City);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -105,7 +121,9 @@ public class GeoIpService : IDisposable
             ua);
     }
 
-    private sealed record IpApiResponse(string? Country, string? City);
+    private sealed record IpApiResponse(string? Status, string? Message, string? Country, string? City);
+
+    private sealed record IpInfoResponse(string? Country, string? City);
 
     public void Dispose()
     {
