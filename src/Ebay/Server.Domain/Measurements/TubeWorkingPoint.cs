@@ -5,6 +5,8 @@ namespace Server.Domain.Measurements;
 
 public sealed class TubeWorkingPoint : AggregateRoot<Guid>
 {
+    private const double MinMagnitude = 0.01;
+
     private TubeWorkingPoint(
         Guid id,
         double anodeVoltage,
@@ -74,13 +76,13 @@ public sealed class TubeWorkingPoint : AggregateRoot<Guid>
 
     /// <summary>
     /// Проверяет корректность рабочей точки:
-    /// - Полуширины напряжений должны быть > 1.0
-    /// - Номинальный ток должен быть > 1.0
+    /// - Все положительные значения должны быть не меньше 0.01
+    /// - Напряжение сетки должно быть не больше -0.01
     /// </summary>
     private bool IsValid =>
-        AnodeVoltageHalfWidth > 1.0 &&
-        GridVoltageHalfWidth > 0.5 &&
-        NominalCurrent > 1.0 &&
-        AnodeVoltage > 1.0 &&
-        GridVoltage < -1.0;
+        AnodeVoltageHalfWidth >= MinMagnitude &&
+        GridVoltageHalfWidth >= MinMagnitude &&
+        NominalCurrent >= MinMagnitude &&
+        AnodeVoltage >= MinMagnitude &&
+        GridVoltage <= -MinMagnitude;
 }
