@@ -11,15 +11,15 @@ public class PentodeGridCurves : GridCurvesBase
             takeMeasurementPointsWhile: (x, maxI) => x.DeltaIa / maxI > IgnoreDi && x.DeltaIs / maxI > IgnoreDi,
             filterCurves: x =>
             {
-                // т.к. grid curves замер получен из anode curves, то мы получаем 30 графиков
-                // надо уменьшить количество графиков
+                // т.к. grid curves замер получен из anode curves, то мы получаем много графиков
+                // оставляем область высоких напряжений и прореживаем только низкие
                 const int maxCount = 8;
                 const int skipCount = 10;
-                var step = (int)Math.Ceiling((x.Count - skipCount) / (double)maxCount);
-                return [.. x
-                    .Skip(skipCount)
-                    // первые графики пропускаем, т.к. они в области низких напряжений
-                    .Where((_, i) => i % step == 0)];
+
+                var highVoltageCurves = x.Skip(skipCount).ToList();
+                return highVoltageCurves.Count <= maxCount
+                    ? [.. highVoltageCurves]
+                    : [.. highVoltageCurves.Skip(highVoltageCurves.Count - maxCount)];
             })
     {
     }

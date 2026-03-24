@@ -11,13 +11,12 @@ public class DoubleTriodeGridCurves : GridCurvesBase
             takeMeasurementPointsWhile: (x, maxI) => x.DeltaIa / maxI > IgnoreDi && x.DeltaIs / maxI > IgnoreDi,
             filterCurves: x =>
             {
-                // т.к. grid curves замер получен из anode curves, то мы получаем 30 графиков
-                // надо уменьшить количество графиков
+                // т.к. grid curves замер получен из anode curves, то мы получаем много графиков
+                // оставляем область высоких напряжений и прореживаем только низкие
                 const int maxCount = 8;
-                var step = (int)Math.Floor(x.Count / (double)maxCount);
-                return [.. x
-                    // первые графики пропускаем, т.к. они в области низких напряжений
-                    .Where((_, i) => i % step == 0)];
+                return x.Count <= maxCount
+                    ? [.. x]
+                    : [.. x.Skip(x.Count - maxCount)];
             })
     {
     }
