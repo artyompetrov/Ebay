@@ -35,9 +35,14 @@ public class MeasurementApproximationService
         public double ApproximateRelative(double anodeVoltage, double gridVoltage) => alglib.rbfcalc2(s: _rbf, x0: anodeVoltage, x1: gridVoltage);
 
         /// <summary>
+        /// Возвращает оценку тока в заданной нормализованной точке в абсолютных единицах.
+        /// </summary>
+        public double ApproximateAbsolute(double anodeVoltage, double gridVoltage) => ApproximateRelative(anodeVoltage: anodeVoltage, gridVoltage: gridVoltage) * _baseAnodeCurrent / 100.0;
+
+        /// <summary>
         /// Возвращает оценку тока в рабочей точке в абсолютных единицах.
         /// </summary>
-        public double IatWorkingPoint() => alglib.rbfcalc2(s: _rbf, x0: 0, x1: 0) * _baseAnodeCurrent / 100.0;
+        public double IatWorkingPoint() => ApproximateAbsolute(anodeVoltage: 0, gridVoltage: 0);
     }
 
     /// <summary>
