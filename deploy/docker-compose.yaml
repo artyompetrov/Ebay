@@ -169,6 +169,8 @@ services:
       XUI_ENABLE_FAIL2BAN: "false"
       XUI_WEB_PORT: "443"
       XUI_WEB_BASE_PATH: "/nyygnwfdndcwdhq/"
+      XUI_ADMIN_USERNAME: ${XUI_ADMIN_USERNAME:-}
+      XUI_ADMIN_PASSWORD: ${XUI_ADMIN_PASSWORD:-}
     volumes:
       - ./mount/3x-ui/:/etc/x-ui/
       - ./config/3x-ui/entrypoint.sh:/opt/3x-ui/entrypoint.sh:ro
