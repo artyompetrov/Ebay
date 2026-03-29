@@ -78,7 +78,7 @@ class EbayMagSiteProcessor implements ISiteProcessor {
 
         const link = document.createElement('a');
         link.href = '#';
-        link.textContent = "Update content" + commentContent ;
+        link.textContent = "Update content " + commentContent ;
         link.style.display = 'block';
         link.setAttribute('data-lot-description-link', 'true');
         link.addEventListener('click', async (event) => {
@@ -110,7 +110,7 @@ class EbayMagSiteProcessor implements ISiteProcessor {
             textarea.value = description;
             textarea.dispatchEvent(new Event('input', { bubbles: true }));
             textarea.dispatchEvent(new Event('change', { bubbles: true }));
-            link.textContent = lotId;
+            link.textContent = initialText;
         } catch (error) {
             console.error('Failed to update lot description', error);
             link.textContent = initialText ?? lotId;
