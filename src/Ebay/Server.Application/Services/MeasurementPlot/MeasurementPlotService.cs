@@ -529,10 +529,10 @@ public class MeasurementPlotService : IMeasurementPlotService
 
         AddSpacer();
         AddLine("Transconductance:");
-        AddLine($"S{(quickTest.Transconductance2.HasValue ? "1" : string.Empty)}: {quickTest.Transconductance:F2} mA/V", bold: true, fill: "#8B2E2E");
+        AddLine($"Gm{(quickTest.Transconductance2.HasValue ? "1" : string.Empty)}: {quickTest.Transconductance:F2} mA/V", bold: true, fill: "#8B2E2E");
         if (quickTest.Transconductance2 != null)
         {
-            AddLine($"S2: {quickTest.Transconductance2.Value:F2} mA/V", bold: true, fill: "#8B2E2E");
+            AddLine($"Gm2: {quickTest.Transconductance2.Value:F2} mA/V", bold: true, fill: "#8B2E2E");
         }
 
         var tspans = string.Join("\n", values: lines);
