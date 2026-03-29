@@ -197,18 +197,47 @@ public class MeasurementPlotService : IMeasurementPlotService
 
         var model = _measurementApproximationService.GetModel(anodeCurves, x => x.I1, workingPointInfo);
         var i = model.IatWorkingPoint();
+        var transconductance = CalculateTransconductance(model, workingPointInfo.GridVoltageHalfWidth);
 
         double? i2 = null;
+        double? transconductance2 = null;
         if (anodeCurves is DoubleTriodeAnodeCurves doubleTriodeAnodeCurves)
         {
             var model2 = _measurementApproximationService.GetModel(doubleTriodeAnodeCurves, x => x.I2!, workingPointInfo);
             i2 = model2.IatWorkingPoint();
+            transconductance2 = CalculateTransconductance(model2, workingPointInfo.GridVoltageHalfWidth);
         }
 
-        return new QuickTestData(Ua: workingPointInfo.AnodeVoltage, Ug: workingPointInfo.GridVoltage, Ia: i, Ia2: i2);
+        return new QuickTestData(
+            Ua: workingPointInfo.AnodeVoltage,
+            Ug: workingPointInfo.GridVoltage,
+            Ia: i,
+            Ia2: i2,
+            Transconductance: transconductance,
+            Transconductance2: transconductance2);
     }
 
-    private record QuickTestData(double Ua, double Ug, double Ia, double? Ia2);
+    private static double CalculateTransconductance(MeasurementApproximationService.Model model, double gridVoltageHalfWidth)
+    {
+        var iaAtHigherGridVoltage = model.ApproximateAbsolute(anodeVoltage: 0, gridVoltage: 1);
+        var iaAtLowerGridVoltage = model.ApproximateAbsolute(anodeVoltage: 0, gridVoltage: -1);
+        var gridVoltageRange = gridVoltageHalfWidth * 2;
+
+        if (gridVoltageRange <= 1e-9)
+        {
+            return 0;
+        }
+
+        return (iaAtHigherGridVoltage - iaAtLowerGridVoltage) / gridVoltageRange;
+    }
+
+    private record QuickTestData(
+        double Ua,
+        double Ug,
+        double Ia,
+        double? Ia2,
+        double Transconductance,
+        double? Transconductance2);
 
     private async Task<MinMaxCoordinates> GetMinMaxCoordinates(
         AnodeCurvesBase anodeCurves,
@@ -468,28 +497,48 @@ public class MeasurementPlotService : IMeasurementPlotService
 
     private static string QuickTestSvg(QuickTestData quickTest)
     {
-        var lineHight = 16;
+        var lineHeight = 16;
 
-        var lines = new List<string>
+        var lines = new List<string>();
+        var lineIndex = 1;
+
+        void AddLine(string text, bool bold = false, string? fill = null)
         {
-            $"""<tspan x="10" y="{lineHight + 1 * lineHight}">Measurement point:</tspan>""",
-            $"""<tspan x="10" font-weight="bold" y="{lineHight + 2 * lineHight}">Vanode: {quickTest.Ua:F0} V</tspan>""",
-            $"""<tspan x="10" font-weight="bold" y="{lineHight + 3 * lineHight}">Vgrid: {quickTest.Ug:F1} V</tspan>""",
-            "",
-            $"""<tspan x="10" y="{lineHight + 5 * lineHight}">Anode current:</tspan>""",
-            $"""<tspan x="10" fill="#8B2E2E" font-weight="bold" y="{lineHight + 6 * lineHight}">Ianode{(quickTest.Ia2.HasValue?"1":"")}: {quickTest.Ia:F1} mA</tspan>""",
-        };
+            var fillAttribute = fill == null ? string.Empty : $" fill=\"{fill}\"";
+            var weightAttribute = bold ? " font-weight=\"bold\"" : string.Empty;
+
+            lines.Add(
+                $"""<tspan x="10"{fillAttribute}{weightAttribute} y="{lineHeight + lineIndex * lineHeight}">{text}</tspan>""");
+            lineIndex++;
+        }
+
+        void AddSpacer() => lineIndex++;
+
+        AddLine("Measurement point:");
+        AddLine($"Vanode: {quickTest.Ua:F0} V", bold: true);
+        AddLine($"Vgrid: {quickTest.Ug:F1} V", bold: true);
+
+        AddSpacer();
+        AddLine("Anode current:");
+        AddLine($"Ianode{(quickTest.Ia2.HasValue ? "1" : string.Empty)}: {quickTest.Ia:F1} mA", bold: true, fill: "#8B2E2E");
 
         if (quickTest.Ia2 != null)
         {
-            lines.Add(
-                $"""<tspan x="10" fill="#8B2E2E" font-weight="bold" y="{lineHight + 7 * lineHight}">Ianode2: {quickTest.Ia2.Value:F1} mA</tspan>""");
+            AddLine($"Ianode2: {quickTest.Ia2.Value:F1} mA", bold: true, fill: "#8B2E2E");
+        }
+
+        AddSpacer();
+        AddLine("Transconductance:");
+        AddLine($"Gm{(quickTest.Transconductance2.HasValue ? "1" : string.Empty)}: {quickTest.Transconductance:F2} mA/V", bold: true, fill: "#8B2E2E");
+        if (quickTest.Transconductance2 != null)
+        {
+            AddLine($"Gm2: {quickTest.Transconductance2.Value:F2} mA/V", bold: true, fill: "#8B2E2E");
         }
 
         var tspans = string.Join("\n", values: lines);
 
         var quickTestSvg = $"""
-                            <svg width="160" height="{lineHight + lines.Count * lineHight}" xmlns="http://www.w3.org/2000/svg">
+                            <svg width="160" height="{lineHeight + (lineIndex - 1) * lineHeight}" xmlns="http://www.w3.org/2000/svg">
                                 <text font-size="14" fill="black" xml:space="preserve" font-family="monospace">
                                     {tspans}
                                 </text>
