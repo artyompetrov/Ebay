@@ -167,7 +167,6 @@ services:
     environment:
       XRAY_VMESS_AEAD_FORCED: "false"
       XUI_ENABLE_FAIL2BAN: "false"
-      XUI_WEB_PORT: "443"
       XUI_WEB_BASE_PATH: "/nyygnwfdndcwdhq/"
       XUI_ADMIN_USERNAME: ${XUI_ADMIN_USERNAME:-}
       XUI_ADMIN_PASSWORD: ${XUI_ADMIN_PASSWORD:-}
