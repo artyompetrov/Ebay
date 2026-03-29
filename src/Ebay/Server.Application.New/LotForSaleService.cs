@@ -51,6 +51,17 @@ public sealed class LotForSaleService
     }
 
     /// <summary>
+    /// Возвращает лот для продажи по идентификатору.
+    /// </summary>
+    /// <param name="lotId">Идентификатор лота.</param>
+    /// <param name="cancellationToken">Токен отмены операции.</param>
+    /// <returns>Лот для продажи либо <see langword="null" />, если не найден.</returns>
+    public async Task<LotForSaleInfo?> GetLotForSaleByIdAsync(string lotId, CancellationToken cancellationToken)
+    {
+        return await _lotForSaleQueries.GetLotForSaleByIdAsync(lotId, cancellationToken);
+    }
+
+    /// <summary>
     /// Создает новый агрегат лота для продажи.
     /// </summary>
     /// <param name="name">Название лота.</param>

@@ -35,6 +35,30 @@ paths:
         '200':
           description: Ok
 
+  /lot-for-sales/{lotId}/description:
+    get:
+      operationId: GetLotForSaleDescription
+      summary: Returns lot-for-sale description by lot identifier
+      tags:
+        - WebApi
+      parameters:
+        - in: path
+          name: lotId
+          required: true
+          schema:
+            type: string
+            minLength: 7
+            maxLength: 7
+      responses:
+        '200':
+          description: Lot-for-sale description
+          content:
+            text/plain:
+              schema:
+                type: string
+        '404':
+          description: Lot for sale was not found
+
   /lot-for-sales/{lotId}:
     delete:
       operationId: DeleteLotForSale

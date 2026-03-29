@@ -13,4 +13,12 @@ public interface ILotForSaleQueries
     /// <param name="cancellationToken">Токен отмены операции.</param>
     /// <returns>Коллекция лотов для продажи.</returns>
     Task<IReadOnlyCollection<LotForSaleInfo>> GetLotForSalesAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Возвращает лот для продажи по идентификатору.
+    /// </summary>
+    /// <param name="lotId">Идентификатор лота.</param>
+    /// <param name="cancellationToken">Токен отмены операции.</param>
+    /// <returns>Лот для продажи либо <see langword="null" />, если не найден.</returns>
+    Task<LotForSaleInfo?> GetLotForSaleByIdAsync(string lotId, CancellationToken cancellationToken);
 }

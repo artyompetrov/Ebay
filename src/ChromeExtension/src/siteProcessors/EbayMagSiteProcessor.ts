@@ -1,9 +1,10 @@
-﻿import { ISiteProcessor } from './ISiteProcessor';
+import { ISiteProcessor } from './ISiteProcessor';
 import * as utils from "../infrastructure/Utils";
-import {ClientsFactory} from "../clients/ClientsFactory";
+import { ClientsFactory } from "../clients/ClientsFactory";
+import type { EbayToolWebApiClient as EbayToolWebApiClientType } from "../clients/Generated/EbayToolWebApiClient";
 
-export function tryGetEbayMagSiteProcessor() : ISiteProcessor | null {
-    let currentPage = location.protocol + '//' + location.host + location.pathname
+export function tryGetEbayMagSiteProcessor(): ISiteProcessor | null {
+    let currentPage = location.protocol + '//' + location.host + location.pathname;
 
     if ((/^https:\/\/ebaymag\.com\/stock$/.test(currentPage)))
     {
@@ -14,23 +15,25 @@ export function tryGetEbayMagSiteProcessor() : ISiteProcessor | null {
 
 class EbayMagSiteProcessor implements ISiteProcessor {
     breakAfterSearchProcessor: boolean = true;
+    private backendClient: EbayToolWebApiClientType | null = null;
 
     async run(): Promise<void> {
         await utils.sleepElementLoaded('div[role="button"]', document);
 
         let clientsFactory = new ClientsFactory();
-        let backendClient = await clientsFactory.getEbayToolWebApiClient()
+        this.backendClient = await clientsFactory.getEbayToolWebApiClient();
 
-        let lotsForSale = await backendClient.getLotForSales()
-        
+        let lotsForSale = await this.backendClient.getLotForSales();
+
         let skus = Array.from(document.querySelectorAll<HTMLDivElement>('div[role="button"]'))
-            .filter(el => el.textContent.trim().length === 7);
+            .filter(el => el.textContent?.trim().length === 7);
 
         const lotForSaleBySku = new Map(lotsForSale.map(x => [x.id, x]));
 
         for (const skusElement of skus)
         {
-            if (lotForSaleBySku.has(skusElement.textContent.trim()))
+            const sku = skusElement.textContent?.trim();
+            if (sku && lotForSaleBySku.has(sku))
             {
                 skusElement.style.color = 'red';
             }
@@ -44,35 +47,73 @@ class EbayMagSiteProcessor implements ISiteProcessor {
                 catch (e) {
                     console.error(e);
                 }
-                
+
                 await utils.sleep(1000);
             }
         };
 
-        let _ = startBackground()
+        void startBackground();
     }
 
-    private async searchForDescription() {
+    private async searchForDescription(): Promise<void> {
         let element = <HTMLDivElement>await utils.sleepElementLoaded('#productFormScrollarea', document, true);
-        if (element.dataset.processed) return
-        
+
         const textarea = <HTMLTextAreaElement>element.querySelector('textarea[placeholder^="Describe the item"]');
+        if (!textarea) return;
 
-        const match = textarea?.value.match(/<!--\s*(.*?)\s*-->/);
-
+        const match = textarea.value.match(/<!--\s*(.*?)\s*-->/);
         if (!match) return;
-        
-        const commentContent = match[1].trim(); // текст внутри <!-- -->
-        
-        const descDiv = [...document.querySelectorAll('div[role="presentation"]')].find(el => el.textContent === 'Description');
+
+        const commentContent = match[1].trim();
+        if (element.dataset.processedLotId === commentContent) return;
+
+        const descDiv = [...document.querySelectorAll<HTMLDivElement>('div[role="presentation"]')]
+            .find(el => (el.textContent ?? '').trim().startsWith('Description'));
+        if (!descDiv) return;
+
+        const previousLink = descDiv.querySelector<HTMLAnchorElement>('a[data-lot-description-link="true"]');
+        if (previousLink) {
+            previousLink.remove();
+        }
 
         const link = document.createElement('a');
-        link.href = 'https://example.com';
-        link.textContent = commentContent;
+        link.href = '#';
+        link.textContent = "Update content" + commentContent ;
         link.style.display = 'block';
+        link.setAttribute('data-lot-description-link', 'true');
+        link.addEventListener('click', async (event) => {
+            event.preventDefault();
+            await this.updateLotDescription(commentContent, textarea, link);
+        });
+
         descDiv.appendChild(link);
-        
-        element.dataset.processed = "true";
+        element.dataset.processedLotId = commentContent;
     }
 
+    private async updateLotDescription(
+        lotId: string,
+        textarea: HTMLTextAreaElement,
+        link: HTMLAnchorElement): Promise<void> {
+        if (!this.backendClient) {
+            return;
+        }
+
+        const initialText = link.textContent;
+        link.textContent = `${lotId} (loading...)`;
+
+        try {
+            const description = await this.backendClient.getLotForSaleDescription(lotId);
+            if (!description) {
+                throw new Error(`Description for lot ${lotId} is empty.`);
+            }
+
+            textarea.value = description;
+            textarea.dispatchEvent(new Event('input', { bubbles: true }));
+            textarea.dispatchEvent(new Event('change', { bubbles: true }));
+            link.textContent = lotId;
+        } catch (error) {
+            console.error('Failed to update lot description', error);
+            link.textContent = initialText ?? lotId;
+        }
+    }
 }

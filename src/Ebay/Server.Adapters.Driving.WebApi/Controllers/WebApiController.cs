@@ -43,6 +43,20 @@ public sealed class WebApiController : WebApiControllerBase
         return response;
     }
 
+    public override async Task<ActionResult<string>> GetLotForSaleDescription(string lotId, CancellationToken cancellationToken = default)
+    {
+        var lotForSale = await _lotForSaleService.GetLotForSaleByIdAsync(lotId, cancellationToken);
+        if (lotForSale == null)
+        {
+            return NotFound();
+        }
+
+        var descriptionUrl =
+            $"/ebay_description/{lotForSale.ProductId}?measurementState={lotForSale.MeasurementState:G}&state={lotForSale.ProductState:G}&lotId={Uri.EscapeDataString(lotForSale.Id)}";
+
+        return LocalRedirect(descriptionUrl);
+    }
+
     private static DomainProductState ToDomainProductState(LotForSaleProductState productState)
     {
         return productState switch

@@ -20,4 +20,12 @@ internal sealed class LotForSaleQueries : ILotForSaleQueries
             .Select(x => new LotForSaleInfo(x.Id, x.Name, x.ProductId, x.ProductState, x.MeasurementState))
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<LotForSaleInfo?> GetLotForSaleByIdAsync(string lotId, CancellationToken cancellationToken)
+    {
+        return await _dbContext.LotForSales
+            .Where(x => x.Id == lotId)
+            .Select(x => new LotForSaleInfo(x.Id, x.Name, x.ProductId, x.ProductState, x.MeasurementState))
+            .FirstOrDefaultAsync(cancellationToken);
+    }
 }
