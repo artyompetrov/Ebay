@@ -11,7 +11,7 @@ upstream ebaygrafana {
 }
 
 upstream ebay3xui {
-  server ebay_3xui:2053 fail_timeout=0;
+  server ebay_3xui:443 fail_timeout=0;
 }
 
 upstream ebay3xuiinbound {

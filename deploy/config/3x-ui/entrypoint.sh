@@ -5,6 +5,10 @@ if [ "${XUI_ENABLE_FAIL2BAN:-false}" = "true" ]; then
   fail2ban-client -x start || true
 fi
 
+if [ -n "${XUI_WEB_PORT:-}" ]; then
+  /app/x-ui setting -port "${XUI_WEB_PORT}" >/dev/null 2>&1 || true
+fi
+
 if [ -n "${XUI_WEB_BASE_PATH:-}" ]; then
   /app/x-ui setting -webBasePath "${XUI_WEB_BASE_PATH}" >/dev/null 2>&1 || true
 fi
