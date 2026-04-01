@@ -45,7 +45,7 @@
     <PackageVersion Include="NUnit" Version="4.3.2" />
     <PackageVersion Include="NUnit3TestAdapter" Version="5.0.0" />
     <PackageVersion Include="NUnit.Analyzers" Version="4.9.2" />
-    <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+    <PackageVersion Include="coverlet.collector" Version="8.0.1" />
     <PackageVersion Include="Plotly.Blazor" Version="6.0.2" />
     <PackageVersion Include="ScottPlot" Version="5.0.55" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.9.0" />
