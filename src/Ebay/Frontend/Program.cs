@@ -16,7 +16,7 @@ public class Program
 
         builder.Services.AddHttpClient(
                 name: "ServerAPI",
-                client => client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress))
+                client => client.BaseAddress = new Uri(new Uri(builder.HostEnvironment.BaseAddress), "/"))
             .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
 
         // Supply HttpClient instances that include access tokens when making requests to the server project

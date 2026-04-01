@@ -76,8 +76,12 @@ public class Program
         }
 
         app.UseHttpsRedirection();
-        app.UseBlazorFrameworkFiles();
+        app.UseBlazorFrameworkFiles("/admin");
         app.UseStaticFiles();
+        app.UseStaticFiles(new StaticFileOptions
+        {
+            RequestPath = "/admin"
+        });
         app.UseRouting();
         app.UseResponseCaching();
 
@@ -88,7 +92,7 @@ public class Program
         app.MapRazorPages();
         app.MapControllers();
         app.MapHealthChecks("/api/health");
-        app.MapFallbackToFile("index.html");
+        app.MapFallbackToFile("/admin/{*path:nonfile}", "admin/index.html");
 
         app.Run();
     }
@@ -196,8 +200,8 @@ public class Program
 
                     var frontendClient = ClientBuilder
                         .IdentityServerSPA("Frontend")
-                        .WithRedirectUri("/authentication/login-callback")
-                        .WithLogoutRedirectUri("/authentication/logout-callback")
+                        .WithRedirectUri("/admin/authentication/login-callback")
+                        .WithLogoutRedirectUri("/admin/authentication/logout-callback")
                         .WithScopes("openid", "profile", authorizationOptions.Scope)
                         .Build();
                     options.Clients.Add(frontendClient);
