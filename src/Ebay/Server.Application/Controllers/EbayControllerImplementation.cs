@@ -1,7 +1,6 @@
 using System.Globalization;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
 using Server.Application.Consumers.PriceCalculator;
 using Server.Application.Data;
@@ -23,9 +22,6 @@ using LotInfoShort = Server.Controllers.Generated.LotInfoShort;
 using LotInfoWithProductId = Server.Controllers.Generated.LotInfoWithProductId;
 using LotState = Server.Controllers.Generated.LotState;
 using MeasurementData = Server.Controllers.Generated.MeasurementData;
-using MeasurementPhotoInfo = Server.Controllers.Generated.MeasurementPhotoInfo;
-using MeasurementPhotoUpload = Server.Controllers.Generated.MeasurementPhotoUpload;
-using MeasurementPhotoStorageInfo = Server.Application.Abstractions.Driven.Models.MeasurementPhotoInfo;
 using MeasurementState = Server.Controllers.Generated.MeasurementState;
 using ProductPassportInfo = Server.Controllers.Generated.ProductPassportInfo;
 using ProductPassportUpload = Server.Controllers.Generated.ProductPassportUpload;
@@ -45,7 +41,6 @@ internal class EbayControllerImplementation : IEbayController
     private readonly MatchedMeasurementService _matchedMeasurementService;
     private readonly TubeWorkingPointService _tubeWorkingPointService;
     private readonly ProductService _productService;
-    private readonly IMeasurementPhotoRepository _measurementPhotoRepository;
 
     public EbayControllerImplementation(
         ApplicationDbContext applicationContext,
@@ -54,8 +49,7 @@ internal class EbayControllerImplementation : IEbayController
         IMeasurementService measurementService,
         MatchedMeasurementService matchedMeasurementService,
         TubeWorkingPointService tubeWorkingPointService,
-        ProductService productService,
-        IMeasurementPhotoRepository measurementPhotoRepository)
+        ProductService productService)
     {
         _applicationContext = applicationContext;
         _publishEndpoint = publishEndpoint;
@@ -64,7 +58,6 @@ internal class EbayControllerImplementation : IEbayController
         _matchedMeasurementService = matchedMeasurementService;
         _tubeWorkingPointService = tubeWorkingPointService;
         _productService = productService;
-        _measurementPhotoRepository = measurementPhotoRepository;
     }
 
     public async Task<ICollection<ProductPassportInfo>> GetProductPassportsAsync(
@@ -195,53 +188,6 @@ internal class EbayControllerImplementation : IEbayController
 
         entity.Order = passport.Order;
         await _applicationContext.SaveChangesAsync(cancellationToken);
-    }
-
-    public async Task<ICollection<MeasurementPhotoInfo>> GetMeasurementPhotosAsync(
-        string measurementId,
-        CancellationToken cancellationToken)
-    {
-        var photos = await _measurementPhotoRepository.GetByMeasurementId(measurementId, cancellationToken);
-        return [.. photos.Select(x => new MeasurementPhotoInfo(x.FileName, x.Id, x.Order))];
-    }
-
-    public async Task UploadMeasurementPhotoAsync(
-        MeasurementPhotoUpload photo,
-        string measurementId,
-        CancellationToken cancellationToken)
-    {
-        var measurementExists = await _applicationContext.ProductMeasurements
-            .AnyAsync(x => x.Id == measurementId, cancellationToken);
-
-        if (!measurementExists)
-        {
-            throw NonOkHttpAnswerException.NotFound400();
-        }
-
-        var order = photo.Order ?? await _measurementPhotoRepository.GetNextOrder(measurementId, cancellationToken);
-        await _measurementPhotoRepository.Add(
-            new MeasurementPhotoStorageInfo(
-                Id: Guid.NewGuid(),
-                MeasurementId: measurementId,
-                FileName: photo.FileName,
-                ContentType: photo.ContentType,
-                Order: order,
-                Content: photo.File),
-            cancellationToken);
-    }
-
-    public async Task DeleteMeasurementPhotoAsync(
-        string measurementId,
-        Guid photoId,
-        CancellationToken cancellationToken)
-    {
-        var existingPhoto = await _measurementPhotoRepository.Get(measurementId, photoId, cancellationToken);
-        if (existingPhoto == null)
-        {
-            throw NonOkHttpAnswerException.NotFound400();
-        }
-
-        await _measurementPhotoRepository.Delete(measurementId, photoId, cancellationToken);
     }
 
     public async Task<ICollection<ProductWithId>> GetAllProductsAsync(CancellationToken cancellationToken)

@@ -1,4 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Server.Application.Abstractions.Driven.Abstractions;
+using Server.Application.Abstractions.Driven.Abstractions.Queries;
+using MeasurementPhotoData = Server.Application.Abstractions.Driven.Models.MeasurementPhotoInfo;
 using Server.Adapters.Driving.WebApi.Generated;
 using Server.Application.New;
 using DomainMeasurementState = Server.Domain.Measurements.MeasurementState;
@@ -9,10 +12,20 @@ namespace Server.Adapters.Driving.WebApi.Controllers;
 public sealed class WebApiController : WebApiControllerBase
 {
     private readonly LotForSaleService _lotForSaleService;
+    private readonly IMeasurementPhotoQueries _measurementPhotoQueries;
+    private readonly IMeasurementPhotoStore _measurementPhotoStore;
+    private readonly IMeasurementQueries _measurementQueries;
 
-    public WebApiController(LotForSaleService lotForSaleService)
+    public WebApiController(
+        LotForSaleService lotForSaleService,
+        IMeasurementPhotoQueries measurementPhotoQueries,
+        IMeasurementPhotoStore measurementPhotoStore,
+        IMeasurementQueries measurementQueries)
     {
         _lotForSaleService = lotForSaleService;
+        _measurementPhotoQueries = measurementPhotoQueries;
+        _measurementPhotoStore = measurementPhotoStore;
+        _measurementQueries = measurementQueries;
     }
 
     public override async Task<IActionResult> CreateLotForSale(LotForSaleCreateRequest body, CancellationToken cancellationToken = default)
@@ -55,6 +68,72 @@ public sealed class WebApiController : WebApiControllerBase
             $"/ebay_description/{lotForSale.ProductId}?measurementState={lotForSale.MeasurementState:G}&state={lotForSale.ProductState:G}&lotId={Uri.EscapeDataString(lotForSale.Id)}";
 
         return LocalRedirect(descriptionUrl);
+    }
+
+    public override async Task<ActionResult<ICollection<MeasurementPhotoResponse>>> GetMeasurementPhotos(
+        string measurementId,
+        CancellationToken cancellationToken = default)
+    {
+        var photos = await _measurementPhotoQueries.GetByMeasurementId(measurementId, cancellationToken);
+        var response = photos
+            .Select(x => new MeasurementPhotoResponse(x.FileName, x.Id, x.Order))
+            .ToList();
+        return response;
+    }
+
+    public override async Task<IActionResult> UploadMeasurementPhoto(
+        string measurementId,
+        MeasurementPhotoUploadRequest body,
+        CancellationToken cancellationToken = default)
+    {
+        var measurement = await _measurementQueries.GetMeasurementInfo(measurementId, cancellationToken);
+        if (measurement == null)
+        {
+            return NotFound();
+        }
+
+        var order = body.Order ?? await _measurementPhotoStore.GetNextOrder(measurementId, cancellationToken);
+
+        await _measurementPhotoStore.Add(
+            new MeasurementPhotoData(
+                Id: Guid.NewGuid(),
+                MeasurementId: measurementId,
+                FileName: body.FileName,
+                ContentType: body.ContentType,
+                Order: order,
+                Content: body.File),
+            cancellationToken);
+
+        return Ok();
+    }
+
+    public override async Task<IActionResult> DeleteMeasurementPhoto(
+        string measurementId,
+        Guid photoId,
+        CancellationToken cancellationToken = default)
+    {
+        var photo = await _measurementPhotoQueries.Get(measurementId, photoId, cancellationToken);
+        if (photo == null)
+        {
+            return NotFound();
+        }
+
+        await _measurementPhotoStore.Delete(measurementId, photoId, cancellationToken);
+        return Ok();
+    }
+
+    public override async Task<IActionResult> GetMeasurementPhotoContent(
+        string measurementId,
+        Guid photoId,
+        CancellationToken cancellationToken = default)
+    {
+        var photo = await _measurementPhotoQueries.Get(measurementId, photoId, cancellationToken);
+        if (photo == null)
+        {
+            return NotFound();
+        }
+
+        return File(photo.Content, photo.ContentType, photo.FileName);
     }
 
     private static DomainProductState ToDomainProductState(LotForSaleProductState productState)

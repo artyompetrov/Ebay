@@ -1,53 +1,17 @@
 using Microsoft.EntityFrameworkCore;
 using Server.Adapters.Driven.EF.WriteModel.Models;
-using Server.Application.Abstractions.Driven.Abstractions.Repositories;
+using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Models;
 
 namespace Server.Adapters.Driven.EF.WriteModel.Repositories;
 
-public sealed class MeasurementPhotoRepository : IMeasurementPhotoRepository
+public sealed class MeasurementPhotoRepository : IMeasurementPhotoStore
 {
     private readonly WriteModelDbContext _context;
 
     public MeasurementPhotoRepository(WriteModelDbContext context)
     {
         _context = context;
-    }
-
-    public async Task<IReadOnlyCollection<MeasurementPhotoInfo>> GetByMeasurementId(
-        string measurementId,
-        CancellationToken cancellationToken)
-    {
-        return await _context.MeasurementPhotos
-            .AsNoTracking()
-            .Where(x => x.MeasurementId == measurementId)
-            .OrderBy(x => x.Order)
-            .Select(x => new MeasurementPhotoInfo(
-                x.Id,
-                x.MeasurementId,
-                x.FileName,
-                x.ContentType,
-                x.Order,
-                x.Content))
-            .ToListAsync(cancellationToken);
-    }
-
-    public async Task<MeasurementPhotoInfo?> Get(
-        string measurementId,
-        Guid photoId,
-        CancellationToken cancellationToken)
-    {
-        return await _context.MeasurementPhotos
-            .AsNoTracking()
-            .Where(x => x.MeasurementId == measurementId && x.Id == photoId)
-            .Select(x => new MeasurementPhotoInfo(
-                x.Id,
-                x.MeasurementId,
-                x.FileName,
-                x.ContentType,
-                x.Order,
-                x.Content))
-            .SingleOrDefaultAsync(cancellationToken);
     }
 
     public async Task<int> GetNextOrder(

@@ -2,7 +2,7 @@
 @using Client.Clients.Generated
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
-@inject EbayClient EbayClient
+@inject WebApiClient WebApiClient
 @inject ILogger<MeasurementPhotos> Logger
 
 <script src="https://unpkg.com/html5-qrcode"></script>
@@ -77,7 +77,7 @@
     private string? _error;
     private string? _message;
     private bool _isScanning;
-    private ICollection<MeasurementPhotoInfo> _photos = [];
+    private ICollection<MeasurementPhotoResponse> _photos = [];
 
     private async Task ScanBarcodeAsync()
     {
@@ -128,14 +128,14 @@
             using var memory = new MemoryStream();
             await stream.CopyToAsync(memory);
 
-            await EbayClient.UploadMeasurementPhotoAsync(
-                new MeasurementPhotoUpload
+            await WebApiClient.UploadMeasurementPhotoAsync(
+                _measurementId,
+                new MeasurementPhotoUploadRequest
                 {
                     FileName = file.Name,
                     ContentType = string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType,
                     File = memory.ToArray()
-                },
-                _measurementId);
+                });
         }
 
         await LoadPhotosAsync();
@@ -154,7 +154,7 @@
 
         try
         {
-            await EbayClient.DeleteMeasurementPhotoAsync(_measurementId, photoId);
+            await WebApiClient.DeleteMeasurementPhotoAsync(_measurementId, photoId);
             await LoadPhotosAsync();
             _message = "Фотография удалена.";
         }
@@ -173,12 +173,12 @@
             return;
         }
 
-        _photos = await EbayClient.GetMeasurementPhotosAsync(_measurementId);
+        _photos = await WebApiClient.GetMeasurementPhotosAsync(_measurementId);
     }
 
     private string GetPhotoUrl(Guid photoId)
     {
-        return $"{EbayClient.BaseUrl}measurements/{_measurementId}/photos/{photoId}";
+        return $"{WebApiClient.BaseUrl}measurements/{_measurementId}/photos/{photoId}/content";
     }
 
     private static string ExtractMeasurementId(string scannedValue)

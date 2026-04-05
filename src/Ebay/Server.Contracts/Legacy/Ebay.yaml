@@ -295,50 +295,6 @@ paths:
         200:
           description: Ok
 
-  /measurements/{measurementId}/photos/:
-    parameters:
-      - name: measurementId
-        in: path
-        required: true
-        type: string
-    get:
-      operationId: GetMeasurementPhotos
-      responses:
-        200:
-          description: Ok
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/MeasurementPhotoInfo'
-    post:
-      operationId: UploadMeasurementPhoto
-      parameters:
-        - name: photo
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/MeasurementPhotoUpload'
-      responses:
-        200:
-          description: Ok
-
-  /measurements/{measurementId}/photos/{photoId}/:
-    parameters:
-      - name: measurementId
-        in: path
-        required: true
-        type: string
-      - name: photoId
-        in: path
-        required: true
-        type: string
-        format: guid
-    delete:
-      operationId: DeleteMeasurementPhoto
-      responses:
-        200:
-          description: Ok
-
   /products/{productId}/measurements/:
     parameters:
       - name: productId
@@ -994,38 +950,6 @@ definitions:
         type: integer
     required:
       - order
-
-  MeasurementPhotoInfo:
-    type: object
-    properties:
-      id:
-        type: string
-        format: guid
-      fileName:
-        type: string
-      order:
-        type: integer
-    required:
-      - id
-      - fileName
-      - order
-
-  MeasurementPhotoUpload:
-    type: object
-    properties:
-      fileName:
-        type: string
-      contentType:
-        type: string
-      order:
-        type: integer
-      file:
-        type: string
-        format: binary
-    required:
-      - fileName
-      - contentType
-      - file
 
   TubeWorkingPoint:
     type: object

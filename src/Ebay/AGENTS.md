@@ -29,6 +29,7 @@
 - Legacy-контракт: `src/Ebay/Server.Contracts/Legacy/Ebay.yaml` (новые изменения туда не добавляем).
 - Новые контракты: `src/Ebay/Server.Contracts/WebApi/*.yaml`.
 - NSwag-кодогенерация выполняется автоматически MSBuild-таргетами во время сборки.
+- Новый API-функционал добавляем только в `Server.Contracts/WebApi/*.yaml`; в `Legacy/Ebay.yaml` новые endpoint'ы/DTO не добавляем.
 
 ## Локальная отладка backend
 - Запуск: `dotnet run --launch-profile Server --project /workspace/Ebay/src/Ebay/Server/Server.csproj`.
@@ -42,6 +43,7 @@
 ## Миграции БД
 - Legacy-миграции: `Server.Application/Migrations`.
 - Инфраструктура БД должна находиться в DB-адаптере, а не в `Server.Application.New`.
+- Новый инфраструктурный код EF (сущности/маппинги/таблицы) не добавляем в legacy `Server.Application/Data/ApplicationDbContext`; размещаем в адаптерных DbContext'ах.
 - Для write-model используем:
   - `WriteModelDbContext`: `Server.Adapters.Driven.EF.WriteModel/WriteModelDbContext`
   - проект миграций: `Server.Adapters.Driven.EF.WriteModel.Migrations`
