@@ -4,6 +4,7 @@ namespace Server.Application.New.LotForSale;
 /// <summary>
 /// Генератор идентификаторов лотов для продажи длиной 7 символов.
 /// </summary>
+[AllowMutable("Singleton keeps process-wide monotonic sequence state for collision-free ID generation.")]
 public sealed class LotForSaleIdGenerator : ILotForSaleIdGenerator
 {
     private const int IdLength = 7;
