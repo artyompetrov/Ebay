@@ -1,18 +1,17 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Server.Application.Data;
+using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 
 namespace Server.Application.Controllers;
 
 [ApiController]
 public class MeasurementPhotoFileController : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IMeasurementPhotoRepository _measurementPhotoRepository;
 
-    public MeasurementPhotoFileController(ApplicationDbContext context)
+    public MeasurementPhotoFileController(IMeasurementPhotoRepository measurementPhotoRepository)
     {
-        _context = context;
+        _measurementPhotoRepository = measurementPhotoRepository;
     }
 
     [HttpGet("/measurements/{measurementId}/photos/{photoId}")]
@@ -22,11 +21,7 @@ public class MeasurementPhotoFileController : ControllerBase
         Guid photoId,
         CancellationToken cancellationToken)
     {
-        var photo = await _context.MeasurementPhotos
-            .AsNoTracking()
-            .SingleOrDefaultAsync(
-                predicate: x => x.MeasurementId == measurementId && x.Id == photoId,
-                cancellationToken: cancellationToken);
+        var photo = await _measurementPhotoRepository.Get(measurementId, photoId, cancellationToken);
 
         if (photo == null)
         {

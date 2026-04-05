@@ -3,16 +3,17 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Server.Application.Migrations
+namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelDb
 {
     /// <inheritdoc />
-    public partial class AddMeasurementPhotos : Migration
+    public partial class AddMeasurementPhotosToWriteModel : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
                 name: "MeasurementPhotos",
+                schema: "wm",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -25,16 +26,11 @@ namespace Server.Application.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_MeasurementPhotos", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_MeasurementPhotos_ProductMeasurements_MeasurementId",
-                        column: x => x.MeasurementId,
-                        principalTable: "ProductMeasurements",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_MeasurementPhotos_MeasurementId_Order",
+                schema: "wm",
                 table: "MeasurementPhotos",
                 columns: new[] { "MeasurementId", "Order" });
         }
@@ -43,7 +39,8 @@ namespace Server.Application.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "MeasurementPhotos");
+                name: "MeasurementPhotos",
+                schema: "wm");
         }
     }
 }

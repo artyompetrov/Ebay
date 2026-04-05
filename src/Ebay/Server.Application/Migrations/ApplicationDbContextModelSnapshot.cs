@@ -746,40 +746,6 @@ namespace Server.Data.Migrations
                     b.ToTable("MatchedPairDifferences");
                 });
 
-            modelBuilder.Entity("Server.Domain.Measurements.MeasurementPhoto", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<byte[]>("Content")
-                        .IsRequired()
-                        .HasColumnType("bytea");
-
-                    b.Property<string>("ContentType")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("FileName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("MeasurementId")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<int>("Order")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MeasurementId", "Order");
-
-                    b.ToTable("MeasurementPhotos");
-                });
-
             modelBuilder.Entity("Server.Domain.Measurements.ProductMeasurement", b =>
                 {
                     b.Property<string>("Id")
@@ -1137,17 +1103,6 @@ namespace Server.Data.Migrations
                         .HasForeignKey("Measurement2Id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Server.Domain.Measurements.MeasurementPhoto", b =>
-                {
-                    b.HasOne("Server.Domain.Measurements.ProductMeasurement", "Measurement")
-                        .WithMany()
-                        .HasForeignKey("MeasurementId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Measurement");
                 });
 
             modelBuilder.Entity("Server.Domain.Measurements.ProductMeasurement", b =>
