@@ -22,6 +22,8 @@ using LotInfoShort = Server.Controllers.Generated.LotInfoShort;
 using LotInfoWithProductId = Server.Controllers.Generated.LotInfoWithProductId;
 using LotState = Server.Controllers.Generated.LotState;
 using MeasurementData = Server.Controllers.Generated.MeasurementData;
+using MeasurementPhotoInfo = Server.Controllers.Generated.MeasurementPhotoInfo;
+using MeasurementPhotoUpload = Server.Controllers.Generated.MeasurementPhotoUpload;
 using MeasurementState = Server.Controllers.Generated.MeasurementState;
 using ProductPassportInfo = Server.Controllers.Generated.ProductPassportInfo;
 using ProductPassportUpload = Server.Controllers.Generated.ProductPassportUpload;
@@ -187,6 +189,76 @@ internal class EbayControllerImplementation : IEbayController
         }
 
         entity.Order = passport.Order;
+        await _applicationContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<ICollection<MeasurementPhotoInfo>> GetMeasurementPhotosAsync(
+        string measurementId,
+        CancellationToken cancellationToken)
+    {
+        return await _applicationContext.MeasurementPhotos
+            .AsNoTracking()
+            .Where(x => x.MeasurementId == measurementId)
+            .OrderBy(x => x.Order)
+            .Select(x => new MeasurementPhotoInfo(x.FileName, x.Id, x.Order))
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task UploadMeasurementPhotoAsync(
+        MeasurementPhotoUpload photo,
+        string measurementId,
+        CancellationToken cancellationToken)
+    {
+        var measurementExists = await _applicationContext.ProductMeasurements
+            .AnyAsync(x => x.Id == measurementId, cancellationToken);
+
+        if (!measurementExists)
+        {
+            throw NonOkHttpAnswerException.NotFound400();
+        }
+
+        var order = photo.Order ??
+            ((await _applicationContext.MeasurementPhotos
+                .Where(x => x.MeasurementId == measurementId)
+                .Select(x => (int?)x.Order)
+                .MaxAsync(cancellationToken)) ?? -1) + 1;
+
+        var entity = new MeasurementPhoto
+        {
+            Id = Guid.NewGuid(),
+            MeasurementId = measurementId,
+            FileName = photo.FileName,
+            ContentType = photo.ContentType,
+            Order = order,
+            Content = photo.File
+        };
+
+        await _applicationContext.MeasurementPhotos.AddAsync(entity, cancellationToken);
+        await _applicationContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task DeleteMeasurementPhotoAsync(
+        string measurementId,
+        Guid photoId,
+        CancellationToken cancellationToken)
+    {
+        var photo = await _applicationContext.MeasurementPhotos
+            .SingleOrDefaultAsync(x => x.MeasurementId == measurementId && x.Id == photoId, cancellationToken) ??
+            throw NonOkHttpAnswerException.NotFound400();
+
+        var order = photo.Order;
+
+        _applicationContext.MeasurementPhotos.Remove(photo);
+
+        var photosToUpdate = await _applicationContext.MeasurementPhotos
+            .Where(x => x.MeasurementId == measurementId && x.Order > order)
+            .ToListAsync(cancellationToken);
+
+        foreach (var item in photosToUpdate)
+        {
+            item.Order--;
+        }
+
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 

@@ -151,6 +151,16 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
             entity.HasIndex(e => new { e.ProductId, e.Order });
         });
 
+        builder.Entity<MeasurementPhoto>(entity =>
+        {
+            entity.HasIndex(e => new { e.MeasurementId, e.Order });
+
+            entity.HasOne(e => e.Measurement)
+                .WithMany()
+                .HasForeignKey(e => e.MeasurementId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
         builder.Entity<TubeWorkingPoint>(entity =>
         {
             entity.HasKey(e => e.Id);
@@ -213,6 +223,8 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
     public DbSet<ProductMeasurement> ProductMeasurements { get; set; } = null!;
 
     public DbSet<ProductPassport> ProductPassports { get; set; } = null!;
+
+    public DbSet<MeasurementPhoto> MeasurementPhotos { get; set; } = null!;
 
     public DbSet<Currency> Currencies { get; set; } = null!;
 
