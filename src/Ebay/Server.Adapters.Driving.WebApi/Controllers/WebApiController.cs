@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
-using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Adapters.Driving.WebApi.Generated;
 using Server.Application.New;
-using Server.Domain.Measurements;
 using DomainMeasurementState = Server.Domain.Measurements.MeasurementState;
 using DomainProductState = Server.Domain.Measurements.ProductState;
 
@@ -12,20 +10,17 @@ namespace Server.Adapters.Driving.WebApi.Controllers;
 public sealed class WebApiController : WebApiControllerBase
 {
     private readonly LotForSaleService _lotForSaleService;
+    private readonly MeasurementPhotoService _measurementPhotoService;
     private readonly IMeasurementPhotoQueries _measurementPhotoQueries;
-    private readonly IMeasurementPhotoRepository _measurementPhotoRepository;
-    private readonly IMeasurementQueries _measurementQueries;
 
     public WebApiController(
         LotForSaleService lotForSaleService,
-        IMeasurementPhotoQueries measurementPhotoQueries,
-        IMeasurementPhotoRepository measurementPhotoRepository,
-        IMeasurementQueries measurementQueries)
+        MeasurementPhotoService measurementPhotoService,
+        IMeasurementPhotoQueries measurementPhotoQueries)
     {
         _lotForSaleService = lotForSaleService;
+        _measurementPhotoService = measurementPhotoService;
         _measurementPhotoQueries = measurementPhotoQueries;
-        _measurementPhotoRepository = measurementPhotoRepository;
-        _measurementQueries = measurementQueries;
     }
 
     public override async Task<IActionResult> CreateLotForSale(LotForSaleCreateRequest body, CancellationToken cancellationToken = default)
@@ -86,23 +81,18 @@ public sealed class WebApiController : WebApiControllerBase
         MeasurementPhotoUploadRequest body,
         CancellationToken cancellationToken = default)
     {
-        var measurement = await _measurementQueries.GetMeasurementInfo(measurementId, cancellationToken);
-        if (measurement == null)
+        var isUploaded = await _measurementPhotoService.UploadAsync(
+            measurementId: measurementId,
+            fileName: body.FileName,
+            contentType: body.ContentType,
+            content: body.File,
+            order: body.Order,
+            cancellationToken: cancellationToken);
+
+        if (!isUploaded)
         {
             return NotFound();
         }
-
-        var order = body.Order ?? await _measurementPhotoQueries.GetNextOrder(measurementId, cancellationToken);
-
-        await _measurementPhotoRepository.AddAsync(
-            MeasurementPhoto.Create(
-                id: Guid.NewGuid(),
-                measurementId: measurementId,
-                fileName: body.FileName,
-                contentType: body.ContentType,
-                order: order,
-                content: body.File),
-            cancellationToken);
 
         return Ok();
     }
@@ -112,13 +102,16 @@ public sealed class WebApiController : WebApiControllerBase
         Guid photoId,
         CancellationToken cancellationToken = default)
     {
-        var photo = await _measurementPhotoQueries.Get(measurementId, photoId, cancellationToken);
-        if (photo == null)
+        var isDeleted = await _measurementPhotoService.DeleteAsync(
+            measurementId: measurementId,
+            photoId: photoId,
+            cancellationToken: cancellationToken);
+
+        if (!isDeleted)
         {
             return NotFound();
         }
 
-        await _measurementPhotoRepository.RemoveAsync(photoId, cancellationToken);
         return Ok();
     }
 

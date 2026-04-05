@@ -26,7 +26,6 @@ public sealed class MeasurementPhotoRepository : IMeasurementPhotoRepository
         CancellationToken cancellationToken)
     {
         await _context.MeasurementPhotos.AddAsync(aggregate, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task RemoveAsync(
@@ -41,19 +40,7 @@ public sealed class MeasurementPhotoRepository : IMeasurementPhotoRepository
             return;
         }
 
-        var order = entity.Order;
         _context.MeasurementPhotos.Remove(entity);
-
-        var photosToShift = await _context.MeasurementPhotos
-            .Where(x => x.MeasurementId == entity.MeasurementId && x.Order > order)
-            .ToListAsync(cancellationToken);
-
-        foreach (var photo in photosToShift)
-        {
-            photo.ShiftOrderDown();
-        }
-
-        await _context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task RemoveAsync(
@@ -65,6 +52,5 @@ public sealed class MeasurementPhotoRepository : IMeasurementPhotoRepository
             .ToListAsync(cancellationToken);
 
         _context.MeasurementPhotos.RemoveRange(entities);
-        await _context.SaveChangesAsync(cancellationToken);
     }
 }
