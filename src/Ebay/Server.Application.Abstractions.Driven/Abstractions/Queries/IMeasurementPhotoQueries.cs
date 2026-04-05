@@ -4,6 +4,10 @@ namespace Server.Application.Abstractions.Driven.Abstractions.Queries;
 
 public interface IMeasurementPhotoQueries
 {
+    Task<int> GetNextOrder(
+        string measurementId,
+        CancellationToken cancellationToken);
+
     Task<IReadOnlyList<MeasurementPhotoInfo>> GetByMeasurementId(
         string measurementId,
         CancellationToken cancellationToken);

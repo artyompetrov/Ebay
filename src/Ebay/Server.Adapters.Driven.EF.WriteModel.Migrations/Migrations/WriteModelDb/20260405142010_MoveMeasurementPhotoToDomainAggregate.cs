@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelDb
 {
     /// <inheritdoc />
-    public partial class AddMeasurementPhotosToWriteModel : Migration
+    public partial class MoveMeasurementPhotoToDomainAggregate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -21,7 +21,10 @@ namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelD
                     FileName = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     ContentType = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Order = table.Column<int>(type: "integer", nullable: false),
-                    Content = table.Column<byte[]>(type: "bytea", nullable: false)
+                    Content = table.Column<byte[]>(type: "bytea", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    ChangedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
                 {

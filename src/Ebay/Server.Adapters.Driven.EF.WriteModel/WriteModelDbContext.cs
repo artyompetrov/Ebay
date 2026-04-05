@@ -1,9 +1,9 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Server.Adapters.Driven.EF.WriteModel.Models;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Domain.Abstractions;
+using Server.Domain.Measurements;
 using Server.Domain.LotForSale;
 
 namespace Server.Adapters.Driven.EF.WriteModel;
@@ -55,7 +55,7 @@ public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
                 .IsRequired();
         });
 
-        modelBuilder.Entity<MeasurementPhotoEntity>(entity =>
+        modelBuilder.Entity<MeasurementPhoto>(entity =>
         {
             entity.HasKey(x => x.Id);
 
@@ -79,7 +79,7 @@ public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
     }
 
     public DbSet<LotForSale> LotForSales { get; set; } = null!;
-    public DbSet<MeasurementPhotoEntity> MeasurementPhotos { get; set; } = null!;
+    public DbSet<MeasurementPhoto> MeasurementPhotos { get; set; } = null!;
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

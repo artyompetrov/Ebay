@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
-using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
-using MeasurementPhotoData = Server.Application.Abstractions.Driven.Models.MeasurementPhotoInfo;
+using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Adapters.Driving.WebApi.Generated;
 using Server.Application.New;
+using Server.Domain.Measurements;
 using DomainMeasurementState = Server.Domain.Measurements.MeasurementState;
 using DomainProductState = Server.Domain.Measurements.ProductState;
 
@@ -13,18 +13,18 @@ public sealed class WebApiController : WebApiControllerBase
 {
     private readonly LotForSaleService _lotForSaleService;
     private readonly IMeasurementPhotoQueries _measurementPhotoQueries;
-    private readonly IMeasurementPhotoStore _measurementPhotoStore;
+    private readonly IMeasurementPhotoRepository _measurementPhotoRepository;
     private readonly IMeasurementQueries _measurementQueries;
 
     public WebApiController(
         LotForSaleService lotForSaleService,
         IMeasurementPhotoQueries measurementPhotoQueries,
-        IMeasurementPhotoStore measurementPhotoStore,
+        IMeasurementPhotoRepository measurementPhotoRepository,
         IMeasurementQueries measurementQueries)
     {
         _lotForSaleService = lotForSaleService;
         _measurementPhotoQueries = measurementPhotoQueries;
-        _measurementPhotoStore = measurementPhotoStore;
+        _measurementPhotoRepository = measurementPhotoRepository;
         _measurementQueries = measurementQueries;
     }
 
@@ -92,16 +92,16 @@ public sealed class WebApiController : WebApiControllerBase
             return NotFound();
         }
 
-        var order = body.Order ?? await _measurementPhotoStore.GetNextOrder(measurementId, cancellationToken);
+        var order = body.Order ?? await _measurementPhotoQueries.GetNextOrder(measurementId, cancellationToken);
 
-        await _measurementPhotoStore.Add(
-            new MeasurementPhotoData(
-                Id: Guid.NewGuid(),
-                MeasurementId: measurementId,
-                FileName: body.FileName,
-                ContentType: body.ContentType,
-                Order: order,
-                Content: body.File),
+        await _measurementPhotoRepository.AddAsync(
+            MeasurementPhoto.Create(
+                id: Guid.NewGuid(),
+                measurementId: measurementId,
+                fileName: body.FileName,
+                contentType: body.ContentType,
+                order: order,
+                content: body.File),
             cancellationToken);
 
         return Ok();
@@ -118,7 +118,7 @@ public sealed class WebApiController : WebApiControllerBase
             return NotFound();
         }
 
-        await _measurementPhotoStore.Delete(measurementId, photoId, cancellationToken);
+        await _measurementPhotoRepository.RemoveAsync(photoId, cancellationToken);
         return Ok();
     }
 

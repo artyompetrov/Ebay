@@ -13,6 +13,18 @@ internal sealed class MeasurementPhotoQueries : IMeasurementPhotoQueries
         _context = context;
     }
 
+    public async Task<int> GetNextOrder(
+        string measurementId,
+        CancellationToken cancellationToken)
+    {
+        var maxOrder = await _context.MeasurementPhotos
+            .Where(x => x.MeasurementId == measurementId)
+            .Select(x => (int?)x.Order)
+            .MaxAsync(cancellationToken);
+
+        return (maxOrder ?? -1) + 1;
+    }
+
     public async Task<IReadOnlyList<MeasurementPhotoInfo>> GetByMeasurementId(
         string measurementId,
         CancellationToken cancellationToken)

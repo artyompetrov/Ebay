@@ -1,11 +1,10 @@
 using Microsoft.EntityFrameworkCore;
-using Server.Adapters.Driven.EF.WriteModel.Models;
-using Server.Application.Abstractions.Driven.Abstractions;
-using Server.Application.Abstractions.Driven.Models;
+using Server.Application.Abstractions.Driven.Abstractions.Repositories;
+using Server.Domain.Measurements;
 
 namespace Server.Adapters.Driven.EF.WriteModel.Repositories;
 
-public sealed class MeasurementPhotoRepository : IMeasurementPhotoStore
+public sealed class MeasurementPhotoRepository : IMeasurementPhotoRepository
 {
     private readonly WriteModelDbContext _context;
 
@@ -14,43 +13,28 @@ public sealed class MeasurementPhotoRepository : IMeasurementPhotoStore
         _context = context;
     }
 
-    public async Task<int> GetNextOrder(
-        string measurementId,
+    public async Task<MeasurementPhoto?> GetByIdAsync(
+        Guid id,
         CancellationToken cancellationToken)
     {
-        var maxOrder = await _context.MeasurementPhotos
-            .Where(x => x.MeasurementId == measurementId)
-            .Select(x => (int?)x.Order)
-            .MaxAsync(cancellationToken);
-
-        return (maxOrder ?? -1) + 1;
+        return await _context.MeasurementPhotos
+            .SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
-    public async Task Add(
-        MeasurementPhotoInfo photo,
+    public async Task AddAsync(
+        MeasurementPhoto aggregate,
         CancellationToken cancellationToken)
     {
-        var entity = new MeasurementPhotoEntity
-        {
-            Id = photo.Id,
-            MeasurementId = photo.MeasurementId,
-            FileName = photo.FileName,
-            ContentType = photo.ContentType,
-            Order = photo.Order,
-            Content = photo.Content
-        };
-
-        await _context.MeasurementPhotos.AddAsync(entity, cancellationToken);
+        await _context.MeasurementPhotos.AddAsync(aggregate, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task Delete(
-        string measurementId,
-        Guid photoId,
+    public async Task RemoveAsync(
+        Guid id,
         CancellationToken cancellationToken)
     {
         var entity = await _context.MeasurementPhotos
-            .SingleOrDefaultAsync(x => x.MeasurementId == measurementId && x.Id == photoId, cancellationToken);
+            .SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
 
         if (entity == null)
         {
@@ -61,14 +45,26 @@ public sealed class MeasurementPhotoRepository : IMeasurementPhotoStore
         _context.MeasurementPhotos.Remove(entity);
 
         var photosToShift = await _context.MeasurementPhotos
-            .Where(x => x.MeasurementId == measurementId && x.Order > order)
+            .Where(x => x.MeasurementId == entity.MeasurementId && x.Order > order)
             .ToListAsync(cancellationToken);
 
         foreach (var photo in photosToShift)
         {
-            photo.Order--;
+            photo.ShiftOrderDown();
         }
 
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task RemoveAsync(
+        IReadOnlySet<Guid> id,
+        CancellationToken cancellationToken)
+    {
+        var entities = await _context.MeasurementPhotos
+            .Where(x => id.Contains(x.Id))
+            .ToListAsync(cancellationToken);
+
+        _context.MeasurementPhotos.RemoveRange(entities);
         await _context.SaveChangesAsync(cancellationToken);
     }
 }
