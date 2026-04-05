@@ -77,6 +77,107 @@ paths:
         '200':
           description: Ok
 
+  /measurements/{measurementId}/photos:
+    get:
+      operationId: GetMeasurementPhotos
+      summary: Returns photos for measurement
+      tags:
+        - WebApi
+      parameters:
+        - in: path
+          name: measurementId
+          required: true
+          schema:
+            type: string
+            maxLength: 100
+      responses:
+        '200':
+          description: Measurement photos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MeasurementPhotoResponse'
+    post:
+      operationId: UploadMeasurementPhoto
+      summary: Uploads measurement photo
+      tags:
+        - WebApi
+      parameters:
+        - in: path
+          name: measurementId
+          required: true
+          schema:
+            type: string
+            maxLength: 100
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MeasurementPhotoUploadRequest'
+      responses:
+        '200':
+          description: Ok
+        '404':
+          description: Measurement not found
+
+  /measurements/{measurementId}/photos/{photoId}:
+    delete:
+      operationId: DeleteMeasurementPhoto
+      summary: Deletes measurement photo
+      tags:
+        - WebApi
+      parameters:
+        - in: path
+          name: measurementId
+          required: true
+          schema:
+            type: string
+            maxLength: 100
+        - in: path
+          name: photoId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Ok
+        '404':
+          description: Photo not found
+
+  /measurements/{measurementId}/photos/{photoId}/content:
+    get:
+      operationId: GetMeasurementPhotoContent
+      summary: Returns measurement photo binary
+      tags:
+        - WebApi
+      parameters:
+        - in: path
+          name: measurementId
+          required: true
+          schema:
+            type: string
+            maxLength: 100
+        - in: path
+          name: photoId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Photo binary
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Photo not found
+
 components:
   schemas:
     LotForSaleCreateRequest:
@@ -133,3 +234,37 @@ components:
       enum:
         - New
         - Used
+
+    MeasurementPhotoResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - fileName
+        - order
+      properties:
+        id:
+          type: string
+          format: uuid
+        fileName:
+          type: string
+        order:
+          type: integer
+
+    MeasurementPhotoUploadRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - fileName
+        - contentType
+        - file
+      properties:
+        fileName:
+          type: string
+        contentType:
+          type: string
+        order:
+          type: integer
+        file:
+          type: string
+          format: byte

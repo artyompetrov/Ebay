@@ -27,6 +27,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IProductQueries, ProductQueries>();
         services.AddScoped<IPassportQueries, PassportQueries>();
         services.AddScoped<IMeasurementQueries, MeasurementQueries>();
+        services.AddScoped<IMeasurementPhotoQueries, MeasurementPhotoQueries>();
         services.AddScoped<ITubeWorkingPointQueries, TubeWorkingPointQueries>();
         services.AddScoped<ILotForSaleQueries, LotForSaleQueries>();
     }

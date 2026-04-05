@@ -1,0 +1,205 @@
+@page "/measurement-photos"
+@using Client.Clients.Generated
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inject WebApiClient WebApiClient
+@inject ILogger<MeasurementPhotos> Logger
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+<style>
+    #reader video {
+        transform: scaleX(-1);
+    }
+</style>
+
+<h3>Фото измерений</h3>
+
+<p>
+    Сканируйте штрихкод на карточке измерения, затем загружайте фото прямо с камеры телефона.
+</p>
+
+<div class="row g-3">
+    <div class="col-lg-5">
+        <h5>1) Сканирование штрихкода</h5>
+        <div id="reader" style="width: 100%; max-width: 420px;"></div>
+        <button class="btn btn-primary btn-sm mt-2" @onclick="ScanBarcodeAsync" disabled="@_isScanning">
+            @(_isScanning ? "Сканирование..." : "Сканировать")
+        </button>
+
+        @if (!string.IsNullOrWhiteSpace(_measurementId))
+        {
+            <p class="mt-2 mb-0">Найдено измерение: <strong>@_measurementId</strong></p>
+        }
+    </div>
+    <div class="col-lg-7">
+        <h5>2) Фото</h5>
+
+        @if (!string.IsNullOrWhiteSpace(_error))
+        {
+            <p class="text-danger">@_error</p>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(_message))
+        {
+            <p class="text-success">@_message</p>
+        }
+
+        <div class="mb-2">
+            <InputFile OnChange="OnPhotosSelectedAsync" multiple accept="image/*" capture="environment" disabled="@string.IsNullOrWhiteSpace(_measurementId)" />
+        </div>
+
+        @if (string.IsNullOrWhiteSpace(_measurementId))
+        {
+            <p class="text-muted">Сначала отсканируйте штрихкод.</p>
+        }
+        else if (_photos.Count == 0)
+        {
+            <p class="text-muted">Фотографий пока нет.</p>
+        }
+        else
+        {
+            <ul class="list-group">
+                @foreach (var photo in _photos.OrderBy(x => x.Order))
+                {
+                    <li class="list-group-item d-flex align-items-center justify-content-between">
+                        <a href="@GetPhotoUrl(photo.Id)" target="_blank">@photo.FileName</a>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeletePhotoAsync(photo.Id)">Удалить</button>
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+</div>
+
+@code {
+    private const long MaxPhotoSizeBytes = 15 * 1024 * 1024;
+    private string? _measurementId;
+    private string? _error;
+    private string? _message;
+    private bool _isScanning;
+    private ICollection<MeasurementPhotoResponse> _photos = [];
+
+    private async Task ScanBarcodeAsync()
+    {
+        _isScanning = true;
+        _error = null;
+        _message = null;
+
+        try
+        {
+            var scannedValue = await Interop.StartQrScanner();
+            _measurementId = ExtractMeasurementId(scannedValue);
+
+            if (string.IsNullOrWhiteSpace(_measurementId))
+            {
+                _error = "Не удалось распознать идентификатор измерения в штрихкоде.";
+                _photos = [];
+                return;
+            }
+
+            await LoadPhotosAsync();
+            _message = $"Штрихкод распознан: {_measurementId}";
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to scan barcode for measurement photos page");
+            _error = "Ошибка при сканировании штрихкода.";
+        }
+        finally
+        {
+            _isScanning = false;
+        }
+    }
+
+    private async Task OnPhotosSelectedAsync(InputFileChangeEventArgs eventArgs)
+    {
+        if (string.IsNullOrWhiteSpace(_measurementId))
+        {
+            _error = "Сначала отсканируйте штрихкод.";
+            return;
+        }
+
+        _error = null;
+        _message = null;
+
+        foreach (var file in eventArgs.GetMultipleFiles())
+        {
+            await using var stream = file.OpenReadStream(MaxPhotoSizeBytes);
+            using var memory = new MemoryStream();
+            await stream.CopyToAsync(memory);
+
+            await WebApiClient.UploadMeasurementPhotoAsync(
+                _measurementId,
+                new MeasurementPhotoUploadRequest
+                {
+                    FileName = file.Name,
+                    ContentType = string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType,
+                    File = memory.ToArray()
+                });
+        }
+
+        await LoadPhotosAsync();
+        _message = "Фотографии загружены.";
+    }
+
+    private async Task DeletePhotoAsync(Guid photoId)
+    {
+        if (string.IsNullOrWhiteSpace(_measurementId))
+        {
+            return;
+        }
+
+        _error = null;
+        _message = null;
+
+        try
+        {
+            await WebApiClient.DeleteMeasurementPhotoAsync(_measurementId, photoId);
+            await LoadPhotosAsync();
+            _message = "Фотография удалена.";
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to delete photo {PhotoId} for measurement {MeasurementId}", photoId, _measurementId);
+            _error = "Не удалось удалить фотографию.";
+        }
+    }
+
+    private async Task LoadPhotosAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_measurementId))
+        {
+            _photos = [];
+            return;
+        }
+
+        _photos = await WebApiClient.GetMeasurementPhotosAsync(_measurementId);
+    }
+
+    private string GetPhotoUrl(Guid photoId)
+    {
+        return $"{WebApiClient.BaseUrl}measurements/{_measurementId}/photos/{photoId}/content";
+    }
+
+    private static string ExtractMeasurementId(string scannedValue)
+    {
+        var value = (scannedValue ?? string.Empty).Trim();
+
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        if (Uri.TryCreate(value, UriKind.Absolute, out var uri))
+        {
+            return uri.Segments.Last().Trim('/').Trim();
+        }
+
+        if (value.Contains('/'))
+        {
+            return value.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).LastOrDefault() ?? string.Empty;
+        }
+
+        return value;
+    }
+}

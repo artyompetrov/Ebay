@@ -78,6 +78,11 @@ internal sealed class ReadDbContext : DbContext
                 .HasConversion<string>();
         });
 
+        b.Entity<MeasurementPhotoView>(eb =>
+        {
+            eb.ToView("MeasurementPhotos", "wm").HasKey(x => x.Id);
+        });
+
         b.Entity<LotView>(eb =>
         {
             eb.ToTable("Lots").HasKey(x => x.Id);
@@ -102,6 +107,8 @@ internal sealed class ReadDbContext : DbContext
     public DbSet<TubeWorkingPointView> TubeWorkingPoints { get; set; } = null!;
 
     public DbSet<LotForSaleView> LotForSales { get; set; } = null!;
+
+    public DbSet<MeasurementPhotoView> MeasurementPhotos { get; set; } = null!;
 
     public DbSet<LotView> Lots { get; set; } = null!;
 }
