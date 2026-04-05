@@ -75,5 +75,11 @@
 - `Server.Adapters.*` — реализации портов.
 - `Server.Application.New` не должен ссылаться на `Server.Adapters.*`.
 
+## Чеклист по ошибкам с ревью (обязателен перед PR)
+- Репозиторий (`Server.Adapters.Driven.*.Repositories`) не вызывает `SaveChanges/SaveChangesAsync`; фиксация изменений выполняется в application-слое через `IWriteModelUnitOfWork`/`IUnitOfWork`.
+- Репозиторий не содержит бизнес-оркестрацию (например, пересчет порядков, валидации сценария, межагрегатные проверки); это размещается в `Server.Domain` (поведение агрегата) и/или в `Server.Application.New` (use-case сервис).
+- Контроллеры (`Server.Adapters.Driving.*`) не должны реализовывать command-use-case логику; они только маппят HTTP <-> application и делегируют сценарии в application-сервисы.
+- Перед отправкой PR обязательно выполнить self-review по слоям: **Domain rule? -> Domain**, **Use-case orchestration/commit? -> Application.New**, **I/O mapping only? -> Adapter**. Если пункт нарушен — исправить до ревью.
+
 ## UI
 - Иконки: Open Iconic (https://icones.js.org/collection/oi, https://github.com/iconic/open-iconic) или emoji.
