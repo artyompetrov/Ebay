@@ -1,0 +1,39 @@
+@page "/cats"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+
+<PageTitle>Котики</PageTitle>
+
+<h3>Просмотр котиков 🐱</h3>
+
+<p>Нажмите кнопку, чтобы загрузить случайного котика.</p>
+
+<button class="btn btn-primary" @onclick="ShowRandomCatAsync" disabled="@_isLoading">
+    @(_isLoading ? "Загружаем..." : "Показать котика")
+</button>
+
+@if (!string.IsNullOrWhiteSpace(_catImageUrl))
+{
+    <div class="mt-3">
+        <img src="@_catImageUrl" alt="Случайный котик" style="max-width: 100%; height: auto; border-radius: 8px;"/>
+    </div>
+}
+
+@code {
+    private bool _isLoading;
+    private string? _catImageUrl;
+
+    private async Task ShowRandomCatAsync()
+    {
+        _isLoading = true;
+        try
+        {
+            _catImageUrl = $"https://cataas.com/cat?{Guid.NewGuid()}";
+            await Task.Delay(50);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+}
