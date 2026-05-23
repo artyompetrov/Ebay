@@ -1,0 +1,39 @@
+@page "/cats"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+
+<PageTitle>Котики</PageTitle>
+
+<h3>Просмотр котиков 🐱</h3>
+<p>Нажмите кнопку, чтобы получить случайного котика.</p>
+
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="ShowNextCat">Показать котика</button>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(_currentCatUrl))
+{
+    <img src="@_currentCatUrl" alt="Случайный котик" style="max-width: 100%; border-radius: 12px;" />
+}
+
+@code {
+    private readonly string[] _cats =
+    [
+        "https://cataas.com/cat?width=700&height=500",
+        "https://cataas.com/cat/cute?width=700&height=500",
+        "https://cataas.com/cat/funny?width=700&height=500",
+        "https://cataas.com/cat/says/Hi!%20I%20am%20cat?width=700&height=500"
+    ];
+
+    private string _currentCatUrl = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        ShowNextCat();
+    }
+
+    private void ShowNextCat()
+    {
+        _currentCatUrl = $"{_cats[Random.Shared.Next(_cats.Length)]}&t={DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
+    }
+}
