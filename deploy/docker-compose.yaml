@@ -93,7 +93,7 @@ services:
     restart: always
     command: >
       --admin-password '${PORTAINER_HASH}'
-      --trusted-origins ${DOMAIN}
+      --trusted-origins ${DOMAIN}:5433
     volumes:
       - portainer_data:/data
       - /var/run/docker.sock:/var/run/docker.sock
