@@ -89,11 +89,10 @@ services:
 
   ebay_portainer:
     container_name: ebay_portainer
-    image: portainer/portainer-ce
+    image: portainer/portainer-ce:2.26.0
     restart: always
     command: >
       --admin-password '${PORTAINER_HASH}'
-      --trusted-origins ${DOMAIN}:5433
     volumes:
       - portainer_data:/data
       - /var/run/docker.sock:/var/run/docker.sock
