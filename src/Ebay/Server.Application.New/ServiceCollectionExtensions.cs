@@ -26,5 +26,6 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ILotForSaleIdGenerator, LotForSaleIdGenerator>();
         services.AddTransient<ProductService>();
         services.AddTransient<LotForSaleService>();
+        services.AddTransient<MeasurementPhotoService>();
     }
 }
