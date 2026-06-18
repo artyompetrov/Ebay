@@ -18,30 +18,18 @@ class EbayMagSiteProcessor implements ISiteProcessor {
     private backendClient: EbayToolWebApiClientType | null = null;
 
     async run(): Promise<void> {
-        await utils.sleepElementLoaded('div[role="button"]', document);
+        await utils.sleepElementLoaded('body', document);
 
         let clientsFactory = new ClientsFactory();
         this.backendClient = await clientsFactory.getEbayToolWebApiClient();
 
         let lotsForSale = await this.backendClient.getLotForSales();
-
-        let skus = Array.from(document.querySelectorAll<HTMLDivElement>('div[role="button"]'))
-            .filter(el => el.textContent?.trim().length === 7);
-
-        const lotForSaleBySku = new Map(lotsForSale.map(x => [x.id, x]));
-
-        for (const skusElement of skus)
-        {
-            const sku = skusElement.textContent?.trim();
-            if (sku && lotForSaleBySku.has(sku))
-            {
-                skusElement.style.color = 'red';
-            }
-        }
+        const lotForSaleIds = new Set(lotsForSale.map(x => x.id));
 
         const startBackground = async () => {
             while (true) {
                 try {
+                    this.highlightKnownSkuElements(lotForSaleIds);
                     await this.searchForDescription();
                 }
                 catch (e) {
@@ -55,8 +43,21 @@ class EbayMagSiteProcessor implements ISiteProcessor {
         void startBackground();
     }
 
+    private highlightKnownSkuElements(lotForSaleIds: ReadonlySet<string>): void {
+        const skuElements = Array.from(document.querySelectorAll<HTMLElement>('div[role="button"]'))
+            .filter(element => element.textContent?.trim().length === 7);
+
+        for (const skuElement of skuElements) {
+            const sku = skuElement.textContent?.trim();
+            if (sku && lotForSaleIds.has(sku)) {
+                skuElement.style.setProperty('color', 'red', 'important');
+            }
+        }
+    }
+
     private async searchForDescription(): Promise<void> {
-        let element = <HTMLDivElement>await utils.sleepElementLoaded('#productFormScrollarea', document, true);
+        const element = document.querySelector<HTMLDivElement>('#productFormScrollarea');
+        if (!element) return;
 
         const textarea = <HTMLTextAreaElement>element.querySelector('textarea[placeholder^="Describe the item"]');
         if (!textarea) return;
