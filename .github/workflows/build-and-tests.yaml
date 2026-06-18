@@ -98,7 +98,7 @@ jobs:
     needs: [ dotnet_and_extension_build, build_docker ]
     if: github.ref == 'refs/heads/main'  # Запускается только на ветке main
 
-    steps:
+    steps: 
       - name: Install SSH Keys
         run: |
           mkdir -p ~/.ssh
