@@ -16,6 +16,7 @@ export function tryGetEbayMagSiteProcessor(): ISiteProcessor | null {
 class EbayMagSiteProcessor implements ISiteProcessor {
     breakAfterSearchProcessor: boolean = true;
     private backendClient: EbayToolWebApiClientType | null = null;
+    private readonly lotDescriptionCache = new Map<string, string>();
 
     async run(): Promise<void> {
         await utils.sleepElementLoaded('body', document);
@@ -59,43 +60,122 @@ class EbayMagSiteProcessor implements ISiteProcessor {
         const element = document.querySelector<HTMLDivElement>('#productFormScrollarea');
         if (!element) return;
 
-        const textarea = <HTMLTextAreaElement>element.querySelector('textarea[placeholder^="Describe the item"]');
+        const lotId = element.dataset.processedLotId?.trim();
+        if (!lotId) return;
+
+        const textarea = element.querySelector<HTMLTextAreaElement>('textarea[placeholder^="Describe the item"]');
         if (!textarea) return;
-
-        const match = textarea.value.match(/<!--\s*(.*?)\s*-->/);
-        if (!match) return;
-
-        const commentContent = match[1].trim();
-        if (element.dataset.processedLotId === commentContent) return;
 
         const descDiv = [...document.querySelectorAll<HTMLDivElement>('div[role="presentation"]')]
             .find(el => (el.textContent ?? '').trim().startsWith('Description'));
         if (!descDiv) return;
 
+        const referenceDescription = await this.getReferenceDescription(lotId);
+        if (!referenceDescription) return;
+
         const previousLink = descDiv.querySelector<HTMLAnchorElement>('a[data-lot-description-link="true"]');
+        const hasDifference = this.normalizeHtml(referenceDescription) !== this.normalizeHtml(textarea.value);
+        if (previousLink?.dataset.lotDescriptionLotId === lotId) {
+            this.setLinkDifferenceState(previousLink, hasDifference);
+            return;
+        }
+
         if (previousLink) {
             previousLink.remove();
         }
 
         const link = document.createElement('a');
         link.href = '#';
-        link.textContent = "Update content " + commentContent ;
+        link.textContent = "Update content " + lotId;
         link.style.display = 'block';
         link.setAttribute('data-lot-description-link', 'true');
+        link.dataset.lotDescriptionLotId = lotId;
+        this.setLinkDifferenceState(link, hasDifference);
         link.addEventListener('click', async (event) => {
             event.preventDefault();
-            await this.updateLotDescription(commentContent, textarea, link);
+            await this.updateLotDescription(lotId, referenceDescription, link);
         });
 
         descDiv.appendChild(link);
-        element.dataset.processedLotId = commentContent;
+    }
+
+    private setLinkDifferenceState(
+        link: HTMLAnchorElement,
+        hasDifference: boolean): void {
+        if (hasDifference) {
+            link.style.setProperty('color', 'red', 'important');
+            return;
+        }
+
+        link.style.removeProperty('color');
+    }
+
+    private async getReferenceDescription(lotId: string): Promise<string | null> {
+        const cachedDescription = this.lotDescriptionCache.get(lotId);
+        if (cachedDescription) {
+            return cachedDescription;
+        }
+
+        if (!this.backendClient) {
+            return null;
+        }
+
+        try {
+            const description = await this.backendClient.getLotForSaleDescription(lotId);
+            if (!description) {
+                return null;
+            }
+
+            this.lotDescriptionCache.set(lotId, description);
+            return description;
+        }
+        catch (error) {
+            console.error('Failed to load lot description', error);
+            return null;
+        }
+    }
+
+    private normalizeHtml(html: string): string {
+        const template = document.createElement('template');
+        template.innerHTML = html;
+        this.normalizeHtmlNode(template.content);
+
+        return template.innerHTML.trim();
+    }
+
+    private normalizeHtmlNode(node: Node): void {
+        for (const child of [...node.childNodes]) {
+            if (child.nodeType === Node.COMMENT_NODE) {
+                child.remove();
+                continue;
+            }
+
+            if (child.nodeType === Node.TEXT_NODE) {
+                const text = child.textContent ?? '';
+                if (!/\S/.test(text)) {
+                    child.remove();
+                    continue;
+                }
+
+                child.textContent = text.replace(/\s+/g, ' ');
+                continue;
+            }
+
+            this.normalizeHtmlNode(child);
+        }
     }
 
     private async updateLotDescription(
         lotId: string,
-        textarea: HTMLTextAreaElement,
+        description: string,
         link: HTMLAnchorElement): Promise<void> {
         if (!this.backendClient) {
+            return;
+        }
+
+        const element = document.querySelector<HTMLDivElement>('#productFormScrollarea');
+        const textarea = element?.querySelector<HTMLTextAreaElement>('textarea[placeholder^="Describe the item"]');
+        if (!textarea) {
             return;
         }
 
@@ -103,15 +183,10 @@ class EbayMagSiteProcessor implements ISiteProcessor {
         link.textContent = `${lotId} (loading...)`;
 
         try {
-            const description = await this.backendClient.getLotForSaleDescription(lotId);
-            if (!description) {
-                throw new Error(`Description for lot ${lotId} is empty.`);
-            }
-
             textarea.value = description;
             textarea.dispatchEvent(new Event('input', { bubbles: true }));
             textarea.dispatchEvent(new Event('change', { bubbles: true }));
-            link.textContent = initialText;
+            this.setLinkDifferenceState(link, false);
         } catch (error) {
             console.error('Failed to update lot description', error);
             link.textContent = initialText ?? lotId;
