@@ -3,10 +3,7 @@
 @using Server.Adapters.Driving.WebApi.Pages
 @using Server.Domain.Measurements
 @model Server.Adapters.Driving.WebApi.Pages.EbayLotDescriptionPage
-
 <!-- @Model.LotId -->
-
-
 @{
     Layout = null;
     var baseUrl = $"{Request.Scheme}://{Request.Host}";
@@ -36,7 +33,6 @@
         return name;
     }
 }
-
 @if (Model.Measurements.Count > 0)
 {
     <h2 style="text-align: center; ">@GetName(Model), See measurement results in table below 📈</h2>
