@@ -63,6 +63,8 @@ class EbayMagSiteProcessor implements ISiteProcessor {
         const textarea = element.querySelector<HTMLTextAreaElement>('textarea[placeholder^="Describe the item"]');
         if (!textarea) return;
 
+        
+        // мы используем такой замудренный способ для поиска id потому что ebaymag не дает получить sku иным стабильным способом
         const match = textarea.value.match(/<!--\s*(.*?)\s*-->/);
         if (!match) return;
 
@@ -150,7 +152,6 @@ class EbayMagSiteProcessor implements ISiteProcessor {
 
     private cleanHtmlText(html: string): string {
         return html
-            .replace(/<!--[\s\S]*?-->/g, '')
             .replace(/\r\n/g, '\n')
             .replace(/\r/g, '\n')
             .replace(/>\s+</g, '><')
