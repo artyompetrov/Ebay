@@ -76,16 +76,24 @@ class EbayMagSiteProcessor implements ISiteProcessor {
         const referenceDescription = await this.getReferenceDescription(lotId);
         if (!referenceDescription) return;
 
+        const link = this.getOrCreateDescriptionLink(descDiv, lotId);
+        const hasDifference = this.hasDescriptionDifference(referenceDescription, textarea.value);
+        this.setLinkDifferenceState(link, hasDifference);
+        link.onclick = async (event) => {
+            event.preventDefault();
+            await this.updateLotDescription(lotId, referenceDescription, link);
+        };
+    }
+
+    private getOrCreateDescriptionLink(
+        descDiv: HTMLDivElement,
+        lotId: string): HTMLAnchorElement {
         const previousLink = descDiv.querySelector<HTMLAnchorElement>('a[data-lot-description-link="true"]');
-        const hasDifference = this.normalizeHtml(referenceDescription) !== this.normalizeHtml(textarea.value);
         if (previousLink?.dataset.lotDescriptionLotId === lotId) {
-            this.setLinkDifferenceState(previousLink, hasDifference);
-            return;
+            return previousLink;
         }
 
-        if (previousLink) {
-            previousLink.remove();
-        }
+        previousLink?.remove();
 
         const link = document.createElement('a');
         link.href = '#';
@@ -93,13 +101,15 @@ class EbayMagSiteProcessor implements ISiteProcessor {
         link.style.display = 'block';
         link.setAttribute('data-lot-description-link', 'true');
         link.dataset.lotDescriptionLotId = lotId;
-        this.setLinkDifferenceState(link, hasDifference);
-        link.addEventListener('click', async (event) => {
-            event.preventDefault();
-            await this.updateLotDescription(lotId, referenceDescription, link);
-        });
-
         descDiv.appendChild(link);
+
+        return link;
+    }
+
+    private hasDescriptionDifference(
+        referenceDescription: string,
+        currentDescription: string): boolean {
+        return this.cleanHtmlText(referenceDescription) !== this.cleanHtmlText(currentDescription);
     }
 
     private setLinkDifferenceState(
@@ -138,34 +148,13 @@ class EbayMagSiteProcessor implements ISiteProcessor {
         }
     }
 
-    private normalizeHtml(html: string): string {
-        const template = document.createElement('template');
-        template.innerHTML = html;
-        this.normalizeHtmlNode(template.content);
-
-        return template.innerHTML.trim();
-    }
-
-    private normalizeHtmlNode(node: Node): void {
-        for (const child of [...node.childNodes]) {
-            if (child.nodeType === Node.COMMENT_NODE) {
-                child.remove();
-                continue;
-            }
-
-            if (child.nodeType === Node.TEXT_NODE) {
-                const text = child.textContent ?? '';
-                if (!/\S/.test(text)) {
-                    child.remove();
-                    continue;
-                }
-
-                child.textContent = text.replace(/\s+/g, ' ');
-                continue;
-            }
-
-            this.normalizeHtmlNode(child);
-        }
+    private cleanHtmlText(html: string): string {
+        return html
+            .replace(/<!--[\s\S]*?-->/g, '')
+            .replace(/\r\n/g, '\n')
+            .replace(/\r/g, '\n')
+            .replace(/>\s+</g, '><')
+            .trim();
     }
 
     private async updateLotDescription(
@@ -189,7 +178,8 @@ class EbayMagSiteProcessor implements ISiteProcessor {
             textarea.value = description;
             textarea.dispatchEvent(new Event('input', { bubbles: true }));
             textarea.dispatchEvent(new Event('change', { bubbles: true }));
-            this.setLinkDifferenceState(link, false);
+            link.textContent = initialText;
+            this.setLinkDifferenceState(link, this.hasDescriptionDifference(description, textarea.value));
         } catch (error) {
             console.error('Failed to update lot description', error);
             link.textContent = initialText ?? lotId;
