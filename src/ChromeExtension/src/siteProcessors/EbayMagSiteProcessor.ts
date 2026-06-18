@@ -60,11 +60,14 @@ class EbayMagSiteProcessor implements ISiteProcessor {
         const element = document.querySelector<HTMLDivElement>('#productFormScrollarea');
         if (!element) return;
 
-        const lotId = element.dataset.processedLotId?.trim();
-        if (!lotId) return;
-
         const textarea = element.querySelector<HTMLTextAreaElement>('textarea[placeholder^="Describe the item"]');
         if (!textarea) return;
+
+        const match = textarea.value.match(/<!--\s*(.*?)\s*-->/);
+        if (!match) return;
+
+        const lotId = match[1].trim();
+        if (!lotId) return;
 
         const descDiv = [...document.querySelectorAll<HTMLDivElement>('div[role="presentation"]')]
             .find(el => (el.textContent ?? '').trim().startsWith('Description'));
