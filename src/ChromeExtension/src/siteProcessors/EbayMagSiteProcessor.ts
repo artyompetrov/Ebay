@@ -50,7 +50,7 @@ class EbayMagSiteProcessor implements ISiteProcessor {
         for (const skuElement of skuElements) {
             const sku = skuElement.textContent?.trim();
             if (sku && lotForSaleIds.has(sku)) {
-                skuElement.style.setProperty('color', 'red', 'important');
+                skuElement.style.setProperty('color', 'green', 'important');
             }
         }
     }
