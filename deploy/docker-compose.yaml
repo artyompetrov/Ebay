@@ -85,12 +85,12 @@ services:
       - EMAIL=${EMAIL}
     networks:
       - internal_network
-    restart: no
+    restart: unless-stopped
 
   ebay_portainer:
     container_name: ebay_portainer
     image: portainer/portainer-ce:2.26.0
-    restart: always
+    restart: unless-stopped
     command: >
       --admin-password '${PORTAINER_HASH}'
     volumes:
