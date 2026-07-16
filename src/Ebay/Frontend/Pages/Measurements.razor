@@ -235,7 +235,7 @@
                            id="@checkboxId"
                            checked="@_selectedMeasurementStates.Contains(state)"
                            @onchange="e => OnMeasurementFilterChanged(state, (bool?)e.Value == true)" />
-                    <label class="form-check-label" for="@checkboxId">
+                    <label class="form-check-label" for="@checkboxId" title="@GetMeasurementStateHint(state)">
                         @GetMeasurementStateEmoji(state) @state.ToString("G")
                     </label>
                 </div>
@@ -286,11 +286,12 @@
                 <td>@measurement.ProductState.ToString("G")</td>
                 <td>
                     <select class="form-select"
+                            title="@GetMeasurementStateHint(measurement.MeasurementState)"
                             value="@measurement.MeasurementState"
                             @onchange="async e => await OnMeasurementStateChanged(measurement, Enum.Parse<MeasurementState>(e.Value!.ToString()!))">
                         @foreach (var state in _measurementStates)
                         {
-                            <option value="@state" selected="@(state == measurement.MeasurementState)">
+                            <option value="@state" selected="@(state == measurement.MeasurementState)" title="@GetMeasurementStateHint(state)">
                                 @GetMeasurementStateEmoji(state) @state.ToString("G")
                             </option>
                         }
@@ -876,6 +877,16 @@
             MeasurementState.Selling => "\uD83D\uDED2",
             MeasurementState.Sold => "\u2705",
             _ => string.Empty
+        };
+    }
+
+    private static string? GetMeasurementStateHint(MeasurementState state)
+    {
+        return state switch
+        {
+            MeasurementState.Created => "Created — в Кемерово",
+            MeasurementState.Selling => "Selling — в Казахстане",
+            _ => null
         };
     }
 }
