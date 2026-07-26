@@ -1,7 +1,7 @@
 ﻿---
 # Do not edit manually - this file is mirrored.
 name: web-api
-description: Carbon project Web API rules. Use when designing, implementing, changing, or reviewing REST endpoints, OpenAPI/Swagger annotations, request or response DTOs, manual web-adapter validation, status codes, pagination, endpoint naming, and external error responses.
+description: Project Web API rules. Use when designing, implementing, changing, or reviewing REST endpoints, OpenAPI/Swagger annotations, request or response DTOs, manual web-adapter validation, status codes, pagination, endpoint naming, and external error responses.
 ---
 
 # Web API
