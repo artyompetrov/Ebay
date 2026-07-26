@@ -1,53 +1,53 @@
 # Project AGENTS.md Guide
 
-## О проекте
-Приложение для анализа цен товаров на eBay и последующей закупки на внешних площадках.
+## About the project
+An application for analyzing eBay product prices and subsequent purchasing on external marketplaces.
 
-Состав проекта:
-1. Серверная часть (Docker / docker-compose).
-2. Клиентская часть (Blazor WebAssembly).
-3. Chrome extension для парсинга страниц eBay и сохранения данных через API.
-4. БД: PostgreSQL.
-5. Часть API-кода генерируется из OpenAPI-контрактов.
+Project composition:
+1. Server side (Docker / docker-compose).
+2. Client side (Blazor WebAssembly).
+3. Chrome extension for parsing eBay pages and saving data via the API.
+4. DB: PostgreSQL.
+5. Part of the API code is generated from OpenAPI contracts.
 
-## Базовые инженерные правила
-- Следуем SOLID, DRY, KISS.
-- Избегайте копипасты; переиспользуйте существующие решения.
-- Исправляйте первопричину проблемы, а не симптомы.
-- Предпочитайте системные и единообразные решения локальным обходам.
+## Base engineering rules
+- Follow SOLID, DRY, KISS.
+- Avoid copy-pasting; reuse existing solutions.
+- Fix the root cause of a problem, not the symptoms.
+- Prefer systemic, consistent solutions over local workarounds.
 
-## DI и сервисы
-- По умолчанию регистрации в DI: `Transient`.
-- `Scoped` — только когда действительно нужен общий контекст операции (в первую очередь EF `DbContext`).
-- `Singleton` — только осознанно и с явным обоснованием рядом с регистрацией.
-- Предпочитаем stateless-сервисы (не хранить изменяемое состояние в полях без необходимости).
+## DI and services
+- Default DI registration: `Transient`.
+- `Scoped` — only when a shared operation context is genuinely needed (primarily EF `DbContext`).
+- `Singleton` — only deliberately and with an explicit justification next to the registration.
+- Prefer stateless services (don't store mutable state in fields unless necessary).
 
-## Тесты
-- Для unit-тестов по возможности делаем отдельный test class на каждый production-класс.
-- Добавляем `[TestOf(typeof(...))]` на test class.
+## Tests
+- For unit tests, use a separate test class per production class where possible.
+- Add `[TestOf(typeof(...))]` to the test class.
 
-## Навигация
-- `.github/workflows/build-and-tests.yaml` — основная CI/CD-сборка и деплой.
-- `src/Ebay` — backend + Blazor frontend (детали: `src/Ebay/AGENTS.md`).
-- `src/ChromeExtension` — Chrome extension (детали: `src/ChromeExtension/AGENTS.md`).
-- `src/Dockerfile` — сборка решения в контейнер.
-- `deploy` — docker-compose для запуска.
+## Navigation
+- `.github/workflows/build-and-tests.yaml` — main CI/CD build and deploy.
+- `src/Ebay` — backend + Blazor frontend (details: `src/Ebay/AGENTS.md`).
+- `src/ChromeExtension` — Chrome extension (details: `src/ChromeExtension/AGENTS.md`).
+- `src/Dockerfile` — builds the solution into a container.
+- `deploy` — docker-compose for running the app.
 
-## Проверки перед PR
-Запускайте `./agent-check.sh` из корня репозитория.
+## Pre-PR checks
+Run `./agent-check.sh` from the repository root.
 
-## Актуализация AGENTS.md
-Если в рамках задачи изменились правила, структура, сборка, тестирование, кодогенерация или деплой — обновите соответствующий `AGENTS.md` в этом же PR.
+## Keeping AGENTS.md up to date
+If the task changes rules, structure, build, testing, code generation, or deployment — update the relevant `AGENTS.md` in the same PR.
 
-## Правила по слоям
-Каждый слой проекта может содержать свой `AGENTS.md` с детальными ограничениями.
-Найди все файлы перед внесением изменений:
+## Layer-specific rules
+Each layer of the project may have its own `AGENTS.md` with detailed constraints.
+Find all such files before making changes:
 
 ```shell
 rg --files --glob "AGENTS.md" "$(git rev-parse --show-toplevel)/src"
 ```
-Если команда ничего не вывела, дополнительных правил слоёв в `src/` нет.
-Прочитай каждый найденный файл. Правила слоя имеют приоритет над глобальными правилами в пределах своего слоя.
+If the command produces no output, there are no additional layer-specific rules in `src/`.
+Read each file found. Layer rules take priority over the global rules within their own layer.
 
 ## Fix the cause, not the symptom
 Don't patch symptoms (hardcodes, special cases, suppressed errors, copy-paste) — this accumulates entropy in the code.

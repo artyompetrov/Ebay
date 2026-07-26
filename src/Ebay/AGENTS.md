@@ -1,85 +1,85 @@
 # AGENTS.md for src/Ebay
 
-Правила для C# backend и Blazor frontend в `src/Ebay`.
+Rules for the C# backend and Blazor frontend in `src/Ebay`.
 
 ## Code style
-- Перед изменениями в C#-коде изучайте не только `src/.editorconfig`, но и `src/Ebay/Directory.Build.props`.
-- Для новых C#-контрактов/клиентов используем `System.Text.Json`.
-- Для тестируемого кода в domain/application избегаем лишней зависимости от статических методов.
-- В `Server.Application.New` документируем все `public` типы и `public` члены через XML-комментарии (`///`).
-- Для даты/времени используем `DateTimeOffset` и `DateOnly`; `DateTime` не используем.
-- Бизнес-правила размещаем в `Server.Domain`; адаптеры содержат только трансляцию ввода/вывода.
-- Не расширяем видимость членов только ради тестов.
+- Before making changes to C# code, study not only `src/.editorconfig` but also `src/Ebay/Directory.Build.props`.
+- Use `System.Text.Json` for new C# contracts/clients.
+- For testable code in domain/application, avoid unnecessary dependencies on static methods.
+- In `Server.Application.New`, document all `public` types and `public` members with XML comments (`///`).
+- Use `DateTimeOffset` and `DateOnly` for date/time; do not use `DateTime`.
+- Place business rules in `Server.Domain`; adapters contain only input/output translation.
+- Don't widen member visibility just for the sake of tests.
 
-## Сборка и качество
-- `src/Ebay/Directory.Build.props` включает строгие проверки (nullable, warnings as errors).
-- Базовая проверка сборки: `cd /workspace/Ebay/src/Ebay && dotnet build`.
+## Build and quality
+- `src/Ebay/Directory.Build.props` enables strict checks (nullable, warnings as errors).
+- Basic build check: `cd /workspace/Ebay/src/Ebay && dotnet build`.
 
-## Структура модулей
+## Module structure
 - `Frontend` — Blazor WebAssembly.
 - `Server` — backend host (composition root).
-- `Server.Contracts` — OpenAPI-контракты.
+- `Server.Contracts` — OpenAPI contracts.
 - `Server.Application` — legacy application layer.
-- `Server.Application.New` — новый application layer.
-- `Server.Domain` — доменная модель.
-- `Server.Adapters.*` — адаптеры.
-- `Tests.Unit`, `Tests.Integration`, `Tests.Explicit` — тестовые проекты.
+- `Server.Application.New` — new application layer.
+- `Server.Domain` — domain model.
+- `Server.Adapters.*` — adapters.
+- `Tests.Unit`, `Tests.Integration`, `Tests.Explicit` — test projects.
 
-## Кодогенерация
-- Legacy-контракт: `src/Ebay/Server.Contracts/Legacy/Ebay.yaml` (новые изменения туда не добавляем).
-- Новые контракты: `src/Ebay/Server.Contracts/WebApi/*.yaml`.
-- NSwag-кодогенерация выполняется автоматически MSBuild-таргетами во время сборки.
-- Новый API-функционал добавляем только в `Server.Contracts/WebApi/*.yaml`; в `Legacy/Ebay.yaml` новые endpoint'ы/DTO не добавляем.
+## Code generation
+- Legacy contract: `src/Ebay/Server.Contracts/Legacy/Ebay.yaml` (do not add new changes there).
+- New contracts: `src/Ebay/Server.Contracts/WebApi/*.yaml`.
+- NSwag code generation runs automatically via MSBuild targets during the build.
+- Add new API functionality only to `Server.Contracts/WebApi/*.yaml`; don't add new endpoints/DTOs to `Legacy/Ebay.yaml`.
 
-## Локальная отладка backend
-- Запуск: `dotnet run --launch-profile Server --project /workspace/Ebay/src/Ebay/Server/Server.csproj`.
-- Для backend runtime-настроек используем `launchSettings.json`; не используем `appsettings*.json`.
-- Для локальной БД используем PostgreSQL на порту `15432`; backend-тесты зависят от доступной БД.
-- Для eventual consistency в интеграционных тестах используем `Tests.Integration/TestHelpers.RetryUntilValidationSuccessAsync`.
-- Полезные проверки API:
+## Local backend debugging
+- Run: `dotnet run --launch-profile Server --project /workspace/Ebay/src/Ebay/Server/Server.csproj`.
+- Use `launchSettings.json` for backend runtime settings; don't use `appsettings*.json`.
+- Use PostgreSQL on port `15432` for the local DB; backend tests depend on the DB being available.
+- For eventual consistency in integration tests, use `Tests.Integration/TestHelpers.RetryUntilValidationSuccessAsync`.
+- Useful API checks:
   - `curl -i http://127.0.0.1:5080/chrome_extensions/auth`
   - `curl -i http://127.0.0.1:5080/chrome_extensions/<extension>.xml`
 
-## Миграции БД
-- Legacy-миграции: `Server.Application/Migrations`.
-- Инфраструктура БД должна находиться в DB-адаптере, а не в `Server.Application.New`.
-- Новый инфраструктурный код EF (сущности/маппинги/таблицы) не добавляем в legacy `Server.Application/Data/ApplicationDbContext`; размещаем в адаптерных DbContext'ах.
-- Для write-model используем:
+## DB migrations
+- Legacy migrations: `Server.Application/Migrations`.
+- DB infrastructure should live in the DB adapter, not in `Server.Application.New`.
+- Don't add new EF infrastructure code (entities/mappings/tables) to the legacy `Server.Application/Data/ApplicationDbContext`; place it in adapter DbContexts.
+- For the write model, use:
   - `WriteModelDbContext`: `Server.Adapters.Driven.EF.WriteModel/WriteModelDbContext`
-  - проект миграций: `Server.Adapters.Driven.EF.WriteModel.Migrations`
-  - схема БД: `wm`
-- Миграции создаем только через EF CLI (не вручную).
-- Команды:
+  - migrations project: `Server.Adapters.Driven.EF.WriteModel.Migrations`
+  - DB schema: `wm`
+- Create migrations only via the EF CLI (not manually).
+- Commands:
   - legacy: `cd /workspace/Ebay/src/Ebay && dotnet ef migrations add NewMigrationName --project Server.Application --startup-project Server`
   - write-model: `cd /workspace/Ebay && dotnet ef migrations add NewMigrationName --project src/Ebay/Server.Adapters.Driven.EF.WriteModel.Migrations/Server.Adapters.Driven.EF.WriteModel.Migrations.csproj --startup-project src/Ebay/Server/Server.csproj --context Server.Adapters.Driven.EF.WriteModel.WriteModelDbContext --output-dir Migrations/WriteModelDb`
 
-## Конфигурация и DI
-- По умолчанию сервисы: `Transient`.
-- `Scoped` — только для общего контекста операции (прежде всего EF `DbContext`).
-- `Singleton` — только с явным обоснованием.
-- В `Program.cs` не читаем параметры напрямую через `GetSection`/`GetRequiredSection` при регистрации контейнера.
-- Используем `AddOptions<...>().BindConfiguration("...").ValidateDataAnnotations().ValidateOnStart()`.
+## Configuration and DI
+- Default services: `Transient`.
+- `Scoped` — only for a shared operation context (primarily EF `DbContext`).
+- `Singleton` — only with an explicit justification.
+- In `Program.cs`, don't read parameters directly via `GetSection`/`GetRequiredSection` during container registration.
+- Use `AddOptions<...>().BindConfiguration("...").ValidateDataAnnotations().ValidateOnStart()`.
 
-## Архитектурные ограничения
+## Architectural constraints
 ### DDD
-- Граница агрегата = граница транзакции и консистентности.
-- Между агрегатами храним ссылки только по AggregateId.
-- Навигационные свойства между агрегатами в write-model запрещены.
-- Полные навигации (`join`/`include`) допустимы только в read-model.
-- Каскадные удаления/обновления допустимы только внутри агрегата; между агрегатами используем `RESTRICT`.
-- `Server.Domain` содержит агрегаты, `Server.Adapters.Driven.EF.WriteModel` — репозитории, `Server.Adapters.Driven.EF.ReadModel` — read-model.
+- An aggregate boundary is a transaction and consistency boundary.
+- Between aggregates, store references only by AggregateId.
+- Navigation properties between aggregates are forbidden in the write model.
+- Full navigations (`join`/`include`) are allowed only in the read model.
+- Cascading deletes/updates are allowed only within an aggregate; use `RESTRICT` between aggregates.
+- `Server.Domain` contains aggregates, `Server.Adapters.Driven.EF.WriteModel` — repositories, `Server.Adapters.Driven.EF.ReadModel` — the read model.
 
 ### Hexagonal
-- `Server.Domain` — доменные правила.
-- `Server.Application.New` — use cases и порты.
-- `Server.Adapters.*` — реализации портов.
-- `Server.Application.New` не должен ссылаться на `Server.Adapters.*`.
+- `Server.Domain` — domain rules.
+- `Server.Application.New` — use cases and ports.
+- `Server.Adapters.*` — port implementations.
+- `Server.Application.New` must not reference `Server.Adapters.*`.
 
-## Чеклист по ошибкам с ревью (обязателен перед PR)
-- Репозиторий (`Server.Adapters.Driven.*.Repositories`) не вызывает `SaveChanges/SaveChangesAsync`; фиксация изменений выполняется в application-слое через `IWriteModelUnitOfWork`/`IUnitOfWork`.
-- Репозиторий не содержит бизнес-оркестрацию (например, пересчет порядков, валидации сценария, межагрегатные проверки); это размещается в `Server.Domain` (поведение агрегата) и/или в `Server.Application.New` (use-case сервис).
-- Контроллеры (`Server.Adapters.Driving.*`) не должны реализовывать command-use-case логику; они только маппят HTTP <-> application и делегируют сценарии в application-сервисы.
-- Перед отправкой PR обязательно выполнить self-review по слоям: **Domain rule? -> Domain**, **Use-case orchestration/commit? -> Application.New**, **I/O mapping only? -> Adapter**. Если пункт нарушен — исправить до ревью.
+## Review-error checklist (mandatory before a PR)
+- A repository (`Server.Adapters.Driven.*.Repositories`) does not call `SaveChanges/SaveChangesAsync`; committing changes happens in the application layer via `IWriteModelUnitOfWork`/`IUnitOfWork`.
+- A repository does not contain business orchestration (e.g., reordering recalculation, scenario validation, cross-aggregate checks); this belongs in `Server.Domain` (aggregate behavior) and/or `Server.Application.New` (use-case service).
+- Controllers (`Server.Adapters.Driving.*`) must not implement command-use-case logic; they only map HTTP <-> application and delegate scenarios to application services.
+- Before submitting a PR, do a mandatory self-review by layer: **Domain rule? -> Domain**, **Use-case orchestration/commit? -> Application.New**, **I/O mapping only? -> Adapter**. If a point is violated — fix it before review.
 
 ## UI
-- Иконки: Open Iconic (https://icones.js.org/collection/oi, https://github.com/iconic/open-iconic) или emoji.
+- Icons: Open Iconic (https://icones.js.org/collection/oi, https://github.com/iconic/open-iconic) or emoji.
