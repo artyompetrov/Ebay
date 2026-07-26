@@ -1,5 +1,4 @@
 ---
-# Do not edit manually - this file is mirrored.
 name: csharp-style
 description: Project C# code style rules. Use before creating, modifying or reviewing any .cs file in this solution — type/member visibility, CancellationToken parameters, nullable reference types, SOLID-minimal interfaces, immutability, IHostedService graceful shutdown, constructors, local functions, and DI registration lifetimes.
 ---

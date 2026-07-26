@@ -1,5 +1,4 @@
 ﻿---
-# Do not edit manually - this file is mirrored.
 name: logging
 description: Project logging rules. Use when adding, changing, or reviewing log messages, log levels, structured logging decisions, retry or shutdown logs, exception logging, and checks for sensitive data in logs.
 ---
