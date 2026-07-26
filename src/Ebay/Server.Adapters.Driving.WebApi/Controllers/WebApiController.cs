@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Adapters.Driving.WebApi.Generated;
@@ -7,6 +8,7 @@ using DomainProductState = Server.Domain.Measurements.ProductState;
 
 namespace Server.Adapters.Driving.WebApi.Controllers;
 
+[Authorize]
 public sealed class WebApiController : WebApiControllerBase
 {
     private readonly LotForSaleService _lotForSaleService;
@@ -115,6 +117,8 @@ public sealed class WebApiController : WebApiControllerBase
         return Ok();
     }
 
+    // Anonymous: embedded as <img> src on EbayLotDescriptionPage, which is pulled into public eBay listing descriptions.
+    [AllowAnonymous]
     public override async Task<IActionResult> GetMeasurementPhotoContent(
         string measurementId,
         Guid photoId,
