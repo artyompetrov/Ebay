@@ -129,6 +129,20 @@ public sealed class WebApiController : WebApiControllerBase
         return File(photo.Content, photo.ContentType, photo.FileName);
     }
 
+    public override async Task<ActionResult<ICollection<MeasurementPhotoCountResponse>>> GetMeasurementPhotoCounts(
+        IEnumerable<string> measurementIds,
+        CancellationToken cancellationToken = default)
+    {
+        var metadata = await _measurementPhotoQueries.GetMetadataByMeasurementIds(measurementIds.ToList(), cancellationToken);
+
+        var response = metadata
+            .GroupBy(x => x.MeasurementId)
+            .Select(x => new MeasurementPhotoCountResponse(x.Key, x.Count()))
+            .ToList();
+
+        return response;
+    }
+
     private static DomainProductState ToDomainProductState(LotForSaleProductState productState)
     {
         return productState switch

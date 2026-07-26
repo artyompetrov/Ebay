@@ -178,6 +178,34 @@ paths:
         '404':
           description: Photo not found
 
+  /measurements/photos/counts:
+    get:
+      operationId: GetMeasurementPhotoCounts
+      summary: Returns photo counts for a set of measurements
+      tags:
+        - WebApi
+      parameters:
+        - in: query
+          name: measurementIds
+          required: true
+          style: form
+          explode: true
+          schema:
+            type: array
+            minItems: 1
+            items:
+              type: string
+              maxLength: 100
+      responses:
+        '200':
+          description: Photo counts per measurement
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MeasurementPhotoCountResponse'
+
 components:
   schemas:
     LotForSaleCreateRequest:
@@ -251,6 +279,19 @@ components:
         order:
           type: integer
 
+    MeasurementPhotoCountResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - measurementId
+        - photoCount
+      properties:
+        measurementId:
+          type: string
+          maxLength: 100
+        photoCount:
+          type: integer
+
     MeasurementPhotoUploadRequest:
       type: object
       additionalProperties: false
@@ -264,7 +305,9 @@ components:
         contentType:
           type: string
         order:
-          type: integer
+          type:
+            - integer
+            - 'null'
         file:
           type: string
           format: byte

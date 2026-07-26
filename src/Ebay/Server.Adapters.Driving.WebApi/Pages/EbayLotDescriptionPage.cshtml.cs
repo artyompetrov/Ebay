@@ -11,15 +11,18 @@ public class EbayLotDescriptionPage : PageModel
     private readonly IMeasurementQueries _measurementQueries;
     private readonly IProductQueries _productQueries;
     private readonly IPassportQueries _passportQueries;
+    private readonly IMeasurementPhotoQueries _measurementPhotoQueries;
 
     public EbayLotDescriptionPage(
         IMeasurementQueries measurementQueries,
         IProductQueries productQueries,
-        IPassportQueries passportQueries)
+        IPassportQueries passportQueries,
+        IMeasurementPhotoQueries measurementPhotoQueries)
     {
         _measurementQueries = measurementQueries;
         _productQueries = productQueries;
         _passportQueries = passportQueries;
+        _measurementPhotoQueries = measurementPhotoQueries;
     }
 
     public ProductState State { get; set; }
@@ -31,6 +34,8 @@ public class EbayLotDescriptionPage : PageModel
     public IReadOnlyList<Passport> Passports { get; set; } = null!;
 
     public IReadOnlyCollection<MeasurementInfoWithSimilarMeasurements> Measurements { get; set; } = null!;
+
+    public ILookup<string, MeasurementPhotoMetadata> PhotosByMeasurementId { get; set; } = null!;
 
     public async Task<IActionResult> OnGet(Guid productId, MeasurementState? measurementState, ProductState? state, CancellationToken cancellationToken, string? lotId = null)
     {
@@ -58,6 +63,12 @@ public class EbayLotDescriptionPage : PageModel
         Measurements = await _measurementQueries.GetMeasurementInfosWithSimilarMeasurements(productId, lotId, productStates:
             [state.Value], measurementStates: [measurementState.Value], cancellationToken: cancellationToken);
         Passports = await _passportQueries.GetPassports(productId, cancellationToken);
+
+        var measurementIds = Measurements.Select(x => x.MeasurementInfo.Id).ToList();
+        var photoMetadata = measurementIds.Count == 0
+            ? []
+            : await _measurementPhotoQueries.GetMetadataByMeasurementIds(measurementIds, cancellationToken);
+        PhotosByMeasurementId = photoMetadata.ToLookup(x => x.MeasurementId);
 
         Product = product;
 

@@ -58,4 +58,19 @@ internal sealed class MeasurementPhotoQueries : IMeasurementPhotoQueries
                 x.Content))
             .SingleOrDefaultAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyList<MeasurementPhotoMetadata>> GetMetadataByMeasurementIds(
+        IReadOnlyCollection<string> measurementIds,
+        CancellationToken cancellationToken)
+    {
+        return await _context.MeasurementPhotos
+            .Where(x => measurementIds.Contains(x.MeasurementId))
+            .OrderBy(x => x.Order)
+            .Select(x => new MeasurementPhotoMetadata(
+                x.Id,
+                x.MeasurementId,
+                x.FileName,
+                x.Order))
+            .ToListAsync(cancellationToken);
+    }
 }

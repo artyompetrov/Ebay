@@ -1,4 +1,5 @@
 @page "/measurement-photos"
+@page "/measurement-photos/{MeasurementId}"
 @using Client.Clients.Generated
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
@@ -78,6 +79,20 @@
     private string? _message;
     private bool _isScanning;
     private ICollection<MeasurementPhotoResponse> _photos = [];
+
+    [Parameter]
+    public string? MeasurementId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrWhiteSpace(MeasurementId))
+        {
+            return;
+        }
+
+        _measurementId = MeasurementId;
+        await LoadPhotosAsync();
+    }
 
     private async Task ScanBarcodeAsync()
     {

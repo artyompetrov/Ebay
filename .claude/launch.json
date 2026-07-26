@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Server",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--launch-profile", "Server", "--project", "src/Ebay/Server/Server.csproj"],
+      "port": 7095,
+      "url": "https://localhost:7095"
+    }
+  ]
+}

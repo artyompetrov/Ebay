@@ -44,7 +44,7 @@ public class ProductMeasurementFlowTests
         await TestHelpers.AuthenticateWithClientCredentialsAsync(httpClient);
 
         var ebayClient = TestHelpers.CreateEbayClient(httpClient);
-        var productId = await CreateProductAsync(ebayClient);
+        var productId = await TestHelpers.CreateProductAsync(ebayClient);
 
         var randomSeed = Random.Shared.Next(1000, 9999);
         var measurementId = $"MEA{randomSeed}";
@@ -54,7 +54,7 @@ public class ProductMeasurementFlowTests
                 MeasurementId = measurementId,
                 ManufactureCode = "2026-02",
                 ProductState = ProductState.New,
-                File = CreateValidMeasurementArchive(randomSeed)
+                File = TestHelpers.CreateValidMeasurementArchive(randomSeed)
             },
             productId);
 
@@ -138,64 +138,6 @@ public class ProductMeasurementFlowTests
             Assert.That(response.Content.Headers.ContentType?.MediaType, Is.EqualTo("image/svg+xml"));
             Assert.That(content, Does.Contain("<svg"));
         }
-    }
-
-    private static async Task<Guid> CreateProductAsync(EbayClient ebayClient)
-    {
-        var product = new ProductWithoutId
-        {
-            Name = $"integration-product-{Guid.NewGuid():N}",
-            Weight = 100,
-            SearchQueries =
-            [
-                new SearchQuery
-                {
-                    Id = Guid.NewGuid(),
-                    Query = "integration product"
-                }
-            ],
-            RuSearchQueries = []
-        };
-
-        return await ebayClient.CreateProductAsync(product);
-    }
-
-    private static byte[] CreateValidMeasurementArchive(int randomSeed)
-    {
-        var config = string.Join('\n',
-        [
-            "9 number of stepping variables",
-            "30 Variable 1 number of intervals",
-            "4 measurement type",
-            "0 Y2 axis variable",
-            "12000 Pmax"
-        ]);
-
-        var data = string.Join('\n',
-        [
-            "Curve  Ia (mA)  Is (mA)  Vg (V)  Va (V)  Vs (V)  Vf (V)",
-            "1  1.2  0.0  -1.0  100.0  100.0  6.3",
-            "1  2.1  0.0  -0.5  150.0  150.0  6.3",
-            $"1  {2.8 + randomSeed / 1000.0:0.000}  0.0  0.0  {200 + randomSeed}.0  {200 + randomSeed}.0  6.3"
-        ]);
-
-        using var stream = new MemoryStream();
-        using (var archive = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true))
-        {
-            var configEntry = archive.CreateEntry("anode_curves.uts");
-            using (var writer = new StreamWriter(configEntry.Open()))
-            {
-                writer.Write(config);
-            }
-
-            var dataEntry = archive.CreateEntry("anode_curves.uts.utd");
-            using (var writer = new StreamWriter(dataEntry.Open()))
-            {
-                writer.Write(data);
-            }
-        }
-
-        return stream.ToArray();
     }
 
     private sealed record MeasurementContext(

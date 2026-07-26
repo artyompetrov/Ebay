@@ -246,6 +246,7 @@
         <thead>
         <tr>
             <th>Название</th>
+            <th>Фото</th>
             <th>Код</th>
             <th>Состояние</th>
             <th>Статус</th>
@@ -277,6 +278,11 @@
 
             <tr class="@matchRowClass">
                 <td><NavLink href="@($"m/{measurement.MeasurementId}")" target="_blank">#@measurement.MeasurementId</NavLink></td>
+                <td>
+                    <NavLink class="btn btn-outline-secondary btn-sm" href="@($"measurement-photos/{measurement.MeasurementId}")" target="_blank">
+                        📷 @GetPhotoCount(measurement.MeasurementId)
+                    </NavLink>
+                </td>
                 <td>
                     <input type="text"
                            class="form-control"
@@ -397,6 +403,7 @@
     };
     private List<MeasurementData>? _allMeasurements;
     private ICollection<MeasurementData>? _measurements;
+    private Dictionary<string, int> _photoCounts = new();
     private QuestionPopup _questionPopup = null!;
     private string? _manufactureCode;
     private TubeWorkingPoint _tubeWorkingPoint = new();
@@ -498,8 +505,24 @@
     private async Task UpdateMeasurementsAsync()
     {
         _allMeasurements = (await EbayClient.GetMeasurementsAsync(null, ProductId)).ToList();
+        await LoadPhotoCountsAsync();
         ApplyMeasurementFilters();
     }
+
+    private async Task LoadPhotoCountsAsync()
+    {
+        if (_allMeasurements is null || _allMeasurements.Count == 0)
+        {
+            _photoCounts = new();
+            return;
+        }
+
+        var measurementIds = _allMeasurements.Select(x => x.MeasurementId).ToList();
+        var counts = await WebApiClient.GetMeasurementPhotoCountsAsync(measurementIds);
+        _photoCounts = counts.ToDictionary(x => x.MeasurementId, x => x.PhotoCount);
+    }
+
+    private int GetPhotoCount(string measurementId) => _photoCounts.GetValueOrDefault(measurementId);
 
     private void OnMeasurementFilterChanged(MeasurementState state, bool isSelected)
     {

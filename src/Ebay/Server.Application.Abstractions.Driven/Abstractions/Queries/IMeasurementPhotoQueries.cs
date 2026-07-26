@@ -16,4 +16,8 @@ public interface IMeasurementPhotoQueries
         string measurementId,
         Guid photoId,
         CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<MeasurementPhotoMetadata>> GetMetadataByMeasurementIds(
+        IReadOnlyCollection<string> measurementIds,
+        CancellationToken cancellationToken);
 }
