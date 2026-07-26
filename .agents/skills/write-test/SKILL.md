@@ -4,7 +4,7 @@ name: write-tests
 description: Project testing rules. Use when adding, changing, or reviewing tests; choosing assertion style; deciding whether generated OpenAPI/swagger/schema artifacts need tests; testing manual logic around generated contracts; or checking whether tests are safe for parallel execution.
 ---
 
-# Carbon Write Tests
+# Write Tests
 
 ## Core Rules
 
