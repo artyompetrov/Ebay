@@ -3,7 +3,7 @@ using SkiaSharp;
 
 namespace Server.Adapters.Driven.ImageProcessing;
 
-public sealed class PhotoThumbnailGenerator : IPhotoThumbnailGenerator
+internal sealed class PhotoThumbnailGenerator : IPhotoThumbnailGenerator
 {
     private const int ThumbnailMaxDimensionPixels = 400;
     private const int ThumbnailJpegQuality = 75;
