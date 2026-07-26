@@ -129,8 +129,68 @@ else
             height: 100px;
             object-fit: cover;
         }
+
+        .photo-hover {
+            position: relative;
+            display: inline-block;
+        }
+
+        .photo-hover-toggle {
+            display: none;
+        }
+
+        .photo-hover-thumb-label {
+            display: block;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .photo-hover-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 999;
+        }
+
+        .photo-hover-toggle:checked ~ .photo-hover-backdrop {
+            display: block;
+        }
+
+        .photo-hover-full {
+            display: block;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 90vw;
+            max-height: 90vh;
+            width: auto;
+            height: auto;
+            visibility: hidden;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 1000;
+            border: 2px solid #ccc;
+            background: #fff;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+        }
+
+        .photo-hover:hover .photo-hover-full,
+        .photo-hover-toggle:checked ~ .photo-hover-full {
+            visibility: visible;
+            opacity: 1;
+        }
     </style>
-    
+
+    @if (Model.PhotosByMeasurementId.Count > 0)
+    {
+        <p style="text-align: center;">📷 Hover over (or tap, on mobile) a tube's photo thumbnail below to view it full-size.</p>
+    }
+
     <table >
 
         @{
@@ -235,11 +295,19 @@ else
                         <div class="measurement-photos">
                             @foreach (var photo in Model.PhotosByMeasurementId[meas.MeasurementInfo.Id])
                             {
-                                <a href="@($"{baseUrl}/api/webapi/v1/measurements/{meas.MeasurementInfo.Id}/photos/{photo.Id}/content")" target="_blank">
-                                    <img class="measurement-photo-thumb"
-                                         src="@($"{baseUrl}/api/webapi/v1/measurements/{meas.MeasurementInfo.Id}/photos/{photo.Id}/thumbnail/content")"
+                                var photoToggleId = $"photo-toggle-{photo.Id}";
+                                <span class="photo-hover">
+                                    <input type="checkbox" id="@photoToggleId" class="photo-hover-toggle" />
+                                    <label for="@photoToggleId" class="photo-hover-thumb-label">
+                                        <img class="measurement-photo-thumb"
+                                             src="@($"{baseUrl}/api/webapi/v1/measurements/{meas.MeasurementInfo.Id}/photos/{photo.Id}/thumbnail/content")"
+                                             alt="@photo.FileName"/>
+                                    </label>
+                                    <label for="@photoToggleId" class="photo-hover-backdrop"></label>
+                                    <img class="photo-hover-full"
+                                         src="@($"{baseUrl}/api/webapi/v1/measurements/{meas.MeasurementInfo.Id}/photos/{photo.Id}/content")"
                                          alt="@photo.FileName"/>
-                                </a>
+                                </span>
                             }
                         </div>
                     </td>

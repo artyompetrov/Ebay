@@ -11,15 +11,16 @@ The eBay page's HTML is embedded into eBay's listing template. eBay strips `<scr
 ## Goals / Non-Goals
 
 **Goals:**
-- Replace the click-to-new-tab-then-download behavior with a same-page, CSS-only (`:hover`, no JavaScript) full-size preview on both pages.
-- Use one consistent hover-preview markup/CSS pattern on both pages so behavior and styling stay in sync.
-- Guarantee that hovering (or failing to hover, e.g. on touch devices) never navigates the page, opens a new tab, or triggers a file download.
+- Replace the click-to-new-tab-then-download behavior with a same-page, CSS-only (no JavaScript) full-size preview on both pages.
+- Support both desktop mouse users (hover) and touch/mobile users (tap), since the eBay page will actually be viewed on phones as part of a live listing.
+- Use one consistent hover/tap-preview markup/CSS pattern on both pages so behavior and styling stay in sync.
+- Guarantee that hovering or tapping never navigates the page, opens a new tab, or triggers a file download.
 - Keep reusing the existing thumbnail and content endpoints unchanged.
 
 **Non-Goals:**
 - No new API endpoints or contract changes.
 - No JavaScript-based lightbox/modal (ruled out by the eBay `<script>`-stripping constraint; also keeps the internal page consistent with the eBay page rather than diverging).
-- No solution for touch-only devices beyond "safely does nothing" — pinch-zoom-free full-size preview on touch is out of scope.
+- No pinch-zoom or gesture support inside the preview itself — the preview is a static, capped-size image, not a full image viewer.
 
 ## Decisions
 
@@ -31,13 +32,16 @@ Drop the `<a target="_blank">` wrapper entirely. Each thumbnail becomes a small 
 ### 2. Same markup/CSS pattern duplicated on both pages, not a shared asset
 The two pages have no shared build/asset pipeline: `MeasurementPhotos.razor` is Blazor WebAssembly, and `EbayLotDescriptionPage.cshtml`'s HTML must be fully self-contained (inline `<style>`) since it's extracted and embedded into eBay's listing template, not served from this app's own `wwwroot`. The fix duplicates the same class names and CSS rules (e.g. `.photo-hover`, `.photo-hover__full`) in each page's own `<style>` block, matching the existing pattern where each page already carries its own inline styles (`.measurement-photo-thumbnail` in the Razor component, `.measurement-photo-thumb` in the eBay page).
 
-### 3. Overlay positioning and non-interference
-The full-size preview `<img>` uses `pointer-events: none` so it can never itself capture hover/click and can't be dragged/right-clicked-to-open by accident, and a `z-index` high enough to sit above surrounding table content. Size is capped with `max-width`/`max-height` (e.g. ~320–400px) rather than intrinsic photo size, so a large upload can't blow out the layout.
+### 3. Checkbox-hack for tap support, combined with `:hover` for desktop
+A thumbnail-sized hover target is too small to be legible once enlarged, and `:hover` alone doesn't exist on touch devices — but the eBay page is primarily going to be viewed on phones. Each photo gets a hidden `<input type="checkbox">` plus two `<label for="...">` elements (one wrapping the thumbnail, one acting as a full-viewport backdrop), reusing the exact same checkbox-hack technique the page's passport section already uses for its expand/collapse toggle. The full-size preview is shown when its container is `:hover`-ed (desktop mouse, no click needed) **or** when its checkbox is `:checked` (tap/click, any device — toggles open on first tap, closed on a second tap or a tap on the backdrop). This keeps the interaction entirely CSS-driven while giving touch users an equivalent, discoverable way to preview a photo. Clicking still never navigates or downloads anything — it only flips a local checkbox.
+
+### 4. Viewport-centered, larger overlay with a dimming backdrop
+The preview is `position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%)`, capped at `max-width: 90vw; max-height: 90vh` — centered on the visible viewport rather than anchored to the thumbnail's position, and sized close to the full viewport rather than a small fixed pixel cap. This makes the photo actually legible (the original small, thumbnail-anchored popup was hard to see) regardless of where the thumbnail sits on the page or how small the viewport is (phones). A semi-transparent fixed backdrop (`rgba(0,0,0,0.6)`) appears only for the tap/click (`:checked`) path — not on hover, to avoid dimming the whole page on a passing desktop mouseover — both to visually set the preview apart from the page and to give touch users an obvious "tap anywhere to close" affordance.
 
 ## Risks / Trade-offs
 
-- [Risk] eBay's listing template CSS is not fully known/controlled by us; an ancestor element with `overflow: hidden` could clip the absolutely-positioned preview. → Mitigation: keep the preview capped in size and prefer `position: absolute` anchored close to the thumbnail (not `position: fixed`, which needs JS to track cursor); note this as a residual risk to check visually after deploying to a real listing, not something CSS alone can fully guarantee against an unknown parent.
-- [Risk] Hover has no equivalent on touch-only devices (mobile eBay app/browser), so touch users get no full-size preview at all. → Mitigation: acceptable per Non-Goals — this is strictly better than today's behavior (no accidental download/navigation), and thumbnails remain visible at their existing size.
+- [Risk] eBay's listing template CSS is not fully known/controlled by us. `position: fixed` is normally relative to the viewport, but it becomes relative to the nearest ancestor with a `transform`/`filter`/`perspective` instead if one exists upstream in eBay's own template — which would break the centering. → Mitigation: verified locally that our own markup introduces no such ancestor; flagged as a residual risk to visually confirm once deployed inside a real eBay listing template, since that's not something we control or can fully test in isolation.
+- [Trade-off] The checkbox-hack pattern (hidden `<input>` + `display:none`) removes the checkbox from the keyboard tab order, so keyboard-only users lose a way to trigger the preview via keyboard. → Mitigation: this matches the pre-existing, accepted trade-off of the passport-toggle pattern already shipped on this same page; not a new regression introduced by this change, and hovering still works for mouse users regardless.
 - [Trade-off] Duplicating the CSS pattern in two places instead of one shared stylesheet risks the two pages drifting apart over time. → Mitigation: keep the rule set small and call it out explicitly in code comments/tasks so future edits touch both.
 
 ## Migration Plan

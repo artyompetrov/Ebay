@@ -17,6 +17,61 @@
         height: 64px;
         object-fit: cover;
     }
+
+    .photo-hover {
+        position: relative;
+        display: inline-block;
+    }
+
+    .photo-hover-toggle {
+        display: none;
+    }
+
+    .photo-hover-thumb-label {
+        display: block;
+        margin: 0;
+        cursor: pointer;
+    }
+
+    .photo-hover-backdrop {
+        display: none;
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 999;
+    }
+
+    .photo-hover-toggle:checked ~ .photo-hover-backdrop {
+        display: block;
+    }
+
+    .photo-hover-full {
+        display: block;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        max-width: 90vw;
+        max-height: 90vh;
+        width: auto;
+        height: auto;
+        visibility: hidden;
+        opacity: 0;
+        pointer-events: none;
+        z-index: 1000;
+        border: 2px solid #ccc;
+        background: #fff;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+    }
+
+    .photo-hover:hover .photo-hover-full,
+    .photo-hover-toggle:checked ~ .photo-hover-full {
+        visibility: visible;
+        opacity: 1;
+    }
 </style>
 
 <h3>Фото измерений</h3>
@@ -69,10 +124,17 @@
                 @foreach (var photo in _photos.OrderBy(x => x.Order))
                 {
                     <li class="list-group-item d-flex align-items-center justify-content-between">
-                        <a href="@GetPhotoUrl(photo.Id)" target="_blank" class="d-flex align-items-center gap-2">
-                            <img src="@GetThumbnailUrl(photo.Id)" alt="@photo.FileName" class="measurement-photo-thumbnail" />
+                        <span class="d-flex align-items-center gap-2">
+                            <span class="photo-hover">
+                                <input type="checkbox" id="@($"photo-toggle-{photo.Id}")" class="photo-hover-toggle" />
+                                <label for="@($"photo-toggle-{photo.Id}")" class="photo-hover-thumb-label">
+                                    <img src="@GetThumbnailUrl(photo.Id)" alt="@photo.FileName" class="measurement-photo-thumbnail" />
+                                </label>
+                                <label for="@($"photo-toggle-{photo.Id}")" class="photo-hover-backdrop"></label>
+                                <img src="@GetPhotoUrl(photo.Id)" alt="@photo.FileName" class="photo-hover-full" />
+                            </span>
                             <span>@photo.FileName</span>
-                        </a>
+                        </span>
                         <button class="btn btn-danger btn-sm" @onclick="() => DeletePhotoAsync(photo.Id)">Удалить</button>
                     </li>
                 }
