@@ -10,13 +10,15 @@ public sealed class MeasurementPhoto : AggregateRoot<Guid>
         string fileName,
         string contentType,
         int order,
-        byte[] content) : base(id)
+        byte[] content,
+        byte[] thumbnailContent) : base(id)
     {
         MeasurementId = measurementId;
         FileName = fileName;
         ContentType = contentType;
         Order = order;
         Content = content;
+        ThumbnailContent = thumbnailContent;
     }
 
     public string MeasurementId { get; private set; } = null!;
@@ -29,13 +31,16 @@ public sealed class MeasurementPhoto : AggregateRoot<Guid>
 
     public byte[] Content { get; private set; } = null!;
 
+    public byte[] ThumbnailContent { get; private set; } = null!;
+
     public static MeasurementPhoto Create(
         Guid id,
         string measurementId,
         string fileName,
         string contentType,
         int order,
-        byte[] content)
+        byte[] content,
+        byte[] thumbnailContent)
     {
         return new MeasurementPhoto(
             id: id,
@@ -43,7 +48,8 @@ public sealed class MeasurementPhoto : AggregateRoot<Guid>
             fileName: fileName.Trim(),
             contentType: contentType.Trim(),
             order: order,
-            content: content);
+            content: content,
+            thumbnailContent: thumbnailContent);
     }
 
     public void ShiftOrderDown() => Order--;

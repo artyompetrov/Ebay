@@ -11,6 +11,8 @@ namespace Server.Adapters.Driving.WebApi.Controllers;
 [Authorize]
 public sealed class WebApiController : WebApiControllerBase
 {
+    private const string ThumbnailContentType = "image/jpeg";
+
     private readonly LotForSaleService _lotForSaleService;
     private readonly MeasurementPhotoService _measurementPhotoService;
     private readonly IMeasurementPhotoQueries _measurementPhotoQueries;
@@ -131,6 +133,22 @@ public sealed class WebApiController : WebApiControllerBase
         }
 
         return File(photo.Content, photo.ContentType, photo.FileName);
+    }
+
+    // Anonymous: embedded as <img> src on EbayLotDescriptionPage, which is pulled into public eBay listing descriptions.
+    [AllowAnonymous]
+    public override async Task<IActionResult> GetMeasurementPhotoThumbnailContent(
+        string measurementId,
+        Guid photoId,
+        CancellationToken cancellationToken = default)
+    {
+        var thumbnail = await _measurementPhotoService.GetThumbnailContentAsync(measurementId, photoId, cancellationToken);
+        if (thumbnail == null)
+        {
+            return NotFound();
+        }
+
+        return File(thumbnail, ThumbnailContentType);
     }
 
     public override async Task<ActionResult<ICollection<MeasurementPhotoCountResponse>>> GetMeasurementPhotoCounts(

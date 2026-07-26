@@ -1,4 +1,5 @@
 using System.Net;
+using AwesomeAssertions;
 using Client.Clients.Generated;
 
 namespace Tests.Integration.Tests;
@@ -6,7 +7,7 @@ namespace Tests.Integration.Tests;
 public class MeasurementPhotosFlowTests
 {
     [Test]
-    public async Task UploadListDeleteAndCount_Work()
+    public async Task GetMeasurementPhotoThumbnailContent_ReturnsJpegThumbnail_ForUploadedPhoto()
     {
         using var context = await CreateMeasurementContextAsync();
 
@@ -14,9 +15,49 @@ public class MeasurementPhotosFlowTests
             context.MeasurementId,
             new MeasurementPhotoUploadRequest
             {
+                FileName = "tube.jpg",
+                ContentType = "image/jpeg",
+                File = TestHelpers.CreateValidPhotoBytes()
+            });
+        var photo = (await context.WebApiClient.GetMeasurementPhotosAsync(context.MeasurementId)).Single();
+
+        using var response = await context.HttpClient.GetAsync(
+            $"/api/webapi/v1/measurements/{context.MeasurementId}/photos/{photo.Id}/thumbnail/content");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.Content.Headers.ContentType!.MediaType.Should().Be("image/jpeg");
+
+        var thumbnailBytes = await response.Content.ReadAsByteArrayAsync();
+        thumbnailBytes.Should().NotBeEmpty();
+    }
+
+    [Test]
+    public async Task GetMeasurementPhotoThumbnailContent_ReturnsNotFound_WhenPhotoDoesNotExist()
+    {
+        using var context = await CreateMeasurementContextAsync();
+
+        using var response = await context.HttpClient.GetAsync(
+            $"/api/webapi/v1/measurements/{context.MeasurementId}/photos/{Guid.NewGuid()}/thumbnail/content");
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+
+    [Test]
+    public async Task UploadListDeleteAndCount_Work()
+    {
+        using var context = await CreateMeasurementContextAsync();
+
+        var firstPhotoContent = TestHelpers.CreateValidPhotoBytes(colorSeed: 10);
+        var secondPhotoContent = TestHelpers.CreateValidPhotoBytes(colorSeed: 20);
+
+        await context.WebApiClient.UploadMeasurementPhotoAsync(
+            context.MeasurementId,
+            new MeasurementPhotoUploadRequest
+            {
                 FileName = "first.jpg",
                 ContentType = "image/jpeg",
-                File = [1, 2, 3]
+                File = firstPhotoContent
             });
         await context.WebApiClient.UploadMeasurementPhotoAsync(
             context.MeasurementId,
@@ -24,7 +65,7 @@ public class MeasurementPhotosFlowTests
             {
                 FileName = "second.jpg",
                 ContentType = "image/jpeg",
-                File = [4, 5, 6]
+                File = secondPhotoContent
             });
 
         var photos = (await context.WebApiClient.GetMeasurementPhotosAsync(context.MeasurementId))
@@ -40,7 +81,7 @@ public class MeasurementPhotosFlowTests
             Assert.That(photos[1].Order, Is.EqualTo(1));
         }
 
-        await AssertPhotoContentAsync(context.HttpClient, context.MeasurementId, photos[0].Id, [1, 2, 3]);
+        await AssertPhotoContentAsync(context.HttpClient, context.MeasurementId, photos[0].Id, firstPhotoContent);
 
         var otherMeasurementId = await CreateBareMeasurementIdAsync(context);
 
@@ -81,7 +122,7 @@ public class MeasurementPhotosFlowTests
             {
                 FileName = "tube.jpg",
                 ContentType = "image/jpeg",
-                File = [7, 8, 9]
+                File = TestHelpers.CreateValidPhotoBytes()
             });
         var photo = (await context.WebApiClient.GetMeasurementPhotosAsync(context.MeasurementId)).Single();
 

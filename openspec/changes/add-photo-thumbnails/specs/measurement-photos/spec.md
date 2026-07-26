@@ -11,7 +11,7 @@ When a measurement photo is uploaded, the system SHALL generate a size-capped th
 The system SHALL expose an API endpoint that returns the stored thumbnail image for a measurement photo, by measurement id and photo id.
 
 #### Scenario: Fetch thumbnail for an uploaded photo
-- **WHEN** a client requests `GET /api/webapi/v1/measurements/{measurementId}/photos/{photoId}/thumbnail/content` for a photo uploaded after thumbnail generation was introduced
+- **WHEN** a client requests `GET /api/webapi/v1/measurements/{measurementId}/photos/{photoId}/thumbnail/content` for a photo that exists
 - **THEN** the response body is the stored thumbnail image with content type `image/jpeg`
 
 #### Scenario: Fetch missing photo's thumbnail

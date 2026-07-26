@@ -4,6 +4,7 @@ using System.Text.Json;
 using Client.Clients.Generated;
 using Polly;
 using Polly.Timeout;
+using SkiaSharp;
 
 namespace Tests.Integration;
 
@@ -105,6 +106,15 @@ public static class TestHelpers
         }
 
         return stream.ToArray();
+    }
+
+    public static byte[] CreateValidPhotoBytes(byte colorSeed = 0)
+    {
+        using var bitmap = new SKBitmap(2, 2);
+        bitmap.Erase(new SKColor(colorSeed, colorSeed, colorSeed));
+        using var image = SKImage.FromBitmap(bitmap);
+        using var data = image.Encode(SKEncodedImageFormat.Png, quality: 100);
+        return data.ToArray();
     }
 
     private static async Task<string> RequestClientCredentialsTokenAsync(HttpClient client)

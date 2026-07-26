@@ -116,12 +116,18 @@ else
             background-color: #f0f8ff;
         }
 
-        .measurement-photo {
-            max-width: 300px;
-            width: 100%;
-            height: auto;
-            display: block;
-            margin: 10px auto 0;
+        .measurement-photos {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .measurement-photo-thumb {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
         }
     </style>
     
@@ -226,12 +232,16 @@ else
                     <td>
                         <img src="@($"{baseUrl}/m/{meas.MeasurementInfo.Id}/ebay_curves{lotIdPart}")"
                              alt="@meas.MeasurementInfo.Id"/>
-                        @foreach (var photo in Model.PhotosByMeasurementId[meas.MeasurementInfo.Id])
-                        {
-                            <img class="measurement-photo"
-                                 src="@($"{baseUrl}/api/webapi/v1/measurements/{meas.MeasurementInfo.Id}/photos/{photo.Id}/content")"
-                                 alt="@photo.FileName"/>
-                        }
+                        <div class="measurement-photos">
+                            @foreach (var photo in Model.PhotosByMeasurementId[meas.MeasurementInfo.Id])
+                            {
+                                <a href="@($"{baseUrl}/api/webapi/v1/measurements/{meas.MeasurementInfo.Id}/photos/{photo.Id}/content")" target="_blank">
+                                    <img class="measurement-photo-thumb"
+                                         src="@($"{baseUrl}/api/webapi/v1/measurements/{meas.MeasurementInfo.Id}/photos/{photo.Id}/thumbnail/content")"
+                                         alt="@photo.FileName"/>
+                                </a>
+                            }
+                        </div>
                     </td>
                 </tr>
             }

@@ -73,4 +73,15 @@ internal sealed class MeasurementPhotoQueries : IMeasurementPhotoQueries
                 x.Order))
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<byte[]?> GetThumbnail(
+        string measurementId,
+        Guid photoId,
+        CancellationToken cancellationToken)
+    {
+        return await _context.MeasurementPhotos
+            .Where(x => x.MeasurementId == measurementId && x.Id == photoId)
+            .Select(x => x.ThumbnailContent)
+            .SingleOrDefaultAsync(cancellationToken);
+    }
 }

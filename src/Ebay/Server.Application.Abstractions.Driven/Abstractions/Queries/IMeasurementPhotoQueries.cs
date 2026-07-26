@@ -20,4 +20,13 @@ public interface IMeasurementPhotoQueries
     Task<IReadOnlyList<MeasurementPhotoMetadata>> GetMetadataByMeasurementIds(
         IReadOnlyCollection<string> measurementIds,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns only the stored thumbnail bytes for a photo, without loading <c>Content</c>.
+    /// Returns <see langword="null"/> when the photo does not exist.
+    /// </summary>
+    Task<byte[]?> GetThumbnail(
+        string measurementId,
+        Guid photoId,
+        CancellationToken cancellationToken);
 }

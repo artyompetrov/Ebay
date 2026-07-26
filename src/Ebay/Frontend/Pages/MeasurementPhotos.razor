@@ -11,6 +11,12 @@
     #reader video {
         transform: scaleX(-1);
     }
+
+    .measurement-photo-thumbnail {
+        width: 64px;
+        height: 64px;
+        object-fit: cover;
+    }
 </style>
 
 <h3>Фото измерений</h3>
@@ -63,7 +69,10 @@
                 @foreach (var photo in _photos.OrderBy(x => x.Order))
                 {
                     <li class="list-group-item d-flex align-items-center justify-content-between">
-                        <a href="@GetPhotoUrl(photo.Id)" target="_blank">@photo.FileName</a>
+                        <a href="@GetPhotoUrl(photo.Id)" target="_blank" class="d-flex align-items-center gap-2">
+                            <img src="@GetThumbnailUrl(photo.Id)" alt="@photo.FileName" class="measurement-photo-thumbnail" />
+                            <span>@photo.FileName</span>
+                        </a>
                         <button class="btn btn-danger btn-sm" @onclick="() => DeletePhotoAsync(photo.Id)">Удалить</button>
                     </li>
                 }
@@ -194,6 +203,11 @@
     private string GetPhotoUrl(Guid photoId)
     {
         return $"{WebApiClient.BaseUrl}measurements/{_measurementId}/photos/{photoId}/content";
+    }
+
+    private string GetThumbnailUrl(Guid photoId)
+    {
+        return $"{WebApiClient.BaseUrl}measurements/{_measurementId}/photos/{photoId}/thumbnail/content";
     }
 
     private static string ExtractMeasurementId(string scannedValue)

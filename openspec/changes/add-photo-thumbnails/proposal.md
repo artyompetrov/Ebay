@@ -7,7 +7,7 @@ Measurement photos are currently served and displayed at their original, full-re
 - Introduce a thumbnail concept for measurement photos: a small, size-capped derivative generated once at upload time and served through a dedicated endpoint (`GET /api/webapi/v1/measurements/{measurementId}/photos/{photoId}/thumbnail/content`), separate from the existing full-content endpoint.
 - `MeasurementPhotos.razor` ("Фото измерений"): render each photo as a thumbnail image in the list (instead of a bare filename link); clicking the thumbnail opens the full photo (existing full-content link behavior, now triggered from the image itself).
 - `EbayLotDescriptionPage.cshtml`: replace the current vertical stack of full-size `<img>` tags per tube row with a horizontal row of thumbnails; clicking a thumbnail navigates to the full-size photo in a new tab.
-- Photos uploaded before this change have no thumbnail and are not backfilled — this change is scoped to newly uploaded photos only; no migration/data-fix job is included.
+- `ThumbnailContent` is a required field, like `Content` — there is no real photo data in production yet, so this change does not need to handle photos without a thumbnail.
 - No changes to the existing upload/delete API contracts or to how the original photo content is stored — this change only adds a thumbnail derivative and its serving endpoint.
 
 ## Capabilities

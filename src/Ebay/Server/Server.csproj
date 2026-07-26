@@ -11,6 +11,7 @@
       <ProjectReference Include="..\Server.Adapters.Driven.EF.ReadModel\Server.Adapters.Driven.EF.ReadModel.csproj" />
       <ProjectReference Include="..\Server.Adapters.Driven.EF.WriteModel\Server.Adapters.Driven.EF.WriteModel.csproj" />
       <ProjectReference Include="..\Server.Adapters.Driven.EF.WriteModel.Migrations\Server.Adapters.Driven.EF.WriteModel.Migrations.csproj" />
+      <ProjectReference Include="..\Server.Adapters.Driven.ImageProcessing\Server.Adapters.Driven.ImageProcessing.csproj" />
       <ProjectReference Include="..\Server.Adapters.Driven.Smtp\Server.Adapters.Driven.Smtp.csproj" />
       <ProjectReference Include="..\Server.Adapters.Driven.uTracer\Server.Adapters.Driven.uTracer.csproj" />
       <ProjectReference Include="..\Server.Adapters.Driving.MassTransit\Server.Adapters.Driving.MassTransit.csproj" />

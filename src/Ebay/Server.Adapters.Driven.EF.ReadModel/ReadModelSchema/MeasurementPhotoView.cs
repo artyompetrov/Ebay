@@ -13,4 +13,6 @@ internal sealed class MeasurementPhotoView
     public int Order { get; init; }
 
     public byte[] Content { get; init; } = null!;
+
+    public byte[] ThumbnailContent { get; init; } = null!;
 }

@@ -67,12 +67,6 @@ description: Project C# code style rules. Use before creating, modifying or revi
 - Express the retry condition, retry count, retry delay, and on-retry logging in the `Polly` policy configuration.
 - Keep the business operation focused on a single attempt; the retry orchestration itself should live in the `Polly` policy.
 
-## Dependency Registration (DI)
-- Register services as `Singleton`; services themselves must be stateless
-- If a service genuinely needs shared state (cache, counters, buffers) —
-  a comment explaining why shared state is needed is mandatory,
-  and thread safety must be ensured
-
 ## Configuration And Options
 - In the working microservice scenario, configuration parameters are passed via environment variables.
 - Use `IOptions` to parameterize behavior; do not parse configuration ad-hoc in business services.
