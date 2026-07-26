@@ -55,8 +55,9 @@ Find and fix the root cause (an architectural gap, a broken invariant). If that'
 don't apply a silent workaround; describe the root cause and mark the solution as a TODO.
 
 ## Project skills
-- Project skills live in [.agents/skills/](.agents/skills/).
-- To add, change, or review tests, use `$write-tests`.
-- For REST API, Swagger/OpenAPI, web DTO, status codes, and error tasks, use `$web-api`.
-- To add, change, or review logging, use `$logging`.
-- Before creating, changing, or reviewing any `.cs` file, use `$csharp-style`.
+- Project skills live in [.claude/skills/](.claude/skills/) as Claude Code skills (`SKILL.md` per skill directory).
+- Claude Code loads their descriptions automatically and should invoke them when a task matches, without being asked.
+- To add, change, or review tests, use the `write-tests` skill.
+- For REST API, Swagger/OpenAPI, web DTO, status codes, and error tasks, use the `web-api` skill.
+- To add, change, or review logging, use the `logging` skill.
+- Before creating, changing, or reviewing any `.cs` file, use the `csharp-style` skill.
