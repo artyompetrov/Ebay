@@ -13,6 +13,7 @@ run_step() {
 
 run_step "Build backend" bash -lc "cd '$ROOT_DIR/src/Ebay' && dotnet build"
 run_step "Run backend tests" bash -lc "cd '$ROOT_DIR/src/Ebay' && dotnet test --no-build"
+run_step "Run frontend JavaScript tests" bash -lc "node --test '$ROOT_DIR'/src/Ebay/Frontend/Tests/*.test.mjs"
 run_step "Install Chrome extension dependencies" bash -lc "cd '$ROOT_DIR/src/ChromeExtension' && npm ci"
 run_step "Build Chrome extension" bash -lc "cd '$ROOT_DIR/src/ChromeExtension' && npm run build"
 

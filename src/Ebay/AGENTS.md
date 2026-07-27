@@ -17,6 +17,7 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 
 ## Module structure
 - `Frontend` — Blazor WebAssembly.
+- `Frontend/Tests` — dependency-free frontend JavaScript tests, run with Node's built-in test runner.
 - `Server` — backend host (composition root).
 - `Server.Contracts` — OpenAPI contracts.
 - `Server.Application` — legacy application layer.
