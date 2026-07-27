@@ -194,4 +194,13 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
             ? watchedAtUtc
             : watchedAtUtc.ToUniversalTime();
     }
+
+    public DateTimeOffset? LastInventoryCheckAt { get; private set; }
+
+    public void MarkInventoryChecked(DateTimeOffset checkedAtUtc)
+    {
+        LastInventoryCheckAt = checkedAtUtc.Offset == TimeSpan.Zero
+            ? checkedAtUtc
+            : checkedAtUtc.ToUniversalTime();
+    }
 }

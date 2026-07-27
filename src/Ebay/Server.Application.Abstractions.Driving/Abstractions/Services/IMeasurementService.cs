@@ -90,6 +90,16 @@ public interface IMeasurementService
         CancellationToken cancellationToken);
 
     /// <summary>
+    /// Отмечает замер как проверенный при инвентаризации, обновляя дату последней проверки.
+    /// </summary>
+    /// <param name="measurementId">Идентификатор замера.</param>
+    /// <param name="cancellationToken">Токен отмены операции.</param>
+    /// <returns>Дата отметки об инвентаризации либо <see langword="null" />, если замер не найден.</returns>
+    Task<DateTimeOffset?> MarkInventoryCheckedAsync(
+        string measurementId,
+        CancellationToken cancellationToken);
+
+    /// <summary>
     /// Возвращает замеры товара с похожими измерениями.
     /// </summary>
     /// <param name="productId">Идентификатор товара.</param>

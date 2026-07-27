@@ -208,6 +208,29 @@ paths:
         '404':
           description: Photo not found
 
+  /measurements/{measurementId}/inventory-check:
+    post:
+      operationId: MarkMeasurementInventoryChecked
+      summary: Marks measurement as inventory-checked and updates the last inventory check date
+      tags:
+        - WebApi
+      parameters:
+        - in: path
+          name: measurementId
+          required: true
+          schema:
+            type: string
+            maxLength: 100
+      responses:
+        '200':
+          description: Inventory check result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeasurementInventoryCheckResponse'
+        '404':
+          description: Measurement not found
+
   /measurements/photos/counts:
     get:
       operationId: GetMeasurementPhotoCounts
@@ -321,6 +344,20 @@ components:
           maxLength: 100
         photoCount:
           type: integer
+
+    MeasurementInventoryCheckResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - measurementId
+        - lastInventoryCheckAt
+      properties:
+        measurementId:
+          type: string
+          maxLength: 100
+        lastInventoryCheckAt:
+          type: string
+          format: date-time
 
     MeasurementPhotoUploadRequest:
       type: object

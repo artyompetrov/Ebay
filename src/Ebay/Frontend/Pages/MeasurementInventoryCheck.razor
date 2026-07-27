@@ -1,0 +1,82 @@
+@page "/measurement-inventory-check"
+@using System.Net
+@using Client.Clients.Generated
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inject WebApiClient WebApiClient
+@inject ILogger<MeasurementInventoryCheck> Logger
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+<style>
+    #reader.qr-scanner-mobile video {
+        transform: none;
+    }
+
+    #reader.qr-scanner-non-mobile video {
+        transform: scaleX(-1);
+    }
+</style>
+
+<h3>Инвентаризация замеров</h3>
+
+<p>
+    Сканируйте штрихкод на карточке измерения, чтобы отметить дату инвентаризации.
+</p>
+
+<div class="col-lg-5">
+    <div id="reader" style="width: 100%; max-width: 420px;"></div>
+    <button class="btn btn-primary btn-sm mt-2" @onclick="ScanBarcodeAsync" disabled="@_isScanning">
+        @(_isScanning ? "Сканирование..." : "Сканировать")
+    </button>
+
+    @if (!string.IsNullOrWhiteSpace(_error))
+    {
+        <p class="text-danger">@_error</p>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(_message))
+    {
+        <p class="text-success">@_message</p>
+    }
+</div>
+
+@code {
+    private string? _error;
+    private string? _message;
+    private bool _isScanning;
+
+    private async Task ScanBarcodeAsync()
+    {
+        _isScanning = true;
+        _error = null;
+        _message = null;
+
+        try
+        {
+            var scannedValue = await Interop.StartQrScanner();
+            var measurementId = Helpers.ExtractMeasurementId(scannedValue);
+
+            if (string.IsNullOrWhiteSpace(measurementId))
+            {
+                _error = "Не удалось распознать идентификатор измерения в штрихкоде.";
+                return;
+            }
+
+            var result = await WebApiClient.MarkMeasurementInventoryCheckedAsync(measurementId);
+            _message = $"Измерение {result.MeasurementId} проверено: {result.LastInventoryCheckAt.LocalDateTime:g}";
+        }
+        catch (ApiException ex) when (ex.StatusCode == (int)HttpStatusCode.NotFound)
+        {
+            _error = "Измерение с таким идентификатором не найдено.";
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to scan barcode for measurement inventory check page");
+            _error = "Ошибка при сканировании штрихкода.";
+        }
+        finally
+        {
+            _isScanning = false;
+        }
+    }
+}

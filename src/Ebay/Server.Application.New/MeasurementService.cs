@@ -3,6 +3,7 @@ using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
 using Server.Application.Abstractions.Driving.Models;
+using Server.Application.New.LotForSale;
 using Server.Domain.Measurements;
 
 namespace Server.Application.New;
@@ -14,13 +15,15 @@ internal sealed class MeasurementService : IMeasurementService
     private readonly IMeasurementQueries _measurementQueries;
     private readonly IMeasurementFileParser _measurementFileParser;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICurrentTimeProvider _currentTimeProvider;
 
     public MeasurementService(
         IMeasurementRepository productMeasurementRepository,
         IMatchedPairDifferenceRepository matchedPairDifferenceRepository,
         IMeasurementQueries measurementQueries,
         IMeasurementFileParser measurementFileParser,
-        IUnitOfWork unitOfWork
+        IUnitOfWork unitOfWork,
+        ICurrentTimeProvider currentTimeProvider
     )
     {
         _productMeasurementRepository = productMeasurementRepository;
@@ -28,6 +31,7 @@ internal sealed class MeasurementService : IMeasurementService
         _measurementQueries = measurementQueries;
         _measurementFileParser = measurementFileParser;
         _unitOfWork = unitOfWork;
+        _currentTimeProvider = currentTimeProvider;
     }
 
     public async Task SaveMeasurement(
@@ -160,4 +164,22 @@ internal sealed class MeasurementService : IMeasurementService
     }
 
     public async Task<IReadOnlySet<string?>> GetLotIdsForProductAsync(Guid productId, CancellationToken cancellationToken) => await _measurementQueries.GetLotIds(productId, cancellationToken);
+
+    public async Task<DateTimeOffset?> MarkInventoryCheckedAsync(
+        string measurementId,
+        CancellationToken cancellationToken)
+    {
+        var productMeasurement = await _productMeasurementRepository.GetByIdAsync(measurementId, cancellationToken);
+        if (productMeasurement == null)
+        {
+            return null;
+        }
+
+        var checkedAtUtc = _currentTimeProvider.UtcNow;
+        productMeasurement.MarkInventoryChecked(checkedAtUtc);
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return checkedAtUtc;
+    }
 }

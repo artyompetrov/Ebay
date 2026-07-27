@@ -178,7 +178,7 @@
         try
         {
             var scannedValue = await Interop.StartQrScanner();
-            _measurementId = ExtractMeasurementId(scannedValue);
+            _measurementId = Helpers.ExtractMeasurementId(scannedValue);
 
             if (string.IsNullOrWhiteSpace(_measurementId))
             {
@@ -276,25 +276,4 @@
         return $"{WebApiClient.BaseUrl}measurements/{_measurementId}/photos/{photoId}/thumbnail/content";
     }
 
-    private static string ExtractMeasurementId(string scannedValue)
-    {
-        var value = (scannedValue ?? string.Empty).Trim();
-
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return string.Empty;
-        }
-
-        if (Uri.TryCreate(value, UriKind.Absolute, out var uri))
-        {
-            return uri.Segments.Last().Trim('/').Trim();
-        }
-
-        if (value.Contains('/'))
-        {
-            return value.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).LastOrDefault() ?? string.Empty;
-        }
-
-        return value;
-    }
 }

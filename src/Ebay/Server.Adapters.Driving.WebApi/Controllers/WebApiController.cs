@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
+using Server.Application.Abstractions.Driving.Abstractions.Services;
 using Server.Adapters.Driving.WebApi.Generated;
 using Server.Application.New;
 using DomainMeasurementState = Server.Domain.Measurements.MeasurementState;
@@ -16,15 +17,18 @@ public sealed class WebApiController : WebApiControllerBase
     private readonly LotForSaleService _lotForSaleService;
     private readonly MeasurementPhotoService _measurementPhotoService;
     private readonly IMeasurementPhotoQueries _measurementPhotoQueries;
+    private readonly IMeasurementService _measurementService;
 
     public WebApiController(
         LotForSaleService lotForSaleService,
         MeasurementPhotoService measurementPhotoService,
-        IMeasurementPhotoQueries measurementPhotoQueries)
+        IMeasurementPhotoQueries measurementPhotoQueries,
+        IMeasurementService measurementService)
     {
         _lotForSaleService = lotForSaleService;
         _measurementPhotoService = measurementPhotoService;
         _measurementPhotoQueries = measurementPhotoQueries;
+        _measurementService = measurementService;
     }
 
     public override async Task<IActionResult> CreateLotForSale(LotForSaleCreateRequest body, CancellationToken cancellationToken = default)
@@ -117,6 +121,19 @@ public sealed class WebApiController : WebApiControllerBase
         }
 
         return Ok();
+    }
+
+    public override async Task<ActionResult<MeasurementInventoryCheckResponse>> MarkMeasurementInventoryChecked(
+        string measurementId,
+        CancellationToken cancellationToken = default)
+    {
+        var checkedAt = await _measurementService.MarkInventoryCheckedAsync(measurementId, cancellationToken);
+        if (checkedAt is null)
+        {
+            return NotFound();
+        }
+
+        return new MeasurementInventoryCheckResponse(checkedAt.Value, measurementId);
     }
 
     // Anonymous: embedded as <img> src on EbayLotDescriptionPage, which is pulled into public eBay listing descriptions.
