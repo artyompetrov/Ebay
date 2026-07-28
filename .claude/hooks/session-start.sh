@@ -70,5 +70,10 @@ cd "$REPO_DIR/src/Ebay" && dotnet restore
 cd "$REPO_DIR/src/ChromeExtension" && npm install
 cd "$REPO_DIR"
 
+# --- OpenSpec CLI ---
+if ! command -v openspec >/dev/null 2>&1; then
+  npm install -g @fission-ai/openspec
+fi
+
 pg_lsclusters
 dotnet --version
