@@ -92,6 +92,11 @@ internal sealed class MeasurementQueries : IMeasurementQueries
             .ToHashSetAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<string>> GetAllMeasurementIds(CancellationToken cancellationToken) =>
+        await _dbContext.ProductMeasurements
+            .Select(x => x.Id)
+            .ToListAsync(cancellationToken);
+
     public async Task<IReadOnlyCollection<MeasurementInfo>> GetMeasurementsInfo(
         Guid productId,
         IReadOnlyCollection<MeasurementState> measurementStates,

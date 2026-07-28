@@ -76,10 +76,29 @@ public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
 
             entity.HasIndex(x => new { x.MeasurementId, x.Order });
         });
+
+        modelBuilder.Entity<ProductMeasurement>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Id)
+                .HasMaxLength(100)
+                .ValueGeneratedNever();
+
+            entity.Property(x => x.ProductId).IsRequired();
+
+            entity.HasIndex(x => x.ProductId);
+            entity.HasIndex(x => x.CreatedAt);
+            entity.HasIndex(x => x.MatchId);
+            entity.HasIndex(x => x.LotId);
+
+            entity.HasIndex(x => x.HashAnodeCurves).IsUnique();
+        });
     }
 
     public DbSet<LotForSale> LotForSales { get; set; } = null!;
     public DbSet<MeasurementPhoto> MeasurementPhotos { get; set; } = null!;
+    public DbSet<ProductMeasurement> ProductMeasurements { get; set; } = null!;
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
