@@ -32,6 +32,7 @@ Project composition:
 - `src/ChromeExtension` — Chrome extension (details: `src/ChromeExtension/AGENTS.md`).
 - `src/Dockerfile` — builds the solution into a container.
 - `deploy` — docker-compose for running the app.
+- `scripts/cloud-agent-init` — shared cloud sandbox init script (Claude Code, Codex), see its `README.md`.
 
 ## Pre-PR checks
 Run `./agent-check.sh` from the repository root.
