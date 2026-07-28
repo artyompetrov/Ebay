@@ -11,6 +11,10 @@ from pathlib import Path
 from urllib.parse import urlencode
 import re
 
+repo_root = Path(__file__).resolve().parent.parent.parent
+docker_compose_file = str(repo_root / "deploy" / "docker-compose.yaml")
+docker_compose_env_file = str(repo_root / "deploy" / "localhost.env")
+
 # Конфигурационные переменные
 from_host: Optional[str] = os.getenv("EBAY_HELPER_BACKEND_DOMAIN")
 if from_host is None:
@@ -60,14 +64,14 @@ subprocess.run([
 
 # Остановка контейнеров
 print("!!! stopping containers")
-subprocess.run(["docker-compose", "-f", "./deploy/docker-compose.yaml", "--env-file", "./deploy/localhost.env", "down", "-v"])
+subprocess.run(["docker-compose", "-f", docker_compose_file, "--env-file", docker_compose_env_file, "down", "-v"])
 
 print("!!! pulling containers")
-subprocess.run(["docker-compose", "-f", "./deploy/docker-compose.yaml", "--env-file", "./deploy/localhost.env", "pull"])
+subprocess.run(["docker-compose", "-f", docker_compose_file, "--env-file", docker_compose_env_file, "pull"])
 
 # Запуск контейнеров
 print("!!! starting containers with RESTORE option")
-subprocess.run(["docker-compose", "-f", "./deploy/docker-compose.yaml", "--env-file", "./deploy/localhost.env", "up", "-d"], env={"RESTORE": "true"})
+subprocess.run(["docker-compose", "-f", docker_compose_file, "--env-file", docker_compose_env_file, "up", "-d"], env={"RESTORE": "true"})
 time.sleep(5)
 
 # Переключаем пароль для локальной базы данных
@@ -143,7 +147,7 @@ subprocess.run([
 time.sleep(5)
 
 print("!!! starting containers")
-subprocess.run(["docker-compose", "-f", "./deploy/docker-compose.yaml", "--env-file", "./deploy/localhost.env", "up", "-d"])
+subprocess.run(["docker-compose", "-f", docker_compose_file, "--env-file", docker_compose_env_file, "up", "-d"])
 time.sleep(5)
 
 # Остановка сервиса ebay_helper перед удалением локальных баз данных

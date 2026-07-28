@@ -35,4 +35,4 @@
 
 - [ ] 7.1 Add/extend unit tests for `ProductMeasurement.MarkInventoried` and the new `MeasurementService` use case (`[TestOf(typeof(...))]` per project convention), covering found and not-found cases.
 - [ ] 7.2 Manually verify the end-to-end flow: scan a known measurement's QR code, confirm the inventory date is stamped, confirm the current location is shown, edit and save a new location, confirm it persists; scan an unknown code and confirm a not-found message with no side effects.
-- [ ] 7.3 Run `./agent-check.sh` from the repository root.
+- [ ] 7.3 Run `./scripts/agent-check/agent-check.sh` from the repository root.

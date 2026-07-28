@@ -32,9 +32,12 @@ Project composition:
 - `src/ChromeExtension` — Chrome extension (details: `src/ChromeExtension/AGENTS.md`).
 - `src/Dockerfile` — builds the solution into a container.
 - `deploy` — docker-compose for running the app.
+- `scripts/cloud-agent-init` — shared cloud sandbox init script (Claude Code, Codex), see its `README.md`.
+- `scripts/agent-check` — pre-PR check script (`agent-check.sh`).
+- `scripts/deploy-on-server` — script run on the production server to redeploy containers (invoked by the server's own `update.sh`, outside this repo).
 
 ## Pre-PR checks
-Run `./agent-check.sh` from the repository root.
+Run `./scripts/agent-check/agent-check.sh` from the repository root.
 
 ## Keeping AGENTS.md up to date
 If the task changes rules, structure, build, testing, code generation, or deployment — update the relevant `AGENTS.md` in the same PR.
