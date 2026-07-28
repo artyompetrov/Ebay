@@ -3,21 +3,22 @@
 - [ ] 1.1 Add a nullable `DateTimeOffset InventoryDate` property to `ProductMeasurement` (`src/Ebay/Server.Domain/Measurements/ProductMeasurement.cs`), following the existing `LastTimeWatchedOnEbay` pattern (private setter).
 - [ ] 1.2 Add a `MarkInventoried(DateTimeOffset scannedAtUtc)` method to `ProductMeasurement` that sets `InventoryDate`.
 
-## 2. Write-model persistence
+## 2. Persistence
 
-- [ ] 2.1 Add EF configuration for the new `InventoryDate` column in `Server.Adapters.Driven.EF.WriteModel`.
-- [ ] 2.2 Generate and review the EF Core migration (`dotnet ef migrations add`) adding the nullable column to schema `wm`; confirm existing rows get `NULL`.
+- [ ] 2.1 Add EF configuration for the new `InventoryDate` property on `builder.Entity<ProductMeasurement>` in the **legacy** `Server.Application/Data/ApplicationDbContext.cs` — this is the context that actually maps `ProductMeasurement`/`ProductMeasurements` today (`MeasurementRepository` queries it, not `WriteModelDbContext`); do not add it to `WriteModelDbContext`, which does not map this aggregate.
+- [ ] 2.2 Generate and review the EF Core migration via the **legacy** pipeline (`dotnet ef migrations add AddInventoryDateToMeasurement --project Server.Application --startup-project Server`) adding the nullable `InventoryDate` column; confirm existing rows get `NULL`.
+- [ ] 2.3 Add a TODO note (code comment or tracked issue, per `AGENTS.md`'s "fix the cause, not the symptom") that `ProductMeasurement`'s persistence should eventually move from `ApplicationDbContext` to `WriteModelDbContext`/schema `wm`; out of scope for this change.
 
 ## 3. Application layer
 
-- [ ] 3.1 Add a `RecordInventoryScan(string measurementId, CancellationToken)` use case to `IMeasurementService` (`Server.Application.Abstractions.Driving/Abstractions/Services/IMeasurementService.cs`) that stamps `InventoryDate` to `DateTimeOffset.UtcNow` and returns the measurement id and current `Location`; implement it in `MeasurementService` (`Server.Application.New/MeasurementService.cs`), throwing/returning not-found the same way `UpdateMeasurementLocation` does today when the measurement id is unknown.
-- [ ] 3.2 Confirm `UpdateMeasurementLocation` (already implemented in `MeasurementService`) needs no logic changes to be reused by the new endpoint.
+- [ ] 3.1 Add a `RecordInventoryScan(string measurementId, CancellationToken)` use case to `IMeasurementService` (`Server.Application.Abstractions.Driving/Abstractions/Services/IMeasurementService.cs`) that stamps `InventoryDate` to `DateTimeOffset.UtcNow` and returns a nullable result (measurement id + current `Location`, or `null` if the measurement id is unknown) — no exception on not-found; implement it in `MeasurementService` (`Server.Application.New/MeasurementService.cs`).
+- [ ] 3.2 Add a `TryUpdateMeasurementLocation(string measurementId, string? location, CancellationToken) -> Task<bool>` use case that performs the same lookup/trim/clear logic as the existing `UpdateMeasurementLocation` but returns `false` instead of throwing when the measurement is missing; leave `UpdateMeasurementLocation` itself unchanged so the Legacy contract's behavior is unaffected.
 
 ## 4. API contract
 
 - [ ] 4.1 Add `POST /measurements/{measurementId}/inventory` to `src/Ebay/Server.Contracts/WebApi/WebApi.yaml` (request: none; response: measurement id + current location; 404 when not found).
-- [ ] 4.2 Add `PUT /measurements/{measurementId}/location` to `WebApi.yaml`, delegating to the existing `UpdateMeasurementLocation` use case (request: location string, blank clears it; 200; 404 when not found).
-- [ ] 4.3 Regenerate NSwag client/server code and wire both new operations into `Server.Adapters.Driving.WebApi/Controllers/WebApiController.cs`, delegating straight to `IMeasurementService` with no logic in the controller.
+- [ ] 4.2 Add `PUT /measurements/{measurementId}/location` to `WebApi.yaml` (request: location string, blank clears it; 200; 404 when not found).
+- [ ] 4.3 Regenerate NSwag client/server code and wire both new operations into `Server.Adapters.Driving.WebApi/Controllers/WebApiController.cs`, following the controller's existing not-found convention (`if (result == null) return NotFound();` / `if (!found) return NotFound();`, as in `DeleteMeasurementPhoto`/`GetMeasurementPhotoContent`) — no exception-based translation, no other logic in the controller.
 
 ## 5. Blazor client — shared scanner component
 
