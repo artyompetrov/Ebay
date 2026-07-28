@@ -105,33 +105,6 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
                 v => JsonSerializer.Deserialize<PurchaseCalculationResult?>(v, (JsonSerializerOptions?)null)
             ));
 
-        builder.Entity<ProductMeasurement>(entity =>
-        {
-            entity.HasKey(x => x.Id);
-
-            entity.Property(x => x.Id)
-                .HasMaxLength(100)
-                .ValueGeneratedNever();
-
-            entity.Property(p => p.CreatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-            entity.Property(x => x.ProductId).IsRequired();
-
-            entity.HasOne<Product>()
-                .WithMany()
-                .HasForeignKey(x => x.ProductId)
-                .OnDelete(DeleteBehavior.Restrict)
-                .IsRequired();
-
-            entity.HasIndex(x => x.ProductId);
-            entity.HasIndex(p => p.CreatedAt);
-            entity.HasIndex(p => p.MatchId);
-            entity.HasIndex(p => p.LotId);
-
-            entity.HasIndex(x => x.HashAnodeCurves).IsUnique();
-        });
-
         builder.Entity<ProductEmailSendHistory>(entity =>
         {
             entity.ToTable("SaleAdvertisements");
@@ -188,15 +161,9 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
             entity.HasIndex(x => x.Measurement1Id);
             entity.HasIndex(x => x.Measurement2Id);
 
-            entity.HasOne<ProductMeasurement>()
-                .WithMany()
-                .HasForeignKey(e => e.Measurement1Id)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            entity.HasOne<ProductMeasurement>()
-                .WithMany()
-                .HasForeignKey(e => e.Measurement2Id)
-                .OnDelete(DeleteBehavior.Restrict);
+            // Замер (ProductMeasurement) теперь принадлежит WriteModelDbContext, поэтому здесь
+            // не объявляется EF-связь на него - Measurement1Id/Measurement2Id хранятся как обычные
+            // ссылки по Id. Ранее созданный FK-констрейнт в БД на этом не завязан и продолжает действовать.
         });
     }
 
@@ -209,8 +176,6 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
     public DbSet<Purchase> Purchases { get; set; } = null!;
 
     public DbSet<ClientError> ClientErrors { get; set; } = null!;
-
-    public DbSet<ProductMeasurement> ProductMeasurements { get; set; } = null!;
 
     public DbSet<ProductPassport> ProductPassports { get; set; } = null!;
 

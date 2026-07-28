@@ -1,15 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
-using Server.Application.Data;
 using Server.Domain.Measurements;
 
 namespace Server.Adapters.Driven.EF.WriteModel.Repositories;
 
 internal sealed class MeasurementRepository : IMeasurementRepository
 {
-    private readonly ApplicationDbContext _dbContext;
+    private readonly WriteModelDbContext _dbContext;
 
-    public MeasurementRepository(ApplicationDbContext dbContext)
+    public MeasurementRepository(WriteModelDbContext dbContext)
     {
         _dbContext = dbContext;
     }
