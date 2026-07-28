@@ -1,0 +1,58 @@
+---
+name: BackupDatabase
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Ежедневно в 02:00 UTC
+  workflow_dispatch:      # Позволяет запустить бэкап вручную
+
+concurrency:
+  group: backup-database
+  cancel-in-progress: false
+
+jobs:
+
+  backup_database:
+    name: Backup production database to Yandex Disk
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set backup file name
+        run: echo "BACKUP_FILE_NAME=ebay-$(date -u +%Y-%m-%d).dump" >> "$GITHUB_ENV"
+
+      - name: Install SSH Keys
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Create database dump on the server
+        run: |
+          ssh "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" bash -s -- "$BACKUP_FILE_NAME" <<'REMOTE_SCRIPT'
+          set -euo pipefail
+          backup_file_name="$1"
+          docker exec ebay_postgres sh -c "PGPASSWORD=\$POSTGRES_PASSWORD pg_dump -U ebay -d ebay --format=custom --compress=6 -f /tmp/$backup_file_name"
+          docker cp "ebay_postgres:/tmp/$backup_file_name" "/tmp/$backup_file_name"
+          docker exec ebay_postgres rm -f "/tmp/$backup_file_name"
+          REMOTE_SCRIPT
+
+      - name: Download dump from the server
+        run: scp "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/$BACKUP_FILE_NAME" "./$BACKUP_FILE_NAME"
+
+      - name: Remove dump from the server
+        if: always()
+        run: ssh "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" "rm -f /tmp/$BACKUP_FILE_NAME"
+
+      - name: Upload dump to Yandex Disk
+        env:
+          YANDEX_DISK_TOKEN: ${{ secrets.YANDEX_DISK_TOKEN }}
+        run: ./scripts/backup-database/upload_to_yandex_disk.sh "./$BACKUP_FILE_NAME" "/Ebay-backups/$BACKUP_FILE_NAME"
+
+      - name: Cleanup local dump
+        if: always()
+        run: rm -f "./$BACKUP_FILE_NAME"
+
+      - name: Cleanup SSH
+        if: always()
+        run: rm -rf ~/.ssh

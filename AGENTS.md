@@ -28,6 +28,7 @@ Project composition:
 
 ## Navigation
 - `.github/workflows/build-and-tests.yaml` — main CI/CD build and deploy.
+- `.github/workflows/backup-database.yaml` — scheduled job that dumps the production DB over SSH and uploads it to Yandex Disk (`scripts/backup-database/upload_to_yandex_disk.sh`); requires the `SSH_PRIVATE_KEY`/`SSH_HOST`/`SSH_USER` secrets (shared with the deploy job) and a `YANDEX_DISK_TOKEN` secret (OAuth token for the Yandex Disk API).
 - `src/Ebay` — backend + Blazor frontend (details: `src/Ebay/AGENTS.md`).
 - `src/ChromeExtension` — Chrome extension (details: `src/ChromeExtension/AGENTS.md`).
 - `src/Dockerfile` — builds the solution into a container.
@@ -35,6 +36,7 @@ Project composition:
 - `scripts/cloud-agent-init` — shared cloud sandbox init script (Claude Code, Codex), see its `README.md`.
 - `scripts/agent-check` — pre-PR check script (`agent-check.sh`).
 - `scripts/deploy-on-server` — script run on the production server to redeploy containers (invoked by the server's own `update.sh`, outside this repo).
+- `scripts/backup-database` — Yandex Disk upload helper used by `backup-database.yaml`.
 
 ## Pre-PR checks
 Run `./scripts/agent-check/agent-check.sh` from the repository root.
