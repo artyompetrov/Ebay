@@ -33,9 +33,10 @@ Project composition:
 - `src/Dockerfile` — builds the solution into a container.
 - `deploy` — docker-compose for running the app.
 - `scripts/cloud-agent-init` — shared cloud sandbox init script (Claude Code, Codex), see its `README.md`.
+- `scripts/agent-check` — pre-PR check script (`agent-check.sh`).
 
 ## Pre-PR checks
-Run `./agent-check.sh` from the repository root.
+Run `./scripts/agent-check/agent-check.sh` from the repository root.
 
 ## Keeping AGENTS.md up to date
 If the task changes rules, structure, build, testing, code generation, or deployment — update the relevant `AGENTS.md` in the same PR.
