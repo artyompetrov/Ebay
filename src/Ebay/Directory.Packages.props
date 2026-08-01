@@ -9,7 +9,7 @@
     <PackageVersion Include="Duende.IdentityServer" Version="6.0.5" />
     <PackageVersion Include="FlexLabs.EntityFrameworkCore.Upsert" Version="8.1.2" />
     <PackageVersion Include="HtmlAgilityPack" Version="1.12.2" />
-    <PackageVersion Include="JetBrains.Annotations" Version="2025.2.0" />
+    <PackageVersion Include="JetBrains.Annotations" Version="2026.2.0" />
     <PackageVersion Include="MailKit" Version="4.13.0" />
     <PackageVersion Include="MassTransit" Version="8.5.2" />
     <PackageVersion Include="MassTransit.EntityFrameworkCore" Version="8.5.2" />
