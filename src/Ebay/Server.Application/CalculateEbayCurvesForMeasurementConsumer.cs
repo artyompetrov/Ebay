@@ -1,4 +1,4 @@
-using MassTransit;
+﻿using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Server.Application.Services.MeasurementPlot;
@@ -41,5 +41,3 @@ public class CalculateEbayCurvesForMeasurementConsumer : IConsumer<CalculateEbay
         }
     }
 }
-
-public record CalculateEbayCurvesForMeasurement(string MeasurementId);

@@ -1,3 +1,5 @@
+# Do not edit manually - this file is mirrored.
+
 root = true
 
 [**/Generated/**]
@@ -205,15 +207,16 @@ dotnet_diagnostic.CA1848.severity = none
 # Remove the underscores from member name Should_Do_Smth() - Тесты пишем в такой нотации
 dotnet_diagnostic.CA1707.severity = none
 
-# Переводим StyleCop.Analyzers на suggestion
+# Переводим StyleCop.Analyzers на suggestion, кроме перечисленных ниже исключений
 dotnet_analyzer_diagnostic.category-StyleCop.severity = suggestion
+# Название файла и класса должны быть одинаковыми
+dotnet_diagnostic.SA1649.severity = error
 
 # Use primary constructor
 dotnet_diagnostic.IDE0290.severity = none
 
 # Evaluation of this argument may be expensive and unnecessary if logging is disabled
 dotnet_diagnostic.CA1873.severity = suggestion
-resharper_apply_auto_detected_rules = false
 
 # Rename namespace so that it no longer conflicts with the reserved language keyword. Using a reserved keyword as the name of a namespace makes it harder for consumers in other languages to use the namespace.
 dotnet_diagnostic.CA1716.severity = suggestion
@@ -231,8 +234,16 @@ dotnet_diagnostic.IDE0022.severity = suggestion
 dotnet_diagnostic.IDE0045.severity = suggestion
 dotnet_diagnostic.IDE0046.severity = suggestion
 
+# Disable all Roslynator.Analyzers rules with exceptions listed below
+dotnet_analyzer_diagnostic.category-Roslynator.severity = none
+# one type per file
+dotnet_diagnostic.RCS1060.severity = error
+
+dotnet_analyzer_diagnostic.category-Meziantou.severity = none
+dotnet_diagnostic.MA0048.severity = error
 
 # ReSharper properties
+resharper_apply_auto_detected_rules = false
 resharper_arguments_literal = named
 resharper_arguments_named = named
 resharper_arguments_other = named

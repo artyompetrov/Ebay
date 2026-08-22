@@ -86,5 +86,3 @@ public class CalculateMetricsForProductConsumer : IConsumer<Batch<CalculateMetri
         }
     }
 }
-
-public record CalculateMetricsForProduct(Guid ProductId);

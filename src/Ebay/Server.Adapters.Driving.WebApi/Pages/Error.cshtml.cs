@@ -6,7 +6,7 @@ namespace Server.Adapters.Driving.WebApi.Pages;
 
 [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
 [IgnoreAntiforgeryToken]
-internal sealed class ErrorModel : PageModel
+internal sealed class Error : PageModel
 {
 
     public string? RequestId { get; set; }

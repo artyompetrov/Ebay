@@ -1,8 +1,5 @@
 <Project>
-  <PropertyGroup>
-    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
-  </PropertyGroup>
+  <Import Project="Directory.Packages.Global.props" />
   <ItemGroup>
     <PackageVersion Include="alglib.net" Version="3.19.0" />
     <PackageVersion Include="DotNetEnv" Version="3.1.1" />

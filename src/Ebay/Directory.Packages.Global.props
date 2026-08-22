@@ -1,0 +1,12 @@
+<!-- Do not edit manually - this file is mirrored. -->
+<Project>
+    <PropertyGroup>
+        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+        <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
+        <CentralPackageVersionOverrideEnabled>false</CentralPackageVersionOverrideEnabled>
+    </PropertyGroup>
+    <ItemGroup>
+        <GlobalPackageReference Include="Roslynator.Analyzers" Version="4.15.0" PrivateAssets="all" />
+        <GlobalPackageReference Include="Meziantou.Analyzer" Version="3.0.136" PrivateAssets="all" />
+    </ItemGroup>
+</Project>

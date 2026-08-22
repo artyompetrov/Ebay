@@ -145,5 +145,3 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
         }
     }
 }
-
-public record CalculatePricesForLot(long LotId);
