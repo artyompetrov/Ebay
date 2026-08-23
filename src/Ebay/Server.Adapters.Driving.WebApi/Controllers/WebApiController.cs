@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Adapters.Driving.WebApi.Generated;
+using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.New;
 using DomainMeasurementState = Server.Domain.Measurements.MeasurementState;
 using DomainProductState = Server.Domain.Measurements.ProductState;

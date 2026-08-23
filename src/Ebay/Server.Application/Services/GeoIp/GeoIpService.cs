@@ -1,4 +1,4 @@
-﻿using System.Net.Http.Json;
+using System.Net.Http.Json;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
@@ -35,7 +35,7 @@ public class GeoIpService : IDisposable
             return null;
         }
     }
-    
+
     private async Task<GeoIpLocation?> GetFromIpApi(string ip, CancellationToken cancellationToken)
     {
         try

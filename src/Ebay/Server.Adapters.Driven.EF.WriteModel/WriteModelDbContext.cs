@@ -3,8 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Domain.Abstractions;
-using Server.Domain.Measurements;
 using Server.Domain.LotForSale;
+using Server.Domain.Measurements;
 
 namespace Server.Adapters.Driven.EF.WriteModel;
 
