@@ -209,28 +209,29 @@ dotnet_diagnostic.CA1848.severity = none
 # Remove the underscores from member name Should_Do_Smth() - Тесты пишем в такой нотации
 dotnet_diagnostic.CA1707.severity = none
 
+################ Microsoft IDE analyzers ################
+
+# Use primary constructor
+dotnet_diagnostic.IDE0290.severity = none
+
 # Evaluation of this argument may be expensive and unnecessary if logging is disabled
 dotnet_diagnostic.CA1873.severity = suggestion
 
 # Rename namespace so that it no longer conflicts with the reserved language keyword. Using a reserved keyword as the name of a namespace makes it harder for consumers in other languages to use the namespace.
 dotnet_diagnostic.CA1716.severity = suggestion
 
-################ Microsoft IDE analyzers ################
-
-# Because EnforceCodeStyleInBuild=true turn off all code-style (IDE) rules by default; only specific rules below are re-enabled as error
-dotnet_analyzer_diagnostic.category-Style.severity = suggestion
-
-# Use primary constructor
-dotnet_diagnostic.IDE0290.severity = none
+# Expression value is never used
+dotnet_diagnostic.IDE0058.severity = suggestion
 
 # Fix formatting (dotnet format сам отформатирует)
-dotnet_diagnostic.IDE0055.severity = silent
+dotnet_diagnostic.IDE0055.severity = none
 
-# Namespace does not match folder structure
-dotnet_diagnostic.IDE0130.severity = error
+# Use expression body for method
+dotnet_diagnostic.IDE0022.severity = suggestion
 
-# Remove unused parameter if it is not part of a shipped public API
-dotnet_diagnostic.IDE0060.severity = error
+# 'if' statement can be simplified
+dotnet_diagnostic.IDE0045.severity = suggestion
+dotnet_diagnostic.IDE0046.severity = suggestion
 
 ################ StyleCop.Analyzers ################ 
 
@@ -247,8 +248,10 @@ dotnet_analyzer_diagnostic.category-StyleCop.CSharp.SpecialRules.severity = sugg
 
 # Disable all Roslynator.Analyzers rules with exceptions listed below
 dotnet_analyzer_diagnostic.category-Roslynator.severity = none
-# one type per file
+# One type per file
 dotnet_diagnostic.RCS1060.severity = error
+# Unused parameter
+dotnet_diagnostic.RCS1163.severity = error
 
 ################ Meziantou.Analyzer ################ 
 

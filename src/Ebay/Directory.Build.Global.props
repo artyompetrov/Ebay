@@ -4,7 +4,6 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <!-- Disables all Meziantou.Analyzer rules by default; needed ones are enabled selectively via .editorconfig -->
         <MeziantouAnalysisMode>None</MeziantouAnalysisMode>
