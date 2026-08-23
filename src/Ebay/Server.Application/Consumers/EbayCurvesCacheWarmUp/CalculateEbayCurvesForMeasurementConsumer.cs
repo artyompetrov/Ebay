@@ -25,13 +25,12 @@ public class CalculateEbayCurvesForMeasurementConsumer : IConsumer<CalculateEbay
         {
             await _measurementPlotService.PlotForEbay(
                 context.Message.MeasurementId,
-                lotId: null,
+
                 sellingOnly: false,
                 cancellationToken: context.CancellationToken);
 
             await _measurementPlotService.GetEbayTubeDescription(
                 context.Message.MeasurementId,
-                lotId: null,
                 sellingOnly: false,
                 cancellationToken: context.CancellationToken);
         }

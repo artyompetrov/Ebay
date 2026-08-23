@@ -4,6 +4,8 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <!-- Disables all Meziantou.Analyzer rules by default; needed ones are enabled selectively via .editorconfig -->
         <MeziantouAnalysisMode>None</MeziantouAnalysisMode>
         <WarningsNotAsErrors> <!-- Перечень ворнингов, которые останутся вонингами (не будут повышены до Error) -->
@@ -14,9 +16,10 @@
             NU1603, <!-- Depends on X but X was not found. An approximate best match of X was resolved -->
             NU3005, <!-- The package signature file entry is invalid. The central directory header field 'compression method' has an invalid value -->
             NU5104, <!-- A stable release of a package should not have a prerelease dependency -->
-            CS0612, <!-- A class member was marked with the Obsolete attribute -->
-            CS0618, <!-- Static member was marked with the Obsolete attribute -->
+            NU1801, <!-- Failed to retrieve information about X from remote source -->
             CA1305, <!-- The behavior of 'TimeSpan.ToString(string)' could vary based on the current user's locale settings -->
+            CS0618, <!-- Static member was marked with the Obsolete attribute -->
+            CS0612, <!-- A class member was marked with the Obsolete attribute -->
         </WarningsNotAsErrors>
     </PropertyGroup>
 </Project>

@@ -13,8 +13,7 @@ public class MeasurementPage : PageModel
 
     public MeasurementPage(
         IMeasurementQueries measurementQueries,
-        IProductQueries productQueries,
-        IMeasurementFileParser measurementFileParser)
+        IProductQueries productQueries)
     {
         _measurementQueries = measurementQueries;
         _productQueries = productQueries;

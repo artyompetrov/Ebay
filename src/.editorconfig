@@ -36,9 +36,6 @@ tab_width = 4
 
 
 [*.cs]
-#### !!! Important !!! Enable dotnet_diagnostic ####
-dotnet_analyzer_diagnostic.severity = error
-
 # Organize usings
 dotnet_separate_import_directive_groups = false
 dotnet_sort_system_directives_first = true
@@ -192,13 +189,18 @@ csharp_space_between_square_brackets = false
 csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = true
 
-#### Relaxation of the rules ####
+
+################ Microsoft analyzers ################
+dotnet_analyzer_diagnostic.severity = error
 
 # Avoid using 'Enumerable.Any()' extension method
 dotnet_diagnostic.CA1860.severity = suggestion
 
 # Use 'GeneratedRegexAttribute' to generate the regular expression implementation at compile-time.
 dotnet_diagnostic.SYSLIB1045.severity = none
+
+# Missing XML comment for publicly visible type or member
+dotnet_diagnostic.CS1591.severity = suggestion
 
 # For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
 # не очень удобно делать функции под каждую лог запись
@@ -207,42 +209,55 @@ dotnet_diagnostic.CA1848.severity = none
 # Remove the underscores from member name Should_Do_Smth() - Тесты пишем в такой нотации
 dotnet_diagnostic.CA1707.severity = none
 
-# Переводим StyleCop.Analyzers на suggestion, кроме перечисленных ниже исключений
-dotnet_analyzer_diagnostic.category-StyleCop.severity = suggestion
-# Название файла и класса должны быть одинаковыми
-dotnet_diagnostic.SA1649.severity = error
-
-# Use primary constructor
-dotnet_diagnostic.IDE0290.severity = none
-
 # Evaluation of this argument may be expensive and unnecessary if logging is disabled
 dotnet_diagnostic.CA1873.severity = suggestion
 
 # Rename namespace so that it no longer conflicts with the reserved language keyword. Using a reserved keyword as the name of a namespace makes it harder for consumers in other languages to use the namespace.
 dotnet_diagnostic.CA1716.severity = suggestion
 
-# Expression value is never used
-dotnet_diagnostic.IDE0058.severity = suggestion
+################ Microsoft IDE analyzers ################
+
+# Because EnforceCodeStyleInBuild=true turn off all code-style (IDE) rules by default; only specific rules below are re-enabled as error
+dotnet_analyzer_diagnostic.category-Style.severity = suggestion
+
+# Use primary constructor
+dotnet_diagnostic.IDE0290.severity = none
 
 # Fix formatting (dotnet format сам отформатирует)
-dotnet_diagnostic.IDE0055.severity = none
+dotnet_diagnostic.IDE0055.severity = silent
 
-# Use expression body for method
-dotnet_diagnostic.IDE0022.severity = suggestion
+# Namespace does not match folder structure
+dotnet_diagnostic.IDE0130.severity = error
 
-# 'if' statement can be simplified
-dotnet_diagnostic.IDE0045.severity = suggestion
-dotnet_diagnostic.IDE0046.severity = suggestion
+# Remove unused parameter if it is not part of a shipped public API
+dotnet_diagnostic.IDE0060.severity = error
+
+################ StyleCop.Analyzers ################ 
+
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.DocumentationRules.severity = suggestion
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.LayoutRules.severity = suggestion
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.MaintainabilityRules.severity = suggestion
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.NamingRules.severity = suggestion
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.OrderingRules.severity = suggestion
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.ReadabilityRules.severity = suggestion
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.SpacingRules.severity = suggestion
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.SpecialRules.severity = suggestion
+
+################ Roslynator.Analyzers ################ 
 
 # Disable all Roslynator.Analyzers rules with exceptions listed below
 dotnet_analyzer_diagnostic.category-Roslynator.severity = none
 # one type per file
 dotnet_diagnostic.RCS1060.severity = error
 
-dotnet_analyzer_diagnostic.category-Meziantou.severity = none
+################ Meziantou.Analyzer ################ 
+
+# Meziantou.Analyzer rules are all disabled via MeziantouAnalysisMode=None (Directory.Build.Global.props) with exceptions listed below
+# File name must match type name
 dotnet_diagnostic.MA0048.severity = error
 
-# ReSharper properties
+################ ReSharper ################
+
 resharper_apply_auto_detected_rules = false
 resharper_arguments_literal = named
 resharper_arguments_named = named

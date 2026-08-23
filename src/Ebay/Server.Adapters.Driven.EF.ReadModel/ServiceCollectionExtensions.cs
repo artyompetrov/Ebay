@@ -15,7 +15,6 @@ public static class ServiceCollectionExtensions
     /// Зарегистрировать EF ReadModel адаптер в контейнере
     /// </summary>
     /// <param name="services">Сервисы</param>
-    /// <param name="configuration">Конфигурация приложения</param>
     public static void AddEfReadModelAdapter(this IServiceCollection services)
     {
         services.AddDbContext<ReadDbContext>((sp, o) =>

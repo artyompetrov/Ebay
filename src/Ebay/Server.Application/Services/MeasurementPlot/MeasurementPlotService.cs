@@ -46,7 +46,6 @@ public class MeasurementPlotService : IMeasurementPlotService
 
     public async Task<string?> PlotForEbayWithViewSource(
         string measurementId,
-        string? lotId,
         bool sellingOnly,
         string? referer,
         string currentHost,
@@ -54,7 +53,6 @@ public class MeasurementPlotService : IMeasurementPlotService
     {
         var plotTask = await PlotForEbay(
             measurementId: measurementId,
-            lotId: lotId,
             sellingOnly: sellingOnly,
             cancellationToken: cancellationToken);
 
@@ -97,7 +95,6 @@ public class MeasurementPlotService : IMeasurementPlotService
     /// </summary>
     public async Task<string?> PlotForEbay(
         string measurementId,
-        string? lotId,
         bool sellingOnly,
         CancellationToken cancellationToken)
     {
@@ -113,12 +110,6 @@ public class MeasurementPlotService : IMeasurementPlotService
             {
                 return StatusSvg(info.MeasurementState.ToString());
             }
-            /* todo после изменения lot id эта проверка стала работать неправильно
-            if (lotId != info.LotId)
-            {
-                return StatusSvg("Listed in other lot");
-            }
-            */
         }
 
         return await PlotForMeasurementId(
@@ -558,7 +549,6 @@ public class MeasurementPlotService : IMeasurementPlotService
 
     public async Task<string?> GetEbayTubeDescription(
         string measurementId,
-        string? lotId,
         bool sellingOnly,
         CancellationToken cancellationToken)
     {

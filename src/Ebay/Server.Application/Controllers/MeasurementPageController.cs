@@ -37,13 +37,11 @@ public class MeasurementPageController : ControllerBase
     [HttpGet("/m/{measurementId}/ebay_curves")]
     public async Task<IActionResult> GetEbayCurves(
         string measurementId,
-        string? lotId,
         bool? sellingOnly,
         CancellationToken cancellationToken)
     {
         var result = await _measurementPlotService.PlotForEbayWithViewSource(
             measurementId: measurementId,
-            lotId: lotId,
             sellingOnly: sellingOnly ?? true,
             referer: Request.Headers.Referer.ToString(),
             currentHost: Request.Host.Host,
@@ -65,13 +63,11 @@ public class MeasurementPageController : ControllerBase
     [HttpGet("/m/{measurementId}/ebay_tube_description")]
     public async Task<IActionResult> GetEbayTubeDescription(
         string measurementId,
-        string? lotId,
         bool? sellingOnly,
         CancellationToken cancellationToken)
     {
         var result = await _measurementPlotService.GetEbayTubeDescription(
             measurementId: measurementId,
-            lotId: lotId,
             sellingOnly: sellingOnly ?? true,
             cancellationToken: cancellationToken);
 
