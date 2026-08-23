@@ -1,4 +1,5 @@
 using Server.Domain.Abstractions;
+using Server.Application.Abstractions.Driven.Models;
 
 namespace Server.Application.Abstractions.Driven.Abstractions;
 
