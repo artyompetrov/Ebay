@@ -3,7 +3,7 @@ using Server.Domain.Abstractions;
 
 namespace Server.Domain.Measurements;
 
-public class MatchedPairDifference : AggregateRoot<MatchedPairDifferenceId>
+public sealed class MatchedPairDifference : AggregateRoot<MatchedPairDifferenceId>
 {
     private MatchedPairDifference(
         MatchedPairDifferenceId id,
