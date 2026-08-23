@@ -1,4 +1,3 @@
-using NUnit.Framework;
 using Server.Domain.Abstractions;
 
 namespace Tests.Unit;

@@ -155,7 +155,7 @@ public sealed class WebApiController : WebApiControllerBase
         IEnumerable<string> measurementIds,
         CancellationToken cancellationToken = default)
     {
-        var metadata = await _measurementPhotoQueries.GetMetadataByMeasurementIds(measurementIds.ToList(), cancellationToken);
+        var metadata = await _measurementPhotoQueries.GetMetadataByMeasurementIds([.. measurementIds], cancellationToken);
 
         var response = metadata
             .GroupBy(x => x.MeasurementId)

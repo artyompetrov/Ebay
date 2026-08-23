@@ -690,6 +690,4 @@ internal class EbayControllerImplementation : IEbayController
         await _publishEndpoint.Publish(new CalculatePricesForAll(), cancellationToken);
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
-
-
 }

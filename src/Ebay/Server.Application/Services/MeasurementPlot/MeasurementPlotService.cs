@@ -503,7 +503,10 @@ public class MeasurementPlotService : IMeasurementPlotService
             lineIndex++;
         }
 
-        void AddSpacer() => lineIndex++;
+        void AddSpacer()
+        {
+            lineIndex++;
+        }
 
         AddLine("Measurement point:");
         AddLine($"Vanode: {quickTest.Ua:F0} V", bold: true);

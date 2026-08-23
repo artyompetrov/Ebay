@@ -82,13 +82,7 @@ public class ProductMeasurementFlowTests
         bool expectedIsPublished)
     {
         var updatedMeasurements = await ebayClient.GetMeasurementsAsync(measurementState: null, productId: productId);
-        var updatedMeasurement = updatedMeasurements.SingleOrDefault(x => x.MeasurementId == measurementId);
-
-        if (updatedMeasurement == null)
-        {
-            throw new AssertionException($"Measurement '{measurementId}' was not found.");
-        }
-
+        var updatedMeasurement = updatedMeasurements.SingleOrDefault(x => x.MeasurementId == measurementId) ?? throw new AssertionException($"Measurement '{measurementId}' was not found.");
         if (updatedMeasurement.IsPublishedOnEbay != expectedIsPublished)
         {
             throw new AssertionException(

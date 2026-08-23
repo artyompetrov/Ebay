@@ -42,7 +42,6 @@ public class MeasurementPhotosFlowTests
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
-
     [Test]
     public async Task UploadListDeleteAndCount_Work()
     {
