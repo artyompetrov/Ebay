@@ -2,7 +2,6 @@
   <Import Project="Directory.Packages.Global.props" />
   <ItemGroup>
     <PackageVersion Include="alglib.net" Version="3.19.0" />
-    <PackageVersion Include="AutoMapper" Version="15.1.1" />
     <PackageVersion Include="DotNetEnv" Version="3.1.1" />
     <PackageVersion Include="Duende.IdentityServer" Version="6.0.5" />
     <PackageVersion Include="FlexLabs.EntityFrameworkCore.Upsert" Version="8.1.2" />
