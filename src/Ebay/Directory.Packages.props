@@ -2,8 +2,16 @@
   <Import Project="Directory.Packages.Global.props" />
   <ItemGroup>
     <PackageVersion Include="alglib.net" Version="3.19.0" />
-    <PackageVersion Include="AutoMapper" Version="15.1.1" />
     <PackageVersion Include="DotNetEnv" Version="3.1.1" />
+    <!--
+      Duende.IdentityServer.EntityFramework.Storage 6.0.4 (a transitive dependency here) is compiled
+      against AutoMapper >=11.0.0 && <12.0.0 and calls into it via its own internal mapper, not through DI.
+      Pinning a solution-wide AutoMapper PackageVersion above 11.x (e.g. to patch GHSA-rvv3-g6hj-g44x)
+      breaks that binary reference at runtime (FileNotFoundException loading AutoMapper 11.0.0.0) the
+      moment IdentityServer tries to persist a grant, i.e. every login. TODO: the AutoMapper 11.0.0
+      vulnerability can only be resolved by upgrading Duende.IdentityServer past the versions that
+      depend on AutoMapper for their EF store; that is a larger upgrade than a package-version bump.
+    -->
     <PackageVersion Include="Duende.IdentityServer" Version="6.0.5" />
     <PackageVersion Include="FlexLabs.EntityFrameworkCore.Upsert" Version="8.1.2" />
     <PackageVersion Include="HtmlAgilityPack" Version="1.12.2" />
