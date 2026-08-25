@@ -212,24 +212,32 @@
         _error = null;
         _message = null;
 
-        foreach (var file in eventArgs.GetMultipleFiles())
+        try
         {
-            await using var stream = file.OpenReadStream(MaxPhotoSizeBytes);
-            using var memory = new MemoryStream();
-            await stream.CopyToAsync(memory);
+            foreach (var file in eventArgs.GetMultipleFiles())
+            {
+                await using var stream = file.OpenReadStream(MaxPhotoSizeBytes);
+                using var memory = new MemoryStream();
+                await stream.CopyToAsync(memory);
 
-            await WebApiClient.UploadMeasurementPhotoAsync(
-                _measurementId,
-                new MeasurementPhotoUploadRequest
-                {
-                    FileName = file.Name,
-                    ContentType = string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType,
-                    File = memory.ToArray()
-                });
+                await WebApiClient.UploadMeasurementPhotoAsync(
+                    _measurementId,
+                    new MeasurementPhotoUploadRequest
+                    {
+                        FileName = file.Name,
+                        ContentType = string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType,
+                        File = memory.ToArray()
+                    });
+            }
+
+            await LoadPhotosAsync();
+            _message = "Фотографии загружены.";
         }
-
-        await LoadPhotosAsync();
-        _message = "Фотографии загружены.";
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to upload photos for measurement {MeasurementId}", _measurementId);
+            _error = "Не удалось загрузить фотографии.";
+        }
     }
 
     private async Task DeletePhotoAsync(Guid photoId)
