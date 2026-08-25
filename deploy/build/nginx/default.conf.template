@@ -76,6 +76,9 @@ server {
     ssl_protocols TLSv1.2 TLSv1.3;
     # ssl_ciphers ...  # можно опустить, дефолта достаточно
 
+    # Дефолтный лимит nginx (1m) слишком мал для фото измерений (до 15 МБ + base64 в JSON).
+    client_max_body_size 25m;
+
     location = /nyygnwfdndcwdhq {
         return 301 /nyygnwfdndcwdhq/;
     }
