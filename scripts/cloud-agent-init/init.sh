@@ -61,8 +61,9 @@ cd "$REPO_DIR/src/ChromeExtension" && npm install
 cd "$REPO_DIR"
 
 # --- OpenSpec CLI ---
-if ! command -v openspec >/dev/null 2>&1; then
-  npm install -g @fission-ai/openspec
+OPENSPEC_VERSION="$(cat "$REPO_DIR/.openspec-version")"
+if [ "$(openspec --version 2>/dev/null || true)" != "$OPENSPEC_VERSION" ]; then
+  npm install -g "@fission-ai/openspec@${OPENSPEC_VERSION}"
 fi
 
 pg_lsclusters
