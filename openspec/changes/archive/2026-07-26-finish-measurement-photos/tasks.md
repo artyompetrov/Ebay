@@ -23,13 +23,13 @@
 
 - [x] 4.1 Update `MeasurementPhotos.razor`'s routing/parameters so it can accept a measurement id directly (`/measurement-photos/{MeasurementId}`), setting `_measurementId` and calling `LoadPhotosAsync` immediately when present, skipping the barcode-scan requirement.
 - [x] 4.2 Keep the existing barcode-scan flow working unchanged when no id is supplied.
-- [ ] 4.3 Not performed interactively: the page requires login and I can't enter credentials (even user-supplied ones) per hard safety rules. Verified instead by build success and code review of the `[Parameter]`/`OnInitializedAsync` logic; recommend the user click through once logged in.
+- [~] 4.3 Not performed interactively: the page requires login and I can't enter credentials (even user-supplied ones) per hard safety rules. Verified instead by build success and code review of the `[Parameter]`/`OnInitializedAsync` logic; recommend the user click through once logged in.
 
 ## 5. Office measurements page: photo indicator and delete entry point
 
 - [x] 5.1 In `Measurements.razor`, after `_allMeasurements` loads, call the new `WebApiClient` counts endpoint once with all their ids and store the result as a `Dictionary<string, int>` keyed by measurement id.
 - [x] 5.2 Add a photo-count badge/link per measurement row (near the existing curves `NavLink`) reading from that dictionary (default 0), styled consistently with the other row action links, navigating (new tab) to the direct-id URL from task 4.1 for that row's `measurement.MeasurementId`.
-- [ ] 5.3 Not performed interactively for the same reason as 4.3 (login-gated page). The underlying counts endpoint and its response shape are covered by `MeasurementPhotosFlowTests`; the Razor binding was verified by build success and code review.
+- [~] 5.3 Not performed interactively for the same reason as 4.3 (login-gated page). The underlying counts endpoint and its response shape are covered by `MeasurementPhotosFlowTests`; the Razor binding was verified by build success and code review.
 
 ## 6. Regression check
 

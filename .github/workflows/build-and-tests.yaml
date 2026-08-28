@@ -75,6 +75,22 @@ jobs:
         run: node --test ./src/Ebay/Frontend/Tests/*.test.mjs
 
 
+  openspec_validate:
+    name: Validate OpenSpec
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install OpenSpec CLI
+        run: npm install -g @fission-ai/openspec
+
+      - name: Validate OpenSpec catalog
+        run: openspec validate --all --strict --json
+
+      - name: Validate OpenSpec archive
+        run: openspec validate --archived
+
   build_docker:
     name: Build Docker Images
     runs-on: ubuntu-latest
@@ -84,7 +100,7 @@ jobs:
 
       - name: Build Docker Images
         run: |
-          BUILD_VERSION=$(date +'%y%m.%d.%H.%M%S' | sed 's/\.0*/./g')
+          BUILD_VERSION=$(date +'%y%m.%d.%H.%M%S')
           docker build -f ./src/Dockerfile --build-arg BUILD_VERSION="$BUILD_VERSION" --build-arg EBAY_HELPER_BACKEND_DOMAIN="${{ secrets.EBAY_HELPER_BACKEND_DOMAIN }}" --tag ${{ env.REGISTRY }}/${{ env.EBAY_HELPER_IMAGE_NAME }} ./src/
           docker build -f ./deploy/build/nginx/Dockerfile --tag ${{ env.REGISTRY }}/${{ env.EBAY_NGINX_IMAGE_NAME }} ./deploy/build/nginx/
 
@@ -98,7 +114,7 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    needs: [ dotnet_and_extension_build, build_docker ]
+    needs: [ dotnet_and_extension_build, openspec_validate, build_docker ]
     if: github.ref == 'refs/heads/main'  # Запускается только на ветке main
 
     steps: 

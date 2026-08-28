@@ -8,7 +8,7 @@ RUN dotnet restore "Ebay/Ebay.sln"
 WORKDIR "/src/Ebay/"
 WORKDIR "/src/Ebay/Server"
 ARG BUILD_VERSION="1.0.0.0"
-RUN dotnet publish "Server.csproj" -c Release -o /app/publish /p:UseAppHost=false /p:Version=$BUILD_VERSION
+RUN dotnet publish "Server.csproj" -c Release -o /app/publish /p:UseAppHost=false /p:Version=$BUILD_VERSION --no-restore
 RUN apt-get update && apt-get install -y fontconfig fonts-liberation && fc-cache -f -v
 
 FROM node:18-alpine AS build_chrome_extension
