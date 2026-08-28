@@ -20,7 +20,7 @@ internal sealed class ReadDbContext : DbContext
     {
         b.Entity<ProductMeasurementView>(eb =>
         {
-            eb.ToView("ProductMeasurements").HasKey(x => x.Id);
+            eb.ToView("ProductMeasurements", "wm").HasKey(x => x.Id);
         });
 
         b.Entity<ProductPassportView>(eb =>
