@@ -88,6 +88,9 @@ jobs:
       - name: Validate OpenSpec catalog
         run: openspec validate --all --strict --json
 
+      - name: Validate OpenSpec archive
+        run: openspec validate --archived
+
   build_docker:
     name: Build Docker Images
     runs-on: ubuntu-latest

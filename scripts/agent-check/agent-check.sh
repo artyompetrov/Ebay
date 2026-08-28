@@ -17,6 +17,7 @@ run_step "Run frontend JavaScript tests" bash -lc "node --test '$ROOT_DIR'/src/E
 run_step "Install Chrome extension dependencies" bash -lc "cd '$ROOT_DIR/src/ChromeExtension' && npm ci"
 run_step "Build Chrome extension" bash -lc "cd '$ROOT_DIR/src/ChromeExtension' && npm run build"
 run_step "Validate OpenSpec catalog" bash -lc "cd '$ROOT_DIR' && openspec validate --all --strict --json"
+run_step "Validate OpenSpec archive" bash -lc "cd '$ROOT_DIR' && openspec validate --archived"
 
 echo
 
