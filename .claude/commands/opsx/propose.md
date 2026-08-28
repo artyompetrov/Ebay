@@ -1,12 +1,12 @@
 ---
 name: "OPSX: Propose"
-description: "Propose a new change - create it and generate its artifacts one at a time, confirming before each"
+description: "Propose a new change - create it and generate all artifacts in one step"
 allowed-tools: Bash(openspec:*)
 category: "Workflow"
 tags: ["workflow", "artifacts", "experimental"]
 ---
 
-Propose a new change - create the change and generate its artifacts one at a time, stopping to confirm with the user before each new artifact.
+Propose a new change - create the change and generate all artifacts in one step.
 
 **Planning boundary**: This workflow creates planning artifacts only. The user request that selected or triggered this workflow authorizes planning only, even if it asks to build or fix something. Do not edit project code. After the planning artifacts are complete, stop. Do not start implementation in the same response, even if the initial request asks for it. Wait for a new user request after the artifacts are presented; then start the apply workflow.
 
@@ -73,21 +73,17 @@ When the user is ready to implement, they must start the apply workflow explicit
    - `artifacts`: list of all artifacts, each with its `status` and its `requires` edges (the artifact IDs it directly depends on)
    - `planningHome`, `changeRoot`, `artifactPaths`, and `actionContext`: path and scope context. Use these instead of assuming repo-local paths.
 
-5. **Create artifacts one at a time, confirming before each**
+5. **Create every artifact in the required set**
 
    Use a todo list to track progress through the artifacts.
 
-   Compute the required set once: `applyRequires` plus every artifact reachable from those by following the `requires` edges in `status --json` - walk them transitively (spec-driven closes over proposal, specs, design, tasks). Leave artifacts outside that set alone. `status` is file-existence only, so an `applyRequires` artifact reading `done` does NOT mean its dependencies exist - writing `tasks.md` early marks `tasks` done while `specs` was never written. Use each artifact's `requires` edges, not its `status`, to build the required set: a `done` artifact still lists what it depends on. An artifact already reading `status: "skipped"` is satisfied: the change declares `skip_specs` in `.openspec.yaml`, so its files must NOT exist - never try to create one.
+   Loop through artifacts in dependency order (artifacts with no pending dependencies first):
 
-   Then process the required set **one artifact per iteration**. Never create more than one artifact without an explicit go-ahead from the user in between - this replaces looping straight through to the end.
-
-   a. **Pick the next artifact**: the first artifact in the required set, in dependency order, that is `ready` (dependencies satisfied) and not yet `done` or `skipped`. Dependencies are enablers, not gates: if it's `blocked` only because you deliberately skipped a conditional dependency, treat it as ready anyway.
-      - Skip an artifact (mark it deliberately skipped and move on) only when its own `instruction` says it is conditional: run `openspec instructions <artifact-id> --change "<name>" --json` and skip only if `instruction` marks it optional (e.g. "create only if..."). Spec-driven's `design.md` qualifies; `specs` qualifies only via the `skipped` status above, never by your own judgment. Tell the user, and do not reconsider it.
-
-   b. **Get instructions and create it**:
-      ```bash
-      openspec instructions <artifact-id> --change "<name>" --json
-      ```
+   a. **For each artifact that is `ready` (dependencies satisfied)**:
+      - Get instructions:
+        ```bash
+        openspec instructions <artifact-id> --change "<name>" --json
+        ```
       - The instructions JSON includes:
         - `context`: Project background (constraints for you - do NOT include in output)
         - `rules`: Artifact-specific rules (constraints for you - do NOT include in output)
@@ -100,15 +96,21 @@ When the user is ready to implement, they must start the apply workflow explicit
       - If the `instruction` field delegates creation to a specific skill or command, invoke it to produce the artifact instead of writing the file yourself, then verify the artifact file exists at `resolvedOutputPath`
       - Otherwise create the artifact file using `template` as the structure and write it to `resolvedOutputPath`. If `resolvedOutputPath` is a glob, follow `instruction` to choose the concrete file path
       - Apply `context` and `rules` as constraints - but do NOT copy them into the file
-      - Verify the file exists after writing
+      - Show brief progress: "Created <artifact-id>"
 
-   c. **If the artifact requires user input** (unclear context): ask the user to clarify, then continue creating that same artifact. This clarification does not itself authorize moving on to the next artifact.
+   b. **Continue until every artifact in the required set exists (not just `apply.requires`)**
+      - After creating each artifact, re-run `openspec status --change "<name>" --json`
+      - The required set is `applyRequires` plus every artifact reachable from those by following the `requires` edges in `status --json` - walk them transitively (spec-driven closes over proposal, specs, design, tasks). Leave artifacts outside that set alone
+      - `status` is file-existence only, so an `applyRequires` artifact reading `done` does NOT mean its dependencies exist - writing `tasks.md` early marks `tasks` done while `specs` was never written. Use each artifact's `requires` edges, not its `status`, to build the required set: a `done` artifact still lists what it depends on
+      - An artifact already reading `status: "skipped"` is satisfied: the change declares `skip_specs` in `.openspec.yaml`, so its files must NOT exist. Never try to create one
+      - Create every artifact in the required set that is missing, then re-check - creating one can unblock others
+      - Skip one only when `status` already reports it `skipped`, or when its own `instruction` says it is conditional: run `openspec instructions <artifact-id> --change "<name>" --json` and skip only if its `instruction` field marks it optional (e.g. "create only if..."). Spec-driven's `design.md` qualifies; `specs` qualifies only via the `skipped` status above, never by your own judgment. Tell the user, and do not reconsider it
+      - Dependencies are enablers, not gates: if a required artifact is still `blocked` only because you skipped a conditional dependency, write it anyway
+      - Stop when every artifact in the required set is `done`, `skipped`, or was deliberately skipped
 
-   d. **Stop and report**: re-run `openspec status --change "<name>" --json`. Tell the user which artifact was just created (one line, e.g. "Created `proposal.md`") and what's still left in the required set.
-
-   e. **Wait for the user's go-ahead**: ask whether to create the next artifact (name it) now, or pause here. Do NOT start the next artifact without an explicit confirmation in a new user message. If the user wants to review or edit the file first, stop the workflow - they can resume anytime by asking to continue, and the loop picks up wherever `status` says work is still missing; already-`done` or `skipped` artifacts are left alone.
-
-   Repeat (a)-(e) until every artifact in the required set is `done`, `skipped`, or was deliberately skipped, or until the user pauses in (e).
+   c. **If an artifact requires user input** (unclear context):
+      - Ask the user to clarify
+      - Then continue with creation
 
 6. **Show final status**
    ```bash
@@ -117,17 +119,11 @@ When the user is ready to implement, they must start the apply workflow explicit
 
 **Output**
 
-After each artifact (step 5d), before asking to continue:
-- Name the artifact just created and its path
-- What's left in the required set, if anything
-
-Once every artifact in the required set is `done`, `skipped`, or deliberately skipped, summarize:
+After completing all artifacts, summarize:
 - Change name and location
 - List of artifacts created with brief descriptions, plus any conditional artifact you skipped and why
 - What's ready: "All artifacts needed for implementation are ready."
 - Prompt: "The artifacts are ready for review. When you are ready, run `/opsx:apply`."
-
-If the user paused before all artifacts were created, say what's left and that they can resume anytime by asking to continue.
 
 **Artifact Creation Guidelines**
 
@@ -147,4 +143,3 @@ If the user paused before all artifacts were created, say what's left and that t
 - Ask about ambiguities that would materially change scope, externally observable behavior, compatibility, or acceptance criteria; for minor details, make reasonable assumptions and record them
 - If a change with that name already exists, ask if user wants to continue it or create a new one
 - Verify each artifact file exists after writing before proceeding to next
-- Create artifacts one at a time - after writing a file, stop and get the user's explicit go-ahead before starting the next one; never auto-loop through the whole required set in one turn
