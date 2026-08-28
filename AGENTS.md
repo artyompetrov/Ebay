@@ -27,7 +27,7 @@ Project composition:
 - Add `[TestOf(typeof(...))]` to the test class.
 
 ## Navigation
-- `.github/workflows/build-and-tests.yaml` — main CI/CD build and deploy.
+- `.github/workflows/build-and-tests.yaml` — main CI/CD build and deploy; includes an `openspec_validate` job that runs `openspec validate --all --strict` against `openspec/`.
 - `.github/workflows/backup-database.yaml` — scheduled job that dumps the production DB over SSH and uploads it to Yandex Disk (`scripts/backup-database/upload_to_yandex_disk.sh`); requires the `SSH_PRIVATE_KEY`/`SSH_HOST`/`SSH_USER` secrets (shared with the deploy job) and a `YANDEX_DISK_TOKEN` secret (OAuth token for the Yandex Disk API).
 - `src/Ebay` — backend + Blazor frontend (details: `src/Ebay/AGENTS.md`).
 - `src/ChromeExtension` — Chrome extension (details: `src/ChromeExtension/AGENTS.md`).
