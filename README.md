@@ -1,5 +1,7 @@
 # Ebay
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/artyompetrov/Ebay)
+
 An application for analyzing eBay product prices and subsequent purchasing on external marketplaces.
 
 ## Project composition
