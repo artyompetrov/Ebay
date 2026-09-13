@@ -19,7 +19,6 @@ run_step "Build Chrome extension" bash -lc "cd '$ROOT_DIR/src/ChromeExtension' &
 run_step "Check OpenSpec CLI and skills versions" bash -lc "'$ROOT_DIR/scripts/check-openspec-version/check-openspec-version.sh'"
 run_step "Validate OpenSpec catalog" bash -lc "cd '$ROOT_DIR' && openspec validate --all --strict --json"
 run_step "Validate OpenSpec archive" bash -lc "cd '$ROOT_DIR' && openspec validate --archived"
-run_step "Test OpenSpec coverage checker" bash -lc "node --test '$ROOT_DIR'/scripts/check-openspec-test-coverage/*.test.mjs"
 run_step "Check OpenSpec scenario test coverage" bash -lc "'$ROOT_DIR/scripts/check-openspec-test-coverage/check-openspec-test-coverage.sh'"
 
 echo

@@ -95,7 +95,9 @@ the loader verifies `.openspec-version`, and import/parse failures fail the chec
 existing Linux/bash workflow requires an npm CLI executable resolvable with `which`;
 unsupported wrappers fail with a diagnostic.
 
-Run the integration tests with the pinned CLI on PATH:
+The shell entry point runs the integration tests first, then checks repository coverage.
+A test failure stops the script before the coverage check. Both `agent-check.sh` and CI
+call this single entry point. To run just the integration tests with the pinned CLI on PATH:
 
 ```sh
 node --test scripts/check-openspec-test-coverage/*.test.mjs
