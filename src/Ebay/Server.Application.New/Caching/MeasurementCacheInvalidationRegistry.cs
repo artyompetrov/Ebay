@@ -29,8 +29,6 @@ public sealed class MeasurementCacheInvalidationRegistry
                     changeToken: new CancellationChangeToken(entry.Token),
                     release: () => Release(measurementId, entry));
             }
-
-            _tokenSources.TryRemove(new KeyValuePair<string, TokenSourceEntry>(measurementId, entry));
         }
     }
 
@@ -62,6 +60,7 @@ public sealed class MeasurementCacheInvalidationRegistry
                 if (_tokenSources.TryRemove(new KeyValuePair<string, TokenSourceEntry>(measurementId, entry)))
                 {
                     entry.Dispose();
+                    return;
                 }
                 return;
             case TokenSourceReleaseResult.DisposeOnly:
@@ -85,6 +84,7 @@ public sealed class MeasurementCacheInvalidationRegistry
         private readonly CancellationTokenSource _tokenSource = new();
         private int _leaseCount;
         private bool _invalidated;
+        private bool _retiring;
         private bool _disposed;
 
         public CancellationToken Token => _tokenSource.Token;
@@ -93,7 +93,7 @@ public sealed class MeasurementCacheInvalidationRegistry
         {
             lock (_lock)
             {
-                if (_invalidated || _disposed)
+                if (_invalidated || _retiring || _disposed)
                 {
                     return false;
                 }
@@ -139,9 +139,13 @@ public sealed class MeasurementCacheInvalidationRegistry
                     return TokenSourceReleaseResult.None;
                 }
 
-                return _invalidated
-                    ? TokenSourceReleaseResult.DisposeOnly
-                    : TokenSourceReleaseResult.RemoveFromRegistry;
+                if (_invalidated)
+                {
+                    return TokenSourceReleaseResult.DisposeOnly;
+                }
+
+                _retiring = true;
+                return TokenSourceReleaseResult.RemoveFromRegistry;
             }
         }
 

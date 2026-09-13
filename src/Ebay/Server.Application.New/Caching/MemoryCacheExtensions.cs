@@ -39,28 +39,41 @@ public static class MemoryCacheExtensions
             return cached;
         }
 
-        var value = await factory();
-        if (value is null)
-        {
-            return null;
-        }
-
-        using var entry = cache.CreateEntry(key);
         var invalidationToken = invalidationTokenFactory?.Invoke();
-        entry.Value = value;
-        entry.SlidingExpiration = CacheEntrySlidingExpiration;
-        entry.AbsoluteExpirationRelativeToNow = CacheEntryAbsoluteExpiration;
-        entry.Size = sizeSelector(value);
-        if (invalidationToken is not null)
+        try
         {
-            entry.ExpirationTokens.Add(invalidationToken.ChangeToken);
-            entry.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration
+            var value = await factory();
+            if (value is null)
             {
-                State = invalidationToken,
-                EvictionCallback = static (_, _, _, state) => ((MeasurementCacheInvalidationLease)state!).Dispose()
-            });
-        }
+                return null;
+            }
 
-        return value;
+            if (invalidationToken?.ChangeToken.HasChanged == true)
+            {
+                return value;
+            }
+
+            using var entry = cache.CreateEntry(key);
+            entry.Value = value;
+            entry.SlidingExpiration = CacheEntrySlidingExpiration;
+            entry.AbsoluteExpirationRelativeToNow = CacheEntryAbsoluteExpiration;
+            entry.Size = sizeSelector(value);
+            if (invalidationToken is not null)
+            {
+                entry.ExpirationTokens.Add(invalidationToken.ChangeToken);
+                entry.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration
+                {
+                    State = invalidationToken,
+                    EvictionCallback = static (_, _, _, state) => ((MeasurementCacheInvalidationLease)state!).Dispose()
+                });
+                invalidationToken = null;
+            }
+
+            return value;
+        }
+        finally
+        {
+            invalidationToken?.Dispose();
+        }
     }
 }

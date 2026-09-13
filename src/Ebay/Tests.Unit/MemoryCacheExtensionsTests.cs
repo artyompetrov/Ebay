@@ -104,4 +104,36 @@ public sealed class MemoryCacheExtensionsTests
 
         registry.ActiveTokenSourceCount.Should().Be(0);
     }
+
+    [Test]
+    public async Task GetOrCreateAsync_DoesNotCacheValue_WhenInvalidationHappensDuringFactory()
+    {
+        using var cache = new MemoryCache(new MemoryCacheOptions());
+        var registry = new MeasurementCacheInvalidationRegistry();
+        var factoryCallCount = 0;
+
+        async Task<string?> Factory()
+        {
+            factoryCallCount++;
+            registry.Invalidate("measurement-1");
+            await Task.Yield();
+            return "value";
+        }
+
+        var first = await cache.GetOrCreateAsync(
+            "key",
+            Factory,
+            sizeSelector: static s => s.Length,
+            invalidationTokenFactory: () => registry.AcquireToken("measurement-1"));
+        var second = await cache.GetOrCreateAsync(
+            "key",
+            Factory,
+            sizeSelector: static s => s.Length,
+            invalidationTokenFactory: () => registry.AcquireToken("measurement-1"));
+
+        first.Should().Be("value");
+        second.Should().Be("value");
+        factoryCallCount.Should().Be(2);
+        registry.ActiveTokenSourceCount.Should().Be(0);
+    }
 }
