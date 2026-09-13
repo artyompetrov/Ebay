@@ -4,7 +4,7 @@ WORKDIR /src
 # при добавлении новых проектов в solution.
 COPY .editorconfig /
 COPY Ebay/ Ebay/
-RUN dotnet restore "Ebay/Ebay.sln"
+RUN dotnet restore "Ebay/Ebay.slnx"
 WORKDIR "/src/Ebay/"
 WORKDIR "/src/Ebay/Server"
 ARG BUILD_VERSION="1.0.0.0"

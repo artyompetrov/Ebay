@@ -31,7 +31,7 @@ public class MeasurementPlotService : IMeasurementPlotService
 
     public MeasurementPlotService(
         DbCache cache,
-        [FromKeyedServices(Server.Application.New.WellKnown.ImageCache.ServiceKey)] IMemoryCache memoryCache,
+        [FromKeyedServices(New.WellKnown.ImageCache.ServiceKey)] IMemoryCache memoryCache,
         IMeasurementQueries measurementQueries,
         IMeasurementFileParser measurementFileParser,
         IPublishEndpoint publishEndpoint,

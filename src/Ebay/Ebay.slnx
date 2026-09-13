@@ -1,0 +1,34 @@
+﻿<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/Adapters.Driven/">
+    <Project Path="Server.Adapters.Driven.ChipFind/Server.Adapters.Driven.ChipFind.csproj" />
+    <Project Path="Server.Adapters.Driven.EF.ReadModel/Server.Adapters.Driven.EF.ReadModel.csproj" />
+    <Project Path="Server.Adapters.Driven.EF.WriteModel.Migrations/Server.Adapters.Driven.EF.WriteModel.Migrations.csproj" />
+    <Project Path="Server.Adapters.Driven.EF.WriteModel/Server.Adapters.Driven.EF.WriteModel.csproj" />
+    <Project Path="Server.Adapters.Driven.Smtp/Server.Adapters.Driven.Smtp.csproj" />
+    <Project Path="Server.Adapters.Driven.uTracer/Server.Adapters.Driven.uTracer.csproj" />
+    <Project Path="Server.Adapters.Driven.ImageProcessing/Server.Adapters.Driven.ImageProcessing.csproj" />
+  </Folder>
+    <Folder Name="/Adapters.Driving/">
+      <Project Path="Server.Adapters.Driving.WebApi/Server.Adapters.Driving.WebApi.csproj" />
+      <Project Path="Server.Adapters.Driving.MassTransit/Server.Adapters.Driving.MassTransit.csproj" />
+  </Folder>
+  <Folder Name="/Contacts/">
+      <Project Path="Server.Client/Server.Client.csproj" />
+      <Project Path="Server.Contracts/Server.Contracts.csproj" />
+  </Folder>
+  <Project Path="Frontend/Frontend.csproj" />
+  <Project Path="Server.Application.Abstractions.Driven/Server.Application.Abstractions.Driven.csproj" />
+  <Project Path="Server.Application.Abstractions.Driving/Server.Application.Abstractions.Driving.csproj" />
+  <Project Path="Server.Application.New/Server.Application.New.csproj" />
+  <Project Path="Server.Application/Server.Application.csproj" />
+  <Project Path="Server.Domain/Server.Domain.csproj" />
+  <Project Path="Server/Server.csproj" />
+  <Project Path="Tests.Explicit/Tests.Explicit.csproj" />
+  <Project Path="Tests.Integration/Tests.Integration.csproj" />
+  <Project Path="Tests.Unit/Tests.Unit.csproj" />
+</Solution>

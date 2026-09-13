@@ -111,7 +111,7 @@ public sealed class MeasurementPhotoServiceTests
     [Test]
     public async Task UploadAsync_StoresBoundedOriginal_AndUnaffectedThumbnail()
     {
-        var boundedOriginal = new byte[] { 9, 9, 9 };
+        var boundedOriginal = "\t\t\t"u8.ToArray();
         var thumbnailGenerator = new RecordingPhotoThumbnailGenerator(boundedOriginal, RealThumbnail);
         var repository = new CapturingMeasurementPhotoRepository();
         var service = new MeasurementPhotoService(

@@ -46,7 +46,7 @@ public class Program
         // Каждый потребитель IMemoryCache получает свой именованный кеш вместо одного общего
         // service-wide экземпляра - так лимит размера одного кеша не задевает записи в другом.
         builder.Services.AddKeyedSingleton<IMemoryCache>(
-            Server.Application.New.WellKnown.ImageCache.ServiceKey,
+            Application.New.WellKnown.ImageCache.ServiceKey,
             (sp, _) => new MemoryCache(new MemoryCacheOptions
             {
                 SizeLimit = sp.GetRequiredService<IOptions<ImageCacheOptions>>().Value.SizeLimitBytes
