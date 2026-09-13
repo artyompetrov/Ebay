@@ -39,4 +39,4 @@
 
 ## 8. Validate
 
-- [ ] 8.1 Run `./scripts/agent-check/agent-check.sh` from the repository root and confirm it passes.
+- [~] 8.1 Run `./scripts/agent-check/agent-check.sh` from the repository root and confirm it passes. Skipped because the local Windows run invokes WSL `bash`, where `dotnet` is not installed; targeted builds/tests and OpenSpec validation were run separately.
