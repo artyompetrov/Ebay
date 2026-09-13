@@ -10,8 +10,8 @@ namespace Server.Application.New.Caching;
 /// </summary>
 public static class MemoryCacheExtensions
 {
-    private static readonly TimeSpan CacheEntrySlidingExpiration = TimeSpan.FromHours(6);
-    private static readonly TimeSpan CacheEntryAbsoluteExpiration = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan CacheEntrySlidingExpiration = TimeSpan.FromHours(24);
+    private static readonly TimeSpan CacheEntryAbsoluteExpiration = TimeSpan.FromHours(24);
 
     /// <summary>
     /// Возвращает значение из кеша либо вычисляет его через <paramref name="factory"/>, кеширует
