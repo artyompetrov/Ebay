@@ -10,6 +10,16 @@ namespace Server.Application.New;
 /// </summary>
 public sealed class MeasurementPhotoService
 {
+    private const string ThumbnailContentType = "image/jpeg";
+    private const string HiddenPhotoPlaceholderContentType = "image/png";
+
+    /// <summary>
+    /// Прозрачный PNG размером 1x1, отдаваемый вместо реального фото/миниатюры,
+    /// когда замер уже продан и не должен быть публично виден на странице лота eBay.
+    /// </summary>
+    private static readonly byte[] HiddenPhotoPlaceholderContent = Convert.FromBase64String(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=");
+
     private readonly IMeasurementPhotoQueries _measurementPhotoQueries;
     private readonly IMeasurementPhotoRepository _measurementPhotoRepository;
     private readonly IMeasurementQueries _measurementQueries;
@@ -82,18 +92,59 @@ public sealed class MeasurementPhotoService
     }
 
     /// <summary>
-    /// Возвращает сохраненную миниатюру фотографии замера.
+    /// Возвращает полное содержимое фотографии замера. Если замер уже продан,
+    /// возвращает публичную заглушку вместо реального фото.
     /// </summary>
     /// <param name="measurementId">Идентификатор замера.</param>
     /// <param name="photoId">Идентификатор фотографии.</param>
     /// <param name="cancellationToken">Токен отмены операции.</param>
-    /// <returns>Байты миниатюры или <see langword="null"/>, если фотография не найдена.</returns>
-    public Task<byte[]?> GetThumbnailContentAsync(
+    /// <returns>Содержимое фотографии (реальное или заглушка) либо <see langword="null"/>, если замер или фотография не найдены.</returns>
+    public async Task<MeasurementPhotoContent?> GetContentAsync(
         string measurementId,
         Guid photoId,
         CancellationToken cancellationToken)
     {
-        return _measurementPhotoQueries.GetThumbnail(measurementId, photoId, cancellationToken);
+        var measurement = await _measurementQueries.GetMeasurementInfo(measurementId, cancellationToken);
+        if (measurement == null)
+        {
+            return null;
+        }
+
+        if (measurement.MeasurementState.IsHiddenFromPublicListing())
+        {
+            return new MeasurementPhotoContent(HiddenPhotoPlaceholderContent, HiddenPhotoPlaceholderContentType);
+        }
+
+        var photo = await _measurementPhotoQueries.Get(measurementId, photoId, cancellationToken);
+        return photo == null ? null : new MeasurementPhotoContent(photo.Content, photo.ContentType);
+    }
+
+    /// <summary>
+    /// Возвращает сохраненную миниатюру фотографии замера. Если замер уже продан,
+    /// возвращает публичную заглушку вместо реальной миниатюры.
+    /// </summary>
+    /// <param name="measurementId">Идентификатор замера.</param>
+    /// <param name="photoId">Идентификатор фотографии.</param>
+    /// <param name="cancellationToken">Токен отмены операции.</param>
+    /// <returns>Содержимое миниатюры (реальное или заглушка) либо <see langword="null"/>, если замер или фотография не найдены.</returns>
+    public async Task<MeasurementPhotoContent?> GetThumbnailContentAsync(
+        string measurementId,
+        Guid photoId,
+        CancellationToken cancellationToken)
+    {
+        var measurement = await _measurementQueries.GetMeasurementInfo(measurementId, cancellationToken);
+        if (measurement == null)
+        {
+            return null;
+        }
+
+        if (measurement.MeasurementState.IsHiddenFromPublicListing())
+        {
+            return new MeasurementPhotoContent(HiddenPhotoPlaceholderContent, HiddenPhotoPlaceholderContentType);
+        }
+
+        var thumbnail = await _measurementPhotoQueries.GetThumbnail(measurementId, photoId, cancellationToken);
+        return thumbnail == null ? null : new MeasurementPhotoContent(thumbnail, ThumbnailContentType);
     }
 
     /// <summary>

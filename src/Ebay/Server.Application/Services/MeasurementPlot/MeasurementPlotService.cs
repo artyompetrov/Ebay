@@ -106,7 +106,7 @@ public class MeasurementPlotService : IMeasurementPlotService
                 return null;
             }
 
-            if (info.MeasurementState is not MeasurementState.Selling and not MeasurementState.Created)
+            if (info.MeasurementState.IsHiddenFromPublicListing())
             {
                 return StatusSvg(info.MeasurementState.ToString());
             }
@@ -563,7 +563,7 @@ public class MeasurementPlotService : IMeasurementPlotService
                 return null;
             }
 
-            if (info.MeasurementState is not MeasurementState.Selling and not MeasurementState.Created)
+            if (info.MeasurementState.IsHiddenFromPublicListing())
             {
                 return StatusSvg(info.MeasurementState.ToString());
             }

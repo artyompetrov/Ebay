@@ -153,6 +153,65 @@ public class MeasurementPhotosFlowTests
     }
 
     [Test]
+    public async Task GetMeasurementPhotoContentAndThumbnail_ReturnPlaceholder_ForSoldMeasurement()
+    {
+        using var context = await CreateMeasurementContextAsync();
+
+        await context.WebApiClient.UploadMeasurementPhotoAsync(
+            context.MeasurementId,
+            new MeasurementPhotoUploadRequest
+            {
+                FileName = "tube.jpg",
+                ContentType = "image/jpeg",
+                File = TestHelpers.CreateValidPhotoBytes()
+            });
+        var photo = (await context.WebApiClient.GetMeasurementPhotosAsync(context.MeasurementId)).Single();
+
+        await context.EbayClient.UpdateMeasurementStateAsync(MeasurementState.Sold, context.ProductId, context.MeasurementId);
+
+        using var contentResponse = await context.HttpClient.GetAsync(
+            $"/api/webapi/v1/measurements/{context.MeasurementId}/photos/{photo.Id}/content");
+        using var thumbnailResponse = await context.HttpClient.GetAsync(
+            $"/api/webapi/v1/measurements/{context.MeasurementId}/photos/{photo.Id}/thumbnail/content");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(contentResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(contentResponse.Content.Headers.ContentType!.MediaType, Is.EqualTo("image/png"));
+            Assert.That(thumbnailResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(thumbnailResponse.Content.Headers.ContentType!.MediaType, Is.EqualTo("image/png"));
+        }
+
+        var contentBytes = await contentResponse.Content.ReadAsByteArrayAsync();
+        var thumbnailBytes = await thumbnailResponse.Content.ReadAsByteArrayAsync();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(contentBytes, Is.Not.EqualTo(TestHelpers.CreateValidPhotoBytes()));
+            Assert.That(contentBytes, Is.Not.Empty);
+            Assert.That(thumbnailBytes, Is.Not.Empty);
+        }
+    }
+
+    [Test]
+    public async Task GetMeasurementPhotoContentAndThumbnail_ReturnPlaceholder_ForSoldMeasurement_EvenWhenPhotoIdIsUnknown()
+    {
+        using var context = await CreateMeasurementContextAsync();
+        await context.EbayClient.UpdateMeasurementStateAsync(MeasurementState.Sold, context.ProductId, context.MeasurementId);
+
+        using var contentResponse = await context.HttpClient.GetAsync(
+            $"/api/webapi/v1/measurements/{context.MeasurementId}/photos/{Guid.NewGuid()}/content");
+        using var thumbnailResponse = await context.HttpClient.GetAsync(
+            $"/api/webapi/v1/measurements/{context.MeasurementId}/photos/{Guid.NewGuid()}/thumbnail/content");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(contentResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(thumbnailResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        }
+    }
+
+    [Test]
     public async Task UploadMeasurementPhoto_ForUnknownMeasurement_ReturnsNotFound()
     {
         var httpClient = IntegrationTestsSetupFixture.Factory.CreateClient();
