@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Adapters.Driven.EF.WriteModel.Repositories;
@@ -28,6 +29,7 @@ public static class ServiceCollectionExtensions
                                    ?? throw new InvalidOperationException("Connection string cannot be null");
             o.UseNpgsql(connectionString, b =>
                 b.MigrationsAssembly("Server.Adapters.Driven.EF.WriteModel.Migrations"));
+            o.AddInterceptors(sp.GetServices<IInterceptor>());
         });
 
         services.AddScoped<IMeasurementRepository, MeasurementRepository>();

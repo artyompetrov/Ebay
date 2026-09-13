@@ -27,6 +27,8 @@ public class MeasurementPlotWarmupHostedService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        // Pre-populates the Postgres-backed DbCache to avoid a slow first plot render after deploy.
+        // It is independent of the per-process in-memory image cache invalidated by measurement state changes.
         if (_options.IsLocalRun)
         {
             return;

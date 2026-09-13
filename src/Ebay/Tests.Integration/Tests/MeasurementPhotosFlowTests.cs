@@ -179,28 +179,31 @@ public class MeasurementPhotosFlowTests
 
         await context.EbayClient.UpdateMeasurementStateAsync(MeasurementState.Sold, context.ProductId, context.MeasurementId);
 
-        using var contentResponse = await context.HttpClient.GetAsync(
-            $"/api/webapi/v1/measurements/{context.MeasurementId}/photos/{photo.Id}/content");
-        using var thumbnailResponse = await context.HttpClient.GetAsync(
-            $"/api/webapi/v1/measurements/{context.MeasurementId}/photos/{photo.Id}/thumbnail/content");
-
-        using (Assert.EnterMultipleScope())
+        await TestHelpers.RetryUntilValidationSuccessAsync(async () =>
         {
-            Assert.That(contentResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-            Assert.That(contentResponse.Content.Headers.ContentType!.MediaType, Is.EqualTo("image/png"));
-            Assert.That(thumbnailResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-            Assert.That(thumbnailResponse.Content.Headers.ContentType!.MediaType, Is.EqualTo("image/png"));
-        }
+            using var contentResponse = await context.HttpClient.GetAsync(
+                $"/api/webapi/v1/measurements/{context.MeasurementId}/photos/{photo.Id}/content");
+            using var thumbnailResponse = await context.HttpClient.GetAsync(
+                $"/api/webapi/v1/measurements/{context.MeasurementId}/photos/{photo.Id}/thumbnail/content");
 
-        var contentBytes = await contentResponse.Content.ReadAsByteArrayAsync();
-        var thumbnailBytes = await thumbnailResponse.Content.ReadAsByteArrayAsync();
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(contentResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+                Assert.That(contentResponse.Content.Headers.ContentType!.MediaType, Is.EqualTo("image/png"));
+                Assert.That(thumbnailResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+                Assert.That(thumbnailResponse.Content.Headers.ContentType!.MediaType, Is.EqualTo("image/png"));
+            }
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(contentBytes, Is.Not.EqualTo(TestHelpers.CreateValidPhotoBytes()));
-            Assert.That(contentBytes, Is.Not.Empty);
-            Assert.That(thumbnailBytes, Is.Not.Empty);
-        }
+            var contentBytes = await contentResponse.Content.ReadAsByteArrayAsync();
+            var thumbnailBytes = await thumbnailResponse.Content.ReadAsByteArrayAsync();
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(contentBytes, Is.Not.EqualTo(TestHelpers.CreateValidPhotoBytes()));
+                Assert.That(contentBytes, Is.Not.Empty);
+                Assert.That(thumbnailBytes, Is.Not.Empty);
+            }
+        });
     }
 
     [Test]
@@ -209,16 +212,77 @@ public class MeasurementPhotosFlowTests
         using var context = await CreateMeasurementContextAsync();
         await context.EbayClient.UpdateMeasurementStateAsync(MeasurementState.Sold, context.ProductId, context.MeasurementId);
 
-        using var contentResponse = await context.HttpClient.GetAsync(
-            $"/api/webapi/v1/measurements/{context.MeasurementId}/photos/{Guid.NewGuid()}/content");
-        using var thumbnailResponse = await context.HttpClient.GetAsync(
-            $"/api/webapi/v1/measurements/{context.MeasurementId}/photos/{Guid.NewGuid()}/thumbnail/content");
-
-        using (Assert.EnterMultipleScope())
+        await TestHelpers.RetryUntilValidationSuccessAsync(async () =>
         {
-            Assert.That(contentResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-            Assert.That(thumbnailResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-        }
+            using var contentResponse = await context.HttpClient.GetAsync(
+                $"/api/webapi/v1/measurements/{context.MeasurementId}/photos/{Guid.NewGuid()}/content");
+            using var thumbnailResponse = await context.HttpClient.GetAsync(
+                $"/api/webapi/v1/measurements/{context.MeasurementId}/photos/{Guid.NewGuid()}/thumbnail/content");
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(contentResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+                Assert.That(thumbnailResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            }
+        });
+    }
+
+    [Test]
+    [NonParallelizable]
+    public async Task GetMeasurementPhotoContentAndThumbnail_DoesNotQueryDatabase_OnSecondNotSoldRequest()
+    {
+        using var context = await CreateMeasurementContextAsync();
+
+        await context.WebApiClient.UploadMeasurementPhotoAsync(
+            context.MeasurementId,
+            new MeasurementPhotoUploadRequest
+            {
+                FileName = "tube.jpg",
+                ContentType = "image/jpeg",
+                File = TestHelpers.CreateValidPhotoBytes()
+            });
+        var photo = (await context.WebApiClient.GetMeasurementPhotosAsync(context.MeasurementId)).Single();
+        var counter = IntegrationTestsSetupFixture.DatabaseCommandCounter;
+
+        using var contentCounterScope = counter.BeginScope("ProductMeasurements", "MeasurementPhotos");
+        await AssertPhotoContentStatusAsync(context.HttpClient, context.MeasurementId, photo.Id, HttpStatusCode.OK);
+        var countAfterFirstContentRequest = contentCounterScope.Count;
+        await AssertPhotoContentStatusAsync(context.HttpClient, context.MeasurementId, photo.Id, HttpStatusCode.OK);
+        contentCounterScope.Count.Should().Be(countAfterFirstContentRequest);
+
+        using var thumbnailCounterScope = counter.BeginScope("ProductMeasurements", "MeasurementPhotos");
+        await AssertPhotoThumbnailStatusAsync(context.HttpClient, context.MeasurementId, photo.Id, HttpStatusCode.OK);
+        var countAfterFirstThumbnailRequest = thumbnailCounterScope.Count;
+        await AssertPhotoThumbnailStatusAsync(context.HttpClient, context.MeasurementId, photo.Id, HttpStatusCode.OK);
+        thumbnailCounterScope.Count.Should().Be(countAfterFirstThumbnailRequest);
+    }
+
+    [Test]
+    [NonParallelizable]
+    public async Task GetMeasurementPhotoContentAndThumbnail_DoesNotQueryDatabase_OnSecondSoldRequest()
+    {
+        using var context = await CreateMeasurementContextAsync();
+        await context.EbayClient.UpdateMeasurementStateAsync(MeasurementState.Sold, context.ProductId, context.MeasurementId);
+        var counter = IntegrationTestsSetupFixture.DatabaseCommandCounter;
+        var contentPhotoId = Guid.NewGuid();
+        var thumbnailPhotoId = Guid.NewGuid();
+
+        await TestHelpers.RetryUntilValidationSuccessAsync(async () =>
+        {
+            await AssertPhotoContentStatusAsync(context.HttpClient, context.MeasurementId, contentPhotoId, HttpStatusCode.OK);
+        });
+
+        using var contentCounterScope = counter.BeginScope("ProductMeasurements", "MeasurementPhotos");
+        await AssertPhotoContentStatusAsync(context.HttpClient, context.MeasurementId, contentPhotoId, HttpStatusCode.OK);
+        var countAfterFirstContentRequest = contentCounterScope.Count;
+        await AssertPhotoContentStatusAsync(context.HttpClient, context.MeasurementId, contentPhotoId, HttpStatusCode.OK);
+        contentCounterScope.Count.Should().Be(countAfterFirstContentRequest);
+
+        using var thumbnailCounterScope = counter.BeginScope("ProductMeasurements", "MeasurementPhotos");
+        await AssertPhotoThumbnailStatusAsync(context.HttpClient, context.MeasurementId, thumbnailPhotoId, HttpStatusCode.OK);
+        var countAfterFirstThumbnailRequest = thumbnailCounterScope.Count;
+        await AssertPhotoThumbnailStatusAsync(context.HttpClient, context.MeasurementId, thumbnailPhotoId, HttpStatusCode.OK);
+        thumbnailCounterScope.Count.Should().Be(countAfterFirstThumbnailRequest);
     }
 
     [Test]
@@ -308,6 +372,26 @@ public class MeasurementPhotosFlowTests
 
         var content = await response.Content.ReadAsByteArrayAsync();
         Assert.That(content, Is.EqualTo(expectedContent));
+    }
+
+    private static async Task AssertPhotoContentStatusAsync(
+        HttpClient httpClient,
+        string measurementId,
+        Guid photoId,
+        HttpStatusCode expectedStatusCode)
+    {
+        using var response = await httpClient.GetAsync($"/api/webapi/v1/measurements/{measurementId}/photos/{photoId}/content");
+        Assert.That(response.StatusCode, Is.EqualTo(expectedStatusCode));
+    }
+
+    private static async Task AssertPhotoThumbnailStatusAsync(
+        HttpClient httpClient,
+        string measurementId,
+        Guid photoId,
+        HttpStatusCode expectedStatusCode)
+    {
+        using var response = await httpClient.GetAsync($"/api/webapi/v1/measurements/{measurementId}/photos/{photoId}/thumbnail/content");
+        Assert.That(response.StatusCode, Is.EqualTo(expectedStatusCode));
     }
 
     private static async Task<string> CreateBareMeasurementIdAsync(MeasurementContext existingContext)

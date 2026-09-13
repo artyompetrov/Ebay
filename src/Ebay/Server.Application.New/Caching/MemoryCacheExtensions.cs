@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Primitives;
 
 namespace Server.Application.New.Caching;
 
@@ -9,7 +10,8 @@ namespace Server.Application.New.Caching;
 /// </summary>
 public static class MemoryCacheExtensions
 {
-    private static readonly TimeSpan CacheEntrySlidingExpiration = TimeSpan.FromHours(6);
+    private static readonly TimeSpan CacheEntrySlidingExpiration = TimeSpan.FromHours(24);
+    private static readonly TimeSpan CacheEntryAbsoluteExpiration = TimeSpan.FromHours(24);
 
     /// <summary>
     /// Возвращает значение из кеша либо вычисляет его через <paramref name="factory"/>, кеширует
@@ -20,11 +22,16 @@ public static class MemoryCacheExtensions
     /// <param name="key">Ключ кеша.</param>
     /// <param name="factory">Вычисление значения при отсутствии его в кеше.</param>
     /// <param name="sizeSelector">Размер значения в байтах для учёта в общем лимите размера кеша.</param>
+    /// <param name="invalidationTokenFactory">
+    /// Дополнительный триггер немедленного протухания записи (например, от
+    /// <see cref="MeasurementCacheInvalidationRegistry"/>), в дополнение к скользящему времени жизни.
+    /// </param>
     public static async Task<T?> GetOrCreateAsync<T>(
         this IMemoryCache cache,
         string key,
         Func<Task<T?>> factory,
-        Func<T, long> sizeSelector)
+        Func<T, long> sizeSelector,
+        Func<MeasurementCacheInvalidationLease>? invalidationTokenFactory = null)
         where T : class
     {
         if (cache.TryGetValue(key, out T? cached))
@@ -32,17 +39,41 @@ public static class MemoryCacheExtensions
             return cached;
         }
 
-        var value = await factory();
-        if (value is null)
+        var invalidationToken = invalidationTokenFactory?.Invoke();
+        try
         {
-            return null;
+            var value = await factory();
+            if (value is null)
+            {
+                return null;
+            }
+
+            if (invalidationToken?.ChangeToken.HasChanged == true)
+            {
+                return value;
+            }
+
+            using var entry = cache.CreateEntry(key);
+            entry.Value = value;
+            entry.SlidingExpiration = CacheEntrySlidingExpiration;
+            entry.AbsoluteExpirationRelativeToNow = CacheEntryAbsoluteExpiration;
+            entry.Size = sizeSelector(value);
+            if (invalidationToken is not null)
+            {
+                entry.ExpirationTokens.Add(invalidationToken.ChangeToken);
+                entry.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration
+                {
+                    State = invalidationToken,
+                    EvictionCallback = static (_, _, _, state) => ((MeasurementCacheInvalidationLease)state!).Dispose()
+                });
+                invalidationToken = null;
+            }
+
+            return value;
         }
-
-        using var entry = cache.CreateEntry(key);
-        entry.Value = value;
-        entry.SlidingExpiration = CacheEntrySlidingExpiration;
-        entry.Size = sizeSelector(value);
-
-        return value;
+        finally
+        {
+            invalidationToken?.Dispose();
+        }
     }
 }

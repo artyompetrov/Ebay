@@ -15,6 +15,7 @@ using Server.Adapters.Driven.ImageProcessing;
 using Server.Adapters.Driven.Smtp;
 using Server.Adapters.Driven.uTracer;
 using Server.Adapters.Driving.MassTransit.Consumers.MatchedPairs;
+using Server.Adapters.Driving.MassTransit.Consumers.MeasurementCaching;
 using Server.Adapters.Driving.MassTransit.Consumers.MeasurementWatching;
 using Server.Adapters.Driving.WebApi;
 using Server.Application;
@@ -126,6 +127,8 @@ public class Program
             x.AddConsumer<CalculatePricesForProductConsumer>();
             x.AddConsumer<CalculatePricesForLotConsumer>();
             x.AddConsumer<MeasurementWatchedOnEbayConsumer>();
+            x.AddConsumer<MeasurementStateChangedConsumer>();
+            x.AddConsumer<MeasurementMatchIdChangedConsumer>();
             x.AddConsumer<CalculateEbayCurvesForMeasurementConsumer>(c =>
             {
                 c.UseConcurrencyLimit(10);

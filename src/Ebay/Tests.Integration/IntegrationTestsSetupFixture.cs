@@ -1,7 +1,9 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 
 namespace Tests.Integration;
@@ -20,6 +22,8 @@ public class IntegrationTestsSetupFixture
     public static string AuthorizationClientSecret => LaunchSettings.AuthorizationClientSecret;
 
     public static WebApplicationFactory<Server.Program> Factory { get; private set; } = null!;
+
+    public static DatabaseCommandCounter DatabaseCommandCounter { get; } = new();
 
     [OneTimeSetUp]
     public async Task OneTimeSetUp()
@@ -43,6 +47,10 @@ public class IntegrationTestsSetupFixture
                         ["AuthorizationClient:ClientSecret"] = LaunchSettings.AuthorizationClientSecret,
                         ["IdentityServer:Key:Type"] = "Development"
                     });
+                });
+                builder.ConfigureServices(services =>
+                {
+                    services.AddSingleton<IInterceptor>(DatabaseCommandCounter);
                 });
             });
 

@@ -83,6 +83,18 @@ internal sealed class MeasurementQueries : IMeasurementQueries
              .ToListAsync(cancellationToken: cancellationToken);
     }
 
+    public async Task<IReadOnlyList<string>> GetMeasurementIdsByMatchIds(
+        IReadOnlySet<string> matchIds,
+        CancellationToken cancellationToken)
+    {
+        return await _dbContext.ProductMeasurements
+            .AsNoTracking()
+            .Where(x => x.MatchId != null && matchIds.Contains(x.MatchId))
+            .Select(x => x.Id)
+            .OrderBy(x => x)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlySet<string?>> GetLotIds(Guid productId, CancellationToken cancellationToken)
     {
         return await _dbContext.ProductMeasurements.Where(x => x.ProductId == productId)

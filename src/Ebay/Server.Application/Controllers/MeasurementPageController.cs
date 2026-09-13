@@ -30,10 +30,6 @@ public class MeasurementPageController : ControllerBase
         return file == null ? NotFound() : File(file, "application/zip", $"{measurementId}.zip");
     }
 
-#if !DEBUG
-    // Только в релизе используем кеширование
-    [ResponseCache(Duration = 60 /*с*/ * 5 /*м*/)]
-#endif
     [HttpGet("/m/{measurementId}/ebay_curves")]
     public async Task<IActionResult> GetEbayCurves(
         string measurementId,
@@ -56,10 +52,6 @@ public class MeasurementPageController : ControllerBase
         return response;
     }
 
-#if !DEBUG
-    // Только в релизе используем кеширование
-    [ResponseCache(Duration = 60 /*с*/ * 5 /*м*/)]
-#endif
     [HttpGet("/m/{measurementId}/ebay_tube_description")]
     public async Task<IActionResult> GetEbayTubeDescription(
         string measurementId,

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -51,6 +52,7 @@ public static class ServiceCollectionExtensions
             var connectionString = sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection")
                                    ?? throw new InvalidOperationException("Connection string cannot be null");
             o.UseNpgsql(connectionString);
+            o.AddInterceptors(sp.GetServices<IInterceptor>());
         });
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ApplicationDbContext>());
         services.AddTransient<ShippingRatesService>();

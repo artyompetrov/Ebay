@@ -38,6 +38,43 @@ public class ProductMeasurementFlowTests
         });
     }
 
+    [Test]
+    [NonParallelizable]
+    public async Task EbayCurvesAndTubeDescription_DoNotQueryDatabase_OnSecondNotSoldRequest()
+    {
+        using var context = await CreateMeasurementContextAsync();
+        var counter = IntegrationTestsSetupFixture.DatabaseCommandCounter;
+
+        using var curvesCounterScope = counter.BeginScope("ProductMeasurements", "CacheEntries", "MatchedPairDifferences", "TubeWorkingPoints");
+        await AssertEbayCurvesWithInternalReferrerAsync(context.HttpClient, context.MeasurementId);
+        var countAfterFirstCurvesRequest = curvesCounterScope.Count;
+        await AssertEbayCurvesWithInternalReferrerAsync(context.HttpClient, context.MeasurementId);
+        Assert.That(curvesCounterScope.Count, Is.EqualTo(countAfterFirstCurvesRequest));
+
+        using var tubeDescriptionCounterScope = counter.BeginScope("ProductMeasurements", "CacheEntries", "MatchedPairDifferences", "TubeWorkingPoints");
+        await AssertSvgResponseAsync(context.HttpClient, $"/m/{context.MeasurementId}/ebay_tube_description");
+        var countAfterFirstTubeDescriptionRequest = tubeDescriptionCounterScope.Count;
+        await AssertSvgResponseAsync(context.HttpClient, $"/m/{context.MeasurementId}/ebay_tube_description");
+        Assert.That(tubeDescriptionCounterScope.Count, Is.EqualTo(countAfterFirstTubeDescriptionRequest));
+    }
+
+    [Test]
+    public async Task EbayCurves_ReturnsSoldImage_AfterCachedRealPlotIsInvalidatedByStatusChange()
+    {
+        using var context = await CreateMeasurementContextAsync();
+
+        var realPlot = await GetEbayCurvesWithInternalReferrerAsync(context.HttpClient, context.MeasurementId);
+        Assert.That(realPlot, Does.Not.Contain(">Sold<"));
+
+        await context.EbayClient.UpdateMeasurementStateAsync(MeasurementState.Sold, context.ProductId, context.MeasurementId);
+
+        await TestHelpers.RetryUntilValidationSuccessAsync(async () =>
+        {
+            var soldPlot = await GetEbayCurvesWithInternalReferrerAsync(context.HttpClient, context.MeasurementId);
+            Assert.That(soldPlot, Does.Contain(">Sold<"));
+        });
+    }
+
     private static async Task<MeasurementContext> CreateMeasurementContextAsync()
     {
         var httpClient = IntegrationTestsSetupFixture.Factory.CreateClient();
@@ -123,15 +160,49 @@ public class ProductMeasurementFlowTests
 
     private static async Task AssertSvgResponseAsync(HttpClient httpClient, HttpRequestMessage request)
     {
-        using var response = await httpClient.SendAsync(request);
-        var content = await response.Content.ReadAsStringAsync();
-
-        using (Assert.EnterMultipleScope())
+        var (response, content) = await GetSvgResponseAsync(httpClient, request);
+        using (response)
         {
-            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK), content);
-            Assert.That(response.Content.Headers.ContentType?.MediaType, Is.EqualTo("image/svg+xml"));
-            Assert.That(content, Does.Contain("<svg"));
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK), content);
+                Assert.That(response.Content.Headers.ContentType?.MediaType, Is.EqualTo("image/svg+xml"));
+                Assert.That(content, Does.Contain("<svg"));
+            }
         }
+    }
+
+    private static async Task AssertEbayCurvesWithInternalReferrerAsync(HttpClient httpClient, string measurementId)
+    {
+        _ = await GetEbayCurvesWithInternalReferrerAsync(httpClient, measurementId);
+    }
+
+    private static async Task<string> GetEbayCurvesWithInternalReferrerAsync(HttpClient httpClient, string measurementId)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, $"/m/{measurementId}/ebay_curves");
+        request.Headers.Referrer = new Uri(httpClient.BaseAddress!, "/ebay_description/internal-preview");
+
+        var (response, content) = await GetSvgResponseAsync(httpClient, request);
+        using (response)
+        {
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK), content);
+                Assert.That(response.Content.Headers.ContentType?.MediaType, Is.EqualTo("image/svg+xml"));
+                Assert.That(content, Does.Contain("<svg"));
+            }
+        }
+
+        return content;
+    }
+
+    private static async Task<(HttpResponseMessage Response, string Content)> GetSvgResponseAsync(
+        HttpClient httpClient,
+        HttpRequestMessage request)
+    {
+        var response = await httpClient.SendAsync(request);
+        var content = await response.Content.ReadAsStringAsync();
+        return (response, content);
     }
 
     private sealed record MeasurementContext(
