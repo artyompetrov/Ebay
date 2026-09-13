@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
 @inject WebApiClient WebApiClient
+@inject IBarcodeScanner BarcodeScanner
 @inject ILogger<MeasurementPhotos> Logger
 
 <script src="https://unpkg.com/html5-qrcode"></script>
@@ -177,7 +178,7 @@
 
         try
         {
-            var scannedValue = await Interop.StartQrScanner();
+            var scannedValue = await BarcodeScanner.ScanAsync();
             _measurementId = ExtractMeasurementId(scannedValue);
 
             if (string.IsNullOrWhiteSpace(_measurementId))

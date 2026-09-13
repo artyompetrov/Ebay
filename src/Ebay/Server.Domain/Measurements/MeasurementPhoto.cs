@@ -57,5 +57,9 @@ public sealed class MeasurementPhoto : AggregateRoot<Guid>
     /// <summary>
     /// Заменяет содержимое "оригинала" на версию, сжатую до допустимого размера.
     /// </summary>
-    public void CompressOriginalContent(byte[] compressedContent) => Content = compressedContent;
+    public void CompressOriginalContent(byte[] compressedContent)
+    {
+        Content = compressedContent;
+        ContentType = "image/jpeg";
+    }
 }

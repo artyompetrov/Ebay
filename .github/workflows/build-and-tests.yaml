@@ -54,6 +54,9 @@ jobs:
           cd ./src/Ebay
           dotnet build --configuration Release
 
+      - name: Install Chromium for behavioral UI tests
+        run: pwsh ./src/Ebay/Tests.Frontend/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
+
       - name: Initialize integration test database
         env:
           PGPASSWORD: catnip0-spoil4-untrimmed

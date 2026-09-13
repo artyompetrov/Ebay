@@ -92,7 +92,7 @@ public sealed class MeasurementPhotoService
                 id: Guid.NewGuid(),
                 measurementId: measurementId,
                 fileName: fileName,
-                contentType: contentType,
+                contentType: ReferenceEquals(boundedContent, content) ? contentType : ThumbnailContentType,
                 order: resolvedOrder,
                 content: boundedContent,
                 thumbnailContent: thumbnailContent),
@@ -128,7 +128,10 @@ public sealed class MeasurementPhotoService
 
                 if (measurement.MeasurementState.IsHiddenFromPublicListing())
                 {
-                    return new MeasurementPhotoContent(HiddenPhotoPlaceholderContent, HiddenPhotoPlaceholderContentType);
+                    var metadata = await _measurementPhotoQueries.GetMetadataByMeasurementIds([measurementId], cancellationToken);
+                    return metadata.Any(photo => photo.Id == photoId)
+                        ? new MeasurementPhotoContent(HiddenPhotoPlaceholderContent, HiddenPhotoPlaceholderContentType)
+                        : null;
                 }
 
                 var photo = await _measurementPhotoQueries.Get(measurementId, photoId, cancellationToken);
@@ -163,7 +166,10 @@ public sealed class MeasurementPhotoService
 
                 if (measurement.MeasurementState.IsHiddenFromPublicListing())
                 {
-                    return new MeasurementPhotoContent(HiddenPhotoPlaceholderContent, HiddenPhotoPlaceholderContentType);
+                    var metadata = await _measurementPhotoQueries.GetMetadataByMeasurementIds([measurementId], cancellationToken);
+                    return metadata.Any(photo => photo.Id == photoId)
+                        ? new MeasurementPhotoContent(HiddenPhotoPlaceholderContent, HiddenPhotoPlaceholderContentType)
+                        : null;
                 }
 
                 var thumbnail = await _measurementPhotoQueries.GetThumbnail(measurementId, photoId, cancellationToken);

@@ -1,3 +1,4 @@
+using Tests.Shared;
 using AwesomeAssertions;
 using Microsoft.Extensions.Caching.Memory;
 using Server.Application.Abstractions.Driven.Abstractions;
@@ -35,6 +36,7 @@ public sealed class MeasurementPhotoServiceTests
     }
 
     [Test]
+    [OpenSpecScenario("measurement-photos", "Cached serving of photo and thumbnail content", "Repeated content request served from cache")]
     public async Task GetContentAsync_SecondCall_IsServedFromCache_WithoutQueryingPhotoStoreAgain()
     {
         var photoQueries = new FakeMeasurementPhotoQueries(
@@ -50,6 +52,7 @@ public sealed class MeasurementPhotoServiceTests
     }
 
     [Test]
+    [OpenSpecScenario("measurement-photos", "Cached serving of photo and thumbnail content", "Repeated thumbnail request served from cache")]
     public async Task GetThumbnailContentAsync_SecondCall_IsServedFromCache_WithoutQueryingPhotoStoreAgain()
     {
         var photoQueries = new FakeMeasurementPhotoQueries(
@@ -65,6 +68,7 @@ public sealed class MeasurementPhotoServiceTests
     }
 
     [Test]
+    [OpenSpecScenario("measurement-photos", "Cached serving of photo and thumbnail content", "Requests between status changes never re-check the database")]
     public async Task GetContentAsync_SecondCall_DoesNotReCheckMeasurementStatus_WhenNothingInvalidatedIt()
     {
         var photoQueries = new FakeMeasurementPhotoQueries(
@@ -100,6 +104,7 @@ public sealed class MeasurementPhotoServiceTests
     }
 
     [Test]
+    [OpenSpecScenario("measurement-photos", "Cached serving of photo and thumbnail content", "Sale still takes effect immediately despite cached bytes")]
     public async Task GetContentAsync_ReturnsPlaceholder_NotPreviouslyCachedRealBytes_AfterCacheIsInvalidatedForASale()
     {
         var photoQueries = new FakeMeasurementPhotoQueries(
@@ -153,6 +158,7 @@ public sealed class MeasurementPhotoServiceTests
     }
 
     [Test]
+    [OpenSpecScenario("measurement-photos", "Photo thumbnail generated on upload", "Thumbnail created at upload time")]
     public async Task UploadAsync_StoresBoundedOriginal_AndUnaffectedThumbnail()
     {
         var boundedOriginal = "\t\t\t"u8.ToArray();
@@ -347,7 +353,8 @@ public sealed class MeasurementPhotoServiceTests
 
         public Task<IReadOnlyList<MeasurementPhotoMetadata>> GetMetadataByMeasurementIds(
             IReadOnlyCollection<string> measurementIds, CancellationToken cancellationToken) =>
-            throw new NotSupportedException();
+            Task.FromResult<IReadOnlyList<MeasurementPhotoMetadata>>(_photo is null ? [] :
+                [new MeasurementPhotoMetadata(_photo.Id, _photo.MeasurementId, _photo.FileName, _photo.Order)]);
 
         public Task<IReadOnlyList<MeasurementPhotoInfo>> GetContentBatch(int skip, int take, CancellationToken cancellationToken) =>
             throw new NotSupportedException();

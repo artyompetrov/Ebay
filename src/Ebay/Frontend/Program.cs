@@ -23,6 +23,7 @@ public class Program
         builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("ServerAPI"));
         builder.Services.AddScoped<EbayClient>();
         builder.Services.AddScoped<WebApiClient>();
+        builder.Services.AddTransient<IBarcodeScanner, BarcodeScanner>();
 
         builder.Services.AddApiAuthorization();
 

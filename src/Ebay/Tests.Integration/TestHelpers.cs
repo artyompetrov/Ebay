@@ -2,6 +2,7 @@ using System.IO.Compression;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using Client.Clients.Generated;
+using NUnit.Framework.Internal;
 using Polly;
 using Polly.Timeout;
 using SkiaSharp;
@@ -30,7 +31,13 @@ public static class TestHelpers
         {
             try
             {
-                await policy.ExecuteAsync(_ => assertAction(), CancellationToken.None);
+                await policy.ExecuteAsync(async _ =>
+                {
+                    // Caught NUnit assertions still mark their current test result as failed.
+                    // Isolate each polling attempt so only the final outcome reaches the test.
+                    using var assertionContext = new TestExecutionContext.IsolatedContext();
+                    await assertAction();
+                }, CancellationToken.None);
             }
             catch (TimeoutRejectedException) when (lastAssertion != null)
             {
