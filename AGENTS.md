@@ -25,11 +25,13 @@ Project composition:
 ## Tests
 - For unit tests, use a separate test class per production class where possible.
 - Add `[TestOf(typeof(...))]` to the test class.
+- Every scenario in `openspec/specs/**` must be covered by a test tagged `[OpenSpecScenario(specId, requirement, scenario)]`, or flagged `NOT COVERED BY TEST` with a justification in the spec itself; see the `write-tests` skill and `scripts/check-openspec-test-coverage`.
 
 ## Navigation
-- `.github/workflows/build-and-tests.yaml` — main CI/CD build and deploy; includes an `openspec_validate` job that installs the OpenSpec CLI version pinned in `.openspec-version`, checks it matches via `scripts/check-openspec-version`, then runs `openspec validate --all --strict` (active changes/specs) and `openspec validate --archived` (archived changes must have every task checked off, `[~]` marks a task deliberately skipped/blocked with an explanation so it isn't counted as incomplete) against `openspec/`.
+- `.github/workflows/build-and-tests.yaml` — main CI/CD build and deploy; includes an `openspec_validate` job that installs the OpenSpec CLI version pinned in `.openspec-version`, checks it matches via `scripts/check-openspec-version`, runs `openspec validate --all --strict` (active changes/specs) and `openspec validate --archived` (archived changes must have every task checked off, `[~]` marks a task deliberately skipped/blocked with an explanation so it isn't counted as incomplete) against `openspec/`, then `scripts/check-openspec-test-coverage`.
 - `.openspec-version` — single source of truth for the OpenSpec CLI version; used by `scripts/cloud-agent-init/init.sh`, CI, and `scripts/check-openspec-version`. Bump it, reinstall that version, run `openspec update`, and commit the regenerated `.claude/skills/openspec-*` alongside the bump.
 - `scripts/check-openspec-version` — verifies the installed `openspec` CLI and the `generatedBy` version in `.claude/skills/openspec-*/SKILL.md` both match `.openspec-version`; run by `scripts/agent-check/agent-check.sh` and CI.
+- `scripts/check-openspec-test-coverage` — verifies every scenario in `openspec/specs/**` is mapped to a test via `[OpenSpecScenario]` (`src/Ebay/Tests.Shared`) or flagged `NOT COVERED BY TEST` with a reason; run by `scripts/agent-check/agent-check.sh` and CI. See the `write-tests` skill for the mapping rules.
 - `.github/workflows/backup-database.yaml` — scheduled job that dumps the production DB over SSH and uploads it to Yandex Disk (`scripts/backup-database/upload_to_yandex_disk.sh`); requires the `SSH_PRIVATE_KEY`/`SSH_HOST`/`SSH_USER` secrets (shared with the deploy job) and a `YANDEX_DISK_TOKEN` secret (OAuth token for the Yandex Disk API).
 - `src/Ebay` — backend + Blazor frontend (details: `src/Ebay/AGENTS.md`).
 - `src/ChromeExtension` — Chrome extension (details: `src/ChromeExtension/AGENTS.md`).

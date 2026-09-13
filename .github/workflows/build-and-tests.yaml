@@ -94,6 +94,9 @@ jobs:
       - name: Validate OpenSpec archive
         run: openspec validate --archived
 
+      - name: Check OpenSpec scenario test coverage
+        run: ./scripts/check-openspec-test-coverage/check-openspec-test-coverage.sh
+
   build_docker:
     name: Build Docker Images
     runs-on: ubuntu-latest

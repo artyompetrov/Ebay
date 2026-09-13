@@ -30,5 +30,6 @@
   <Project Path="Server/Server.csproj" />
   <Project Path="Tests.Explicit/Tests.Explicit.csproj" />
   <Project Path="Tests.Integration/Tests.Integration.csproj" />
+  <Project Path="Tests.Shared/Tests.Shared.csproj" />
   <Project Path="Tests.Unit/Tests.Unit.csproj" />
 </Solution>
