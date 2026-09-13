@@ -58,26 +58,34 @@ The `MeasurementPhotos.razor` ("Фото измерений") page SHALL render 
 - **THEN** the full-size preview and its backdrop are hidden again and the page remains on the "Фото измерений" view
 
 ### Requirement: Photo binary retrieval
-The system SHALL expose an API endpoint that returns the raw binary content of a single measurement photo by measurement id and photo id.
+The system SHALL expose an API endpoint that returns the raw binary content of a single measurement photo by measurement id and photo id. When the photo's measurement has been sold, the endpoint SHALL NOT return the real photo content; it SHALL instead return a placeholder image that is a valid, displayable image (so it does not trigger a browser broken-image indicator).
 
 #### Scenario: Fetch existing photo content
-- **WHEN** a client requests `GET /measurements/{measurementId}/photos/{photoId}/content` for a photo that exists
+- **WHEN** a client requests `GET /measurements/{measurementId}/photos/{photoId}/content` for a photo that exists and whose measurement has not been sold
 - **THEN** the response body is the photo's binary content with its stored content type
 
 #### Scenario: Fetch missing photo content
 - **WHEN** a client requests photo content for a measurement id or photo id that does not exist
 - **THEN** the system SHALL respond with 404 Not Found
 
+#### Scenario: Fetch photo content for a sold measurement
+- **WHEN** a client requests photo content for a photo whose measurement has been sold
+- **THEN** the response is a valid, displayable placeholder image and not the photo's real binary content
+
 ### Requirement: Photo thumbnail retrieval
-The system SHALL expose an API endpoint that returns the stored thumbnail image for a measurement photo, by measurement id and photo id.
+The system SHALL expose an API endpoint that returns the stored thumbnail image for a measurement photo, by measurement id and photo id. When the photo's measurement has been sold, the endpoint SHALL NOT return the real thumbnail; it SHALL instead return a placeholder image that is a valid, displayable image (so it does not trigger a browser broken-image indicator).
 
 #### Scenario: Fetch thumbnail for an uploaded photo
-- **WHEN** a client requests `GET /api/webapi/v1/measurements/{measurementId}/photos/{photoId}/thumbnail/content` for a photo that exists
+- **WHEN** a client requests `GET /api/webapi/v1/measurements/{measurementId}/photos/{photoId}/thumbnail/content` for a photo that exists and whose measurement has not been sold
 - **THEN** the response body is the stored thumbnail image with content type `image/jpeg`
 
 #### Scenario: Fetch missing photo's thumbnail
 - **WHEN** a client requests a thumbnail for a measurement id or photo id that does not exist
 - **THEN** the system SHALL respond with 404 Not Found
+
+#### Scenario: Fetch thumbnail for a sold measurement
+- **WHEN** a client requests the thumbnail for a photo whose measurement has been sold
+- **THEN** the response is a valid, displayable placeholder image and not the stored thumbnail's real content
 
 ### Requirement: Batched photo metadata query
 The system SHALL provide a read query that returns photo metadata (id, file name, order) without binary content for one or many measurement ids in a single call, so consumers that only need to know whether/how many photos exist do not pay the cost of loading photo binary content.
@@ -91,7 +99,7 @@ The system SHALL provide a read query that returns photo metadata (id, file name
 - **THEN** the system SHALL return an empty result for that measurement id rather than an error
 
 ### Requirement: Photos shown on the eBay listing description page
-The eBay lot description page (the page whose rendered HTML is pulled into the live eBay listing) SHALL display a thumbnail for each of the uploaded photos for each measurement/tube it lists, arranged horizontally within that measurement's row, alongside the existing measurement curve plots. Thumbnails SHALL NOT be navigable links; hovering or tapping/clicking a thumbnail SHALL preview the corresponding full-size photo in place on the same page, centered in the viewport, using CSS only (no JavaScript, no new tab, no navigation, no file download), since this page is embedded directly into a live eBay listing — viewed on both desktop and mobile — and must never cause the viewer to leave or be redirected away from that listing. When the lot has at least one measurement photo, the page SHALL also display a short instruction telling buyers to hover or tap a thumbnail to view it full-size; this instruction SHALL NOT be shown when the lot has no measurement photos at all.
+The eBay lot description page (the page whose rendered HTML is pulled into the live eBay listing) SHALL display a thumbnail for each of the uploaded photos for each measurement/tube it lists, arranged horizontally within that measurement's row, alongside the existing measurement curve plots. Thumbnails SHALL NOT be navigable links; hovering or tapping/clicking a thumbnail SHALL preview the corresponding full-size photo in place on the same page, centered in the viewport, using CSS only (no JavaScript, no new tab, no navigation, no file download), since this page is embedded directly into a live eBay listing — viewed on both desktop and mobile — and must never cause the viewer to leave or be redirected away from that listing. When the lot has at least one measurement photo, the page SHALL also display a short instruction telling buyers to hover or tap a thumbnail to view it full-size; this instruction SHALL NOT be shown when the lot has no measurement photos at all. A thumbnail's on-page size SHALL be driven by the dimensions of the image actually returned for it (capped to a bounded display size for a real photo), rather than a fixed size independent of that image, so that a measurement whose tube has since been sold — and whose photo therefore no longer resolves to the real image — visually collapses away instead of leaving a same-size blank box where the photo used to be.
 
 #### Scenario: Measurement with photos
 - **WHEN** the eBay description page is rendered for a lot whose measurements include one that has uploaded photos
@@ -124,6 +132,10 @@ The eBay lot description page (the page whose rendered HTML is pulled into the l
 #### Scenario: Instruction absent when the lot has no photos
 - **WHEN** the eBay description page is rendered for a lot whose measurements have no uploaded photos at all
 - **THEN** the page does not display the hover/tap instruction
+
+#### Scenario: A sold measurement's photo no longer reveals the real photo
+- **WHEN** a viewer of the eBay description page views or interacts with (hovers/taps) a photo thumbnail belonging to a measurement whose tube has since been sold
+- **THEN** neither the thumbnail nor its full-size preview shows the real photo, and no broken-image indicator is shown, matching how this page already hides a sold measurement's price/curve charts
 
 ### Requirement: Photo management from the internal office measurements page
 Staff SHALL be able to see whether a measurement has photos and delete a previously uploaded photo from the internal office measurements page (the per-product measurements table), without needing to scan a barcode.
