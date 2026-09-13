@@ -24,3 +24,7 @@ Independent review required two-photo layout checks, fresh touch-first contexts,
 CI run [34779597129](https://github.com/artyompetrov/Ebay/actions/runs/34779597129) passed all 104 .NET tests (68 unit, 28 integration, 8 frontend), five JavaScript tests, OpenSpec validation, and Docker builds. The strict coverage entrypoint also passed after archiving: ten checker integration tests and 45/45 mapped scenarios, with zero exemptions or deferrals. Full local agent-check was attempted but this container cannot run the WebAssembly MSBuild task host; the complete build and browser/database suite were verified in GitHub Actions.
 
 Independent reviewer final verdict: Approved, no remaining findings. Coverage/review phase complete before evaluating HybridCache.
+
+A subsequent CI run exposed a timing assumption in the sold-cache test: it could start counting while the asynchronous invalidation event was still pending. The test now warms both real images before sale and waits for both decoded placeholders before measuring repeated requests. The SQL equality assertions remain strict.
+
+See [HybridCache assessment](hybrid-cache-assessment.md) for the deterministic stale-factory reproduction and the decision to retain the current cache in this PR.
