@@ -45,8 +45,16 @@ internal sealed class PhotoThumbnailGenerator : IPhotoThumbnailGenerator
         return Task.FromResult(encoded);
     }
 
-    private static SKBitmap DecodeOrThrow(byte[] content) =>
-        SKBitmap.Decode(content) ?? throw new InvalidOperationException("Photo bytes could not be decoded as an image.");
+    private static SKBitmap DecodeOrThrow(byte[] content)
+    {
+        using var stream = new SKMemoryStream(content);
+        using var codec = SKCodec.Create(stream);
+        if (codec is null)
+        {
+            throw new InvalidOperationException("Photo bytes could not be decoded as an image.");
+        }
+        return SKBitmap.Decode(codec) ?? throw new InvalidOperationException("Photo bytes could not be decoded as an image.");
+    }
 
     private static byte[] ResizeAndEncode(SKBitmap original, int targetWidth, int targetHeight, int jpegQuality)
     {

@@ -7,15 +7,24 @@ namespace Tests.Integration.Tests;
 [TestOf(typeof(TestHelpers))]
 public sealed class TestHelpersTests
 {
-    [Test]
-    public async Task RetryUntilValidationSuccessAsync_DoesNotRetainEarlierAssertionFailures()
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task RetryUntilValidationSuccessAsync_DoesNotRetainEarlierAssertionFailures(bool multiple)
     {
         var attempts = 0;
         await TestHelpers.RetryUntilValidationSuccessAsync(() =>
         {
             attempts++;
             // Exercise NUnit itself: catching this exception alone poisons the test result.
-            Assert.That(attempts, Is.GreaterThan(1));
+            if (multiple)
+            {
+                using var assertions = Assert.EnterMultipleScope();
+                Assert.That(attempts, Is.GreaterThan(1));
+            }
+            else
+            {
+                Assert.That(attempts, Is.GreaterThan(1));
+            }
             return Task.CompletedTask;
         });
         attempts.Should().Be(2);

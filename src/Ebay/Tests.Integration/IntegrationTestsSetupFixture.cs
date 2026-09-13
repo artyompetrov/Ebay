@@ -54,6 +54,8 @@ public class IntegrationTestsSetupFixture
                 });
             });
 
+        // The scoped SQL counter uses AsyncLocal; TestServer otherwise drops it at the HTTP boundary.
+        Factory.Server.PreserveExecutionContext = true;
         using var client = Factory.CreateClient();
         await TestHelpers.RetryUntilValidationSuccessAsync(
             async () =>

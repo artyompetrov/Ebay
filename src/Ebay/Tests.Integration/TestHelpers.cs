@@ -15,13 +15,14 @@ public static class TestHelpers
         Func<Task> assertAction,
         int timeout = 30)
     {
-        AssertionException? lastAssertion = null;
+        Exception? lastAssertion = null;
 
         var retryPolicy = Policy
             .Handle<AssertionException>()
+            .Or<MultipleAssertException>()
             .WaitAndRetryForeverAsync(
                 sleepDurationProvider: _ => TimeSpan.FromMilliseconds(250),
-                onRetry: (exception, _) => lastAssertion = exception as AssertionException);
+                onRetry: (exception, _) => lastAssertion = exception);
         var timeoutPolicy = Policy.TimeoutAsync(TimeSpan.FromSeconds(timeout));
         var policy = Policy.WrapAsync(timeoutPolicy, retryPolicy);
 

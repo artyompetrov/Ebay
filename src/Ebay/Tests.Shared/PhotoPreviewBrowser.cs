@@ -23,6 +23,7 @@ public static class PhotoPreviewBrowser
         await using var context = await browser.NewContextAsync(new()
         {
             ViewportSize = new() { Width = ViewportWidth, Height = ViewportHeight },
+            JavaScriptEnabled = false,
             HasTouch = touch,
             IsMobile = touch
         });
