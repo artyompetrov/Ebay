@@ -36,6 +36,17 @@ are proposed, not shipped, and are intentionally out of scope: run `openspec cha
 (or archive the change) once the story is implemented and being tested, which moves its
 scenarios into `openspec/specs/**` and brings them into this check.
 
+### Known limitation: text matching, not test execution
+
+The script matches `[OpenSpecScenario(...)]` against raw source text under `src/Ebay/Tests.*`;
+it does not verify that the attribute sits on a test that actually runs. A commented-out test,
+an attribute in a string literal, or one placed on a non-test/helper method would all still
+count as "covered". Deliberately did not build a reflection- or test-runner-based check for
+this: coverage can also come from non-C# suites (e.g. the JS tests under `Frontend/Tests`), so
+a C#-assembly-specific fix would not be a general solution, and would add real complexity for
+partial protection. This is a written rule instead (see the `write-tests` skill's OpenSpec
+Scenario Coverage section) enforced by code review, not by the script.
+
 ## Why it reads spec.md directly
 
 `openspec show --json` exposes each scenario's WHEN/THEN body but not its
