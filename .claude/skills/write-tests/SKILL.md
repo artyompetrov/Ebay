@@ -1,4 +1,4 @@
-﻿---
+---
 name: write-tests
 description: Project testing rules. Use when adding, changing, or reviewing tests; choosing assertion style; deciding whether generated OpenAPI/swagger/schema artifacts need tests; testing manual logic around generated contracts; or checking whether tests are safe for parallel execution.
 ---
@@ -78,16 +78,24 @@ justification bullet inside that scenario in the spec.md itself, e.g.:
 A scenario is either covered by at least one `[OpenSpecScenario]` attribute or flagged
 `NOT COVERED BY TEST` with a real reason - never both, never neither.
 
-Scenarios that exist only in an active, not-yet-synced `openspec/changes/*/specs/**` delta are
-proposed, not shipped, and are not required to have tests yet. Once the change's scenarios are
-synced into `openspec/specs/**` (`openspec change sync`, or archiving the change), this rule
-applies to them like any other main-spec scenario.
+Requirements touched by an active change with at least one completed task are temporarily
+excluded from coverage and mapping checks. The checker uses `completedTasks > 0` from
+`openspec list --json`; unchecked or skipped `[~]` tasks alone do not qualify. ADDED,
+MODIFIED, REMOVED, and both RENAMED names are deferred at requirement scope. Unrelated
+requirements remain strict. New-only scenarios are not required until synced, and new test
+tags are accepted early only for requirements deferred by a started change.
 
-`scripts/check-openspec-test-coverage/check-openspec-test-coverage.sh` enforces this as part of
-`agent-check.sh` and CI: it fails on any scenario missing a mapping, any `[OpenSpecScenario]`
-attribute that no longer matches a real scenario (dangling reference - a stale mapping after a
-rename or removal), and any attribute that contradicts a `NOT COVERED BY TEST` flag. See
-`scripts/check-openspec-test-coverage/README.md` for details.
+When finishing a change, sync the final specs, archive the change, and run
+`scripts/check-openspec-test-coverage/check-openspec-test-coverage.sh` before merging.
+Archiving removes that change's exemption: final scenarios need tests or justified
+exemptions, and old mappings for removed/renamed scenarios must be fixed. The OpenSpec
+archive command itself does not run the coverage checker. Merge alone, syncing alone, or
+completing every task does not end an active change's exemption. If another started change
+still touches the same requirement, that requirement remains deferred.
+
+The checker and its integration tests run in `agent-check.sh` and CI. Structural errors
+remain strict even for deferred requirements. See `scripts/check-openspec-test-coverage/README.md`
+for the exact scope and OpenSpec integration constraints.
 
 The checker matches `[OpenSpecScenario(...)]` against raw source text; it does not verify that
 the attribute sits on a test that actually runs. Do not game this: don't leave the attribute on
