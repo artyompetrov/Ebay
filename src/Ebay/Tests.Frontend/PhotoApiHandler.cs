@@ -30,13 +30,13 @@ internal sealed class PhotoApiHandler : HttpMessageHandler
                 ?? throw new InvalidOperationException("Empty upload.");
             Uploads.Add(upload);
             AddPhoto(upload.FileName);
-            return new HttpResponseMessage(HttpStatusCode.NoContent);
+            return new HttpResponseMessage(HttpStatusCode.OK);
         }
         if (request.Method == HttpMethod.Delete)
         {
             var id = Guid.Parse(path.Split('/')[^1]);
             Photos.RemoveAll(x => x.Id == id);
-            return new HttpResponseMessage(HttpStatusCode.NoContent);
+            return new HttpResponseMessage(HttpStatusCode.OK);
         }
         if (request.Method == HttpMethod.Get && path.EndsWith("/photos", StringComparison.Ordinal))
         {

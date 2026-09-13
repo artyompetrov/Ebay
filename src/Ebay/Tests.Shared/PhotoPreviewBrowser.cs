@@ -73,6 +73,10 @@ public static class PhotoPreviewBrowser
         {
             throw new InvalidOperationException("The thumbnail did not load with the page.");
         }
+        if (!deferredFullImage)
+        {
+            await Assertions.Expect(full).ToHaveAttributeAsync("src", expectedFullUrl);
+        }
         var originalUrl = page.Url;
         if (touch)
         {
@@ -100,10 +104,16 @@ public static class PhotoPreviewBrowser
             await thumbnail.ClickAsync();
             await Assertions.Expect(toggle).ToBeCheckedAsync();
         }
-        await page.Mouse.MoveAsync(0, 0);
         await Assertions.Expect(full).ToBeVisibleAsync();
         await Assertions.Expect(selected.Locator(".photo-hover-backdrop")).ToBeVisibleAsync();
-        await page.Mouse.ClickAsync(0, 0);
+        if (touch)
+        {
+            await selected.Locator(".photo-hover-backdrop").TapAsync(new() { Position = new() { X = 1, Y = 1 } });
+        }
+        else
+        {
+            await page.Mouse.ClickAsync(0, 0);
+        }
         await Assertions.Expect(toggle).Not.ToBeCheckedAsync();
         await Assertions.Expect(full).ToBeHiddenAsync();
         await Assertions.Expect(selected.Locator(".photo-hover-backdrop")).ToBeHiddenAsync();

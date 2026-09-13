@@ -72,7 +72,13 @@
         box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
     }
 
-    .photo-hover:hover .photo-hover-full,
+    @@media (hover: hover) {
+        .photo-hover:hover .photo-hover-full {
+            visibility: visible;
+            opacity: 1;
+        }
+    }
+
     .photo-hover-toggle:checked ~ .photo-hover-full {
         visibility: visible;
         opacity: 1;

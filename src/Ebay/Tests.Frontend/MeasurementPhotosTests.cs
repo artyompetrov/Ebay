@@ -38,8 +38,8 @@ public sealed class MeasurementPhotosTests
         page.WaitForAssertion(() => page.Find("input[type=file]").HasAttribute("disabled").Should().BeFalse());
         scanner.Calls.Should().Be(1);
         page.FindComponent<InputFile>().UploadFiles(
-            InputFileContent.CreateFromBinary([1, 2], "first.png", "image/png"),
-            InputFileContent.CreateFromBinary([3, 4], "second.png", "image/png"));
+            InputFileContent.CreateFromBinary([1, 2], "first.png", contentType: "image/png"),
+            InputFileContent.CreateFromBinary([3, 4], "second.png", contentType: "image/png"));
         page.WaitForAssertion(() => page.FindAll(".measurement-photo-thumbnail").Count.Should().Be(2));
         api.Uploads.Select(static x => x.FileName).Should().Equal("first.png", "second.png");
         api.Uploads[0].File.Should().Equal(1, 2);
