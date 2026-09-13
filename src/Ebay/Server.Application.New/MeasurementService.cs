@@ -82,9 +82,10 @@ internal sealed class MeasurementService : IMeasurementService
         CancellationToken cancellationToken)
     {
         var productMeasurement = await _productMeasurementRepository.GetByIdAsync(measurementId, cancellationToken) ?? throw new InvalidOperationException("Measurement not found.");
-        productMeasurement.MatchId = string.IsNullOrWhiteSpace(matchId)
-            ? null
-            : matchId.Trim();
+        if (!productMeasurement.ChangeMatchId(matchId))
+        {
+            return;
+        }
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
@@ -106,7 +107,7 @@ internal sealed class MeasurementService : IMeasurementService
         CancellationToken cancellationToken)
     {
         var productMeasurement = await _productMeasurementRepository.GetByIdAsync(measurementId, cancellationToken) ?? throw new InvalidOperationException("Measurement not found.");
-        productMeasurement.MeasurementState = state;
+        productMeasurement.ChangeState(state);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }

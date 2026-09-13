@@ -1,5 +1,6 @@
 using AwesomeAssertions;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Primitives;
 using Server.Application.New.Caching;
 
 namespace Tests.Unit;
@@ -60,6 +61,32 @@ public sealed class MemoryCacheExtensionsTests
 
         await cache.GetOrCreateAsync("big", Factory, sizeSelector: static s => s.Length);
         await cache.GetOrCreateAsync("big", Factory, sizeSelector: static s => s.Length);
+
+        factoryCallCount.Should().Be(2);
+    }
+
+    [Test]
+    public async Task GetOrCreateAsync_EvictsEntryImmediately_WhenInvalidationTokenIsCancelled()
+    {
+        using var cache = new MemoryCache(new MemoryCacheOptions());
+        using var tokenSource = new CancellationTokenSource();
+        var factoryCallCount = 0;
+
+        Task<string?> Factory()
+        {
+            factoryCallCount++;
+            return Task.FromResult<string?>("value");
+        }
+
+        await cache.GetOrCreateAsync(
+            "key",
+            Factory,
+            sizeSelector: static s => s.Length,
+            invalidationToken: new CancellationChangeToken(tokenSource.Token));
+
+        await tokenSource.CancelAsync();
+
+        await cache.GetOrCreateAsync("key", Factory, sizeSelector: static s => s.Length);
 
         factoryCallCount.Should().Be(2);
     }

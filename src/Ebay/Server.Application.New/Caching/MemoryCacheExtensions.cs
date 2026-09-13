@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Primitives;
 
 namespace Server.Application.New.Caching;
 
@@ -20,11 +21,16 @@ public static class MemoryCacheExtensions
     /// <param name="key">Ключ кеша.</param>
     /// <param name="factory">Вычисление значения при отсутствии его в кеше.</param>
     /// <param name="sizeSelector">Размер значения в байтах для учёта в общем лимите размера кеша.</param>
+    /// <param name="invalidationToken">
+    /// Дополнительный триггер немедленного протухания записи (например, от
+    /// <see cref="MeasurementCacheInvalidationRegistry"/>), в дополнение к скользящему времени жизни.
+    /// </param>
     public static async Task<T?> GetOrCreateAsync<T>(
         this IMemoryCache cache,
         string key,
         Func<Task<T?>> factory,
-        Func<T, long> sizeSelector)
+        Func<T, long> sizeSelector,
+        IChangeToken? invalidationToken = null)
         where T : class
     {
         if (cache.TryGetValue(key, out T? cached))
@@ -42,6 +48,10 @@ public static class MemoryCacheExtensions
         entry.Value = value;
         entry.SlidingExpiration = CacheEntrySlidingExpiration;
         entry.Size = sizeSelector(value);
+        if (invalidationToken is not null)
+        {
+            entry.ExpirationTokens.Add(invalidationToken);
+        }
 
         return value;
     }

@@ -100,6 +100,33 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
         return product;
     }
 
+    public void ChangeState(MeasurementState newState)
+    {
+        if (MeasurementState == newState)
+        {
+            return;
+        }
+
+        MeasurementState = newState;
+        AddDomainEvent(new MeasurementStateChanged(Id));
+    }
+
+    public bool ChangeMatchId(string? matchId)
+    {
+        var normalizedMatchId = string.IsNullOrWhiteSpace(matchId)
+            ? null
+            : matchId.Trim();
+        if (MatchId == normalizedMatchId)
+        {
+            return false;
+        }
+
+        var oldMatchId = MatchId;
+        MatchId = normalizedMatchId;
+        AddDomainEvent(new MeasurementMatchIdChanged(Id, oldMatchId, normalizedMatchId));
+        return true;
+    }
+
     public void UpdateManufactureCode(string manufactureCode)
     {
         if (string.IsNullOrWhiteSpace(manufactureCode))
@@ -138,7 +165,7 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
 
     public Guid ProductId { get; private set; }
 
-    public MeasurementState MeasurementState { get; set; }
+    public MeasurementState MeasurementState { get; private set; }
 
     public byte[] Measurements { get; private set; }
 
@@ -168,7 +195,7 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
     public string? MatchId
     {
         get;
-        set
+        private set
         {
             field = value;
             Validate();

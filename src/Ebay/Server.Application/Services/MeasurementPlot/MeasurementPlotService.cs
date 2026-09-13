@@ -8,6 +8,7 @@ using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Models;
 using Server.Application.Abstractions.Driving.Abstractions.Messages;
+using Server.Application.HostedServices.Measurements;
 using Server.Application.Infrastructure;
 using Server.Application.New.Caching;
 using Server.Application.New.Services;
@@ -22,6 +23,7 @@ public class MeasurementPlotService : IMeasurementPlotService
 {
     private readonly DbCache _cache;
     private readonly IMemoryCache _memoryCache;
+    private readonly MeasurementCacheInvalidationRegistry _cacheInvalidationRegistry;
     private readonly IMeasurementQueries _measurementQueries;
     private readonly IMeasurementFileParser _measurementFileParser;
     private readonly IPublishEndpoint _publishEndpoint;
@@ -32,6 +34,7 @@ public class MeasurementPlotService : IMeasurementPlotService
     public MeasurementPlotService(
         DbCache cache,
         [FromKeyedServices(New.WellKnown.ImageCache.ServiceKey)] IMemoryCache memoryCache,
+        MeasurementCacheInvalidationRegistry cacheInvalidationRegistry,
         IMeasurementQueries measurementQueries,
         IMeasurementFileParser measurementFileParser,
         IPublishEndpoint publishEndpoint,
@@ -41,6 +44,7 @@ public class MeasurementPlotService : IMeasurementPlotService
     {
         _cache = cache;
         _memoryCache = memoryCache;
+        _cacheInvalidationRegistry = cacheInvalidationRegistry;
         _measurementQueries = measurementQueries;
         _measurementFileParser = measurementFileParser;
         _publishEndpoint = publishEndpoint;
@@ -98,25 +102,46 @@ public class MeasurementPlotService : IMeasurementPlotService
 
     /// <summary>
     /// Отдельный метод для Ebay требуется для возможности предварительного прогрева на старте
-    /// иначе прогрев происходит при первом заходе покупателя после передеплоя
+    /// иначе прогрев происходит при первом заходе покупателя после передеплоя.
+    /// Прогрев (см. <see cref="MeasurementPlotWarmupHostedService"/>) всегда вызывает этот метод с
+    /// <paramref name="sellingOnly"/> = false, поэтому идет напрямую в <see cref="PlotForMeasurementId"/> и
+    /// греет DbCache/её собственный in-memory кеш, а не кеш ниже, специфичный для sellingOnly = true.
     /// </summary>
     public async Task<string?> PlotForEbay(
         string measurementId,
         bool sellingOnly,
         CancellationToken cancellationToken)
     {
-        if (sellingOnly)
+        if (!sellingOnly)
         {
-            var info = await _measurementQueries.GetMeasurementInfo(measurementId, cancellationToken);
-            if (info == null)
-            {
-                return null;
-            }
+            return await PlotForMeasurementId(
+                measurementId: measurementId,
+                cancellationToken: cancellationToken,
+                mergeVertical: false,
+                legendVertical: true,
+                addQuickTest: true,
+                width: 525,
+                height: 400);
+        }
 
-            if (info.MeasurementState.IsHiddenFromPublicListing())
-            {
-                return StatusSvg(info.MeasurementState.ToString());
-            }
+        return await _memoryCache.GetOrCreateAsync(
+            key: SellingOnlyPlotCacheKey(measurementId),
+            factory: () => ResolveSellingOnlyPlotUncached(measurementId, cancellationToken),
+            sizeSelector: static s => Encoding.UTF8.GetByteCount(s),
+            invalidationToken: _cacheInvalidationRegistry.GetToken(measurementId));
+    }
+
+    private async Task<string?> ResolveSellingOnlyPlotUncached(string measurementId, CancellationToken cancellationToken)
+    {
+        var info = await _measurementQueries.GetMeasurementInfo(measurementId, cancellationToken);
+        if (info == null)
+        {
+            return null;
+        }
+
+        if (info.MeasurementState.IsHiddenFromPublicListing())
+        {
+            return StatusSvg(info.MeasurementState.ToString());
         }
 
         return await PlotForMeasurementId(
@@ -129,6 +154,8 @@ public class MeasurementPlotService : IMeasurementPlotService
             height: 400);
     }
 
+    private static string SellingOnlyPlotCacheKey(string measurementId) => $"ebayPlotSellingOnly_{measurementId}";
+
     public async Task<string?> PlotForMeasurementId(
         string measurementId,
         bool mergeVertical,
@@ -139,8 +166,9 @@ public class MeasurementPlotService : IMeasurementPlotService
         CancellationToken cancellationToken
     )
     {
-        var matchedPairMeasurementsIds =
-            await _measurementQueries.GetMeasurementPairMeasurements(measurementId, cancellationToken);
+        var matchedPairMeasurementsIds = await GetMatchedPairMeasurementIds(
+            measurementId: measurementId,
+            cancellationToken: cancellationToken);
 
         var cacheKey =
             $"measurementPlot_{mergeVertical}_{legendVertical}_{width}_{height}_{addQuickTest}_{measurementId}_{string.Join(",", matchedPairMeasurementsIds)}";
@@ -157,7 +185,8 @@ public class MeasurementPlotService : IMeasurementPlotService
                 matchedPairMeasurementsIds: matchedPairMeasurementsIds,
                 cacheKey: cacheKey,
                 cancellationToken: cancellationToken),
-            sizeSelector: static s => Encoding.UTF8.GetByteCount(s));
+            sizeSelector: static s => Encoding.UTF8.GetByteCount(s),
+            invalidationToken: _cacheInvalidationRegistry.GetToken(measurementId));
     }
 
     private async Task<string?> PlotForMeasurementIdUncached(
@@ -588,28 +617,47 @@ public class MeasurementPlotService : IMeasurementPlotService
         bool sellingOnly,
         CancellationToken cancellationToken)
     {
-        if (sellingOnly)
+        if (!sellingOnly)
         {
-            var info = await _measurementQueries.GetMeasurementInfo(measurementId, cancellationToken);
-            if (info == null)
-            {
-                return null;
-            }
-
-            if (info.MeasurementState.IsHiddenFromPublicListing())
-            {
-                return StatusSvg(info.MeasurementState.ToString());
-            }
-            /* todo после изменения lotid эта проверка стала работать неправильно
-            if (lotId != info.LotId)
-            {
-                return StatusSvg("Listed in other lot");
-            }
-            */
+            return await GetEbayTubeDescriptionForMeasurementId(measurementId, cancellationToken);
         }
 
-        var matchedPairMeasurementsIds =
-            await _measurementQueries.GetMeasurementPairMeasurements(measurementId, cancellationToken);
+        return await _memoryCache.GetOrCreateAsync(
+            key: SellingOnlyTubeDescriptionCacheKey(measurementId),
+            factory: () => ResolveSellingOnlyTubeDescriptionUncached(measurementId, cancellationToken),
+            sizeSelector: static s => Encoding.UTF8.GetByteCount(s),
+            invalidationToken: _cacheInvalidationRegistry.GetToken(measurementId));
+    }
+
+    private async Task<string?> ResolveSellingOnlyTubeDescriptionUncached(string measurementId, CancellationToken cancellationToken)
+    {
+        var info = await _measurementQueries.GetMeasurementInfo(measurementId, cancellationToken);
+        if (info == null)
+        {
+            return null;
+        }
+
+        if (info.MeasurementState.IsHiddenFromPublicListing())
+        {
+            return StatusSvg(info.MeasurementState.ToString());
+        }
+        /* todo после изменения lotid эта проверка стала работать неправильно
+        if (lotId != info.LotId)
+        {
+            return StatusSvg("Listed in other lot");
+        }
+        */
+
+        return await GetEbayTubeDescriptionForMeasurementId(measurementId, cancellationToken);
+    }
+
+    private static string SellingOnlyTubeDescriptionCacheKey(string measurementId) => $"ebayTubeDescriptionSellingOnly_{measurementId}";
+
+    private async Task<string?> GetEbayTubeDescriptionForMeasurementId(string measurementId, CancellationToken cancellationToken)
+    {
+        var matchedPairMeasurementsIds = await GetMatchedPairMeasurementIds(
+            measurementId: measurementId,
+            cancellationToken: cancellationToken);
 
         var cacheKey =
             $"ebayTubeDescription_{measurementId}_{string.Join(",", matchedPairMeasurementsIds)}";
@@ -621,8 +669,23 @@ public class MeasurementPlotService : IMeasurementPlotService
                 matchedPairMeasurementsIds: matchedPairMeasurementsIds,
                 cacheKey: cacheKey,
                 cancellationToken: cancellationToken),
-            sizeSelector: static s => Encoding.UTF8.GetByteCount(s));
+            sizeSelector: static s => Encoding.UTF8.GetByteCount(s),
+            invalidationToken: _cacheInvalidationRegistry.GetToken(measurementId));
     }
+
+    private async Task<IReadOnlyList<string>> GetMatchedPairMeasurementIds(
+        string measurementId,
+        CancellationToken cancellationToken)
+    {
+        return await _memoryCache.GetOrCreateAsync(
+            key: MatchedPairMeasurementIdsCacheKey(measurementId),
+            factory: async () => await _measurementQueries.GetMeasurementPairMeasurements(measurementId, cancellationToken),
+            sizeSelector: static ids => ids.Count + ids.Sum(static id => Encoding.UTF8.GetByteCount(id)),
+            invalidationToken: _cacheInvalidationRegistry.GetToken(measurementId))
+            ?? [];
+    }
+
+    private static string MatchedPairMeasurementIdsCacheKey(string measurementId) => $"matchedPairMeasurementIds_{measurementId}";
 
     private async Task<string?> GetEbayTubeDescriptionUncached(
         string measurementId,

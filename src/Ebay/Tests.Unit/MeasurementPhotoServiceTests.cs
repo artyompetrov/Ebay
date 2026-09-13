@@ -5,6 +5,7 @@ using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Abstractions.Driven.Models;
 using Server.Application.New;
+using Server.Application.New.Caching;
 using Server.Domain.Measurements;
 
 namespace Tests.Unit;
@@ -54,7 +55,7 @@ public sealed class MeasurementPhotoServiceTests
         var photoQueries = new FakeMeasurementPhotoQueries(
             new MeasurementPhotoInfo(PhotoId, MeasurementId, "file.heic", RealContentType, 0, RealContent),
             RealThumbnail);
-        var service = CreateService(MeasurementState.Selling, photoQueries);
+        var service = CreateService(MeasurementState.Created, photoQueries);
 
         await service.GetThumbnailContentAsync(MeasurementId, PhotoId, CancellationToken.None);
         var second = await service.GetThumbnailContentAsync(MeasurementId, PhotoId, CancellationToken.None);
@@ -64,23 +65,65 @@ public sealed class MeasurementPhotoServiceTests
     }
 
     [Test]
-    public async Task GetContentAsync_ReturnsPlaceholder_NotPreviouslyCachedRealBytes_AfterMeasurementIsSold()
+    public async Task GetContentAsync_SecondCall_DoesNotReCheckMeasurementStatus_WhenNothingInvalidatedIt()
     {
         var photoQueries = new FakeMeasurementPhotoQueries(
             new MeasurementPhotoInfo(PhotoId, MeasurementId, "file.heic", RealContentType, 0, RealContent),
             RealThumbnail);
         var measurementQueries = new FakeMeasurementQueries(MeasurementState.Selling);
-        var service = CreateService(measurementQueries, photoQueries, new MemoryCache(new MemoryCacheOptions()));
+        var service = CreateService(measurementQueries, photoQueries, new MemoryCache(new MemoryCacheOptions()), new MeasurementCacheInvalidationRegistry());
+
+        await service.GetContentAsync(MeasurementId, PhotoId, CancellationToken.None);
+        await service.GetContentAsync(MeasurementId, PhotoId, CancellationToken.None);
+
+        measurementQueries.GetMeasurementInfoCallCount.Should().Be(1);
+    }
+
+    [Test]
+    public async Task GetContentAsync_DoesNotServeCachedPhoto_ForDifferentMeasurementRoute()
+    {
+        const string otherMeasurementId = "measurement-2";
+        var photoQueries = new FakeMeasurementPhotoQueries(
+            new MeasurementPhotoInfo(PhotoId, MeasurementId, "file.heic", RealContentType, 0, RealContent),
+            RealThumbnail);
+        var measurementQueries = new FakeMeasurementQueries(MeasurementState.Selling);
+        var service = CreateService(measurementQueries, photoQueries, new MemoryCache(new MemoryCacheOptions()), new MeasurementCacheInvalidationRegistry());
+
+        var first = await service.GetContentAsync(MeasurementId, PhotoId, CancellationToken.None);
+        first.Should().Be(new MeasurementPhotoContent(RealContent, RealContentType));
+
+        measurementQueries.MeasurementState = null;
+        var otherMeasurementResult = await service.GetContentAsync(otherMeasurementId, PhotoId, CancellationToken.None);
+
+        otherMeasurementResult.Should().BeNull();
+        measurementQueries.GetMeasurementInfoCallCount.Should().Be(2);
+    }
+
+    [Test]
+    public async Task GetContentAsync_ReturnsPlaceholder_NotPreviouslyCachedRealBytes_AfterCacheIsInvalidatedForASale()
+    {
+        var photoQueries = new FakeMeasurementPhotoQueries(
+            new MeasurementPhotoInfo(PhotoId, MeasurementId, "file.heic", RealContentType, 0, RealContent),
+            RealThumbnail);
+        var measurementQueries = new FakeMeasurementQueries(MeasurementState.Selling);
+        var cacheInvalidationRegistry = new MeasurementCacheInvalidationRegistry();
+        var service = CreateService(measurementQueries, photoQueries, new MemoryCache(new MemoryCacheOptions()), cacheInvalidationRegistry);
 
         var beforeSale = await service.GetContentAsync(MeasurementId, PhotoId, CancellationToken.None);
         beforeSale.Should().Be(new MeasurementPhotoContent(RealContent, RealContentType));
 
+        // Изменение статуса в БД само по себе не видно, пока кеш не инвалидирован —
+        // так же, как в проде это делает MeasurementStateChangedHandler.
         measurementQueries.MeasurementState = MeasurementState.Sold;
-        var afterSale = await service.GetContentAsync(MeasurementId, PhotoId, CancellationToken.None);
+        var stillCached = await service.GetContentAsync(MeasurementId, PhotoId, CancellationToken.None);
+        stillCached.Should().Be(new MeasurementPhotoContent(RealContent, RealContentType));
 
-        afterSale.Should().NotBeNull();
-        afterSale!.Content.Should().NotBeEquivalentTo(RealContent);
-        afterSale.ContentType.Should().Be("image/png");
+        cacheInvalidationRegistry.Invalidate(MeasurementId);
+        var afterInvalidation = await service.GetContentAsync(MeasurementId, PhotoId, CancellationToken.None);
+
+        afterInvalidation.Should().NotBeNull();
+        afterInvalidation!.Content.Should().NotBeEquivalentTo(RealContent);
+        afterInvalidation.ContentType.Should().Be("image/png");
     }
 
     [Test]
@@ -91,6 +134,7 @@ public sealed class MeasurementPhotoServiceTests
             RealThumbnail);
         var service = new MeasurementPhotoService(
             cache: new MemoryCache(new MemoryCacheOptions()),
+            cacheInvalidationRegistry: new MeasurementCacheInvalidationRegistry(),
             measurementPhotoQueries: photoQueries,
             measurementPhotoRepository: new CapturingMeasurementPhotoRepository(),
             measurementQueries: new FakeMeasurementQueries(MeasurementState.Selling),
@@ -116,6 +160,7 @@ public sealed class MeasurementPhotoServiceTests
         var repository = new CapturingMeasurementPhotoRepository();
         var service = new MeasurementPhotoService(
             cache: new MemoryCache(new MemoryCacheOptions()),
+            cacheInvalidationRegistry: new MeasurementCacheInvalidationRegistry(),
             measurementPhotoQueries: new FakeMeasurementPhotoQueries(null, null),
             measurementPhotoRepository: repository,
             measurementQueries: new FakeMeasurementQueries(MeasurementState.Created),
@@ -210,16 +255,22 @@ public sealed class MeasurementPhotoServiceTests
         MeasurementState? measurementState,
         FakeMeasurementPhotoQueries photoQueries)
     {
-        return CreateService(new FakeMeasurementQueries(measurementState), photoQueries, new MemoryCache(new MemoryCacheOptions()));
+        return CreateService(
+            new FakeMeasurementQueries(measurementState),
+            photoQueries,
+            new MemoryCache(new MemoryCacheOptions()),
+            new MeasurementCacheInvalidationRegistry());
     }
 
     private static MeasurementPhotoService CreateService(
         FakeMeasurementQueries measurementQueries,
         FakeMeasurementPhotoQueries photoQueries,
-        IMemoryCache cache)
+        IMemoryCache cache,
+        MeasurementCacheInvalidationRegistry cacheInvalidationRegistry)
     {
         return new MeasurementPhotoService(
             cache: cache,
+            cacheInvalidationRegistry: cacheInvalidationRegistry,
             measurementPhotoQueries: photoQueries,
             measurementPhotoRepository: new NotSupportedMeasurementPhotoRepository(),
             measurementQueries: measurementQueries,
@@ -236,8 +287,12 @@ public sealed class MeasurementPhotoServiceTests
 
         public MeasurementState? MeasurementState { get; set; }
 
+        public int GetMeasurementInfoCallCount { get; private set; }
+
         public Task<MeasurementInfo?> GetMeasurementInfo(string measurementId, CancellationToken cancellationToken)
         {
+            GetMeasurementInfoCallCount++;
+
             if (MeasurementState is not { } state)
             {
                 return Task.FromResult<MeasurementInfo?>(null);

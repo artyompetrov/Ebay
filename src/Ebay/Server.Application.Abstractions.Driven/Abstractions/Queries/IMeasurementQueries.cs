@@ -88,6 +88,16 @@ public interface IMeasurementQueries : IMeasurementInfoQueries
         CancellationToken cancellationToken);
 
     /// <summary>
+    /// Возвращает идентификаторы замеров, входящих в любую из указанных matched-pair групп.
+    /// </summary>
+    /// <param name="matchIds">Идентификаторы matched-pair групп.</param>
+    /// <param name="cancellationToken">Токен отмены операции.</param>
+    /// <returns>Список идентификаторов замеров из указанных групп.</returns>
+    Task<IReadOnlyList<string>> GetMeasurementIdsByMatchIds(
+        IReadOnlySet<string> matchIds,
+        CancellationToken cancellationToken);
+
+    /// <summary>
     /// Возвращает множество уникальных идентификаторов лотов товара.
     /// </summary>
     /// <param name="productId">Идентификатор товара.</param>

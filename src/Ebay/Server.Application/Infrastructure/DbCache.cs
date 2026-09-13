@@ -24,6 +24,8 @@ public class DbCache
         CancellationToken cancellationToken,
         JsonSerializerOptions? jsonOptions = null)
     {
+        // Persistent, cross-restart cache for expensive plot/tube-description rendering.
+        // State-change invalidation is handled by the separate in-memory image cache layer.
         await _semaphore.Semaphore.WaitAsync(cancellationToken);
         try
         {

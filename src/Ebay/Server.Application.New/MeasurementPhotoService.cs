@@ -24,6 +24,7 @@ public sealed class MeasurementPhotoService
         "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=");
 
     private readonly IMemoryCache _cache;
+    private readonly MeasurementCacheInvalidationRegistry _cacheInvalidationRegistry;
     private readonly IMeasurementPhotoQueries _measurementPhotoQueries;
     private readonly IMeasurementPhotoRepository _measurementPhotoRepository;
     private readonly IMeasurementInfoQueries _measurementQueries;
@@ -34,6 +35,7 @@ public sealed class MeasurementPhotoService
     /// Создает сервис сценариев работы с фотографиями замера.
     /// </summary>
     /// <param name="cache">Выделенный in-memory кеш для байтов фото/миниатюр непроданных замеров.</param>
+    /// <param name="cacheInvalidationRegistry">Реестр токенов протухания кеша по измерению.</param>
     /// <param name="measurementPhotoQueries">Запросы чтения фотографий замера.</param>
     /// <param name="measurementPhotoRepository">Репозиторий агрегата фотографии замера.</param>
     /// <param name="measurementQueries">Запросы чтения карточки замера.</param>
@@ -41,6 +43,7 @@ public sealed class MeasurementPhotoService
     /// <param name="writeModelUnitOfWork">Unit of Work для сохранения write-model.</param>
     public MeasurementPhotoService(
         [FromKeyedServices(WellKnown.ImageCache.ServiceKey)] IMemoryCache cache,
+        MeasurementCacheInvalidationRegistry cacheInvalidationRegistry,
         IMeasurementPhotoQueries measurementPhotoQueries,
         IMeasurementPhotoRepository measurementPhotoRepository,
         IMeasurementInfoQueries measurementQueries,
@@ -48,6 +51,7 @@ public sealed class MeasurementPhotoService
         IWriteModelUnitOfWork writeModelUnitOfWork)
     {
         _cache = cache;
+        _cacheInvalidationRegistry = cacheInvalidationRegistry;
         _measurementPhotoQueries = measurementPhotoQueries;
         _measurementPhotoRepository = measurementPhotoRepository;
         _measurementQueries = measurementQueries;
@@ -112,25 +116,26 @@ public sealed class MeasurementPhotoService
         Guid photoId,
         CancellationToken cancellationToken)
     {
-        var measurement = await _measurementQueries.GetMeasurementInfo(measurementId, cancellationToken);
-        if (measurement == null)
-        {
-            return null;
-        }
-
-        if (measurement.MeasurementState.IsHiddenFromPublicListing())
-        {
-            return new MeasurementPhotoContent(HiddenPhotoPlaceholderContent, HiddenPhotoPlaceholderContentType);
-        }
-
         return await _cache.GetOrCreateAsync(
-            key: ContentCacheKey(photoId),
+            key: ContentCacheKey(measurementId, photoId),
             factory: async () =>
             {
+                var measurement = await _measurementQueries.GetMeasurementInfo(measurementId, cancellationToken);
+                if (measurement == null)
+                {
+                    return null;
+                }
+
+                if (measurement.MeasurementState.IsHiddenFromPublicListing())
+                {
+                    return new MeasurementPhotoContent(HiddenPhotoPlaceholderContent, HiddenPhotoPlaceholderContentType);
+                }
+
                 var photo = await _measurementPhotoQueries.Get(measurementId, photoId, cancellationToken);
                 return photo == null ? null : new MeasurementPhotoContent(photo.Content, photo.ContentType);
             },
-            sizeSelector: static x => x.Content.LongLength);
+            sizeSelector: static x => x.Content.LongLength,
+            invalidationToken: _cacheInvalidationRegistry.GetToken(measurementId));
     }
 
     /// <summary>
@@ -146,25 +151,26 @@ public sealed class MeasurementPhotoService
         Guid photoId,
         CancellationToken cancellationToken)
     {
-        var measurement = await _measurementQueries.GetMeasurementInfo(measurementId, cancellationToken);
-        if (measurement == null)
-        {
-            return null;
-        }
-
-        if (measurement.MeasurementState.IsHiddenFromPublicListing())
-        {
-            return new MeasurementPhotoContent(HiddenPhotoPlaceholderContent, HiddenPhotoPlaceholderContentType);
-        }
-
         return await _cache.GetOrCreateAsync(
-            key: ThumbnailCacheKey(photoId),
+            key: ThumbnailCacheKey(measurementId, photoId),
             factory: async () =>
             {
+                var measurement = await _measurementQueries.GetMeasurementInfo(measurementId, cancellationToken);
+                if (measurement == null)
+                {
+                    return null;
+                }
+
+                if (measurement.MeasurementState.IsHiddenFromPublicListing())
+                {
+                    return new MeasurementPhotoContent(HiddenPhotoPlaceholderContent, HiddenPhotoPlaceholderContentType);
+                }
+
                 var thumbnail = await _measurementPhotoQueries.GetThumbnail(measurementId, photoId, cancellationToken);
                 return thumbnail == null ? null : new MeasurementPhotoContent(thumbnail, ThumbnailContentType);
             },
-            sizeSelector: static x => x.Content.LongLength);
+            sizeSelector: static x => x.Content.LongLength,
+            invalidationToken: _cacheInvalidationRegistry.GetToken(measurementId));
     }
 
     /// <summary>
@@ -200,13 +206,13 @@ public sealed class MeasurementPhotoService
         await _measurementPhotoRepository.RemoveAsync(photoId, cancellationToken);
         await _writeModelUnitOfWork.SaveChangesAsync(cancellationToken);
 
-        _cache.Remove(ContentCacheKey(photoId));
-        _cache.Remove(ThumbnailCacheKey(photoId));
+        _cache.Remove(ContentCacheKey(measurementId, photoId));
+        _cache.Remove(ThumbnailCacheKey(measurementId, photoId));
 
         return true;
     }
 
-    private static string ContentCacheKey(Guid photoId) => $"measurement-photo-content:{photoId}";
+    private static string ContentCacheKey(string measurementId, Guid photoId) => $"measurement-photo-content:{measurementId}:{photoId}";
 
-    private static string ThumbnailCacheKey(Guid photoId) => $"measurement-photo-thumbnail:{photoId}";
+    private static string ThumbnailCacheKey(string measurementId, Guid photoId) => $"measurement-photo-thumbnail:{measurementId}:{photoId}";
 }

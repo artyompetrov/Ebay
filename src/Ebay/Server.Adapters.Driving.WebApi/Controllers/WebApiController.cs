@@ -118,13 +118,6 @@ public sealed class WebApiController : WebApiControllerBase
     }
 
     // Anonymous: embedded as <img> src on EbayLotDescriptionPage, which is pulled into public eBay listing descriptions.
-    // Response is state-dependent (real photo vs. sold placeholder), so its cache lifetime is capped the same way
-    // as the state-dependent chart endpoints in MeasurementPageController, to bound how long a cache can keep
-    // serving pre-sale bytes after the measurement is sold.
-#if !DEBUG
-    // Только в релизе используем кеширование
-    [ResponseCache(Duration = 60 /*с*/ * 5 /*м*/)]
-#endif
     [AllowAnonymous]
     public override async Task<IActionResult> GetMeasurementPhotoContent(
         string measurementId,
@@ -141,11 +134,6 @@ public sealed class WebApiController : WebApiControllerBase
     }
 
     // Anonymous: embedded as <img> src on EbayLotDescriptionPage, which is pulled into public eBay listing descriptions.
-    // Response is state-dependent (real thumbnail vs. sold placeholder); see caching note on GetMeasurementPhotoContent above.
-#if !DEBUG
-    // Только в релизе используем кеширование
-    [ResponseCache(Duration = 60 /*с*/ * 5 /*м*/)]
-#endif
     [AllowAnonymous]
     public override async Task<IActionResult> GetMeasurementPhotoThumbnailContent(
         string measurementId,
