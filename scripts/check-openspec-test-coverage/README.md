@@ -2,7 +2,8 @@
 
 `check-openspec-test-coverage.sh` verifies that every scenario in the main specs
 (`openspec/specs/**/spec.md`) is covered by a test, so a spec-driven story cannot be
-considered done while its scenarios are untested and nothing says so.
+considered done while its scenarios are untested and nothing says so. Requirements touched
+by started active changes are temporarily deferred, as described below.
 
 ## The mapping
 
@@ -35,10 +36,33 @@ The justification is required - an empty flag is a reported issue, not a valid e
   currently-covered-required scenario (catches renamed/removed scenarios and typos).
 - Scenario names are unique within a requirement (the mapping key must stay unambiguous).
 
-Scenarios that exist only in an active, not-yet-synced `openspec/changes/*/specs/**` delta
-are proposed, not shipped, and are intentionally out of scope: run `openspec change sync`
-(or archive the change) once the story is implemented and being tested, which moves its
-scenarios into `openspec/specs/**` and brings them into this check.
+### Work in progress
+
+An active change is **started** when `openspec list --json` reports `completedTasks > 0`:
+at least one tracked task is checked `[x]` (including `[X]`). No tasks, only unchecked tasks,
+or only deliberately skipped `[~]` tasks do not activate the exemption. There is no
+`implemented` flag, and completing every task does not end the exemption while the change
+remains active.
+
+For each started change, the checker defers the exact `(specId, requirement heading)` pairs
+in its ADDED, MODIFIED, REMOVED and RENAMED deltas. Both FROM and TO names of a rename are
+included. It defers missing coverage and test mapping checks (dangling references and
+contradictory exemptions) for these requirements, including new scenarios and new specs.
+Other requirements, even in the same spec, remain strict. Structural diagnostics such as
+duplicate scenario names and empty exemption reasons remain errors.
+
+The output lists each deferred requirement and the change(s) responsible. Multiple started
+changes contribute a union: archiving one does not restore coverage for a requirement still
+affected by another started change. Unstarted proposals and archived changes do not grant
+exemptions. Resetting all completed tasks to unchecked also removes a change's exemption.
+
+**Finishing a change:** sync its final deltas into `openspec/specs` and archive it, then run
+`./scripts/check-openspec-test-coverage/check-openspec-test-coverage.sh` (and the usual
+`agent-check.sh`) before merging. New scenarios then require tests or justified exemptions;
+removed/renamed scenarios must not leave stale test tags. The OpenSpec archive command itself
+does not run this project's coverage checker. Merge alone or syncing without archiving does
+not remove an active change's exemption. Do not archive with unsynced specs or use
+`--skip-specs` for a change that changes requirements.
 
 ### Known limitation: text matching, not test execution
 
@@ -53,7 +77,7 @@ solution, and would add real complexity for partial protection. This is a writte
 (see the `write-tests` skill's OpenSpec Scenario Coverage section) enforced by code review, not
 by the script.
 
-## Why it reads spec.md directly
+## OpenSpec integration
 
 `openspec show --json` exposes each scenario's WHEN/THEN body but not its
 `### Requirement:` / `#### Scenario:` heading text, so there is no CLI output this script
@@ -63,5 +87,23 @@ heading lines and the `NOT COVERED BY TEST` bullet itself out of spec.md. Everyt
 about spec.md's structure and validity is left to `openspec validate --all --strict`, which
 already runs as an earlier `agent-check.sh` step.
 
+For active deltas, the script reuses OpenSpec's `parseDeltaSpec` and `discoverSpecFiles`
+implementations from the npm-installed CLI on PATH. This handles requirement operations,
+nested capability paths, removed requirement lists, renames, and fenced examples without
+another handwritten delta parser. These are internal APIs, not a stable public JSON contract:
+the loader verifies `.openspec-version`, and import/parse failures fail the check. The
+existing Linux/bash workflow requires an npm CLI executable resolvable with `which`;
+unsupported wrappers fail with a diagnostic.
+
+Run the integration tests with the pinned CLI on PATH:
+
+```sh
+node --test scripts/check-openspec-test-coverage/*.test.mjs
+```
+
+The tests use temporary projects and the real CLI, including archive/sync behavior. Run them
+when upgrading OpenSpec; update the adapter if its package layout or parser API changes.
+
 Used by:
 - `scripts/agent-check/agent-check.sh` (local pre-PR check).
+- `.github/workflows/build-and-tests.yaml` (`openspec_validate` job).

@@ -94,6 +94,9 @@ jobs:
       - name: Validate OpenSpec archive
         run: openspec validate --archived
 
+      - name: Test OpenSpec coverage checker
+        run: node --test scripts/check-openspec-test-coverage/*.test.mjs
+
       - name: Check OpenSpec scenario test coverage
         run: ./scripts/check-openspec-test-coverage/check-openspec-test-coverage.sh
 
