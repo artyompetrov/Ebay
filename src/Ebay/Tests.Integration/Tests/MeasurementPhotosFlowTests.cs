@@ -512,7 +512,7 @@ public class MeasurementPhotosFlowTests
 
     private static async Task<string> CreateBareMeasurementIdAsync(MeasurementContext existingContext)
     {
-        var randomSeed = Random.Shared.Next(1000, 9999);
+        var randomSeed = TestHelpers.NextMeasurementSeed();
         var measurementId = $"MEA{randomSeed}";
 
         await existingContext.EbayClient.UploadMeasurementAsync(
@@ -537,7 +537,7 @@ public class MeasurementPhotosFlowTests
         var webApiClient = TestHelpers.CreateWebApiClient(httpClient);
         var productId = await TestHelpers.CreateProductAsync(ebayClient);
 
-        var randomSeed = Random.Shared.Next(1000, 9999);
+        var randomSeed = TestHelpers.NextMeasurementSeed();
         var measurementId = $"MEA{randomSeed}";
         await ebayClient.UploadMeasurementAsync(
             new MeasurementDataToUpload

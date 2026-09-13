@@ -11,6 +11,10 @@ namespace Tests.Integration;
 
 public static class TestHelpers
 {
+    private static int _measurementSeed = 1000;
+
+    internal static int NextMeasurementSeed() => Interlocked.Increment(ref _measurementSeed);
+
     public static Task RetryUntilValidationSuccessAsync(
         Func<Task> assertAction,
         int timeout = 30)

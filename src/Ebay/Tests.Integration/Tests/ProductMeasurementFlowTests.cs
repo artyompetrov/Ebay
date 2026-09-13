@@ -96,7 +96,7 @@ public class ProductMeasurementFlowTests
         var ebayClient = TestHelpers.CreateEbayClient(httpClient);
         var productId = await TestHelpers.CreateProductAsync(ebayClient);
 
-        var randomSeed = Random.Shared.Next(1000, 9999);
+        var randomSeed = TestHelpers.NextMeasurementSeed();
         var measurementId = $"MEA{randomSeed}";
         await ebayClient.UploadMeasurementAsync(
             new MeasurementDataToUpload
