@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.DataProtection.Repositories;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Logs;
 using Server.Adapters.Driven.ChipFind;
@@ -42,7 +43,16 @@ public class Program
         });
 
         // Add services to the container.
-        builder.Services.AddMemoryCache();
+        // Каждый потребитель IMemoryCache получает свой именованный кеш вместо одного общего
+        // service-wide экземпляра - так лимит размера одного кеша не задевает записи в другом.
+        builder.Services.AddKeyedSingleton<IMemoryCache>(
+            Server.Application.New.WellKnown.ImageCache.ServiceKey,
+            (sp, _) => new MemoryCache(new MemoryCacheOptions
+            {
+                SizeLimit = sp.GetRequiredService<IOptions<ImageCacheOptions>>().Value.SizeLimitBytes
+            }));
+        builder.Services.AddKeyedSingleton<IMemoryCache, MemoryCache>(WellKnown.CacheServiceKeys.GeoIp);
+        builder.Services.AddKeyedSingleton<IMemoryCache, MemoryCache>(WellKnown.CacheServiceKeys.ChipFind);
         builder.Services.AddEmailAdapter();
         builder.Services.AddUTracerAdapter();
         builder.Services.AddImageProcessingAdapter();

@@ -53,6 +53,36 @@ public sealed class PhotoThumbnailGeneratorTests
         act.Should().ThrowAsync<InvalidOperationException>();
     }
 
+    [Test]
+    public async Task CreateBoundedOriginalAsync_ReEncodesWithinBound_WhenOriginalExceedsCap()
+    {
+        var original = CreatePngBytes(width: 4000, height: 2000);
+
+        var bounded = await _generator.CreateBoundedOriginalAsync(original, CancellationToken.None);
+
+        using var decoded = SKBitmap.Decode(bounded);
+        decoded.Width.Should().Be(2000);
+        decoded.Height.Should().Be(1000);
+    }
+
+    [Test]
+    public async Task CreateBoundedOriginalAsync_ReturnsBytesUnchanged_WhenAlreadyWithinBound()
+    {
+        var original = CreatePngBytes(width: 800, height: 400);
+
+        var bounded = await _generator.CreateBoundedOriginalAsync(original, CancellationToken.None);
+
+        bounded.Should().BeSameAs(original);
+    }
+
+    [Test]
+    public void CreateBoundedOriginalAsync_Throws_WhenBytesAreNotAnImage()
+    {
+        var act = () => _generator.CreateBoundedOriginalAsync([1, 2, 3], CancellationToken.None);
+
+        act.Should().ThrowAsync<InvalidOperationException>();
+    }
+
     private static byte[] CreatePngBytes(int width, int height)
     {
         using var bitmap = new SKBitmap(width, height);

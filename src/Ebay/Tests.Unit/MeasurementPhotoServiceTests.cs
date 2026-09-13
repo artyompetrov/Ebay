@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using Microsoft.Extensions.Caching.Memory;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
@@ -30,6 +31,111 @@ public sealed class MeasurementPhotoServiceTests
 
         result.Should().Be(new MeasurementPhotoContent(RealContent, RealContentType));
         photoQueries.GetCallCount.Should().Be(1);
+    }
+
+    [Test]
+    public async Task GetContentAsync_SecondCall_IsServedFromCache_WithoutQueryingPhotoStoreAgain()
+    {
+        var photoQueries = new FakeMeasurementPhotoQueries(
+            new MeasurementPhotoInfo(PhotoId, MeasurementId, "file.heic", RealContentType, 0, RealContent),
+            RealThumbnail);
+        var service = CreateService(MeasurementState.Selling, photoQueries);
+
+        await service.GetContentAsync(MeasurementId, PhotoId, CancellationToken.None);
+        var second = await service.GetContentAsync(MeasurementId, PhotoId, CancellationToken.None);
+
+        second.Should().Be(new MeasurementPhotoContent(RealContent, RealContentType));
+        photoQueries.GetCallCount.Should().Be(1);
+    }
+
+    [Test]
+    public async Task GetThumbnailContentAsync_SecondCall_IsServedFromCache_WithoutQueryingPhotoStoreAgain()
+    {
+        var photoQueries = new FakeMeasurementPhotoQueries(
+            new MeasurementPhotoInfo(PhotoId, MeasurementId, "file.heic", RealContentType, 0, RealContent),
+            RealThumbnail);
+        var service = CreateService(MeasurementState.Selling, photoQueries);
+
+        await service.GetThumbnailContentAsync(MeasurementId, PhotoId, CancellationToken.None);
+        var second = await service.GetThumbnailContentAsync(MeasurementId, PhotoId, CancellationToken.None);
+
+        second.Should().Be(new MeasurementPhotoContent(RealThumbnail, "image/jpeg"));
+        photoQueries.GetThumbnailCallCount.Should().Be(1);
+    }
+
+    [Test]
+    public async Task GetContentAsync_ReturnsPlaceholder_NotPreviouslyCachedRealBytes_AfterMeasurementIsSold()
+    {
+        var photoQueries = new FakeMeasurementPhotoQueries(
+            new MeasurementPhotoInfo(PhotoId, MeasurementId, "file.heic", RealContentType, 0, RealContent),
+            RealThumbnail);
+        var measurementQueries = new FakeMeasurementQueries(MeasurementState.Selling);
+        var service = CreateService(measurementQueries, photoQueries, new MemoryCache(new MemoryCacheOptions()));
+
+        var beforeSale = await service.GetContentAsync(MeasurementId, PhotoId, CancellationToken.None);
+        beforeSale.Should().Be(new MeasurementPhotoContent(RealContent, RealContentType));
+
+        measurementQueries.MeasurementState = MeasurementState.Sold;
+        var afterSale = await service.GetContentAsync(MeasurementId, PhotoId, CancellationToken.None);
+
+        afterSale.Should().NotBeNull();
+        afterSale!.Content.Should().NotBeEquivalentTo(RealContent);
+        afterSale.ContentType.Should().Be("image/png");
+    }
+
+    [Test]
+    public async Task DeleteAsync_EvictsCachedContentAndThumbnail_SoASubsequentRequestQueriesAgain()
+    {
+        var photoQueries = new FakeMeasurementPhotoQueries(
+            new MeasurementPhotoInfo(PhotoId, MeasurementId, "file.heic", RealContentType, 0, RealContent),
+            RealThumbnail);
+        var service = new MeasurementPhotoService(
+            cache: new MemoryCache(new MemoryCacheOptions()),
+            measurementPhotoQueries: photoQueries,
+            measurementPhotoRepository: new CapturingMeasurementPhotoRepository(),
+            measurementQueries: new FakeMeasurementQueries(MeasurementState.Selling),
+            photoThumbnailGenerator: new NotSupportedPhotoThumbnailGenerator(),
+            writeModelUnitOfWork: new NoOpWriteModelUnitOfWork());
+
+        await service.GetContentAsync(MeasurementId, PhotoId, CancellationToken.None);
+        photoQueries.GetCallCount.Should().Be(1);
+
+        var deleted = await service.DeleteAsync(MeasurementId, PhotoId, CancellationToken.None);
+        deleted.Should().BeTrue();
+        var getCallCountAfterDelete = photoQueries.GetCallCount;
+
+        await service.GetContentAsync(MeasurementId, PhotoId, CancellationToken.None);
+        photoQueries.GetCallCount.Should().Be(getCallCountAfterDelete + 1);
+    }
+
+    [Test]
+    public async Task UploadAsync_StoresBoundedOriginal_AndUnaffectedThumbnail()
+    {
+        var boundedOriginal = new byte[] { 9, 9, 9 };
+        var thumbnailGenerator = new RecordingPhotoThumbnailGenerator(boundedOriginal, RealThumbnail);
+        var repository = new CapturingMeasurementPhotoRepository();
+        var service = new MeasurementPhotoService(
+            cache: new MemoryCache(new MemoryCacheOptions()),
+            measurementPhotoQueries: new FakeMeasurementPhotoQueries(null, null),
+            measurementPhotoRepository: repository,
+            measurementQueries: new FakeMeasurementQueries(MeasurementState.Created),
+            photoThumbnailGenerator: thumbnailGenerator,
+            writeModelUnitOfWork: new NoOpWriteModelUnitOfWork());
+
+        var uploadedContent = new byte[] { 1, 2, 3, 4, 5 };
+        var uploaded = await service.UploadAsync(
+            measurementId: MeasurementId,
+            fileName: "file.heic",
+            contentType: RealContentType,
+            content: uploadedContent,
+            order: 0,
+            cancellationToken: CancellationToken.None);
+
+        uploaded.Should().BeTrue();
+        repository.Added.Should().NotBeNull();
+        repository.Added!.Content.Should().BeEquivalentTo(boundedOriginal);
+        repository.Added.ThumbnailContent.Should().BeEquivalentTo(RealThumbnail);
+        thumbnailGenerator.BoundedOriginalCallCount.Should().Be(1);
     }
 
     [Test]
@@ -104,26 +210,35 @@ public sealed class MeasurementPhotoServiceTests
         MeasurementState? measurementState,
         FakeMeasurementPhotoQueries photoQueries)
     {
+        return CreateService(new FakeMeasurementQueries(measurementState), photoQueries, new MemoryCache(new MemoryCacheOptions()));
+    }
+
+    private static MeasurementPhotoService CreateService(
+        FakeMeasurementQueries measurementQueries,
+        FakeMeasurementPhotoQueries photoQueries,
+        IMemoryCache cache)
+    {
         return new MeasurementPhotoService(
+            cache: cache,
             measurementPhotoQueries: photoQueries,
             measurementPhotoRepository: new NotSupportedMeasurementPhotoRepository(),
-            measurementQueries: new FakeMeasurementQueries(measurementState),
+            measurementQueries: measurementQueries,
             photoThumbnailGenerator: new NotSupportedPhotoThumbnailGenerator(),
             writeModelUnitOfWork: new NotSupportedWriteModelUnitOfWork());
     }
 
     private sealed class FakeMeasurementQueries : IMeasurementInfoQueries
     {
-        private readonly MeasurementState? _measurementState;
-
         public FakeMeasurementQueries(MeasurementState? measurementState)
         {
-            _measurementState = measurementState;
+            MeasurementState = measurementState;
         }
+
+        public MeasurementState? MeasurementState { get; set; }
 
         public Task<MeasurementInfo?> GetMeasurementInfo(string measurementId, CancellationToken cancellationToken)
         {
-            if (_measurementState is not { } state)
+            if (MeasurementState is not { } state)
             {
                 return Task.FromResult<MeasurementInfo?>(null);
             }
@@ -173,10 +288,13 @@ public sealed class MeasurementPhotoServiceTests
             throw new NotSupportedException();
 
         public Task<IReadOnlyList<MeasurementPhotoInfo>> GetByMeasurementId(string measurementId, CancellationToken cancellationToken) =>
-            throw new NotSupportedException();
+            Task.FromResult<IReadOnlyList<MeasurementPhotoInfo>>(_photo == null ? [] : [_photo]);
 
         public Task<IReadOnlyList<MeasurementPhotoMetadata>> GetMetadataByMeasurementIds(
             IReadOnlyCollection<string> measurementIds, CancellationToken cancellationToken) =>
+            throw new NotSupportedException();
+
+        public Task<IReadOnlyList<MeasurementPhotoInfo>> GetContentBatch(int skip, int take, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
     }
 
@@ -199,11 +317,61 @@ public sealed class MeasurementPhotoServiceTests
     {
         public Task<byte[]> CreateThumbnailAsync(byte[] originalContent, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
+
+        public Task<byte[]> CreateBoundedOriginalAsync(byte[] originalContent, CancellationToken cancellationToken) =>
+            throw new NotSupportedException();
     }
 
     private sealed class NotSupportedWriteModelUnitOfWork : IWriteModelUnitOfWork
     {
         public Task<int> SaveChangesAsync(CancellationToken cancellationToken) =>
             throw new NotSupportedException();
+    }
+
+    private sealed class RecordingPhotoThumbnailGenerator : IPhotoThumbnailGenerator
+    {
+        private readonly byte[] _boundedOriginal;
+        private readonly byte[] _thumbnail;
+
+        public RecordingPhotoThumbnailGenerator(byte[] boundedOriginal, byte[] thumbnail)
+        {
+            _boundedOriginal = boundedOriginal;
+            _thumbnail = thumbnail;
+        }
+
+        public int BoundedOriginalCallCount { get; private set; }
+
+        public Task<byte[]> CreateThumbnailAsync(byte[] originalContent, CancellationToken cancellationToken) =>
+            Task.FromResult(_thumbnail);
+
+        public Task<byte[]> CreateBoundedOriginalAsync(byte[] originalContent, CancellationToken cancellationToken)
+        {
+            BoundedOriginalCallCount++;
+            return Task.FromResult(_boundedOriginal);
+        }
+    }
+
+    private sealed class CapturingMeasurementPhotoRepository : IMeasurementPhotoRepository
+    {
+        public MeasurementPhoto? Added { get; private set; }
+
+        public Task<MeasurementPhoto?> GetByIdAsync(Guid id, CancellationToken cancellationToken) =>
+            throw new NotSupportedException();
+
+        public Task AddAsync(MeasurementPhoto aggregate, CancellationToken cancellationToken)
+        {
+            Added = aggregate;
+            return Task.CompletedTask;
+        }
+
+        public Task RemoveAsync(Guid id, CancellationToken cancellationToken) => Task.CompletedTask;
+
+        public Task RemoveAsync(IReadOnlySet<Guid> id, CancellationToken cancellationToken) =>
+            throw new NotSupportedException();
+    }
+
+    private sealed class NoOpWriteModelUnitOfWork : IWriteModelUnitOfWork
+    {
+        public Task<int> SaveChangesAsync(CancellationToken cancellationToken) => Task.FromResult(0);
     }
 }

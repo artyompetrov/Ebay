@@ -7,16 +7,39 @@ internal sealed class PhotoThumbnailGenerator : IPhotoThumbnailGenerator
 {
     private const int ThumbnailMaxDimensionPixels = 400;
     private const int ThumbnailJpegQuality = 75;
+    private const int BoundedOriginalMaxDimensionPixels = 2000;
+    private const int BoundedOriginalJpegQuality = 85;
 
     public Task<byte[]> CreateThumbnailAsync(byte[] originalContent, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        using var original = SKBitmap.Decode(originalContent)
-            ?? throw new InvalidOperationException("Photo bytes could not be decoded as an image.");
+        using var original = DecodeOrThrow(originalContent);
+        var (targetWidth, targetHeight) = GetBoundedSize(original.Width, original.Height, ThumbnailMaxDimensionPixels);
 
-        var (targetWidth, targetHeight) = GetThumbnailSize(original.Width, original.Height);
+        return Task.FromResult(ResizeAndEncode(original, targetWidth, targetHeight, ThumbnailJpegQuality));
+    }
 
+    public Task<byte[]> CreateBoundedOriginalAsync(byte[] originalContent, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        using var original = DecodeOrThrow(originalContent);
+        var longestSide = Math.Max(original.Width, original.Height);
+        if (longestSide <= BoundedOriginalMaxDimensionPixels)
+        {
+            return Task.FromResult(originalContent);
+        }
+
+        var (targetWidth, targetHeight) = GetBoundedSize(original.Width, original.Height, BoundedOriginalMaxDimensionPixels);
+        return Task.FromResult(ResizeAndEncode(original, targetWidth, targetHeight, BoundedOriginalJpegQuality));
+    }
+
+    private static SKBitmap DecodeOrThrow(byte[] content) =>
+        SKBitmap.Decode(content) ?? throw new InvalidOperationException("Photo bytes could not be decoded as an image.");
+
+    private static byte[] ResizeAndEncode(SKBitmap original, int targetWidth, int targetHeight, int jpegQuality)
+    {
         using var resized = original.Resize(new SKImageInfo(targetWidth, targetHeight), SKFilterQuality.Medium);
 
         using var surface = SKSurface.Create(new SKImageInfo(targetWidth, targetHeight, SKColorType.Bgra8888, SKAlphaType.Premul));
@@ -24,20 +47,20 @@ internal sealed class PhotoThumbnailGenerator : IPhotoThumbnailGenerator
         surface.Canvas.DrawBitmap(resized, 0, 0);
 
         using var snapshot = surface.Snapshot();
-        using var encoded = snapshot.Encode(SKEncodedImageFormat.Jpeg, ThumbnailJpegQuality);
+        using var encoded = snapshot.Encode(SKEncodedImageFormat.Jpeg, jpegQuality);
 
-        return Task.FromResult(encoded.ToArray());
+        return encoded.ToArray();
     }
 
-    private static (int Width, int Height) GetThumbnailSize(int originalWidth, int originalHeight)
+    private static (int Width, int Height) GetBoundedSize(int originalWidth, int originalHeight, int maxDimensionPixels)
     {
         var longestSide = Math.Max(originalWidth, originalHeight);
-        if (longestSide <= ThumbnailMaxDimensionPixels)
+        if (longestSide <= maxDimensionPixels)
         {
             return (originalWidth, originalHeight);
         }
 
-        var scale = (double)ThumbnailMaxDimensionPixels / longestSide;
+        var scale = (double)maxDimensionPixels / longestSide;
         return (
             Math.Max(1, (int)Math.Round(originalWidth * scale)),
             Math.Max(1, (int)Math.Round(originalHeight * scale)));

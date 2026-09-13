@@ -167,16 +167,19 @@ else
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            width: 90vw;
+            height: 90vh;
             max-width: 90vw;
             max-height: 90vh;
-            width: auto;
-            height: auto;
+            background-color: #fff;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
             visibility: hidden;
             opacity: 0;
             pointer-events: none;
             z-index: 1000;
             border: 2px solid #ccc;
-            background: #fff;
             box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
         }
 
@@ -297,7 +300,20 @@ else
                             @foreach (var photo in Model.PhotosByMeasurementId[meas.MeasurementInfo.Id])
                             {
                                 var photoToggleId = $"photo-toggle-{photo.Id}";
-                                <span class="photo-hover">
+                                var photoHoverSpanId = $"photo-hover-{photo.Id}";
+                                var photoFullId = $"photo-full-{photo.Id}";
+                                var photoFullUrl = $"{baseUrl}/api/webapi/v1/measurements/{meas.MeasurementInfo.Id}/photos/{photo.Id}/content";
+                                @* The full-size image is a CSS background-image gated behind :hover/:checked below,
+                                   not a plain <img src>, so the browser does not fetch it until this specific
+                                   photo is actually hovered or tapped - unlike <img>, which the browser always
+                                   fetches eagerly regardless of visibility. *@
+                                <style>
+                                    #@photoHoverSpanId:hover #@photoFullId,
+                                    #@photoToggleId:checked ~ #@photoFullId {
+                                        background-image: url("@photoFullUrl");
+                                    }
+                                </style>
+                                <span class="photo-hover" id="@photoHoverSpanId">
                                     <input type="checkbox" id="@photoToggleId" class="photo-hover-toggle" />
                                     <label for="@photoToggleId" class="photo-hover-thumb-label">
                                         <img class="measurement-photo-thumb"
@@ -305,9 +321,7 @@ else
                                              alt="@photo.FileName"/>
                                     </label>
                                     <label for="@photoToggleId" class="photo-hover-backdrop"></label>
-                                    <img class="photo-hover-full"
-                                         src="@($"{baseUrl}/api/webapi/v1/measurements/{meas.MeasurementInfo.Id}/photos/{photo.Id}/content")"
-                                         alt="@photo.FileName"/>
+                                    <div class="photo-hover-full" id="@photoFullId" role="img" aria-label="@photo.FileName"></div>
                                 </span>
                             }
                         </div>

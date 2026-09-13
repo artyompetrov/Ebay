@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Server.Application.Services.GeoIp;
@@ -12,7 +13,10 @@ public class GeoIpService : IDisposable
     private readonly IMemoryCache _cache;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
 
-    public GeoIpService(HttpClient httpClient, ILogger<GeoIpService> logger, IMemoryCache cache)
+    public GeoIpService(
+        HttpClient httpClient,
+        ILogger<GeoIpService> logger,
+        [FromKeyedServices(WellKnown.GeoIp.CacheServiceKey)] IMemoryCache cache)
     {
         _httpClient = httpClient;
         _logger = logger;

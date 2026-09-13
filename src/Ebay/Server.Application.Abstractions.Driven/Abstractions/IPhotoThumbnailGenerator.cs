@@ -7,4 +7,11 @@ public interface IPhotoThumbnailGenerator
     /// Throws if <paramref name="originalContent"/> cannot be decoded as an image.
     /// </summary>
     Task<byte[]> CreateThumbnailAsync(byte[] originalContent, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns the photo bytes re-encoded within a bounded resolution/quality when they exceed
+    /// that bound, or the original bytes unchanged when they are already within it.
+    /// Throws if <paramref name="originalContent"/> cannot be decoded as an image.
+    /// </summary>
+    Task<byte[]> CreateBoundedOriginalAsync(byte[] originalContent, CancellationToken cancellationToken);
 }
