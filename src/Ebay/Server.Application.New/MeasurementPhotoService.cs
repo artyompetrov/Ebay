@@ -135,7 +135,7 @@ public sealed class MeasurementPhotoService
                 return photo == null ? null : new MeasurementPhotoContent(photo.Content, photo.ContentType);
             },
             sizeSelector: static x => x.Content.LongLength,
-            invalidationToken: _cacheInvalidationRegistry.GetToken(measurementId));
+            invalidationTokenFactory: () => _cacheInvalidationRegistry.AcquireToken(measurementId));
     }
 
     /// <summary>
@@ -170,7 +170,7 @@ public sealed class MeasurementPhotoService
                 return thumbnail == null ? null : new MeasurementPhotoContent(thumbnail, ThumbnailContentType);
             },
             sizeSelector: static x => x.Content.LongLength,
-            invalidationToken: _cacheInvalidationRegistry.GetToken(measurementId));
+            invalidationTokenFactory: () => _cacheInvalidationRegistry.AcquireToken(measurementId));
     }
 
     /// <summary>

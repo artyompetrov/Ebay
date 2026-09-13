@@ -16,12 +16,12 @@ public sealed class MeasurementMatchIdChangedHandlerTests
     {
         const string measurementId = "measurement-1";
         var registry = new MeasurementCacheInvalidationRegistry();
-        var tokenBeforeHandling = registry.GetToken(measurementId);
+        using var tokenBeforeHandling = registry.AcquireToken(measurementId);
         var handler = new MeasurementMatchIdChangedHandler(registry, new FakeMeasurementQueries([]));
 
         await handler.HandleAsync(new MeasurementMatchIdChanged(measurementId, null, "pair-1"), CancellationToken.None);
 
-        tokenBeforeHandling.HasChanged.Should().BeTrue();
+        tokenBeforeHandling.ChangeToken.HasChanged.Should().BeTrue();
     }
 
     [Test]
@@ -31,10 +31,10 @@ public sealed class MeasurementMatchIdChangedHandlerTests
         const string oldPairMeasurementId = "measurement-2";
         const string newPairMeasurementId = "measurement-3";
         var registry = new MeasurementCacheInvalidationRegistry();
-        var changedToken = registry.GetToken(changedMeasurementId);
-        var oldPairToken = registry.GetToken(oldPairMeasurementId);
-        var newPairToken = registry.GetToken(newPairMeasurementId);
-        var unrelatedToken = registry.GetToken("measurement-4");
+        using var changedToken = registry.AcquireToken(changedMeasurementId);
+        using var oldPairToken = registry.AcquireToken(oldPairMeasurementId);
+        using var newPairToken = registry.AcquireToken(newPairMeasurementId);
+        using var unrelatedToken = registry.AcquireToken("measurement-4");
         var handler = new MeasurementMatchIdChangedHandler(
             registry,
             new FakeMeasurementQueries([oldPairMeasurementId, newPairMeasurementId]));
@@ -45,10 +45,10 @@ public sealed class MeasurementMatchIdChangedHandlerTests
 
         using (Assert.EnterMultipleScope())
         {
-            changedToken.HasChanged.Should().BeTrue();
-            oldPairToken.HasChanged.Should().BeTrue();
-            newPairToken.HasChanged.Should().BeTrue();
-            unrelatedToken.HasChanged.Should().BeFalse();
+            changedToken.ChangeToken.HasChanged.Should().BeTrue();
+            oldPairToken.ChangeToken.HasChanged.Should().BeTrue();
+            newPairToken.ChangeToken.HasChanged.Should().BeTrue();
+            unrelatedToken.ChangeToken.HasChanged.Should().BeFalse();
         }
     }
 

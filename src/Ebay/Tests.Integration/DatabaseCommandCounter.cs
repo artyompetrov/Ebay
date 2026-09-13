@@ -5,19 +5,16 @@ namespace Tests.Integration;
 
 public sealed class DatabaseCommandCounter : DbCommandInterceptor
 {
-    private readonly Lock _lock = new();
-    private IReadOnlyCollection<string> _trackedFragments = [];
-    private long _count;
+    private readonly AsyncLocal<DatabaseCommandCounterScope?> _currentScope = new();
 
-    public long Count => Interlocked.Read(ref _count);
-
-    public void Reset(params string[] trackedFragments)
+    public DatabaseCommandCounterScope BeginScope(params string[] trackedFragments)
     {
-        lock (_lock)
-        {
-            _trackedFragments = trackedFragments;
-            Interlocked.Exchange(ref _count, 0);
-        }
+        var parentScope = _currentScope.Value;
+        var scope = new DatabaseCommandCounterScope(
+            trackedFragments,
+            onDispose: () => _currentScope.Value = parentScope);
+        _currentScope.Value = scope;
+        return scope;
     }
 
     public override InterceptionResult<DbDataReader> ReaderExecuting(
@@ -41,15 +38,11 @@ public sealed class DatabaseCommandCounter : DbCommandInterceptor
 
     private void CountIfTracked(DbCommand command)
     {
-        IReadOnlyCollection<string> trackedFragments;
-        lock (_lock)
-        {
-            trackedFragments = _trackedFragments;
-        }
+        var scope = _currentScope.Value;
 
-        if (trackedFragments.Any(fragment => command.CommandText.Contains(fragment, StringComparison.OrdinalIgnoreCase)))
+        if (scope is not null && scope.Tracks(command.CommandText))
         {
-            Interlocked.Increment(ref _count);
+            scope.Increment();
         }
     }
 }

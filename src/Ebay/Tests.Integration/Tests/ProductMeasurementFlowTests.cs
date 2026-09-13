@@ -45,17 +45,17 @@ public class ProductMeasurementFlowTests
         using var context = await CreateMeasurementContextAsync();
         var counter = IntegrationTestsSetupFixture.DatabaseCommandCounter;
 
-        counter.Reset("ProductMeasurements", "CacheEntries", "MatchedPairDifferences", "TubeWorkingPoints");
+        using var curvesCounterScope = counter.BeginScope("ProductMeasurements", "CacheEntries", "MatchedPairDifferences", "TubeWorkingPoints");
         await AssertEbayCurvesWithInternalReferrerAsync(context.HttpClient, context.MeasurementId);
-        var countAfterFirstCurvesRequest = counter.Count;
+        var countAfterFirstCurvesRequest = curvesCounterScope.Count;
         await AssertEbayCurvesWithInternalReferrerAsync(context.HttpClient, context.MeasurementId);
-        Assert.That(counter.Count, Is.EqualTo(countAfterFirstCurvesRequest));
+        Assert.That(curvesCounterScope.Count, Is.EqualTo(countAfterFirstCurvesRequest));
 
-        counter.Reset("ProductMeasurements", "CacheEntries", "MatchedPairDifferences", "TubeWorkingPoints");
+        using var tubeDescriptionCounterScope = counter.BeginScope("ProductMeasurements", "CacheEntries", "MatchedPairDifferences", "TubeWorkingPoints");
         await AssertSvgResponseAsync(context.HttpClient, $"/m/{context.MeasurementId}/ebay_tube_description");
-        var countAfterFirstTubeDescriptionRequest = counter.Count;
+        var countAfterFirstTubeDescriptionRequest = tubeDescriptionCounterScope.Count;
         await AssertSvgResponseAsync(context.HttpClient, $"/m/{context.MeasurementId}/ebay_tube_description");
-        Assert.That(counter.Count, Is.EqualTo(countAfterFirstTubeDescriptionRequest));
+        Assert.That(tubeDescriptionCounterScope.Count, Is.EqualTo(countAfterFirstTubeDescriptionRequest));
     }
 
     [Test]

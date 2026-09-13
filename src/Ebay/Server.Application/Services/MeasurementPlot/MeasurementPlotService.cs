@@ -128,7 +128,7 @@ public class MeasurementPlotService : IMeasurementPlotService
             key: SellingOnlyPlotCacheKey(measurementId),
             factory: () => ResolveSellingOnlyPlotUncached(measurementId, cancellationToken),
             sizeSelector: static s => Encoding.UTF8.GetByteCount(s),
-            invalidationToken: _cacheInvalidationRegistry.GetToken(measurementId));
+            invalidationTokenFactory: () => _cacheInvalidationRegistry.AcquireToken(measurementId));
     }
 
     private async Task<string?> ResolveSellingOnlyPlotUncached(string measurementId, CancellationToken cancellationToken)
@@ -186,7 +186,7 @@ public class MeasurementPlotService : IMeasurementPlotService
                 cacheKey: cacheKey,
                 cancellationToken: cancellationToken),
             sizeSelector: static s => Encoding.UTF8.GetByteCount(s),
-            invalidationToken: _cacheInvalidationRegistry.GetToken(measurementId));
+            invalidationTokenFactory: () => _cacheInvalidationRegistry.AcquireToken(measurementId));
     }
 
     private async Task<string?> PlotForMeasurementIdUncached(
@@ -626,7 +626,7 @@ public class MeasurementPlotService : IMeasurementPlotService
             key: SellingOnlyTubeDescriptionCacheKey(measurementId),
             factory: () => ResolveSellingOnlyTubeDescriptionUncached(measurementId, cancellationToken),
             sizeSelector: static s => Encoding.UTF8.GetByteCount(s),
-            invalidationToken: _cacheInvalidationRegistry.GetToken(measurementId));
+            invalidationTokenFactory: () => _cacheInvalidationRegistry.AcquireToken(measurementId));
     }
 
     private async Task<string?> ResolveSellingOnlyTubeDescriptionUncached(string measurementId, CancellationToken cancellationToken)
@@ -670,7 +670,7 @@ public class MeasurementPlotService : IMeasurementPlotService
                 cacheKey: cacheKey,
                 cancellationToken: cancellationToken),
             sizeSelector: static s => Encoding.UTF8.GetByteCount(s),
-            invalidationToken: _cacheInvalidationRegistry.GetToken(measurementId));
+            invalidationTokenFactory: () => _cacheInvalidationRegistry.AcquireToken(measurementId));
     }
 
     private async Task<IReadOnlyList<string>> GetMatchedPairMeasurementIds(
@@ -681,7 +681,7 @@ public class MeasurementPlotService : IMeasurementPlotService
             key: MatchedPairMeasurementIdsCacheKey(measurementId),
             factory: async () => await _measurementQueries.GetMeasurementPairMeasurements(measurementId, cancellationToken),
             sizeSelector: static ids => ids.Count + ids.Sum(static id => Encoding.UTF8.GetByteCount(id)),
-            invalidationToken: _cacheInvalidationRegistry.GetToken(measurementId))
+            invalidationTokenFactory: () => _cacheInvalidationRegistry.AcquireToken(measurementId))
             ?? [];
     }
 

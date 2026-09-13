@@ -1,6 +1,5 @@
 using AwesomeAssertions;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Primitives;
 using Server.Application.New.Caching;
 
 namespace Tests.Unit;
@@ -69,7 +68,7 @@ public sealed class MemoryCacheExtensionsTests
     public async Task GetOrCreateAsync_EvictsEntryImmediately_WhenInvalidationTokenIsCancelled()
     {
         using var cache = new MemoryCache(new MemoryCacheOptions());
-        using var tokenSource = new CancellationTokenSource();
+        var registry = new MeasurementCacheInvalidationRegistry();
         var factoryCallCount = 0;
 
         Task<string?> Factory()
@@ -82,12 +81,27 @@ public sealed class MemoryCacheExtensionsTests
             "key",
             Factory,
             sizeSelector: static s => s.Length,
-            invalidationToken: new CancellationChangeToken(tokenSource.Token));
+            invalidationTokenFactory: () => registry.AcquireToken("measurement-1"));
 
-        await tokenSource.CancelAsync();
+        registry.Invalidate("measurement-1");
 
         await cache.GetOrCreateAsync("key", Factory, sizeSelector: static s => s.Length);
 
         factoryCallCount.Should().Be(2);
+    }
+
+    [Test]
+    public async Task GetOrCreateAsync_DoesNotAcquireInvalidationToken_WhenFactoryReturnsNull()
+    {
+        using var cache = new MemoryCache(new MemoryCacheOptions());
+        var registry = new MeasurementCacheInvalidationRegistry();
+
+        await cache.GetOrCreateAsync(
+            "key",
+            () => Task.FromResult<string?>(null),
+            sizeSelector: static s => s.Length,
+            invalidationTokenFactory: () => registry.AcquireToken("missing-measurement"));
+
+        registry.ActiveTokenSourceCount.Should().Be(0);
     }
 }

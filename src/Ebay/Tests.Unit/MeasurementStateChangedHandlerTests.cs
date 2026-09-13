@@ -14,11 +14,11 @@ public sealed class MeasurementStateChangedHandlerTests
     {
         const string measurementId = "measurement-1";
         var registry = new MeasurementCacheInvalidationRegistry();
-        var tokenBeforeHandling = registry.GetToken(measurementId);
+        using var tokenBeforeHandling = registry.AcquireToken(measurementId);
         var handler = new MeasurementStateChangedHandler(registry);
 
         await handler.HandleAsync(new MeasurementStateChanged(measurementId), CancellationToken.None);
 
-        tokenBeforeHandling.HasChanged.Should().BeTrue();
+        tokenBeforeHandling.ChangeToken.HasChanged.Should().BeTrue();
     }
 }

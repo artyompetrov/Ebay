@@ -14,29 +14,29 @@ public sealed class MeasurementCacheInvalidationRegistryTests
     {
         var registry = new MeasurementCacheInvalidationRegistry();
 
-        var first = registry.GetToken(MeasurementId);
-        var second = registry.GetToken(MeasurementId);
+        using var first = registry.AcquireToken(MeasurementId);
+        using var second = registry.AcquireToken(MeasurementId);
 
-        first.HasChanged.Should().BeFalse();
-        second.HasChanged.Should().BeFalse();
+        first.ChangeToken.HasChanged.Should().BeFalse();
+        second.ChangeToken.HasChanged.Should().BeFalse();
 
         registry.Invalidate(MeasurementId);
 
-        first.HasChanged.Should().BeTrue();
-        second.HasChanged.Should().BeTrue();
+        first.ChangeToken.HasChanged.Should().BeTrue();
+        second.ChangeToken.HasChanged.Should().BeTrue();
     }
 
     [Test]
     public void Invalidate_ReplacesTokenWithAFreshNonCancelledOne()
     {
         var registry = new MeasurementCacheInvalidationRegistry();
-        var beforeInvalidation = registry.GetToken(MeasurementId);
+        using var beforeInvalidation = registry.AcquireToken(MeasurementId);
 
         registry.Invalidate(MeasurementId);
-        var afterInvalidation = registry.GetToken(MeasurementId);
+        using var afterInvalidation = registry.AcquireToken(MeasurementId);
 
-        beforeInvalidation.HasChanged.Should().BeTrue();
-        afterInvalidation.HasChanged.Should().BeFalse();
+        beforeInvalidation.ChangeToken.HasChanged.Should().BeTrue();
+        afterInvalidation.ChangeToken.HasChanged.Should().BeFalse();
     }
 
     [Test]
@@ -47,5 +47,18 @@ public sealed class MeasurementCacheInvalidationRegistryTests
         var act = () => registry.Invalidate("never-requested-measurement");
 
         act.Should().NotThrow();
+    }
+
+    [Test]
+    public void LeaseDispose_RemovesTokenSource_WhenNoCacheEntryUsesIt()
+    {
+        var registry = new MeasurementCacheInvalidationRegistry();
+
+        var lease = registry.AcquireToken(MeasurementId);
+        registry.ActiveTokenSourceCount.Should().Be(1);
+
+        lease.Dispose();
+
+        registry.ActiveTokenSourceCount.Should().Be(0);
     }
 }

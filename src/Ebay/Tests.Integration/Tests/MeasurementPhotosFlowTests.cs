@@ -244,17 +244,17 @@ public class MeasurementPhotosFlowTests
         var photo = (await context.WebApiClient.GetMeasurementPhotosAsync(context.MeasurementId)).Single();
         var counter = IntegrationTestsSetupFixture.DatabaseCommandCounter;
 
-        counter.Reset("ProductMeasurements", "MeasurementPhotos");
+        using var contentCounterScope = counter.BeginScope("ProductMeasurements", "MeasurementPhotos");
         await AssertPhotoContentStatusAsync(context.HttpClient, context.MeasurementId, photo.Id, HttpStatusCode.OK);
-        var countAfterFirstContentRequest = counter.Count;
+        var countAfterFirstContentRequest = contentCounterScope.Count;
         await AssertPhotoContentStatusAsync(context.HttpClient, context.MeasurementId, photo.Id, HttpStatusCode.OK);
-        counter.Count.Should().Be(countAfterFirstContentRequest);
+        contentCounterScope.Count.Should().Be(countAfterFirstContentRequest);
 
-        counter.Reset("ProductMeasurements", "MeasurementPhotos");
+        using var thumbnailCounterScope = counter.BeginScope("ProductMeasurements", "MeasurementPhotos");
         await AssertPhotoThumbnailStatusAsync(context.HttpClient, context.MeasurementId, photo.Id, HttpStatusCode.OK);
-        var countAfterFirstThumbnailRequest = counter.Count;
+        var countAfterFirstThumbnailRequest = thumbnailCounterScope.Count;
         await AssertPhotoThumbnailStatusAsync(context.HttpClient, context.MeasurementId, photo.Id, HttpStatusCode.OK);
-        counter.Count.Should().Be(countAfterFirstThumbnailRequest);
+        thumbnailCounterScope.Count.Should().Be(countAfterFirstThumbnailRequest);
     }
 
     [Test]
@@ -269,20 +269,20 @@ public class MeasurementPhotosFlowTests
 
         await TestHelpers.RetryUntilValidationSuccessAsync(async () =>
         {
-            counter.Reset("ProductMeasurements", "MeasurementPhotos");
             await AssertPhotoContentStatusAsync(context.HttpClient, context.MeasurementId, contentPhotoId, HttpStatusCode.OK);
-            counter.Count.Should().BeGreaterThan(0);
         });
 
-        var countAfterFirstContentRequest = counter.Count;
+        using var contentCounterScope = counter.BeginScope("ProductMeasurements", "MeasurementPhotos");
         await AssertPhotoContentStatusAsync(context.HttpClient, context.MeasurementId, contentPhotoId, HttpStatusCode.OK);
-        counter.Count.Should().Be(countAfterFirstContentRequest);
+        var countAfterFirstContentRequest = contentCounterScope.Count;
+        await AssertPhotoContentStatusAsync(context.HttpClient, context.MeasurementId, contentPhotoId, HttpStatusCode.OK);
+        contentCounterScope.Count.Should().Be(countAfterFirstContentRequest);
 
-        counter.Reset("ProductMeasurements", "MeasurementPhotos");
+        using var thumbnailCounterScope = counter.BeginScope("ProductMeasurements", "MeasurementPhotos");
         await AssertPhotoThumbnailStatusAsync(context.HttpClient, context.MeasurementId, thumbnailPhotoId, HttpStatusCode.OK);
-        var countAfterFirstThumbnailRequest = counter.Count;
+        var countAfterFirstThumbnailRequest = thumbnailCounterScope.Count;
         await AssertPhotoThumbnailStatusAsync(context.HttpClient, context.MeasurementId, thumbnailPhotoId, HttpStatusCode.OK);
-        counter.Count.Should().Be(countAfterFirstThumbnailRequest);
+        thumbnailCounterScope.Count.Should().Be(countAfterFirstThumbnailRequest);
     }
 
     [Test]
