@@ -112,7 +112,7 @@ public sealed class MeasurementPhotoServiceTests
             writeModelUnitOfWork: new NotSupportedWriteModelUnitOfWork());
     }
 
-    private sealed class FakeMeasurementQueries : IMeasurementQueries
+    private sealed class FakeMeasurementQueries : IMeasurementInfoQueries
     {
         private readonly MeasurementState? _measurementState;
 
@@ -140,36 +140,6 @@ public sealed class MeasurementPhotoServiceTests
                 CreatedAt: DateTimeOffset.UtcNow,
                 LastTimeWatchedOnEbay: null));
         }
-
-        public Task<IReadOnlyCollection<MeasurementInfo>> GetMeasurementsInfo(
-            Guid productId, IReadOnlyCollection<MeasurementState> measurementStates, CancellationToken cancellationToken) =>
-            throw new NotSupportedException();
-
-        public Task<IReadOnlyCollection<MeasurementInfoWithSimilarMeasurements>> GetMeasurementInfosWithSimilarMeasurements(
-            Guid productId, string? lotId, IReadOnlyCollection<ProductState> productStates,
-            IReadOnlyCollection<MeasurementState> measurementStates, CancellationToken cancellationToken) =>
-            throw new NotSupportedException();
-
-        public Task<IReadOnlyCollection<MeasurementInfoWithSimilarMeasurements>> GetMeasurementInfosWithSimilarMeasurements(
-            Guid productId, IReadOnlyCollection<ProductState> productStates,
-            IReadOnlyCollection<MeasurementState> measurementStates, CancellationToken cancellationToken) =>
-            throw new NotSupportedException();
-
-        public Task<MeasurementInfoWithData?> GetMeasurementInfoWithData(string measurementId, CancellationToken cancellationToken) =>
-            throw new NotSupportedException();
-
-        public Task<IReadOnlyList<MeasurementInfoWithData>> GetMeasurementInfosWithData(
-            IReadOnlyList<string> ids, CancellationToken cancellationToken) =>
-            throw new NotSupportedException();
-
-        public Task<double?> GetDoubleTriodeSectionRmse(string measurementId, CancellationToken cancellationToken) =>
-            throw new NotSupportedException();
-
-        public Task<IReadOnlyList<string>> GetMeasurementPairMeasurements(string id, CancellationToken cancellationToken) =>
-            throw new NotSupportedException();
-
-        public Task<IReadOnlySet<string?>> GetLotIds(Guid productId, CancellationToken cancellationToken) =>
-            throw new NotSupportedException();
     }
 
     private sealed class FakeMeasurementPhotoQueries : IMeasurementPhotoQueries

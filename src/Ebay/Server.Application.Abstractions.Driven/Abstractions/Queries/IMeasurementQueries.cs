@@ -6,7 +6,7 @@ namespace Server.Application.Abstractions.Driven.Abstractions.Queries;
 /// <summary>
 /// Порт чтения данных замеров для бизнес-сценариев и UI.
 /// </summary>
-public interface IMeasurementQueries
+public interface IMeasurementQueries : IMeasurementInfoQueries
 {
     /// <summary>
     /// Возвращает карточки замеров товара по выбранным состояниям замера.
@@ -58,14 +58,6 @@ public interface IMeasurementQueries
     /// <param name="cancellationToken">Токен отмены операции.</param>
     /// <returns>Карточка замера с данными файла либо <see langword="null" />, если замер не найден.</returns>
     Task<MeasurementInfoWithData?> GetMeasurementInfoWithData(string measurementId, CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Возвращает карточку замера без бинарных данных.
-    /// </summary>
-    /// <param name="measurementId">Идентификатор замера.</param>
-    /// <param name="cancellationToken">Токен отмены операции.</param>
-    /// <returns>Карточка замера либо <see langword="null" />, если замер не найден.</returns>
-    Task<MeasurementInfo?> GetMeasurementInfo(string measurementId, CancellationToken cancellationToken);
 
     /// <summary>
     /// Возвращает набор замеров с бинарными данными по списку идентификаторов.

@@ -22,7 +22,7 @@ public sealed class MeasurementPhotoService
 
     private readonly IMeasurementPhotoQueries _measurementPhotoQueries;
     private readonly IMeasurementPhotoRepository _measurementPhotoRepository;
-    private readonly IMeasurementQueries _measurementQueries;
+    private readonly IMeasurementInfoQueries _measurementQueries;
     private readonly IPhotoThumbnailGenerator _photoThumbnailGenerator;
     private readonly IWriteModelUnitOfWork _writeModelUnitOfWork;
 
@@ -31,13 +31,13 @@ public sealed class MeasurementPhotoService
     /// </summary>
     /// <param name="measurementPhotoQueries">Запросы чтения фотографий замера.</param>
     /// <param name="measurementPhotoRepository">Репозиторий агрегата фотографии замера.</param>
-    /// <param name="measurementQueries">Запросы чтения замеров.</param>
+    /// <param name="measurementQueries">Запросы чтения карточки замера.</param>
     /// <param name="photoThumbnailGenerator">Генератор миниатюр фотографий.</param>
     /// <param name="writeModelUnitOfWork">Unit of Work для сохранения write-model.</param>
     public MeasurementPhotoService(
         IMeasurementPhotoQueries measurementPhotoQueries,
         IMeasurementPhotoRepository measurementPhotoRepository,
-        IMeasurementQueries measurementQueries,
+        IMeasurementInfoQueries measurementQueries,
         IPhotoThumbnailGenerator photoThumbnailGenerator,
         IWriteModelUnitOfWork writeModelUnitOfWork)
     {

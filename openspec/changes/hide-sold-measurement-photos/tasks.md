@@ -29,3 +29,4 @@
 
 - [x] 6.1 Run `./scripts/agent-check/agent-check.sh` from the repository root and resolve any findings before considering the change complete.
 - [x] 6.2 Apply the same `[ResponseCache(Duration = 60 * 5)]` (Release-only, `#if !DEBUG`) policy already used for the state-dependent chart endpoints (`MeasurementPageController.GetEbayCurves`/`GetEbayTubeDescription`) to `WebApiController.GetMeasurementPhotoContent` and `GetMeasurementPhotoThumbnailContent`, so a cache cannot keep serving pre-sale photo bytes indefinitely after the measurement is sold.
+- [x] 6.3 Extract `IMeasurementInfoQueries` (single method: `GetMeasurementInfo`) from `IMeasurementQueries`, have `IMeasurementQueries` inherit it, register it in DI against the existing `MeasurementQueries` EF adapter, and change `MeasurementPhotoService` to depend on the narrow interface instead of the full one, so its unit test fake no longer needs to stub unrelated methods with `NotSupportedException`.
