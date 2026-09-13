@@ -84,4 +84,11 @@ internal sealed class MeasurementPhotoQueries : IMeasurementPhotoQueries
             .Select(x => x.ThumbnailContent)
             .SingleOrDefaultAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyList<Guid>> GetAllPhotoIds(CancellationToken cancellationToken)
+    {
+        return await _context.MeasurementPhotos
+            .Select(x => x.Id)
+            .ToListAsync(cancellationToken);
+    }
 }

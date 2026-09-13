@@ -1,4 +1,7 @@
+using System.Text;
 using MassTransit;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using ScottPlot;
 using ScottPlot.PlotStyles;
 using Server.Application.Abstractions.Driven.Abstractions;
@@ -6,6 +9,7 @@ using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Models;
 using Server.Application.Abstractions.Driving.Abstractions.Messages;
 using Server.Application.Infrastructure;
+using Server.Application.New.Caching;
 using Server.Application.New.Services;
 using Server.Domain.Measurements;
 using Server.Domain.Measurements.MeasurementTypes;
@@ -17,6 +21,7 @@ namespace Server.Application.Services.MeasurementPlot;
 public class MeasurementPlotService : IMeasurementPlotService
 {
     private readonly DbCache _cache;
+    private readonly IMemoryCache _memoryCache;
     private readonly IMeasurementQueries _measurementQueries;
     private readonly IMeasurementFileParser _measurementFileParser;
     private readonly IPublishEndpoint _publishEndpoint;
@@ -26,6 +31,7 @@ public class MeasurementPlotService : IMeasurementPlotService
 
     public MeasurementPlotService(
         DbCache cache,
+        [FromKeyedServices(MemoryCacheExtensions.ServiceKey)] IMemoryCache memoryCache,
         IMeasurementQueries measurementQueries,
         IMeasurementFileParser measurementFileParser,
         IPublishEndpoint publishEndpoint,
@@ -34,6 +40,7 @@ public class MeasurementPlotService : IMeasurementPlotService
         IUnitOfWork unitOfWork)
     {
         _cache = cache;
+        _memoryCache = memoryCache;
         _measurementQueries = measurementQueries;
         _measurementFileParser = measurementFileParser;
         _publishEndpoint = publishEndpoint;
@@ -138,6 +145,32 @@ public class MeasurementPlotService : IMeasurementPlotService
         var cacheKey =
             $"measurementPlot_{mergeVertical}_{legendVertical}_{width}_{height}_{addQuickTest}_{measurementId}_{string.Join(",", matchedPairMeasurementsIds)}";
 
+        return await _memoryCache.GetOrCreateAsync(
+            key: cacheKey,
+            factory: () => PlotForMeasurementIdUncached(
+                measurementId: measurementId,
+                mergeVertical: mergeVertical,
+                legendVertical: legendVertical,
+                addQuickTest: addQuickTest,
+                width: width,
+                height: height,
+                matchedPairMeasurementsIds: matchedPairMeasurementsIds,
+                cacheKey: cacheKey,
+                cancellationToken: cancellationToken),
+            sizeSelector: static s => Encoding.UTF8.GetByteCount(s));
+    }
+
+    private async Task<string?> PlotForMeasurementIdUncached(
+        string measurementId,
+        bool mergeVertical,
+        bool legendVertical,
+        bool addQuickTest,
+        int width,
+        int height,
+        IReadOnlyList<string> matchedPairMeasurementsIds,
+        string cacheKey,
+        CancellationToken cancellationToken)
+    {
         return await _cache.GetOrCreateAsync(
             key: cacheKey,
             async () =>
@@ -581,6 +614,22 @@ public class MeasurementPlotService : IMeasurementPlotService
         var cacheKey =
             $"ebayTubeDescription_{measurementId}_{string.Join(",", matchedPairMeasurementsIds)}";
 
+        return await _memoryCache.GetOrCreateAsync(
+            key: cacheKey,
+            factory: () => GetEbayTubeDescriptionUncached(
+                measurementId: measurementId,
+                matchedPairMeasurementsIds: matchedPairMeasurementsIds,
+                cacheKey: cacheKey,
+                cancellationToken: cancellationToken),
+            sizeSelector: static s => Encoding.UTF8.GetByteCount(s));
+    }
+
+    private async Task<string?> GetEbayTubeDescriptionUncached(
+        string measurementId,
+        IReadOnlyList<string> matchedPairMeasurementsIds,
+        string cacheKey,
+        CancellationToken cancellationToken)
+    {
         return await _cache.GetOrCreateAsync(
             key: cacheKey,
             async () =>

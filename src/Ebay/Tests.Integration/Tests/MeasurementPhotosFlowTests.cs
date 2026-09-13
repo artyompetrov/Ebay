@@ -1,6 +1,12 @@
 using System.Net;
 using AwesomeAssertions;
 using Client.Clients.Generated;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Server.Application.Abstractions.Driven.Abstractions;
+using Server.Application.Abstractions.Driven.Abstractions.Repositories;
+using Server.Application.New.HostedServices;
+using SkiaSharp;
 
 namespace Tests.Integration.Tests;
 
@@ -133,23 +139,27 @@ public class MeasurementPhotosFlowTests
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK), html);
 
+        var baseUrl = context.HttpClient.BaseAddress!.GetLeftPart(UriPartial.Authority);
+        var thumbnailPath = $"/api/webapi/v1/measurements/{context.MeasurementId}/photos/{photo.Id}/thumbnail/content";
+        var fullContentPath = $"/api/webapi/v1/measurements/{context.MeasurementId}/photos/{photo.Id}/content";
+
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(html, Does.Contain($"/api/webapi/v1/measurements/{context.MeasurementId}/photos/{photo.Id}/content"));
+            // Thumbnail stays a real, eagerly-loaded <img>.
+            Assert.That(html, Does.Contain($"src=\"{baseUrl}{thumbnailPath}\""));
+            // The full-size image URL must be present (referenced from a CSS rule)...
+            Assert.That(html, Does.Contain(fullContentPath));
+            // ...but never as an eagerly-loaded <img src>, only inside a CSS background-image rule.
+            Assert.That(html, Does.Not.Contain($"src=\"{baseUrl}{fullContentPath}\""));
+            Assert.That(html, Does.Contain($"url(\"{baseUrl}{fullContentPath}\")"));
             Assert.That(html, Does.Not.Contain($"/measurements/{otherMeasurementId}/photos/"));
         }
 
-        var imgTagStart = html.IndexOf($"/api/webapi/v1/measurements/{context.MeasurementId}/photos/{photo.Id}/content", StringComparison.Ordinal);
-        var photoContentUrl = ExtractImgSrc(html, imgTagStart);
-        using var photoResponse = await context.HttpClient.GetAsync(photoContentUrl);
-        Assert.That(photoResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-    }
+        using var thumbnailResponse = await context.HttpClient.GetAsync(thumbnailPath);
+        Assert.That(thumbnailResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
-    private static string ExtractImgSrc(string html, int urlStartIndex)
-    {
-        var srcAttributeStart = html.LastIndexOf("src=\"", urlStartIndex, StringComparison.Ordinal) + "src=\"".Length;
-        var srcAttributeEnd = html.IndexOf('"', srcAttributeStart);
-        return html[srcAttributeStart..srcAttributeEnd];
+        using var fullContentResponse = await context.HttpClient.GetAsync(fullContentPath);
+        Assert.That(fullContentResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
     }
 
     [Test]
@@ -209,6 +219,61 @@ public class MeasurementPhotosFlowTests
             Assert.That(contentResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
             Assert.That(thumbnailResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         }
+    }
+
+    [Test]
+    public async Task MeasurementPhotoOriginalSizeBackfill_CompressesOversizedPhoto_AndLeavesCompliantPhotoUnchanged()
+    {
+        using var context = await CreateMeasurementContextAsync();
+
+        var compliantContent = TestHelpers.CreateValidPhotoBytes();
+        await context.WebApiClient.UploadMeasurementPhotoAsync(
+            context.MeasurementId,
+            new MeasurementPhotoUploadRequest { FileName = "small.jpg", ContentType = "image/jpeg", File = compliantContent });
+        await context.WebApiClient.UploadMeasurementPhotoAsync(
+            context.MeasurementId,
+            new MeasurementPhotoUploadRequest { FileName = "to-be-oversized.jpg", ContentType = "image/jpeg", File = compliantContent });
+
+        var photos = (await context.WebApiClient.GetMeasurementPhotosAsync(context.MeasurementId))
+            .OrderBy(x => x.Order)
+            .ToList();
+        var compliantPhotoId = photos[0].Id;
+        var toBeOversizedPhotoId = photos[1].Id;
+
+        using (var scope = IntegrationTestsSetupFixture.Factory.Services.CreateScope())
+        {
+            var repository = scope.ServiceProvider.GetRequiredService<IMeasurementPhotoRepository>();
+            var unitOfWork = scope.ServiceProvider.GetRequiredService<IWriteModelUnitOfWork>();
+
+            var photo = await repository.GetByIdAsync(toBeOversizedPhotoId, CancellationToken.None);
+            photo!.CompressOriginalContent(CreateOversizedPhotoBytes());
+            await unitOfWork.SaveChangesAsync(CancellationToken.None);
+        }
+
+        using (var scope = IntegrationTestsSetupFixture.Factory.Services.CreateScope())
+        {
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<MeasurementPhotoOriginalSizeBackfillHostedService>>();
+            var scopeFactory = scope.ServiceProvider.GetRequiredService<IServiceScopeFactory>();
+            await new MeasurementPhotoOriginalSizeBackfillHostedService(logger, scopeFactory).StartAsync(CancellationToken.None);
+        }
+
+        await AssertPhotoContentAsync(context.HttpClient, context.MeasurementId, compliantPhotoId, compliantContent);
+
+        using var oversizedResponse = await context.HttpClient.GetAsync(
+            $"/api/webapi/v1/measurements/{context.MeasurementId}/photos/{toBeOversizedPhotoId}/content");
+        var oversizedContentBytes = await oversizedResponse.Content.ReadAsByteArrayAsync();
+        using var decodedOversized = SKBitmap.Decode(oversizedContentBytes);
+
+        Assert.That(Math.Max(decodedOversized.Width, decodedOversized.Height), Is.LessThanOrEqualTo(2000));
+    }
+
+    private static byte[] CreateOversizedPhotoBytes()
+    {
+        using var bitmap = new SKBitmap(4000, 2000);
+        bitmap.Erase(SKColors.CornflowerBlue);
+        using var image = SKImage.FromBitmap(bitmap);
+        using var data = image.Encode(SKEncodedImageFormat.Jpeg, quality: 90);
+        return data.ToArray();
     }
 
     [Test]

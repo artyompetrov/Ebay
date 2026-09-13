@@ -29,4 +29,10 @@ public interface IMeasurementPhotoQueries
         string measurementId,
         Guid photoId,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns the ids of all stored measurement photos, across all measurements.
+    /// Used by the one-time original-size backfill; not for request-serving paths.
+    /// </summary>
+    Task<IReadOnlyList<Guid>> GetAllPhotoIds(CancellationToken cancellationToken);
 }

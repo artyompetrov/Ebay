@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
+using Server.Application.New.HostedServices;
 using Server.Application.New.LotForSale;
 using Server.Application.New.MatchedPairs;
 using Server.Application.New.Services;
@@ -27,5 +28,6 @@ public static class ServiceCollectionExtensions
         services.AddTransient<ProductService>();
         services.AddTransient<LotForSaleService>();
         services.AddTransient<MeasurementPhotoService>();
+        services.AddHostedService<MeasurementPhotoOriginalSizeBackfillHostedService>();
     }
 }

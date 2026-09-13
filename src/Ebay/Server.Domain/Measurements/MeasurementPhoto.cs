@@ -53,4 +53,9 @@ public sealed class MeasurementPhoto : AggregateRoot<Guid>
     }
 
     public void ShiftOrderDown() => Order--;
+
+    /// <summary>
+    /// Заменяет содержимое "оригинала" на версию, сжатую до допустимого размера.
+    /// </summary>
+    public void CompressOriginalContent(byte[] compressedContent) => Content = compressedContent;
 }

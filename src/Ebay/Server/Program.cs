@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.DataProtection.Repositories;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Logs;
 using Server.Adapters.Driven.ChipFind;
@@ -17,6 +18,7 @@ using Server.Adapters.Driving.MassTransit.Consumers.MatchedPairs;
 using Server.Adapters.Driving.MassTransit.Consumers.MeasurementWatching;
 using Server.Adapters.Driving.WebApi;
 using Server.Application;
+using Server.Application.New.Caching;
 using Server.Application.Consumers.EbayCurvesCacheWarmUp;
 using Server.Application.Consumers.PriceCalculator;
 using Server.Application.Data;
@@ -43,6 +45,15 @@ public class Program
 
         // Add services to the container.
         builder.Services.AddMemoryCache();
+        // Отдельный, size-limited кеш для фото/миниатюр замеров и графиков для eBay.
+        // Не переиспользует service-wide IMemoryCache выше: записи там (например, GeoIP-логирование)
+        // не проставляют MemoryCacheEntryOptions.Size, а SizeLimit требует его от каждой записи.
+        builder.Services.AddKeyedSingleton<IMemoryCache>(
+            MemoryCacheExtensions.ServiceKey,
+            (sp, _) => new MemoryCache(new MemoryCacheOptions
+            {
+                SizeLimit = sp.GetRequiredService<IOptions<ImageCacheOptions>>().Value.SizeLimitBytes
+            }));
         builder.Services.AddEmailAdapter();
         builder.Services.AddUTracerAdapter();
         builder.Services.AddImageProcessingAdapter();
