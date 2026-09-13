@@ -25,6 +25,7 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 - `Server.Domain` — domain model.
 - `Server.Adapters.*` — adapters.
 - `Tests.Unit`, `Tests.Integration`, `Tests.Explicit` — test projects.
+- `Tests.Shared` — shared test infrastructure referenced by the test projects above; currently just `OpenSpecScenarioAttribute` (see the `write-tests` skill).
 
 ## Code generation
 - Legacy contract: `src/Ebay/Server.Contracts/Legacy/Ebay.yaml` (do not add new changes there).
