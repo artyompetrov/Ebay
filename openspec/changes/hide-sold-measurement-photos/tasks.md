@@ -28,3 +28,4 @@
 ## 6. Final checks
 
 - [x] 6.1 Run `./scripts/agent-check/agent-check.sh` from the repository root and resolve any findings before considering the change complete.
+- [x] 6.2 Apply the same `[ResponseCache(Duration = 60 * 5)]` (Release-only, `#if !DEBUG`) policy already used for the state-dependent chart endpoints (`MeasurementPageController.GetEbayCurves`/`GetEbayTubeDescription`) to `WebApiController.GetMeasurementPhotoContent` and `GetMeasurementPhotoThumbnailContent`, so a cache cannot keep serving pre-sale photo bytes indefinitely after the measurement is sold.
