@@ -83,4 +83,15 @@ internal static class WellKnown
     {
         public static IReadOnlyCollection<string> ExcludeCountries = ["Russia", "Kazakhstan"];
     }
+
+    public static class ImageCache
+    {
+        public const string SectionName = "ImageCache";
+
+        /// <summary>
+        /// Максимальный суммарный размер (в байтах) записей, удерживаемых одновременно в общем
+        /// кеше фото/миниатюр замеров и отрендеренных графиков для eBay.
+        /// </summary>
+        public const long DefaultSizeLimitBytes = 200 * 1024 * 1024;
+    }
 }

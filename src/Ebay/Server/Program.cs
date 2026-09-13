@@ -18,7 +18,6 @@ using Server.Adapters.Driving.MassTransit.Consumers.MatchedPairs;
 using Server.Adapters.Driving.MassTransit.Consumers.MeasurementWatching;
 using Server.Adapters.Driving.WebApi;
 using Server.Application;
-using Server.Application.New.Caching;
 using Server.Application.Consumers.EbayCurvesCacheWarmUp;
 using Server.Application.Consumers.PriceCalculator;
 using Server.Application.Data;
@@ -49,7 +48,7 @@ public class Program
         // Не переиспользует service-wide IMemoryCache выше: записи там (например, GeoIP-логирование)
         // не проставляют MemoryCacheEntryOptions.Size, а SizeLimit требует его от каждой записи.
         builder.Services.AddKeyedSingleton<IMemoryCache>(
-            MemoryCacheExtensions.ServiceKey,
+            Server.Application.New.WellKnown.ImageCache.ServiceKey,
             (sp, _) => new MemoryCache(new MemoryCacheOptions
             {
                 SizeLimit = sp.GetRequiredService<IOptions<ImageCacheOptions>>().Value.SizeLimitBytes

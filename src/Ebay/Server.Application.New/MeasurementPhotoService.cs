@@ -40,7 +40,7 @@ public sealed class MeasurementPhotoService
     /// <param name="photoThumbnailGenerator">Генератор миниатюр фотографий.</param>
     /// <param name="writeModelUnitOfWork">Unit of Work для сохранения write-model.</param>
     public MeasurementPhotoService(
-        [FromKeyedServices(MemoryCacheExtensions.ServiceKey)] IMemoryCache cache,
+        [FromKeyedServices(WellKnown.ImageCache.ServiceKey)] IMemoryCache cache,
         IMeasurementPhotoQueries measurementPhotoQueries,
         IMeasurementPhotoRepository measurementPhotoRepository,
         IMeasurementInfoQueries measurementQueries,

@@ -9,14 +9,6 @@ namespace Server.Application.New.Caching;
 /// </summary>
 public static class MemoryCacheExtensions
 {
-    /// <summary>
-    /// Ключ keyed-регистрации выделенного <see cref="IMemoryCache"/> для этого кеша.
-    /// Отдельный от service-wide <see cref="IMemoryCache"/> (используемого, например,
-    /// GeoIP-логированием), чтобы ограничение размера этого кеша не задевало те записи,
-    /// которые не проставляют <see cref="MemoryCacheEntryOptions.Size"/>.
-    /// </summary>
-    public const string ServiceKey = "measurement-image-cache";
-
     private static readonly TimeSpan CacheEntrySlidingExpiration = TimeSpan.FromHours(6);
 
     /// <summary>

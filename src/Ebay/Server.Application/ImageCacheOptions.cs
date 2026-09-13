@@ -6,12 +6,10 @@ namespace Server.Application;
 /// </summary>
 public sealed record ImageCacheOptions
 {
-    public const string SectionName = "ImageCache";
-
-    private const long DefaultSizeLimitBytes = 200 * 1024 * 1024;
+    public const string SectionName = WellKnown.ImageCache.SectionName;
 
     /// <summary>
     /// Максимальный суммарный размер (в байтах) записей, удерживаемых в кеше одновременно.
     /// </summary>
-    public long SizeLimitBytes { get; init; } = DefaultSizeLimitBytes;
+    public long SizeLimitBytes { get; init; } = WellKnown.ImageCache.DefaultSizeLimitBytes;
 }

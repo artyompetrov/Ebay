@@ -31,8 +31,10 @@ public interface IMeasurementPhotoQueries
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Returns the ids of all stored measurement photos, across all measurements.
-    /// Used by the one-time original-size backfill; not for request-serving paths.
+    /// Returns one page of stored measurement photos (including <c>Content</c>), across all
+    /// measurements, ordered by id for stable pagination. Used by the one-time original-size
+    /// backfill to scan photos in bounded batches without loading the whole table at once;
+    /// not for request-serving paths.
     /// </summary>
-    Task<IReadOnlyList<Guid>> GetAllPhotoIds(CancellationToken cancellationToken);
+    Task<IReadOnlyList<MeasurementPhotoInfo>> GetContentBatch(int skip, int take, CancellationToken cancellationToken);
 }

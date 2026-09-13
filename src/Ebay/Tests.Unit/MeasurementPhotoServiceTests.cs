@@ -294,7 +294,7 @@ public sealed class MeasurementPhotoServiceTests
             IReadOnlyCollection<string> measurementIds, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
 
-        public Task<IReadOnlyList<Guid>> GetAllPhotoIds(CancellationToken cancellationToken) =>
+        public Task<IReadOnlyList<MeasurementPhotoInfo>> GetContentBatch(int skip, int take, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
     }
 
