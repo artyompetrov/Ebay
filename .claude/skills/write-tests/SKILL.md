@@ -55,6 +55,16 @@ public async Task GetContent_UnknownPhoto_ReturnsNotFound()
 }
 ```
 
+The Node test runner used by `Frontend/Tests` has no real attributes, so JS tests use the exact
+same `[OpenSpecScenario(...)]` text in a `//` comment directly above the `test(...)` call instead:
+
+```js
+// [OpenSpecScenario("measurement-photos", "Phone-based photo upload", "Mobile detection compatibility fallback")]
+test("IsMobileClient falls back to mobile user-agent identifiers", () => {
+    ...
+});
+```
+
 If a scenario is deliberately not covered by a test, do not skip it silently: add a
 justification bullet inside that scenario in the spec.md itself, e.g.:
 

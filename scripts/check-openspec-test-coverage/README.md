@@ -6,10 +6,14 @@ considered done while its scenarios are untested and nothing says so.
 
 ## The mapping
 
-A test method is tagged with `[OpenSpecScenario(specId, requirement, scenario)]`
+A C# test method is tagged with `[OpenSpecScenario(specId, requirement, scenario)]`
 (`Tests.Shared/OpenSpecScenarioAttribute.cs`), naming the spec id and the exact
 `### Requirement:` / `#### Scenario:` heading text it verifies. A test can carry more
 than one such attribute; each attribute names exactly one scenario.
+
+`Frontend/Tests` uses the Node test runner, which has no real attributes, so JS tests use the
+identical `[OpenSpecScenario("specId", "requirement", "scenario")]` text in a `//` comment
+directly above the `test(...)` call instead. The script matches the same text either way.
 
 A scenario that is deliberately not covered by a test gets a bullet inside its
 `#### Scenario:` block instead:
@@ -27,7 +31,7 @@ The justification is required - an empty flag is a reported issue, not a valid e
 
 - Every scenario in `openspec/specs/**` is either matched by at least one
   `[OpenSpecScenario]` attribute, or flagged `NOT COVERED BY TEST` with a reason - not both.
-- Every `[OpenSpecScenario]` attribute in the test projects resolves to a real,
+- Every `[OpenSpecScenario]` usage (C# attribute or JS comment) resolves to a real,
   currently-covered-required scenario (catches renamed/removed scenarios and typos).
 - Scenario names are unique within a requirement (the mapping key must stay unambiguous).
 
@@ -38,14 +42,16 @@ scenarios into `openspec/specs/**` and brings them into this check.
 
 ### Known limitation: text matching, not test execution
 
-The script matches `[OpenSpecScenario(...)]` against raw source text under `src/Ebay/Tests.*`;
-it does not verify that the attribute sits on a test that actually runs. A commented-out test,
-an attribute in a string literal, or one placed on a non-test/helper method would all still
-count as "covered". Deliberately did not build a reflection- or test-runner-based check for
-this: coverage can also come from non-C# suites (e.g. the JS tests under `Frontend/Tests`), so
-a C#-assembly-specific fix would not be a general solution, and would add real complexity for
-partial protection. This is a written rule instead (see the `write-tests` skill's OpenSpec
-Scenario Coverage section) enforced by code review, not by the script.
+The script matches `[OpenSpecScenario(...)]` against raw source text under `src/Ebay/Tests.*`
+and `src/Ebay/Frontend/Tests`; it does not verify that the usage sits on a test that actually
+runs. A commented-out test, the text in a string literal, or an attribute placed on a
+non-test/helper method would all still count as "covered" - and for the JS convention, the
+usage is *always* a comment, so there is no attribute-vs-runnable-method distinction to check
+at all. Deliberately did not build a reflection- or test-runner-based check for the C# side:
+coverage also comes from the non-C# suite, so a C#-assembly-specific fix would not be a general
+solution, and would add real complexity for partial protection. This is a written rule instead
+(see the `write-tests` skill's OpenSpec Scenario Coverage section) enforced by code review, not
+by the script.
 
 ## Why it reads spec.md directly
 
