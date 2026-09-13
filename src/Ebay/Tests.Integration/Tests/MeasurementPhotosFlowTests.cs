@@ -250,12 +250,14 @@ public class MeasurementPhotosFlowTests
             await unitOfWork.SaveChangesAsync(CancellationToken.None);
         }
 
+#pragma warning disable CS0618 // Тест обсолетного одноразового backfill - будет удалён вместе с ним.
         using (var scope = IntegrationTestsSetupFixture.Factory.Services.CreateScope())
         {
             var logger = scope.ServiceProvider.GetRequiredService<ILogger<MeasurementPhotoOriginalSizeBackfillHostedService>>();
             var scopeFactory = scope.ServiceProvider.GetRequiredService<IServiceScopeFactory>();
             await new MeasurementPhotoOriginalSizeBackfillHostedService(logger, scopeFactory).StartAsync(CancellationToken.None);
         }
+#pragma warning restore CS0618
 
         await AssertPhotoContentAsync(context.HttpClient, context.MeasurementId, compliantPhotoId, compliantContent);
 

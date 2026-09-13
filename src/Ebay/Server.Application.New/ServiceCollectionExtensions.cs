@@ -28,6 +28,8 @@ public static class ServiceCollectionExtensions
         services.AddTransient<ProductService>();
         services.AddTransient<LotForSaleService>();
         services.AddTransient<MeasurementPhotoService>();
+#pragma warning disable CS0618 // Обсолетный одноразовый backfill - регистрация будет удалена вместе с ним, см. класс.
         services.AddHostedService<MeasurementPhotoOriginalSizeBackfillHostedService>();
+#pragma warning restore CS0618
     }
 }

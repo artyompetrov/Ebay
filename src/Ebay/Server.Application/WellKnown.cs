@@ -82,6 +82,12 @@ internal static class WellKnown
     public static class GeoIp
     {
         public static IReadOnlyCollection<string> ExcludeCountries = ["Russia", "Kazakhstan"];
+
+        /// <summary>
+        /// Ключ keyed-регистрации выделенного IMemoryCache для дедупликации GeoIP-логирования.
+        /// Значение должно совпадать со значением, которым этот кеш регистрируется в Program.cs.
+        /// </summary>
+        public const string CacheServiceKey = "geoip-cache";
     }
 
     public static class ImageCache

@@ -43,16 +43,16 @@ public class Program
         });
 
         // Add services to the container.
-        builder.Services.AddMemoryCache();
-        // Отдельный, size-limited кеш для фото/миниатюр замеров и графиков для eBay.
-        // Не переиспользует service-wide IMemoryCache выше: записи там (например, GeoIP-логирование)
-        // не проставляют MemoryCacheEntryOptions.Size, а SizeLimit требует его от каждой записи.
+        // Каждый потребитель IMemoryCache получает свой именованный кеш вместо одного общего
+        // service-wide экземпляра - так лимит размера одного кеша не задевает записи в другом.
         builder.Services.AddKeyedSingleton<IMemoryCache>(
             Server.Application.New.WellKnown.ImageCache.ServiceKey,
             (sp, _) => new MemoryCache(new MemoryCacheOptions
             {
                 SizeLimit = sp.GetRequiredService<IOptions<ImageCacheOptions>>().Value.SizeLimitBytes
             }));
+        builder.Services.AddKeyedSingleton<IMemoryCache, MemoryCache>(WellKnown.CacheServiceKeys.GeoIp);
+        builder.Services.AddKeyedSingleton<IMemoryCache, MemoryCache>(WellKnown.CacheServiceKeys.ChipFind);
         builder.Services.AddEmailAdapter();
         builder.Services.AddUTracerAdapter();
         builder.Services.AddImageProcessingAdapter();

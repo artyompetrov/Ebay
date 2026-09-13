@@ -18,6 +18,10 @@ namespace Server.Application.New.HostedServices;
 /// фото, которые действительно нужно сжать, агрегат материализуется через write-репозиторий и
 /// сохраняется - так на весь прогон не накапливаются в памяти байты всех фотографий сразу.
 /// </summary>
+[Obsolete(
+    "Одноразовый backfill для фото, загруженных до появления ограничения по размеру оригинала. " +
+    "Удалить этот hosted service, его регистрацию в DI и связанные с ним тесты, как только он " +
+    "успешно отработает на production и не останется фото с оригиналом больше ограничения.")]
 public sealed class MeasurementPhotoOriginalSizeBackfillHostedService : IHostedService
 {
     private readonly ILogger<MeasurementPhotoOriginalSizeBackfillHostedService> _logger;

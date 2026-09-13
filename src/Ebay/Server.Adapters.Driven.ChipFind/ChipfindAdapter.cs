@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Server.Application.HostedServices.ChipFind;
 
@@ -18,7 +19,7 @@ public class ChipfindAdapter : IChipfindAdapter
     public ChipfindAdapter(
         ILogger<ChipfindAdapter> logger,
         IHttpClientFactory httpClientFactory,
-        IMemoryCache memoryCache,
+        [FromKeyedServices(WellKnown.CacheServiceKey)] IMemoryCache memoryCache,
         ChipFindAdapterOptions options)
     {
         _logger = logger;
