@@ -7,6 +7,7 @@ using Server.Application.Abstractions.Driving.Models;
 using Server.Application.New;
 using Server.Domain.Measurements;
 using Server.Domain.Measurements.MeasurementTypes;
+using Tests.Shared;
 
 namespace Tests.Unit;
 
@@ -15,6 +16,7 @@ namespace Tests.Unit;
 public sealed class MeasurementServiceTests
 {
     [Test]
+    [OpenSpecScenario("measurement-matching", "Assigning or changing a measurement's match pairing", "Assigning a match id updates the pairing and notifies of the change")]
     public async Task UpdateMeasurementMatchId_ChangesMatchIdAndRaisesDomainEvent_WhenMatchIdActuallyChanges()
     {
         const string measurementId = "MEASUREMENT1";
@@ -31,6 +33,7 @@ public sealed class MeasurementServiceTests
     }
 
     [Test]
+    [OpenSpecScenario("measurement-matching", "Assigning or changing a measurement's match pairing", "Re-submitting the same normalized match id is a no-op")]
     public async Task UpdateMeasurementMatchId_DoesNotSaveOrRaiseEvent_WhenNormalizedMatchIdIsUnchanged()
     {
         const string measurementId = "MEASUREMENT1";

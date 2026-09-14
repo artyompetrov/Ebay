@@ -1,6 +1,7 @@
 using AwesomeAssertions;
 using Server.Domain.Measurements;
 using Server.Domain.Measurements.MeasurementTypes;
+using Tests.Shared;
 
 namespace Tests.Unit;
 
@@ -9,6 +10,7 @@ namespace Tests.Unit;
 public sealed class ProductMeasurementTests
 {
     [Test]
+    [OpenSpecScenario("measurement-matching", "Cache invalidation follows lifecycle and pairing changes", "A status change invalidates that measurement's cache")]
     public void ChangeState_RaisesMeasurementStateChanged_WhenStateActuallyChanges()
     {
         var measurement = CreateMeasurement();
@@ -32,6 +34,7 @@ public sealed class ProductMeasurementTests
     }
 
     [Test]
+    [OpenSpecScenario("measurement-matching", "Assigning or changing a measurement's match pairing", "Assigning a match id updates the pairing and notifies of the change")]
     public void ChangeMatchId_RaisesMeasurementMatchIdChanged_WhenNormalizedMatchIdActuallyChanges()
     {
         var measurement = CreateMeasurement();
@@ -45,6 +48,7 @@ public sealed class ProductMeasurementTests
     }
 
     [Test]
+    [OpenSpecScenario("measurement-matching", "Assigning or changing a measurement's match pairing", "Re-submitting the same normalized match id is a no-op")]
     public void ChangeMatchId_DoesNotRaiseEvent_WhenNormalizedMatchIdIsUnchanged()
     {
         var measurement = CreateMeasurement();

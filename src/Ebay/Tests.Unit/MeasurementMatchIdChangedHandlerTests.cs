@@ -4,6 +4,7 @@ using Server.Application.Abstractions.Driven.Models;
 using Server.Application.New.Caching;
 using Server.Application.New.MeasurementCaching;
 using Server.Domain.Measurements;
+using Tests.Shared;
 
 namespace Tests.Unit;
 
@@ -25,6 +26,7 @@ public sealed class MeasurementMatchIdChangedHandlerTests
     }
 
     [Test]
+    [OpenSpecScenario("measurement-matching", "Cache invalidation follows lifecycle and pairing changes", "A pairing change invalidates the cache of the measurement and both its former and new pair partners")]
     public async Task HandleAsync_InvalidatesMeasurementsFromOldAndNewMatchGroups()
     {
         const string changedMeasurementId = "measurement-1";

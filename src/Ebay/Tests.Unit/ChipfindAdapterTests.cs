@@ -3,13 +3,16 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Server.Adapters.Driven.ChipFind;
 using Server.Application.HostedServices.ChipFind;
+using Tests.Shared;
 
 namespace Tests.Unit;
 
 [TestFixture]
+[TestOf(typeof(ChipfindAdapter))]
 public class ChipfindAdapterTests
 {
     [Test]
+    [OpenSpecScenario("chipfind-monitoring", "Sale advertisement feed parsing", "Parses pre-formatted description items")]
     public async Task Parse_PreFormattedItems_DoesNotLogWarning()
     {
         var xml = """
@@ -39,6 +42,7 @@ public class ChipfindAdapterTests
     }
 
     [Test]
+    [OpenSpecScenario("chipfind-monitoring", "Sale advertisement feed parsing", "Parses a description mixing pre-tagged and plain lines")]
     public async Task Parse_MixedPreAndLines_DoesNotLogWarning()
     {
         var xml = """
@@ -67,6 +71,7 @@ public class ChipfindAdapterTests
     }
 
     [Test]
+    [OpenSpecScenario("chipfind-monitoring", "Sale advertisement feed parsing", "Parses a description of only plain lines")]
     public async Task Parse_SimpleLines_DoesNotLogWarning()
     {
         var xml = """
@@ -163,6 +168,7 @@ public class ChipfindAdapterTests
     }
 
     [TestCaseSource(nameof(InvalidAdvertisementPartsForFeedParsing))]
+    [OpenSpecScenario("chipfind-monitoring", "Sale advertisement feed parsing", "Malformed items are skipped without failing the feed")]
     public async Task GetRecentSaleAdvertisements_WhenFeedContainsInvalidItem_DoesNotThrowAndParsesValidItems(string invalidAdvertisementPart)
     {
         var xml = $"""
@@ -191,6 +197,7 @@ public class ChipfindAdapterTests
     }
 
     [Test]
+    [OpenSpecScenario("chipfind-monitoring", "Seller contact resolution from an advertisement page", "Contact section contains a mailto link with a subject")]
     public async Task TryGetAdvertisementContactAsync_WhenContactContainsMailto_ReturnsPlainTextContact()
     {
         const string html = """
@@ -219,6 +226,7 @@ public class ChipfindAdapterTests
     }
 
     [Test]
+    [OpenSpecScenario("chipfind-monitoring", "Seller contact resolution from an advertisement page", "Contact section contains a mailto link without a subject")]
     public async Task TryGetAdvertisementContactAsync_WhenMailtoLinkPresentWithoutSubject_ReturnsContact()
     {
         const string html = """
@@ -247,6 +255,7 @@ public class ChipfindAdapterTests
     }
 
     [Test]
+    [OpenSpecScenario("chipfind-monitoring", "Seller contact resolution from an advertisement page", "Contact section has no mailto link")]
     public async Task TryGetAdvertisemenContactAsync_WhenMailtoLinkMissing_ReturnsPlainTextContact()
     {
         const string html = """
@@ -272,6 +281,61 @@ public class ChipfindAdapterTests
             CancellationToken.None);
 
         Assert.That(contact, Is.EqualTo("Телефон: +7 (000) 000-00-00"));
+    }
+
+    [Test]
+    [OpenSpecScenario("chipfind-monitoring", "Seller contact resolution from an advertisement page", "Repeated contact lookups for the same seller are cached")]
+    public async Task TryGetAdvertisementContactAsync_SecondCallForSameSeller_IsServedFromCache_WithoutFetchingPageAgain()
+    {
+        const string html = """
+<html><body>
+<div class="contact">Телефон: +7 (000) 000-00-00</div>
+</body></html>
+""";
+
+        var handler = new CountingMessageHandler(html);
+        var httpClient = new HttpClient(handler);
+        var factory = new TestHttpClientFactory(httpClient);
+        var logger = new TestLogger<ChipfindAdapter>();
+        var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
+        var saleAdvertisement = new SaleAdvertisement(
+            Title: "title",
+            Seller: "seller",
+            Date: DateTimeOffset.MaxValue,
+            Link: new Uri("https://www.chipfind.ru/market/msg_prodam_1610251451.htm"),
+            Items: [""],
+            Body: "");
+
+        var firstContact = await adapter.TryGetAdvertisementContactAsync(saleAdvertisement, CancellationToken.None);
+        var secondContact = await adapter.TryGetAdvertisementContactAsync(saleAdvertisement, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(secondContact, Is.EqualTo(firstContact));
+            Assert.That(handler.RequestCount, Is.EqualTo(1));
+        }
+    }
+
+    private sealed class CountingMessageHandler : HttpMessageHandler
+    {
+        private readonly string _content;
+
+        public CountingMessageHandler(string content)
+        {
+            _content = content;
+        }
+
+        public int RequestCount { get; private set; }
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            RequestCount++;
+            var response = new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(_content)
+            };
+            return Task.FromResult(response);
+        }
     }
 
     private sealed class StaticMessageHandler : HttpMessageHandler
