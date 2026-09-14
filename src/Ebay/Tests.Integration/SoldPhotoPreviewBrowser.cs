@@ -7,6 +7,9 @@ namespace Tests.Integration;
 
 internal static class SoldPhotoPreviewBrowser
 {
+    private const int ViewportWidth = 1200;
+    private const int ViewportHeight = 900;
+
     internal static async Task VerifyAsync(HttpClient client, string html, string measurementId, Guid photoId, byte[] original)
     {
         var baseAddress = client.BaseAddress ?? throw new InvalidOperationException("Test server address missing.");
@@ -20,7 +23,7 @@ internal static class SoldPhotoPreviewBrowser
                 JavaScriptEnabled = false,
                 HasTouch = touch,
                 IsMobile = touch,
-                ViewportSize = new() { Width = 1200, Height = 900 }
+                ViewportSize = new() { Width = ViewportWidth, Height = ViewportHeight }
             });
             var images = new ConcurrentDictionary<string, ImageResponse>();
             await context.RouteAsync("**/*", async route =>
