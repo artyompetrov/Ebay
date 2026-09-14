@@ -10,7 +10,7 @@ public interface IPhotoThumbnailGenerator
 
     /// <summary>
     /// Returns the photo bytes re-encoded within a bounded resolution/quality when they exceed
-    /// that bound, or the original bytes unchanged when they are already within it.
+    /// that bound (JPEG), or the same original byte-array instance when already within it.
     /// Throws if <paramref name="originalContent"/> cannot be decoded as an image.
     /// </summary>
     Task<byte[]> CreateBoundedOriginalAsync(byte[] originalContent, CancellationToken cancellationToken);

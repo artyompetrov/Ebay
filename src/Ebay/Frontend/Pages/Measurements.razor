@@ -279,7 +279,7 @@
             <tr class="@matchRowClass">
                 <td><NavLink href="@($"m/{measurement.MeasurementId}")" target="_blank">#@measurement.MeasurementId</NavLink></td>
                 <td>
-                    <NavLink class="btn btn-outline-secondary btn-sm" href="@($"measurement-photos/{measurement.MeasurementId}")" target="_blank">
+                    <NavLink class="btn btn-outline-secondary btn-sm" href="@($"measurement-photos/{measurement.MeasurementId}")">
                         📷 @GetPhotoCount(measurement.MeasurementId)
                     </NavLink>
                 </td>

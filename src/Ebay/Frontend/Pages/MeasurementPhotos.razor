@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
 @inject WebApiClient WebApiClient
+@inject IBarcodeScanner BarcodeScanner
 @inject ILogger<MeasurementPhotos> Logger
 
 <script src="https://unpkg.com/html5-qrcode"></script>
@@ -71,7 +72,13 @@
         box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
     }
 
-    .photo-hover:hover .photo-hover-full,
+    @@media (hover: hover) {
+        .photo-hover:hover .photo-hover-full {
+            visibility: visible;
+            opacity: 1;
+        }
+    }
+
     .photo-hover-toggle:checked ~ .photo-hover-full {
         visibility: visible;
         opacity: 1;
@@ -177,7 +184,7 @@
 
         try
         {
-            var scannedValue = await Interop.StartQrScanner();
+            var scannedValue = await BarcodeScanner.ScanAsync();
             _measurementId = ExtractMeasurementId(scannedValue);
 
             if (string.IsNullOrWhiteSpace(_measurementId))

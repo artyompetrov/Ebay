@@ -9,6 +9,8 @@ internal sealed class PhotoThumbnailGenerator : IPhotoThumbnailGenerator
     private const int ThumbnailJpegQuality = 75;
     private const int BoundedOriginalMaxDimensionPixels = 2000;
     private const int BoundedOriginalJpegQuality = 85;
+    private const int BoundedOriginalMaxBytes = 2 * 1024 * 1024;
+    private const double OversizeDimensionScale = 0.8;
 
     public Task<byte[]> CreateThumbnailAsync(byte[] originalContent, CancellationToken cancellationToken)
     {
@@ -26,17 +28,33 @@ internal sealed class PhotoThumbnailGenerator : IPhotoThumbnailGenerator
 
         using var original = DecodeOrThrow(originalContent);
         var longestSide = Math.Max(original.Width, original.Height);
-        if (longestSide <= BoundedOriginalMaxDimensionPixels)
+        if (longestSide <= BoundedOriginalMaxDimensionPixels && originalContent.Length <= BoundedOriginalMaxBytes)
         {
             return Task.FromResult(originalContent);
         }
 
         var (targetWidth, targetHeight) = GetBoundedSize(original.Width, original.Height, BoundedOriginalMaxDimensionPixels);
-        return Task.FromResult(ResizeAndEncode(original, targetWidth, targetHeight, BoundedOriginalJpegQuality));
+        var encoded = ResizeAndEncode(original, targetWidth, targetHeight, BoundedOriginalJpegQuality);
+        while (encoded.Length > BoundedOriginalMaxBytes)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            targetWidth = Math.Max(1, (int)(targetWidth * OversizeDimensionScale));
+            targetHeight = Math.Max(1, (int)(targetHeight * OversizeDimensionScale));
+            encoded = ResizeAndEncode(original, targetWidth, targetHeight, BoundedOriginalJpegQuality);
+        }
+        return Task.FromResult(encoded);
     }
 
-    private static SKBitmap DecodeOrThrow(byte[] content) =>
-        SKBitmap.Decode(content) ?? throw new InvalidOperationException("Photo bytes could not be decoded as an image.");
+    private static SKBitmap DecodeOrThrow(byte[] content)
+    {
+        using var stream = new SKMemoryStream(content);
+        using var codec = SKCodec.Create(stream);
+        if (codec is null)
+        {
+            throw new InvalidOperationException("Photo bytes could not be decoded as an image.");
+        }
+        return SKBitmap.Decode(codec) ?? throw new InvalidOperationException("Photo bytes could not be decoded as an image.");
+    }
 
     private static byte[] ResizeAndEncode(SKBitmap original, int targetWidth, int targetHeight, int jpegQuality)
     {

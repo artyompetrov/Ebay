@@ -32,4 +32,5 @@
   <Project Path="Tests.Integration/Tests.Integration.csproj" />
   <Project Path="Tests.Shared/Tests.Shared.csproj" />
   <Project Path="Tests.Unit/Tests.Unit.csproj" />
+  <Project Path="Tests.Frontend/Tests.Frontend.csproj" />
 </Solution>

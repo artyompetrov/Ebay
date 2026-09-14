@@ -1,3 +1,5 @@
+using Tests.Shared;
+using AwesomeAssertions;
 using System.IO.Compression;
 using System.Net;
 using Client.Clients.Generated;
@@ -40,6 +42,9 @@ public class ProductMeasurementFlowTests
 
     [Test]
     [NonParallelizable]
+    [OpenSpecScenario("measurement-plots", "Cached serving of eBay curve and tube-description images", "Repeated curve plot request served from cache")]
+    [OpenSpecScenario("measurement-plots", "Cached serving of eBay curve and tube-description images", "Repeated tube-description request served from cache")]
+    [OpenSpecScenario("measurement-plots", "Cached serving of eBay curve and tube-description images", "Requests between status changes never re-check the database")]
     public async Task EbayCurvesAndTubeDescription_DoNotQueryDatabase_OnSecondNotSoldRequest()
     {
         using var context = await CreateMeasurementContextAsync();
@@ -48,23 +53,29 @@ public class ProductMeasurementFlowTests
         using var curvesCounterScope = counter.BeginScope("ProductMeasurements", "CacheEntries", "MatchedPairDifferences", "TubeWorkingPoints");
         await AssertEbayCurvesWithInternalReferrerAsync(context.HttpClient, context.MeasurementId);
         var countAfterFirstCurvesRequest = curvesCounterScope.Count;
+        countAfterFirstCurvesRequest.Should().BeGreaterThan(0);
         await AssertEbayCurvesWithInternalReferrerAsync(context.HttpClient, context.MeasurementId);
         Assert.That(curvesCounterScope.Count, Is.EqualTo(countAfterFirstCurvesRequest));
 
         using var tubeDescriptionCounterScope = counter.BeginScope("ProductMeasurements", "CacheEntries", "MatchedPairDifferences", "TubeWorkingPoints");
         await AssertSvgResponseAsync(context.HttpClient, $"/m/{context.MeasurementId}/ebay_tube_description");
         var countAfterFirstTubeDescriptionRequest = tubeDescriptionCounterScope.Count;
+        countAfterFirstTubeDescriptionRequest.Should().BeGreaterThan(0);
         await AssertSvgResponseAsync(context.HttpClient, $"/m/{context.MeasurementId}/ebay_tube_description");
         Assert.That(tubeDescriptionCounterScope.Count, Is.EqualTo(countAfterFirstTubeDescriptionRequest));
     }
 
     [Test]
+    [OpenSpecScenario("measurement-plots", "Cached serving of eBay curve and tube-description images", "Sale still takes effect immediately despite cached images")]
     public async Task EbayCurves_ReturnsSoldImage_AfterCachedRealPlotIsInvalidatedByStatusChange()
     {
         using var context = await CreateMeasurementContextAsync();
 
         var realPlot = await GetEbayCurvesWithInternalReferrerAsync(context.HttpClient, context.MeasurementId);
         Assert.That(realPlot, Does.Not.Contain(">Sold<"));
+        var descriptionUrl = $"/m/{context.MeasurementId}/ebay_tube_description";
+        var realDescription = await context.HttpClient.GetStringAsync(descriptionUrl);
+        realDescription.Should().NotContain(">Sold<");
 
         await context.EbayClient.UpdateMeasurementStateAsync(MeasurementState.Sold, context.ProductId, context.MeasurementId);
 
@@ -72,6 +83,8 @@ public class ProductMeasurementFlowTests
         {
             var soldPlot = await GetEbayCurvesWithInternalReferrerAsync(context.HttpClient, context.MeasurementId);
             Assert.That(soldPlot, Does.Contain(">Sold<"));
+            var soldDescription = await context.HttpClient.GetStringAsync(descriptionUrl);
+            soldDescription.Should().Contain(">Sold<");
         });
     }
 
@@ -83,7 +96,7 @@ public class ProductMeasurementFlowTests
         var ebayClient = TestHelpers.CreateEbayClient(httpClient);
         var productId = await TestHelpers.CreateProductAsync(ebayClient);
 
-        var randomSeed = Random.Shared.Next(1000, 9999);
+        var randomSeed = TestHelpers.NextMeasurementSeed();
         var measurementId = $"MEA{randomSeed}";
         await ebayClient.UploadMeasurementAsync(
             new MeasurementDataToUpload

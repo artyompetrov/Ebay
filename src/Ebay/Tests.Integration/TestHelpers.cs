@@ -2,6 +2,7 @@ using System.IO.Compression;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using Client.Clients.Generated;
+using NUnit.Framework.Internal;
 using Polly;
 using Polly.Timeout;
 using SkiaSharp;
@@ -10,17 +11,22 @@ namespace Tests.Integration;
 
 public static class TestHelpers
 {
+    private static int _measurementSeed = 1000;
+
+    internal static int NextMeasurementSeed() => Interlocked.Increment(ref _measurementSeed);
+
     public static Task RetryUntilValidationSuccessAsync(
         Func<Task> assertAction,
         int timeout = 30)
     {
-        AssertionException? lastAssertion = null;
+        Exception? lastAssertion = null;
 
         var retryPolicy = Policy
             .Handle<AssertionException>()
+            .Or<MultipleAssertException>()
             .WaitAndRetryForeverAsync(
                 sleepDurationProvider: _ => TimeSpan.FromMilliseconds(250),
-                onRetry: (exception, _) => lastAssertion = exception as AssertionException);
+                onRetry: (exception, _) => lastAssertion = exception);
         var timeoutPolicy = Policy.TimeoutAsync(TimeSpan.FromSeconds(timeout));
         var policy = Policy.WrapAsync(timeoutPolicy, retryPolicy);
 
@@ -30,7 +36,13 @@ public static class TestHelpers
         {
             try
             {
-                await policy.ExecuteAsync(_ => assertAction(), CancellationToken.None);
+                await policy.ExecuteAsync(async _ =>
+                {
+                    // Caught NUnit assertions still mark their current test result as failed.
+                    // Isolate each polling attempt so only the final outcome reaches the test.
+                    using var assertionContext = new TestExecutionContext.IsolatedContext();
+                    await assertAction();
+                }, CancellationToken.None);
             }
             catch (TimeoutRejectedException) when (lastAssertion != null)
             {

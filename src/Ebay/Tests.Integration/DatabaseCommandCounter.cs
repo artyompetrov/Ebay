@@ -42,7 +42,7 @@ public sealed class DatabaseCommandCounter : DbCommandInterceptor
 
         if (scope is not null && scope.Tracks(command.CommandText))
         {
-            scope.Increment();
+            scope.Increment(command.CommandText);
         }
     }
 }
