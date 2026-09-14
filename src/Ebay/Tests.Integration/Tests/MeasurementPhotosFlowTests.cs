@@ -55,6 +55,7 @@ public class MeasurementPhotosFlowTests
     [Test]
     [OpenSpecScenario("measurement-photos", "Photo binary retrieval", "Fetch existing photo content")]
     [OpenSpecScenario("measurement-photos", "Photo deletion re-orders remaining photos", "Delete a photo that is not last in order")]
+    [OpenSpecScenario("measurement-photos", "Photo management from the internal office measurements page", "Delete a photo from the office view")]
     public async Task UploadListDeleteAndCount_Work()
     {
         using var context = await CreateMeasurementContextAsync();
@@ -190,7 +191,6 @@ public class MeasurementPhotosFlowTests
     [Test]
     [OpenSpecScenario("measurement-photos", "Photo binary retrieval", "Fetch photo content for a sold measurement")]
     [OpenSpecScenario("measurement-photos", "Photo thumbnail retrieval", "Fetch thumbnail for a sold measurement")]
-    [OpenSpecScenario("measurement-photos", "Photos shown on the eBay listing description page", "A sold measurement's photo no longer reveals the real photo")]
     public async Task GetMeasurementPhotoContentAndThumbnail_ReturnPlaceholder_ForSoldMeasurement()
     {
         using var context = await CreateMeasurementContextAsync();
@@ -212,6 +212,28 @@ public class MeasurementPhotosFlowTests
 
         await TestHelpers.RetryUntilValidationSuccessAsync(() =>
             AssertPhotoPlaceholdersAsync(context.HttpClient, context.MeasurementId, photo.Id));
+    }
+
+    [Test]
+    [OpenSpecScenario("measurement-photos", "Photos shown on the eBay listing description page", "A sold measurement's photo no longer reveals the real photo")]
+    public async Task SoldPhoto_InRenderedListing_ShowsDisplayablePlaceholders_OnHoverAndTap()
+    {
+        using var context = await CreateMeasurementContextAsync();
+        var original = TestHelpers.CreateValidPhotoBytes(colorSeed: 30);
+        await context.WebApiClient.UploadMeasurementPhotoAsync(context.MeasurementId,
+            new MeasurementPhotoUploadRequest { FileName = "sold.png", ContentType = "image/png", File = original });
+        var photo = (await context.WebApiClient.GetMeasurementPhotosAsync(context.MeasurementId)).Single();
+
+        // eBay keeps the description HTML published before the sale.
+        var html = await context.HttpClient.GetStringAsync(
+            $"/ebay_description/{context.ProductId}?measurementState=Created&state=New");
+        await AssertPhotoContentAsync(context.HttpClient, context.MeasurementId, photo.Id, original);
+        await AssertPhotoThumbnailStatusAsync(context.HttpClient, context.MeasurementId, photo.Id, HttpStatusCode.OK);
+        await context.EbayClient.UpdateMeasurementStateAsync(MeasurementState.Sold, context.ProductId, context.MeasurementId);
+        await TestHelpers.RetryUntilValidationSuccessAsync(() =>
+            AssertPhotoPlaceholdersAsync(context.HttpClient, context.MeasurementId, photo.Id));
+
+        await SoldPhotoPreviewBrowser.VerifyAsync(context.HttpClient, html, context.MeasurementId, photo.Id, original);
     }
 
     [Test]

@@ -28,3 +28,6 @@ Independent reviewer final verdict: Approved, no remaining findings. Coverage/re
 A subsequent CI run exposed a timing assumption in the sold-cache test: it could start counting while the asynchronous invalidation event was still pending. The test now warms both real images before sale and waits for both decoded placeholders before measuring repeated requests. The SQL equality assertions remain strict.
 
 See [HybridCache assessment](hybrid-cache-assessment.md) for the deterministic stale-factory reproduction and the decision to retain the current cache in this PR.
+
+## Follow-up review fixes
+The office deletion scenario is explicitly mapped across the management component deletion test, the API/listing deletion flow, and the office indicator refresh test. The sold-listing scenario now maps to a browser flow using the actual description rendered before sale. After the sale and observed cache invalidation, desktop hover and touch tap load real TestServer image responses; Chromium verifies decoded placeholder thumbnails and full previews, without original bytes or broken images.

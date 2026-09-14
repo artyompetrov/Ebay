@@ -14,6 +14,7 @@ public sealed class MeasurementsTests
 {
     [Test]
     [OpenSpecScenario("measurement-photos", "Photo management from the internal office measurements page", "Photo indicator on measurement row")]
+    [OpenSpecScenario("measurement-photos", "Photo management from the internal office measurements page", "Delete a photo from the office view")]
     public async Task PhotoIndicators_ShowCountsAndMeasurementSpecificNavigation_AndReloadAfterDeletion()
     {
         await using var context = new BunitContext();
