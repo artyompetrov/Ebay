@@ -1,10 +1,11 @@
 using System.Globalization;
 using Server.Application.Abstractions.Driven.Models;
 using Server.Application.Abstractions.Driving.Models;
-using Server.Application.Services.LotDataExtractor;
 using Server.Controllers.Generated;
 using Server.Domain;
+using Server.Domain.LotDataExtraction;
 using Server.Domain.Product;
+using Server.Domain.Shipping;
 using ApiCurrency = Server.Controllers.Generated.Currency;
 using ApiMeasurementState = Server.Controllers.Generated.MeasurementState;
 using DbCurrency = Server.Domain.Currency;
@@ -264,5 +265,43 @@ internal static class ModelsExtensions
             ApiMeasurementState.Sold => DbMeasurementState.Sold,
             _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
         };
+    }
+
+    public static ShippingType ToApiShippingType(this ShippingTypeInfo shippingType)
+    {
+        return new(
+            name: shippingType.Name,
+            currency: shippingType.Currency,
+            rates: [.. shippingType.Rates.Select(x => x.ToApiShippingRates())]
+        );
+    }
+
+    public static ShippingRates ToApiShippingRates(this ShippingZoneRatesInfo shippingRates)
+    {
+        return new(
+            postZone: shippingRates.PostZone,
+            specifiedCountries: shippingRates.SpecifiedCountries == null
+                ? null
+                : [.. shippingRates.SpecifiedCountries.Select(x => x.ToApiShippingCountry())],
+            rates: [.. shippingRates.Rates.Select(x => x.ToApiShippingRate())]
+        );
+    }
+
+    public static ShippingCountry ToApiShippingCountry(this ShippingCountryInfo country)
+    {
+        return new(
+            twoLetterCode: country.TwoLetterCode,
+            threeLetterCode: country.ThreeLetterCode,
+            nameRu: country.NameRu
+        );
+    }
+
+    public static ShippingRate ToApiShippingRate(this ShippingRateInfo rate)
+    {
+        return new(
+            minWeight: rate.MinWeight,
+            maxWeight: rate.MaxWeight,
+            price: rate.Price
+        );
     }
 }

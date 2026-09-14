@@ -24,7 +24,7 @@ public static class WellKnown
     /// </summary>
     public static class CacheServiceKeys
     {
-        /// <summary>Должен совпадать с Server.Application.WellKnown.GeoIp.CacheServiceKey.</summary>
+        /// <summary>Должен совпадать с Server.Adapters.Driven.GeoIp.WellKnown.CacheServiceKey.</summary>
         public const string GeoIp = "geoip-cache";
 
         /// <summary>Должен совпадать с Server.Adapters.Driven.ChipFind.WellKnown.CacheServiceKey.</summary>

@@ -1,20 +1,28 @@
-using Server.Application.Infrastructure;
-using Server.Controllers.Generated;
+namespace Server.Domain.Shipping;
 
-namespace Server.Application.Services.LotDataExtractor;
-
-public class ShippingRatesService : IShippingRatesService
+/// <summary>
+/// Ebay/QazPost shipping cost reference data used to estimate delivery cost by destination and weight.
+/// </summary>
+public static class ShippingRatesTable
 {
-    private static readonly List<ShippingType> Rates;
-    private static readonly Dictionary<string, List<ShippingRateInner>> ShippingRatesDictionaryStatic;
+    /// <summary>
+    /// Key used in <see cref="ShippingRatesDictionary"/> for a rate that applies to any destination
+    /// country not listed individually.
+    /// </summary>
+    public const string Worldwide = "Worldwide";
+
+    private const string Kzt = "KZT";
+
+    private static readonly List<ShippingTypeInfo> Rates;
+    private static readonly Dictionary<string, IReadOnlyList<ShippingRateByWeight>> ShippingRatesDictionaryStatic;
 
     // тарифы взяты отсюда https://qazpost.kz/ru/help/tariffs?tab=pochtovye-uslugi
 
-    static ShippingRatesService()
+    static ShippingRatesTable()
     {
 
         // не интересно
-        var zone1Countries = new List<ShippingCountry>
+        var zone1Countries = new List<ShippingCountryInfo>
         {
             new("Казахстан", "KAZ", "KZ"),
             new("Таджикистан", "TJK", "TJ"),
@@ -24,7 +32,7 @@ public class ShippingRatesService : IShippingRatesService
         };
 
         // не интересно
-        var zone2Countries = new List<ShippingCountry>
+        var zone2Countries = new List<ShippingCountryInfo>
         {
             new("Азербайджан", "AZE", "AZ"),
             new("Молдова", "MDA", "MD"),
@@ -33,7 +41,7 @@ public class ShippingRatesService : IShippingRatesService
             new("Россия", "RUS", "RU"),
         };
 
-        var zone3Countries = new List<ShippingCountry>
+        var zone3Countries = new List<ShippingCountryInfo>
         {
             new("Грузия", "GEO", "GE"),
             new("Австрия", "AUT", "AT"),
@@ -109,7 +117,7 @@ public class ShippingRatesService : IShippingRatesService
             new("Япония", "JPN", "JP"),
         };
 
-        var zone4Countries = new List<ShippingCountry>
+        var zone4Countries = new List<ShippingCountryInfo>
         {
             new("США", "_US", "US"),
             new("Гуам", "GUM", "GU"),
@@ -132,7 +140,7 @@ public class ShippingRatesService : IShippingRatesService
             new("Макао", "MAC", "MO"),
         };
 
-        var zone5Countries = new List<ShippingCountry>
+        var zone5Countries = new List<ShippingCountryInfo>
         {
             new("Австралия", "AUS", "AU"),
             new("Малави", "MWI", "MW"),
@@ -274,84 +282,84 @@ public class ShippingRatesService : IShippingRatesService
         Rates =
         [
             new(
-                name: "Мелкий пакет авиа",
-                currency: WellKnown.Currencies.KZT,
-                rates:
+                Name: "Мелкий пакет авиа",
+                Currency: Kzt,
+                Rates:
                 [
                     new(
-                        postZone: null,
-                        rates:
+                        PostZone: null,
+                        Rates:
                         [
-                            new(minWeight: 0, maxWeight: 500, price: 8_960),
-                            new(minWeight: 500, maxWeight: 1000, price: 15_400),
-                            new(minWeight: 1000, maxWeight: 2000, price: 27_462)
+                            new(MinWeight: 0, MaxWeight: 500, Price: 8_960),
+                            new(MinWeight: 500, MaxWeight: 1000, Price: 15_400),
+                            new(MinWeight: 1000, MaxWeight: 2000, Price: 27_462)
                         ],
-                        specifiedCountries: null
+                        SpecifiedCountries: null
                     )
                 ]
             ),
 
             new(
-                name: "Посылка авиа",
-                currency: WellKnown.Currencies.KZT,
-                rates:
+                Name: "Посылка авиа",
+                Currency: Kzt,
+                Rates:
                 [
                     // зона 3
                     new(
-                        postZone: 3,
-                        rates:
+                        PostZone: 3,
+                        Rates:
                         [
-                            new(minWeight: 0, maxWeight: 2000, price: 16_950),
-                            new(minWeight: 2000, maxWeight: 3000, price: 24_225),
-                            new(minWeight: 3000, maxWeight: 4000, price: 30_825),
-                            new(minWeight: 4000, maxWeight: 5000, price: 37_725),
-                            new(minWeight: 5000, maxWeight: 6000, price: 44_400),
-                            new(minWeight: 6000, maxWeight: 7000, price: 51_150),
-                            new(minWeight: 7000, maxWeight: 8000, price: 57_900),
-                            new(minWeight: 8000, maxWeight: 9000, price: 64_875),
-                            new(minWeight: 9000, maxWeight: 10000, price: 71_400),
+                            new(MinWeight: 0, MaxWeight: 2000, Price: 16_950),
+                            new(MinWeight: 2000, MaxWeight: 3000, Price: 24_225),
+                            new(MinWeight: 3000, MaxWeight: 4000, Price: 30_825),
+                            new(MinWeight: 4000, MaxWeight: 5000, Price: 37_725),
+                            new(MinWeight: 5000, MaxWeight: 6000, Price: 44_400),
+                            new(MinWeight: 6000, MaxWeight: 7000, Price: 51_150),
+                            new(MinWeight: 7000, MaxWeight: 8000, Price: 57_900),
+                            new(MinWeight: 8000, MaxWeight: 9000, Price: 64_875),
+                            new(MinWeight: 9000, MaxWeight: 10000, Price: 71_400),
                             .. CalculateForBigParcels(71_400, 6_600),
                         ],
                         // тут зона 1 и 2, т.к. актуализировать тарифы для 1 и 2 зоны не хочется
-                        specifiedCountries: [.. zone3Countries.Union(zone1Countries).Union(zone2Countries)]
+                        SpecifiedCountries: [.. zone3Countries.Union(zone1Countries).Union(zone2Countries)]
                     ),
 
                     // зона 4
                     new(
-                        postZone: 4,
-                        rates:
+                        PostZone: 4,
+                        Rates:
                         [
-                            new(minWeight: 0, maxWeight: 2000, price: 17_175),
-                            new(minWeight: 2000, maxWeight: 3000, price: 26_475),
-                            new(minWeight: 3000, maxWeight: 4000, price: 35_175),
-                            new(minWeight: 4000, maxWeight: 5000, price: 44_100),
-                            new(minWeight: 5000, maxWeight: 6000, price: 52_650),
-                            new(minWeight: 6000, maxWeight: 7000, price: 61_125),
-                            new(minWeight: 7000, maxWeight: 8000, price: 70_200),
-                            new(minWeight: 8000, maxWeight: 9000, price: 78_450),
-                            new(minWeight: 9000, maxWeight: 10000, price: 87_150),
+                            new(MinWeight: 0, MaxWeight: 2000, Price: 17_175),
+                            new(MinWeight: 2000, MaxWeight: 3000, Price: 26_475),
+                            new(MinWeight: 3000, MaxWeight: 4000, Price: 35_175),
+                            new(MinWeight: 4000, MaxWeight: 5000, Price: 44_100),
+                            new(MinWeight: 5000, MaxWeight: 6000, Price: 52_650),
+                            new(MinWeight: 6000, MaxWeight: 7000, Price: 61_125),
+                            new(MinWeight: 7000, MaxWeight: 8000, Price: 70_200),
+                            new(MinWeight: 8000, MaxWeight: 9000, Price: 78_450),
+                            new(MinWeight: 9000, MaxWeight: 10000, Price: 87_150),
                             .. CalculateForBigParcels(87_150, 7_920),
                         ],
-                        specifiedCountries: zone4Countries
+                        SpecifiedCountries: zone4Countries
                     ),
 
                     // зона 5
                     new(
-                        postZone: 5,
-                        rates:
+                        PostZone: 5,
+                        Rates:
                         [
-                            new(minWeight: 0, maxWeight: 2000, price: 19_800),
-                            new(minWeight: 2000, maxWeight: 3000, price: 33_375),
-                            new(minWeight: 3000, maxWeight: 4000, price: 45_975),
-                            new(minWeight: 4000, maxWeight: 5000, price: 58_200),
-                            new(minWeight: 5000, maxWeight: 6000, price: 70_500),
-                            new(minWeight: 6000, maxWeight: 7000, price: 82_950),
-                            new(minWeight: 7000, maxWeight: 8000, price: 95_700),
-                            new(minWeight: 8000, maxWeight: 9000, price: 108_300),
-                            new(minWeight: 9000, maxWeight: 10000, price: 120_600),
+                            new(MinWeight: 0, MaxWeight: 2000, Price: 19_800),
+                            new(MinWeight: 2000, MaxWeight: 3000, Price: 33_375),
+                            new(MinWeight: 3000, MaxWeight: 4000, Price: 45_975),
+                            new(MinWeight: 4000, MaxWeight: 5000, Price: 58_200),
+                            new(MinWeight: 5000, MaxWeight: 6000, Price: 70_500),
+                            new(MinWeight: 6000, MaxWeight: 7000, Price: 82_950),
+                            new(MinWeight: 7000, MaxWeight: 8000, Price: 95_700),
+                            new(MinWeight: 8000, MaxWeight: 9000, Price: 108_300),
+                            new(MinWeight: 9000, MaxWeight: 10000, Price: 120_600),
                             .. CalculateForBigParcels(120_600, 11_325),
                         ],
-                        specifiedCountries: zone5Countries
+                        SpecifiedCountries: zone5Countries
                     )
                 ]
             )
@@ -361,24 +369,22 @@ public class ShippingRatesService : IShippingRatesService
         ShippingRatesDictionaryStatic = GetShippingRatesDictionaryInner();
     }
 
-    private static IEnumerable<ShippingRate> CalculateForBigParcels(int lastValueInTable, int eachAdditional)
+    private static IEnumerable<ShippingRateInfo> CalculateForBigParcels(int lastValueInTable, int eachAdditional)
     {
-        return Enumerable.Range(10, 30).Select(x => new ShippingRate(
-            minWeight: x * 1000,
-            maxWeight: (x + 1) * 1000,
-            price: lastValueInTable + (x - 9) * eachAdditional
+        return Enumerable.Range(10, 30).Select(x => new ShippingRateInfo(
+            MinWeight: x * 1000,
+            MaxWeight: (x + 1) * 1000,
+            Price: lastValueInTable + (x - 9) * eachAdditional
         ));
     }
 
-    public const string Worldwide = "Worldwide";
+    public static IReadOnlyCollection<ShippingTypeInfo> ShippingRates => Rates;
 
-    public IReadOnlyCollection<ShippingType> ShippingRates => Rates;
+    public static IReadOnlyDictionary<string, IReadOnlyList<ShippingRateByWeight>> ShippingRatesDictionary => ShippingRatesDictionaryStatic;
 
-    public IReadOnlyDictionary<string, List<ShippingRateInner>> ShippingRatesDictionary => ShippingRatesDictionaryStatic;
-
-    private static Dictionary<string, List<ShippingRateInner>> GetShippingRatesDictionaryInner()
+    private static Dictionary<string, IReadOnlyList<ShippingRateByWeight>> GetShippingRatesDictionaryInner()
     {
-        var rates = new Dictionary<string, List<ShippingRateInner>>();
+        var rates = new Dictionary<string, List<ShippingRateByWeight>>();
 
         foreach (var shippingRate in Rates)
         {
@@ -393,7 +399,7 @@ public class ShippingRatesService : IShippingRatesService
                 {
                     if (shippingRateRate.SpecifiedCountries == null)
                     {
-                        rates.AppendOrCreateNewCollection(key: Worldwide, value: new ShippingRateInner(
+                        rates.AppendOrCreateNewCollection(key: Worldwide, value: new ShippingRateByWeight(
                             WeightFrom: rate.MinWeight,
                             WeightTo: rate.MaxWeight,
                             Price: rate.Price,
@@ -403,12 +409,12 @@ public class ShippingRatesService : IShippingRatesService
                     {
                         foreach (var specifiedCountry in shippingRateRate.SpecifiedCountries)
                         {
-                            if (rate == null!)
+                            if (rate == null)
                             {
                                 throw new InvalidOperationException(nameof(rate));
                             }
 
-                            rates.AppendOrCreateNewCollection(key: specifiedCountry.TwoLetterCode, value: new ShippingRateInner(
+                            rates.AppendOrCreateNewCollection(key: specifiedCountry.TwoLetterCode, value: new ShippingRateByWeight(
                                 WeightFrom: rate.MinWeight,
                                 WeightTo: rate.MaxWeight,
                                 Price: rate.Price,
@@ -419,12 +425,6 @@ public class ShippingRatesService : IShippingRatesService
             }
         }
 
-        return rates;
+        return rates.ToDictionary(x => x.Key, x => (IReadOnlyList<ShippingRateByWeight>)x.Value);
     }
-
-    public record struct ShippingRateInner(int WeightFrom, int WeightTo, double Price, string Currency)
-    {
-        public override readonly string ToString() => $"{WeightFrom}-{WeightTo} : {Price} {Currency}";
-    };
-
 }

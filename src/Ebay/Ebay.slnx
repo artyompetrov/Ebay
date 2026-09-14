@@ -9,6 +9,7 @@
     <Project Path="Server.Adapters.Driven.EF.ReadModel/Server.Adapters.Driven.EF.ReadModel.csproj" />
     <Project Path="Server.Adapters.Driven.EF.WriteModel.Migrations/Server.Adapters.Driven.EF.WriteModel.Migrations.csproj" />
     <Project Path="Server.Adapters.Driven.EF.WriteModel/Server.Adapters.Driven.EF.WriteModel.csproj" />
+    <Project Path="Server.Adapters.Driven.GeoIp/Server.Adapters.Driven.GeoIp.csproj" />
     <Project Path="Server.Adapters.Driven.Smtp/Server.Adapters.Driven.Smtp.csproj" />
     <Project Path="Server.Adapters.Driven.uTracer/Server.Adapters.Driven.uTracer.csproj" />
     <Project Path="Server.Adapters.Driven.ImageProcessing/Server.Adapters.Driven.ImageProcessing.csproj" />

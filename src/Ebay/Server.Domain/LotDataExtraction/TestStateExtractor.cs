@@ -1,8 +1,6 @@
 using System.Text.RegularExpressions;
-using Server.Application.Infrastructure;
-using Server.Controllers.Generated;
 
-namespace Server.Application.Services.LotDataExtractor;
+namespace Server.Domain.LotDataExtraction;
 
 internal class TestStateExtractor : ExtractorBase, IExtractor
 {
@@ -10,23 +8,23 @@ internal class TestStateExtractor : ExtractorBase, IExtractor
 
     private static readonly List<Extractor> Extractors =
     [
-        new Extractor(Regex: new Regex(pattern: @"\bmatched\b", options: Ro), Result: WellKnown.Categories.TestState.Matched, ExtractFrom: All),
-        new Extractor(Regex: new Regex(pattern: @"\bselected\b", options: Ro), Result: WellKnown.Categories.TestState.Matched, ExtractFrom: TitleAndShortAndConditionDescription),
-        new Extractor(Regex: new Regex(pattern: @"\btested\b", options: Ro), Result: WellKnown.Categories.TestState.Tested, ExtractFrom: All),
-        new Extractor(Regex: new Regex(pattern: @"\bL3-3\b", options: Ro), Result: WellKnown.Categories.TestState.Tested, ExtractFrom: All),
-        new Extractor(Regex: new Regex(pattern: @"\bL1-3\b", options: Ro), Result: WellKnown.Categories.TestState.Tested, ExtractFrom: All),
-        new Extractor(Regex: new Regex(pattern: @"\btube\s*tester\b", options: Ro), Result: WellKnown.Categories.TestState.Tested, ExtractFrom: All)
+        new Extractor(Regex: new Regex(pattern: @"\bmatched\b", options: Ro), Result: LotCategories.TestState.Matched, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bselected\b", options: Ro), Result: LotCategories.TestState.Matched, ExtractFrom: TitleAndShortAndConditionDescription),
+        new Extractor(Regex: new Regex(pattern: @"\btested\b", options: Ro), Result: LotCategories.TestState.Tested, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bL3-3\b", options: Ro), Result: LotCategories.TestState.Tested, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bL1-3\b", options: Ro), Result: LotCategories.TestState.Tested, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\btube\s*tester\b", options: Ro), Result: LotCategories.TestState.Tested, ExtractFrom: All)
     ];
 
     private static readonly string[] ToRemove = [];
 
-    public Dictionary<string, HashSet<ExtractionResult>> Extract(LotDataToExtract lotDataToExtract)
+    public Dictionary<string, HashSet<ExtractionResult>> Extract(LotTextFields lotTextFields)
     {
-        var titleSplitted = Split(lotDataToExtract.Name);
-        var conditionSplitted = Split(lotDataToExtract.Condition);
-        var conditionDescriptionSplitted = lotDataToExtract.ConditionDescription != null ? Split(lotDataToExtract.ConditionDescription) : null;
-        var descriptionTextSplitted = Split(lotDataToExtract.DescriptionText);
-        var shortDescriptionTextSplitted = lotDataToExtract.ShortDescription != null ? Split(lotDataToExtract.ShortDescription) : null;
+        var titleSplitted = Split(lotTextFields.Name);
+        var conditionSplitted = Split(lotTextFields.Condition);
+        var conditionDescriptionSplitted = lotTextFields.ConditionDescription != null ? Split(lotTextFields.ConditionDescription) : null;
+        var descriptionTextSplitted = Split(lotTextFields.DescriptionText);
+        var shortDescriptionTextSplitted = lotTextFields.ShortDescription != null ? Split(lotTextFields.ShortDescription) : null;
 
         var extractionResult = new Dictionary<string, HashSet<ExtractionResult>>(StringComparer.OrdinalIgnoreCase);
 
@@ -67,11 +65,11 @@ internal class TestStateExtractor : ExtractorBase, IExtractor
         }
 
 #pragma warning disable CA1853
-        if (extractionResult.ContainsKey(WellKnown.Categories.TestState.Matched))
+        if (extractionResult.ContainsKey(LotCategories.TestState.Matched))
 #pragma warning restore CA1853
         {
-            extractionResult.Remove(WellKnown.Categories.TestState.Tested);
-            extractionResult.Remove(WellKnown.Categories.TestState.NotTested);
+            extractionResult.Remove(LotCategories.TestState.Tested);
+            extractionResult.Remove(LotCategories.TestState.NotTested);
         }
 
         return extractionResult;
