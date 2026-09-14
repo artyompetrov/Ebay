@@ -77,6 +77,23 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 - `Server.Application.New` — use cases and ports.
 - `Server.Adapters.*` — port implementations.
 - `Server.Application.New` must not reference `Server.Adapters.*`.
+- `Server.Application` (legacy) is being migrated to this shape; new code never goes there — see "Legacy migration" below.
+
+### Command/query split
+- **Commands** (state changes): an application-layer use-case service loads an aggregate through its repository port (`Server.Application.Abstractions.Driven.Abstractions.Repositories.I*Repository`), calls domain methods on it, and commits via `IWriteModelUnitOfWork`. The aggregate is always loaded and persisted as a whole; there is no partial/column-level command update.
+- **Queries** (reads): go through dedicated query ports (`Server.Application.Abstractions.Driven.Abstractions.Queries.I*Queries`) implemented directly against the read model (`Server.Adapters.Driven.EF.ReadModel`). Queries project straight to DTOs and never load or go through aggregates/repositories.
+- Don't use a repository to serve a read, and don't use a query port to perform a write.
+
+### Domain model pattern and domain events
+- An aggregate never exposes a public setter for behavior-bearing state. State changes go through a domain method (e.g. `ChangeState(...)`) that: 1) mutates the aggregate's own state first, 2) only then, and only if the value actually changed, calls `AddDomainEvent(...)` (see `AggregateRoot<TId>` in `Server.Domain.Abstractions`).
+- Application services call these domain methods; they never mutate aggregate state directly and never publish domain events themselves.
+- Domain events are dispatched automatically, not explicitly: `WriteModelDbContext.SaveChangesAsync` (the write-model unit of work) collects all changed aggregates with pending events, publishes each event via `IPublishEndpoint` (MassTransit outbox), then clears them, all before the actual `SaveChanges` write. Adding a new event type requires no publishing code beyond raising it from the aggregate.
+- Consumers/handlers for domain events live in `Server.Adapters.Driving.MassTransit` (+ a handler in `Server.Application.New`), following the existing `MeasurementStateChanged`/`MeasurementStateChangedConsumer` pattern.
+
+### Legacy migration
+- `Server.Application` is the pre-ports-and-adapters codebase (controllers, consumers, hosted services, `ApplicationDbContext`, ad-hoc services). It predates the command/query split and domain-event pattern above and does not follow them.
+- Migrating a piece of legacy code means: extract domain rules into `Server.Domain` aggregates/value objects, add repository/query ports in `Server.Application.Abstractions.Driven`, add a use-case service in `Server.Application.New`, add the EF/MassTransit/WebApi adapter under the matching `Server.Adapters.*` project, and delete the legacy equivalent in the same change — no long-lived duplication between old and new for the same responsibility.
+- Track migration work as OpenSpec changes; do not migrate a module silently as a side effect of an unrelated task.
 
 ## Review-error checklist (mandatory before a PR)
 - A repository (`Server.Adapters.Driven.*.Repositories`) does not call `SaveChanges/SaveChangesAsync`; committing changes happens in the application layer via `IWriteModelUnitOfWork`/`IUnitOfWork`.
