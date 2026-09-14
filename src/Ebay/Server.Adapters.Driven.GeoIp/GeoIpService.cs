@@ -2,10 +2,11 @@ using System.Net.Http.Json;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Server.Application.Abstractions.Driven.Abstractions;
 
-namespace Server.Application.Services.GeoIp;
+namespace Server.Adapters.Driven.GeoIp;
 
-public class GeoIpService : IDisposable
+internal sealed class GeoIpService : IGeoIpService, IDisposable
 {
     private const string IpApiStatusSuccess = "success";
     private readonly HttpClient _httpClient;
@@ -16,7 +17,7 @@ public class GeoIpService : IDisposable
     public GeoIpService(
         HttpClient httpClient,
         ILogger<GeoIpService> logger,
-        [FromKeyedServices(WellKnown.GeoIp.CacheServiceKey)] IMemoryCache cache)
+        [FromKeyedServices(WellKnown.CacheServiceKey)] IMemoryCache cache)
     {
         _httpClient = httpClient;
         _logger = logger;
@@ -86,14 +87,14 @@ public class GeoIpService : IDisposable
     public async Task LogRequest(
         string prefix,
         string? realIp,
-        string ua,
-        CancellationToken token)
+        string userAgent,
+        CancellationToken cancellationToken)
     {
-        await _semaphore.WaitAsync(token);
+        await _semaphore.WaitAsync(cancellationToken);
         try
         {
 
-            var key = $"{prefix}_{realIp}_{ua}";
+            var key = $"{prefix}_{realIp}_{userAgent}";
 
             if (_cache.TryGetValue(key, out _))
             {
@@ -102,7 +103,7 @@ public class GeoIpService : IDisposable
 
             _cache.Set(key, true, TimeSpan.FromDays(1));
 
-            _ = LogRequestAsyncInternal(prefix, realIp, ua);
+            _ = LogRequestAsyncInternal(prefix, realIp, userAgent);
 
         }
         finally
@@ -114,7 +115,7 @@ public class GeoIpService : IDisposable
     /// <summary>
     /// Логируем город запроса - задача fire and forget CancellationToken не нужен
     /// </summary>
-    private async Task LogRequestAsyncInternal(string prefix, string? realIp, string ua)
+    private async Task LogRequestAsyncInternal(string prefix, string? realIp, string userAgent)
     {
         GeoIpLocation? location = null;
 
@@ -128,7 +129,7 @@ public class GeoIpService : IDisposable
             _logger.LogWarning(ex, "GeoIP lookup failed for {XRealIp}", realIp);
         }
 
-        if (WellKnown.GeoIp.ExcludeCountries.Contains(location?.Country, StringComparer.OrdinalIgnoreCase))
+        if (WellKnown.ExcludeCountries.Contains(location?.Country, StringComparer.OrdinalIgnoreCase))
         {
             return;
         }
@@ -140,7 +141,7 @@ public class GeoIpService : IDisposable
             realIp,
             location?.Country,
             location?.City,
-            ua);
+            userAgent);
     }
 
     private sealed record IpApiResponse(string? Status, string? Message, string? Country, string? City);

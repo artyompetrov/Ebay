@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
-using Server.Application.Services.GeoIp;
 using Server.Application.Services.MeasurementPlot;
 
 namespace Server.Application.Controllers;
@@ -11,7 +11,7 @@ public class MeasurementPageController : ControllerBase
     public MeasurementPageController(
         IMeasurementService measurementService,
         MeasurementPlotService measurementPlotService,
-        GeoIpService geoIpService)
+        IGeoIpService geoIpService)
     {
         _measurementService = measurementService;
         _measurementPlotService = measurementPlotService;
@@ -20,7 +20,7 @@ public class MeasurementPageController : ControllerBase
 
     private readonly IMeasurementService _measurementService;
     private readonly MeasurementPlotService _measurementPlotService;
-    private readonly GeoIpService _geoIpService;
+    private readonly IGeoIpService _geoIpService;
 
     [HttpGet("/m/{measurementId}/download")]
     public async Task<IActionResult> DownloadZip(string measurementId, CancellationToken cancellationToken)
@@ -120,8 +120,8 @@ public class MeasurementPageController : ControllerBase
         await _geoIpService.LogRequest(
             prefix: $"GetEbayCurves for product {product} {lotId} requested",
             realIp: xRealIp,
-            ua: userAgent,
-            token: cancellationToken);
+            userAgent: userAgent,
+            cancellationToken: cancellationToken);
 
         var result = """
             <svg xmlns="http://www.w3.org/2000/svg" width="5" height="5">

@@ -1,13 +1,14 @@
 using System.Globalization;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
 using Server.Application.Consumers.PriceCalculator;
 using Server.Application.Data;
 using Server.Application.Infrastructure;
 using Server.Application.New;
+using Server.Application.New.LotDataExtractor;
 using Server.Application.Services;
-using Server.Application.Services.LotDataExtractor;
 using Server.Application.Services.Measurement;
 using Server.Controllers.Generated;
 using Server.Domain;
@@ -36,7 +37,7 @@ internal class EbayControllerImplementation : IEbayController
 {
     private readonly ApplicationDbContext _applicationContext;
     private readonly IPublishEndpoint _publishEndpoint;
-    private readonly ShippingRatesService _shippingRatesService;
+    private readonly IShippingRatesService _shippingRatesService;
     private readonly IMeasurementService _measurementService;
     private readonly MatchedMeasurementService _matchedMeasurementService;
     private readonly TubeWorkingPointService _tubeWorkingPointService;
@@ -45,7 +46,7 @@ internal class EbayControllerImplementation : IEbayController
     public EbayControllerImplementation(
         ApplicationDbContext applicationContext,
         IPublishEndpoint publishEndpoint,
-        ShippingRatesService shippingRatesService,
+        IShippingRatesService shippingRatesService,
         IMeasurementService measurementService,
         MatchedMeasurementService matchedMeasurementService,
         TubeWorkingPointService tubeWorkingPointService,
@@ -311,7 +312,7 @@ internal class EbayControllerImplementation : IEbayController
             validationErrors.Add((key: nameof(lotInfo.Shipping), value: ["Not set"]));
         }
 
-        if (!new HashSet<string> { WellKnown.Categories.Conditions.CategoryName, WellKnown.Categories.TestState.CategoryName }.SequenceEqual(
+        if (!new HashSet<string> { LotCategories.Conditions.CategoryName, LotCategories.TestState.CategoryName }.SequenceEqual(
                 lotInfo.Categories.Select(x => x.Type)
             ))
         {
@@ -634,9 +635,9 @@ internal class EbayControllerImplementation : IEbayController
                 new(
                     items:
                     [
-                        new(description: "NEW", id: WellKnown.Categories.Conditions.New),
-                        new(description: "USED", id: WellKnown.Categories.Conditions.Used),
-                        new(description: "NOT WORKING", id: WellKnown.Categories.Conditions.NotWorking)
+                        new(description: "NEW", id: LotCategories.Conditions.New),
+                        new(description: "USED", id: LotCategories.Conditions.Used),
+                        new(description: "NOT WORKING", id: LotCategories.Conditions.NotWorking)
                     ],
                     type: "condition"
                 ),
@@ -644,9 +645,9 @@ internal class EbayControllerImplementation : IEbayController
                 new(
                     items:
                     [
-                        new(description: "Not tested", id: WellKnown.Categories.TestState.NotTested),
-                        new(description: "Tested", id: WellKnown.Categories.TestState.Tested),
-                        new(description: "Mathced", id: WellKnown.Categories.TestState.Matched)
+                        new(description: "Not tested", id: LotCategories.TestState.NotTested),
+                        new(description: "Tested", id: LotCategories.TestState.Tested),
+                        new(description: "Mathced", id: LotCategories.TestState.Matched)
                     ],
                     type: "test_state"
                 )
@@ -656,7 +657,7 @@ internal class EbayControllerImplementation : IEbayController
 
     public Task<ICollection<ShippingType>> GetShippingRatesAsync(
         CancellationToken cancellationToken
-    ) => Task.FromResult<ICollection<ShippingType>>([.. _shippingRatesService.ShippingRates]);
+    ) => Task.FromResult<ICollection<ShippingType>>([.. _shippingRatesService.ShippingRates.Select(x => x.ToApiShippingType())]);
 
     public async Task<ICollection<Currency>> GetCurrenciesAsync(
         CancellationToken cancellationToken
@@ -674,8 +675,17 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken
     )
     {
+        var lotTextFields = new LotTextFields(
+            Name: lotInfo.Name,
+            Condition: lotInfo.Condition,
+            DescriptionText: lotInfo.DescriptionText,
+            ConditionDescription: lotInfo.ConditionDescription,
+            ShortDescription: lotInfo.ShortDescription,
+            LotSize: lotInfo.LotSize
+        );
+
         return Task.FromResult(
-            ManualFieldsExtractor.ExtractManualData(lotInfo).ToApiExtractedData()
+            ManualFieldsExtractor.ExtractManualData(lotTextFields).ToApiExtractedData()
         );
     }
 

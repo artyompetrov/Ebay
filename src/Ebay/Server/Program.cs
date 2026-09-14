@@ -11,7 +11,9 @@ using OpenTelemetry.Logs;
 using Server.Adapters.Driven.ChipFind;
 using Server.Adapters.Driven.EF.ReadModel;
 using Server.Adapters.Driven.EF.WriteModel;
+using Server.Adapters.Driven.GeoIp;
 using Server.Adapters.Driven.ImageProcessing;
+using Server.Adapters.Driven.ShippingRates;
 using Server.Adapters.Driven.Smtp;
 using Server.Adapters.Driven.uTracer;
 using Server.Adapters.Driving.MassTransit.Consumers.MatchedPairs;
@@ -57,6 +59,8 @@ public class Program
         builder.Services.AddEmailAdapter();
         builder.Services.AddUTracerAdapter();
         builder.Services.AddImageProcessingAdapter();
+        builder.Services.AddGeoIpAdapter();
+        builder.Services.AddShippingRatesAdapter();
         builder.Services.AddChipFindAdapter();
         builder.Services.AddEfReadModelAdapter();
         builder.Services.AddApplicationServices();

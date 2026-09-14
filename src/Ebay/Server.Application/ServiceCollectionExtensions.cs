@@ -15,8 +15,6 @@ using Server.Application.HostedServices.SaleAdvertisements;
 using Server.Application.Infrastructure;
 using Server.Application.New;
 using Server.Application.Services;
-using Server.Application.Services.GeoIp;
-using Server.Application.Services.LotDataExtractor;
 using Server.Application.Services.Measurement;
 using Server.Application.Services.MeasurementPlot;
 using Server.Application.Services.MeasurementWatching;
@@ -55,7 +53,6 @@ public static class ServiceCollectionExtensions
             o.AddInterceptors(sp.GetServices<IInterceptor>());
         });
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ApplicationDbContext>());
-        services.AddTransient<ShippingRatesService>();
         services.AddSingleton(sp =>
         {
             var connectionString = sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection")
@@ -69,10 +66,6 @@ public static class ServiceCollectionExtensions
         services.AddTransient<MeasurementPlotService>();
         services.AddTransient<IMeasurementWatchedOnEbayHandler, MeasurementWatchedOnEbayHandler>();
         services.AddTransient<TubeWorkingPointService>();
-        services.AddHttpClient<GeoIpService>(c =>
-        {
-            c.Timeout = TimeSpan.FromSeconds(2);
-        });
 
         services.AddTransient<IEbayController, EbayControllerImplementation>();
         services.AddDefaultIdentity<ApplicationUser>(o => o.SignIn.RequireConfirmedAccount = true)

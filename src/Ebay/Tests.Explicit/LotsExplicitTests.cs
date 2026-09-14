@@ -1,7 +1,8 @@
 using System.Globalization;
-using Server.Application;
-using Server.Application.Services.LotDataExtractor;
-using LotDataToExtract = Server.Controllers.Generated.LotDataToExtract;
+using Client.Clients.Generated;
+using Server.Application.Infrastructure;
+using Server.Application.New.LotDataExtractor;
+using Server.Domain;
 
 namespace Tests.Explicit;
 
@@ -26,16 +27,7 @@ public class LotsExplicitTests : ExplicitTestsBase
             return;
         }
 
-        var extractedFields = ManualFieldsExtractor.ExtractManualData(
-            new LotDataToExtract(
-                conditionDescription: lotInfoFull.LotInfo.ConditionDescription,
-                description: lotInfoFull.LotInfo.Description,
-                condition: lotInfoFull.LotInfo.Condition,
-                name: lotInfoFull.LotInfo.Name,
-                shortDescription: lotInfoFull.LotInfo.ShortDescription,
-                lotSize: lotInfoFull.LotInfo.LotSize
-            )
-        );
+        var extractedFields = ManualFieldsExtractor.ExtractManualData(ToLotTextFields(lotInfoFull.LotInfo));
 
         var result = extractedFields["pcs"];
 
@@ -81,16 +73,7 @@ public class LotsExplicitTests : ExplicitTestsBase
             return;
         }
 
-        var extractedFields = ManualFieldsExtractor.ExtractManualData(
-            new LotDataToExtract(
-                conditionDescription: lotInfoFull.LotInfo.ConditionDescription,
-                condition: lotInfoFull.LotInfo.Condition,
-                description: lotInfoFull.LotInfo.Description,
-                name: lotInfoFull.LotInfo.Name,
-                shortDescription: lotInfoFull.LotInfo.ShortDescription,
-                lotSize: lotInfoFull.LotInfo.LotSize
-            )
-        );
+        var extractedFields = ManualFieldsExtractor.ExtractManualData(ToLotTextFields(lotInfoFull.LotInfo));
 
         var result = extractedFields["condition"];
 
@@ -99,7 +82,7 @@ public class LotsExplicitTests : ExplicitTestsBase
             throw new AssertionException("manualCondition not found");
 
         Assert.That(
-            condition: results.Count == 0 && manualCondition == WellKnown.Categories.Conditions.New ||
+            condition: results.Count == 0 && manualCondition == LotCategories.Conditions.New ||
             results.Count == 1 && results[0].Key.Equals(manualCondition, StringComparison.Ordinal) ||
                 results.Count > 1 && results[0].Value.Count > results[1].Value.Count &&
                     results[0].Key.Equals(manualCondition, StringComparison.Ordinal),
@@ -126,16 +109,7 @@ public class LotsExplicitTests : ExplicitTestsBase
             return;
         }
 
-        var extractedFields = ManualFieldsExtractor.ExtractManualData(
-            new LotDataToExtract(
-                conditionDescription: lotInfoFull.LotInfo.ConditionDescription,
-                condition: lotInfoFull.LotInfo.Condition,
-                description: lotInfoFull.LotInfo.Description,
-                name: lotInfoFull.LotInfo.Name,
-                shortDescription: lotInfoFull.LotInfo.ShortDescription,
-                lotSize: lotInfoFull.LotInfo.LotSize
-            )
-        );
+        var extractedFields = ManualFieldsExtractor.ExtractManualData(ToLotTextFields(lotInfoFull.LotInfo));
 
         var result = extractedFields["test_state"];
 
@@ -144,7 +118,7 @@ public class LotsExplicitTests : ExplicitTestsBase
             throw new AssertionException("testState not found");
 
         Assert.That(
-            condition: results.Count == 0 && manualCondition == WellKnown.Categories.TestState.NotTested ||
+            condition: results.Count == 0 && manualCondition == LotCategories.TestState.NotTested ||
             results.Count == 1 && results[0].Key.Equals(manualCondition, StringComparison.Ordinal) ||
             results.Count > 1 && results[0].Value.Count > results[1].Value.Count &&
                 results[0].Key.Equals(manualCondition, StringComparison.Ordinal),
@@ -163,6 +137,18 @@ public class LotsExplicitTests : ExplicitTestsBase
                 TestName = $"{lotId}"
             };
         }
+    }
+
+    private static LotTextFields ToLotTextFields(LotInfo lotInfo)
+    {
+        return new LotTextFields(
+            Name: lotInfo.Name,
+            Condition: lotInfo.Condition,
+            DescriptionText: HtmlUtilities.ConvertToPlainText(lotInfo.Description),
+            ConditionDescription: lotInfo.ConditionDescription,
+            ShortDescription: lotInfo.ShortDescription,
+            LotSize: lotInfo.LotSize
+        );
     }
 
     private static string ToStr(Dictionary<string, HashSet<ExtractionResult>> result)

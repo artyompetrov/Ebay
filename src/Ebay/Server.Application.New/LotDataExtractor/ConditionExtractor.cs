@@ -1,8 +1,7 @@
 using System.Text.RegularExpressions;
-using Server.Application.Infrastructure;
-using Server.Controllers.Generated;
+using Server.Domain;
 
-namespace Server.Application.Services.LotDataExtractor;
+namespace Server.Application.New.LotDataExtractor;
 
 internal class ConditionExtractor : ExtractorBase, IExtractor
 {
@@ -11,17 +10,17 @@ internal class ConditionExtractor : ExtractorBase, IExtractor
 
     private static readonly List<Extractor> Extractors =
     [
-        new Extractor(Regex: new Regex(pattern: @"\bne[vw]er\s+used\b", options: Ro), Result: WellKnown.Categories.Conditions.New, ExtractFrom: All),
-        new Extractor(Regex: new Regex(pattern: @"\bdismantl(?:ing|ed)\b", options: Ro), Result: WellKnown.Categories.Conditions.Used, ExtractFrom: All),
-        new Extractor(Regex: new Regex(pattern: @"\blike\s+new\b", options: Ro), Result: WellKnown.Categories.Conditions.Used, ExtractFrom: All),
-        new Extractor(Regex: new Regex(pattern: @"\bnever\s+been\s+used\b", options: Ro), Result: WellKnown.Categories.Conditions.New, ExtractFrom: All),
-        new Extractor(Regex: new Regex(pattern: @"\bunused\b", options: Ro), Result: WellKnown.Categories.Conditions.New, ExtractFrom: All),
-        new Extractor(Regex: new Regex(pattern: @"\bused\b", options: Ro), Result: WellKnown.Categories.Conditions.Used, ExtractFrom: All),
-        new Extractor(Regex: new Regex(pattern: @"\bnib\b", options: Ro), Result: WellKnown.Categories.Conditions.New, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bne[vw]er\s+used\b", options: Ro), Result: LotCategories.Conditions.New, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bdismantl(?:ing|ed)\b", options: Ro), Result: LotCategories.Conditions.Used, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\blike\s+new\b", options: Ro), Result: LotCategories.Conditions.Used, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bnever\s+been\s+used\b", options: Ro), Result: LotCategories.Conditions.New, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bunused\b", options: Ro), Result: LotCategories.Conditions.New, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bused\b", options: Ro), Result: LotCategories.Conditions.Used, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bnib\b", options: Ro), Result: LotCategories.Conditions.New, ExtractFrom: All),
         new Extractor(Regex: new Regex(pattern: @"\bnos\b", options: Ro), Result: NosOrOpenBox, ExtractFrom: All),
-        new Extractor(Regex: new Regex(pattern: @"\bnew\b", options: Ro), Result: WellKnown.Categories.Conditions.New, ExtractFrom: All),
-        new Extractor(Regex: new Regex(pattern: @"\bnot\s+working\b", options: Ro), Result: WellKnown.Categories.Conditions.NotWorking, ExtractFrom: All),
-        new Extractor(Regex: new Regex(pattern: @"\bfor\s+parts\b", options: Ro), Result: WellKnown.Categories.Conditions.NotWorking, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bnew\b", options: Ro), Result: LotCategories.Conditions.New, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bnot\s+working\b", options: Ro), Result: LotCategories.Conditions.NotWorking, ExtractFrom: All),
+        new Extractor(Regex: new Regex(pattern: @"\bfor\s+parts\b", options: Ro), Result: LotCategories.Conditions.NotWorking, ExtractFrom: All),
         new Extractor(Regex: new Regex(pattern: @"\bopen\s+box\b", options: Ro), Result: NosOrOpenBox, ExtractFrom: All),
     ];
 
@@ -46,16 +45,16 @@ internal class ConditionExtractor : ExtractorBase, IExtractor
         "not a sign that the tube is used",
     ];
 
-    public Dictionary<string, HashSet<ExtractionResult>> Extract(LotDataToExtract lotDataToExtract)
+    public Dictionary<string, HashSet<ExtractionResult>> Extract(LotTextFields lotTextFields)
     {
-        var titleSplitted = Split(lotDataToExtract.Name);
-        var conditionSplitted = Split(lotDataToExtract.Condition);
-        var conditionDescriptionSplitted = lotDataToExtract.ConditionDescription != null
-            ? Split(lotDataToExtract.ConditionDescription)
+        var titleSplitted = Split(lotTextFields.Name);
+        var conditionSplitted = Split(lotTextFields.Condition);
+        var conditionDescriptionSplitted = lotTextFields.ConditionDescription != null
+            ? Split(lotTextFields.ConditionDescription)
             : null;
-        var descriptionTextSplitted = Split(lotDataToExtract.DescriptionText);
+        var descriptionTextSplitted = Split(lotTextFields.DescriptionText);
         var shortDescriptionTextSplitted =
-            lotDataToExtract.ShortDescription != null ? Split(lotDataToExtract.ShortDescription) : null;
+            lotTextFields.ShortDescription != null ? Split(lotTextFields.ShortDescription) : null;
 
         var extractionResult = new Dictionary<string, HashSet<ExtractionResult>>();
 
@@ -105,7 +104,7 @@ internal class ConditionExtractor : ExtractorBase, IExtractor
         if (extractionResult.ContainsKey(NosOrOpenBox))
         {
 #pragma warning disable CA1853
-            if (extractionResult.ContainsKey(WellKnown.Categories.Conditions.Used))
+            if (extractionResult.ContainsKey(LotCategories.Conditions.Used))
 #pragma warning restore CA1853
             {
                 extractionResult.Remove(NosOrOpenBox);
@@ -114,7 +113,7 @@ internal class ConditionExtractor : ExtractorBase, IExtractor
             {
                 foreach (var result in extractionResult[NosOrOpenBox])
                 {
-                    extractionResult.AppendOrCreateNewCollection(key: WellKnown.Categories.Conditions.New, value: result);
+                    extractionResult.AppendOrCreateNewCollection(key: LotCategories.Conditions.New, value: result);
                 }
 
                 extractionResult.Remove(NosOrOpenBox);

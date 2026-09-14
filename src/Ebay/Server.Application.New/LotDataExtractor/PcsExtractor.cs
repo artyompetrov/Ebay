@@ -1,9 +1,7 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
-using Server.Application.Infrastructure;
-using Server.Controllers.Generated;
 
-namespace Server.Application.Services.LotDataExtractor;
+namespace Server.Application.New.LotDataExtractor;
 
 internal class PcsExtractor : ExtractorBase, IExtractor
 {
@@ -67,20 +65,20 @@ internal class PcsExtractor : ExtractorBase, IExtractor
         new Extractor(Regex: new Regex(pattern: @"\boctet\b", options: Ro), Result: 8, Multiplier: 1, ExtractFrom: All)
     ];
 
-    public Dictionary<string, HashSet<ExtractionResult>> Extract(LotDataToExtract lotDataToExtract)
+    public Dictionary<string, HashSet<ExtractionResult>> Extract(LotTextFields lotTextFields)
     {
-        var titleSplitted = Split(lotDataToExtract.Name);
-        var conditionDescriptionSplitted = lotDataToExtract.ConditionDescription != null ? Split(lotDataToExtract.ConditionDescription) : null;
-        var descriptionTextSplitted = Split(lotDataToExtract.DescriptionText);
-        var shortDescriptionTextSplitted = lotDataToExtract.ShortDescription != null ? Split(lotDataToExtract.ShortDescription) : null;
+        var titleSplitted = Split(lotTextFields.Name);
+        var conditionDescriptionSplitted = lotTextFields.ConditionDescription != null ? Split(lotTextFields.ConditionDescription) : null;
+        var descriptionTextSplitted = Split(lotTextFields.DescriptionText);
+        var shortDescriptionTextSplitted = lotTextFields.ShortDescription != null ? Split(lotTextFields.ShortDescription) : null;
 
         var extractionResult = new Dictionary<string, HashSet<ExtractionResult>>();
 
-        if (lotDataToExtract.LotSize != null)
+        if (lotTextFields.LotSize != null)
         {
             extractionResult.AppendOrCreateNewCollection(
-                key: lotDataToExtract.LotSize?.ToString(CultureInfo.InvariantCulture) ?? throw new InvalidOperationException("Null here is not expected"),
-                value: new ExtractionResult(ExtractedFrom: ExtractFrom.LotSize, Extractor: "lotSize", Match: lotDataToExtract.LotSize?.ToString(CultureInfo.InvariantCulture) ?? throw new InvalidOperationException("Null here is not expected"))
+                key: lotTextFields.LotSize?.ToString(CultureInfo.InvariantCulture) ?? throw new InvalidOperationException("Null here is not expected"),
+                value: new ExtractionResult(ExtractedFrom: ExtractFrom.LotSize, Extractor: "lotSize", Match: lotTextFields.LotSize?.ToString(CultureInfo.InvariantCulture) ?? throw new InvalidOperationException("Null here is not expected"))
             );
         }
 

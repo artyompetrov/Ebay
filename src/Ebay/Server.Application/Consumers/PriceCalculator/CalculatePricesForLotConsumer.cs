@@ -1,9 +1,10 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Server.Application.Abstractions.Driven.Abstractions;
+using Server.Application.Abstractions.Driven.Models;
 using Server.Application.Data;
 using Server.Application.Infrastructure;
-using Server.Application.Services.LotDataExtractor;
 using Server.Domain;
 
 namespace Server.Application.Consumers.PriceCalculator;
@@ -13,11 +14,11 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
     private readonly ApplicationDbContext _applicationContext;
     private readonly ILogger<CalculatePricesForProductConsumer> _logger;
     private readonly IPublishEndpoint _publishEndpoint;
-    private readonly IReadOnlyDictionary<string, List<ShippingRatesService.ShippingRateInner>> _shippingRates;
+    private readonly IReadOnlyDictionary<string, IReadOnlyList<ShippingRateByWeight>> _shippingRates;
 
     public CalculatePricesForLotConsumer(
         ApplicationDbContext applicationContext,
-        ShippingRatesService shippingRatesService,
+        IShippingRatesService shippingRatesService,
         ILogger<CalculatePricesForProductConsumer> logger,
         IPublishEndpoint publishEndpoint)
     {
@@ -125,7 +126,7 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
             throw new InvalidOperationException($"{shippingCountry} not found in shippingRates");
         }
 
-        var prices = _shippingRates[ShippingRatesService.Worldwide].Concat(shippingRates).ToList();
+        var prices = _shippingRates[IShippingRatesService.Worldwide].Concat(shippingRates).ToList();
 
         try
         {

@@ -39,27 +39,6 @@ internal static class WellKnown
         public static TimeSpan RemoveAdvertisementAfter = TimeSpan.FromDays(90);
     }
 
-    public static class Categories
-    {
-        public static class Conditions
-        {
-            public static string CategoryName = "condition";
-
-            public static string New = "new";
-            public static string Used = "used";
-            public static string NotWorking = "notWorking";
-        }
-
-        public static class TestState
-        {
-            public static string CategoryName = "test_state";
-
-            public static string NotTested = "notTested";
-            public static string Tested = "tested";
-            public static string Matched = "matched";
-        }
-    }
-
     public static class Ebay
     {
         public const double скидкаНаПродажиСНеизвестнойЦеной = 0.2;
@@ -77,17 +56,6 @@ internal static class WellKnown
         /// Версия кеша - для сброса кеша при изменении логики расчетов
         /// </summary>
         public const string Version = "14";
-    }
-
-    public static class GeoIp
-    {
-        public static IReadOnlyCollection<string> ExcludeCountries = ["Russia", "Kazakhstan"];
-
-        /// <summary>
-        /// Ключ keyed-регистрации выделенного IMemoryCache для дедупликации GeoIP-логирования.
-        /// Значение должно совпадать со значением, которым этот кеш регистрируется в Program.cs.
-        /// </summary>
-        public const string CacheServiceKey = "geoip-cache";
     }
 
     public static class ImageCache
