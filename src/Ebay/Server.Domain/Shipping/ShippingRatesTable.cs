@@ -1,18 +1,24 @@
-using Server.Application.Abstractions.Driven.Abstractions;
-using Server.Application.Abstractions.Driven.Models;
+namespace Server.Domain.Shipping;
 
-namespace Server.Adapters.Driven.ShippingRates;
-
-internal sealed class ShippingRatesService : IShippingRatesService
+/// <summary>
+/// Ebay/QazPost shipping cost reference data used to estimate delivery cost by destination and weight.
+/// </summary>
+public static class ShippingRatesTable
 {
+    /// <summary>
+    /// Key used in <see cref="ShippingRatesDictionary"/> for a rate that applies to any destination
+    /// country not listed individually.
+    /// </summary>
+    public const string Worldwide = "Worldwide";
+
     private const string Kzt = "KZT";
 
     private static readonly List<ShippingTypeInfo> Rates;
-    private static readonly Dictionary<string, List<ShippingRateByWeight>> ShippingRatesDictionaryStatic;
+    private static readonly Dictionary<string, IReadOnlyList<ShippingRateByWeight>> ShippingRatesDictionaryStatic;
 
     // тарифы взяты отсюда https://qazpost.kz/ru/help/tariffs?tab=pochtovye-uslugi
 
-    static ShippingRatesService()
+    static ShippingRatesTable()
     {
 
         // не интересно
@@ -372,11 +378,11 @@ internal sealed class ShippingRatesService : IShippingRatesService
         ));
     }
 
-    public IReadOnlyCollection<ShippingTypeInfo> ShippingRates => Rates;
+    public static IReadOnlyCollection<ShippingTypeInfo> ShippingRates => Rates;
 
-    public IReadOnlyDictionary<string, IReadOnlyList<ShippingRateByWeight>> ShippingRatesDictionary => ShippingRatesDictionaryStatic.ToDictionary(x => x.Key, x => (IReadOnlyList<ShippingRateByWeight>)x.Value);
+    public static IReadOnlyDictionary<string, IReadOnlyList<ShippingRateByWeight>> ShippingRatesDictionary => ShippingRatesDictionaryStatic;
 
-    private static Dictionary<string, List<ShippingRateByWeight>> GetShippingRatesDictionaryInner()
+    private static Dictionary<string, IReadOnlyList<ShippingRateByWeight>> GetShippingRatesDictionaryInner()
     {
         var rates = new Dictionary<string, List<ShippingRateByWeight>>();
 
@@ -393,7 +399,7 @@ internal sealed class ShippingRatesService : IShippingRatesService
                 {
                     if (shippingRateRate.SpecifiedCountries == null)
                     {
-                        rates.AppendOrCreateNewCollection(key: IShippingRatesService.Worldwide, value: new ShippingRateByWeight(
+                        rates.AppendOrCreateNewCollection(key: Worldwide, value: new ShippingRateByWeight(
                             WeightFrom: rate.MinWeight,
                             WeightTo: rate.MaxWeight,
                             Price: rate.Price,
@@ -419,6 +425,6 @@ internal sealed class ShippingRatesService : IShippingRatesService
             }
         }
 
-        return rates;
+        return rates.ToDictionary(x => x.Key, x => (IReadOnlyList<ShippingRateByWeight>)x.Value);
     }
 }

@@ -1,4 +1,4 @@
-namespace Server.Application.New.LotDataExtractor;
+namespace Server.Domain.LotDataExtraction;
 
 /// <summary>
 /// The lot listing field a candidate category value was extracted from.

@@ -1,10 +1,11 @@
 using System.Globalization;
 using Server.Application.Abstractions.Driven.Models;
 using Server.Application.Abstractions.Driving.Models;
-using Server.Application.New.LotDataExtractor;
 using Server.Controllers.Generated;
 using Server.Domain;
+using Server.Domain.LotDataExtraction;
 using Server.Domain.Product;
+using Server.Domain.Shipping;
 using ApiCurrency = Server.Controllers.Generated.Currency;
 using ApiMeasurementState = Server.Controllers.Generated.MeasurementState;
 using DbCurrency = Server.Domain.Currency;

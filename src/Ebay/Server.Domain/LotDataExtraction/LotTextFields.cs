@@ -1,4 +1,4 @@
-namespace Server.Application.New.LotDataExtractor;
+namespace Server.Domain.LotDataExtraction;
 
 /// <summary>
 /// Plain-text fields of an eBay lot listing, used to guess candidate condition/pcs/test-state

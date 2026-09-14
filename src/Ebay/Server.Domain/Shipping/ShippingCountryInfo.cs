@@ -1,4 +1,4 @@
-namespace Server.Application.Abstractions.Driven.Models;
+namespace Server.Domain.Shipping;
 
 /// <summary>
 /// A destination country as used by the shipping rate table.

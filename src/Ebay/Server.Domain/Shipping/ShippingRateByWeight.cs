@@ -1,4 +1,4 @@
-namespace Server.Application.Abstractions.Driven.Models;
+namespace Server.Domain.Shipping;
 
 /// <summary>
 /// A shipping price for one weight bracket to a specific destination (or worldwide), flattened for lookup.

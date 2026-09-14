@@ -1,4 +1,4 @@
-namespace Server.Adapters.Driven.ShippingRates;
+namespace Server.Domain;
 
 internal static class DictionaryExtensions
 {

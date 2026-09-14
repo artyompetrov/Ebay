@@ -1,4 +1,4 @@
-namespace Server.Application.Abstractions.Driven.Models;
+namespace Server.Domain.Shipping;
 
 /// <summary>
 /// Weight-bracket rates for one shipping zone, either worldwide (<paramref name="SpecifiedCountries"/> is

@@ -1,7 +1,6 @@
 using System.Globalization;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
 using Server.Application.Consumers.PriceCalculator;
 using Server.Application.Data;
@@ -13,8 +12,10 @@ using Server.Application.Services.Measurement;
 using Server.Controllers.Generated;
 using Server.Domain;
 using Server.Domain.Exceptions;
+using Server.Domain.LotDataExtraction;
 using Server.Domain.Measurements;
 using Server.Domain.Product;
+using Server.Domain.Shipping;
 using ApiSimilarMeasurementInfo = Server.Controllers.Generated.SimilarMeasurementInfo;
 using ClientErrorInfo = Server.Controllers.Generated.ClientErrorInfo;
 using Currency = Server.Controllers.Generated.Currency;
@@ -37,7 +38,6 @@ internal class EbayControllerImplementation : IEbayController
 {
     private readonly ApplicationDbContext _applicationContext;
     private readonly IPublishEndpoint _publishEndpoint;
-    private readonly IShippingRatesService _shippingRatesService;
     private readonly IMeasurementService _measurementService;
     private readonly MatchedMeasurementService _matchedMeasurementService;
     private readonly TubeWorkingPointService _tubeWorkingPointService;
@@ -46,7 +46,6 @@ internal class EbayControllerImplementation : IEbayController
     public EbayControllerImplementation(
         ApplicationDbContext applicationContext,
         IPublishEndpoint publishEndpoint,
-        IShippingRatesService shippingRatesService,
         IMeasurementService measurementService,
         MatchedMeasurementService matchedMeasurementService,
         TubeWorkingPointService tubeWorkingPointService,
@@ -54,7 +53,6 @@ internal class EbayControllerImplementation : IEbayController
     {
         _applicationContext = applicationContext;
         _publishEndpoint = publishEndpoint;
-        _shippingRatesService = shippingRatesService;
         _measurementService = measurementService;
         _matchedMeasurementService = matchedMeasurementService;
         _tubeWorkingPointService = tubeWorkingPointService;
@@ -657,7 +655,7 @@ internal class EbayControllerImplementation : IEbayController
 
     public Task<ICollection<ShippingType>> GetShippingRatesAsync(
         CancellationToken cancellationToken
-    ) => Task.FromResult<ICollection<ShippingType>>([.. _shippingRatesService.ShippingRates.Select(x => x.ToApiShippingType())]);
+    ) => Task.FromResult<ICollection<ShippingType>>([.. ShippingRatesTable.ShippingRates.Select(x => x.ToApiShippingType())]);
 
     public async Task<ICollection<Currency>> GetCurrenciesAsync(
         CancellationToken cancellationToken

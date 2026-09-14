@@ -1,4 +1,4 @@
-namespace Server.Application.New.LotDataExtractor;
+namespace Server.Domain.LotDataExtraction;
 
 /// <summary>
 /// One regex match that contributed to a candidate category value, kept for diagnostics/review.

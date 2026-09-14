@@ -3,6 +3,7 @@ using Client.Clients.Generated;
 using Server.Application.Infrastructure;
 using Server.Application.New.LotDataExtractor;
 using Server.Domain;
+using Server.Domain.LotDataExtraction;
 
 namespace Tests.Explicit;
 

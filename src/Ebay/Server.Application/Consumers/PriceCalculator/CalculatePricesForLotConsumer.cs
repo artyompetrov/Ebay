@@ -1,11 +1,10 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Server.Application.Abstractions.Driven.Abstractions;
-using Server.Application.Abstractions.Driven.Models;
 using Server.Application.Data;
 using Server.Application.Infrastructure;
 using Server.Domain;
+using Server.Domain.Shipping;
 
 namespace Server.Application.Consumers.PriceCalculator;
 
@@ -14,18 +13,15 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
     private readonly ApplicationDbContext _applicationContext;
     private readonly ILogger<CalculatePricesForProductConsumer> _logger;
     private readonly IPublishEndpoint _publishEndpoint;
-    private readonly IReadOnlyDictionary<string, IReadOnlyList<ShippingRateByWeight>> _shippingRates;
 
     public CalculatePricesForLotConsumer(
         ApplicationDbContext applicationContext,
-        IShippingRatesService shippingRatesService,
         ILogger<CalculatePricesForProductConsumer> logger,
         IPublishEndpoint publishEndpoint)
     {
         _applicationContext = applicationContext;
         _logger = logger;
         _publishEndpoint = publishEndpoint;
-        _shippingRates = shippingRatesService.ShippingRatesDictionary;
     }
 
     public async Task Consume(ConsumeContext<CalculatePricesForLot> context)
@@ -121,12 +117,13 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
 
     private double GetShippingPrice(string shippingCountry, double weight, Dictionary<string, double> currencyRates)
     {
-        if (!_shippingRates.TryGetValue(key: shippingCountry, value: out var shippingRates))
+        var shippingRatesDictionary = ShippingRatesTable.ShippingRatesDictionary;
+        if (!shippingRatesDictionary.TryGetValue(key: shippingCountry, value: out var shippingRates))
         {
             throw new InvalidOperationException($"{shippingCountry} not found in shippingRates");
         }
 
-        var prices = _shippingRates[IShippingRatesService.Worldwide].Concat(shippingRates).ToList();
+        var prices = shippingRatesDictionary[ShippingRatesTable.Worldwide].Concat(shippingRates).ToList();
 
         try
         {

@@ -1,7 +1,6 @@
 using System.Text.RegularExpressions;
-using Server.Domain;
 
-namespace Server.Application.New.LotDataExtractor;
+namespace Server.Domain.LotDataExtraction;
 
 internal class ConditionExtractor : ExtractorBase, IExtractor
 {
