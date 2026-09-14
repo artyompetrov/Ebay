@@ -24,3 +24,14 @@ For a measurement that has not been sold, the system SHALL serve the eBay curve 
 #### Scenario: Sale still takes effect immediately despite cached images
 - **WHEN** a measurement's curve plot or tube-description image has already been cached and the measurement is then sold
 - **THEN** the cached result for that measurement is invalidated, and the next request for either image returns the sold-status image, not the previously cached real curves
+
+### Requirement: eBay view publish tracking
+When the eBay curve plot is requested, the system SHALL treat the request as a genuine external view - and mark the measurement as recently watched on eBay - unless the request's Referer header points to the site's own host, which identifies an internal preview rather than a real listing visit.
+
+#### Scenario: A request from the site's own host is treated as an internal preview
+- **WHEN** the eBay curve plot is requested with a Referer header whose host equals the site's own host
+- **THEN** the measurement is not marked as watched on eBay
+
+#### Scenario: A request from any other origin is treated as a genuine eBay view
+- **WHEN** the eBay curve plot is requested with a Referer header whose host differs from the site's own host, or with no Referer header at all
+- **THEN** the measurement is marked as watched on eBay

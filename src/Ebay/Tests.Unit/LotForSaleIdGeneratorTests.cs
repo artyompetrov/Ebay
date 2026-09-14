@@ -1,4 +1,5 @@
 using Server.Application.New.LotForSale;
+using Tests.Shared;
 
 namespace Tests.Unit;
 
@@ -13,6 +14,7 @@ public sealed class LotForSaleIdGeneratorTests
     private const string IdAlphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_";
 
     [Test]
+    [OpenSpecScenario("lot-for-sale-listing", "Lot-for-sale identifier generation is collision-free", "Rapidly generated ids never collide")]
     public void GenerateNextId_GeneratesUniqueIds_WhenTimeIsConstant()
     {
         var generator = new LotForSaleIdGenerator(

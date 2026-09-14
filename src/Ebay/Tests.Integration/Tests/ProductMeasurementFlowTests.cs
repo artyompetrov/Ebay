@@ -17,6 +17,7 @@ public class ProductMeasurementFlowTests
     }
 
     [Test]
+    [OpenSpecScenario("measurement-plots", "eBay view publish tracking", "A request from the site's own host is treated as an internal preview")]
     public async Task EbayCurves_WithInternalReferrer_DoesNotMarkMeasurementAsPublished()
     {
         using var context = await CreateMeasurementContextAsync();
@@ -29,6 +30,7 @@ public class ProductMeasurementFlowTests
     }
 
     [Test]
+    [OpenSpecScenario("measurement-plots", "eBay view publish tracking", "A request from any other origin is treated as a genuine eBay view")]
     public async Task EbayCurves_WithoutInternalReferrer_MarksMeasurementAsPublished()
     {
         using var context = await CreateMeasurementContextAsync();

@@ -1,5 +1,6 @@
 using Server.Domain.Exceptions;
 using Server.Domain.Measurements;
+using Tests.Shared;
 
 namespace Tests.Unit;
 
@@ -8,6 +9,7 @@ namespace Tests.Unit;
 public sealed class TubeWorkingPointTests
 {
     [Test]
+    [OpenSpecScenario("tube-working-point", "Tube working point value validation", "A working point with small but valid magnitudes is accepted")]
     public void Create_AcceptsSmallNegativeGridVoltageAndHalfWidth()
     {
         var productId = Guid.NewGuid();
@@ -30,6 +32,7 @@ public sealed class TubeWorkingPointTests
     }
 
     [Test]
+    [OpenSpecScenario("tube-working-point", "Tube working point value validation", "A working point exactly at the boundary is accepted")]
     public void Create_AcceptsBoundaryValue_OfPointZeroOne()
     {
         Assert.DoesNotThrow(() => TubeWorkingPoint.Create(
@@ -42,6 +45,7 @@ public sealed class TubeWorkingPointTests
     }
 
     [Test]
+    [OpenSpecScenario("tube-working-point", "Tube working point value validation", "A working point below the boundary is rejected")]
     public void Create_Throws_WhenValueIsBelowPointZeroOne()
     {
         Assert.Throws<DomainException>(() => TubeWorkingPoint.Create(
