@@ -1,15 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
-using Server.Application.Data;
 using Server.Domain.Measurements;
 
 namespace Server.Adapters.Driven.EF.WriteModel.Repositories;
 
 internal sealed class TubeWorkingPointsRepository : ITubeWorkingPointsRepository
 {
-    private readonly ApplicationDbContext _dbContext;
+    private readonly WriteModelDbContext _dbContext;
 
-    public TubeWorkingPointsRepository(ApplicationDbContext dbContext)
+    public TubeWorkingPointsRepository(WriteModelDbContext dbContext)
     {
         _dbContext = dbContext;
     }
