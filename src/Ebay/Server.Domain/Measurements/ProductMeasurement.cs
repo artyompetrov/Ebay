@@ -127,6 +127,8 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
         return true;
     }
 
+    public void RequestMatchedPairComparison(string otherMeasurementId) => AddDomainEvent(new MatchedPairComparisonRequested(Id, otherMeasurementId));
+
     public void UpdateManufactureCode(string manufactureCode)
     {
         if (string.IsNullOrWhiteSpace(manufactureCode))

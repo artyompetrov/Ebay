@@ -7,8 +7,8 @@ using Server.Application.Data;
 using Server.Application.Infrastructure;
 using Server.Application.New;
 using Server.Application.New.LotDataExtractor;
+using Server.Application.New.MatchedPairs;
 using Server.Application.Services;
-using Server.Application.Services.Measurement;
 using Server.Controllers.Generated;
 using Server.Domain;
 using Server.Domain.Exceptions;
@@ -557,9 +557,18 @@ internal class EbayControllerImplementation : IEbayController
         Guid productId,
         CancellationToken cancellationToken)
     {
-        await _matchedMeasurementService.FindMatchedMeasurementsAsync(
-            productId: productId,
-            cancellationToken: cancellationToken);
+        try
+        {
+            await _matchedMeasurementService.FindMatchedMeasurementsAsync(
+                productId: productId,
+                cancellationToken: cancellationToken);
+        }
+        catch (DomainException ex)
+        {
+            throw NonOkHttpAnswerException.ValidationError400(
+                field: "tubeWorkingPoint",
+                errors: ex.Message);
+        }
     }
 
     public async Task<LotInfoWithProductId> GetLotInfoAsync(
