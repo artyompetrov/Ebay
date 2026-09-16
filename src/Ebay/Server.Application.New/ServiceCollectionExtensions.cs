@@ -5,6 +5,7 @@ using Server.Application.New.HostedServices;
 using Server.Application.New.LotForSale;
 using Server.Application.New.MatchedPairs;
 using Server.Application.New.MeasurementCaching;
+using Server.Application.New.MeasurementPlot;
 using Server.Application.New.Services;
 
 namespace Server.Application.New;
@@ -29,6 +30,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ILotForSaleIdGenerator, LotForSaleIdGenerator>();
         services.AddTransient<ProductService>();
         services.AddTransient<MatchedMeasurementService>();
+        services.AddTransient<MeasurementPlotService>();
         services.AddTransient<LotForSaleService>();
         services.AddTransient<MeasurementPhotoService>();
         // Singleton нужен, чтобы токены инвалидации по measurementId были общими для всех запросов процесса, а не per-request.

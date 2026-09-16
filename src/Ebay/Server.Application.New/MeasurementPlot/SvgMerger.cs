@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Xml.Linq;
 
-namespace Server.Application.Infrastructure;
+namespace Server.Application.New.MeasurementPlot;
 
 public static class SvgMerger
 {

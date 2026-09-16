@@ -1,10 +1,11 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Data;
 
 namespace Server.Application.Infrastructure;
 
-public class DbCache
+public class DbCache : ICacheStore
 {
     private readonly ApplicationDbContext _context;
     private readonly DatabaseConcurrentAccessSemaphore _semaphore;
