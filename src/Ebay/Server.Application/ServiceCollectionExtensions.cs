@@ -15,7 +15,6 @@ using Server.Application.HostedServices.SaleAdvertisements;
 using Server.Application.Infrastructure;
 using Server.Application.New;
 using Server.Application.Services;
-using Server.Application.Services.MeasurementWatching;
 using Server.Controllers.Generated;
 
 namespace Server.Application;
@@ -61,7 +60,6 @@ public static class ServiceCollectionExtensions
         services.AddTransient<DbCache>();
         services.AddTransient<ICacheStore, DbCache>();
         services.AddApplicationNewServices();
-        services.AddTransient<IMeasurementWatchedOnEbayHandler, MeasurementWatchedOnEbayHandler>();
         services.AddTransient<TubeWorkingPointService>();
 
         services.AddTransient<IEbayController, EbayControllerImplementation>();
