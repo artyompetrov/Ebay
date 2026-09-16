@@ -14,7 +14,6 @@ using Server.Application.HostedServices.Measurements;
 using Server.Application.HostedServices.SaleAdvertisements;
 using Server.Application.Infrastructure;
 using Server.Application.New;
-using Server.Application.Services;
 using Server.Controllers.Generated;
 
 namespace Server.Application;
@@ -60,7 +59,6 @@ public static class ServiceCollectionExtensions
         services.AddTransient<DbCache>();
         services.AddTransient<ICacheStore, DbCache>();
         services.AddApplicationNewServices();
-        services.AddTransient<TubeWorkingPointService>();
 
         services.AddTransient<IEbayController, EbayControllerImplementation>();
         services.AddDefaultIdentity<ApplicationUser>(o => o.SignIn.RequireConfirmedAccount = true)

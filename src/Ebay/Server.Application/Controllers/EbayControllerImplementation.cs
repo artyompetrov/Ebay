@@ -8,7 +8,7 @@ using Server.Application.Infrastructure;
 using Server.Application.New;
 using Server.Application.New.LotDataExtractor;
 using Server.Application.New.MatchedPairs;
-using Server.Application.Services;
+using Server.Application.New.TubeWorkingPoints;
 using Server.Controllers.Generated;
 using Server.Domain;
 using Server.Domain.Exceptions;
@@ -133,9 +133,10 @@ internal class EbayControllerImplementation : IEbayController
         Guid productId,
         CancellationToken cancellationToken)
     {
+        bool productFound;
         try
         {
-            await _tubeWorkingPointService.CreateTubeWorkingPoint(
+            productFound = await _tubeWorkingPointService.CreateTubeWorkingPoint(
                 tubeProductId: productId,
                 anodeVoltage: workingPoint.AnodeVoltage,
                 gridVoltage: workingPoint.GridVoltage,
@@ -147,6 +148,11 @@ internal class EbayControllerImplementation : IEbayController
         catch (DomainException ex)
         {
             throw NonOkHttpAnswerException.ValidationError400(nameof(workingPoint), errors: [ex.Message]);
+        }
+
+        if (!productFound)
+        {
+            throw NonOkHttpAnswerException.NotFound400();
         }
     }
 

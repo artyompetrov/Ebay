@@ -7,6 +7,7 @@ using Server.Application.New.MatchedPairs;
 using Server.Application.New.MeasurementCaching;
 using Server.Application.New.MeasurementPlot;
 using Server.Application.New.Services;
+using Server.Application.New.TubeWorkingPoints;
 
 namespace Server.Application.New;
 
@@ -31,6 +32,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<ProductService>();
         services.AddTransient<MatchedMeasurementService>();
         services.AddTransient<MeasurementPlotService>();
+        services.AddTransient<TubeWorkingPointService>();
         services.AddTransient<LotForSaleService>();
         services.AddTransient<MeasurementPhotoService>();
         // Singleton нужен, чтобы токены инвалидации по measurementId были общими для всех запросов процесса, а не per-request.

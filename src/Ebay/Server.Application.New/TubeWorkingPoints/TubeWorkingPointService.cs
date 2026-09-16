@@ -1,34 +1,32 @@
-using Microsoft.EntityFrameworkCore;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Abstractions.Driven.Models;
-using Server.Application.Controllers;
-using Server.Application.Data;
 using Server.Domain.Measurements;
 
-namespace Server.Application.Services;
+namespace Server.Application.New.TubeWorkingPoints;
 
 public class TubeWorkingPointService
 {
-    private readonly ApplicationDbContext _applicationDbContext;
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IProductQueries _productQueries;
+    private readonly IWriteModelUnitOfWork _unitOfWork;
     private readonly ITubeWorkingPointQueries _tubeWorkingPointQueries;
     private readonly ITubeWorkingPointsRepository _tubeWorkingPointsRepository;
 
     public TubeWorkingPointService(
-        ApplicationDbContext applicationDbContext,
-        IUnitOfWork unitOfWork,
+        IProductQueries productQueries,
+        IWriteModelUnitOfWork unitOfWork,
         ITubeWorkingPointQueries tubeWorkingPointQueries,
         ITubeWorkingPointsRepository tubeWorkingPointsRepository)
     {
-        _applicationDbContext = applicationDbContext;
+        _productQueries = productQueries;
         _unitOfWork = unitOfWork;
         _tubeWorkingPointQueries = tubeWorkingPointQueries;
         _tubeWorkingPointsRepository = tubeWorkingPointsRepository;
     }
 
-    public async Task CreateTubeWorkingPoint(
+    /// <returns><see langword="false" /> если товар с указанным идентификатором не найден.</returns>
+    public async Task<bool> CreateTubeWorkingPoint(
         Guid tubeProductId,
         double anodeVoltage,
         double gridVoltage,
@@ -37,13 +35,11 @@ public class TubeWorkingPointService
         double nominalCurrent,
         CancellationToken cancellationToken)
     {
-        //todo нужно переделать на запрос в репозиторий
-        var productExists = await _applicationDbContext.Products
-            .AnyAsync(x => x.Id == tubeProductId, cancellationToken: cancellationToken);
+        var product = await _productQueries.GetProductAsync(tubeProductId, cancellationToken);
 
-        if (!productExists)
+        if (product is null)
         {
-            throw NonOkHttpAnswerException.NotFound400();
+            return false;
         }
 
         var tubeWorkingPoint = await _tubeWorkingPointsRepository.GetByIdAsync(
@@ -73,6 +69,7 @@ public class TubeWorkingPointService
         }
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+        return true;
     }
 
     public Task<TubeWorkingPointInfo?> GetWorkingPointInfo(Guid productId, CancellationToken cancellationToken) => _tubeWorkingPointQueries.GetWorkingPointInfo(productId, cancellationToken);
