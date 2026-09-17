@@ -7,6 +7,7 @@ public static class PhotoPreviewBrowser
 {
     private const int ViewportWidth = 1200;
     private const int ViewportHeight = 900;
+    private const double AnchorCenterToleranceInPixels = 1;
 
     public static async Task VerifyAsync(string html, bool deferredFullImage)
     {
@@ -89,9 +90,32 @@ public static class PhotoPreviewBrowser
             await thumbnail.HoverAsync();
         }
         await Assertions.Expect(full).ToBeVisibleAsync();
-        await Assertions.Expect(full).ToHaveCSSAsync("position", "fixed");
-        await Assertions.Expect(full).ToHaveCSSAsync("top", $"{ViewportHeight / 2}px");
-        await Assertions.Expect(full).ToHaveCSSAsync("left", $"{ViewportWidth / 2}px");
+        if (deferredFullImage)
+        {
+            // The eBay description page is rendered inside eBay's auto-height description
+            // iframe, so position:fixed/vh there resolve against that iframe's own inflated
+            // viewport instead of the real screen. The preview is anchored to its thumbnail
+            // instead, so we verify placement via bounding boxes rather than fixed coordinates.
+            await Assertions.Expect(full).ToHaveCSSAsync("position", "absolute");
+            var thumbnailBox = await thumbnail.BoundingBoxAsync() ?? throw new InvalidOperationException("Thumbnail hidden.");
+            var fullBox = await full.BoundingBoxAsync() ?? throw new InvalidOperationException("Full-size preview hidden.");
+            var thumbnailCenterX = thumbnailBox.X + (thumbnailBox.Width / 2);
+            var fullCenterX = fullBox.X + (fullBox.Width / 2);
+            if (Math.Abs(thumbnailCenterX - fullCenterX) > AnchorCenterToleranceInPixels)
+            {
+                throw new InvalidOperationException("Full-size preview is not horizontally centered over its thumbnail.");
+            }
+            if (fullBox.Y < thumbnailBox.Y + thumbnailBox.Height)
+            {
+                throw new InvalidOperationException("Full-size preview does not open below its thumbnail.");
+            }
+        }
+        else
+        {
+            await Assertions.Expect(full).ToHaveCSSAsync("position", "fixed");
+            await Assertions.Expect(full).ToHaveCSSAsync("top", $"{ViewportHeight / 2}px");
+            await Assertions.Expect(full).ToHaveCSSAsync("left", $"{ViewportWidth / 2}px");
+        }
         await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
         if (!requests.Contains(expectedFullUrl) ||
             (deferredFullImage && requests.Where(IsFullImage).Any(url => url != expectedFullUrl)))
