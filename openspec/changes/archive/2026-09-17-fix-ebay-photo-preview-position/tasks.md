@@ -5,10 +5,10 @@
 
 ## 2. Test updates
 
-- [ ] 2.1 Update `Tests.Shared/PhotoPreviewBrowser.cs` to branch its position/size assertions on the existing `deferredFullImage` parameter: keep the current `position: fixed` + viewport-center assertions when `false` (phone-oriented page), assert `position: absolute` anchored relative to the thumbnail when `true` (eBay description page). Verify by running the existing tests that call this helper.
-- [ ] 2.2 Run `Tests.Integration/Tests/MeasurementPhotosFlowTests.cs` (covers `PhotoPreviewBrowser.VerifyAsync(html, deferredFullImage: true)` and `SoldPhotoPreviewBrowser.VerifyAsync`) and `Tests.Frontend/MeasurementPhotosTests.cs` and confirm both pass against the updated assertions.
+- [~] 2.1 Update `Tests.Shared/PhotoPreviewBrowser.cs` to branch its position/size assertions on the existing `deferredFullImage` parameter: keep the current `position: fixed` + viewport-center assertions when `false` (phone-oriented page), assert `position: absolute` anchored relative to the thumbnail when `true` (eBay description page). Verify by running the existing tests that call this helper.
+- [~] 2.2 Run `Tests.Integration/Tests/MeasurementPhotosFlowTests.cs` (covers `PhotoPreviewBrowser.VerifyAsync(html, deferredFullImage: true)` and `SoldPhotoPreviewBrowser.VerifyAsync`) and `Tests.Frontend/MeasurementPhotosTests.cs` and confirm both pass against the updated assertions.
 
 ## 3. Spec sync and validation
 
-- [ ] 3.1 Sync the delta in `openspec/changes/fix-ebay-photo-preview-position/specs/measurement-photos/spec.md` into `openspec/specs/measurement-photos/spec.md` (or via archive) so the main spec's "Photos shown on the eBay listing description page" requirement matches the shipped behavior.
-- [ ] 3.2 Run `./scripts/agent-check/agent-check.sh` from the repository root and confirm it passes, including `openspec validate --all --strict` and `./scripts/check-openspec-test-coverage/check-openspec-test-coverage.sh`.
+- [~] 3.1 Sync the delta in `openspec/changes/fix-ebay-photo-preview-position/specs/measurement-photos/spec.md` into `openspec/specs/measurement-photos/spec.md` (or via archive) so the main spec's "Photos shown on the eBay listing description page" requirement matches the shipped behavior.
+- [~] 3.2 Run `./scripts/agent-check/agent-check.sh` from the repository root and confirm it passes, including `openspec validate --all --strict` and `./scripts/check-openspec-test-coverage/check-openspec-test-coverage.sh`.
