@@ -21,8 +21,8 @@ Alternatives considered:
 - *Keep `position: fixed`, only "fix" the vertical value.* Rejected — `position: fixed` as a whole establishes its containing block from the (broken) iframe viewport; there's no way to keep the horizontal behavior while discarding just the vertical one.
 - *Anchor to the enclosing `<td>`/row instead of the individual thumbnail.* Rejected as unnecessary — the existing markup already gives each photo its own positioned `.photo-hover` span (`#photo-hover-{id}`), so anchoring per-thumbnail requires no markup restructuring and matches the requirement's "preview ... in place" wording more directly.
 
-**Cap the overlay's size with fixed pixel values instead of `vh`/`vw`.**
-Use a moderate constant (e.g. `max-width: min(90vw, 420px); max-height: 420px;`) — `vw` is left as an extra safety net since it isn't inflated the way `vh` is, but the primary cap is a fixed px value so sizing is predictable on both phone and desktop regardless of table length.
+**Cap the overlay's size with fixed pixel values instead of `vh`, using `vw` as a mobile safety net.**
+Both dimensions use `min(92vw, 720px)`: a fixed px cap for desktop (tuned larger after manual visual QA showed the initial 420px felt too small), and `vw` — which is not inflated the way `vh` is, since the description iframe's width tracks the real column width — to keep the overlay from ever exceeding the real device width on a phone. Using the same expression for both width and height keeps the box square regardless of screen size; `background-size: contain` still letterboxes non-square photos within it.
 
 **Branch the shared Playwright verifier's position assertions on the existing `deferredFullImage` flag.**
 `Tests.Shared/PhotoPreviewBrowser.cs` is used by both the affected eBay-description-page test (`deferredFullImage: true`) and the unaffected phone-page test (`deferredFullImage: false`). That flag already tracks exactly which page is under test, so it's the natural switch: keep asserting `position: fixed` + viewport-center coordinates when `false`, assert the new `position: absolute`-relative-to-thumbnail behavior when `true`.
