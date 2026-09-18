@@ -8,5 +8,6 @@
     <ItemGroup>
         <GlobalPackageReference Include="Roslynator.Analyzers" Version="4.15.0" PrivateAssets="all" />
         <GlobalPackageReference Include="Meziantou.Analyzer" Version="3.0.136" PrivateAssets="all" />
+        <GlobalPackageReference Include="ReferenceTrimmer" Version="3.5.9" PrivateAssets="all" />
     </ItemGroup>
 </Project>

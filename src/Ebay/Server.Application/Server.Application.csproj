@@ -10,7 +10,6 @@
         <PackageReference Include="alglib.net" />
         <PackageReference Include="FlexLabs.EntityFrameworkCore.Upsert" />
         <PackageReference Include="HtmlAgilityPack" />
-        <PackageReference Include="JetBrains.Annotations" />
         <PackageReference Include="MassTransit" />
         <PackageReference Include="MassTransit.EntityFrameworkCore" />
         <PackageReference Include="MassTransit.SqlTransport.PostgreSQL" />
@@ -33,15 +32,16 @@
         <PackageReference Include="Microsoft.AspNetCore.ApiAuthorization.IdentityServer" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" />
-        <PackageReference Include="System.Security.Cryptography.Xml">
+        <!-- Not used directly; pinned only to force the resolved version up past a vulnerable transitive version (see "фикс вулнеров"). -->
+        <PackageReference Include="System.Security.Cryptography.Xml" TreatAsUsed="true">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Frontend\Frontend.csproj" />
-      <ProjectReference Include="..\Server.Adapters.Driving.WebApi\Server.Adapters.Driving.WebApi.csproj" />
+      <!-- Not used by any C# code here; provides the Blazor WASM static web assets (wwwroot/_framework) that Server/Program.cs serves transitively via UseBlazorFrameworkFiles(). -->
+      <ProjectReference Include="..\Frontend\Frontend.csproj" NoWarn="RT0002" />
       <ProjectReference Include="..\Server.Application.New\Server.Application.New.csproj" />
       <ProjectReference Include="..\Server.Domain\Server.Domain.csproj" />
     </ItemGroup>
