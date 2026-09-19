@@ -71,6 +71,9 @@ public sealed class MeasurementMatchIdChangedHandlerTests
         public Task<MeasurementInfo?> GetMeasurementInfo(string id, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
 
+        public Task<IReadOnlyList<string>> GetAllMeasurementIds(CancellationToken cancellationToken) =>
+            throw new NotSupportedException();
+
         public Task<IReadOnlyCollection<MeasurementInfo>> GetMeasurementsInfo(
             Guid productId,
             IReadOnlyCollection<MeasurementState> measurementStates,

@@ -19,7 +19,7 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
     private readonly IMeasurementFileParser _measurementFileParser;
     private readonly IMatchedPairDifferenceRepository _matchedPairDifferenceRepository;
     private readonly ITubeWorkingPointQueries _tubeWorkingPointQueries;
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IWriteModelUnitOfWork _unitOfWork;
     private readonly MeasurementApproximationService _measurementApproximationService;
 
     public MatchedPairsCalculator(
@@ -28,7 +28,7 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
         IMeasurementFileParser measurementFileParser,
         IMatchedPairDifferenceRepository matchedPairDifferenceRepository,
         ITubeWorkingPointQueries tubeWorkingPointQueries,
-        IUnitOfWork unitOfWork,
+        IWriteModelUnitOfWork unitOfWork,
         MeasurementApproximationService measurementApproximationService)
     {
         _logger = logger;

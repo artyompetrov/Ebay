@@ -388,6 +388,11 @@ public sealed class MeasurementPhotoServiceTests
     {
         public Task<int> SaveChangesAsync(CancellationToken cancellationToken) =>
             throw new NotSupportedException();
+
+        public Task<IUnitOfWorkTransaction> BeginTransactionAsync(
+            CancellationToken cancellationToken,
+            System.Data.IsolationLevel isolationLevel = System.Data.IsolationLevel.ReadCommitted) =>
+            throw new NotSupportedException();
     }
 
     private sealed class RecordingPhotoThumbnailGenerator : IPhotoThumbnailGenerator
@@ -435,5 +440,10 @@ public sealed class MeasurementPhotoServiceTests
     private sealed class NoOpWriteModelUnitOfWork : IWriteModelUnitOfWork
     {
         public Task<int> SaveChangesAsync(CancellationToken cancellationToken) => Task.FromResult(0);
+
+        public Task<IUnitOfWorkTransaction> BeginTransactionAsync(
+            CancellationToken cancellationToken,
+            System.Data.IsolationLevel isolationLevel = System.Data.IsolationLevel.ReadCommitted) =>
+            throw new NotSupportedException();
     }
 }

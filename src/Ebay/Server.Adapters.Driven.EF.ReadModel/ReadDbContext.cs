@@ -20,7 +20,7 @@ internal sealed class ReadDbContext : DbContext
     {
         b.Entity<ProductMeasurementView>(eb =>
         {
-            eb.ToView("ProductMeasurements").HasKey(x => x.Id);
+            eb.ToView("ProductMeasurements", "wm").HasKey(x => x.Id);
         });
 
         b.Entity<ProductPassportView>(eb =>
@@ -60,12 +60,12 @@ internal sealed class ReadDbContext : DbContext
 
         b.Entity<MatchedPairDifferenceView>(eb =>
         {
-            eb.ToView("MatchedPairDifferences").HasKey(x => new { MeasurementId1 = x.Measurement1Id, MeasurementId2 = x.Measurement2Id, x.ComparisonMode });
+            eb.ToView("MatchedPairDifferences", "wm").HasKey(x => new { MeasurementId1 = x.Measurement1Id, MeasurementId2 = x.Measurement2Id, x.ComparisonMode });
         });
 
         b.Entity<TubeWorkingPointView>(x =>
         {
-            x.ToView("TubeWorkingPoints").HasKey(x => x.Id);
+            x.ToView("TubeWorkingPoints", "wm").HasKey(x => x.Id);
         });
         b.Entity<LotForSaleView>(eb =>
         {

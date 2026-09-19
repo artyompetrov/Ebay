@@ -14,6 +14,7 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 ## Build and quality
 - `src/Ebay/Directory.Build.props` enables strict checks (nullable, warnings as errors).
 - Basic build check: `cd /workspace/Ebay/src/Ebay && dotnet build`.
+- `ReferenceTrimmer` is a `GlobalPackageReference` (`Directory.Packages.Global.props`), so it applies to every project and an unused `ProjectReference`/`PackageReference` fails the build (warnings as errors). If a reference is only used indirectly (e.g. loaded by reflection/assembly name, or provides build-only output like static web assets) and can't be removed, keep it but suppress the specific rule with `NoWarn="RT0002"`/`NoWarn="RT0003"` (or `TreatAsUsed="true"` for a package pinned only to fix a transitive vulnerability) directly on that `<ProjectReference>`/`<PackageReference>`, with a comment explaining why.
 
 ## Module structure
 - `Frontend` — Blazor WebAssembly.

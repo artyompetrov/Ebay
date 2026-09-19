@@ -106,4 +106,11 @@ public interface IMeasurementQueries : IMeasurementInfoQueries
     Task<IReadOnlySet<string?>> GetLotIds(
         Guid productId,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Возвращает идентификаторы всех замеров.
+    /// </summary>
+    /// <param name="cancellationToken">Токен отмены операции.</param>
+    /// <returns>Список идентификаторов замеров.</returns>
+    Task<IReadOnlyList<string>> GetAllMeasurementIds(CancellationToken cancellationToken);
 }

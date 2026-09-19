@@ -4,18 +4,18 @@ using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Abstractions.Driving.Abstractions.Messages;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
 
-namespace Server.Application.Services.MeasurementWatching;
+namespace Server.Adapters.Driving.MassTransit.Consumers.MeasurementWatching;
 
 public sealed class MeasurementWatchedOnEbayHandler : IMeasurementWatchedOnEbayHandler
 {
     private readonly ILogger<MeasurementWatchedOnEbayHandler> _logger;
     private readonly IMeasurementRepository _measurementRepository;
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IWriteModelUnitOfWork _unitOfWork;
 
     public MeasurementWatchedOnEbayHandler(
         ILogger<MeasurementWatchedOnEbayHandler> logger,
         IMeasurementRepository measurementRepository,
-        IUnitOfWork unitOfWork)
+        IWriteModelUnitOfWork unitOfWork)
     {
         _logger = logger;
         _measurementRepository = measurementRepository;

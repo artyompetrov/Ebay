@@ -1,11 +1,11 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
-using Server.Application.Consumers.MatchedPairs;
+using Server.Domain.Measurements;
 
 namespace Server.Adapters.Driving.MassTransit.Consumers.MatchedPairs;
 
-public class MatchedPairsCalculatorConsumer : IConsumer<CalculateMatchedPair>
+public class MatchedPairsCalculatorConsumer : IConsumer<MatchedPairComparisonRequested>
 {
     private readonly ILogger<MatchedPairsCalculatorConsumer> _logger;
     private readonly IMatchedPairsCalculator _matchedPairsCalculator;
@@ -18,17 +18,17 @@ public class MatchedPairsCalculatorConsumer : IConsumer<CalculateMatchedPair>
         _matchedPairsCalculator = matchedPairsCalculator;
     }
 
-    public async Task Consume(ConsumeContext<CalculateMatchedPair> context)
+    public async Task Consume(ConsumeContext<MatchedPairComparisonRequested> context)
     {
         _logger.LogInformation(
             "Handling {MessageType} {MeasurementId1} {MeasurementId2}",
-            nameof(CalculateMatchedPair),
-            context.Message.MeasurementId1,
-            context.Message.MeasurementId2);
+            nameof(MatchedPairComparisonRequested),
+            context.Message.Measurement1Id,
+            context.Message.Measurement2Id);
 
         await _matchedPairsCalculator.CalculateAsync(
-            measurementId1: context.Message.MeasurementId1,
-            measurementId2: context.Message.MeasurementId2,
+            measurementId1: context.Message.Measurement1Id,
+            measurementId2: context.Message.Measurement2Id,
             cancellationToken: context.CancellationToken);
     }
 }

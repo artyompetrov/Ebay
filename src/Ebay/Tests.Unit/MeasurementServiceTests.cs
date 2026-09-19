@@ -51,7 +51,7 @@ public sealed class MeasurementServiceTests
 
     private static MeasurementService CreateService(
         ProductMeasurement measurement,
-        IUnitOfWork unitOfWork)
+        IWriteModelUnitOfWork unitOfWork)
     {
         return new MeasurementService(
             productMeasurementRepository: new SingleMeasurementRepository(measurement),
@@ -117,6 +117,9 @@ public sealed class MeasurementServiceTests
         public Task<MeasurementInfo?> GetMeasurementInfo(string id, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
 
+        public Task<IReadOnlyList<string>> GetAllMeasurementIds(CancellationToken cancellationToken) =>
+            throw new NotSupportedException();
+
         public Task<IReadOnlyCollection<MeasurementInfo>> GetMeasurementsInfo(
             Guid productId,
             IReadOnlyCollection<MeasurementState> measurementStates,
@@ -179,7 +182,7 @@ public sealed class MeasurementServiceTests
             throw new NotSupportedException();
     }
 
-    private sealed class RecordingUnitOfWork : IUnitOfWork
+    private sealed class RecordingUnitOfWork : IWriteModelUnitOfWork
     {
         public int SaveChangesCallCount { get; private set; }
 

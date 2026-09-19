@@ -3,6 +3,10 @@ using AwesomeAssertions;
 using System.IO.Compression;
 using System.Net;
 using Client.Clients.Generated;
+using Microsoft.Extensions.DependencyInjection;
+using Server.Application.Abstractions.Driven.Abstractions.Repositories;
+using ComparisonMode = Server.Domain.Measurements.ComparisonMode;
+using MatchedPairDifferenceId = Server.Domain.Measurements.MatchedPairDifferenceId;
 
 namespace Tests.Integration.Tests;
 
@@ -14,6 +18,46 @@ public class ProductMeasurementFlowTests
         using var context = await CreateMeasurementContextAsync();
 
         await AssertMeasurementPageEndpointsAsync(context.HttpClient, context.MeasurementId);
+    }
+
+    [Test]
+    public async Task FindMatchedMeasurements_RequestsComparisonForEachMeasurementPair_AndConsumerComputesTheResult()
+    {
+        using var context = await CreateMeasurementContextAsync();
+
+        var secondSeed = TestHelpers.NextMeasurementSeed();
+        var secondMeasurementId = $"MEA{secondSeed}";
+        await context.EbayClient.UploadMeasurementAsync(
+            new MeasurementDataToUpload
+            {
+                MeasurementId = secondMeasurementId,
+                ManufactureCode = "2026-02",
+                ProductState = ProductState.New,
+                File = TestHelpers.CreateValidMeasurementArchive(secondSeed)
+            },
+            context.ProductId);
+
+        await context.EbayClient.UpsertTubeWorkingPointAsync(
+            new TubeWorkingPoint
+            {
+                AnodeVoltage = 250,
+                GridVoltage = -10,
+                AnodeVoltageHalfWidth = 50,
+                GridVoltageHalfWidth = 5,
+                NominalCurrent = 0.03
+            },
+            context.ProductId);
+
+        await context.EbayClient.FindMatchedMeasurementsAsync(context.ProductId);
+
+        var expectedId = new MatchedPairDifferenceId(context.MeasurementId, secondMeasurementId, ComparisonMode.Direct);
+        await TestHelpers.RetryUntilValidationSuccessAsync(async () =>
+        {
+            using var scope = IntegrationTestsSetupFixture.Factory.Services.CreateScope();
+            var repository = scope.ServiceProvider.GetRequiredService<IMatchedPairDifferenceRepository>();
+            var difference = await repository.GetByIdAsync(expectedId, CancellationToken.None);
+            Assert.That(difference, Is.Not.Null, "Expected the MatchedPairsCalculatorConsumer to have computed the pair difference by now.");
+        });
     }
 
     [Test]

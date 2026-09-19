@@ -15,6 +15,7 @@ using Server.Adapters.Driven.GeoIp;
 using Server.Adapters.Driven.ImageProcessing;
 using Server.Adapters.Driven.Smtp;
 using Server.Adapters.Driven.uTracer;
+using Server.Adapters.Driving.MassTransit;
 using Server.Adapters.Driving.MassTransit.Consumers.MatchedPairs;
 using Server.Adapters.Driving.MassTransit.Consumers.MeasurementCaching;
 using Server.Adapters.Driving.MassTransit.Consumers.MeasurementWatching;
@@ -64,6 +65,7 @@ public class Program
         builder.Services.AddApplicationServices();
         builder.Services.AddWebApiAdapter();
         builder.Services.AddEfWriteModelAdapter();
+        builder.Services.AddMassTransitAdapter();
         builder.Services.AddHealthChecks();
         ConfigureMassTransit(builder.Services);
 
