@@ -3,7 +3,7 @@ WORKDIR /src
 # Копируем весь исходный код сразу, чтобы не поддерживать вручную список *.csproj
 # при добавлении новых проектов в solution.
 COPY .editorconfig /
-COPY src/Ebay/ Ebay/
+COPY Ebay/ Ebay/
 RUN dotnet restore "Ebay/Ebay.slnx"
 WORKDIR "/src/Ebay/"
 WORKDIR "/src/Ebay/Server"
@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y fontconfig fonts-liberation && fc-cache
 
 FROM node:18-alpine AS build_chrome_extension
 WORKDIR /src
-COPY src/ChromeExtension .
+COPY ChromeExtension .
 COPY --from=build_dotnet /src/ChromeExtension .
 ARG EBAY_HELPER_BACKEND_DOMAIN="localhost"
 ARG BUILD_VERSION="1.0.0.0"
