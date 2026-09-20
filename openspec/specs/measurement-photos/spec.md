@@ -5,7 +5,7 @@ End-to-end capability covering measurement photo upload (phone), storage, retrie
 ## Requirements
 
 ### Requirement: Phone-based photo upload
-Staff SHALL be able to identify a measurement by scanning its barcode with a phone camera and upload one or more photos for that measurement directly from the phone's camera roll or camera. The page SHALL automatically classify the current browser client as mobile or non-mobile without asking the user. For a client classified as mobile, the environment-facing barcode camera preview SHALL be displayed in its natural, non-mirrored orientation; for a client classified as non-mobile, the scanner preview SHALL retain its existing horizontally mirrored presentation.
+Staff SHALL be able to identify a measurement by scanning its barcode with a phone camera and upload one or more photos for that measurement directly from the phone's camera roll or camera. The page SHALL automatically classify the current browser client as mobile or non-mobile without asking the user. For a client classified as mobile, the environment-facing barcode camera preview SHALL be displayed in its natural, non-mirrored orientation; for a client classified as non-mobile, the scanner preview SHALL retain its existing horizontally mirrored presentation. When the active camera track reports a zoom capability, the page SHALL present a manual zoom control alongside the scanner preview so staff can zoom in on a barcode instead of physically moving the phone closer than the camera can focus; when the active camera track does not report a zoom capability, the page SHALL NOT present a zoom control and scanning SHALL behave exactly as it did before this capability existed.
 
 #### Scenario: Upload after scanning a barcode
 - **WHEN** staff scans a measurement's barcode on the `/measurement-photos` page and then selects one or more photo files
@@ -26,6 +26,18 @@ Staff SHALL be able to identify a measurement by scanning its barcode with a pho
 #### Scenario: Mobile detection compatibility fallback
 - **WHEN** the browser does not expose its structured mobile-client indicator
 - **THEN** the page determines mobile status using a browser-compatible client identification fallback and still starts the barcode scanner
+
+#### Scenario: Zoom control shown when the camera supports zoom
+- **WHEN** staff starts barcode scanning and the active camera track reports a zoom capability
+- **THEN** the page displays a manual zoom control alongside the scanner preview
+
+#### Scenario: Zoom control absent when the camera does not support zoom
+- **WHEN** staff starts barcode scanning and the active camera track does not report a zoom capability
+- **THEN** the page does not display a zoom control, and scanning proceeds exactly as it did before this capability existed
+
+#### Scenario: Adjusting the zoom control changes the live preview
+- **WHEN** staff adjusts the zoom control while the camera supports zoom
+- **THEN** the requested zoom level is applied to the running camera track so the live scanner preview reflects the new zoom level without restarting the camera
 
 ### Requirement: Photo thumbnail generated on upload
 When a measurement photo is uploaded, the system SHALL generate a size-capped thumbnail from it and store the thumbnail alongside the original.
