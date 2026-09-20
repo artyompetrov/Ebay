@@ -1,5 +1,4 @@
 using System.Text;
-using MassTransit;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using ScottPlot;
@@ -7,53 +6,49 @@ using ScottPlot.PlotStyles;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Models;
-using Server.Application.Abstractions.Driving.Abstractions.Messages;
-using Server.Application.HostedServices.Measurements;
-using Server.Application.Infrastructure;
 using Server.Application.New.Caching;
 using Server.Application.New.Services;
 using Server.Domain.Measurements;
 using Server.Domain.Measurements.MeasurementTypes;
 using Server.Domain.Measurements.MeasurementTypes.Base;
 
-namespace Server.Application.Services.MeasurementPlot;
+namespace Server.Application.New.MeasurementPlot;
 
 // todo генерация графиков по идее должна быть вынесена в адаптер
-public class MeasurementPlotService : IMeasurementPlotService
+public class MeasurementPlotService
 {
-    private readonly DbCache _cache;
+    private readonly ICacheStore _cache;
     private readonly IMemoryCache _memoryCache;
     private readonly MeasurementCacheInvalidationRegistry _cacheInvalidationRegistry;
     private readonly IMeasurementQueries _measurementQueries;
     private readonly IMeasurementFileParser _measurementFileParser;
-    private readonly IPublishEndpoint _publishEndpoint;
+    private readonly IMeasurementWatchedOnEbayPublisher _watchedOnEbayPublisher;
     private readonly ITubeWorkingPointQueries _workingPointQueries;
     private readonly MeasurementApproximationService _measurementApproximationService;
-    private readonly IUnitOfWork _unitOfWork;
 
     public MeasurementPlotService(
-        DbCache cache,
-        [FromKeyedServices(New.WellKnown.ImageCache.ServiceKey)] IMemoryCache memoryCache,
+        ICacheStore cache,
+        [FromKeyedServices(WellKnown.ImageCache.ServiceKey)] IMemoryCache memoryCache,
         MeasurementCacheInvalidationRegistry cacheInvalidationRegistry,
         IMeasurementQueries measurementQueries,
         IMeasurementFileParser measurementFileParser,
-        IPublishEndpoint publishEndpoint,
+        IMeasurementWatchedOnEbayPublisher watchedOnEbayPublisher,
         ITubeWorkingPointQueries workingPointQueries,
-        MeasurementApproximationService measurementApproximationService,
-        IUnitOfWork unitOfWork)
+        MeasurementApproximationService measurementApproximationService)
     {
         _cache = cache;
         _memoryCache = memoryCache;
         _cacheInvalidationRegistry = cacheInvalidationRegistry;
         _measurementQueries = measurementQueries;
         _measurementFileParser = measurementFileParser;
-        _publishEndpoint = publishEndpoint;
+        _watchedOnEbayPublisher = watchedOnEbayPublisher;
         _workingPointQueries = workingPointQueries;
         _measurementApproximationService = measurementApproximationService;
-        _unitOfWork = unitOfWork;
     }
 
+#pragma warning disable CA1822 // Экземплярный метод для единообразного DI-контракта сервиса.
     public string PlotSold() => StatusSvg(nameof(MeasurementState.Sold));
+#pragma warning restore CA1822
 
     public async Task<string?> PlotForEbayWithViewSource(
         string measurementId,
@@ -92,18 +87,13 @@ public class MeasurementPlotService : IMeasurementPlotService
 
     private async Task PublishWatchedOnEbayMessage(string measurementId, CancellationToken cancellationToken)
     {
-        await _publishEndpoint.Publish(
-            new MeasurementWatchedOnEbay(
-                MeasurementId: measurementId,
-                WatchedAtUtc: DateTimeOffset.UtcNow),
-            cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await _watchedOnEbayPublisher.PublishAsync(measurementId, DateTimeOffset.UtcNow, cancellationToken);
     }
 
     /// <summary>
     /// Отдельный метод для Ebay требуется для возможности предварительного прогрева на старте
     /// иначе прогрев происходит при первом заходе покупателя после передеплоя.
-    /// Прогрев (см. <see cref="MeasurementPlotWarmupHostedService"/>) всегда вызывает этот метод с
+    /// Прогрев (см. MeasurementPlotWarmupHostedService) всегда вызывает этот метод с
     /// <paramref name="sellingOnly"/> = false, поэтому идет напрямую в <see cref="PlotForMeasurementId"/> и
     /// греет DbCache/её собственный in-memory кеш, а не кеш ниже, специфичный для sellingOnly = true.
     /// </summary>

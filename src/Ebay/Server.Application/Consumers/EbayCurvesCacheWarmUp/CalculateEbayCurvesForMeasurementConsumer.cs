@@ -1,7 +1,7 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Server.Application.Services.MeasurementPlot;
+using Server.Application.New.MeasurementPlot;
 
 namespace Server.Application.Consumers.EbayCurvesCacheWarmUp;
 

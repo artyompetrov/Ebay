@@ -325,6 +325,14 @@ internal sealed class MeasurementQueries : IMeasurementQueries
         return similarMeasurementsLookup;
     }
 
+    public async Task<IReadOnlyList<string>> GetAllMeasurementIds(CancellationToken cancellationToken)
+    {
+        return await _dbContext.ProductMeasurements
+            .AsNoTracking()
+            .Select(x => x.Id)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<MeasurementInfoWithData?> GetMeasurementInfoWithData(
         string measurementId,
         CancellationToken cancellationToken)

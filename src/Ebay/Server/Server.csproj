@@ -10,7 +10,8 @@
       <ProjectReference Include="..\Server.Adapters.Driven.ChipFind\Server.Adapters.Driven.ChipFind.csproj" />
       <ProjectReference Include="..\Server.Adapters.Driven.EF.ReadModel\Server.Adapters.Driven.EF.ReadModel.csproj" />
       <ProjectReference Include="..\Server.Adapters.Driven.EF.WriteModel\Server.Adapters.Driven.EF.WriteModel.csproj" />
-      <ProjectReference Include="..\Server.Adapters.Driven.EF.WriteModel.Migrations\Server.Adapters.Driven.EF.WriteModel.Migrations.csproj" />
+      <!-- Not used by any C# code here; must be present in the output directory so EF Core can load it by name at runtime (see MigrationsAssembly("Server.Adapters.Driven.EF.WriteModel.Migrations") in Server.Adapters.Driven.EF.WriteModel/ServiceCollectionExtensions.cs). -->
+      <ProjectReference Include="..\Server.Adapters.Driven.EF.WriteModel.Migrations\Server.Adapters.Driven.EF.WriteModel.Migrations.csproj" NoWarn="RT0002" />
       <ProjectReference Include="..\Server.Adapters.Driven.GeoIp\Server.Adapters.Driven.GeoIp.csproj" />
       <ProjectReference Include="..\Server.Adapters.Driven.ImageProcessing\Server.Adapters.Driven.ImageProcessing.csproj" />
       <ProjectReference Include="..\Server.Adapters.Driven.Smtp\Server.Adapters.Driven.Smtp.csproj" />

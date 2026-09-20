@@ -13,14 +13,14 @@ internal sealed class MeasurementService : IMeasurementService
     private readonly IMatchedPairDifferenceRepository _matchedPairDifferenceRepository;
     private readonly IMeasurementQueries _measurementQueries;
     private readonly IMeasurementFileParser _measurementFileParser;
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IWriteModelUnitOfWork _unitOfWork;
 
     public MeasurementService(
         IMeasurementRepository productMeasurementRepository,
         IMatchedPairDifferenceRepository matchedPairDifferenceRepository,
         IMeasurementQueries measurementQueries,
         IMeasurementFileParser measurementFileParser,
-        IUnitOfWork unitOfWork
+        IWriteModelUnitOfWork unitOfWork
     )
     {
         _productMeasurementRepository = productMeasurementRepository;

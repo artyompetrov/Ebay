@@ -14,10 +14,6 @@ using Server.Application.HostedServices.Measurements;
 using Server.Application.HostedServices.SaleAdvertisements;
 using Server.Application.Infrastructure;
 using Server.Application.New;
-using Server.Application.Services;
-using Server.Application.Services.Measurement;
-using Server.Application.Services.MeasurementPlot;
-using Server.Application.Services.MeasurementWatching;
 using Server.Controllers.Generated;
 
 namespace Server.Application;
@@ -61,11 +57,8 @@ public static class ServiceCollectionExtensions
                 maxConcurrent: new Npgsql.NpgsqlConnectionStringBuilder(connectionString).MaxPoolSize / 2);
         });
         services.AddTransient<DbCache>();
+        services.AddTransient<ICacheStore, DbCache>();
         services.AddApplicationNewServices();
-        services.AddTransient<MatchedMeasurementService>();
-        services.AddTransient<MeasurementPlotService>();
-        services.AddTransient<IMeasurementWatchedOnEbayHandler, MeasurementWatchedOnEbayHandler>();
-        services.AddTransient<TubeWorkingPointService>();
 
         services.AddTransient<IEbayController, EbayControllerImplementation>();
         services.AddDefaultIdentity<ApplicationUser>(o => o.SignIn.RequireConfirmedAccount = true)

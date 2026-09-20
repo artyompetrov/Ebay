@@ -8,11 +8,9 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Domain;
 using Server.Domain.Abstractions;
-using Server.Domain.Measurements;
 using Server.Domain.Product;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
@@ -105,33 +103,6 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
                 v => JsonSerializer.Deserialize<PurchaseCalculationResult?>(v, (JsonSerializerOptions?)null)
             ));
 
-        builder.Entity<ProductMeasurement>(entity =>
-        {
-            entity.HasKey(x => x.Id);
-
-            entity.Property(x => x.Id)
-                .HasMaxLength(100)
-                .ValueGeneratedNever();
-
-            entity.Property(p => p.CreatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-            entity.Property(x => x.ProductId).IsRequired();
-
-            entity.HasOne<Product>()
-                .WithMany()
-                .HasForeignKey(x => x.ProductId)
-                .OnDelete(DeleteBehavior.Restrict)
-                .IsRequired();
-
-            entity.HasIndex(x => x.ProductId);
-            entity.HasIndex(p => p.CreatedAt);
-            entity.HasIndex(p => p.MatchId);
-            entity.HasIndex(p => p.LotId);
-
-            entity.HasIndex(x => x.HashAnodeCurves).IsUnique();
-        });
-
         builder.Entity<ProductEmailSendHistory>(entity =>
         {
             entity.ToTable("SaleAdvertisements");
@@ -151,15 +122,6 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
             entity.HasIndex(e => new { e.ProductId, e.Order });
         });
 
-        builder.Entity<TubeWorkingPoint>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.HasOne<Product>()
-                .WithOne()
-                .HasForeignKey<TubeWorkingPoint>(e => e.Id)
-                .OnDelete(DeleteBehavior.Restrict);
-        });
-
         builder.Entity<IgnoredLot>(entity =>
         {
             entity.HasKey(e => new { e.ProductId, e.LotId });
@@ -168,35 +130,6 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
         builder.Entity<Purchase>(entity =>
         {
             entity.HasKey(e => new { e.LotId, e.Date });
-        });
-
-        builder.Entity<MatchedPairDifference>(entity =>
-        {
-            entity.Property(x => x.Id)
-                .HasConversion(
-                    v => JsonConvert.SerializeObject(v, Formatting.None),
-                    v => JsonConvert.DeserializeObject<MatchedPairDifferenceId>(v)!);
-
-            entity.HasKey(e => e.Id);
-
-            entity.Property(e => e.Measurement1Id)
-                .HasMaxLength(100);
-
-            entity.Property(e => e.Measurement2Id)
-                .HasMaxLength(100);
-
-            entity.HasIndex(x => x.Measurement1Id);
-            entity.HasIndex(x => x.Measurement2Id);
-
-            entity.HasOne<ProductMeasurement>()
-                .WithMany()
-                .HasForeignKey(e => e.Measurement1Id)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            entity.HasOne<ProductMeasurement>()
-                .WithMany()
-                .HasForeignKey(e => e.Measurement2Id)
-                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 
@@ -210,8 +143,6 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
 
     public DbSet<ClientError> ClientErrors { get; set; } = null!;
 
-    public DbSet<ProductMeasurement> ProductMeasurements { get; set; } = null!;
-
     public DbSet<ProductPassport> ProductPassports { get; set; } = null!;
 
     public DbSet<Currency> Currencies { get; set; } = null!;
@@ -219,10 +150,6 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
     public DbSet<ProductEmailSendHistory> ProductEmailSendHistory { get; set; } = null!;
 
     public DbSet<CacheEntry> CacheEntries { get; set; } = null!;
-
-    public DbSet<TubeWorkingPoint> TubeWorkingPoints { get; set; } = null!;
-
-    public DbSet<MatchedPairDifference> MatchedPairDifferences { get; set; } = null!;
 
     public async Task<IUnitOfWorkTransaction> BeginTransactionAsync(
         CancellationToken cancellationToken,
