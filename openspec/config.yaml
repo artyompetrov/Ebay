@@ -18,3 +18,20 @@ schema: spec-driven
 #       - Always include a "Non-goals" section
 #     tasks:
 #       - Break tasks into chunks of max 2 hours
+
+rules:
+  tasks:
+    - Before archiving, mark any task you are deliberately skipping or blocking as
+      `[~]` (with a short explanation) instead of leaving it as `[ ]`. CI runs
+      `openspec validate --archived`, which treats an unchecked `[ ]` task in an
+      archived change as incomplete and fails the build.
+  specs:
+    - Write requirements and scenarios so they are testable - concrete, observable
+      inputs/outputs and behavior, not vague or subjective statements — each
+      scenario should map cleanly to a single automated test.
+    - Every scenario in a spec must be covered by a test tagged
+      `[OpenSpecScenario(specId, requirement, scenario)]` (see
+      `src/Ebay/Tests.Shared`), or explicitly marked `NOT COVERED BY TEST` in the
+      spec with a justification. This is enforced by
+      `scripts/check-openspec-test-coverage`, which CI runs and which fails the
+      build if a scenario has neither a mapped test nor that justification.

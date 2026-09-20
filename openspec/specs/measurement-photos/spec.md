@@ -5,7 +5,7 @@ End-to-end capability covering measurement photo upload (phone), storage, retrie
 ## Requirements
 
 ### Requirement: Phone-based photo upload
-Staff SHALL be able to identify a measurement by scanning its barcode with a phone camera and upload one or more photos for that measurement directly from the phone's camera roll or camera. The page SHALL automatically classify the current browser client as mobile or non-mobile without asking the user. For a client classified as mobile, the environment-facing barcode camera preview SHALL be displayed in its natural, non-mirrored orientation; for a client classified as non-mobile, the scanner preview SHALL retain its existing horizontally mirrored presentation.
+Staff SHALL be able to identify a measurement by scanning its barcode with a phone camera and upload one or more photos for that measurement directly from the phone's camera roll or camera. The page SHALL automatically classify the current browser client as mobile or non-mobile without asking the user. For a client classified as mobile, the environment-facing barcode camera preview SHALL be displayed in its natural, non-mirrored orientation; for a client classified as non-mobile, the scanner preview SHALL retain its existing horizontally mirrored presentation. When the active camera track reports a zoom capability, the page SHALL present a manual zoom control alongside the scanner preview so staff can zoom in on a barcode instead of physically moving the phone closer than the camera can focus; when the active camera track does not report a zoom capability, the page SHALL NOT present a zoom control and scanning SHALL behave exactly as it did before this capability existed.
 
 #### Scenario: Upload after scanning a barcode
 - **WHEN** staff scans a measurement's barcode on the `/measurement-photos` page and then selects one or more photo files
@@ -26,6 +26,18 @@ Staff SHALL be able to identify a measurement by scanning its barcode with a pho
 #### Scenario: Mobile detection compatibility fallback
 - **WHEN** the browser does not expose its structured mobile-client indicator
 - **THEN** the page determines mobile status using a browser-compatible client identification fallback and still starts the barcode scanner
+
+#### Scenario: Zoom control shown when the camera supports zoom
+- **WHEN** staff starts barcode scanning and the active camera track reports a zoom capability
+- **THEN** the page displays a manual zoom control alongside the scanner preview
+
+#### Scenario: Zoom control absent when the camera does not support zoom
+- **WHEN** staff starts barcode scanning and the active camera track does not report a zoom capability
+- **THEN** the page does not display a zoom control, and scanning proceeds exactly as it did before this capability existed
+
+#### Scenario: Adjusting the zoom control changes the live preview
+- **WHEN** staff adjusts the zoom control while the camera supports zoom
+- **THEN** the requested zoom level is applied to the running camera track so the live scanner preview reflects the new zoom level without restarting the camera
 
 ### Requirement: Photo thumbnail generated on upload
 When a measurement photo is uploaded, the system SHALL generate a size-capped thumbnail from it and store the thumbnail alongside the original.
@@ -133,7 +145,7 @@ The system SHALL provide a read query that returns photo metadata (id, file name
 - **THEN** the system SHALL return an empty result for that measurement id rather than an error
 
 ### Requirement: Photos shown on the eBay listing description page
-The eBay lot description page (the page whose rendered HTML is pulled into the live eBay listing) SHALL display a thumbnail for each of the uploaded photos for each measurement/tube it lists, arranged horizontally within that measurement's row, alongside the existing measurement curve plots. Thumbnails SHALL NOT be navigable links; hovering or tapping/clicking a thumbnail SHALL preview the corresponding full-size photo in place on the same page, centered in the viewport, using CSS only (no JavaScript, no new tab, no navigation, no file download), since this page is embedded directly into a live eBay listing — viewed on both desktop and mobile — and must never cause the viewer to leave or be redirected away from that listing. When the lot has at least one measurement photo, the page SHALL also display a short instruction telling buyers to hover or tap a thumbnail to view it full-size; this instruction SHALL NOT be shown when the lot has no measurement photos at all. A thumbnail's on-page size SHALL be driven by the dimensions of the image actually returned for it (capped to a bounded display size for a real photo), rather than a fixed size independent of that image, so that a measurement whose tube has since been sold — and whose photo therefore no longer resolves to the real image — visually collapses away instead of leaving a same-size blank box where the photo used to be.
+The eBay lot description page (the page whose rendered HTML is pulled into the live eBay listing) SHALL display a thumbnail for each of the uploaded photos for each measurement/tube it lists, arranged horizontally within that measurement's row, alongside the existing measurement curve plots. Thumbnails SHALL NOT be navigable links; hovering or tapping/clicking a thumbnail SHALL preview the corresponding full-size photo in place on the same page, as an overlay anchored to that thumbnail, using CSS only (no JavaScript, no new tab, no navigation, no file download), since this page is embedded directly into a live eBay listing — viewed on both desktop and mobile — and must never cause the viewer to leave or be redirected away from that listing. When the lot has at least one measurement photo, the page SHALL also display a short instruction telling buyers to hover or tap a thumbnail to view it full-size; this instruction SHALL NOT be shown when the lot has no measurement photos at all. A thumbnail's on-page size SHALL be driven by the dimensions of the image actually returned for it (capped to a bounded display size for a real photo), rather than a fixed size independent of that image, so that a measurement whose tube has since been sold — and whose photo therefore no longer resolves to the real image — visually collapses away instead of leaving a same-size blank box where the photo used to be.
 
 #### Scenario: Measurement with photos
 - **WHEN** the eBay description page is rendered for a lot whose measurements include one that has uploaded photos
@@ -145,11 +157,11 @@ The eBay lot description page (the page whose rendered HTML is pulled into the l
 
 #### Scenario: Hovering a thumbnail previews the full photo in place
 - **WHEN** a viewer of the eBay description page hovers one of a measurement's photo thumbnails
-- **THEN** the corresponding full-size original photo (sourced from the existing content endpoint) is displayed as an overlay centered in the viewport, without opening a new tab, navigating away, or downloading a file
+- **THEN** the corresponding full-size original photo (sourced from the existing content endpoint) is displayed as an overlay anchored to that thumbnail, without opening a new tab, navigating away, or downloading a file
 
 #### Scenario: Tapping or clicking a thumbnail previews the full photo in place (mobile-friendly)
 - **WHEN** a viewer of the eBay description page (including on a phone, where hover does not exist) taps or clicks one of a measurement's photo thumbnails
-- **THEN** the corresponding full-size original photo is displayed as an overlay centered in the viewport with a dimmed backdrop behind it, without opening a new tab, navigating away, or downloading a file, and the preview stays visible after the pointer/finger moves away
+- **THEN** the corresponding full-size original photo is displayed as an overlay anchored to that thumbnail with a dimmed backdrop behind it, without opening a new tab, navigating away, or downloading a file, and the preview stays visible after the pointer/finger moves away
 
 #### Scenario: Tapping or clicking the backdrop closes the preview
 - **WHEN** a viewer taps or clicks the dimmed backdrop behind an open preview

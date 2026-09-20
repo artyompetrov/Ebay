@@ -97,3 +97,140 @@ test("StartQrScanner classifies the client, requests the rear camera, and resolv
         assert.equal(cleared, true);
     }
 });
+
+function createZoomTestSandbox({ zoomCapabilities = null, decodeImmediately = false } = {}) {
+    const insertedElements = [];
+    const createdSliders = [];
+    let stopped = false;
+    let cleared = false;
+    let decodeCallback = null;
+
+    const reader = {
+        classList: {
+            add: () => {},
+            remove: () => {}
+        },
+        insertAdjacentElement: (position, element) => {
+            insertedElements.push({ position, element });
+        }
+    };
+
+    const sandbox = {
+        navigator: { userAgent: "Desktop" },
+        document: {
+            getElementById: id => {
+                assert.equal(id, "reader");
+                return reader;
+            },
+            createElement: tagName => {
+                assert.equal(tagName, "input");
+                const slider = {
+                    removed: false,
+                    addEventListener(event, callback) {
+                        this[`on${event}`] = callback;
+                    },
+                    remove() {
+                        slider.removed = true;
+                    }
+                };
+                createdSliders.push(slider);
+                return slider;
+            }
+        },
+        Html5Qrcode: class {
+            constructor(id) { assert.equal(id, "reader"); }
+            async start(constraints, config, decoded) {
+                decodeCallback = decoded;
+                if (decodeImmediately) {
+                    decoded("MEA1234");
+                }
+            }
+            async stop() { stopped = true; }
+            clear() { cleared = true; }
+            getRunningTrackCapabilities() {
+                return zoomCapabilities ? { zoom: zoomCapabilities } : {};
+            }
+            applyVideoConstraints(constraints) {
+                sandbox.appliedConstraints.push(constraints);
+            }
+        },
+        appliedConstraints: []
+    };
+
+    return {
+        sandbox,
+        insertedElements,
+        createdSliders,
+        getStopped: () => stopped,
+        getCleared: () => cleared,
+        decode: value => decodeCallback(value)
+    };
+}
+
+// [OpenSpecScenario("measurement-photos", "Phone-based photo upload", "Zoom control shown when the camera supports zoom")]
+test("StartQrScanner shows a zoom slider bounded by the camera's reported zoom capability", async () => {
+    const { runInNewContext } = await import("node:vm");
+    const interopModuleSource = interopSource.replaceAll("export function", "function");
+    const harness = createZoomTestSandbox({ zoomCapabilities: { min: 1, max: 5, step: 0.5 } });
+    runInNewContext(interopModuleSource, harness.sandbox);
+
+    harness.sandbox.StartQrScanner();
+    await new Promise(resolve => setImmediate(resolve));
+
+    assert.equal(harness.insertedElements.length, 1);
+    assert.equal(harness.insertedElements[0].position, "afterend");
+    const slider = harness.insertedElements[0].element;
+    assert.equal(slider.min, 1);
+    assert.equal(slider.max, 5);
+    assert.equal(slider.step, 0.5);
+    assert.equal(slider.value, 1);
+});
+
+// [OpenSpecScenario("measurement-photos", "Phone-based photo upload", "Zoom control absent when the camera does not support zoom")]
+test("StartQrScanner shows no zoom slider when the camera reports no zoom capability, and scanning still resolves as before", async () => {
+    const { runInNewContext } = await import("node:vm");
+    const interopModuleSource = interopSource.replaceAll("export function", "function");
+    const harness = createZoomTestSandbox({ zoomCapabilities: null, decodeImmediately: true });
+    runInNewContext(interopModuleSource, harness.sandbox);
+
+    const result = await harness.sandbox.StartQrScanner();
+
+    assert.equal(result, "MEA1234");
+    assert.equal(harness.getStopped(), true);
+    assert.equal(harness.getCleared(), true);
+    assert.equal(harness.insertedElements.length, 0);
+});
+
+// [OpenSpecScenario("measurement-photos", "Phone-based photo upload", "Adjusting the zoom control changes the live preview")]
+test("Adjusting the zoom slider applies the corresponding zoom constraint to the running camera track", async () => {
+    const { runInNewContext } = await import("node:vm");
+    const interopModuleSource = interopSource.replaceAll("export function", "function");
+    const harness = createZoomTestSandbox({ zoomCapabilities: { min: 1, max: 5, step: 0.5 } });
+    runInNewContext(interopModuleSource, harness.sandbox);
+
+    harness.sandbox.StartQrScanner();
+    await new Promise(resolve => setImmediate(resolve));
+
+    const slider = harness.createdSliders[0];
+    slider.value = 3;
+    slider.oninput();
+
+    assert.equal(harness.sandbox.appliedConstraints.length, 1);
+    assert.equal(harness.sandbox.appliedConstraints[0].advanced[0].zoom, 3);
+});
+
+test("StartQrScanner removes the zoom slider once a barcode is decoded", async () => {
+    const { runInNewContext } = await import("node:vm");
+    const interopModuleSource = interopSource.replaceAll("export function", "function");
+    const harness = createZoomTestSandbox({ zoomCapabilities: { min: 1, max: 5, step: 0.5 } });
+    runInNewContext(interopModuleSource, harness.sandbox);
+
+    const scanPromise = harness.sandbox.StartQrScanner();
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(harness.createdSliders.length, 1);
+
+    harness.decode("MEA5678");
+    await scanPromise;
+
+    assert.equal(harness.createdSliders[0].removed, true);
+});
