@@ -252,11 +252,9 @@ internal class EbayControllerImplementation : IEbayController
         Guid productId,
         CancellationToken cancellationToken)
     {
-        var exist = await _applicationContext.Products
-            .AsNoTracking()
-            .AnyAsync(x => x.Id == productId, cancellationToken);
+        var product = await _productService.GetProductAsync(productId, cancellationToken);
 
-        if (!exist)
+        if (product == null)
         {
             throw NonOkHttpAnswerException.NotFound400();
         }
@@ -282,11 +280,9 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken
     )
     {
-        var exist = await _applicationContext.Products
-            .AsNoTracking()
-            .AnyAsync(predicate: x => x.Id == productId, cancellationToken: cancellationToken);
+        var product = await _productService.GetProductAsync(productId, cancellationToken);
 
-        if (!exist)
+        if (product == null)
         {
             throw NonOkHttpAnswerException.NotFound400();
         }

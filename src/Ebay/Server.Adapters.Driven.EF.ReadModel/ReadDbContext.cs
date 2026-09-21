@@ -30,7 +30,7 @@ internal sealed class ReadDbContext : DbContext
 
         b.Entity<ProductView>(eb =>
         {
-            eb.ToView("Products").HasKey(x => x.Id);
+            eb.ToView("Products", "wm").HasKey(x => x.Id);
 
             eb.HasOne(x => x.TubeWorkingPoint)
                 .WithOne(x => x.Product)
@@ -41,14 +41,14 @@ internal sealed class ReadDbContext : DbContext
             {
                 q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
                 q.HasKey(x => x.Id);
-                q.ToTable("Product_SearchQueries");
+                q.ToTable("Product_SearchQueries", "wm");
             });
 
             eb.OwnsMany(p => p.RuSearchQueries, q =>
             {
                 q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
                 q.HasKey(x => x.Id);
-                q.ToTable("Product_RuSearchQueries");
+                q.ToTable("Product_RuSearchQueries", "wm");
             });
 
             eb.Property(o => o.ProductCalculationResult)

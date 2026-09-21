@@ -1,6 +1,7 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Data;
 using Server.Application.Infrastructure;
 using Server.Domain;
@@ -11,15 +12,18 @@ namespace Server.Application.Consumers.PriceCalculator;
 public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
 {
     private readonly ApplicationDbContext _applicationContext;
+    private readonly IProductQueries _productQueries;
     private readonly ILogger<CalculatePricesForProductConsumer> _logger;
     private readonly IPublishEndpoint _publishEndpoint;
 
     public CalculatePricesForLotConsumer(
         ApplicationDbContext applicationContext,
+        IProductQueries productQueries,
         ILogger<CalculatePricesForProductConsumer> logger,
         IPublishEndpoint publishEndpoint)
     {
         _applicationContext = applicationContext;
+        _productQueries = productQueries;
         _logger = logger;
         _publishEndpoint = publishEndpoint;
     }
@@ -31,6 +35,21 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
             "Calculation started for {LotId}",
             context.Message.LotId);
 
+        // Продукт читается через отдельный ReadDbContext (своё соединение) до открытия ambient
+        // TransactionScope ниже: у соединения к БД в конфигурации выставлен Enlist=true, а второе
+        // соединение, зарегистрированное в той же ambient-транзакции, потребовало бы distributed
+        // transaction, которую Npgsql не поддерживает.
+        var lotProductId = await _applicationContext.Lots
+            .AsNoTracking()
+            .Where(x => x.Id == context.Message.LotId)
+            .Select(x => (Guid?)x.ProductId)
+            .SingleOrDefaultAsync(context.CancellationToken) ??
+            throw new InvalidOperationException($"Lot with {context.Message.LotId} not found");
+
+        var product =
+            await _productQueries.GetProductAsync(lotProductId, context.CancellationToken) ??
+            throw new InvalidOperationException($"Product with {lotProductId} not found");
+
         var currentDate = DateTimeOffset.UtcNow;
         using var transaction = TransactionScopeFactory.Create();
 
@@ -41,9 +60,6 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
         var lot = await _applicationContext.Lots.Include(lot => lot.Purchases)
                       .SingleOrDefaultAsync(x => x.Id == context.Message.LotId) ??
                   throw new InvalidOperationException($"Lot with {context.Message.LotId} not found");
-        var product =
-            await _applicationContext.Products.AsNoTracking().SingleOrDefaultAsync(x => x.Id == lot.ProductId) ??
-            throw new InvalidOperationException($"Product with {lot.ProductId} not found");
 
         // ReSharper disable IdentifierTypo
 

@@ -59,42 +59,11 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
                 v => JsonSerializer.Deserialize<LotCalculationResult?>(v, (JsonSerializerOptions?)null)
             ));
 
-        builder.Entity<Product>(entity =>
-        {
-            entity.HasKey(x => x.Id);
-
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever();
-
-            entity.Property(o => o.ProductCalculationResult)
-                .HasConversion(new ValueConverter<ProductCalculationResult?, string>(
-                    v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
-                    v => JsonSerializer.Deserialize<ProductCalculationResult?>(v, (JsonSerializerOptions?)null)
-                ));
-
-            entity.Navigation(p => p.SearchQueries)
-                .UsePropertyAccessMode(PropertyAccessMode.Field);
-            entity.Navigation(p => p.RuSearchQueries)
-                .UsePropertyAccessMode(PropertyAccessMode.Field);
-
-            entity.OwnsMany(p => p.SearchQueries, q =>
-            {
-                q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
-                q.HasKey(x => x.Id);
-                q.Property(x => x.Id).ValueGeneratedNever();
-                q.Property(x => x.Query).IsRequired();
-                q.ToTable("Product_SearchQueries");
-            });
-
-            entity.OwnsMany(p => p.RuSearchQueries, q =>
-            {
-                q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
-                q.HasKey(x => x.Id);
-                q.Property(x => x.Id).ValueGeneratedNever();
-                q.Property(x => x.Query).IsRequired();
-                q.ToTable("Product_RuSearchQueries");
-            });
-        });
+        // Product теперь принадлежит WriteModelDbContext (см. Server.Adapters.Driven.EF.WriteModel).
+        // Lot/IgnoredLot/ProductPassport/ProductEmailSendHistory всё ещё легаси и хранят только ProductId -
+        // навигации на Product здесь запрещены глобально, иначе тип попал бы в модель этого контекста
+        // через конвенцию и конфликтовал бы с wm-схемой.
+        builder.Ignore<Product>();
 
         builder.Entity<Purchase>()
             .Property(o => o.PurchaseCalculationResult)
@@ -132,8 +101,6 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
             entity.HasKey(e => new { e.LotId, e.Date });
         });
     }
-
-    public DbSet<Product> Products { get; set; } = null!;
 
     public DbSet<Lot> Lots { get; set; } = null!;
 

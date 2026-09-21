@@ -4,10 +4,13 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Server.Application.Abstractions.Driven.Abstractions;
+using Server.Domain;
 using Server.Domain.Abstractions;
 using Server.Domain.LotForSale;
 using Server.Domain.Measurements;
+using Server.Domain.Product;
 
 namespace Server.Adapters.Driven.EF.WriteModel;
 
@@ -159,6 +162,45 @@ public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
                 .HasForeignKey(x => x.Measurement2Id)
                 .OnDelete(DeleteBehavior.Restrict);
         });
+
+        modelBuilder.Entity<Product>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Id)
+                .ValueGeneratedNever();
+
+            entity.Property(x => x.Name)
+                .IsRequired();
+
+            entity.Property(x => x.ProductCalculationResult)
+                .HasConversion(new ValueConverter<ProductCalculationResult?, string>(
+                    v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<ProductCalculationResult?>(v, (JsonSerializerOptions?)null)));
+
+            entity.Navigation(p => p.SearchQueries)
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
+            entity.Navigation(p => p.RuSearchQueries)
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            entity.OwnsMany(p => p.SearchQueries, q =>
+            {
+                q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
+                q.HasKey(x => x.Id);
+                q.Property(x => x.Id).ValueGeneratedNever();
+                q.Property(x => x.Query).IsRequired();
+                q.ToTable("Product_SearchQueries");
+            });
+
+            entity.OwnsMany(p => p.RuSearchQueries, q =>
+            {
+                q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
+                q.HasKey(x => x.Id);
+                q.Property(x => x.Id).ValueGeneratedNever();
+                q.Property(x => x.Query).IsRequired();
+                q.ToTable("Product_RuSearchQueries");
+            });
+        });
     }
 
     public DbSet<LotForSale> LotForSales { get; set; } = null!;
@@ -166,6 +208,7 @@ public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
     public DbSet<ProductMeasurement> ProductMeasurements { get; set; } = null!;
     public DbSet<TubeWorkingPoint> TubeWorkingPoints { get; set; } = null!;
     public DbSet<MatchedPairDifference> MatchedPairDifferences { get; set; } = null!;
+    public DbSet<Product> Products { get; set; } = null!;
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
