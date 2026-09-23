@@ -4,7 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
-using Server.Application.Consumers.EbayCurvesCacheWarmUp;
+using Server.Application.Abstractions.Driving.Abstractions.Messages;
 using Server.Application.Infrastructure;
 
 namespace Server.Application.HostedServices.Measurements;

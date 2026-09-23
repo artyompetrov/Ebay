@@ -1,9 +1,10 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Server.Application.Abstractions.Driving.Abstractions.Messages;
 using Server.Application.New.MeasurementPlot;
 
-namespace Server.Application.Consumers.EbayCurvesCacheWarmUp;
+namespace Server.Adapters.Driving.MassTransit.Consumers.EbayCurvesCacheWarmUp;
 
 public class CalculateEbayCurvesForMeasurementConsumer : IConsumer<CalculateEbayCurvesForMeasurement>
 {
@@ -34,6 +35,10 @@ public class CalculateEbayCurvesForMeasurementConsumer : IConsumer<CalculateEbay
                 sellingOnly: false,
                 cancellationToken: context.CancellationToken);
         }
+        // TODO: DbUpdateException leaking here from ICacheStore's DbCache implementation is a driven-adapter
+        // (EF) detail this driving adapter shouldn't need to know about; once task 5.3 moves DbCache, this
+        // should be swallowed/translated at that boundary instead, so this catch (and the EF Core package
+        // reference it forces on this project) can be removed.
         catch (DbUpdateException ex)
         {
             _logger.LogWarning(ex, "Error while updating measurement cache entry");

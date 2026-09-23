@@ -1,3 +1,0 @@
-namespace Server.Application.Consumers.EbayCurvesCacheWarmUp;
-
-public record CalculateEbayCurvesForMeasurement(string MeasurementId);
