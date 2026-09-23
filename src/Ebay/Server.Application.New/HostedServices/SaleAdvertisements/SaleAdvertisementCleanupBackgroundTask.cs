@@ -1,10 +1,9 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Server.Application.Data;
-using Server.Application.Infrastructure;
+using Server.Application.Abstractions.Driven.Abstractions.Repositories;
+using Server.Application.New.Infrastructure;
 
-namespace Server.Application.HostedServices.SaleAdvertisements;
+namespace Server.Application.New.HostedServices.SaleAdvertisements;
 
 public class SaleAdvertisementCleanupBackgroundTask : BackgroundTask
 {
@@ -24,16 +23,10 @@ public class SaleAdvertisementCleanupBackgroundTask : BackgroundTask
     protected override async Task BackgroundTaskImplementation(CancellationToken cancellationToken)
     {
         using var scope = _serviceScopeFactory.CreateScope();
-        var applicationDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-        using var transaction = TransactionScopeFactory.Create();
+        var productEmailSendHistoryRepository = scope.ServiceProvider.GetRequiredService<IProductEmailSendHistoryRepository>();
 
         var staleThreshold = DateTimeOffset.UtcNow - WellKnown.SaleAdvertisements.RemoveAdvertisementAfter;
 
-        await applicationDbContext.ProductEmailSendHistory
-            .Where(e => e.CreatedAt < staleThreshold)
-            .ExecuteDeleteAsync(cancellationToken);
-
-        transaction.Complete();
+        await productEmailSendHistoryRepository.RemoveOlderThanAsync(staleThreshold, cancellationToken);
     }
 }

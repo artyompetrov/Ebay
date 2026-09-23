@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Server.Application.Infrastructure;
+namespace Server.Application.New.Infrastructure;
 
 public abstract class BackgroundTask : IHostedService, IDisposable
 {

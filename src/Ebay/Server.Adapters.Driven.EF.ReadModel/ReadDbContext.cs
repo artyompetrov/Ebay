@@ -110,6 +110,11 @@ internal sealed class ReadDbContext : DbContext
         {
             eb.ToTable("Currencies", "wm").HasKey(x => x.Id);
         });
+
+        b.Entity<ProductEmailSendHistoryView>(eb =>
+        {
+            eb.ToTable("ProductEmailSendHistories", "wm").HasKey(x => x.Id);
+        });
     }
 
     public DbSet<ProductMeasurementView> ProductMeasurements { get; set; } = null!;
@@ -129,4 +134,6 @@ internal sealed class ReadDbContext : DbContext
     public DbSet<LotView> Lots { get; set; } = null!;
 
     public DbSet<CurrencyView> Currencies { get; set; } = null!;
+
+    public DbSet<ProductEmailSendHistoryView> ProductEmailSendHistories { get; set; } = null!;
 }

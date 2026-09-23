@@ -2,7 +2,7 @@ using System.Net;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Server.Adapters.Driven.ChipFind;
-using Server.Application.HostedServices.ChipFind;
+using Server.Application.Abstractions.Driven.Models;
 using Tests.Shared;
 
 namespace Tests.Unit;

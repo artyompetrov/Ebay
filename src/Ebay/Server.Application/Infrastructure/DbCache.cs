@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Data;
+using Server.Application.New;
 
 namespace Server.Application.Infrastructure;
 

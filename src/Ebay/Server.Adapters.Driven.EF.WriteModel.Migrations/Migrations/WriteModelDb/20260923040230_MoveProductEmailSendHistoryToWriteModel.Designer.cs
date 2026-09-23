@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Server.Adapters.Driven.EF.WriteModel;
@@ -12,9 +13,11 @@ using Server.Adapters.Driven.EF.WriteModel;
 namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelDb
 {
     [DbContext(typeof(WriteModelDbContext))]
-    partial class WriteModelDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260923040230_MoveProductEmailSendHistoryToWriteModel")]
+    partial class MoveProductEmailSendHistoryToWriteModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

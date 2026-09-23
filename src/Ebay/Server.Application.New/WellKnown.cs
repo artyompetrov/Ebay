@@ -36,6 +36,30 @@ public static class WellKnown
         public const string ServiceKey = "measurement-image-cache";
     }
 
+    /// <summary>
+    /// Константы мониторинга объявлений о продаже на chipfind.ru.
+    /// </summary>
+    public static class ChipFind
+    {
+        public static readonly TimeSpan UpdateTime = TimeSpan.FromMinutes(20);
+        public static readonly TimeSpan ErrorDelay = TimeSpan.FromMinutes(5);
+        public const string Marketplace = "Chipfind";
+    }
+
+    /// <summary>
+    /// Константы очистки истории отправленных писем по объявлениям о продаже.
+    /// </summary>
+    public static class SaleAdvertisements
+    {
+        public static readonly TimeSpan UpdateTime = TimeSpan.FromDays(1);
+        public static readonly TimeSpan ErrorDelay = TimeSpan.FromMinutes(5);
+
+        /// <summary>
+        /// Время через которое не обновлявшиеся объявления о продаже считаются устаревшими и удаляются.
+        /// </summary>
+        public static readonly TimeSpan RemoveAdvertisementAfter = TimeSpan.FromDays(90);
+    }
+
     public static class PhotoBackfill
     {
         /// <summary>

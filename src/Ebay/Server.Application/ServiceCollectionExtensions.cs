@@ -7,11 +7,9 @@ using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
 using Server.Application.Controllers;
 using Server.Application.Data;
-using Server.Application.HostedServices.ChipFind;
 using Server.Application.HostedServices.Currencies;
 using Server.Application.HostedServices.DbCache;
 using Server.Application.HostedServices.Measurements;
-using Server.Application.HostedServices.SaleAdvertisements;
 using Server.Application.Infrastructure;
 using Server.Application.New;
 using Server.Controllers.Generated;
@@ -28,13 +26,6 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services)
     {
         var appAssembly = typeof(ServiceCollectionExtensions).Assembly;
-
-        services.AddOptions<EbayServerOptions>()
-            .BindConfiguration("EbayServer")
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-
-        services.AddSingleton(sp => sp.GetRequiredService<IOptions<EbayServerOptions>>().Value);
 
         services.AddOptions<ImageCacheOptions>()
             .BindConfiguration(ImageCacheOptions.SectionName)
@@ -65,8 +56,6 @@ public static class ServiceCollectionExtensions
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
         services.AddHostedService<CurrencyRateBackgroundTask>();
-        services.AddHostedService<ChipfindBackgroundTask>();
-        services.AddHostedService<SaleAdvertisementCleanupBackgroundTask>();
 
         services.AddHostedService<DbCacheCleanupHostedService>();
         services.AddHostedService<MeasurementPlotWarmupHostedService>();

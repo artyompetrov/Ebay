@@ -48,6 +48,7 @@ internal class EbayControllerImplementation : IEbayController
     private readonly ILotRepository _lotRepository;
     private readonly ILotQueries _lotQueries;
     private readonly ICurrencyQueries _currencyQueries;
+    private readonly IProductEmailSendHistoryQueries _productEmailSendHistoryQueries;
     private readonly IWriteModelUnitOfWork _writeModelUnitOfWork;
 
     public EbayControllerImplementation(
@@ -60,6 +61,7 @@ internal class EbayControllerImplementation : IEbayController
         ILotRepository lotRepository,
         ILotQueries lotQueries,
         ICurrencyQueries currencyQueries,
+        IProductEmailSendHistoryQueries productEmailSendHistoryQueries,
         IWriteModelUnitOfWork writeModelUnitOfWork)
     {
         _applicationContext = applicationContext;
@@ -71,6 +73,7 @@ internal class EbayControllerImplementation : IEbayController
         _lotRepository = lotRepository;
         _lotQueries = lotQueries;
         _currencyQueries = currencyQueries;
+        _productEmailSendHistoryQueries = productEmailSendHistoryQueries;
         _writeModelUnitOfWork = writeModelUnitOfWork;
     }
 
@@ -274,15 +277,11 @@ internal class EbayControllerImplementation : IEbayController
             throw NonOkHttpAnswerException.NotFound400();
         }
 
-        var ads = await _applicationContext.ProductEmailSendHistory
-            .AsNoTracking()
-            .Where(x => x.ProductId == productId)
-            .OrderByDescending(x => x.CreatedAt)
-            .ToListAsync(cancellationToken);
+        var ads = await _productEmailSendHistoryQueries.GetForProductAsync(productId, cancellationToken);
 
         return [.. ads
             .Select(x => new SaleAdvertisement(
-                createdAt: x.CreatedAt,
+                createdAt: x.AdvertisementDate,
                 isAmbiguous: x.IsAmbiguous,
                 link: x.Link,
                 marketplace: x.Marketplace,

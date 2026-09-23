@@ -1,13 +1,14 @@
 using System.Text.RegularExpressions;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Server.Application.Data;
-using Server.Application.Infrastructure;
-using Server.Application.New;
+using Server.Application.Abstractions.Driven.Abstractions;
+using Server.Application.Abstractions.Driven.Abstractions.Queries;
+using Server.Application.Abstractions.Driven.Abstractions.Repositories;
+using Server.Application.Abstractions.Driven.Models;
+using Server.Application.New.Infrastructure;
 using Server.Domain;
 
-namespace Server.Application.HostedServices.ChipFind;
+namespace Server.Application.New.HostedServices.ChipFind;
 
 public class ChipfindBackgroundTask : BackgroundTask
 {
@@ -40,14 +41,14 @@ public class ChipfindBackgroundTask : BackgroundTask
         }
 
         using var scope = _serviceScopeFactory.CreateScope();
-        var applicationDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var productEmailSendHistoryRepository = scope.ServiceProvider.GetRequiredService<IProductEmailSendHistoryRepository>();
+        var productEmailSendHistoryQueries = scope.ServiceProvider.GetRequiredService<IProductEmailSendHistoryQueries>();
+        var unitOfWork = scope.ServiceProvider.GetRequiredService<IWriteModelUnitOfWork>();
         var chipfindAdapter = scope.ServiceProvider.GetRequiredService<IChipfindAdapter>();
         var emailSender = scope.ServiceProvider.GetRequiredService<IEmailSender>();
-        var productQueries = scope.ServiceProvider.GetRequiredService<ProductService>();
+        var productService = scope.ServiceProvider.GetRequiredService<ProductService>();
 
-        var products = await GetProducts(
-            cancellationToken: cancellationToken,
-            productQueries: productQueries);
+        var products = await GetProducts(cancellationToken: cancellationToken, productService: productService);
 
         var recentAdvertisements = await chipfindAdapter.GetRecentSaleAdvertisements(cancellationToken);
 
@@ -59,7 +60,9 @@ public class ChipfindBackgroundTask : BackgroundTask
                 cancellationToken: cancellationToken,
                 saleAdvertisement: saleAdvertisement,
                 products: products,
-                applicationDbContext: applicationDbContext);
+                productEmailSendHistoryRepository: productEmailSendHistoryRepository,
+                productEmailSendHistoryQueries: productEmailSendHistoryQueries,
+                unitOfWork: unitOfWork);
         }
     }
 
@@ -68,12 +71,15 @@ public class ChipfindBackgroundTask : BackgroundTask
         IChipfindAdapter chipfindAdapter,
         SaleAdvertisement saleAdvertisement,
         IReadOnlyCollection<ProductInner> products,
-        ApplicationDbContext applicationDbContext,
+        IProductEmailSendHistoryRepository productEmailSendHistoryRepository,
+        IProductEmailSendHistoryQueries productEmailSendHistoryQueries,
+        IWriteModelUnitOfWork unitOfWork,
         CancellationToken cancellationToken)
     {
-        using var transaction = TransactionScopeFactory.Create();
-
         var newInterestingAds = new HashSet<(bool IsAmbiguous, string Ad, string? Contact)>();
+        // Кеш агрегатов, уже загруженных или созданных в рамках обработки этого объявления -
+        // один продавец может встретиться в нескольких items объявления, а запись ещё не сохранена в БД.
+        var historyByProductId = new Dictionary<Guid, ProductEmailSendHistory>();
         string? advertisementContact = null;
 
         foreach (var saleAdvertisementItem in saleAdvertisement.Items)
@@ -95,40 +101,32 @@ public class ChipfindBackgroundTask : BackgroundTask
 
             foreach (var product in matchesWithProducts)
             {
-                var record = applicationDbContext.ProductEmailSendHistory
-                    .Local
-                    .FirstOrDefault(
-                        e =>
-                            e.ProductId == product.ProductId &&
-                            e.Seller == saleAdvertisement.Seller &&
-                            e.Marketplace == WellKnown.ChipFind.Marketplace)
-                    ?? await applicationDbContext.ProductEmailSendHistory
-                        .FirstOrDefaultAsync(
-                            e =>
-                                e.ProductId == product.ProductId &&
-                                e.Seller == saleAdvertisement.Seller &&
-                                e.Marketplace == WellKnown.ChipFind.Marketplace,
-                            cancellationToken);
+                if (!historyByProductId.TryGetValue(product.ProductId, out var record))
+                {
+                    var existingId = await productEmailSendHistoryQueries.FindIdAsync(
+                        productId: product.ProductId,
+                        seller: saleAdvertisement.Seller,
+                        marketplace: WellKnown.ChipFind.Marketplace,
+                        cancellationToken: cancellationToken);
+
+                    record = existingId is null
+                        ? null
+                        : await productEmailSendHistoryRepository.GetByIdAsync(existingId.Value, cancellationToken);
+                }
 
                 if (record is null)
                 {
-                    var newRecord = new ProductEmailSendHistory
-                    {
-                        ProductId = product.ProductId,
-                        Seller = saleAdvertisement.Seller,
-                        Link = saleAdvertisement.Link.ToString(),
-                        CreatedAt = saleAdvertisement.Date,
-                        Marketplace = WellKnown.ChipFind.Marketplace,
-                        IsAmbiguous = isAmbiguous
-                    };
+                    var newRecord = ProductEmailSendHistory.Create(
+                        productId: product.ProductId,
+                        seller: saleAdvertisement.Seller,
+                        link: saleAdvertisement.Link.ToString(),
+                        marketplace: WellKnown.ChipFind.Marketplace,
+                        isAmbiguous: isAmbiguous,
+                        advertisementDate: saleAdvertisement.Date,
+                        contact: string.IsNullOrWhiteSpace(advertisementContact) ? null : advertisementContact);
 
-                    //todo по идее эту проверку надо делать через инвариант агрегата
-                    if (!string.IsNullOrWhiteSpace(advertisementContact))
-                    {
-                        newRecord.Contact = advertisementContact;
-                    }
-
-                    applicationDbContext.ProductEmailSendHistory.Add(newRecord);
+                    await productEmailSendHistoryRepository.AddAsync(newRecord, cancellationToken);
+                    historyByProductId[product.ProductId] = newRecord;
 
                     if (product.IsInteresting)
                     {
@@ -137,18 +135,17 @@ public class ChipfindBackgroundTask : BackgroundTask
                 }
                 else
                 {
-                    record.Link = saleAdvertisement.Link.ToString();
-                    record.CreatedAt = saleAdvertisement.Date;
-                    record.IsAmbiguous = isAmbiguous;
-                    if (!string.IsNullOrWhiteSpace(advertisementContact))
-                    {
-                        record.Contact = advertisementContact;
-                    }
+                    record.UpdateForNewAdvertisement(
+                        link: saleAdvertisement.Link.ToString(),
+                        advertisementDate: saleAdvertisement.Date,
+                        isAmbiguous: isAmbiguous,
+                        contact: advertisementContact);
+                    historyByProductId[product.ProductId] = record;
                 }
             }
         }
 
-        await applicationDbContext.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         if (newInterestingAds.Count > 0)
         {
@@ -168,15 +165,13 @@ public class ChipfindBackgroundTask : BackgroundTask
 
             await Task.Delay(millisecondsDelay: DelayMilliseconds, cancellationToken: cancellationToken);
         }
-
-        transaction.Complete();
     }
 
     private static async Task<IReadOnlyCollection<ProductInner>> GetProducts(
-        ProductService productQueries,
+        ProductService productService,
         CancellationToken cancellationToken)
     {
-        var products = await productQueries.GetAllProductsAsync(cancellationToken);
+        var products = await productService.GetAllProductsAsync(cancellationToken);
 
         var productsArray = products.Select(x => new ProductInner(
                 ProductId: x.Data.Id,

@@ -285,6 +285,32 @@ public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
                 p.ToTable("Lot_Purchases");
             });
         });
+
+        modelBuilder.Entity<ProductEmailSendHistory>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Id)
+                .ValueGeneratedNever();
+
+            entity.Property(x => x.Seller)
+                .IsRequired();
+
+            entity.Property(x => x.Link)
+                .IsRequired();
+
+            entity.Property(x => x.Marketplace)
+                .IsRequired();
+
+            entity.HasOne<Product>()
+                .WithMany()
+                .HasForeignKey(x => x.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(x => x.ProductId);
+            entity.HasIndex(x => new { x.ProductId, x.Seller, x.Marketplace }).IsUnique();
+            entity.HasIndex(x => x.AdvertisementDate);
+        });
     }
 
     public DbSet<LotForSale> LotForSales { get; set; } = null!;
@@ -295,6 +321,7 @@ public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
     public DbSet<Product> Products { get; set; } = null!;
     public DbSet<Currency> Currencies { get; set; } = null!;
     public DbSet<Lot> Lots { get; set; } = null!;
+    public DbSet<ProductEmailSendHistory> ProductEmailSendHistories { get; set; } = null!;
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

@@ -4,7 +4,8 @@ using OpenExchangeRates;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
-using Server.Application.Infrastructure;
+using Server.Application.New;
+using Server.Application.New.Infrastructure;
 
 namespace Server.Application.HostedServices.Currencies;
 

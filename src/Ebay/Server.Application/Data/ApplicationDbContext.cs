@@ -49,23 +49,15 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
         builder.AddOutboxMessageEntity();
         builder.AddOutboxStateEntity();
 
-        // Product/Lot/Currency теперь принадлежат WriteModelDbContext (см. Server.Adapters.Driven.EF.WriteModel).
-        // IgnoredLot/ProductPassport/ProductEmailSendHistory всё ещё легаси и хранят только ProductId -
-        // навигации на эти типы здесь запрещены глобально, иначе они попали бы в модель этого контекста
-        // через конвенцию и конфликтовали бы с wm-схемой. Purchase владеется Lot (owned collection), поэтому
-        // отдельного Ignore не требует - он больше нигде в этом контексте не достижим.
+        // Product/Lot/Currency/ProductEmailSendHistory теперь принадлежат WriteModelDbContext (см.
+        // Server.Adapters.Driven.EF.WriteModel). IgnoredLot/ProductPassport всё ещё легаси и хранят только
+        // ProductId - навигации на эти типы здесь запрещены глобально, иначе они попали бы в модель этого
+        // контекста через конвенцию и конфликтовали бы с wm-схемой. Purchase владеется Lot (owned collection),
+        // поэтому отдельного Ignore не требует - он больше нигде в этом контексте не достижим.
         builder.Ignore<Product>();
         builder.Ignore<Lot>();
         builder.Ignore<Currency>();
-
-        builder.Entity<ProductEmailSendHistory>(entity =>
-        {
-            entity.ToTable("SaleAdvertisements");
-            entity.HasIndex(e => e.ProductId);
-            entity.HasIndex(e => new { e.ProductId, e.Seller, e.Marketplace }).IsUnique();
-            entity.HasIndex(e => e.CreatedAt);
-            entity.Property(e => e.IsAmbiguous).HasDefaultValue(false);
-        });
+        builder.Ignore<ProductEmailSendHistory>();
 
         builder.Entity<CacheEntry>(entity =>
         {
@@ -88,8 +80,6 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
     public DbSet<ClientError> ClientErrors { get; set; } = null!;
 
     public DbSet<ProductPassport> ProductPassports { get; set; } = null!;
-
-    public DbSet<ProductEmailSendHistory> ProductEmailSendHistory { get; set; } = null!;
 
     public DbSet<CacheEntry> CacheEntries { get; set; } = null!;
 
