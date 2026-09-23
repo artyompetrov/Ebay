@@ -4,6 +4,7 @@ using Server.Application.Abstractions.Driving.Abstractions.Services;
 using Server.Application.New.Caching;
 using Server.Application.New.HostedServices;
 using Server.Application.New.HostedServices.ChipFind;
+using Server.Application.New.HostedServices.Currencies;
 using Server.Application.New.HostedServices.SaleAdvertisements;
 using Server.Application.New.LotForSale;
 using Server.Application.New.MatchedPairs;
@@ -54,6 +55,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IProductMetricsCalculator, ProductMetricsCalculator>();
         services.AddHostedService<ChipfindBackgroundTask>();
         services.AddHostedService<SaleAdvertisementCleanupBackgroundTask>();
+        services.AddHostedService<CurrencyRateBackgroundTask>();
 #pragma warning disable CS0618 // Обсолетный одноразовый backfill - регистрация будет удалена вместе с ним, см. класс.
         services.AddHostedService<MeasurementPhotoOriginalSizeBackfillHostedService>();
 #pragma warning restore CS0618

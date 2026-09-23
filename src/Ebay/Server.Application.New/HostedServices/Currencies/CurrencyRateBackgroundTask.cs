@@ -1,13 +1,11 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using OpenExchangeRates;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
-using Server.Application.New;
 using Server.Application.New.Infrastructure;
 
-namespace Server.Application.HostedServices.Currencies;
+namespace Server.Application.New.HostedServices.Currencies;
 
 public class CurrencyRateBackgroundTask : BackgroundTask
 {
@@ -40,26 +38,26 @@ public class CurrencyRateBackgroundTask : BackgroundTask
         using var scope = _serviceScopeFactory.CreateScope();
         var currencyQueries = scope.ServiceProvider.GetRequiredService<ICurrencyQueries>();
         var currencyRepository = scope.ServiceProvider.GetRequiredService<ICurrencyRepository>();
+        var currencyRateSource = scope.ServiceProvider.GetRequiredService<ICurrencyRateSource>();
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IWriteModelUnitOfWork>();
 
         var currencies = await currencyQueries.GetAllCurrenciesAsync(cancellationToken);
 
-        using var client = new OpenExchangeRatesClient(WellKnown.CurrencyRate.AppId);
-
-        var response = await client.GetLatestRatesAsync(
+        var rates = await currencyRateSource.GetLatestRatesAsync(
             baseCurrency: WellKnown.CurrencyRate.BaseCurrency,
-            currencies: currencies.Select(x => x.CurrencyApiName),
-            cancellationToken: cancellationToken) ?? throw new InvalidOperationException("Server returned null response");
+            currencyApiNames: currencies.Select(x => x.CurrencyApiName),
+            cancellationToken: cancellationToken);
+
         var currencyByApiName = currencies.ToDictionary(x => x.CurrencyApiName);
 
         var currentTime = DateTimeOffset.UtcNow;
-        foreach (var (apiCurrencyName, value) in response.Rates)
+        foreach (var (apiCurrencyName, value) in rates)
         {
             var currency = currencyByApiName[apiCurrencyName];
 
             var dbCurrency = await currencyRepository.GetByIdAsync(currency.CurrencyEbayName, cancellationToken) ??
                               throw new InvalidOperationException($"Currency {currency.CurrencyEbayName} not found");
-            dbCurrency.UpdateRate(decimal.ToDouble(value), currentTime);
+            dbCurrency.UpdateRate(value, currentTime);
         }
 
         await unitOfWork.SaveChangesAsync(cancellationToken);

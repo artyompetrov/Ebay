@@ -37,6 +37,16 @@ public static class WellKnown
     }
 
     /// <summary>
+    /// Константы обновления курсов валют.
+    /// </summary>
+    public static class CurrencyRate
+    {
+        public const string BaseCurrency = "USD";
+        public static readonly TimeSpan UpdateTime = TimeSpan.FromHours(12);
+        public static readonly TimeSpan ErrorDelay = TimeSpan.FromMinutes(5);
+    }
+
+    /// <summary>
     /// Константы мониторинга объявлений о продаже на chipfind.ru.
     /// </summary>
     public static class ChipFind

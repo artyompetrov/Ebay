@@ -13,14 +13,6 @@ internal static class WellKnown
         public static string UsDollar = "USD";
     }
 
-    public static class CurrencyRate
-    {
-        public static string BaseCurrency = "USD";
-        public static TimeSpan UpdateTime = TimeSpan.FromHours(12);
-        public static TimeSpan ErrorDelay = TimeSpan.FromMinutes(5);
-        public static string AppId = "2d0b695db0cb4dbab40a85a91a88bd24";
-    }
-
     public static class Ebay
     {
         public const double скидкаНаПродажиСНеизвестнойЦеной = 0.2;
