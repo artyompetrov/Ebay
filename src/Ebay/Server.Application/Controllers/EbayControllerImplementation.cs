@@ -49,6 +49,8 @@ internal class EbayControllerImplementation : IEbayController
     private readonly ILotQueries _lotQueries;
     private readonly ICurrencyQueries _currencyQueries;
     private readonly IProductEmailSendHistoryQueries _productEmailSendHistoryQueries;
+    private readonly IProductPassportRepository _productPassportRepository;
+    private readonly IPassportQueries _passportQueries;
     private readonly IWriteModelUnitOfWork _writeModelUnitOfWork;
 
     public EbayControllerImplementation(
@@ -62,6 +64,8 @@ internal class EbayControllerImplementation : IEbayController
         ILotQueries lotQueries,
         ICurrencyQueries currencyQueries,
         IProductEmailSendHistoryQueries productEmailSendHistoryQueries,
+        IProductPassportRepository productPassportRepository,
+        IPassportQueries passportQueries,
         IWriteModelUnitOfWork writeModelUnitOfWork)
     {
         _applicationContext = applicationContext;
@@ -74,6 +78,8 @@ internal class EbayControllerImplementation : IEbayController
         _lotQueries = lotQueries;
         _currencyQueries = currencyQueries;
         _productEmailSendHistoryQueries = productEmailSendHistoryQueries;
+        _productPassportRepository = productPassportRepository;
+        _passportQueries = passportQueries;
         _writeModelUnitOfWork = writeModelUnitOfWork;
     }
 
@@ -81,12 +87,9 @@ internal class EbayControllerImplementation : IEbayController
         Guid productId,
         CancellationToken cancellationToken)
     {
-        return await _applicationContext.ProductPassports
-            .AsNoTracking()
-            .Where(x => x.ProductId == productId)
-            .OrderBy(x => x.Order)
-            .Select(x => new ProductPassportInfo(x.FileName, x.Id, x.Order))
-            .ToListAsync(cancellationToken);
+        var passports = await _passportQueries.GetPassports(productId, cancellationToken);
+
+        return [.. passports.Select(x => new ProductPassportInfo(x.FileName, x.Id, x.Order))];
     }
 
     public async Task UploadProductPassportAsync(
@@ -94,24 +97,22 @@ internal class EbayControllerImplementation : IEbayController
         Guid productId,
         CancellationToken cancellationToken)
     {
-        var order = passport.Order ??
-            ((await _applicationContext.ProductPassports
-                .Where(x => x.ProductId == productId)
-                .Select(x => (int?)x.Order)
-                .MaxAsync(cancellationToken)) ?? -1) + 1;
-
-        var entity = new ProductPassport
+        var order = passport.Order;
+        if (order == null)
         {
-            Id = Guid.NewGuid(),
-            ProductId = productId,
-            FileName = passport.FileName,
-            ContentType = passport.ContentType,
-            Order = order,
-            Content = passport.File
-        };
+            var existingPassports = await _passportQueries.GetPassports(productId, cancellationToken);
+            order = (existingPassports.Count == 0 ? -1 : existingPassports.Max(x => x.Order)) + 1;
+        }
 
-        await _applicationContext.ProductPassports.AddAsync(entity, cancellationToken);
-        await _applicationContext.SaveChangesAsync(cancellationToken);
+        var entity = ProductPassport.Create(
+            productId: productId,
+            fileName: passport.FileName,
+            contentType: passport.ContentType,
+            order: order.Value,
+            content: passport.File);
+
+        await _productPassportRepository.AddAsync(entity, cancellationToken);
+        await _writeModelUnitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     public async Task DeleteProductPassportAsync(
@@ -119,22 +120,20 @@ internal class EbayControllerImplementation : IEbayController
         Guid passportId,
         CancellationToken cancellationToken)
     {
-        var passport = await _applicationContext.ProductPassports
-            .SingleOrDefaultAsync(x => x.ProductId == productId && x.Id == passportId, cancellationToken) ?? throw NonOkHttpAnswerException.NotFound400();
-        var order = passport.Order;
+        var passports = await _passportQueries.GetPassports(productId, cancellationToken);
+        var passport = passports.SingleOrDefault(x => x.Id == passportId) ?? throw NonOkHttpAnswerException.NotFound400();
 
-        _applicationContext.ProductPassports.Remove(passport);
+        await _productPassportRepository.RemoveAsync(passportId, cancellationToken);
 
-        var passportsToUpdate = await _applicationContext.ProductPassports
-            .Where(x => x.ProductId == productId && x.Order > order)
-            .ToListAsync(cancellationToken);
-
-        foreach (var p in passportsToUpdate)
+        var passportsToDecrement = passports.Where(x => x.Order > passport.Order);
+        foreach (var p in passportsToDecrement)
         {
-            p.Order--;
+            var tracked = await _productPassportRepository.GetByIdAsync(p.Id, cancellationToken) ??
+                          throw new InvalidOperationException($"ProductPassport {p.Id} not found");
+            tracked.SetOrder(tracked.Order - 1);
         }
 
-        await _applicationContext.SaveChangesAsync(cancellationToken);
+        await _writeModelUnitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<TubeWorkingPoint> GetTubeWorkingPointAsync(
@@ -180,37 +179,31 @@ internal class EbayControllerImplementation : IEbayController
         Guid passportId,
         CancellationToken cancellationToken)
     {
-        var entity = await _applicationContext.ProductPassports
-            .SingleOrDefaultAsync(x => x.ProductId == productId && x.Id == passportId, cancellationToken) ?? throw NonOkHttpAnswerException.NotFound400();
-        if (entity.Order == passport.Order)
+        var passports = await _passportQueries.GetPassports(productId, cancellationToken);
+        var current = passports.SingleOrDefault(x => x.Id == passportId) ?? throw NonOkHttpAnswerException.NotFound400();
+
+        if (current.Order == passport.Order)
         {
             return;
         }
 
-        var minOrder = Math.Min(entity.Order, passport.Order);
-        var maxOrder = Math.Max(entity.Order, passport.Order);
+        var minOrder = Math.Min(current.Order, passport.Order);
+        var maxOrder = Math.Max(current.Order, passport.Order);
+        var affected = passports.Where(x => x.Id != passportId && x.Order >= minOrder && x.Order <= maxOrder);
 
-        var affected = await _applicationContext.ProductPassports
-            .Where(x => x.ProductId == productId && x.Id != passportId && x.Order >= minOrder && x.Order <= maxOrder)
-            .ToListAsync(cancellationToken);
-
-        if (passport.Order < entity.Order)
+        var orderShift = passport.Order < current.Order ? 1 : -1;
+        foreach (var p in affected)
         {
-            foreach (var p in affected)
-            {
-                p.Order++;
-            }
-        }
-        else
-        {
-            foreach (var p in affected)
-            {
-                p.Order--;
-            }
+            var tracked = await _productPassportRepository.GetByIdAsync(p.Id, cancellationToken) ??
+                          throw new InvalidOperationException($"ProductPassport {p.Id} not found");
+            tracked.SetOrder(tracked.Order + orderShift);
         }
 
-        entity.Order = passport.Order;
-        await _applicationContext.SaveChangesAsync(cancellationToken);
+        var entity = await _productPassportRepository.GetByIdAsync(passportId, cancellationToken) ??
+                     throw new InvalidOperationException($"ProductPassport {passportId} not found");
+        entity.SetOrder(passport.Order);
+
+        await _writeModelUnitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<ICollection<ProductWithId>> GetAllProductsAsync(CancellationToken cancellationToken)

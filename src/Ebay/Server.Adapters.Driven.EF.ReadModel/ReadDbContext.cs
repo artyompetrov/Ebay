@@ -25,7 +25,7 @@ internal sealed class ReadDbContext : DbContext
 
         b.Entity<ProductPassportView>(eb =>
         {
-            eb.ToView("ProductPassports").HasKey(x => x.Id);
+            eb.ToView("ProductPassports", "wm").HasKey(x => x.Id);
         });
 
         b.Entity<ProductView>(eb =>

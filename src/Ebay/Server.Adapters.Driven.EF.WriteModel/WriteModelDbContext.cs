@@ -317,6 +317,32 @@ public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
             entity.ToTable("CacheEntries");
             entity.HasKey(x => new { x.Key, x.Version });
         });
+
+        modelBuilder.Entity<ProductPassport>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Id)
+                .ValueGeneratedNever();
+
+            entity.Property(x => x.FileName)
+                .HasMaxLength(200)
+                .IsRequired();
+
+            entity.Property(x => x.ContentType)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(x => x.Content)
+                .IsRequired();
+
+            entity.HasOne<Product>()
+                .WithMany()
+                .HasForeignKey(x => x.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(x => new { x.ProductId, x.Order });
+        });
     }
 
     public DbSet<LotForSale> LotForSales { get; set; } = null!;
@@ -328,6 +354,7 @@ public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
     public DbSet<Currency> Currencies { get; set; } = null!;
     public DbSet<Lot> Lots { get; set; } = null!;
     public DbSet<ProductEmailSendHistory> ProductEmailSendHistories { get; set; } = null!;
+    public DbSet<ProductPassport> ProductPassports { get; set; } = null!;
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

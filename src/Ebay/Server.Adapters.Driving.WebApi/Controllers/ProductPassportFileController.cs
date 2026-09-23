@@ -1,18 +1,17 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Server.Application.Data;
+using Server.Application.Abstractions.Driven.Abstractions.Queries;
 
-namespace Server.Application.Controllers;
+namespace Server.Adapters.Driving.WebApi.Controllers;
 
 [ApiController]
 public class ProductPassportFileController : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IPassportQueries _passportQueries;
 
-    public ProductPassportFileController(ApplicationDbContext context)
+    public ProductPassportFileController(IPassportQueries passportQueries)
     {
-        _context = context;
+        _passportQueries = passportQueries;
     }
 
     [HttpGet("/products/{productId}/passports/{passportId}")]
@@ -22,11 +21,7 @@ public class ProductPassportFileController : ControllerBase
         Guid passportId,
         CancellationToken cancellationToken)
     {
-        var passport = await _context.ProductPassports
-            .AsNoTracking()
-            .SingleOrDefaultAsync(
-                predicate: x => x.ProductId == productId && x.Id == passportId,
-                cancellationToken: cancellationToken);
+        var passport = await _passportQueries.GetPassportFileAsync(productId, passportId, cancellationToken);
 
         if (passport == null)
         {

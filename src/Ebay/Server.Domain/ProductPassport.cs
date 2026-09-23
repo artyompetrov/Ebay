@@ -1,23 +1,55 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using Server.Domain.Abstractions;
 
 namespace Server.Domain;
 
-public sealed class ProductPassport
+/// <summary>
+/// Файл паспорта товара (например, сертификат или техническое описание).
+/// </summary>
+public sealed class ProductPassport : AggregateRoot<Guid>
 {
-    [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
-    public Guid Id { get; set; }
+    private ProductPassport(
+        Guid id,
+        Guid productId,
+        string fileName,
+        string contentType,
+        int order,
+        byte[] content)
+        : base(id)
+    {
+        ProductId = productId;
+        FileName = fileName;
+        ContentType = contentType;
+        Order = order;
+        Content = content;
+    }
 
-    public Guid ProductId { get; set; }
-    public Product.Product Product { get; set; } = null!;
+    public static ProductPassport Create(
+        Guid productId,
+        string fileName,
+        string contentType,
+        int order,
+        byte[] content) =>
+        new(
+            id: Guid.NewGuid(),
+            productId: productId,
+            fileName: fileName,
+            contentType: contentType,
+            order: order,
+            content: content);
 
-    [MaxLength(200)]
-    public required string FileName { get; set; } = null!;
+    public Guid ProductId { get; }
 
-    [MaxLength(100)]
-    public required string ContentType { get; set; } = null!;
+    public string FileName { get; }
 
-    public int Order { get; set; }
+    public string ContentType { get; }
 
-    public required byte[] Content { get; set; } = null!;
+    public int Order { get; private set; }
+
+    public byte[] Content { get; }
+
+    /// <summary>
+    /// Устанавливает новый порядковый номер - используется при удалении соседних паспортов (сдвиг, чтобы не
+    /// оставлять пропуски) и при явном изменении порядка паспортов товара.
+    /// </summary>
+    public void SetOrder(int order) => Order = order;
 }

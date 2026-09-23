@@ -5,4 +5,5 @@ namespace Server.Application.Abstractions.Driven.Models;
 /// </summary>
 /// <param name="Id">Идентификатор паспорта.</param>
 /// <param name="FileName">Имя файла паспорта.</param>
-public record Passport(Guid Id, string FileName);
+/// <param name="Order">Порядковый номер паспорта среди паспортов товара.</param>
+public record Passport(Guid Id, string FileName, int Order);
