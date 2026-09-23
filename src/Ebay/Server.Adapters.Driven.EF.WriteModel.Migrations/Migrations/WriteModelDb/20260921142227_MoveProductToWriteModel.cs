@@ -153,11 +153,83 @@ namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelD
                          ON DELETE RESTRICT;
                      END $$;
                      """);
+
+            // DropLegacyProductForeignKeysAfterProductMove (legacy migration, runs first per Program.cs's
+            // migration order) already dropped the old FK_Lots_Products_ProductId/FK_IgnoredLots_..._ProductId/
+            // FK_ProductPassports_..._ProductId/FK_SaleAdvertisements_..._ProductId (they pointed at the legacy
+            // "Products" table, which stops being written to once Product is cut over). Re-add them here,
+            // pointing at wm."Products", so these still-legacy tables keep referential integrity against the
+            // table that now actually owns Product; RESTRICT (not the original CASCADE) per AGENTS.md's rule
+            // that cross-aggregate FKs use RESTRICT, not CASCADE.
+            migrationBuilder.Sql(
+                sql: """
+                     DO $$
+                     BEGIN
+                         IF NOT EXISTS (
+                             SELECT 1
+                             FROM pg_constraint
+                             WHERE conname = 'FK_Lots_Products_ProductId'
+                               AND conrelid = '"Lots"'::regclass) THEN
+                             ALTER TABLE "Lots"
+                             ADD CONSTRAINT "FK_Lots_Products_ProductId"
+                             FOREIGN KEY ("ProductId")
+                             REFERENCES wm."Products"("Id")
+                             ON DELETE RESTRICT;
+                         END IF;
+
+                         IF NOT EXISTS (
+                             SELECT 1
+                             FROM pg_constraint
+                             WHERE conname = 'FK_IgnoredLots_Products_ProductId'
+                               AND conrelid = '"IgnoredLots"'::regclass) THEN
+                             ALTER TABLE "IgnoredLots"
+                             ADD CONSTRAINT "FK_IgnoredLots_Products_ProductId"
+                             FOREIGN KEY ("ProductId")
+                             REFERENCES wm."Products"("Id")
+                             ON DELETE RESTRICT;
+                         END IF;
+
+                         IF NOT EXISTS (
+                             SELECT 1
+                             FROM pg_constraint
+                             WHERE conname = 'FK_ProductPassports_Products_ProductId'
+                               AND conrelid = '"ProductPassports"'::regclass) THEN
+                             ALTER TABLE "ProductPassports"
+                             ADD CONSTRAINT "FK_ProductPassports_Products_ProductId"
+                             FOREIGN KEY ("ProductId")
+                             REFERENCES wm."Products"("Id")
+                             ON DELETE RESTRICT;
+                         END IF;
+
+                         IF NOT EXISTS (
+                             SELECT 1
+                             FROM pg_constraint
+                             WHERE conname = 'FK_SaleAdvertisements_Products_ProductId'
+                               AND conrelid = '"SaleAdvertisements"'::regclass) THEN
+                             ALTER TABLE "SaleAdvertisements"
+                             ADD CONSTRAINT "FK_SaleAdvertisements_Products_ProductId"
+                             FOREIGN KEY ("ProductId")
+                             REFERENCES wm."Products"("Id")
+                             ON DELETE RESTRICT;
+                         END IF;
+                     END $$;
+                     """);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            // Drop the FKs this migration pointed at wm."Products" before dropping that table below;
+            // DropLegacyProductForeignKeysAfterProductMove.Down() re-adds them against the legacy "Products"
+            // table once it is rolled back in turn.
+            migrationBuilder.Sql(
+                sql: """
+                     ALTER TABLE "Lots" DROP CONSTRAINT "FK_Lots_Products_ProductId";
+                     ALTER TABLE "IgnoredLots" DROP CONSTRAINT "FK_IgnoredLots_Products_ProductId";
+                     ALTER TABLE "ProductPassports" DROP CONSTRAINT "FK_ProductPassports_Products_ProductId";
+                     ALTER TABLE "SaleAdvertisements" DROP CONSTRAINT "FK_SaleAdvertisements_Products_ProductId";
+                     """);
+
             migrationBuilder.Sql(
                 sql: """
                      ALTER TABLE wm."ProductMeasurements"
