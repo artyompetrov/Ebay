@@ -343,6 +343,30 @@ public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
 
             entity.HasIndex(x => new { x.ProductId, x.Order });
         });
+
+        modelBuilder.Entity<IgnoredLot>(entity =>
+        {
+            entity.HasKey(x => new { x.ProductId, x.LotId });
+
+            entity.HasOne<Product>()
+                .WithMany()
+                .HasForeignKey(x => x.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ClientError>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Id)
+                .ValueGeneratedNever();
+
+            entity.Property(x => x.Url)
+                .IsRequired();
+
+            entity.Property(x => x.ErrorText)
+                .IsRequired();
+        });
     }
 
     public DbSet<LotForSale> LotForSales { get; set; } = null!;
@@ -355,6 +379,8 @@ public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
     public DbSet<Lot> Lots { get; set; } = null!;
     public DbSet<ProductEmailSendHistory> ProductEmailSendHistories { get; set; } = null!;
     public DbSet<ProductPassport> ProductPassports { get; set; } = null!;
+    public DbSet<IgnoredLot> IgnoredLots { get; set; } = null!;
+    public DbSet<ClientError> ClientErrors { get; set; } = null!;
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

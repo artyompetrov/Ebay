@@ -50,6 +50,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICurrencyRepository, CurrencyRepository>();
         services.AddScoped<IProductEmailSendHistoryRepository, ProductEmailSendHistoryRepository>();
         services.AddScoped<IProductPassportRepository, ProductPassportRepository>();
+        services.AddScoped<IIgnoredLotRepository, IgnoredLotRepository>();
+        services.AddScoped<IClientErrorRepository, ClientErrorRepository>();
         services.AddScoped<IMeasurementPhotoRepository, MeasurementPhotoRepository>();
         services.AddScoped<IWriteModelUnitOfWork>(sp => sp.GetRequiredService<WriteModelDbContext>());
     }

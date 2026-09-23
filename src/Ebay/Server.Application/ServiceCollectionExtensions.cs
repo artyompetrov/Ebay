@@ -4,11 +4,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Server.Application.Abstractions.Driven.Abstractions;
-using Server.Application.Abstractions.Driving.Abstractions.Services;
-using Server.Application.Controllers;
 using Server.Application.Data;
 using Server.Application.New;
-using Server.Controllers.Generated;
 
 namespace Server.Application;
 
@@ -21,8 +18,6 @@ public static class ServiceCollectionExtensions
     public static void AddApplicationServices(
         this IServiceCollection services)
     {
-        var appAssembly = typeof(ServiceCollectionExtensions).Assembly;
-
         services.AddOptions<ImageCacheOptions>()
             .BindConfiguration(ImageCacheOptions.SectionName)
             .ValidateDataAnnotations()
@@ -38,18 +33,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ApplicationDbContext>());
         services.AddApplicationNewServices();
 
-        services.AddTransient<IEbayController, EbayControllerImplementation>();
         services.AddDefaultIdentity<ApplicationUser>(o => o.SignIn.RequireConfirmedAccount = true)
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
         services.AddDatabaseDeveloperPageExceptionFilter();
-
-        services.AddControllersWithViews(options =>
-            {
-                options.Filters.Add<ErrorFilter>();
-            })
-            .AddApplicationPart(appAssembly)
-            .AddNewtonsoftJson();
 
         services.AddRazorPages()
             .AddApplicationPart(typeof(ServiceCollectionExtensions).Assembly);

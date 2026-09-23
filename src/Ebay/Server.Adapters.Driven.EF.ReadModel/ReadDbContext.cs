@@ -28,6 +28,11 @@ internal sealed class ReadDbContext : DbContext
             eb.ToView("ProductPassports", "wm").HasKey(x => x.Id);
         });
 
+        b.Entity<IgnoredLotView>(eb =>
+        {
+            eb.ToView("IgnoredLots", "wm").HasKey(x => new { x.ProductId, x.LotId });
+        });
+
         b.Entity<ProductView>(eb =>
         {
             eb.ToView("Products", "wm").HasKey(x => x.Id);
@@ -120,6 +125,8 @@ internal sealed class ReadDbContext : DbContext
     public DbSet<ProductMeasurementView> ProductMeasurements { get; set; } = null!;
 
     public DbSet<ProductPassportView> Passports { get; set; } = null!;
+
+    public DbSet<IgnoredLotView> IgnoredLots { get; set; } = null!;
 
     public DbSet<ProductView> Products { get; set; } = null!;
 

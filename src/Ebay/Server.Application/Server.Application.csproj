@@ -7,20 +7,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="alglib.net" />
-        <PackageReference Include="FlexLabs.EntityFrameworkCore.Upsert" />
-        <PackageReference Include="HtmlAgilityPack" />
         <PackageReference Include="MassTransit" />
         <PackageReference Include="MassTransit.EntityFrameworkCore" />
         <PackageReference Include="MassTransit.SqlTransport.PostgreSQL" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" />
-        <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />
         <PackageReference Include="Npgsql.DependencyInjection" />
-        <PackageReference Include="NSwag.MSBuild">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="ScottPlot" />
     </ItemGroup>
 
     <ItemGroup>
@@ -44,15 +35,5 @@
       <ProjectReference Include="..\Server.Application.New\Server.Application.New.csproj" />
       <ProjectReference Include="..\Server.Domain\Server.Domain.csproj" />
     </ItemGroup>
-
-    <Target Name="GenerateLegacyApiClients" BeforeTargets="CoreCompile">
-        <Exec Command="$(NSwagExe_Net100) openapi2cscontroller /input:../Server.Contracts/Legacy/Ebay.yaml /classname:Ebay /namespace:Server.Controllers.Generated /output:$(BaseIntermediateOutputPath)Generated/Controllers/EbayController.cs /ControllerBaseClass:Microsoft.AspNetCore.Mvc.Controller /UseCancellationToken:true /GenerateImmutableArrayProperties:true /GenerateImmutableDictionaryProperties:true /GenerateNullableReferenceTypes:true /GenerateOptionalPropertiesAsNullable:true /ClassStyle:Record /ExcludedTypeNames:ProblemDetails,ValidationProblemDetails /RequiredPropertiesMustBeDefined:false" />
-    </Target>
-
-    <Target Name="IncludeGeneratedLegacyControllers" BeforeTargets="CoreCompile" DependsOnTargets="GenerateLegacyApiClients">
-        <ItemGroup>
-            <Compile Include="$(BaseIntermediateOutputPath)Generated/Controllers/**/*.cs" />
-        </ItemGroup>
-    </Target>
 
 </Project>

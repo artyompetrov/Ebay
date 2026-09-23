@@ -1,7 +1,6 @@
-
 using Server.Controllers.Generated;
 
-namespace Server.Application.Controllers;
+namespace Server.Adapters.Driving.WebApi.Controllers;
 
 [Obsolete("Нужно сделать приватным исключением адаптера")]
 internal sealed class NonOkHttpAnswerException : Exception

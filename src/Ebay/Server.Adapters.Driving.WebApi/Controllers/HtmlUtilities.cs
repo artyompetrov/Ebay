@@ -1,8 +1,8 @@
 using HtmlAgilityPack;
 
-namespace Server.Application.Infrastructure;
+namespace Server.Adapters.Driving.WebApi.Controllers;
 
-internal class HtmlUtilities
+internal sealed class HtmlUtilities
 {
     /// <summary>
     /// Converts HTML to plain text / strips tags.

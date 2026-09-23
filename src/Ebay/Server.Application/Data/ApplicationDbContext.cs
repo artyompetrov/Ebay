@@ -49,26 +49,18 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
         builder.AddOutboxMessageEntity();
         builder.AddOutboxStateEntity();
 
-        // Product/Lot/Currency/ProductEmailSendHistory/ProductPassport теперь принадлежат WriteModelDbContext
-        // (см. Server.Adapters.Driven.EF.WriteModel). IgnoredLot всё ещё легаси и хранит только ProductId -
-        // навигации на эти типы здесь запрещены глобально, иначе они попали бы в модель этого контекста
-        // через конвенцию и конфликтовали бы с wm-схемой. Purchase владеется Lot (owned collection),
-        // поэтому отдельного Ignore не требует - он больше нигде в этом контексте не достижим.
+        // Все доменные агрегаты теперь принадлежат WriteModelDbContext (см. Server.Adapters.Driven.EF.WriteModel).
+        // Явные Ignore нужны, иначе они попали бы в модель этого контекста через конвенцию (например, через
+        // ApplicationUser или прежние cross-aggregate навигации) и конфликтовали бы с wm-схемой. Purchase
+        // владеется Lot (owned collection), поэтому отдельного Ignore не требует.
         builder.Ignore<Product>();
         builder.Ignore<Lot>();
         builder.Ignore<Currency>();
         builder.Ignore<ProductEmailSendHistory>();
         builder.Ignore<ProductPassport>();
-
-        builder.Entity<IgnoredLot>(entity =>
-        {
-            entity.HasKey(e => new { e.ProductId, e.LotId });
-        });
+        builder.Ignore<IgnoredLot>();
+        builder.Ignore<ClientError>();
     }
-
-    public DbSet<IgnoredLot> IgnoredLots { get; set; } = null!;
-
-    public DbSet<ClientError> ClientErrors { get; set; } = null!;
 
     public async Task<IUnitOfWorkTransaction> BeginTransactionAsync(
         CancellationToken cancellationToken,

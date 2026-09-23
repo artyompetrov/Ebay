@@ -1,13 +1,10 @@
 using System.Globalization;
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
 using Server.Application.Abstractions.Driving.Abstractions.Messages;
-using Server.Application.Data;
-using Server.Application.Infrastructure;
 using Server.Application.New;
 using Server.Application.New.LotDataExtractor;
 using Server.Application.New.MatchedPairs;
@@ -35,11 +32,10 @@ using ProductWithoutId = Server.Controllers.Generated.ProductWithoutId;
 using SaleAdvertisement = Server.Controllers.Generated.SaleAdvertisement;
 using TubeWorkingPoint = Server.Controllers.Generated.TubeWorkingPoint;
 
-namespace Server.Application.Controllers;
+namespace Server.Adapters.Driving.WebApi.Controllers;
 
-internal class EbayControllerImplementation : IEbayController
+internal sealed class EbayControllerImplementation : IEbayController
 {
-    private readonly ApplicationDbContext _applicationContext;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly IMeasurementService _measurementService;
     private readonly MatchedMeasurementService _matchedMeasurementService;
@@ -51,10 +47,12 @@ internal class EbayControllerImplementation : IEbayController
     private readonly IProductEmailSendHistoryQueries _productEmailSendHistoryQueries;
     private readonly IProductPassportRepository _productPassportRepository;
     private readonly IPassportQueries _passportQueries;
+    private readonly IIgnoredLotRepository _ignoredLotRepository;
+    private readonly IIgnoredLotQueries _ignoredLotQueries;
+    private readonly IClientErrorRepository _clientErrorRepository;
     private readonly IWriteModelUnitOfWork _writeModelUnitOfWork;
 
     public EbayControllerImplementation(
-        ApplicationDbContext applicationContext,
         IPublishEndpoint publishEndpoint,
         IMeasurementService measurementService,
         MatchedMeasurementService matchedMeasurementService,
@@ -66,9 +64,11 @@ internal class EbayControllerImplementation : IEbayController
         IProductEmailSendHistoryQueries productEmailSendHistoryQueries,
         IProductPassportRepository productPassportRepository,
         IPassportQueries passportQueries,
+        IIgnoredLotRepository ignoredLotRepository,
+        IIgnoredLotQueries ignoredLotQueries,
+        IClientErrorRepository clientErrorRepository,
         IWriteModelUnitOfWork writeModelUnitOfWork)
     {
-        _applicationContext = applicationContext;
         _publishEndpoint = publishEndpoint;
         _measurementService = measurementService;
         _matchedMeasurementService = matchedMeasurementService;
@@ -80,6 +80,9 @@ internal class EbayControllerImplementation : IEbayController
         _productEmailSendHistoryQueries = productEmailSendHistoryQueries;
         _productPassportRepository = productPassportRepository;
         _passportQueries = passportQueries;
+        _ignoredLotRepository = ignoredLotRepository;
+        _ignoredLotQueries = ignoredLotQueries;
+        _clientErrorRepository = clientErrorRepository;
         _writeModelUnitOfWork = writeModelUnitOfWork;
     }
 
@@ -393,26 +396,15 @@ internal class EbayControllerImplementation : IEbayController
         lot.RemovePurchasesBefore(titleChangedDate);
 
         await _publishEndpoint.Publish(new CalculatePricesForLot(lotInfo.LotId), cancellationToken);
+
+        // Лот больше не считается проигнорированным, раз для него снова пришли актуальные данные.
+        await _ignoredLotRepository.RemoveAsync(productId, lotInfo.LotId, cancellationToken);
+
         await _writeModelUnitOfWork.SaveChangesAsync(cancellationToken);
-
-        // Лот больше не считается проигнорированным, раз для него снова пришли актуальные данные;
-        // отдельное сохранение, т.к. IgnoredLot всё ещё легаси-сущность на другом соединении с БД.
-        _applicationContext.RemoveRange(
-            _applicationContext.IgnoredLots.Where(x => x.ProductId == productId && x.LotId == lotInfo.LotId)
-        );
-        await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<ICollection<long>> GetIgnoredLotsAsync(Guid productId, CancellationToken cancellationToken)
-    {
-        var ignoredLots = await _applicationContext.IgnoredLots
-            .AsNoTracking()
-            .Where(x => x.ProductId == productId)
-            .Select(x => x.LotId)
-            .ToListAsync(cancellationToken);
-
-        return ignoredLots;
-    }
+    public async Task<ICollection<long>> GetIgnoredLotsAsync(Guid productId, CancellationToken cancellationToken) =>
+        [.. await _ignoredLotQueries.GetIgnoredLotIdsAsync(productId, cancellationToken)];
 
     public async Task IgnoreLotsAsync(
         IEnumerable<long> ignoredLots,
@@ -422,19 +414,12 @@ internal class EbayControllerImplementation : IEbayController
     {
         var lotIds = ignoredLots.ToHashSet();
 
-        // Читаем через ILotQueries (ReadDbContext, отдельное соединение) до открытия ambient TransactionScope
-        // ниже - см. аналогичную заметку в CalculatePricesForLotConsumer про Enlist=true и distributed transactions.
         var alreadySaved = await _lotQueries.AnyLotExistsForProductAsync(productId, lotIds, cancellationToken);
 
         if (!alreadySaved)
         {
-            using var transaction = TransactionScopeFactory.Create();
-
-            await _applicationContext.IgnoredLots
-                .UpsertRange(lotIds.Select(x => new IgnoredLot { ProductId = productId, LotId = x }))
-                .RunAsync(cancellationToken);
-
-            transaction.Complete();
+            await _ignoredLotRepository.InsertMissingAsync(productId, lotIds, cancellationToken);
+            await _writeModelUnitOfWork.SaveChangesAsync(cancellationToken);
         }
     }
 
@@ -442,17 +427,12 @@ internal class EbayControllerImplementation : IEbayController
         Guid productId,
         long lotId,
         CancellationToken cancellationToken
-    )
-    {
-        var dbLot = await _applicationContext.IgnoredLots.AnyAsync(x => x.LotId == lotId && x.ProductId == productId, cancellationToken: cancellationToken);
-
-        return dbLot;
-    }
+    ) => await _ignoredLotQueries.IsLotIgnoredAsync(productId, lotId, cancellationToken);
 
     public async Task CalculatePricesForProductAsync(Guid productId, CancellationToken cancellationToken)
     {
         await _publishEndpoint.Publish(new CalculatePricesForProductRequested(productId), cancellationToken);
-        await _applicationContext.SaveChangesAsync(cancellationToken);
+        await _writeModelUnitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<ICollection<MeasurementData>> GetMeasurementsAsync(
@@ -726,13 +706,13 @@ internal class EbayControllerImplementation : IEbayController
 
     public async Task SaveErrorAsync(ClientErrorInfo error, CancellationToken cancellationToken)
     {
-        _applicationContext.ClientErrors.Add(error.ToDbClientError());
-        await _applicationContext.SaveChangesAsync(cancellationToken);
+        await _clientErrorRepository.AddAsync(error.ToDbClientError(), cancellationToken);
+        await _writeModelUnitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     public async Task CalculatePricesForAllAsync(CancellationToken cancellationToken)
     {
         await _publishEndpoint.Publish(new CalculatePricesForAll(), cancellationToken);
-        await _applicationContext.SaveChangesAsync(cancellationToken);
+        await _writeModelUnitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

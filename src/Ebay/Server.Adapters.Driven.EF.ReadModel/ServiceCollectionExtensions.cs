@@ -35,5 +35,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ILotQueries, LotQueries>();
         services.AddScoped<ICurrencyQueries, CurrencyQueries>();
         services.AddScoped<IProductEmailSendHistoryQueries, ProductEmailSendHistoryQueries>();
+        services.AddScoped<IIgnoredLotQueries, IgnoredLotQueries>();
     }
 }

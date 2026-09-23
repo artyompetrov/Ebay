@@ -1,6 +1,5 @@
-
 using System.Diagnostics.CodeAnalysis;
-using Server.Application.Infrastructure;
+using Server.Adapters.Driving.WebApi.Controllers;
 
 // ReSharper disable once CheckNamespace
 namespace Server.Controllers.Generated;

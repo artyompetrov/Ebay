@@ -21,7 +21,7 @@ using RuSearchQuery = Server.Controllers.Generated.RuSearchQuery;
 using SearchQuery = Server.Controllers.Generated.SearchQuery;
 using TubeWorkingPoint = Server.Controllers.Generated.TubeWorkingPoint;
 
-namespace Server.Application.Infrastructure;
+namespace Server.Adapters.Driving.WebApi.Controllers;
 
 internal static class ModelsExtensions
 {
@@ -151,14 +151,7 @@ internal static class ModelsExtensions
     );
     }
 
-    public static ClientError ToDbClientError(this ClientErrorInfo error)
-    {
-        return new()
-        {
-            Url = error.Url,
-            ErrorText = error.Error
-        };
-    }
+    public static ClientError ToDbClientError(this ClientErrorInfo error) => ClientError.Create(url: error.Url, errorText: error.Error);
 
     public static ApiCurrency ToApiCurrency(this CurrencyInfo currency)
     {
