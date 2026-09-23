@@ -5,7 +5,7 @@ using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
-using Server.Application.Consumers.PriceCalculator;
+using Server.Application.Abstractions.Driving.Abstractions.Messages;
 using Server.Application.Data;
 using Server.Application.Infrastructure;
 using Server.Application.New;

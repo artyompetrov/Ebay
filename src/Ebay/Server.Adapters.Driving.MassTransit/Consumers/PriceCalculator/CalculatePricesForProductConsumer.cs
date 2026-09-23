@@ -1,12 +1,17 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
+using Server.Application.Abstractions.Driving.Abstractions.Messages;
 using Server.Domain.Product;
 
-namespace Server.Application.Consumers.PriceCalculator;
+namespace Server.Adapters.Driving.MassTransit.Consumers.PriceCalculator;
 
 public class CalculatePricesForProductConsumer : IConsumer<CalculatePricesForProductRequested>, IConsumer<ProductUpdated>
 {
+    private readonly ILotQueries _lotQueries;
+    private readonly IPublishEndpoint _publishEndpoint;
+    private readonly ILogger<CalculatePricesForProductConsumer> _logger;
+
     public CalculatePricesForProductConsumer(
         ILotQueries lotQueries,
         IPublishEndpoint publishEndpoint,
@@ -16,10 +21,6 @@ public class CalculatePricesForProductConsumer : IConsumer<CalculatePricesForPro
         _publishEndpoint = publishEndpoint;
         _logger = logger;
     }
-
-    private readonly ILotQueries _lotQueries;
-    private readonly IPublishEndpoint _publishEndpoint;
-    private readonly ILogger<CalculatePricesForProductConsumer> _logger;
 
     public Task Consume(ConsumeContext<CalculatePricesForProductRequested> context) =>
         CalculatePricesForProductAsync(context.Message.ProductId, context.CancellationToken);

@@ -1,53 +1,54 @@
-using MassTransit;
 using Microsoft.Extensions.Logging;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
-using Server.Application.Infrastructure;
+using Server.Application.Abstractions.Driving.Abstractions.Services;
 using Server.Domain;
 using Server.Domain.Shipping;
 
-namespace Server.Application.Consumers.PriceCalculator;
+namespace Server.Application.New.PriceCalculator;
 
-public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
+/// <summary>
+/// Выполняет расчет цен и выручки для лота и его покупок.
+/// </summary>
+public sealed class LotPriceCalculator : ILotPriceCalculator
 {
     private readonly ILotRepository _lotRepository;
     private readonly IProductQueries _productQueries;
     private readonly ICurrencyQueries _currencyQueries;
     private readonly IWriteModelUnitOfWork _unitOfWork;
-    private readonly ILogger<CalculatePricesForProductConsumer> _logger;
-    private readonly IPublishEndpoint _publishEndpoint;
+    private readonly ILogger<LotPriceCalculator> _logger;
 
-    public CalculatePricesForLotConsumer(
+    /// <summary>
+    /// Создает сервис расчета цен лота.
+    /// </summary>
+    public LotPriceCalculator(
         ILotRepository lotRepository,
         IProductQueries productQueries,
         ICurrencyQueries currencyQueries,
         IWriteModelUnitOfWork unitOfWork,
-        ILogger<CalculatePricesForProductConsumer> logger,
-        IPublishEndpoint publishEndpoint)
+        ILogger<LotPriceCalculator> logger)
     {
         _lotRepository = lotRepository;
         _productQueries = productQueries;
         _currencyQueries = currencyQueries;
         _unitOfWork = unitOfWork;
         _logger = logger;
-        _publishEndpoint = publishEndpoint;
     }
 
-    public async Task Consume(ConsumeContext<CalculatePricesForLot> context)
+    /// <inheritdoc />
+    public async Task<Guid> CalculateAsync(long lotId, CancellationToken cancellationToken)
     {
-        _logger.LogInformation(
-            "Calculation started for {LotId}",
-            context.Message.LotId);
+        _logger.LogInformation("Calculation started for {LotId}", lotId);
 
-        var lot = await _lotRepository.GetByIdAsync(context.Message.LotId, context.CancellationToken) ??
-                  throw new InvalidOperationException($"Lot with {context.Message.LotId} not found");
+        var lot = await _lotRepository.GetByIdAsync(lotId, cancellationToken) ??
+                  throw new InvalidOperationException($"Lot with {lotId} not found");
 
         var product =
-            await _productQueries.GetProductAsync(lot.ProductId, context.CancellationToken) ??
+            await _productQueries.GetProductAsync(lot.ProductId, cancellationToken) ??
             throw new InvalidOperationException($"Product with {lot.ProductId} not found");
 
-        var currencyRates = await _currencyQueries.GetCurrencyRatesAsync(context.CancellationToken);
+        var currencyRates = await _currencyQueries.GetCurrencyRatesAsync(cancellationToken);
 
         var currentDate = DateTimeOffset.UtcNow;
 
@@ -63,24 +64,24 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
 
             var рассчетнаяЦенаДоставкиВДоллларахИзКазахстана = GetShippingPrice(
                 shippingCountry: lot.ShippingCountry,
-                weight: product.Weight * количествоШтукВПродаже * WellKnown.Ebay.множительДляУчетаВесаУпаковки,
+                weight: product.Weight * количествоШтукВПродаже * WellKnown.EbayWeightMultiplier,
                 currencyRates: currencyRates);
 
-            var ценаЛотаВВалютеЛота = purchase.Price ?? lot.Price * (1.0 - WellKnown.Ebay.скидкаНаПродажиСНеизвестнойЦеной);
+            var ценаЛотаВВалютеЛота = purchase.Price ?? lot.Price * (1.0 - WellKnown.Ebay.НеизвестнаяЦенаПродажиСкидка);
             var ценаДоставкиВВалютеЛота = lot.Shipping + lot.ShippingAdditional * (purchase.Quantity - 1);
 
             var полнаяЦенаПродажиВВалютеЛота = ценаЛотаВВалютеЛота * purchase.Quantity + ценаДоставкиВВалютеЛота;
 
             var полнаяЦенаПродажиВДолларах = полнаяЦенаПродажиВВалютеЛота / currencyRates[lot.CurrencyId];
 
-            var ebayFinalValueFee = полнаяЦенаПродажиВДолларах * WellKnown.Ebay.коммисияEbayFinalValueFee;
-            var ebayInternationalFee = полнаяЦенаПродажиВДолларах * WellKnown.Ebay.коммисияEbayInternationalFee;
-            var ebayFee = (ebayFinalValueFee + ebayInternationalFee + WellKnown.Ebay.коммиссияEbayПостояннаяВеличина) *
-                          WellKnown.Ebay.множительУчитывающийVat;
+            var ebayFinalValueFee = полнаяЦенаПродажиВДолларах * WellKnown.Ebay.КомиссияEbayFinalValueFee;
+            var ebayInternationalFee = полнаяЦенаПродажиВДолларах * WellKnown.Ebay.КомиссияEbayInternationalFee;
+            var ebayFee = (ebayFinalValueFee + ebayInternationalFee + WellKnown.Ebay.КомиссияEbayПостояннаяВеличина) *
+                          WellKnown.Ebay.МножительУчитывающийVat;
 
             var полнаяЦенаПродажиЗаВычетомКоммиссийEbay = полнаяЦенаПродажиВДолларах - ebayFee;
 
-            var payoneerFee = полнаяЦенаПродажиЗаВычетомКоммиссийEbay * WellKnown.Ebay.коммисияPayoneerВПроцентах;
+            var payoneerFee = полнаяЦенаПродажиЗаВычетомКоммиссийEbay * WellKnown.Ebay.КомиссияPayoneerВПроцентах;
 
             var выручкаСПродажиВДолларах = полнаяЦенаПродажиЗаВычетомКоммиссийEbay
                                            - payoneerFee
@@ -110,12 +111,10 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
             CalculationDate = currentDate
         });
 
-        await _publishEndpoint.Publish(
-            new CalculateMetricsForProduct(lot.ProductId),
-            context.CancellationToken);
-
-        await _unitOfWork.SaveChangesAsync(context.CancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
         // ReSharper restore IdentifierTypo
+
+        return lot.ProductId;
     }
 
     private double GetShippingPrice(string shippingCountry, double weight, IReadOnlyDictionary<string, double> currencyRates)

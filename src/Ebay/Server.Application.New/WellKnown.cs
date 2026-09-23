@@ -45,4 +45,40 @@ public static class WellKnown
         /// </summary>
         public const int BatchSize = 100;
     }
+
+    /// <summary>
+    /// Константы расчета цен и комиссий eBay/Payoneer, используемые при расчете выручки лота.
+    /// </summary>
+    public static class Ebay
+    {
+        /// <summary>
+        /// Скидка, применяемая к цене лота для продаж без известной цены покупки.
+        /// </summary>
+        public const double НеизвестнаяЦенаПродажиСкидка = 0.2;
+
+        /// <summary>
+        /// Комиссия eBay Final Value Fee.
+        /// </summary>
+        public const double КомиссияEbayFinalValueFee = 0.136;
+
+        /// <summary>
+        /// Комиссия eBay International Fee.
+        /// </summary>
+        public const double КомиссияEbayInternationalFee = 0.013;
+
+        /// <summary>
+        /// Постоянная составляющая комиссии eBay.
+        /// </summary>
+        public const double КомиссияEbayПостояннаяВеличина = 0.4;
+
+        /// <summary>
+        /// Множитель, учитывающий VAT в комиссии eBay.
+        /// </summary>
+        public const double МножительУчитывающийVat = 1.12;
+
+        /// <summary>
+        /// Комиссия Payoneer в процентах.
+        /// </summary>
+        public const double КомиссияPayoneerВПроцентах = 0.01;
+    }
 }

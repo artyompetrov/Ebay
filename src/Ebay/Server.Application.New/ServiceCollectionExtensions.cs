@@ -6,6 +6,7 @@ using Server.Application.New.LotForSale;
 using Server.Application.New.MatchedPairs;
 using Server.Application.New.MeasurementCaching;
 using Server.Application.New.MeasurementPlot;
+using Server.Application.New.PriceCalculator;
 using Server.Application.New.Services;
 using Server.Application.New.TubeWorkingPoints;
 
@@ -39,6 +40,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<MeasurementCacheInvalidationRegistry>();
         services.AddTransient<IMeasurementStateChangedHandler, MeasurementStateChangedHandler>();
         services.AddTransient<IMeasurementMatchIdChangedHandler, MeasurementMatchIdChangedHandler>();
+        services.AddTransient<ILotPriceCalculator, LotPriceCalculator>();
+        services.AddTransient<IProductMetricsCalculator, ProductMetricsCalculator>();
 #pragma warning disable CS0618 // Обсолетный одноразовый backfill - регистрация будет удалена вместе с ним, см. класс.
         services.AddHostedService<MeasurementPhotoOriginalSizeBackfillHostedService>();
 #pragma warning restore CS0618
