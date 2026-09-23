@@ -24,14 +24,6 @@ internal static class WellKnown
         public const double множительДляУчетаВесаУпаковки = 1.5;
     }
 
-    public static class DbCache
-    {
-        /// <summary>
-        /// Версия кеша - для сброса кеша при изменении логики расчетов
-        /// </summary>
-        public const string Version = "14";
-    }
-
     public static class ImageCache
     {
         public const string SectionName = "ImageCache";

@@ -32,6 +32,15 @@ public static class ServiceCollectionExtensions
             o.AddInterceptors(sp.GetServices<IInterceptor>());
         });
 
+        services.AddSingleton(sp =>
+        {
+            var connectionString = sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection")
+                                   ?? throw new InvalidOperationException("Connection string cannot be null");
+            return new DatabaseConcurrentAccessSemaphore(
+                maxConcurrent: new Npgsql.NpgsqlConnectionStringBuilder(connectionString).MaxPoolSize / 2);
+        });
+        services.AddScoped<ICacheStore, DbCache>();
+
         services.AddScoped<IMeasurementRepository, MeasurementRepository>();
         services.AddScoped<IMatchedPairDifferenceRepository, MatchedPairDifferenceRepository>();
         services.AddScoped<ITubeWorkingPointsRepository, TubeWorkingPointsRepository>();

@@ -1,22 +1,33 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Server.Application.Abstractions.Driven.Abstractions;
-using Server.Application.Data;
 using Server.Application.New;
 
-namespace Server.Application.Infrastructure;
+namespace Server.Adapters.Driven.EF.WriteModel;
 
-public class DbCache : ICacheStore
+internal sealed class DbCache : ICacheStore
 {
-    private readonly ApplicationDbContext _context;
+    /// <summary>
+    /// Версия кеша - для сброса кеша при изменении логики расчетов.
+    /// </summary>
+    private const string Version = "14";
+
+    private readonly WriteModelDbContext _context;
     private readonly DatabaseConcurrentAccessSemaphore _semaphore;
     private readonly EbayServerOptions _options;
+    private readonly ILogger<DbCache> _logger;
 
-    public DbCache(ApplicationDbContext context, DatabaseConcurrentAccessSemaphore semaphore, EbayServerOptions options)
+    public DbCache(
+        WriteModelDbContext context,
+        DatabaseConcurrentAccessSemaphore semaphore,
+        EbayServerOptions options,
+        ILogger<DbCache> logger)
     {
         _context = context;
         _semaphore = semaphore;
         _options = options;
+        _logger = logger;
     }
 
     public async Task<T?> GetOrCreateAsync<T>(
@@ -32,7 +43,7 @@ public class DbCache : ICacheStore
         try
         {
             var entry = await _context.Set<CacheEntry>()
-                .FirstOrDefaultAsync(x => x.Key == key && x.Version == WellKnown.DbCache.Version, cancellationToken);
+                .FirstOrDefaultAsync(x => x.Key == key && x.Version == Version, cancellationToken);
 
             if (entry is not null && entry.ExpiresAt > DateTimeOffset.UtcNow)
             {
@@ -50,7 +61,7 @@ public class DbCache : ICacheStore
 
             if (entry is null)
             {
-                _context.Add(new CacheEntry { Key = key, Version = WellKnown.DbCache.Version, Value = json, ExpiresAt = expiresAt });
+                _context.Add(new CacheEntry { Key = key, Version = Version, Value = json, ExpiresAt = expiresAt });
             }
             else
             {
@@ -59,7 +70,15 @@ public class DbCache : ICacheStore
                 _context.Update(entry);
             }
 
-            await _context.SaveChangesAsync(cancellationToken);
+            try
+            {
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogWarning(ex, "Error while updating measurement cache entry");
+            }
+
             return value;
         }
         finally
@@ -71,7 +90,7 @@ public class DbCache : ICacheStore
     public Task RemoveOldVersionsAsync(CancellationToken cancellationToken)
     {
         return _context.Set<CacheEntry>()
-            .Where(x => x.Version != WellKnown.DbCache.Version)
+            .Where(x => x.Version != Version)
             .ExecuteDeleteAsync(cancellationToken);
     }
 }

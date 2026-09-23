@@ -1,6 +1,6 @@
-namespace Server.Application;
+namespace Server.Adapters.Driven.EF.WriteModel;
 
-public sealed class DatabaseConcurrentAccessSemaphore : IDisposable
+internal sealed class DatabaseConcurrentAccessSemaphore : IDisposable
 {
     public DatabaseConcurrentAccessSemaphore(int maxConcurrent)
     {

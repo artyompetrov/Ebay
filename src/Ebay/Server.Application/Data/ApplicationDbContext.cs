@@ -59,11 +59,6 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
         builder.Ignore<Currency>();
         builder.Ignore<ProductEmailSendHistory>();
 
-        builder.Entity<CacheEntry>(entity =>
-        {
-            entity.HasKey(e => new { e.Key, e.Version });
-        });
-
         builder.Entity<ProductPassport>(entity =>
         {
             entity.HasIndex(e => new { e.ProductId, e.Order });
@@ -80,8 +75,6 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
     public DbSet<ClientError> ClientErrors { get; set; } = null!;
 
     public DbSet<ProductPassport> ProductPassports { get; set; } = null!;
-
-    public DbSet<CacheEntry> CacheEntries { get; set; } = null!;
 
     public async Task<IUnitOfWorkTransaction> BeginTransactionAsync(
         CancellationToken cancellationToken,

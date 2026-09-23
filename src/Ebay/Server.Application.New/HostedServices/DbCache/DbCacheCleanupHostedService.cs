@@ -1,9 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using InfrastructureDbCache = Server.Application.Infrastructure.DbCache;
+using Server.Application.Abstractions.Driven.Abstractions;
 
-namespace Server.Application.HostedServices.DbCache;
+namespace Server.Application.New.HostedServices.DbCache;
 
 public class DbCacheCleanupHostedService : IHostedService
 {
@@ -23,9 +23,9 @@ public class DbCacheCleanupHostedService : IHostedService
         _logger.LogInformation("Service started");
 
         using var scope = _serviceScopeFactory.CreateScope();
-        var dbCache = scope.ServiceProvider.GetRequiredService<InfrastructureDbCache>();
+        var cacheStore = scope.ServiceProvider.GetRequiredService<ICacheStore>();
 
-        await dbCache.RemoveOldVersionsAsync(cancellationToken);
+        await cacheStore.RemoveOldVersionsAsync(cancellationToken);
         _logger.LogInformation("Removed old db cache versions");
     }
 

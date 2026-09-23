@@ -7,9 +7,7 @@ using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
 using Server.Application.Controllers;
 using Server.Application.Data;
-using Server.Application.HostedServices.DbCache;
 using Server.Application.HostedServices.Measurements;
-using Server.Application.Infrastructure;
 using Server.Application.New;
 using Server.Controllers.Generated;
 
@@ -39,22 +37,12 @@ public static class ServiceCollectionExtensions
             o.AddInterceptors(sp.GetServices<IInterceptor>());
         });
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ApplicationDbContext>());
-        services.AddSingleton(sp =>
-        {
-            var connectionString = sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection")
-                                   ?? throw new InvalidOperationException("Connection string cannot be null");
-            return new DatabaseConcurrentAccessSemaphore(
-                maxConcurrent: new Npgsql.NpgsqlConnectionStringBuilder(connectionString).MaxPoolSize / 2);
-        });
-        services.AddTransient<DbCache>();
-        services.AddTransient<ICacheStore, DbCache>();
         services.AddApplicationNewServices();
 
         services.AddTransient<IEbayController, EbayControllerImplementation>();
         services.AddDefaultIdentity<ApplicationUser>(o => o.SignIn.RequireConfirmedAccount = true)
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
-        services.AddHostedService<DbCacheCleanupHostedService>();
         services.AddHostedService<MeasurementPlotWarmupHostedService>();
 
         services.AddDatabaseDeveloperPageExceptionFilter();

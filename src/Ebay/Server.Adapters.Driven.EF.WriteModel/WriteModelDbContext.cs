@@ -311,6 +311,12 @@ public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
             entity.HasIndex(x => new { x.ProductId, x.Seller, x.Marketplace }).IsUnique();
             entity.HasIndex(x => x.AdvertisementDate);
         });
+
+        modelBuilder.Entity<CacheEntry>(entity =>
+        {
+            entity.ToTable("CacheEntries");
+            entity.HasKey(x => new { x.Key, x.Version });
+        });
     }
 
     public DbSet<LotForSale> LotForSales { get; set; } = null!;

@@ -1,8 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Server.Application.Data;
+namespace Server.Adapters.Driven.EF.WriteModel;
 
-public class CacheEntry
+/// <summary>
+/// Строка персистентного кеша, используемая исключительно <see cref="DbCache"/> - деталь его хранения,
+/// не доменные данные.
+/// </summary>
+internal sealed class CacheEntry
 {
     [MaxLength(500)]
     public string Key { get; set; } = null!;
