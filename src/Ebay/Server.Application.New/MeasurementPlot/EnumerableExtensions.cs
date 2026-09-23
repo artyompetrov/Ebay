@@ -1,4 +1,4 @@
-namespace Server.Application.Infrastructure;
+namespace Server.Application.New.MeasurementPlot;
 
 public static class EnumerableExtensions
 {

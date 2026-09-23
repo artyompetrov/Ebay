@@ -5,10 +5,9 @@ using Microsoft.Extensions.Logging;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driving.Abstractions.Messages;
-using Server.Application.Infrastructure;
-using Server.Application.New;
+using Server.Application.New.MeasurementPlot;
 
-namespace Server.Application.HostedServices.Measurements;
+namespace Server.Application.New.HostedServices.Measurements;
 
 public class MeasurementPlotWarmupHostedService : IHostedService
 {

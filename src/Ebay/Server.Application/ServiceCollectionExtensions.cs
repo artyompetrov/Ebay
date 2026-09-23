@@ -7,7 +7,6 @@ using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
 using Server.Application.Controllers;
 using Server.Application.Data;
-using Server.Application.HostedServices.Measurements;
 using Server.Application.New;
 using Server.Controllers.Generated;
 
@@ -42,8 +41,6 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IEbayController, EbayControllerImplementation>();
         services.AddDefaultIdentity<ApplicationUser>(o => o.SignIn.RequireConfirmedAccount = true)
             .AddEntityFrameworkStores<ApplicationDbContext>();
-
-        services.AddHostedService<MeasurementPlotWarmupHostedService>();
 
         services.AddDatabaseDeveloperPageExceptionFilter();
 
