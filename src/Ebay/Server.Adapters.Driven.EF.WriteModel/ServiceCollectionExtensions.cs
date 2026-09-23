@@ -37,6 +37,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITubeWorkingPointsRepository, TubeWorkingPointsRepository>();
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<ILotForSaleRepository, LotForSaleRepository>();
+        services.AddScoped<ILotRepository, LotRepository>();
+        services.AddScoped<ICurrencyRepository, CurrencyRepository>();
         services.AddScoped<IMeasurementPhotoRepository, MeasurementPhotoRepository>();
         services.AddScoped<IWriteModelUnitOfWork>(sp => sp.GetRequiredService<WriteModelDbContext>());
     }

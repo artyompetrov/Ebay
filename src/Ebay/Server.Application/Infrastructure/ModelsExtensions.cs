@@ -8,7 +8,6 @@ using Server.Domain.Product;
 using Server.Domain.Shipping;
 using ApiCurrency = Server.Controllers.Generated.Currency;
 using ApiMeasurementState = Server.Controllers.Generated.MeasurementState;
-using DbCurrency = Server.Domain.Currency;
 using DbLotCalculationResult = Server.Domain.LotCalculationResult;
 using DbMeasurementState = Server.Domain.Measurements.MeasurementState;
 using DbProductCalculationResult = Server.Domain.ProductCalculationResult;
@@ -17,7 +16,6 @@ using DbPurchaseCalculationResult = Server.Domain.PurchaseCalculationResult;
 using LotCalculationResult = Server.Controllers.Generated.LotCalculationResult;
 using ProductCalculationResult = Server.Controllers.Generated.ProductCalculationResult;
 using ProductState = Server.Controllers.Generated.ProductState;
-using Purchase = Server.Domain.Purchase;
 using PurchaseCalculationResult = Server.Controllers.Generated.PurchaseCalculationResult;
 using RuSearchQuery = Server.Controllers.Generated.RuSearchQuery;
 using SearchQuery = Server.Controllers.Generated.SearchQuery;
@@ -58,7 +56,7 @@ internal static class ModelsExtensions
     );
     }
 
-    public static LotInfoWithProductId ToApiLot(this Lot lot)
+    public static LotInfoWithProductId ToApiLot(this LotDetails lot)
     {
         return new(
         lotInfo: new(
@@ -85,7 +83,7 @@ internal static class ModelsExtensions
     );
     }
 
-    public static LotInfoShort ToApiLotInfoShort(this Lot lot)
+    public static LotInfoShort ToApiLotInfoShort(this LotDetails lot)
     {
         return new(
         condition: lot.Condition,
@@ -104,7 +102,7 @@ internal static class ModelsExtensions
         titleChangeDate: lot.TitleChangeDate.ToString(WellKnown.Formats.TimeFormat, CultureInfo.InvariantCulture),
         shippingAdditional: lot.ShippingAdditional,
         shortDescription: lot.ShortDescription,
-        lotCalculationResult: lot.LotCalculationResult.ToApiLotCalculationResult()
+        lotCalculationResult: lot.CalculationResult.ToApiLotCalculationResult()
     );
     }
 
@@ -142,52 +140,15 @@ internal static class ModelsExtensions
     );
     }
 
-    public static PurchaseInfo ToApiPurchaseInfo(this Purchase purchase, DateTimeOffset titleChangeDate)
+    public static PurchaseInfo ToApiPurchaseInfo(this PurchaseDetails purchase, DateTimeOffset titleChangeDate)
     {
         return new(
         date: purchase.Date.ToString(WellKnown.Formats.TimeFormat, CultureInfo.InvariantCulture),
         price: purchase.Price,
         quantity: purchase.Quantity,
-        purchaseCalculationResult: purchase.PurchaseCalculationResult.ToApiPurchaseCalculationResult(),
+        purchaseCalculationResult: purchase.CalculationResult.ToApiPurchaseCalculationResult(),
         isRecent: titleChangeDate < purchase.Date
     );
-    }
-
-    public static Lot ToDbLot(this LotInfo lotInfo, Guid productId, DateTimeOffset updateDate)
-    {
-        return new()
-        {
-            ProductId = productId,
-            Id = lotInfo.LotId,
-            Name = lotInfo.Name,
-            Pcs = lotInfo.Pcs,
-            CurrencyId = lotInfo.Currency,
-            ShippingCountry = lotInfo.ShippingCountry,
-            Price = lotInfo.Price,
-            Shipping = lotInfo.Shipping!.Value,
-            ShippingAdditional = lotInfo.ShippingAdditional!.Value,
-            Description = lotInfo.Description,
-            Condition = lotInfo.Condition,
-            ShortDescription = lotInfo.ShortDescription,
-            ConditionDescription = lotInfo.ConditionDescription,
-            Seller = lotInfo.Seller,
-            LocatedIn = lotInfo.LocatedIn,
-            Categories = lotInfo.Categories.ToDictionary(x => x.Type, x => x.Value),
-            TitleChangeDate = DateTimeOffset.Parse(lotInfo.TitleChangeDate, CultureInfo.InvariantCulture).ToUniversalTime(),
-            UpdateDate = updateDate,
-            LotSize = lotInfo.LotSize
-        };
-    }
-
-    public static Purchase ToDbPurchase(this PurchaseInfo purchaseInfo, long lotId)
-    {
-        return new()
-        {
-            LotId = lotId,
-            Date = DateTimeOffset.Parse(purchaseInfo.Date, CultureInfo.InvariantCulture).ToUniversalTime(),
-            Price = purchaseInfo.Price,
-            Quantity = purchaseInfo.Quantity
-        };
     }
 
     public static ClientError ToDbClientError(this ClientErrorInfo error)
@@ -199,7 +160,7 @@ internal static class ModelsExtensions
         };
     }
 
-    public static ApiCurrency ToApiCurrency(this DbCurrency currency)
+    public static ApiCurrency ToApiCurrency(this CurrencyInfo currency)
     {
         return new(
         ebayName: currency.CurrencyEbayName,

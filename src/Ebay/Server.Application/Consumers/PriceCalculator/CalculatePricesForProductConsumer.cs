@@ -1,7 +1,6 @@
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Server.Application.Data;
+using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Domain.Product;
 
 namespace Server.Application.Consumers.PriceCalculator;
@@ -9,16 +8,16 @@ namespace Server.Application.Consumers.PriceCalculator;
 public class CalculatePricesForProductConsumer : IConsumer<CalculatePricesForProductRequested>, IConsumer<ProductUpdated>
 {
     public CalculatePricesForProductConsumer(
-        ApplicationDbContext applicationContext,
+        ILotQueries lotQueries,
         IPublishEndpoint publishEndpoint,
         ILogger<CalculatePricesForProductConsumer> logger)
     {
-        _applicationContext = applicationContext;
+        _lotQueries = lotQueries;
         _publishEndpoint = publishEndpoint;
         _logger = logger;
     }
 
-    private readonly ApplicationDbContext _applicationContext;
+    private readonly ILotQueries _lotQueries;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly ILogger<CalculatePricesForProductConsumer> _logger;
 
@@ -32,16 +31,11 @@ public class CalculatePricesForProductConsumer : IConsumer<CalculatePricesForPro
     {
         _logger.LogInformation("Handling updated product command: {ProductId}", productId);
 
-        var lotIds = await _applicationContext.Lots.AsNoTracking()
-            .Where(x => x.ProductId == productId)
-            .Select(x => x.Id)
-            .ToListAsync(cancellationToken);
+        var lotIds = await _lotQueries.GetLotIdsForProductAsync(productId, cancellationToken);
 
         foreach (var lotId in lotIds)
         {
             await _publishEndpoint.Publish(new CalculatePricesForLot(lotId), cancellationToken);
         }
-
-        await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 }

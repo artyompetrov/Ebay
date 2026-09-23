@@ -1,18 +1,15 @@
 using System.Data;
-using System.Text.Json;
 using Duende.IdentityServer.EntityFramework.Options;
 using MassTransit;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Options;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Domain;
 using Server.Domain.Abstractions;
 using Server.Domain.Product;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Server.Application.Data;
 
@@ -52,25 +49,14 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
         builder.AddOutboxMessageEntity();
         builder.AddOutboxStateEntity();
 
-        builder.Entity<Lot>()
-            .Property(o => o.LotCalculationResult)
-            .HasConversion(new ValueConverter<LotCalculationResult?, string>(
-                v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
-                v => JsonSerializer.Deserialize<LotCalculationResult?>(v, (JsonSerializerOptions?)null)
-            ));
-
-        // Product теперь принадлежит WriteModelDbContext (см. Server.Adapters.Driven.EF.WriteModel).
-        // Lot/IgnoredLot/ProductPassport/ProductEmailSendHistory всё ещё легаси и хранят только ProductId -
-        // навигации на Product здесь запрещены глобально, иначе тип попал бы в модель этого контекста
-        // через конвенцию и конфликтовал бы с wm-схемой.
+        // Product/Lot/Currency теперь принадлежат WriteModelDbContext (см. Server.Adapters.Driven.EF.WriteModel).
+        // IgnoredLot/ProductPassport/ProductEmailSendHistory всё ещё легаси и хранят только ProductId -
+        // навигации на эти типы здесь запрещены глобально, иначе они попали бы в модель этого контекста
+        // через конвенцию и конфликтовали бы с wm-схемой. Purchase владеется Lot (owned collection), поэтому
+        // отдельного Ignore не требует - он больше нигде в этом контексте не достижим.
         builder.Ignore<Product>();
-
-        builder.Entity<Purchase>()
-            .Property(o => o.PurchaseCalculationResult)
-            .HasConversion(new ValueConverter<PurchaseCalculationResult?, string>(
-                v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
-                v => JsonSerializer.Deserialize<PurchaseCalculationResult?>(v, (JsonSerializerOptions?)null)
-            ));
+        builder.Ignore<Lot>();
+        builder.Ignore<Currency>();
 
         builder.Entity<ProductEmailSendHistory>(entity =>
         {
@@ -95,24 +81,13 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
         {
             entity.HasKey(e => new { e.ProductId, e.LotId });
         });
-
-        builder.Entity<Purchase>(entity =>
-        {
-            entity.HasKey(e => new { e.LotId, e.Date });
-        });
     }
 
-    public DbSet<Lot> Lots { get; set; } = null!;
-
     public DbSet<IgnoredLot> IgnoredLots { get; set; } = null!;
-
-    public DbSet<Purchase> Purchases { get; set; } = null!;
 
     public DbSet<ClientError> ClientErrors { get; set; } = null!;
 
     public DbSet<ProductPassport> ProductPassports { get; set; } = null!;
-
-    public DbSet<Currency> Currencies { get; set; } = null!;
 
     public DbSet<ProductEmailSendHistory> ProductEmailSendHistory { get; set; } = null!;
 

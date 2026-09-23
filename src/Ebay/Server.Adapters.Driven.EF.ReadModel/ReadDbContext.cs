@@ -85,15 +85,31 @@ internal sealed class ReadDbContext : DbContext
 
         b.Entity<LotView>(eb =>
         {
-            eb.ToTable("Lots").HasKey(x => x.Id);
+            eb.ToTable("Lots", "wm").HasKey(x => x.Id);
 
             eb.Property(o => o.LotCalculationResult)
                 .HasConversion(new ValueConverter<LotCalculationResult?, string>(
                     v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
                     v => JsonSerializer.Deserialize<LotCalculationResult?>(v, (JsonSerializerOptions?)null)
                 ));
+
+            eb.OwnsMany(x => x.Purchases, p =>
+            {
+                p.WithOwner().HasForeignKey(nameof(PurchaseView.LotId));
+                p.HasKey(x => new { x.LotId, x.Date });
+                p.Property(x => x.PurchaseCalculationResult)
+                    .HasConversion(new ValueConverter<PurchaseCalculationResult?, string>(
+                        v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
+                        v => JsonSerializer.Deserialize<PurchaseCalculationResult?>(v, (JsonSerializerOptions?)null)
+                    ));
+                p.ToTable("Lot_Purchases", "wm");
+            });
         });
 
+        b.Entity<CurrencyView>(eb =>
+        {
+            eb.ToTable("Currencies", "wm").HasKey(x => x.Id);
+        });
     }
 
     public DbSet<ProductMeasurementView> ProductMeasurements { get; set; } = null!;
@@ -111,4 +127,6 @@ internal sealed class ReadDbContext : DbContext
     public DbSet<MeasurementPhotoView> MeasurementPhotos { get; set; } = null!;
 
     public DbSet<LotView> Lots { get; set; } = null!;
+
+    public DbSet<CurrencyView> Currencies { get; set; } = null!;
 }

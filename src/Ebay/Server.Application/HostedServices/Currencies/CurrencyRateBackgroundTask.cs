@@ -1,10 +1,10 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenExchangeRates;
-using Server.Application.Data;
+using Server.Application.Abstractions.Driven.Abstractions;
+using Server.Application.Abstractions.Driven.Abstractions.Queries;
+using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Infrastructure;
-using Server.Domain;
 
 namespace Server.Application.HostedServices.Currencies;
 
@@ -37,11 +37,11 @@ public class CurrencyRateBackgroundTask : BackgroundTask
 
         _logger.LogInformation("Refreshing currency rates");
         using var scope = _serviceScopeFactory.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var currencyQueries = scope.ServiceProvider.GetRequiredService<ICurrencyQueries>();
+        var currencyRepository = scope.ServiceProvider.GetRequiredService<ICurrencyRepository>();
+        var unitOfWork = scope.ServiceProvider.GetRequiredService<IWriteModelUnitOfWork>();
 
-        var currencies = await dbContext.Currencies
-            .Select(x => new { x.CurrencyApiName, x.CurrencyEbayName })
-            .ToListAsync(cancellationToken);
+        var currencies = await currencyQueries.GetAllCurrenciesAsync(cancellationToken);
 
         using var client = new OpenExchangeRatesClient(WellKnown.CurrencyRate.AppId);
 
@@ -56,12 +56,11 @@ public class CurrencyRateBackgroundTask : BackgroundTask
         {
             var currency = currencyByApiName[apiCurrencyName];
 
-            var dbProduct =
-                dbContext.Currencies.Attach(new Currency() { CurrencyEbayName = currency.CurrencyEbayName });
-            dbProduct.Entity.CurrencyRate = decimal.ToDouble(value);
-            dbProduct.Entity.LastUpdate = currentTime;
+            var dbCurrency = await currencyRepository.GetByIdAsync(currency.CurrencyEbayName, cancellationToken) ??
+                              throw new InvalidOperationException($"Currency {currency.CurrencyEbayName} not found");
+            dbCurrency.UpdateRate(decimal.ToDouble(value), currentTime);
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

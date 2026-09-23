@@ -1,8 +1,8 @@
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
-using Server.Application.Data;
+using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Infrastructure;
 using Server.Domain;
 using Server.Domain.Shipping;
@@ -11,55 +11,45 @@ namespace Server.Application.Consumers.PriceCalculator;
 
 public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
 {
-    private readonly ApplicationDbContext _applicationContext;
+    private readonly ILotRepository _lotRepository;
     private readonly IProductQueries _productQueries;
+    private readonly ICurrencyQueries _currencyQueries;
+    private readonly IWriteModelUnitOfWork _unitOfWork;
     private readonly ILogger<CalculatePricesForProductConsumer> _logger;
     private readonly IPublishEndpoint _publishEndpoint;
 
     public CalculatePricesForLotConsumer(
-        ApplicationDbContext applicationContext,
+        ILotRepository lotRepository,
         IProductQueries productQueries,
+        ICurrencyQueries currencyQueries,
+        IWriteModelUnitOfWork unitOfWork,
         ILogger<CalculatePricesForProductConsumer> logger,
         IPublishEndpoint publishEndpoint)
     {
-        _applicationContext = applicationContext;
+        _lotRepository = lotRepository;
         _productQueries = productQueries;
+        _currencyQueries = currencyQueries;
+        _unitOfWork = unitOfWork;
         _logger = logger;
         _publishEndpoint = publishEndpoint;
     }
 
     public async Task Consume(ConsumeContext<CalculatePricesForLot> context)
     {
-
         _logger.LogInformation(
             "Calculation started for {LotId}",
             context.Message.LotId);
 
-        // Продукт читается через отдельный ReadDbContext (своё соединение) до открытия ambient
-        // TransactionScope ниже: у соединения к БД в конфигурации выставлен Enlist=true, а второе
-        // соединение, зарегистрированное в той же ambient-транзакции, потребовало бы distributed
-        // transaction, которую Npgsql не поддерживает.
-        var lotProductId = await _applicationContext.Lots
-            .AsNoTracking()
-            .Where(x => x.Id == context.Message.LotId)
-            .Select(x => (Guid?)x.ProductId)
-            .SingleOrDefaultAsync(context.CancellationToken) ??
-            throw new InvalidOperationException($"Lot with {context.Message.LotId} not found");
+        var lot = await _lotRepository.GetByIdAsync(context.Message.LotId, context.CancellationToken) ??
+                  throw new InvalidOperationException($"Lot with {context.Message.LotId} not found");
 
         var product =
-            await _productQueries.GetProductAsync(lotProductId, context.CancellationToken) ??
-            throw new InvalidOperationException($"Product with {lotProductId} not found");
+            await _productQueries.GetProductAsync(lot.ProductId, context.CancellationToken) ??
+            throw new InvalidOperationException($"Product with {lot.ProductId} not found");
+
+        var currencyRates = await _currencyQueries.GetCurrencyRatesAsync(context.CancellationToken);
 
         var currentDate = DateTimeOffset.UtcNow;
-        using var transaction = TransactionScopeFactory.Create();
-
-        var currencyRates = await _applicationContext.Currencies
-            .AsNoTracking()
-            .ToDictionaryAsync(x => x.CurrencyEbayName, x => x.CurrencyRate, context.CancellationToken);
-
-        var lot = await _applicationContext.Lots.Include(lot => lot.Purchases)
-                      .SingleOrDefaultAsync(x => x.Id == context.Message.LotId) ??
-                  throw new InvalidOperationException($"Lot with {context.Message.LotId} not found");
 
         // ReSharper disable IdentifierTypo
 
@@ -103,35 +93,32 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
             общаяВыручкаВДолларах += выручкаСПродажиВДолларах;
             общаяПолнаяЦенаПродажиВДолларахЗаВычетомДоставки += полнаяЦенаПродажиВДолларахЗаВычетомДоставки;
 
-            purchase.PurchaseCalculationResult = new PurchaseCalculationResult
+            purchase.SetCalculationResult(new PurchaseCalculationResult
             {
                 Revenue = выручкаСПродажиВДолларах,
                 QuantityTotal = количествоШтукВПродаже,
                 ListingPrice = полнаяЦенаПродажиВДолларахЗаВычетомДоставки,
                 CalculationDate = currentDate
-            };
-
+            });
         }
 
-        lot.LotCalculationResult = new LotCalculationResult
+        lot.SetCalculationResult(new LotCalculationResult
         {
             Revenue = общаяВыручкаВДолларах,
             QuantityTotal = общееКоличествоШтукВоВсехПродажах,
             ListingPriceSumm = общаяПолнаяЦенаПродажиВДолларахЗаВычетомДоставки,
             CalculationDate = currentDate
-        };
+        });
 
         await _publishEndpoint.Publish(
             new CalculateMetricsForProduct(lot.ProductId),
             context.CancellationToken);
 
-        await _applicationContext.SaveChangesAsync(context.CancellationToken);
+        await _unitOfWork.SaveChangesAsync(context.CancellationToken);
         // ReSharper restore IdentifierTypo
-
-        transaction.Complete();
     }
 
-    private double GetShippingPrice(string shippingCountry, double weight, Dictionary<string, double> currencyRates)
+    private double GetShippingPrice(string shippingCountry, double weight, IReadOnlyDictionary<string, double> currencyRates)
     {
         var shippingRatesDictionary = ShippingRatesTable.ShippingRatesDictionary;
         if (!shippingRatesDictionary.TryGetValue(key: shippingCountry, value: out var shippingRates))

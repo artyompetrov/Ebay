@@ -1,6 +1,9 @@
 using System.Globalization;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Server.Application.Abstractions.Driven.Abstractions;
+using Server.Application.Abstractions.Driven.Abstractions.Queries;
+using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
 using Server.Application.Consumers.PriceCalculator;
 using Server.Application.Data;
@@ -42,6 +45,10 @@ internal class EbayControllerImplementation : IEbayController
     private readonly MatchedMeasurementService _matchedMeasurementService;
     private readonly TubeWorkingPointService _tubeWorkingPointService;
     private readonly ProductService _productService;
+    private readonly ILotRepository _lotRepository;
+    private readonly ILotQueries _lotQueries;
+    private readonly ICurrencyQueries _currencyQueries;
+    private readonly IWriteModelUnitOfWork _writeModelUnitOfWork;
 
     public EbayControllerImplementation(
         ApplicationDbContext applicationContext,
@@ -49,7 +56,11 @@ internal class EbayControllerImplementation : IEbayController
         IMeasurementService measurementService,
         MatchedMeasurementService matchedMeasurementService,
         TubeWorkingPointService tubeWorkingPointService,
-        ProductService productService)
+        ProductService productService,
+        ILotRepository lotRepository,
+        ILotQueries lotQueries,
+        ICurrencyQueries currencyQueries,
+        IWriteModelUnitOfWork writeModelUnitOfWork)
     {
         _applicationContext = applicationContext;
         _publishEndpoint = publishEndpoint;
@@ -57,6 +68,10 @@ internal class EbayControllerImplementation : IEbayController
         _matchedMeasurementService = matchedMeasurementService;
         _tubeWorkingPointService = tubeWorkingPointService;
         _productService = productService;
+        _lotRepository = lotRepository;
+        _lotQueries = lotQueries;
+        _currencyQueries = currencyQueries;
+        _writeModelUnitOfWork = writeModelUnitOfWork;
     }
 
     public async Task<ICollection<ProductPassportInfo>> GetProductPassportsAsync(
@@ -287,10 +302,7 @@ internal class EbayControllerImplementation : IEbayController
             throw NonOkHttpAnswerException.NotFound400();
         }
 
-        var lots = await _applicationContext.Lots
-            .AsNoTracking()
-            .Include(x => x.Purchases)
-            .Where(x => x.ProductId == productId).ToListAsync(cancellationToken);
+        var lots = await _lotQueries.GetLotsForProductAsync(productId, cancellationToken);
 
         return [.. lots.Select(x => x.ToApiLotInfoShort())];
     }
@@ -324,32 +336,79 @@ internal class EbayControllerImplementation : IEbayController
             throw NonOkHttpAnswerException.ValidationError400(validationErrors);
         }
 
-        var dbLotInfo = lotInfo.ToDbLot(productId: productId, updateDate: DateTimeOffset.UtcNow);
-
-        using var transaction = TransactionScopeFactory.Create();
-
-        await _applicationContext.Lots.Upsert(dbLotInfo).RunAsync(cancellationToken);
-
+        var categories = lotInfo.Categories.ToDictionary(x => x.Type, x => x.Value);
         var titleChangedDate = DateTimeOffset.Parse(lotInfo.TitleChangeDate, CultureInfo.InvariantCulture).ToUniversalTime();
+        var updateDate = DateTimeOffset.UtcNow;
 
-        var filteredPurchaseHistory = lotInfo.PurchaseHistory
-            .Select(x => x.ToDbPurchase(lotId: lotInfo.LotId))
-            .Where(purchase => purchase.Date >= titleChangedDate)
-            .ToList();
+        var lot = await _lotRepository.GetByIdAsync(lotInfo.LotId, cancellationToken);
+        if (lot == null)
+        {
+            lot = Lot.Create(
+                id: lotInfo.LotId,
+                productId: productId,
+                name: lotInfo.Name,
+                pcs: lotInfo.Pcs,
+                lotSize: lotInfo.LotSize,
+                currencyId: lotInfo.Currency,
+                shippingCountry: lotInfo.ShippingCountry,
+                price: lotInfo.Price,
+                shipping: lotInfo.Shipping!.Value,
+                shippingAdditional: lotInfo.ShippingAdditional!.Value,
+                description: lotInfo.Description,
+                shortDescription: lotInfo.ShortDescription,
+                condition: lotInfo.Condition,
+                conditionDescription: lotInfo.ConditionDescription,
+                seller: lotInfo.Seller,
+                locatedIn: lotInfo.LocatedIn,
+                titleChangeDate: titleChangedDate,
+                updateDate: updateDate,
+                categories: categories);
+            await _lotRepository.AddAsync(lot, cancellationToken);
+        }
+        else
+        {
+            lot.UpdateInfo(
+                name: lotInfo.Name,
+                pcs: lotInfo.Pcs,
+                lotSize: lotInfo.LotSize,
+                currencyId: lotInfo.Currency,
+                shippingCountry: lotInfo.ShippingCountry,
+                price: lotInfo.Price,
+                shipping: lotInfo.Shipping!.Value,
+                shippingAdditional: lotInfo.ShippingAdditional!.Value,
+                description: lotInfo.Description,
+                shortDescription: lotInfo.ShortDescription,
+                condition: lotInfo.Condition,
+                conditionDescription: lotInfo.ConditionDescription,
+                seller: lotInfo.Seller,
+                locatedIn: lotInfo.LocatedIn,
+                titleChangeDate: titleChangedDate,
+                updateDate: updateDate,
+                categories: categories);
+        }
 
-        await _applicationContext.Purchases.UpsertRange(filteredPurchaseHistory).RunAsync(cancellationToken);
+        foreach (var purchase in lotInfo.PurchaseHistory)
+        {
+            var purchaseDate = DateTimeOffset.Parse(purchase.Date, CultureInfo.InvariantCulture).ToUniversalTime();
+            if (purchaseDate < titleChangedDate)
+            {
+                continue;
+            }
 
-        _applicationContext.RemoveRange(
-            _applicationContext.Purchases.Where(x => x.LotId == lotInfo.LotId && x.Date < titleChangedDate)
-        );
+            lot.UpsertPurchase(purchaseDate, purchase.Price, purchase.Quantity);
+        }
 
+        lot.RemovePurchasesBefore(titleChangedDate);
+
+        await _publishEndpoint.Publish(new CalculatePricesForLot(lotInfo.LotId), cancellationToken);
+        await _writeModelUnitOfWork.SaveChangesAsync(cancellationToken);
+
+        // Лот больше не считается проигнорированным, раз для него снова пришли актуальные данные;
+        // отдельное сохранение, т.к. IgnoredLot всё ещё легаси-сущность на другом соединении с БД.
         _applicationContext.RemoveRange(
             _applicationContext.IgnoredLots.Where(x => x.ProductId == productId && x.LotId == lotInfo.LotId)
         );
-
-        await _publishEndpoint.Publish(new CalculatePricesForLot(lotInfo.LotId), cancellationToken);
         await _applicationContext.SaveChangesAsync(cancellationToken);
-        transaction.Complete();
     }
 
     public async Task<ICollection<long>> GetIgnoredLotsAsync(Guid productId, CancellationToken cancellationToken)
@@ -369,21 +428,22 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken
     )
     {
-        using var transaction = TransactionScopeFactory.Create();
+        var lotIds = ignoredLots.ToHashSet();
 
-        var lotIds = ignoredLots.ToList();
-
-        var alreadySaved = await _applicationContext.Lots
-            .AnyAsync(predicate: x => x.ProductId == productId && lotIds.Contains(x.Id), cancellationToken: cancellationToken);
+        // Читаем через ILotQueries (ReadDbContext, отдельное соединение) до открытия ambient TransactionScope
+        // ниже - см. аналогичную заметку в CalculatePricesForLotConsumer про Enlist=true и distributed transactions.
+        var alreadySaved = await _lotQueries.AnyLotExistsForProductAsync(productId, lotIds, cancellationToken);
 
         if (!alreadySaved)
         {
+            using var transaction = TransactionScopeFactory.Create();
+
             await _applicationContext.IgnoredLots
                 .UpsertRange(lotIds.Select(x => new IgnoredLot { ProductId = productId, LotId = x }))
                 .RunAsync(cancellationToken);
-        }
 
-        transaction.Complete();
+            transaction.Complete();
+        }
     }
 
     public async Task<bool> GetIsLotIgnoredForProductAsync(
@@ -578,42 +638,24 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken
     )
     {
-        var dbLot = await _applicationContext.Lots
-            .AsNoTracking()
-            .Include(x => x.Purchases)
-            .SingleOrDefaultAsync(
-                predicate: x => x.Id == lotId,
-                cancellationToken: cancellationToken
-            );
+        var lot = await _lotQueries.GetLotAsync(lotId, cancellationToken);
 
-        return dbLot == null ? throw NonOkHttpAnswerException.NotFound400() : dbLot.ToApiLot();
+        return lot == null ? throw NonOkHttpAnswerException.NotFound400() : lot.ToApiLot();
     }
 
     public async Task DeleteLotInfoAsync(long lotId, CancellationToken cancellationToken)
     {
-        using var transaction = TransactionScopeFactory.Create();
-
-        var lot = await _applicationContext.Lots
-                      .SingleOrDefaultAsync(predicate: x => x.Id == lotId, cancellationToken: cancellationToken) ??
+        var lot = await _lotRepository.GetByIdAsync(lotId, cancellationToken) ??
                   throw new InvalidOperationException($"Lot with id {lotId} not found");
 
         await _publishEndpoint.Publish(new CalculatePricesForProductRequested(lot.ProductId), cancellationToken);
 
-        _applicationContext.Lots.Remove(lot);
-        await _applicationContext.SaveChangesAsync(cancellationToken);
-
-        transaction.Complete();
+        await _lotRepository.RemoveAsync(lotId, cancellationToken);
+        await _writeModelUnitOfWork.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<ICollection<long>> GetLotIdsAsync(CancellationToken cancellationToken)
-    {
-        var result = await _applicationContext.Lots
-            .AsNoTracking()
-            .Select(x => x.Id)
-            .ToListAsync(cancellationToken);
-
-        return result;
-    }
+    public async Task<ICollection<long>> GetLotIdsAsync(CancellationToken cancellationToken) =>
+        [.. await _lotQueries.GetAllLotIdsAsync(cancellationToken)];
 
     public async Task<ICollection<LotState>> GetLotStatesAsync(
         IEnumerable<long> lotIds,
@@ -621,11 +663,7 @@ internal class EbayControllerImplementation : IEbayController
     )
     {
         var idsToSelect = lotIds.ToHashSet();
-        var result = await _applicationContext.Lots
-            .AsNoTracking()
-            .Where(x => idsToSelect.Contains(x.Id))
-            .Select(x => new { x.Id, x.UpdateDate })
-            .ToListAsync(cancellationToken);
+        var result = await _lotQueries.GetLotUpdateInfoAsync(idsToSelect, cancellationToken);
 
         return [.. result.Select(
                 x => new LotState(
@@ -672,11 +710,7 @@ internal class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken
     )
     {
-        return [.. (await _applicationContext.Currencies
-                .AsNoTracking()
-                .OrderBy(x => x.CurrencyEbayName)
-                .ToListAsync(cancellationToken))
-            .Select(x => x.ToApiCurrency())];
+        return [.. (await _currencyQueries.GetAllCurrenciesAsync(cancellationToken)).Select(x => x.ToApiCurrency())];
     }
 
     public Task<ICollection<ExtractedFields>> ExtractDataAsync(
