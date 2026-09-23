@@ -3,7 +3,7 @@ using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
 using Server.Application.New.MeasurementPlot;
 
-namespace Server.Application.Controllers;
+namespace Server.Adapters.Driving.WebApi.Controllers;
 
 [ApiController]
 public class MeasurementPageController : ControllerBase
