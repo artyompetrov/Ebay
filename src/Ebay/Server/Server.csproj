@@ -12,19 +12,31 @@
       <ProjectReference Include="..\Server.Adapters.Driven.EF.WriteModel\Server.Adapters.Driven.EF.WriteModel.csproj" />
       <!-- Not used by any C# code here; must be present in the output directory so EF Core can load it by name at runtime (see MigrationsAssembly("Server.Adapters.Driven.EF.WriteModel.Migrations") in Server.Adapters.Driven.EF.WriteModel/ServiceCollectionExtensions.cs). -->
       <ProjectReference Include="..\Server.Adapters.Driven.EF.WriteModel.Migrations\Server.Adapters.Driven.EF.WriteModel.Migrations.csproj" NoWarn="RT0002" />
+      <ProjectReference Include="..\Server.Adapters.Driven.EF.Identity\Server.Adapters.Driven.EF.Identity.csproj" />
+      <!-- Not used by any C# code here; must be present in the output directory so EF Core can load it by name at runtime (see MigrationsAssembly("Server.Adapters.Driven.EF.Identity.Migrations") in Server.Adapters.Driven.EF.Identity/ServiceCollectionExtensions.cs). -->
+      <ProjectReference Include="..\Server.Adapters.Driven.EF.Identity.Migrations\Server.Adapters.Driven.EF.Identity.Migrations.csproj" NoWarn="RT0002" />
       <ProjectReference Include="..\Server.Adapters.Driven.GeoIp\Server.Adapters.Driven.GeoIp.csproj" />
       <ProjectReference Include="..\Server.Adapters.Driven.ImageProcessing\Server.Adapters.Driven.ImageProcessing.csproj" />
       <ProjectReference Include="..\Server.Adapters.Driven.OpenExchangeRates\Server.Adapters.Driven.OpenExchangeRates.csproj" />
       <ProjectReference Include="..\Server.Adapters.Driven.Smtp\Server.Adapters.Driven.Smtp.csproj" />
       <ProjectReference Include="..\Server.Adapters.Driven.uTracer\Server.Adapters.Driven.uTracer.csproj" />
       <ProjectReference Include="..\Server.Adapters.Driving.MassTransit\Server.Adapters.Driving.MassTransit.csproj" />
-      <ProjectReference Include="..\Server.Application\Server.Application.csproj" />
+      <ProjectReference Include="..\Server.Application.New\Server.Application.New.csproj" />
       <ProjectReference Include="..\Server.Adapters.Driving.WebApi\Server.Adapters.Driving.WebApi.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+    <PackageReference Include="MassTransit.SqlTransport.PostgreSQL" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Not used by any C# code here; provides the Blazor WASM static web assets (wwwroot/_framework) that Server/Program.cs serves transitively via UseBlazorFrameworkFiles(). -->
+    <ProjectReference Include="..\Frontend\Frontend.csproj" NoWarn="RT0002" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'Release'">

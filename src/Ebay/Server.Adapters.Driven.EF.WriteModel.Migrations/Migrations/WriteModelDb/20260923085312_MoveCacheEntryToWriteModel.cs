@@ -29,11 +29,21 @@ namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelD
             // CacheEntry has no owning behavior (design.md: a "mechanical copy" table) - copy existing rows
             // anyway for consistency with every other legacy-to-wm move, even though a stale/expired row here
             // is harmless (ExpiresAt governs staleness and the value just gets recomputed on next read).
+            // Guarded by a legacy-table existence check: no-op on a database bootstrapping this migration for
+            // the first time (per task 7.6's removal of the legacy migration history that used to create this
+            // table); harmless replay of an already-applied data copy otherwise.
             migrationBuilder.Sql(
                 sql: """
-                     INSERT INTO wm."CacheEntries" ("Key", "Version", "Value", "ExpiresAt")
-                     SELECT "Key", "Version", "Value", "ExpiresAt"
-                     FROM "CacheEntries";
+                     DO $$
+                     BEGIN
+                         IF EXISTS (
+                             SELECT 1 FROM information_schema.tables
+                             WHERE table_schema = 'public' AND table_name = 'CacheEntries') THEN
+                             INSERT INTO wm."CacheEntries" ("Key", "Version", "Value", "ExpiresAt")
+                             SELECT "Key", "Version", "Value", "ExpiresAt"
+                             FROM "CacheEntries";
+                         END IF;
+                     END $$;
                      """);
         }
 

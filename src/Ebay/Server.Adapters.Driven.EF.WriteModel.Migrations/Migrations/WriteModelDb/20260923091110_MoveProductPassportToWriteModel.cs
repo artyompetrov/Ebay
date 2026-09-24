@@ -47,13 +47,23 @@ namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelD
             // Legacy "ProductPassports" has no separate CreatedAt/ChangedAt - same backfill-from-nearest-date
             // approach as every other legacy-to-wm move; there is no better source date here than now(), since
             // passports (unlike Lots/Currencies) never carried any date field at all.
+            // Guarded by a legacy-table existence check: no-op on a database bootstrapping this migration for
+            // the first time (per task 7.6's removal of the legacy migration history that used to create this
+            // table); harmless replay of an already-applied data copy otherwise.
             migrationBuilder.Sql(
                 sql: """
-                     INSERT INTO wm."ProductPassports"
-                         ("Id", "ProductId", "FileName", "ContentType", "Order", "Content", "CreatedAt", "ChangedAt")
-                     SELECT
-                         "Id", "ProductId", "FileName", "ContentType", "Order", "Content", now(), now()
-                     FROM "ProductPassports";
+                     DO $$
+                     BEGIN
+                         IF EXISTS (
+                             SELECT 1 FROM information_schema.tables
+                             WHERE table_schema = 'public' AND table_name = 'ProductPassports') THEN
+                             INSERT INTO wm."ProductPassports"
+                                 ("Id", "ProductId", "FileName", "ContentType", "Order", "Content", "CreatedAt", "ChangedAt")
+                             SELECT
+                                 "Id", "ProductId", "FileName", "ContentType", "Order", "Content", now(), now()
+                             FROM "ProductPassports";
+                         END IF;
+                     END $$;
                      """);
         }
 

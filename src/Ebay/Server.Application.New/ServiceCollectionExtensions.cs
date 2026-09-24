@@ -36,6 +36,11 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton(sp => sp.GetRequiredService<IOptions<EbayServerOptions>>().Value);
 
+        services.AddOptions<ImageCacheOptions>()
+            .BindConfiguration(ImageCacheOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
         services.AddTransient<MeasurementApproximationService>();
         services.AddTransient<IMeasurementService, MeasurementService>();
         services.AddTransient<IMatchedPairsCalculator, MatchedPairsCalculator>();

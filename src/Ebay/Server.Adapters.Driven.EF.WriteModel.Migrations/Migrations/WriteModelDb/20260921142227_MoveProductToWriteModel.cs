@@ -88,31 +88,56 @@ namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelD
                 table: "Product_SearchQueries",
                 column: "ProductId");
 
+            // Guarded by legacy-table existence checks: no-op on a database bootstrapping this migration for
+            // the first time (i.e. one that never had these legacy tables, per task 7.6's removal of the
+            // legacy migration history that used to create them); harmless replay of already-applied data
+            // copies otherwise, since EF tracks applied migrations by name, not by re-checksumming the file.
             migrationBuilder.Sql(
                 sql: """
-                     INSERT INTO wm."Products"
-                         ("Id", "Name", "LastCheckTime", "Weight", "ProductCalculationResult", "CreatedAt", "ChangedAt")
-                     SELECT
-                         "Id", "Name", "LastCheckTime", "Weight", "ProductCalculationResult", "CreatedAt", "ChangedAt"
-                     FROM "Products";
+                     DO $$
+                     BEGIN
+                         IF EXISTS (
+                             SELECT 1 FROM information_schema.tables
+                             WHERE table_schema = 'public' AND table_name = 'Products') THEN
+                             INSERT INTO wm."Products"
+                                 ("Id", "Name", "LastCheckTime", "Weight", "ProductCalculationResult", "CreatedAt", "ChangedAt")
+                             SELECT
+                                 "Id", "Name", "LastCheckTime", "Weight", "ProductCalculationResult", "CreatedAt", "ChangedAt"
+                             FROM "Products";
+                         END IF;
+                     END $$;
                      """);
 
             migrationBuilder.Sql(
                 sql: """
-                     INSERT INTO wm."Product_SearchQueries"
-                         ("Id", "Query", "ProductId", "CreatedAt", "ChangedAt")
-                     SELECT
-                         "Id", "Query", "ProductId", "CreatedAt", "ChangedAt"
-                     FROM "Product_SearchQueries";
+                     DO $$
+                     BEGIN
+                         IF EXISTS (
+                             SELECT 1 FROM information_schema.tables
+                             WHERE table_schema = 'public' AND table_name = 'Product_SearchQueries') THEN
+                             INSERT INTO wm."Product_SearchQueries"
+                                 ("Id", "Query", "ProductId", "CreatedAt", "ChangedAt")
+                             SELECT
+                                 "Id", "Query", "ProductId", "CreatedAt", "ChangedAt"
+                             FROM "Product_SearchQueries";
+                         END IF;
+                     END $$;
                      """);
 
             migrationBuilder.Sql(
                 sql: """
-                     INSERT INTO wm."Product_RuSearchQueries"
-                         ("Id", "Query", "ProductId", "CreatedAt", "ChangedAt")
-                     SELECT
-                         "Id", "Query", "ProductId", "CreatedAt", "ChangedAt"
-                     FROM "Product_RuSearchQueries";
+                     DO $$
+                     BEGIN
+                         IF EXISTS (
+                             SELECT 1 FROM information_schema.tables
+                             WHERE table_schema = 'public' AND table_name = 'Product_RuSearchQueries') THEN
+                             INSERT INTO wm."Product_RuSearchQueries"
+                                 ("Id", "Query", "ProductId", "CreatedAt", "ChangedAt")
+                             SELECT
+                                 "Id", "Query", "ProductId", "CreatedAt", "ChangedAt"
+                             FROM "Product_RuSearchQueries";
+                         END IF;
+                     END $$;
                      """);
 
             // ProductMeasurements/TubeWorkingPoints уже ссылались на legacy "Products" (добавлено в
@@ -160,57 +185,77 @@ namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelD
             // "Products" table, which stops being written to once Product is cut over). Re-add them here,
             // pointing at wm."Products", so these still-legacy tables keep referential integrity against the
             // table that now actually owns Product; RESTRICT (not the original CASCADE) per AGENTS.md's rule
-            // that cross-aggregate FKs use RESTRICT, not CASCADE.
+            // that cross-aggregate FKs use RESTRICT, not CASCADE. Each is individually guarded by its own
+            // legacy-table existence check: on a database bootstrapping this migration for the first time (per
+            // task 7.6's removal of the legacy migration history), none of these legacy tables exist at all -
+            // each one gets its own wm-schema equivalent (with its own FK to wm."Products") from its own later
+            // "Move X to WriteModel" migration instead, so there is nothing here to add yet.
             migrationBuilder.Sql(
                 sql: """
                      DO $$
                      BEGIN
-                         IF NOT EXISTS (
-                             SELECT 1
-                             FROM pg_constraint
-                             WHERE conname = 'FK_Lots_Products_ProductId'
-                               AND conrelid = '"Lots"'::regclass) THEN
-                             ALTER TABLE "Lots"
-                             ADD CONSTRAINT "FK_Lots_Products_ProductId"
-                             FOREIGN KEY ("ProductId")
-                             REFERENCES wm."Products"("Id")
-                             ON DELETE RESTRICT;
+                         IF EXISTS (
+                             SELECT 1 FROM information_schema.tables
+                             WHERE table_schema = 'public' AND table_name = 'Lots') THEN
+                             IF NOT EXISTS (
+                                 SELECT 1
+                                 FROM pg_constraint
+                                 WHERE conname = 'FK_Lots_Products_ProductId'
+                                   AND conrelid = '"Lots"'::regclass) THEN
+                                 ALTER TABLE "Lots"
+                                 ADD CONSTRAINT "FK_Lots_Products_ProductId"
+                                 FOREIGN KEY ("ProductId")
+                                 REFERENCES wm."Products"("Id")
+                                 ON DELETE RESTRICT;
+                             END IF;
                          END IF;
 
-                         IF NOT EXISTS (
-                             SELECT 1
-                             FROM pg_constraint
-                             WHERE conname = 'FK_IgnoredLots_Products_ProductId'
-                               AND conrelid = '"IgnoredLots"'::regclass) THEN
-                             ALTER TABLE "IgnoredLots"
-                             ADD CONSTRAINT "FK_IgnoredLots_Products_ProductId"
-                             FOREIGN KEY ("ProductId")
-                             REFERENCES wm."Products"("Id")
-                             ON DELETE RESTRICT;
+                         IF EXISTS (
+                             SELECT 1 FROM information_schema.tables
+                             WHERE table_schema = 'public' AND table_name = 'IgnoredLots') THEN
+                             IF NOT EXISTS (
+                                 SELECT 1
+                                 FROM pg_constraint
+                                 WHERE conname = 'FK_IgnoredLots_Products_ProductId'
+                                   AND conrelid = '"IgnoredLots"'::regclass) THEN
+                                 ALTER TABLE "IgnoredLots"
+                                 ADD CONSTRAINT "FK_IgnoredLots_Products_ProductId"
+                                 FOREIGN KEY ("ProductId")
+                                 REFERENCES wm."Products"("Id")
+                                 ON DELETE RESTRICT;
+                             END IF;
                          END IF;
 
-                         IF NOT EXISTS (
-                             SELECT 1
-                             FROM pg_constraint
-                             WHERE conname = 'FK_ProductPassports_Products_ProductId'
-                               AND conrelid = '"ProductPassports"'::regclass) THEN
-                             ALTER TABLE "ProductPassports"
-                             ADD CONSTRAINT "FK_ProductPassports_Products_ProductId"
-                             FOREIGN KEY ("ProductId")
-                             REFERENCES wm."Products"("Id")
-                             ON DELETE RESTRICT;
+                         IF EXISTS (
+                             SELECT 1 FROM information_schema.tables
+                             WHERE table_schema = 'public' AND table_name = 'ProductPassports') THEN
+                             IF NOT EXISTS (
+                                 SELECT 1
+                                 FROM pg_constraint
+                                 WHERE conname = 'FK_ProductPassports_Products_ProductId'
+                                   AND conrelid = '"ProductPassports"'::regclass) THEN
+                                 ALTER TABLE "ProductPassports"
+                                 ADD CONSTRAINT "FK_ProductPassports_Products_ProductId"
+                                 FOREIGN KEY ("ProductId")
+                                 REFERENCES wm."Products"("Id")
+                                 ON DELETE RESTRICT;
+                             END IF;
                          END IF;
 
-                         IF NOT EXISTS (
-                             SELECT 1
-                             FROM pg_constraint
-                             WHERE conname = 'FK_SaleAdvertisements_Products_ProductId'
-                               AND conrelid = '"SaleAdvertisements"'::regclass) THEN
-                             ALTER TABLE "SaleAdvertisements"
-                             ADD CONSTRAINT "FK_SaleAdvertisements_Products_ProductId"
-                             FOREIGN KEY ("ProductId")
-                             REFERENCES wm."Products"("Id")
-                             ON DELETE RESTRICT;
+                         IF EXISTS (
+                             SELECT 1 FROM information_schema.tables
+                             WHERE table_schema = 'public' AND table_name = 'SaleAdvertisements') THEN
+                             IF NOT EXISTS (
+                                 SELECT 1
+                                 FROM pg_constraint
+                                 WHERE conname = 'FK_SaleAdvertisements_Products_ProductId'
+                                   AND conrelid = '"SaleAdvertisements"'::regclass) THEN
+                                 ALTER TABLE "SaleAdvertisements"
+                                 ADD CONSTRAINT "FK_SaleAdvertisements_Products_ProductId"
+                                 FOREIGN KEY ("ProductId")
+                                 REFERENCES wm."Products"("Id")
+                                 ON DELETE RESTRICT;
+                             END IF;
                          END IF;
                      END $$;
                      """);

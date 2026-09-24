@@ -1,0 +1,15 @@
+namespace Server.Application.New;
+
+/// <summary>
+/// Настройки общего in-memory кеша, используемого для фото/миниатюр замеров и для
+/// отрендеренных графиков/описаний, показываемых на странице лота eBay.
+/// </summary>
+public sealed record ImageCacheOptions
+{
+    public const string SectionName = WellKnown.ImageCache.SectionName;
+
+    /// <summary>
+    /// Максимальный суммарный размер (в байтах) записей, удерживаемых в кеше одновременно.
+    /// </summary>
+    public long SizeLimitBytes { get; init; } = WellKnown.ImageCache.DefaultSizeLimitBytes;
+}

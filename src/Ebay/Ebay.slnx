@@ -29,7 +29,6 @@
   <Project Path="Server.Application.Abstractions.Driven/Server.Application.Abstractions.Driven.csproj" />
   <Project Path="Server.Application.Abstractions.Driving/Server.Application.Abstractions.Driving.csproj" />
   <Project Path="Server.Application.New/Server.Application.New.csproj" />
-  <Project Path="Server.Application/Server.Application.csproj" />
   <Project Path="Server.Domain/Server.Domain.csproj" />
   <Project Path="Server/Server.csproj" />
   <Project Path="Tests.Explicit/Tests.Explicit.csproj" />

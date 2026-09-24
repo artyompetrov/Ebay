@@ -34,6 +34,14 @@ public static class WellKnown
         /// этого кеша не задевало записи, которые не проставляют Size.
         /// </summary>
         public const string ServiceKey = "measurement-image-cache";
+
+        public const string SectionName = "ImageCache";
+
+        /// <summary>
+        /// Максимальный суммарный размер (в байтах) записей, удерживаемых одновременно в общем
+        /// кеше фото/миниатюр замеров и отрендеренных графиков для eBay.
+        /// </summary>
+        public const long DefaultSizeLimitBytes = 200 * 1024 * 1024;
     }
 
     /// <summary>

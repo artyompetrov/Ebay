@@ -50,18 +50,35 @@ namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelD
             // Both are "no behavior" mechanical copies per design.md. ClientError has no CreatedAt/ChangedAt in
             // the legacy schema (a pure write sink, never read back) - backfilled to now(), same as
             // ProductPassport. IgnoredLot never carried any date field.
+            // Guarded by legacy-table existence checks: no-op on a database bootstrapping this migration for
+            // the first time (per task 7.6's removal of the legacy migration history that used to create these
+            // tables); harmless replay of already-applied data copies otherwise.
             migrationBuilder.Sql(
                 sql: """
-                     INSERT INTO wm."ClientErrors" ("Id", "Url", "ErrorText", "CreatedAt", "ChangedAt")
-                     SELECT "Id", "Url", "ErrorText", now(), now()
-                     FROM "ClientErrors";
+                     DO $$
+                     BEGIN
+                         IF EXISTS (
+                             SELECT 1 FROM information_schema.tables
+                             WHERE table_schema = 'public' AND table_name = 'ClientErrors') THEN
+                             INSERT INTO wm."ClientErrors" ("Id", "Url", "ErrorText", "CreatedAt", "ChangedAt")
+                             SELECT "Id", "Url", "ErrorText", now(), now()
+                             FROM "ClientErrors";
+                         END IF;
+                     END $$;
                      """);
 
             migrationBuilder.Sql(
                 sql: """
-                     INSERT INTO wm."IgnoredLots" ("ProductId", "LotId")
-                     SELECT "ProductId", "LotId"
-                     FROM "IgnoredLots";
+                     DO $$
+                     BEGIN
+                         IF EXISTS (
+                             SELECT 1 FROM information_schema.tables
+                             WHERE table_schema = 'public' AND table_name = 'IgnoredLots') THEN
+                             INSERT INTO wm."IgnoredLots" ("ProductId", "LotId")
+                             SELECT "ProductId", "LotId"
+                             FROM "IgnoredLots";
+                         END IF;
+                     END $$;
                      """);
         }
 

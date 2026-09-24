@@ -119,37 +119,61 @@ namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelD
 
             // Currencies/Lots не ведут своих CreatedAt/ChangedAt в legacy-схеме - берём ближайшую по смыслу
             // существующую дату (LastUpdate/UpdateDate) вместо now(), чтобы не терять историчность при переносе.
+            // Guarded by legacy-table existence checks: no-op on a database bootstrapping this migration for
+            // the first time (per task 7.6's removal of the legacy migration history that used to create these
+            // tables); harmless replay of an already-applied data copy otherwise.
             migrationBuilder.Sql(
                 sql: """
-                     INSERT INTO wm."Currencies"
-                         ("Id", "CurrencyRusName", "CurrencyApiName", "CurrencyRate", "LastUpdate", "CreatedAt", "ChangedAt")
-                     SELECT
-                         "CurrencyEbayName", "CurrencyRusName", "CurrencyApiName", "CurrencyRate", "LastUpdate", "LastUpdate", "LastUpdate"
-                     FROM "Currencies";
+                     DO $$
+                     BEGIN
+                         IF EXISTS (
+                             SELECT 1 FROM information_schema.tables
+                             WHERE table_schema = 'public' AND table_name = 'Currencies') THEN
+                             INSERT INTO wm."Currencies"
+                                 ("Id", "CurrencyRusName", "CurrencyApiName", "CurrencyRate", "LastUpdate", "CreatedAt", "ChangedAt")
+                             SELECT
+                                 "CurrencyEbayName", "CurrencyRusName", "CurrencyApiName", "CurrencyRate", "LastUpdate", "LastUpdate", "LastUpdate"
+                             FROM "Currencies";
+                         END IF;
+                     END $$;
                      """);
 
             migrationBuilder.Sql(
                 sql: """
-                     INSERT INTO wm."Lots"
-                         ("Id", "ProductId", "Name", "Pcs", "LotSize", "CurrencyId", "ShippingCountry", "Price", "Shipping",
-                          "ShippingAdditional", "Description", "ShortDescription", "Condition", "ConditionDescription",
-                          "Seller", "LocatedIn", "TitleChangeDate", "UpdateDate", "Categories", "LotCalculationResult",
-                          "CreatedAt", "ChangedAt")
-                     SELECT
-                         "Id", "ProductId", "Name", "Pcs", "LotSize", "CurrencyId", "ShippingCountry", "Price", "Shipping",
-                         "ShippingAdditional", "Description", "ShortDescription", "Condition", "ConditionDescription",
-                         "Seller", "LocatedIn", "TitleChangeDate", "UpdateDate", "Categories", "LotCalculationResult",
-                         "UpdateDate", "UpdateDate"
-                     FROM "Lots";
+                     DO $$
+                     BEGIN
+                         IF EXISTS (
+                             SELECT 1 FROM information_schema.tables
+                             WHERE table_schema = 'public' AND table_name = 'Lots') THEN
+                             INSERT INTO wm."Lots"
+                                 ("Id", "ProductId", "Name", "Pcs", "LotSize", "CurrencyId", "ShippingCountry", "Price", "Shipping",
+                                  "ShippingAdditional", "Description", "ShortDescription", "Condition", "ConditionDescription",
+                                  "Seller", "LocatedIn", "TitleChangeDate", "UpdateDate", "Categories", "LotCalculationResult",
+                                  "CreatedAt", "ChangedAt")
+                             SELECT
+                                 "Id", "ProductId", "Name", "Pcs", "LotSize", "CurrencyId", "ShippingCountry", "Price", "Shipping",
+                                 "ShippingAdditional", "Description", "ShortDescription", "Condition", "ConditionDescription",
+                                 "Seller", "LocatedIn", "TitleChangeDate", "UpdateDate", "Categories", "LotCalculationResult",
+                                 "UpdateDate", "UpdateDate"
+                             FROM "Lots";
+                         END IF;
+                     END $$;
                      """);
 
             migrationBuilder.Sql(
                 sql: """
-                     INSERT INTO wm."Lot_Purchases"
-                         ("LotId", "Date", "Price", "Quantity", "PurchaseCalculationResult")
-                     SELECT
-                         "LotId", "Date", "Price", "Quantity", "PurchaseCalculationResult"
-                     FROM "Purchases";
+                     DO $$
+                     BEGIN
+                         IF EXISTS (
+                             SELECT 1 FROM information_schema.tables
+                             WHERE table_schema = 'public' AND table_name = 'Purchases') THEN
+                             INSERT INTO wm."Lot_Purchases"
+                                 ("LotId", "Date", "Price", "Quantity", "PurchaseCalculationResult")
+                             SELECT
+                                 "LotId", "Date", "Price", "Quantity", "PurchaseCalculationResult"
+                             FROM "Purchases";
+                         END IF;
+                     END $$;
                      """);
         }
 

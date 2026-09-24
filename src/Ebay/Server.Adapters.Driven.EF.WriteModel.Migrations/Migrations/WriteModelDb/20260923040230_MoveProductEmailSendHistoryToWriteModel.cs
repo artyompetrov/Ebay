@@ -62,13 +62,23 @@ namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelD
             // Legacy "SaleAdvertisements" использовала int identity Id и не вела CreatedAt/ChangedAt отдельно
             // от бизнес-даты объявления - как и для Lots/Currencies, генерируем новый Id и используем
             // ближайшую по смыслу существующую дату (дату объявления) вместо now() для аудит-полей.
+            // Guarded by a legacy-table existence check: no-op on a database bootstrapping this migration for
+            // the first time (per task 7.6's removal of the legacy migration history that used to create this
+            // table); harmless replay of an already-applied data copy otherwise.
             migrationBuilder.Sql(
                 sql: """
-                     INSERT INTO wm."ProductEmailSendHistories"
-                         ("Id", "ProductId", "Seller", "Link", "Marketplace", "IsAmbiguous", "AdvertisementDate", "Contact", "CreatedAt", "ChangedAt")
-                     SELECT
-                         gen_random_uuid(), "ProductId", "Seller", "Link", "Marketplace", "IsAmbiguous", "CreatedAt", "Contact", "CreatedAt", "CreatedAt"
-                     FROM "SaleAdvertisements";
+                     DO $$
+                     BEGIN
+                         IF EXISTS (
+                             SELECT 1 FROM information_schema.tables
+                             WHERE table_schema = 'public' AND table_name = 'SaleAdvertisements') THEN
+                             INSERT INTO wm."ProductEmailSendHistories"
+                                 ("Id", "ProductId", "Seller", "Link", "Marketplace", "IsAmbiguous", "AdvertisementDate", "Contact", "CreatedAt", "ChangedAt")
+                             SELECT
+                                 gen_random_uuid(), "ProductId", "Seller", "Link", "Marketplace", "IsAmbiguous", "CreatedAt", "Contact", "CreatedAt", "CreatedAt"
+                             FROM "SaleAdvertisements";
+                         END IF;
+                     END $$;
                      """);
         }
 
