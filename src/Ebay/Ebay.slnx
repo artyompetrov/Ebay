@@ -7,6 +7,8 @@
   <Folder Name="/Adapters.Driven/">
     <Project Path="Server.Adapters.Driven.ChipFind/Server.Adapters.Driven.ChipFind.csproj" />
     <Project Path="Server.Adapters.Driven.EF.ReadModel/Server.Adapters.Driven.EF.ReadModel.csproj" />
+    <Project Path="Server.Adapters.Driven.EF.Identity.Migrations/Server.Adapters.Driven.EF.Identity.Migrations.csproj" />
+    <Project Path="Server.Adapters.Driven.EF.Identity/Server.Adapters.Driven.EF.Identity.csproj" />
     <Project Path="Server.Adapters.Driven.EF.WriteModel.Migrations/Server.Adapters.Driven.EF.WriteModel.Migrations.csproj" />
     <Project Path="Server.Adapters.Driven.EF.WriteModel/Server.Adapters.Driven.EF.WriteModel.csproj" />
     <Project Path="Server.Adapters.Driven.GeoIp/Server.Adapters.Driven.GeoIp.csproj" />
