@@ -49,6 +49,7 @@ jobs:
       - name: Upload dump to Yandex Disk
         env:
           YANDEX_DISK_TOKEN: ${{ secrets.YANDEX_DISK_TOKEN }}
+          YANDEX_OAUTH_CLIENT_ID: ${{ secrets.YANDEX_OAUTH_CLIENT_ID }}
         run: ./scripts/backup-database/upload_to_yandex_disk.sh "./$BACKUP_FILE_NAME" "/Ebay-backups/$BACKUP_FILE_NAME"
 
       - name: Cleanup local dump
