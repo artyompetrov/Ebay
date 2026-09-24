@@ -25,12 +25,17 @@ internal sealed class ReadDbContext : DbContext
 
         b.Entity<ProductPassportView>(eb =>
         {
-            eb.ToView("ProductPassports").HasKey(x => x.Id);
+            eb.ToView("ProductPassports", "wm").HasKey(x => x.Id);
+        });
+
+        b.Entity<IgnoredLotView>(eb =>
+        {
+            eb.ToView("IgnoredLots", "wm").HasKey(x => new { x.ProductId, x.LotId });
         });
 
         b.Entity<ProductView>(eb =>
         {
-            eb.ToView("Products").HasKey(x => x.Id);
+            eb.ToView("Products", "wm").HasKey(x => x.Id);
 
             eb.HasOne(x => x.TubeWorkingPoint)
                 .WithOne(x => x.Product)
@@ -41,14 +46,14 @@ internal sealed class ReadDbContext : DbContext
             {
                 q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
                 q.HasKey(x => x.Id);
-                q.ToTable("Product_SearchQueries");
+                q.ToTable("Product_SearchQueries", "wm");
             });
 
             eb.OwnsMany(p => p.RuSearchQueries, q =>
             {
                 q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
                 q.HasKey(x => x.Id);
-                q.ToTable("Product_RuSearchQueries");
+                q.ToTable("Product_RuSearchQueries", "wm");
             });
 
             eb.Property(o => o.ProductCalculationResult)
@@ -85,20 +90,43 @@ internal sealed class ReadDbContext : DbContext
 
         b.Entity<LotView>(eb =>
         {
-            eb.ToTable("Lots").HasKey(x => x.Id);
+            eb.ToTable("Lots", "wm").HasKey(x => x.Id);
 
             eb.Property(o => o.LotCalculationResult)
                 .HasConversion(new ValueConverter<LotCalculationResult?, string>(
                     v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
                     v => JsonSerializer.Deserialize<LotCalculationResult?>(v, (JsonSerializerOptions?)null)
                 ));
+
+            eb.OwnsMany(x => x.Purchases, p =>
+            {
+                p.WithOwner().HasForeignKey(nameof(PurchaseView.LotId));
+                p.HasKey(x => new { x.LotId, x.Date });
+                p.Property(x => x.PurchaseCalculationResult)
+                    .HasConversion(new ValueConverter<PurchaseCalculationResult?, string>(
+                        v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
+                        v => JsonSerializer.Deserialize<PurchaseCalculationResult?>(v, (JsonSerializerOptions?)null)
+                    ));
+                p.ToTable("Lot_Purchases", "wm");
+            });
         });
 
+        b.Entity<CurrencyView>(eb =>
+        {
+            eb.ToTable("Currencies", "wm").HasKey(x => x.Id);
+        });
+
+        b.Entity<ProductEmailSendHistoryView>(eb =>
+        {
+            eb.ToTable("ProductEmailSendHistories", "wm").HasKey(x => x.Id);
+        });
     }
 
     public DbSet<ProductMeasurementView> ProductMeasurements { get; set; } = null!;
 
     public DbSet<ProductPassportView> Passports { get; set; } = null!;
+
+    public DbSet<IgnoredLotView> IgnoredLots { get; set; } = null!;
 
     public DbSet<ProductView> Products { get; set; } = null!;
 
@@ -111,4 +139,8 @@ internal sealed class ReadDbContext : DbContext
     public DbSet<MeasurementPhotoView> MeasurementPhotos { get; set; } = null!;
 
     public DbSet<LotView> Lots { get; set; } = null!;
+
+    public DbSet<CurrencyView> Currencies { get; set; } = null!;
+
+    public DbSet<ProductEmailSendHistoryView> ProductEmailSendHistories { get; set; } = null!;
 }

@@ -5,7 +5,8 @@ using HtmlAgilityPack;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Server.Application.HostedServices.ChipFind;
+using Server.Application.Abstractions.Driven.Abstractions;
+using Server.Application.Abstractions.Driven.Models;
 
 namespace Server.Adapters.Driven.ChipFind;
 

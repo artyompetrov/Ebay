@@ -144,45 +144,80 @@ namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelD
                 table: "ProductMeasurements",
                 column: "ProductId");
 
+            // Guarded by legacy-table existence checks: these blocks read/write legacy tables that only the
+            // (deleted, per task 7.6) legacy migration history creates. Each is a harmless no-op on a database
+            // that already ran it (EF tracks applied migrations by name, not by re-checksumming the file, so
+            // editing Up() here only changes behavior for a database bootstrapping this migration for the first
+            // time - i.e. one that never had the legacy tables to begin with). The Products-FK block below is
+            // skipped whenever "Products" doesn't exist (fresh database, so Product hasn't been legacy-created
+            // at all yet); MoveProductToWriteModel (which runs later) unconditionally (re)points these same FKs
+            // at wm."Products" once that table exists, regardless of whether this block ran.
             migrationBuilder.Sql(
                 sql: """
-                     INSERT INTO wm."ProductMeasurements"
-                         ("Id", "ProductId", "MeasurementState", "Measurements", "HashAnodeCurves",
-                          "ManufactureCode", "ProductState", "Location", "MatchId", "LotId",
-                          "LastTimeWatchedOnEbay", "CreatedAt", "ChangedAt")
-                     SELECT
-                         "Id", "ProductId", "MeasurementState", "Measurements", "HashAnodeCurves",
-                         "ManufactureCode", "ProductState", "Location", "MatchId", "LotId",
-                         "LastTimeWatchedOnEbay", "CreatedAt", "ChangedAt"
-                     FROM "ProductMeasurements";
-                     """);
-
-            migrationBuilder.Sql(
-                sql: """
-                     INSERT INTO wm."TubeWorkingPoints"
-                         ("Id", "AnodeVoltage", "GridVoltage", "AnodeVoltageHalfWidth", "GridVoltageHalfWidth",
-                          "NominalCurrent", "CreatedAt", "ChangedAt")
-                     SELECT
-                         "Id", "AnodeVoltage", "GridVoltage", "AnodeVoltageHalfWidth", "GridVoltageHalfWidth",
-                         "NominalCurrent", "CreatedAt", "ChangedAt"
-                     FROM "TubeWorkingPoints";
-                     """);
-
-            migrationBuilder.Sql(
-                sql: """
-                     INSERT INTO wm."MatchedPairDifferences"
-                         ("Id", "ComparisonMode", "Measurement1Id", "Measurement2Id", "MseSection1", "MseSection2",
-                          "RmseSection1", "RmseSection2", "MaxAbsSection1", "MaxAbsSection2", "CreatedAt", "ChangedAt")
-                     SELECT
-                         "Id", "ComparisonMode", "Measurement1Id", "Measurement2Id", "MseSection1", "MseSection2",
-                         "RmseSection1", "RmseSection2", "MaxAbsSection1", "MaxAbsSection2", "CreatedAt", "ChangedAt"
-                     FROM "MatchedPairDifferences";
+                     DO $$
+                     BEGIN
+                         IF EXISTS (
+                             SELECT 1 FROM information_schema.tables
+                             WHERE table_schema = 'public' AND table_name = 'ProductMeasurements') THEN
+                             INSERT INTO wm."ProductMeasurements"
+                                 ("Id", "ProductId", "MeasurementState", "Measurements", "HashAnodeCurves",
+                                  "ManufactureCode", "ProductState", "Location", "MatchId", "LotId",
+                                  "LastTimeWatchedOnEbay", "CreatedAt", "ChangedAt")
+                             SELECT
+                                 "Id", "ProductId", "MeasurementState", "Measurements", "HashAnodeCurves",
+                                 "ManufactureCode", "ProductState", "Location", "MatchId", "LotId",
+                                 "LastTimeWatchedOnEbay", "CreatedAt", "ChangedAt"
+                             FROM "ProductMeasurements";
+                         END IF;
+                     END $$;
                      """);
 
             migrationBuilder.Sql(
                 sql: """
                      DO $$
                      BEGIN
+                         IF EXISTS (
+                             SELECT 1 FROM information_schema.tables
+                             WHERE table_schema = 'public' AND table_name = 'TubeWorkingPoints') THEN
+                             INSERT INTO wm."TubeWorkingPoints"
+                                 ("Id", "AnodeVoltage", "GridVoltage", "AnodeVoltageHalfWidth", "GridVoltageHalfWidth",
+                                  "NominalCurrent", "CreatedAt", "ChangedAt")
+                             SELECT
+                                 "Id", "AnodeVoltage", "GridVoltage", "AnodeVoltageHalfWidth", "GridVoltageHalfWidth",
+                                 "NominalCurrent", "CreatedAt", "ChangedAt"
+                             FROM "TubeWorkingPoints";
+                         END IF;
+                     END $$;
+                     """);
+
+            migrationBuilder.Sql(
+                sql: """
+                     DO $$
+                     BEGIN
+                         IF EXISTS (
+                             SELECT 1 FROM information_schema.tables
+                             WHERE table_schema = 'public' AND table_name = 'MatchedPairDifferences') THEN
+                             INSERT INTO wm."MatchedPairDifferences"
+                                 ("Id", "ComparisonMode", "Measurement1Id", "Measurement2Id", "MseSection1", "MseSection2",
+                                  "RmseSection1", "RmseSection2", "MaxAbsSection1", "MaxAbsSection2", "CreatedAt", "ChangedAt")
+                             SELECT
+                                 "Id", "ComparisonMode", "Measurement1Id", "Measurement2Id", "MseSection1", "MseSection2",
+                                 "RmseSection1", "RmseSection2", "MaxAbsSection1", "MaxAbsSection2", "CreatedAt", "ChangedAt"
+                             FROM "MatchedPairDifferences";
+                         END IF;
+                     END $$;
+                     """);
+
+            migrationBuilder.Sql(
+                sql: """
+                     DO $$
+                     BEGIN
+                         IF NOT EXISTS (
+                             SELECT 1 FROM information_schema.tables
+                             WHERE table_schema = 'public' AND table_name = 'Products') THEN
+                             RETURN;
+                         END IF;
+
                          IF NOT EXISTS (
                              SELECT 1
                              FROM pg_constraint

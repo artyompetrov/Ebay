@@ -1,11 +1,18 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
 using Server.Application.New.Caching;
 using Server.Application.New.HostedServices;
+using Server.Application.New.HostedServices.ChipFind;
+using Server.Application.New.HostedServices.Currencies;
+using Server.Application.New.HostedServices.DbCache;
+using Server.Application.New.HostedServices.Measurements;
+using Server.Application.New.HostedServices.SaleAdvertisements;
 using Server.Application.New.LotForSale;
 using Server.Application.New.MatchedPairs;
 using Server.Application.New.MeasurementCaching;
 using Server.Application.New.MeasurementPlot;
+using Server.Application.New.PriceCalculator;
 using Server.Application.New.Services;
 using Server.Application.New.TubeWorkingPoints;
 
@@ -22,6 +29,18 @@ public static class ServiceCollectionExtensions
     /// <param name="services">Коллекция сервисов приложения.</param>
     public static void AddApplicationNewServices(this IServiceCollection services)
     {
+        services.AddOptions<EbayServerOptions>()
+            .BindConfiguration("EbayServer")
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddSingleton(sp => sp.GetRequiredService<IOptions<EbayServerOptions>>().Value);
+
+        services.AddOptions<ImageCacheOptions>()
+            .BindConfiguration(ImageCacheOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
         services.AddTransient<MeasurementApproximationService>();
         services.AddTransient<IMeasurementService, MeasurementService>();
         services.AddTransient<IMatchedPairsCalculator, MatchedPairsCalculator>();
@@ -39,6 +58,13 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<MeasurementCacheInvalidationRegistry>();
         services.AddTransient<IMeasurementStateChangedHandler, MeasurementStateChangedHandler>();
         services.AddTransient<IMeasurementMatchIdChangedHandler, MeasurementMatchIdChangedHandler>();
+        services.AddTransient<ILotPriceCalculator, LotPriceCalculator>();
+        services.AddTransient<IProductMetricsCalculator, ProductMetricsCalculator>();
+        services.AddHostedService<ChipfindBackgroundTask>();
+        services.AddHostedService<SaleAdvertisementCleanupBackgroundTask>();
+        services.AddHostedService<CurrencyRateBackgroundTask>();
+        services.AddHostedService<DbCacheCleanupHostedService>();
+        services.AddHostedService<MeasurementPlotWarmupHostedService>();
 #pragma warning disable CS0618 // Обсолетный одноразовый backfill - регистрация будет удалена вместе с ним, см. класс.
         services.AddHostedService<MeasurementPhotoOriginalSizeBackfillHostedService>();
 #pragma warning restore CS0618

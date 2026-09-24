@@ -21,12 +21,23 @@ public partial class BackfillLotForSaleFromMeasurements : Migration
                  );
                  """);
 
+        // Guarded by a legacy-table existence check: this migration reads/writes the legacy "ProductMeasurements"
+        // table, which only the (deleted, per task 7.6) legacy migration history creates. It is a harmless no-op
+        // everywhere this migration has already been applied (EF tracks applied migrations by name, not by
+        // re-checksumming the file, so editing Up() here only changes behavior for a database bootstrapping this
+        // migration for the first time - i.e. one that never had the legacy table to begin with).
         migrationBuilder.Sql(
             sql: """
                  DO $$
                  DECLARE
                      base_n bigint;
                  BEGIN
+                     IF NOT EXISTS (
+                         SELECT 1 FROM information_schema.tables
+                         WHERE table_schema = 'public' AND table_name = 'ProductMeasurements') THEN
+                         RETURN;
+                     END IF;
+
                      SELECT COUNT(*) INTO base_n
                      FROM wm."LotForSales";
 
@@ -91,13 +102,19 @@ public partial class BackfillLotForSaleFromMeasurements : Migration
 
         migrationBuilder.Sql(
             """
-            DROP TABLE wm."LotForSale_BackfillMap"
+            DROP TABLE IF EXISTS wm."LotForSale_BackfillMap"
             """);
 
         migrationBuilder.Sql(
             sql: """
                  DO $$
                  BEGIN
+                     IF NOT EXISTS (
+                         SELECT 1 FROM information_schema.tables
+                         WHERE table_schema = 'public' AND table_name = 'ProductMeasurements') THEN
+                         RETURN;
+                     END IF;
+
                      IF NOT EXISTS (
                          SELECT 1
                          FROM pg_constraint

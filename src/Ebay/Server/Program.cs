@@ -9,21 +9,22 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Logs;
 using Server.Adapters.Driven.ChipFind;
+using Server.Adapters.Driven.EF.Identity;
 using Server.Adapters.Driven.EF.ReadModel;
 using Server.Adapters.Driven.EF.WriteModel;
 using Server.Adapters.Driven.GeoIp;
 using Server.Adapters.Driven.ImageProcessing;
+using Server.Adapters.Driven.OpenExchangeRates;
 using Server.Adapters.Driven.Smtp;
 using Server.Adapters.Driven.uTracer;
 using Server.Adapters.Driving.MassTransit;
+using Server.Adapters.Driving.MassTransit.Consumers.EbayCurvesCacheWarmUp;
 using Server.Adapters.Driving.MassTransit.Consumers.MatchedPairs;
 using Server.Adapters.Driving.MassTransit.Consumers.MeasurementCaching;
 using Server.Adapters.Driving.MassTransit.Consumers.MeasurementWatching;
+using Server.Adapters.Driving.MassTransit.Consumers.PriceCalculator;
 using Server.Adapters.Driving.WebApi;
-using Server.Application;
-using Server.Application.Consumers.EbayCurvesCacheWarmUp;
-using Server.Application.Consumers.PriceCalculator;
-using Server.Application.Data;
+using Server.Application.New;
 using Server.Configuration;
 using Secret = Duende.IdentityServer.Models.Secret;
 
@@ -61,10 +62,13 @@ public class Program
         builder.Services.AddImageProcessingAdapter();
         builder.Services.AddGeoIpAdapter();
         builder.Services.AddChipFindAdapter();
+        builder.Services.AddOpenExchangeRatesAdapter();
         builder.Services.AddEfReadModelAdapter();
-        builder.Services.AddApplicationServices();
+        builder.Services.AddApplicationNewServices();
+        builder.Services.AddDatabaseDeveloperPageExceptionFilter();
         builder.Services.AddWebApiAdapter();
         builder.Services.AddEfWriteModelAdapter();
+        builder.Services.AddEfIdentityAdapter();
         builder.Services.AddMassTransitAdapter();
         builder.Services.AddHealthChecks();
         ConfigureMassTransit(builder.Services);
@@ -76,7 +80,7 @@ public class Program
 
         var app = builder.Build();
 
-        app.Services.UseApplication();
+        app.Services.UseEfIdentityAdapter();
         app.Services.UseEfWriteModelAdapter();
 
         // Configure the HTTP request pipeline.
@@ -204,8 +208,11 @@ public class Program
                 }
             );
 
+        services.AddDefaultIdentity<ApplicationUser>(o => o.SignIn.RequireConfirmedAccount = true)
+            .AddEntityFrameworkStores<IdentityDbContext>();
+
         services.AddIdentityServer()
-            .AddApiAuthorization<ApplicationUser, ApplicationDbContext>();
+            .AddApiAuthorization<ApplicationUser, IdentityDbContext>();
 
         services.AddOptions<ApiAuthorizationOptions>()
             .PostConfigure<IOptions<AuthorizationClientOptions>>(

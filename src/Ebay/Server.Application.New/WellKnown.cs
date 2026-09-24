@@ -34,6 +34,48 @@ public static class WellKnown
         /// этого кеша не задевало записи, которые не проставляют Size.
         /// </summary>
         public const string ServiceKey = "measurement-image-cache";
+
+        public const string SectionName = "ImageCache";
+
+        /// <summary>
+        /// Максимальный суммарный размер (в байтах) записей, удерживаемых одновременно в общем
+        /// кеше фото/миниатюр замеров и отрендеренных графиков для eBay.
+        /// </summary>
+        public const long DefaultSizeLimitBytes = 200 * 1024 * 1024;
+    }
+
+    /// <summary>
+    /// Константы обновления курсов валют.
+    /// </summary>
+    public static class CurrencyRate
+    {
+        public const string BaseCurrency = "USD";
+        public static readonly TimeSpan UpdateTime = TimeSpan.FromHours(12);
+        public static readonly TimeSpan ErrorDelay = TimeSpan.FromMinutes(5);
+    }
+
+    /// <summary>
+    /// Константы мониторинга объявлений о продаже на chipfind.ru.
+    /// </summary>
+    public static class ChipFind
+    {
+        public static readonly TimeSpan UpdateTime = TimeSpan.FromMinutes(20);
+        public static readonly TimeSpan ErrorDelay = TimeSpan.FromMinutes(5);
+        public const string Marketplace = "Chipfind";
+    }
+
+    /// <summary>
+    /// Константы очистки истории отправленных писем по объявлениям о продаже.
+    /// </summary>
+    public static class SaleAdvertisements
+    {
+        public static readonly TimeSpan UpdateTime = TimeSpan.FromDays(1);
+        public static readonly TimeSpan ErrorDelay = TimeSpan.FromMinutes(5);
+
+        /// <summary>
+        /// Время через которое не обновлявшиеся объявления о продаже считаются устаревшими и удаляются.
+        /// </summary>
+        public static readonly TimeSpan RemoveAdvertisementAfter = TimeSpan.FromDays(90);
     }
 
     public static class PhotoBackfill
@@ -44,5 +86,41 @@ public static class WellKnown
         /// в памяти и отслеживается EF change tracker'ом за один проход.
         /// </summary>
         public const int BatchSize = 100;
+    }
+
+    /// <summary>
+    /// Константы расчета цен и комиссий eBay/Payoneer, используемые при расчете выручки лота.
+    /// </summary>
+    public static class Ebay
+    {
+        /// <summary>
+        /// Скидка, применяемая к цене лота для продаж без известной цены покупки.
+        /// </summary>
+        public const double НеизвестнаяЦенаПродажиСкидка = 0.2;
+
+        /// <summary>
+        /// Комиссия eBay Final Value Fee.
+        /// </summary>
+        public const double КомиссияEbayFinalValueFee = 0.136;
+
+        /// <summary>
+        /// Комиссия eBay International Fee.
+        /// </summary>
+        public const double КомиссияEbayInternationalFee = 0.013;
+
+        /// <summary>
+        /// Постоянная составляющая комиссии eBay.
+        /// </summary>
+        public const double КомиссияEbayПостояннаяВеличина = 0.4;
+
+        /// <summary>
+        /// Множитель, учитывающий VAT в комиссии eBay.
+        /// </summary>
+        public const double МножительУчитывающийVat = 1.12;
+
+        /// <summary>
+        /// Комиссия Payoneer в процентах.
+        /// </summary>
+        public const double КомиссияPayoneerВПроцентах = 0.01;
     }
 }

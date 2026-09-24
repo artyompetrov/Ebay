@@ -14,7 +14,7 @@ namespace Server.Application.New;
 /// </summary>
 public class ProductService
 {
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IWriteModelUnitOfWork _unitOfWork;
     private readonly IProductRepository _productRepository;
     private readonly IProductQueries _productQueries;
 
@@ -22,7 +22,7 @@ public class ProductService
     /// Создает сервис сценариев работы с товарами.
     /// </summary>
     public ProductService(
-        IUnitOfWork unitOfWork,
+        IWriteModelUnitOfWork unitOfWork,
         IProductRepository productRepository,
         IProductQueries productQueries)
     {

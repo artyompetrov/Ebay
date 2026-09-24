@@ -1,4 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
+using Server.Adapters.Driving.WebApi.Controllers;
+using Server.Controllers.Generated;
 
 namespace Server.Adapters.Driving.WebApi;
 
@@ -9,8 +11,11 @@ public static class ServiceCollectionExtensions
     {
         var appAssembly = typeof(ServiceCollectionExtensions).Assembly;
 
-        services.AddControllers()
-            .AddApplicationPart(appAssembly);
+        services.AddControllers(options => options.Filters.Add<ErrorFilter>())
+            .AddApplicationPart(appAssembly)
+            .AddNewtonsoftJson();
+
+        services.AddTransient<IEbayController, EbayControllerImplementation>();
 
         services.AddRazorPages()
             .AddApplicationPart(appAssembly);

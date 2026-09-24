@@ -89,10 +89,47 @@ public sealed class Product : AggregateRoot<Guid>
     public DateTimeOffset LastCheckTime { get; private set; }
     public int Weight { get; private set; }
 
-    public ProductCalculationResult? ProductCalculationResult { get; set; }
+    public ProductCalculationResult? ProductCalculationResult { get; private set; }
 
     public IReadOnlyList<SearchQuery> RuSearchQueries => _ruSearchQueries;
     public IReadOnlyList<SearchQuery> SearchQueries => _searchQueries;
 
     public void MarkAsChecked() => LastCheckTime = DateTimeOffset.UtcNow;
+
+    /// <summary>
+    /// Пересчитывает агрегированные метрики товара (выручку, количество, среднюю цену листинга)
+    /// на основании результатов расчета его лотов.
+    /// </summary>
+    public void RecalculateMetrics(
+        IReadOnlyList<LotCalculationResult> lotCalculationResults,
+        int unpublishedOnEbayCountCreated,
+        int unpublishedOnEbayCountSelling)
+    {
+        var revenue = 0.0;
+        var listingPriceSumm = 0.0;
+        var quantityTotal = 0;
+        var calculationDate = DateTimeOffset.UtcNow;
+
+        foreach (var lotCalculationResult in lotCalculationResults)
+        {
+            revenue += lotCalculationResult.Revenue;
+            listingPriceSumm += lotCalculationResult.ListingPriceSumm;
+            quantityTotal += lotCalculationResult.QuantityTotal;
+
+            if (calculationDate > lotCalculationResult.CalculationDate)
+            {
+                calculationDate = lotCalculationResult.CalculationDate;
+            }
+        }
+
+        ProductCalculationResult = new ProductCalculationResult
+        {
+            Revenue = revenue,
+            QuantityTotal = quantityTotal,
+            CalculationDate = calculationDate,
+            ListingPriceSumm = listingPriceSumm,
+            UnpublishedOnEbayCountCreated = unpublishedOnEbayCountCreated,
+            UnpublishedOnEbayCountSelling = unpublishedOnEbayCountSelling
+        };
+    }
 }
