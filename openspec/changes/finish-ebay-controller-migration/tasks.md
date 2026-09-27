@@ -1,0 +1,49 @@
+## 1. Publish-only price-recalculation port
+
+- [ ] 1.1 Add `IPriceRecalculationPublisher` (final name TBD) to `Server.Application.Abstractions.Driven` with `PublishForLotAsync(long lotId, CancellationToken)`, `PublishForProductAsync(Guid productId, CancellationToken)`, `PublishForAllAsync(CancellationToken)` - publish-only, no `SaveChangesAsync` (see design.md's "Publish-only port" decision). Implement it in `Server.Adapters.Driving.MassTransit`, publishing `CalculatePricesForLot`/`CalculatePricesForProductRequested`/`CalculatePricesForAll` respectively. Verify: `dotnet build` succeeds solution-wide.
+
+## 2. LotService
+
+- [ ] 2.1 Add `Server.Application.New/LotService.cs` owning the `Lot` aggregate lifecycle: an upsert method covering `Lot.Create`/`UpdateInfo`, purchase-history sync (`UpsertPurchase`/`RemovePurchasesBefore`), the `IIgnoredLotRepository.RemoveAsync` un-ignore call, `IPriceRecalculationPublisher.PublishForLotAsync`, and `IWriteModelUnitOfWork.SaveChangesAsync` - moved verbatim from `EbayControllerImplementation.UpsertLotInfoAsync`, minus the manual input-shape validation block (Shipping/ShippingAdditional required, categories completeness), which stays in the controller per design.md. Verify: `dotnet build` succeeds; existing `LotPricingFlowTests.UpsertLotInfo_PersistsLotAndPurchases_AndConsumerComputesPricing` still passes unchanged against the now-delegating controller.
+- [ ] 2.2 Add a delete method to `LotService` covering `EbayControllerImplementation.DeleteLotInfoAsync`'s current body (including its explicit `BeginTransactionAsync`/`CommitAsync` transaction from the PR #355 review-fix round) verbatim. Verify: `LotPricingFlowTests.DeleteLotInfo_RemovesLot_AndCommitsSuccessfully` still passes.
+- [ ] 2.3 Add `CalculatePricesForAllAsync` to `LotService` (publish-only, via `IPriceRecalculationPublisher.PublishForAllAsync` + `SaveChangesAsync`), replacing `EbayControllerImplementation.CalculatePricesForAllAsync`'s direct `IPublishEndpoint`/`IWriteModelUnitOfWork` usage. Verify: `dotnet build` succeeds; manually exercise (or add a small integration test if none covers this endpoint today) `POST` to the `CalculatePricesForAll` route and confirm 200 + the consumer still fires (existing `Tests.Integration` DB-command-interceptor pattern, if reused, should show the expected outbox insert).
+- [ ] 2.4 Rewrite `EbayControllerImplementation`'s `UpsertLotInfoAsync`, `DeleteLotInfoAsync`, `CalculatePricesForAllAsync` to call `LotService` instead of `ILotRepository`/`IIgnoredLotRepository`/`IWriteModelUnitOfWork`/`IPublishEndpoint` directly; remove those fields/constructor params that are now unused by the controller (check remaining methods still need `ILotRepository`/`IIgnoredLotRepository`/`IWriteModelUnitOfWork` before removing - later tasks in this section still use them). Verify: `dotnet build` succeeds; full `Tests.Integration` suite passes.
+
+## 3. ProductPassportService
+
+- [ ] 3.1 Add `Server.Application.New/ProductPassportService.cs` covering `UploadProductPassportAsync`'s order-defaulting + `ProductPassport.Create` + `AddAsync` + save, `DeleteProductPassportAsync`'s remove + order-decrement-shift + save, and `UpdateProductPassportAsync`'s order-shift-range math + save - moved verbatim from the controller, using `IProductPassportRepository`/`IPassportQueries`/`IWriteModelUnitOfWork`. Verify: `dotnet build` succeeds.
+- [ ] 3.2 Rewrite the three controller methods to call `ProductPassportService`; remove `IProductPassportRepository`/`IWriteModelUnitOfWork` from the controller if nothing else in it still needs them (check task 2/4's status first). Verify: full `Tests.Integration` suite passes, including manual exercise of passport upload/delete/reorder if no dedicated integration test exists yet for the reordering behavior - add one if this gap is confirmed, since reordering is real business logic with no current coverage.
+
+## 4. IgnoredLotService and ClientErrorService
+
+- [ ] 4.1 Add `Server.Application.New/IgnoredLotService.cs` covering `IgnoreLotsAsync`'s exists-check + `InsertMissingAsync` + conditional save, moved verbatim. Rewrite `EbayControllerImplementation.IgnoreLotsAsync` to call it. Verify: `IgnoredLotFlowTests` still passes unchanged.
+- [ ] 4.2 Add `Server.Application.New/ClientErrorService.cs` covering `SaveErrorAsync`'s add + save. Rewrite `EbayControllerImplementation.SaveErrorAsync` to call it. Verify: `dotnet build` succeeds; manually exercise the `SaveError` endpoint (no existing test - per the established "trivial single-line write" precedent from earlier phases of `complete-hexagonal-migration`, a dedicated test is optional here, but note the decision either way).
+
+## 5. Move CalculatePricesForProductAsync and clean up the controller's dependencies
+
+- [ ] 5.1 Add a `CalculatePricesForProductAsync` (or similarly named) method to the existing `ProductService`, using `IPriceRecalculationPublisher.PublishForProductAsync` + `SaveChangesAsync`, replacing the controller's direct usage. Rewrite `EbayControllerImplementation.CalculatePricesForProductAsync` to call it. Verify: `dotnet build` succeeds; existing coverage of the recalculation flow (whichever integration test already exercises product recalculation) still passes.
+- [ ] 5.2 Remove `IPublishEndpoint`, `IWriteModelUnitOfWork`, and every repository field/constructor parameter from `EbayControllerImplementation` that is now unused (expect all of `ILotRepository`, `IIgnoredLotRepository`, `IProductPassportRepository`, `IClientErrorRepository`, `IWriteModelUnitOfWork`, `IPublishEndpoint` to be removable after sections 1-5; `ILotQueries`/`ICurrencyQueries`/`IProductEmailSendHistoryQueries`/`IIgnoredLotQueries`/`IPassportQueries` stay, they're query-port reads). Verify: `dotnet build` succeeds with no unused-field warnings.
+- [ ] 5.3 Remove the `MassTransit` `PackageReference` from `Server.Adapters.Driving.WebApi.csproj` and confirm `dotnet build` still succeeds (no remaining `using MassTransit;`/`IPublishEndpoint` anywhere in that project - grep to confirm). Run the full `Tests.Unit` + `Tests.Integration` suites and `./scripts/agent-check/agent-check.sh` before moving to the contract merge.
+
+## 6. Merge the OpenAPI contract into WebApi.yaml
+
+For each group below: move its paths/schemas from `Legacy/Ebay.yaml` into `WebApi/WebApi.yaml`, regenerate (`dotnet build`), and update the corresponding `EbayControllerImplementation` method(s) to the new abstract-controller/`ActionResult<T>` style (matching `WebApiController.cs`'s existing pattern), replacing each `throw NonOkHttpAnswerException.X()` with the equivalent `ActionResult` (checking design.md's risk note about response-body shape for any endpoint a client parses structurally, not just by status code, before moving on).
+
+- [ ] 6.1 Product endpoints: `GetAllProducts`, `CreateProduct`, `UpdateProduct`, `GetProduct`, `DeleteProduct`, `MarkProductAsChecked`. Verify: `Tests.Integration` product-flow coverage passes; manually exercise any product endpoint without existing coverage.
+- [ ] 6.2 Lot endpoints: `GetLots`, `UpsertLotInfo`, `GetLotInfo`, `DeleteLotInfo`, `GetLotIds`, `GetLotStates`, `CalculatePricesForAll`, `CalculatePricesForProduct`. Verify: `LotPricingFlowTests` (both tests) pass unchanged in observed behavior (response bodies may change shape per this task's own scope - update the tests' assertions only for the generated-type change, never for a behavior change).
+- [ ] 6.3 IgnoredLot endpoints: `GetIgnoredLots`, `IgnoreLots`, `GetIsLotIgnoredForProduct`. Verify: `IgnoredLotFlowTests` passes (update assertions for generated-type changes only).
+- [ ] 6.4 ProductPassport endpoints: `GetProductPassports`, `UploadProductPassport`, `DeleteProductPassport`, `UpdateProductPassport`. Verify: coverage from task 3.2 (add if still missing) passes.
+- [ ] 6.5 Measurement endpoints: `GetMeasurements`, `UploadMeasurement`, `GetLotIdsForProduct`, `DeleteMeasurement`, `UpdateMeasurementLocation`, `UpdateMeasurementManufactureCode`, `UpdateMeasurementMatchId`, `UpdateMeasurementLotId`, `UpdateMeasurementState`. Verify: `Tests.Integration`'s existing measurement-flow tests (`ProductMeasurementFlowTests` and others) pass.
+- [ ] 6.6 TubeWorkingPoint and matched-measurement endpoints: `GetTubeWorkingPoint`, `UpsertTubeWorkingPoint`, `FindMatchedMeasurements`. Verify: existing coverage (from `complete-hexagonal-migration`'s earlier tasks) passes.
+- [ ] 6.7 Remaining misc endpoints: `GetCategories`, `GetShippingRates`, `GetCurrencies`, `ExtractData`, `SaveError`. Verify: `dotnet build` succeeds; manually exercise each (no dedicated integration tests currently exist for most of these - confirm and note per-endpoint whether that's an acceptable pre-existing gap or worth closing here).
+
+## 7. Delete the legacy contract and generation path
+
+- [ ] 7.1 Delete `Server.Contracts/Legacy/Ebay.yaml`, the `GenerateLegacyApiClients` NSwag target, and fold `IncludeGeneratedControllers` back down to just the one (now merged) generation target in `Server.Adapters.Driving.WebApi.csproj`. Verify: `dotnet build` succeeds solution-wide with no reference to `Server.Controllers.Generated` remaining anywhere (grep to confirm) - `EbayControllerImplementation` (and any DTO extension methods like `ModelsExtensions.cs`) now target the single generated namespace only.
+- [ ] 7.2 Update `src/Ebay/AGENTS.md`'s "Code generation" section to describe the single merged contract instead of the Legacy/WebApi split.
+
+## 8. Final validation
+
+- [ ] 8.1 Run `./scripts/check-openspec-test-coverage/check-openspec-test-coverage.sh` and fix any missing/stale `[OpenSpecScenario]` mappings surfaced by moved code.
+- [ ] 8.2 Run `./scripts/agent-check/agent-check.sh` from the repository root and confirm it passes end to end (build, tests, OpenSpec validation).
+- [ ] 8.3 Archive this change per the project's OpenSpec workflow once all tasks above are complete.
