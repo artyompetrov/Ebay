@@ -49,6 +49,7 @@ public static class ServiceCollectionExtensions
         // Singleton нужен для process-wide монотонной последовательности ID и предотвращения коллизий при параллельном создании лотов.
         services.AddSingleton<ILotForSaleIdGenerator, LotForSaleIdGenerator>();
         services.AddTransient<ProductService>();
+        services.AddTransient<LotService>();
         services.AddTransient<MatchedMeasurementService>();
         services.AddTransient<MeasurementPlotService>();
         services.AddTransient<TubeWorkingPointService>();
