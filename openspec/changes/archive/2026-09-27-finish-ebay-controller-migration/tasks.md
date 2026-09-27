@@ -48,6 +48,6 @@ For each group below: move its paths/schemas from `Legacy/Ebay.yaml` into `WebAp
 
 ## 8. Final validation
 
-- [ ] 8.1 Run `./scripts/check-openspec-test-coverage/check-openspec-test-coverage.sh` and fix any missing/stale `[OpenSpecScenario]` mappings surfaced by moved code.
-- [ ] 8.2 Run `./scripts/agent-check/agent-check.sh` from the repository root and confirm it passes end to end (build, tests, OpenSpec validation).
-- [ ] 8.3 Archive this change per the project's OpenSpec workflow once all tasks above are complete.
+- [x] 8.1 Ran `./scripts/check-openspec-test-coverage/check-openspec-test-coverage.sh`: 70/70 scenarios covered, 0 exempted, nothing deferred - no missing/stale mappings surfaced by the port (all moved code kept its existing `[OpenSpecScenario]`-mapped tests unchanged).
+- [x] 8.2 Ran `./scripts/agent-check/agent-check.sh` from the repository root: backend build, backend tests, frontend JS tests, Chrome extension `npm ci && npm run build`, and OpenSpec validation/coverage all passed end to end.
+- [x] 8.3 Archive this change per the project's OpenSpec workflow once all tasks above are complete.
