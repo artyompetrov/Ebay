@@ -1115,69 +1115,69 @@ components:
     ProductWithoutId:
       type: object
       properties:
-        Name:
+        name:
           type: string
           pattern: ^\w+(?:[ -\/\\.,]+\w+)*$
           minLength: 1
-        SearchQueries:
+        searchQueries:
           type: array
           items:
             $ref: '#/components/schemas/SearchQuery'
-        RuSearchQueries:
+        ruSearchQueries:
           type: array
           items:
             $ref: '#/components/schemas/RuSearchQuery'
-        Weight:
+        weight:
           type: integer
           minimum: 0
       required:
-      - Name
-      - SearchQueries
-      - RuSearchQueries
-      - Weight
+      - name
+      - searchQueries
+      - ruSearchQueries
+      - weight
     ProductWithId:
       type: object
       properties:
-        Id:
+        id:
           type: string
           format: guid
           minLength: 1
-        Name:
+        name:
           type: string
           minLength: 1
-        IsCheckRequired:
+        isCheckRequired:
           type: boolean
-        Weight:
+        weight:
           type: integer
           minimum: 0
-        CalculatedEbayWeight:
+        calculatedEbayWeight:
           description: Вес в условных единицах для ebay, нужен для shipping rate table (принято, что  1 lb = 100г)
           type: integer
           minimum: 0
-        SearchQueries:
+        searchQueries:
           type: array
           items:
             $ref: '#/components/schemas/SearchQuery'
-        RuSearchQueries:
+        ruSearchQueries:
           type: array
           items:
             $ref: '#/components/schemas/RuSearchQuery'
-        ProductCalculationResult:
+        productCalculationResult:
           $ref: '#/components/schemas/ProductCalculationResult'
-        ProductRegex:
+        productRegex:
           type: string
-        IsInteresting:
+        isInteresting:
           type: boolean
       required:
-      - Id
-      - Name
-      - SearchQueries
-      - RuSearchQueries
-      - Weight
-      - CalculatedEbayWeight
-      - IsCheckRequired
-      - ProductRegex
-      - IsInteresting
+      - id
+      - name
+      - searchQueries
+      - ruSearchQueries
+      - weight
+      - calculatedEbayWeight
+      - isCheckRequired
+      - productRegex
+      - isInteresting
     SearchQuery:
       type: object
       properties:
