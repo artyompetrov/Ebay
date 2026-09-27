@@ -6,7 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="Legacy/**/*.yaml" />
     <None Include="WebApi/**/*.yaml" />
   </ItemGroup>
 

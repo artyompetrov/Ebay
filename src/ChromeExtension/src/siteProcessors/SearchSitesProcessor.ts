@@ -1,11 +1,11 @@
-import * as EbayToolBackendClient from "../clients/Generated/EbayToolBackendClient";
+import * as EbayToolBackendClient from "../clients/Generated/EbayToolWebApiClient";
 import * as utils from "../infrastructure/Utils";
 import * as constants from '../constants';
 import { ISiteProcessor } from './ISiteProcessor';
 // noinspection SpellCheckingInspection
 import {v4 as uuidv4} from "uuid";
 import {ClientsFactory} from "../clients/ClientsFactory";
-import {ProductWithId} from "../clients/Generated/EbayToolBackendClient";
+import {ProductWithId} from "../clients/Generated/EbayToolWebApiClient";
 import {Mode} from '../mode';
 
 declare const EBAY_HELPER_BACKEND_DOMAIN: string;
@@ -50,7 +50,7 @@ class ProductWithRegex {
 class SearchSitesProcessor implements ISiteProcessor {
     breakAfterSearchProcessor: boolean = false;
     
-    private _ebayToolBackendClient: EbayToolBackendClient.EbayToolBackendClient;
+    private _ebayToolBackendClient: EbayToolBackendClient.EbayToolWebApiClient;
     private _allItemsCacheIdentifier = "searchSitesAllItems";
     private _targetCurrencyRate: number;
     private _targetCurrencyCacheIdentifier = "targetCurrency";

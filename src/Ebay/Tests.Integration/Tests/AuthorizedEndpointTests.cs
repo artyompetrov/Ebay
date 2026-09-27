@@ -7,7 +7,7 @@ public class AuthorizedEndpointTests
     {
         using var client = IntegrationTestsSetupFixture.Factory.CreateClient();
         await TestHelpers.AuthenticateWithClientCredentialsAsync(client);
-        var ebayClient = TestHelpers.CreateEbayClient(client);
+        var ebayClient = TestHelpers.CreateWebApiClient(client);
 
         var response = await ebayClient.GetAllProductsAsync(CancellationToken.None);
 

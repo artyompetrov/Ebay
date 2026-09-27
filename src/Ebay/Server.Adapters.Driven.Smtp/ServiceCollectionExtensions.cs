@@ -1,5 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
-using Server.Application.HostedServices.ChipFind;
+using Server.Application.Abstractions.Driven.Abstractions;
 
 namespace Server.Adapters.Driven.Smtp;
 

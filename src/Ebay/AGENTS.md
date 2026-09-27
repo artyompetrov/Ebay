@@ -21,19 +21,17 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 - `Frontend/Tests` — dependency-free frontend JavaScript tests, run with Node's built-in test runner.
 - `Server` — backend host (composition root).
 - `Server.Contracts` — OpenAPI contracts.
-- `Server.Application` — legacy application layer.
-- `Server.Application.New` — new application layer.
+- `Server.Application.New` — application layer (use-case services, ports).
 - `Server.Domain` — domain model.
-- `Server.Adapters.*` — adapters.
+- `Server.Adapters.*` — adapters, including `Server.Adapters.Driven.EF.Identity` (ASP.NET Identity + Duende IdentityServer's operational store).
 - `Tests.Unit`, `Tests.Integration`, `Tests.Explicit` — test projects.
 - `Tests.Frontend` — bUnit component tests and Playwright Chromium checks of rendered photo previews. Install Chromium with the generated `playwright.ps1` after building.
 - `Tests.Shared` — shared test infrastructure referenced by the test projects above; `OpenSpecScenarioAttribute` and shared browser assertions (see the `write-tests` skill).
 
 ## Code generation
-- Legacy contract: `src/Ebay/Server.Contracts/Legacy/Ebay.yaml` (do not add new changes there).
-- New contracts: `src/Ebay/Server.Contracts/WebApi/*.yaml`.
-- NSwag code generation runs automatically via MSBuild targets during the build.
-- Add new API functionality only to `Server.Contracts/WebApi/*.yaml`; don't add new endpoints/DTOs to `Legacy/Ebay.yaml`.
+- Single contract: `src/Ebay/Server.Contracts/WebApi/WebApi.yaml` (OpenAPI 3.1). All backend routes are grouped under the shared `/api` server root, with each endpoint keeping its own literal `ebay/v1/...`/`webapi/v1/...` path prefix so existing routes/URLs stay unchanged.
+- NSwag code generation runs automatically via MSBuild targets during the build, from this single document, for both the driving controller (`Server.Adapters.Driving.WebApi/ControllerGenerationConfig.json`, abstract `WebApiControllerBase` implemented by `WebApiController`) and the C#/TypeScript clients (`Server.Client/ClientGeneration.WebApi.json`, also feeding `src/ChromeExtension/src/clients/Generated/EbayToolWebApiClient.ts`).
+- `WebApiController` is the single driving adapter for the whole contract; it must not contain command-use-case logic, only map HTTP↔application and delegate to `Server.Application.New` services (see the "Layer-specific rules" root `AGENTS.md` entry).
 
 ## Local backend debugging
 - Run: `dotnet run --launch-profile Server --project /workspace/Ebay/src/Ebay/Server/Server.csproj`.
@@ -45,17 +43,19 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
   - `curl -i http://127.0.0.1:5080/chrome_extensions/<extension>.xml`
 
 ## DB migrations
-- Legacy migrations: `Server.Application/Migrations`.
-- DB infrastructure should live in the DB adapter, not in `Server.Application.New`.
-- Don't add new EF infrastructure code (entities/mappings/tables) to the legacy `Server.Application/Data/ApplicationDbContext`; place it in adapter DbContexts.
+- DB infrastructure lives in the owning DB adapter, not in `Server.Application.New`.
 - For the write model, use:
   - `WriteModelDbContext`: `Server.Adapters.Driven.EF.WriteModel/WriteModelDbContext`
   - migrations project: `Server.Adapters.Driven.EF.WriteModel.Migrations`
   - DB schema: `wm`
+- For Identity (ASP.NET Identity + Duende IdentityServer's operational store), use:
+  - `IdentityDbContext`: `Server.Adapters.Driven.EF.Identity/IdentityDbContext`
+  - migrations project: `Server.Adapters.Driven.EF.Identity.Migrations`
+  - DB schema: `public` (unprefixed `AspNet*`/`PersistedGrants`/`DeviceCodes`/`Keys` tables, per ASP.NET Identity/Duende's own convention)
 - Create migrations only via the EF CLI (not manually).
 - Commands:
-  - legacy: `cd /workspace/Ebay/src/Ebay && dotnet ef migrations add NewMigrationName --project Server.Application --startup-project Server`
   - write-model: `cd /workspace/Ebay && dotnet ef migrations add NewMigrationName --project src/Ebay/Server.Adapters.Driven.EF.WriteModel.Migrations/Server.Adapters.Driven.EF.WriteModel.Migrations.csproj --startup-project src/Ebay/Server/Server.csproj --context Server.Adapters.Driven.EF.WriteModel.WriteModelDbContext --output-dir Migrations/WriteModelDb`
+  - identity: `cd /workspace/Ebay && dotnet ef migrations add NewMigrationName --project src/Ebay/Server.Adapters.Driven.EF.Identity.Migrations/Server.Adapters.Driven.EF.Identity.Migrations.csproj --startup-project src/Ebay/Server/Server.csproj --context Server.Adapters.Driven.EF.Identity.IdentityDbContext`
 
 ## Configuration and DI
 - Default services: `Transient`.
@@ -78,7 +78,6 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 - `Server.Application.New` — use cases and ports.
 - `Server.Adapters.*` — port implementations.
 - `Server.Application.New` must not reference `Server.Adapters.*`.
-- `Server.Application` (legacy) is being migrated to this shape; new code never goes there — see "Legacy migration" below.
 
 ### Command/query split
 - **Commands** (state changes): an application-layer use-case service loads an aggregate through its repository port (`Server.Application.Abstractions.Driven.Abstractions.Repositories.I*Repository`), calls domain methods on it, and commits via `IWriteModelUnitOfWork`. The aggregate is always loaded and persisted as a whole; there is no partial/column-level command update.
@@ -91,13 +90,8 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 - Domain events are dispatched automatically, not explicitly: `WriteModelDbContext.SaveChangesAsync` (the write-model unit of work) collects all changed aggregates with pending events, publishes each event via `IPublishEndpoint` (MassTransit outbox), then clears them, all before the actual `SaveChanges` write. Adding a new event type requires no publishing code beyond raising it from the aggregate.
 - Consumers/handlers for domain events live in `Server.Adapters.Driving.MassTransit` (+ a handler in `Server.Application.New`), following the existing `MeasurementStateChanged`/`MeasurementStateChangedConsumer` pattern.
 
-### Legacy migration
-- `Server.Application` is the pre-ports-and-adapters codebase (controllers, consumers, hosted services, `ApplicationDbContext`, ad-hoc services). It predates the command/query split and domain-event pattern above and does not follow them.
-- Migrating a piece of legacy code means: extract domain rules into `Server.Domain` aggregates/value objects, add repository/query ports in `Server.Application.Abstractions.Driven`, add a use-case service in `Server.Application.New`, add the EF/MassTransit/WebApi adapter under the matching `Server.Adapters.*` project, and delete the legacy equivalent in the same change — no long-lived duplication between old and new for the same responsibility.
-- Track migration work as OpenSpec changes; do not migrate a module silently as a side effect of an unrelated task.
-
 ## Review-error checklist (mandatory before a PR)
-- A repository (`Server.Adapters.Driven.*.Repositories`) does not call `SaveChanges/SaveChangesAsync`; committing changes happens in the application layer via `IWriteModelUnitOfWork`/`IUnitOfWork`.
+- A repository (`Server.Adapters.Driven.*.Repositories`) does not call `SaveChanges/SaveChangesAsync`; committing changes happens in the application layer via `IWriteModelUnitOfWork`.
 - A repository does not contain business orchestration (e.g., reordering recalculation, scenario validation, cross-aggregate checks); this belongs in `Server.Domain` (aggregate behavior) and/or `Server.Application.New` (use-case service).
 - Controllers (`Server.Adapters.Driving.*`) must not implement command-use-case logic; they only map HTTP <-> application and delegate scenarios to application services.
 - Before submitting a PR, do a mandatory self-review by layer: **Domain rule? -> Domain**, **Use-case orchestration/commit? -> Application.New**, **I/O mapping only? -> Adapter**. If a point is violated — fix it before review.

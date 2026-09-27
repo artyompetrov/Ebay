@@ -11,5 +11,6 @@ public static class ServiceCollectionExtensions
     {
         services.AddTransient<IMeasurementWatchedOnEbayPublisher, MeasurementWatchedOnEbayPublisher>();
         services.AddTransient<IMeasurementWatchedOnEbayHandler, MeasurementWatchedOnEbayHandler>();
+        services.AddTransient<IPriceRecalculationPublisher, PriceRecalculationPublisher>();
     }
 }

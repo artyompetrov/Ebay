@@ -14,4 +14,12 @@ public interface IPassportQueries
     /// <param name="cancellationToken">Токен отмены операции.</param>
     /// <returns>Список паспортов товара.</returns>
     Task<IReadOnlyList<Passport>> GetPassports(Guid productId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Возвращает файл паспорта вместе с его содержимым.
+    /// </summary>
+    /// <param name="productId">Идентификатор товара.</param>
+    /// <param name="passportId">Идентификатор паспорта.</param>
+    /// <param name="cancellationToken">Токен отмены операции.</param>
+    Task<PassportFile?> GetPassportFileAsync(Guid productId, Guid passportId, CancellationToken cancellationToken);
 }

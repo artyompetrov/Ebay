@@ -32,11 +32,26 @@ public static class ServiceCollectionExtensions
             o.AddInterceptors(sp.GetServices<IInterceptor>());
         });
 
+        services.AddSingleton(sp =>
+        {
+            var connectionString = sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection")
+                                   ?? throw new InvalidOperationException("Connection string cannot be null");
+            return new DatabaseConcurrentAccessSemaphore(
+                maxConcurrent: new Npgsql.NpgsqlConnectionStringBuilder(connectionString).MaxPoolSize / 2);
+        });
+        services.AddScoped<ICacheStore, DbCache>();
+
         services.AddScoped<IMeasurementRepository, MeasurementRepository>();
         services.AddScoped<IMatchedPairDifferenceRepository, MatchedPairDifferenceRepository>();
         services.AddScoped<ITubeWorkingPointsRepository, TubeWorkingPointsRepository>();
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<ILotForSaleRepository, LotForSaleRepository>();
+        services.AddScoped<ILotRepository, LotRepository>();
+        services.AddScoped<ICurrencyRepository, CurrencyRepository>();
+        services.AddScoped<IProductEmailSendHistoryRepository, ProductEmailSendHistoryRepository>();
+        services.AddScoped<IProductPassportRepository, ProductPassportRepository>();
+        services.AddScoped<IIgnoredLotRepository, IgnoredLotRepository>();
+        services.AddScoped<IClientErrorRepository, ClientErrorRepository>();
         services.AddScoped<IMeasurementPhotoRepository, MeasurementPhotoRepository>();
         services.AddScoped<IWriteModelUnitOfWork>(sp => sp.GetRequiredService<WriteModelDbContext>());
     }

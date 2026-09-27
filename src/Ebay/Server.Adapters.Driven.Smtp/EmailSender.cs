@@ -1,7 +1,7 @@
 using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
-using Server.Application.HostedServices.ChipFind;
+using Server.Application.Abstractions.Driven.Abstractions;
 using SmtpClient = MailKit.Net.Smtp.SmtpClient;
 
 namespace Server.Adapters.Driven.Smtp;

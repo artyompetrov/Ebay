@@ -22,8 +22,7 @@ public sealed class MeasurementsTests
         context.JSInterop.Mode = JSRuntimeMode.Loose;
         using var api = new OfficeApiHandler();
         using var http = new HttpClient(api) { BaseAddress = new Uri("https://test.local/") };
-        context.Services.AddSingleton(new EbayClient(http) { BaseUrl = "https://test.local/" });
-        context.Services.AddSingleton(new WebApiClient(http) { BaseUrl = "https://test.local/api/webapi/v1/" });
+        context.Services.AddSingleton(new WebApiClient(http) { BaseUrl = "https://test.local/api/" });
         var product = new ProductWithId { Id = Guid.NewGuid(), Name = "Test tube" };
         var page = context.Render<Measurements>(p => p.Add(x => x.Product, product));
         page.WaitForAssertion(() => page.Find("a[href='measurement-photos/MEA1234']").TextContent.Should().Contain("2"));

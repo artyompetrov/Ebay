@@ -70,6 +70,14 @@ Don't patch symptoms (hardcodes, special cases, suppressed errors, copy-paste) �
 Find and fix the root cause (an architectural gap, a broken invariant). If that's out of the task's scope —
 don't apply a silent workaround; describe the root cause and mark the solution as a TODO.
 
+## TODO comments
+`// TODO: ...` (or the language's equivalent) is the project's main way of recording deferred work — it lives
+in the code, so it's trivially greppable/indexable later, unlike a reply left only in a review thread or chat.
+When a code review (human or automated, e.g. a bot like `chatgpt-codex-connector`) raises something that should
+genuinely be done later rather than in the current change, leave a TODO comment at the exact place in the code
+it applies to, in addition to any reply on the review thread. Don't reference a task/ticket/issue number in it —
+just describe the work and, if useful, why it's deferred.
+
 ## Project skills
 - Project skills live in [.claude/skills/](.claude/skills/) as Claude Code skills (`SKILL.md` per skill directory).
 - Claude Code loads their descriptions automatically and should invoke them when a task matches, without being asked.

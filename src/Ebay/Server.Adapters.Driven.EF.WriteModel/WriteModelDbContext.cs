@@ -2,12 +2,16 @@ using System.Data;
 using System.Text.Json;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Server.Application.Abstractions.Driven.Abstractions;
+using Server.Domain;
 using Server.Domain.Abstractions;
 using Server.Domain.LotForSale;
 using Server.Domain.Measurements;
+using Server.Domain.Product;
 
 namespace Server.Adapters.Driven.EF.WriteModel;
 
@@ -159,6 +163,210 @@ public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
                 .HasForeignKey(x => x.Measurement2Id)
                 .OnDelete(DeleteBehavior.Restrict);
         });
+
+        modelBuilder.Entity<Product>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Id)
+                .ValueGeneratedNever();
+
+            entity.Property(x => x.Name)
+                .IsRequired();
+
+            entity.Property(x => x.ProductCalculationResult)
+                .HasConversion(new ValueConverter<ProductCalculationResult?, string>(
+                    v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<ProductCalculationResult?>(v, (JsonSerializerOptions?)null)));
+
+            entity.Navigation(p => p.SearchQueries)
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
+            entity.Navigation(p => p.RuSearchQueries)
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            entity.OwnsMany(p => p.SearchQueries, q =>
+            {
+                q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
+                q.HasKey(x => x.Id);
+                q.Property(x => x.Id).ValueGeneratedNever();
+                q.Property(x => x.Query).IsRequired();
+                q.ToTable("Product_SearchQueries");
+            });
+
+            entity.OwnsMany(p => p.RuSearchQueries, q =>
+            {
+                q.WithOwner().HasForeignKey(nameof(SearchQuery.ProductId));
+                q.HasKey(x => x.Id);
+                q.Property(x => x.Id).ValueGeneratedNever();
+                q.Property(x => x.Query).IsRequired();
+                q.ToTable("Product_RuSearchQueries");
+            });
+        });
+
+        modelBuilder.Entity<Currency>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Id)
+                .ValueGeneratedNever();
+
+            entity.Property(x => x.CurrencyRusName)
+                .IsRequired();
+
+            entity.Property(x => x.CurrencyApiName)
+                .IsRequired();
+        });
+
+        modelBuilder.Entity<Lot>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Id)
+                .ValueGeneratedNever();
+
+            entity.Property(x => x.Name)
+                .IsRequired();
+
+            entity.Property(x => x.CurrencyId)
+                .IsRequired();
+
+            entity.Property(x => x.ShippingCountry)
+                .IsRequired();
+
+            entity.Property(x => x.Description)
+                .IsRequired();
+
+            entity.Property(x => x.Condition)
+                .IsRequired();
+
+            entity.Property(x => x.Seller)
+                .IsRequired();
+
+            entity.Property(x => x.LocatedIn)
+                .IsRequired();
+
+            entity.Property(x => x.Categories)
+                .HasConversion(
+                    v => new Dictionary<string, string>(v),
+                    v => v,
+                    new ValueComparer<IReadOnlyDictionary<string, string>>(
+                        (a, b) => (a ?? new Dictionary<string, string>()).OrderBy(x => x.Key)
+                            .SequenceEqual((b ?? new Dictionary<string, string>()).OrderBy(x => x.Key)),
+                        v => v.Aggregate(0, (hash, kv) => HashCode.Combine(hash, kv.Key, kv.Value)),
+                        v => new Dictionary<string, string>(v)))
+                .IsRequired();
+
+            entity.Property(x => x.LotCalculationResult)
+                .HasConversion(new ValueConverter<LotCalculationResult?, string>(
+                    v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<LotCalculationResult?>(v, (JsonSerializerOptions?)null)));
+
+            entity.HasOne<Product>()
+                .WithMany()
+                .HasForeignKey(x => x.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne<Currency>()
+                .WithMany()
+                .HasForeignKey(x => x.CurrencyId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.Navigation(x => x.Purchases)
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            entity.OwnsMany(x => x.Purchases, p =>
+            {
+                p.WithOwner().HasForeignKey(nameof(Purchase.LotId));
+                p.HasKey(x => new { x.LotId, x.Date });
+                p.Property(x => x.PurchaseCalculationResult)
+                    .HasConversion(new ValueConverter<PurchaseCalculationResult?, string>(
+                        v => JsonSerializer.Serialize(v!, (JsonSerializerOptions?)null),
+                        v => JsonSerializer.Deserialize<PurchaseCalculationResult?>(v, (JsonSerializerOptions?)null)));
+                p.ToTable("Lot_Purchases");
+            });
+        });
+
+        modelBuilder.Entity<ProductEmailSendHistory>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Id)
+                .ValueGeneratedNever();
+
+            entity.Property(x => x.Seller)
+                .IsRequired();
+
+            entity.Property(x => x.Link)
+                .IsRequired();
+
+            entity.Property(x => x.Marketplace)
+                .IsRequired();
+
+            entity.HasOne<Product>()
+                .WithMany()
+                .HasForeignKey(x => x.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(x => x.ProductId);
+            entity.HasIndex(x => new { x.ProductId, x.Seller, x.Marketplace }).IsUnique();
+            entity.HasIndex(x => x.AdvertisementDate);
+        });
+
+        modelBuilder.Entity<CacheEntry>(entity =>
+        {
+            entity.ToTable("CacheEntries");
+            entity.HasKey(x => new { x.Key, x.Version });
+        });
+
+        modelBuilder.Entity<ProductPassport>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Id)
+                .ValueGeneratedNever();
+
+            entity.Property(x => x.FileName)
+                .HasMaxLength(200)
+                .IsRequired();
+
+            entity.Property(x => x.ContentType)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(x => x.Content)
+                .IsRequired();
+
+            entity.HasOne<Product>()
+                .WithMany()
+                .HasForeignKey(x => x.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(x => new { x.ProductId, x.Order });
+        });
+
+        modelBuilder.Entity<IgnoredLot>(entity =>
+        {
+            entity.HasKey(x => new { x.ProductId, x.LotId });
+
+            entity.HasOne<Product>()
+                .WithMany()
+                .HasForeignKey(x => x.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ClientError>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Id)
+                .ValueGeneratedNever();
+
+            entity.Property(x => x.Url)
+                .IsRequired();
+
+            entity.Property(x => x.ErrorText)
+                .IsRequired();
+        });
     }
 
     public DbSet<LotForSale> LotForSales { get; set; } = null!;
@@ -166,6 +374,13 @@ public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
     public DbSet<ProductMeasurement> ProductMeasurements { get; set; } = null!;
     public DbSet<TubeWorkingPoint> TubeWorkingPoints { get; set; } = null!;
     public DbSet<MatchedPairDifference> MatchedPairDifferences { get; set; } = null!;
+    public DbSet<Product> Products { get; set; } = null!;
+    public DbSet<Currency> Currencies { get; set; } = null!;
+    public DbSet<Lot> Lots { get; set; } = null!;
+    public DbSet<ProductEmailSendHistory> ProductEmailSendHistories { get; set; } = null!;
+    public DbSet<ProductPassport> ProductPassports { get; set; } = null!;
+    public DbSet<IgnoredLot> IgnoredLots { get; set; } = null!;
+    public DbSet<ClientError> ClientErrors { get; set; } = null!;
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

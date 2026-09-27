@@ -1,13 +1,22 @@
-using System.ComponentModel.DataAnnotations;
+using Server.Domain.Abstractions;
 
 namespace Server.Domain;
 
-public class ClientError
+/// <summary>
+/// Ошибка, сообщённая клиентом (расширением/фронтендом) - запись только на запись, нигде не читается обратно.
+/// </summary>
+public sealed class ClientError : Entity<Guid>
 {
-    [Key]
-    public Guid Id { get; set; }
+    private ClientError(Guid id, string url, string errorText)
+        : base(id)
+    {
+        Url = url;
+        ErrorText = errorText;
+    }
 
-    public string Url { get; set; } = null!;
+    public static ClientError Create(string url, string errorText) => new(Guid.NewGuid(), url, errorText);
 
-    public string ErrorText { get; set; } = null!;
+    public string Url { get; }
+
+    public string ErrorText { get; }
 }

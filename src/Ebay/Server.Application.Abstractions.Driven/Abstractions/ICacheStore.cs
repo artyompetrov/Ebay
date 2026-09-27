@@ -21,4 +21,9 @@ public interface ICacheStore
         TimeSpan ttl,
         CancellationToken cancellationToken,
         JsonSerializerOptions? jsonOptions = null);
+
+    /// <summary>
+    /// Удаляет записи кеша, относящиеся к устаревшим версиям.
+    /// </summary>
+    Task RemoveOldVersionsAsync(CancellationToken cancellationToken);
 }

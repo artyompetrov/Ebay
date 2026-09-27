@@ -2,7 +2,7 @@
 @using Client.Clients.Generated
 @using System.IO
 @using System.Linq
-@inject EbayClient EbayClientInstance
+@inject WebApiClient EbayClientInstance
 
 @if (_product != null)
 {
@@ -73,7 +73,7 @@
                     break;
                 case ActionType.Edit:
                     if (_id == null) throw new InvalidOperationException($"{nameof(_id)} expected to be not null");
-                    await EbayClientInstance.UpdateProductAsync(product: _product, id: _id.Value);
+                    await EbayClientInstance.UpdateProductAsync(body: _product, id: _id.Value);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

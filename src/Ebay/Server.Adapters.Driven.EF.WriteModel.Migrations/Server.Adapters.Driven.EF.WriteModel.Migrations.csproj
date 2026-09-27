@@ -15,6 +15,10 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
     <!-- Not used directly; pinned only to force the resolved version up past a vulnerable transitive version (see "фикс вулнеров"). -->
     <PackageReference Include="System.Security.Cryptography.Xml" TreatAsUsed="true">
       <PrivateAssets>all</PrivateAssets>

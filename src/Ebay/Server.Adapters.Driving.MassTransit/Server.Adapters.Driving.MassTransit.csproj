@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Server.Application.Abstractions.Driving\Server.Application.Abstractions.Driving.csproj" />
+    <ProjectReference Include="..\Server.Application.New\Server.Application.New.csproj" />
   </ItemGroup>
 
 </Project>

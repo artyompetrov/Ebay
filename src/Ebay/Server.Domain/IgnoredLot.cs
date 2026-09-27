@@ -1,10 +1,20 @@
 namespace Server.Domain;
 
-public class IgnoredLot
+/// <summary>
+/// Отметка о том, что лот для товара намеренно проигнорирован (не будет обрабатываться расчётами) -
+/// не несёт собственных данных сверх пары (ProductId, LotId), поэтому не является агрегатом.
+/// </summary>
+public sealed class IgnoredLot
 {
-    public Guid ProductId { get; set; }
+    private IgnoredLot(Guid productId, long lotId)
+    {
+        ProductId = productId;
+        LotId = lotId;
+    }
 
-    public Product.Product Product { get; set; } = null!;
+    public static IgnoredLot Create(Guid productId, long lotId) => new(productId, lotId);
 
-    public long LotId { get; set; }
+    public Guid ProductId { get; }
+
+    public long LotId { get; }
 }

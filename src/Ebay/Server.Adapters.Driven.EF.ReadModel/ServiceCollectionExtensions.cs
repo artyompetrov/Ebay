@@ -32,5 +32,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IMeasurementPhotoQueries, MeasurementPhotoQueries>();
         services.AddScoped<ITubeWorkingPointQueries, TubeWorkingPointQueries>();
         services.AddScoped<ILotForSaleQueries, LotForSaleQueries>();
+        services.AddScoped<ILotQueries, LotQueries>();
+        services.AddScoped<ICurrencyQueries, CurrencyQueries>();
+        services.AddScoped<IProductEmailSendHistoryQueries, ProductEmailSendHistoryQueries>();
+        services.AddScoped<IIgnoredLotQueries, IgnoredLotQueries>();
     }
 }

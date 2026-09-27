@@ -21,6 +21,8 @@
       <ProjectReference Include="..\Server\Server.csproj" />
       <ProjectReference Include="..\Server.Client\Server.Client.csproj" />
       <ProjectReference Include="..\Tests.Shared\Tests.Shared.csproj" />
+      <ProjectReference Include="..\Server.Adapters.Driven.EF.Identity\Server.Adapters.Driven.EF.Identity.csproj" />
+      <ProjectReference Include="..\Server.Adapters.Driven.EF.Identity.Migrations\Server.Adapters.Driven.EF.Identity.Migrations.csproj" NoWarn="RT0002" />
     </ItemGroup>
 
 </Project>

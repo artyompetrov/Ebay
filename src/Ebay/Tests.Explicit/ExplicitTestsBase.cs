@@ -12,7 +12,7 @@ public abstract class ExplicitTestsBase
         Environment.GetEnvironmentVariable("EBAY_HELPER_REMOTE_HOST") ??
         throw new InvalidOperationException("EBAY_HELPER_REMOTE_HOST environment variable is required");
 
-    protected static EbayClient BackendClient { get; set; } = null!;
+    protected static WebApiClient BackendClient { get; set; } = null!;
 
     static ExplicitTestsBase()
     {
@@ -57,6 +57,6 @@ public abstract class ExplicitTestsBase
 
         HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme: "Bearer", parameter: token);
 
-        BackendClient = new EbayClient(HttpClient) { BaseUrl = baseAddress + "/api/ebay/v1" };
+        BackendClient = new WebApiClient(HttpClient) { BaseUrl = baseAddress + "/api" };
     }
 }

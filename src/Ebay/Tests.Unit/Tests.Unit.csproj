@@ -17,7 +17,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Server.Application\Server.Application.csproj" />
       <ProjectReference Include="..\Server.Application.New\Server.Application.New.csproj" />
       <ProjectReference Include="..\Server.Adapters.Driven.ChipFind\Server.Adapters.Driven.ChipFind.csproj" />
       <ProjectReference Include="..\Server.Adapters.Driven.ImageProcessing\Server.Adapters.Driven.ImageProcessing.csproj" />
