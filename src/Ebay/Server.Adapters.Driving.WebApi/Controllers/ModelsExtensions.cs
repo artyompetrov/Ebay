@@ -1,25 +1,25 @@
 using System.Globalization;
 using Server.Application.Abstractions.Driven.Models;
 using Server.Application.Abstractions.Driving.Models;
-using Server.Controllers.Generated;
+using Server.Adapters.Driving.WebApi.Generated;
 using Server.Domain;
 using Server.Domain.LotDataExtraction;
 using Server.Domain.Product;
 using Server.Domain.Shipping;
-using ApiCurrency = Server.Controllers.Generated.Currency;
-using ApiMeasurementState = Server.Controllers.Generated.MeasurementState;
+using ApiCurrency = Server.Adapters.Driving.WebApi.Generated.Currency;
+using ApiMeasurementState = Server.Adapters.Driving.WebApi.Generated.MeasurementState;
 using DbLotCalculationResult = Server.Domain.LotCalculationResult;
 using DbMeasurementState = Server.Domain.Measurements.MeasurementState;
 using DbProductCalculationResult = Server.Domain.ProductCalculationResult;
 using DbProductState = Server.Domain.Measurements.ProductState;
 using DbPurchaseCalculationResult = Server.Domain.PurchaseCalculationResult;
-using LotCalculationResult = Server.Controllers.Generated.LotCalculationResult;
-using ProductCalculationResult = Server.Controllers.Generated.ProductCalculationResult;
-using ProductState = Server.Controllers.Generated.ProductState;
-using PurchaseCalculationResult = Server.Controllers.Generated.PurchaseCalculationResult;
-using RuSearchQuery = Server.Controllers.Generated.RuSearchQuery;
-using SearchQuery = Server.Controllers.Generated.SearchQuery;
-using TubeWorkingPoint = Server.Controllers.Generated.TubeWorkingPoint;
+using LotCalculationResult = Server.Adapters.Driving.WebApi.Generated.LotCalculationResult;
+using ProductCalculationResult = Server.Adapters.Driving.WebApi.Generated.ProductCalculationResult;
+using ProductState = Server.Adapters.Driving.WebApi.Generated.ProductState;
+using PurchaseCalculationResult = Server.Adapters.Driving.WebApi.Generated.PurchaseCalculationResult;
+using RuSearchQuery = Server.Adapters.Driving.WebApi.Generated.RuSearchQuery;
+using SearchQuery = Server.Adapters.Driving.WebApi.Generated.SearchQuery;
+using TubeWorkingPoint = Server.Adapters.Driving.WebApi.Generated.TubeWorkingPoint;
 
 namespace Server.Adapters.Driving.WebApi.Controllers;
 

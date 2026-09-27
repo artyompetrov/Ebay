@@ -559,7 +559,7 @@ public class MeasurementPhotosFlowTests
         var httpClient = IntegrationTestsSetupFixture.Factory.CreateClient();
         await TestHelpers.AuthenticateWithClientCredentialsAsync(httpClient);
 
-        var ebayClient = TestHelpers.CreateEbayClient(httpClient);
+        var ebayClient = TestHelpers.CreateWebApiClient(httpClient);
         var webApiClient = TestHelpers.CreateWebApiClient(httpClient);
         var productId = await TestHelpers.CreateProductAsync(ebayClient);
 
@@ -580,7 +580,7 @@ public class MeasurementPhotosFlowTests
 
     private sealed record MeasurementContext(
         HttpClient HttpClient,
-        EbayClient EbayClient,
+        WebApiClient EbayClient,
         WebApiClient WebApiClient,
         Guid ProductId,
         string MeasurementId) : IDisposable

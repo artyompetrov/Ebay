@@ -58,11 +58,9 @@ public static class TestHelpers
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
     }
 
-    public static EbayClient CreateEbayClient(HttpClient httpClient) => new(httpClient);
-
     public static WebApiClient CreateWebApiClient(HttpClient httpClient) => new(httpClient);
 
-    public static async Task<Guid> CreateProductAsync(EbayClient ebayClient)
+    public static async Task<Guid> CreateProductAsync(WebApiClient ebayClient)
     {
         var product = new ProductWithoutId
         {

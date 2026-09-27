@@ -7,7 +7,7 @@ public class IgnoredLotFlowTests
     {
         var httpClient = IntegrationTestsSetupFixture.Factory.CreateClient();
         await TestHelpers.AuthenticateWithClientCredentialsAsync(httpClient);
-        var ebayClient = TestHelpers.CreateEbayClient(httpClient);
+        var ebayClient = TestHelpers.CreateWebApiClient(httpClient);
         var productId = await TestHelpers.CreateProductAsync(ebayClient);
 
         var lotId = TestHelpers.NextMeasurementSeed();

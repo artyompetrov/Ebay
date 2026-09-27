@@ -13,7 +13,7 @@ public class ProductPassportFlowTests
     {
         var httpClient = IntegrationTestsSetupFixture.Factory.CreateClient();
         await TestHelpers.AuthenticateWithClientCredentialsAsync(httpClient);
-        var ebayClient = TestHelpers.CreateEbayClient(httpClient);
+        var ebayClient = TestHelpers.CreateWebApiClient(httpClient);
         var productId = await TestHelpers.CreateProductAsync(ebayClient);
 
         // Uploading three passports without an explicit Order appends them in upload order (0, 1, 2).

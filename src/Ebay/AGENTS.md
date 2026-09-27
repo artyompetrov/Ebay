@@ -29,10 +29,9 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 - `Tests.Shared` — shared test infrastructure referenced by the test projects above; `OpenSpecScenarioAttribute` and shared browser assertions (see the `write-tests` skill).
 
 ## Code generation
-- Legacy contract: `src/Ebay/Server.Contracts/Legacy/Ebay.yaml` (do not add new changes there).
-- New contracts: `src/Ebay/Server.Contracts/WebApi/*.yaml`.
-- NSwag code generation runs automatically via MSBuild targets during the build.
-- Add new API functionality only to `Server.Contracts/WebApi/*.yaml`; don't add new endpoints/DTOs to `Legacy/Ebay.yaml`.
+- Single contract: `src/Ebay/Server.Contracts/WebApi/WebApi.yaml` (OpenAPI 3.1). All backend routes are grouped under the shared `/api` server root, with each endpoint keeping its own literal `ebay/v1/...`/`webapi/v1/...` path prefix so existing routes/URLs stay unchanged.
+- NSwag code generation runs automatically via MSBuild targets during the build, from this single document, for both the driving controller (`Server.Adapters.Driving.WebApi/ControllerGenerationConfig.json`, abstract `WebApiControllerBase` implemented by `WebApiController`) and the C#/TypeScript clients (`Server.Client/ClientGeneration.WebApi.json`, also feeding `src/ChromeExtension/src/clients/Generated/EbayToolWebApiClient.ts`).
+- `WebApiController` is the single driving adapter for the whole contract; it must not contain command-use-case logic, only map HTTP↔application and delegate to `Server.Application.New` services (see the "Layer-specific rules" root `AGENTS.md` entry).
 
 ## Local backend debugging
 - Run: `dotnet run --launch-profile Server --project /workspace/Ebay/src/Ebay/Server/Server.csproj`.

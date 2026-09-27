@@ -1,6 +1,6 @@
 ﻿import { ISiteProcessor } from './ISiteProcessor';
 import {ClientsFactory} from "../clients/ClientsFactory";
-import {ProductWithId} from "../clients/Generated/EbayToolBackendClient";
+import {ProductWithId} from "../clients/Generated/EbayToolWebApiClient";
 import * as constants from '../constants';
 import {Mode} from '../mode';
 

@@ -25,11 +25,7 @@
     <Exec Command="$(NSwagExe_Net100) run ControllerGenerationConfig.json" />
   </Target>
 
-  <Target Name="GenerateLegacyApiClients" BeforeTargets="CoreCompile">
-    <Exec Command="$(NSwagExe_Net100) openapi2cscontroller /input:../Server.Contracts/Legacy/Ebay.yaml /classname:Ebay /namespace:Server.Controllers.Generated /output:$(BaseIntermediateOutputPath)Generated/Controllers/EbayController.cs /ControllerBaseClass:Microsoft.AspNetCore.Mvc.Controller /UseCancellationToken:true /GenerateImmutableArrayProperties:true /GenerateImmutableDictionaryProperties:true /GenerateNullableReferenceTypes:true /GenerateOptionalPropertiesAsNullable:true /ClassStyle:Record /ExcludedTypeNames:ProblemDetails,ValidationProblemDetails /RequiredPropertiesMustBeDefined:false" />
-  </Target>
-
-  <Target Name="IncludeGeneratedControllers" BeforeTargets="CoreCompile" DependsOnTargets="GenerateControllers;GenerateLegacyApiClients">
+  <Target Name="IncludeGeneratedControllers" BeforeTargets="CoreCompile" DependsOnTargets="GenerateControllers">
     <ItemGroup>
       <Compile Include="$(BaseIntermediateOutputPath)Generated/Controllers/**/*.cs" />
     </ItemGroup>

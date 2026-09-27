@@ -139,7 +139,7 @@ public class ProductMeasurementFlowTests
         var httpClient = IntegrationTestsSetupFixture.Factory.CreateClient();
         await TestHelpers.AuthenticateWithClientCredentialsAsync(httpClient);
 
-        var ebayClient = TestHelpers.CreateEbayClient(httpClient);
+        var ebayClient = TestHelpers.CreateWebApiClient(httpClient);
         var productId = await TestHelpers.CreateProductAsync(ebayClient);
 
         var randomSeed = TestHelpers.NextMeasurementSeed();
@@ -172,7 +172,7 @@ public class ProductMeasurementFlowTests
     }
 
     private static async Task AssertMeasurementPublishedStateAsync(
-        EbayClient ebayClient,
+        WebApiClient ebayClient,
         Guid productId,
         string measurementId,
         bool expectedIsPublished)
@@ -266,7 +266,7 @@ public class ProductMeasurementFlowTests
 
     private sealed record MeasurementContext(
         HttpClient HttpClient,
-        EbayClient EbayClient,
+        WebApiClient EbayClient,
         Guid ProductId,
         string MeasurementId) : IDisposable
     {

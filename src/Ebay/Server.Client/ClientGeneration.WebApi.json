@@ -11,9 +11,9 @@
       "namespace": "Client.Clients.Generated",
       "className": "WebApiClient",
       "output": "obj/Generated/Clients/WebApiClient.cs",
+      "generateOptionalPropertiesAsNullable": true,
       "jsonLibrary": "SystemTextJson",
-      "requiredPropertiesMustBeDefined": false,
-      "generateExceptionClasses": false
+      "requiredPropertiesMustBeDefined": false
     },
     "openApiToTypeScriptClient": {
       "className": "EbayToolWebApiClient",

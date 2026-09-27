@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using Server.Adapters.Driving.WebApi.Controllers;
 
 // ReSharper disable once CheckNamespace
-namespace Server.Controllers.Generated;
+namespace Server.Adapters.Driving.WebApi.Generated;
 
 /// <summary>
 /// Расширение сгенеренного класса

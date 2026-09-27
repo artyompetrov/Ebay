@@ -8,7 +8,6 @@
     </ItemGroup>
 
     <Target Name="GenerateClients" BeforeTargets="CoreCompile">
-        <Exec Command="$(NSwagExe_Net100) run ClientGeneration.Legacy.json" />
         <Exec Command="$(NSwagExe_Net100) run ClientGeneration.WebApi.json" />
     </Target>
 

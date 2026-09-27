@@ -1,4 +1,4 @@
-using Server.Controllers.Generated;
+using Server.Adapters.Driving.WebApi.Generated;
 
 namespace Server.Adapters.Driving.WebApi.Controllers;
 

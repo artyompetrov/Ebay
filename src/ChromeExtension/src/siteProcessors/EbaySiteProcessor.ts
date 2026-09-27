@@ -1,5 +1,5 @@
 ﻿import * as EbayClient from "../clients/EbayClient"
-import * as EbayToolBackendClient from "../clients/Generated/EbayToolBackendClient";
+import * as EbayToolBackendClient from "../clients/Generated/EbayToolWebApiClient";
 import * as utils from "../infrastructure/Utils";
 import * as constants from '../constants';
 import { ISiteProcessor } from './ISiteProcessor';
@@ -99,7 +99,7 @@ class EbaySiteProcessor implements ISiteProcessor {
     private _currentProductId: string
     private interestedInTopNItems = 10;
     private _ebayClient: EbayClient.EbayClient;
-    private _ebayToolBackendClient: EbayToolBackendClient.EbayToolBackendClient;
+    private _ebayToolBackendClient: EbayToolBackendClient.EbayToolWebApiClient;
 
     // Создадим эти классовые переменные
     private supportedShippingCountries = new Map<string, ShippingParameters>();

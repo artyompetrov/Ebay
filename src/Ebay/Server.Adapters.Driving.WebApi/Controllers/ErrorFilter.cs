@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Server.Controllers.Generated;
+using Server.Adapters.Driving.WebApi.Generated;
 
 namespace Server.Adapters.Driving.WebApi.Controllers;
 

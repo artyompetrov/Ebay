@@ -129,7 +129,7 @@ public sealed class MeasurementPhotosTests
         context.Services.AddLogging();
         context.Services.AddSingleton(new WebApiClient(new HttpClient(api) { BaseAddress = new Uri("https://test.local/") })
         {
-            BaseUrl = "https://test.local/api/webapi/v1/"
+            BaseUrl = "https://test.local/api"
         });
         var scanner = new FakeBarcodeScanner();
         context.Services.AddSingleton<IBarcodeScanner>(scanner);
