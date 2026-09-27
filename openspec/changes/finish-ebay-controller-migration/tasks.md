@@ -16,8 +16,8 @@
 
 ## 4. IgnoredLotService and ClientErrorService
 
-- [ ] 4.1 Add `Server.Application.New/IgnoredLotService.cs` covering `IgnoreLotsAsync`'s exists-check + `InsertMissingAsync` + conditional save, moved verbatim. Rewrite `EbayControllerImplementation.IgnoreLotsAsync` to call it. Verify: `IgnoredLotFlowTests` still passes unchanged.
-- [ ] 4.2 Add `Server.Application.New/ClientErrorService.cs` covering `SaveErrorAsync`'s add + save. Rewrite `EbayControllerImplementation.SaveErrorAsync` to call it. Verify: `dotnet build` succeeds; manually exercise the `SaveError` endpoint (no existing test - per the established "trivial single-line write" precedent from earlier phases of `complete-hexagonal-migration`, a dedicated test is optional here, but note the decision either way).
+- [x] 4.1 Add `Server.Application.New/IgnoredLotService.cs` covering `IgnoreLotsAsync`'s exists-check + `InsertMissingAsync` + conditional save, moved verbatim. Rewrite `EbayControllerImplementation.IgnoreLotsAsync` to call it. Verify: `IgnoredLotFlowTests` still passes unchanged.
+- [x] 4.2 Add `Server.Application.New/ClientErrorService.cs` covering `SaveErrorAsync`'s add + save. Rewrite `EbayControllerImplementation.SaveErrorAsync` to call it. Verify: `dotnet build` succeeds; manually exercise the `SaveError` endpoint (no existing test - per the established "trivial single-line write" precedent from earlier phases of `complete-hexagonal-migration`, a dedicated test is optional here, but note the decision either way).
 
 ## 5. Move CalculatePricesForProductAsync and clean up the controller's dependencies
 

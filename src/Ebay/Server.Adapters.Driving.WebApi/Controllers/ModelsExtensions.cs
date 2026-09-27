@@ -151,8 +151,6 @@ internal static class ModelsExtensions
     );
     }
 
-    public static ClientError ToDbClientError(this ClientErrorInfo error) => ClientError.Create(url: error.Url, errorText: error.Error);
-
     public static ApiCurrency ToApiCurrency(this CurrencyInfo currency)
     {
         return new(

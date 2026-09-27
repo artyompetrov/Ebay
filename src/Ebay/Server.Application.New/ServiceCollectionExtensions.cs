@@ -51,6 +51,8 @@ public static class ServiceCollectionExtensions
         services.AddTransient<ProductService>();
         services.AddTransient<LotService>();
         services.AddTransient<ProductPassportService>();
+        services.AddTransient<IgnoredLotService>();
+        services.AddTransient<ClientErrorService>();
         services.AddTransient<MatchedMeasurementService>();
         services.AddTransient<MeasurementPlotService>();
         services.AddTransient<TubeWorkingPointService>();

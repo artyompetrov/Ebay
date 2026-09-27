@@ -47,9 +47,9 @@ internal sealed class EbayControllerImplementation : IEbayController
     private readonly IProductEmailSendHistoryQueries _productEmailSendHistoryQueries;
     private readonly ProductPassportService _productPassportService;
     private readonly IPassportQueries _passportQueries;
-    private readonly IIgnoredLotRepository _ignoredLotRepository;
+    private readonly IgnoredLotService _ignoredLotService;
     private readonly IIgnoredLotQueries _ignoredLotQueries;
-    private readonly IClientErrorRepository _clientErrorRepository;
+    private readonly ClientErrorService _clientErrorService;
     private readonly IWriteModelUnitOfWork _writeModelUnitOfWork;
 
     public EbayControllerImplementation(
@@ -64,9 +64,9 @@ internal sealed class EbayControllerImplementation : IEbayController
         IProductEmailSendHistoryQueries productEmailSendHistoryQueries,
         ProductPassportService productPassportService,
         IPassportQueries passportQueries,
-        IIgnoredLotRepository ignoredLotRepository,
+        IgnoredLotService ignoredLotService,
         IIgnoredLotQueries ignoredLotQueries,
-        IClientErrorRepository clientErrorRepository,
+        ClientErrorService clientErrorService,
         IWriteModelUnitOfWork writeModelUnitOfWork)
     {
         _publishEndpoint = publishEndpoint;
@@ -80,9 +80,9 @@ internal sealed class EbayControllerImplementation : IEbayController
         _productEmailSendHistoryQueries = productEmailSendHistoryQueries;
         _productPassportService = productPassportService;
         _passportQueries = passportQueries;
-        _ignoredLotRepository = ignoredLotRepository;
+        _ignoredLotService = ignoredLotService;
         _ignoredLotQueries = ignoredLotQueries;
-        _clientErrorRepository = clientErrorRepository;
+        _clientErrorService = clientErrorService;
         _writeModelUnitOfWork = writeModelUnitOfWork;
     }
 
@@ -330,18 +330,7 @@ internal sealed class EbayControllerImplementation : IEbayController
         IEnumerable<long> ignoredLots,
         Guid productId,
         CancellationToken cancellationToken
-    )
-    {
-        var lotIds = ignoredLots.ToHashSet();
-
-        var alreadySaved = await _lotQueries.AnyLotExistsForProductAsync(productId, lotIds, cancellationToken);
-
-        if (!alreadySaved)
-        {
-            await _ignoredLotRepository.InsertMissingAsync(productId, lotIds, cancellationToken);
-            await _writeModelUnitOfWork.SaveChangesAsync(cancellationToken);
-        }
-    }
+    ) => await _ignoredLotService.IgnoreLotsAsync(productId, ignoredLots.ToHashSet(), cancellationToken);
 
     public async Task<bool> GetIsLotIgnoredForProductAsync(
         Guid productId,
@@ -616,11 +605,8 @@ internal sealed class EbayControllerImplementation : IEbayController
         );
     }
 
-    public async Task SaveErrorAsync(ClientErrorInfo error, CancellationToken cancellationToken)
-    {
-        await _clientErrorRepository.AddAsync(error.ToDbClientError(), cancellationToken);
-        await _writeModelUnitOfWork.SaveChangesAsync(cancellationToken);
-    }
+    public async Task SaveErrorAsync(ClientErrorInfo error, CancellationToken cancellationToken) =>
+        await _clientErrorService.SaveErrorAsync(error.Url, error.Error, cancellationToken);
 
     public async Task CalculatePricesForAllAsync(CancellationToken cancellationToken) =>
         await _lotService.CalculatePricesForAllAsync(cancellationToken);
