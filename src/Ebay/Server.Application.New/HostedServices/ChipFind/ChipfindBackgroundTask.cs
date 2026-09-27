@@ -145,6 +145,11 @@ public class ChipfindBackgroundTask : BackgroundTask
             }
         }
 
+        // Deferred commit: if the email send below fails, the history rows written by SaveChangesAsync
+        // must not persist, or the retry on the next run will see them as "already notified" via
+        // FindIdAsync and silently drop the notification for good.
+        await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken);
+
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         if (newInterestingAds.Count > 0)
@@ -165,6 +170,8 @@ public class ChipfindBackgroundTask : BackgroundTask
 
             await Task.Delay(millisecondsDelay: DelayMilliseconds, cancellationToken: cancellationToken);
         }
+
+        await transaction.CommitAsync(cancellationToken);
     }
 
     private static async Task<IReadOnlyCollection<ProductInner>> GetProducts(

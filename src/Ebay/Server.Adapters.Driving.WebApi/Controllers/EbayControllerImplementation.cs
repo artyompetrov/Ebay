@@ -622,8 +622,14 @@ internal sealed class EbayControllerImplementation : IEbayController
 
         await _publishEndpoint.Publish(new CalculatePricesForProductRequested(lot.ProductId), cancellationToken);
 
+        // ILotRepository.RemoveAsync executes an immediate ExecuteDeleteAsync rather than going through the
+        // change tracker, so without an explicit transaction it would commit independently of the outbox
+        // message flushed by SaveChangesAsync below - an explicit transaction keeps the deletion and the
+        // recalculation trigger atomic.
+        await using var transaction = await _writeModelUnitOfWork.BeginTransactionAsync(cancellationToken);
         await _lotRepository.RemoveAsync(lotId, cancellationToken);
         await _writeModelUnitOfWork.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
     }
 
     public async Task<ICollection<long>> GetLotIdsAsync(CancellationToken cancellationToken) =>

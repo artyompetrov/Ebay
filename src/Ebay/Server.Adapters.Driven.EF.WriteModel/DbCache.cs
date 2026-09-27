@@ -59,15 +59,18 @@ internal sealed class DbCache : ICacheStore
             var json = JsonSerializer.Serialize(value, jsonOptions);
             var expiresAt = DateTimeOffset.UtcNow.Add(ttl);
 
+            CacheEntry trackedEntry;
             if (entry is null)
             {
-                _context.Add(new CacheEntry { Key = key, Version = Version, Value = json, ExpiresAt = expiresAt });
+                trackedEntry = new CacheEntry { Key = key, Version = Version, Value = json, ExpiresAt = expiresAt };
+                _context.Add(trackedEntry);
             }
             else
             {
                 entry.Value = json;
                 entry.ExpiresAt = expiresAt;
                 _context.Update(entry);
+                trackedEntry = entry;
             }
 
             try
@@ -76,6 +79,11 @@ internal sealed class DbCache : ICacheStore
             }
             catch (DbUpdateException ex)
             {
+                // _context is request-scoped and shared with other saves later in the same scope (e.g. domain
+                // events flushed by MeasurementWatchedOnEbayPublisher) - leaving this entry tracked as
+                // Added/Modified would make every later SaveChangesAsync on this context retry and fail on the
+                // same conflict, turning a tolerated cache race into an unrelated request failure.
+                _context.Entry(trackedEntry).State = EntityState.Detached;
                 _logger.LogWarning(ex, "Error while updating measurement cache entry");
             }
 
