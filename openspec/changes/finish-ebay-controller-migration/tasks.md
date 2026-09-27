@@ -11,8 +11,8 @@
 
 ## 3. ProductPassportService
 
-- [ ] 3.1 Add `Server.Application.New/ProductPassportService.cs` covering `UploadProductPassportAsync`'s order-defaulting + `ProductPassport.Create` + `AddAsync` + save, `DeleteProductPassportAsync`'s remove + order-decrement-shift + save, and `UpdateProductPassportAsync`'s order-shift-range math + save - moved verbatim from the controller, using `IProductPassportRepository`/`IPassportQueries`/`IWriteModelUnitOfWork`. Verify: `dotnet build` succeeds.
-- [ ] 3.2 Rewrite the three controller methods to call `ProductPassportService`; remove `IProductPassportRepository`/`IWriteModelUnitOfWork` from the controller if nothing else in it still needs them (check task 2/4's status first). Verify: full `Tests.Integration` suite passes, including manual exercise of passport upload/delete/reorder if no dedicated integration test exists yet for the reordering behavior - add one if this gap is confirmed, since reordering is real business logic with no current coverage.
+- [x] 3.1 Add `Server.Application.New/ProductPassportService.cs` covering `UploadProductPassportAsync`'s order-defaulting + `ProductPassport.Create` + `AddAsync` + save, `DeleteProductPassportAsync`'s remove + order-decrement-shift + save, and `UpdateProductPassportAsync`'s order-shift-range math + save - moved verbatim from the controller, using `IProductPassportRepository`/`IPassportQueries`/`IWriteModelUnitOfWork`. Verify: `dotnet build` succeeds.
+- [x] 3.2 Rewrite the three controller methods to call `ProductPassportService`; remove `IProductPassportRepository`/`IWriteModelUnitOfWork` from the controller if nothing else in it still needs them (check task 2/4's status first). Verify: full `Tests.Integration` suite passes, including manual exercise of passport upload/delete/reorder if no dedicated integration test exists yet for the reordering behavior - add one if this gap is confirmed, since reordering is real business logic with no current coverage.
 
 ## 4. IgnoredLotService and ClientErrorService
 

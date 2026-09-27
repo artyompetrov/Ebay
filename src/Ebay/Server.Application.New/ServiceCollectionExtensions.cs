@@ -50,6 +50,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ILotForSaleIdGenerator, LotForSaleIdGenerator>();
         services.AddTransient<ProductService>();
         services.AddTransient<LotService>();
+        services.AddTransient<ProductPassportService>();
         services.AddTransient<MatchedMeasurementService>();
         services.AddTransient<MeasurementPlotService>();
         services.AddTransient<TubeWorkingPointService>();
