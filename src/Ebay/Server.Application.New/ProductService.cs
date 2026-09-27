@@ -17,6 +17,7 @@ public class ProductService
     private readonly IWriteModelUnitOfWork _unitOfWork;
     private readonly IProductRepository _productRepository;
     private readonly IProductQueries _productQueries;
+    private readonly IPriceRecalculationPublisher _priceRecalculationPublisher;
 
     /// <summary>
     /// Создает сервис сценариев работы с товарами.
@@ -24,11 +25,22 @@ public class ProductService
     public ProductService(
         IWriteModelUnitOfWork unitOfWork,
         IProductRepository productRepository,
-        IProductQueries productQueries)
+        IProductQueries productQueries,
+        IPriceRecalculationPublisher priceRecalculationPublisher)
     {
         _unitOfWork = unitOfWork;
         _productRepository = productRepository;
         _productQueries = productQueries;
+        _priceRecalculationPublisher = priceRecalculationPublisher;
+    }
+
+    /// <summary>
+    /// Инициирует пересчет цен всех лотов товара.
+    /// </summary>
+    public async Task CalculatePricesForProductAsync(Guid productId, CancellationToken cancellationToken)
+    {
+        await _priceRecalculationPublisher.PublishForProductAsync(productId, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     /// <summary>

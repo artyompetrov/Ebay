@@ -1,10 +1,6 @@
 using System.Globalization;
-using MassTransit;
-using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
-using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
-using Server.Application.Abstractions.Driving.Abstractions.Messages;
 using Server.Application.New;
 using Server.Application.New.LotDataExtractor;
 using Server.Application.New.MatchedPairs;
@@ -36,7 +32,6 @@ namespace Server.Adapters.Driving.WebApi.Controllers;
 
 internal sealed class EbayControllerImplementation : IEbayController
 {
-    private readonly IPublishEndpoint _publishEndpoint;
     private readonly IMeasurementService _measurementService;
     private readonly MatchedMeasurementService _matchedMeasurementService;
     private readonly TubeWorkingPointService _tubeWorkingPointService;
@@ -50,10 +45,8 @@ internal sealed class EbayControllerImplementation : IEbayController
     private readonly IgnoredLotService _ignoredLotService;
     private readonly IIgnoredLotQueries _ignoredLotQueries;
     private readonly ClientErrorService _clientErrorService;
-    private readonly IWriteModelUnitOfWork _writeModelUnitOfWork;
 
     public EbayControllerImplementation(
-        IPublishEndpoint publishEndpoint,
         IMeasurementService measurementService,
         MatchedMeasurementService matchedMeasurementService,
         TubeWorkingPointService tubeWorkingPointService,
@@ -66,10 +59,8 @@ internal sealed class EbayControllerImplementation : IEbayController
         IPassportQueries passportQueries,
         IgnoredLotService ignoredLotService,
         IIgnoredLotQueries ignoredLotQueries,
-        ClientErrorService clientErrorService,
-        IWriteModelUnitOfWork writeModelUnitOfWork)
+        ClientErrorService clientErrorService)
     {
-        _publishEndpoint = publishEndpoint;
         _measurementService = measurementService;
         _matchedMeasurementService = matchedMeasurementService;
         _tubeWorkingPointService = tubeWorkingPointService;
@@ -83,7 +74,6 @@ internal sealed class EbayControllerImplementation : IEbayController
         _ignoredLotService = ignoredLotService;
         _ignoredLotQueries = ignoredLotQueries;
         _clientErrorService = clientErrorService;
-        _writeModelUnitOfWork = writeModelUnitOfWork;
     }
 
     public async Task<ICollection<ProductPassportInfo>> GetProductPassportsAsync(
@@ -338,11 +328,8 @@ internal sealed class EbayControllerImplementation : IEbayController
         CancellationToken cancellationToken
     ) => await _ignoredLotQueries.IsLotIgnoredAsync(productId, lotId, cancellationToken);
 
-    public async Task CalculatePricesForProductAsync(Guid productId, CancellationToken cancellationToken)
-    {
-        await _publishEndpoint.Publish(new CalculatePricesForProductRequested(productId), cancellationToken);
-        await _writeModelUnitOfWork.SaveChangesAsync(cancellationToken);
-    }
+    public async Task CalculatePricesForProductAsync(Guid productId, CancellationToken cancellationToken) =>
+        await _productService.CalculatePricesForProductAsync(productId, cancellationToken);
 
     public async Task<ICollection<MeasurementData>> GetMeasurementsAsync(
         MeasurementState? measurementState,
