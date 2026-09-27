@@ -1,4 +1,3 @@
-using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 
@@ -9,7 +8,6 @@ namespace Server.Application.New;
 /// </summary>
 public class IgnoredLotService
 {
-    private readonly IWriteModelUnitOfWork _unitOfWork;
     private readonly IIgnoredLotRepository _ignoredLotRepository;
     private readonly ILotQueries _lotQueries;
 
@@ -17,11 +15,9 @@ public class IgnoredLotService
     /// Создает сервис сценариев работы с отметками об игнорируемых лотах.
     /// </summary>
     public IgnoredLotService(
-        IWriteModelUnitOfWork unitOfWork,
         IIgnoredLotRepository ignoredLotRepository,
         ILotQueries lotQueries)
     {
-        _unitOfWork = unitOfWork;
         _ignoredLotRepository = ignoredLotRepository;
         _lotQueries = lotQueries;
     }
@@ -35,8 +31,9 @@ public class IgnoredLotService
 
         if (!alreadySaved)
         {
+            // IIgnoredLotRepository.InsertMissingAsync commits itself (with conflict-tolerant retry against a
+            // concurrent insert of the same pair), so there is nothing left for the unit of work to flush here.
             await _ignoredLotRepository.InsertMissingAsync(productId, lotIds, cancellationToken);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
     }
 }

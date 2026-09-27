@@ -68,6 +68,12 @@ public class ProductPassportService
             return false;
         }
 
+        // IProductPassportRepository.RemoveAsync executes an immediate ExecuteDeleteAsync rather than going
+        // through the change tracker, so without an explicit transaction it would commit independently of the
+        // order-shift flushed by SaveChangesAsync below - an explicit transaction keeps the deletion and the
+        // reorder atomic.
+        await using var transaction = await _unitOfWork.BeginTransactionAsync(cancellationToken);
+
         await _productPassportRepository.RemoveAsync(passportId, cancellationToken);
 
         var passportsToDecrement = passports.Where(x => x.Order > passport.Order);
@@ -79,6 +85,7 @@ public class ProductPassportService
         }
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
         return true;
     }
 

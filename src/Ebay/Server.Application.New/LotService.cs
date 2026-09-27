@@ -117,10 +117,17 @@ public class LotService
 
         await _priceRecalculationPublisher.PublishForLotAsync(lotId, cancellationToken);
 
+        // IIgnoredLotRepository.RemoveAsync executes an immediate ExecuteDeleteAsync rather than going through
+        // the change tracker, so without an explicit transaction it would commit independently of the lot
+        // upsert and the outbox message flushed by SaveChangesAsync below - an explicit transaction keeps the
+        // un-ignore, the lot upsert, and the recalculation trigger atomic.
+        await using var transaction = await _unitOfWork.BeginTransactionAsync(cancellationToken);
+
         // Лот больше не считается проигнорированным, раз для него снова пришли актуальные данные.
         await _ignoredLotRepository.RemoveAsync(productId, lotId, cancellationToken);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
     }
 
     /// <summary>
