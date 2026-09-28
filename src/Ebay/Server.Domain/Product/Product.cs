@@ -7,18 +7,20 @@ public sealed class Product : AggregateRoot<Guid>
     private readonly List<SearchQuery> _ruSearchQueries = [];
     private readonly List<SearchQuery> _searchQueries = [];
 
-    private Product(Guid id, string name, DateTimeOffset lastCheckTime, int weight) : base(id)
+    private Product(Guid id, string name, DateTimeOffset lastCheckTime, int weight, string? description) : base(id)
     {
         Name = name;
         LastCheckTime = lastCheckTime;
         Weight = weight;
+        Description = description;
     }
 
     public static Product Create(
         string name,
         int weight,
         IReadOnlyList<string> searchQueries,
-        IReadOnlyList<string> ruSearchQueries)
+        IReadOnlyList<string> ruSearchQueries,
+        string? description)
     {
         var productId = Guid.NewGuid();
 
@@ -26,7 +28,8 @@ public sealed class Product : AggregateRoot<Guid>
             id: productId,
             name: name,
             lastCheckTime: DateTimeOffset.MinValue,
-            weight: weight);
+            weight: weight,
+            description: description);
 
         product.AddDomainEvent(new ProductUpdated(product.Id));
 
@@ -43,10 +46,12 @@ public sealed class Product : AggregateRoot<Guid>
         string name,
         int weight,
         IReadOnlyList<SearchQueryWithId> searchQueries,
-        IReadOnlyList<SearchQueryWithId> ruSearchQueries)
+        IReadOnlyList<SearchQueryWithId> ruSearchQueries,
+        string? description)
     {
         Name = name;
         Weight = weight;
+        Description = description;
 
         // en
         var incomingEn = searchQueries.ToDictionary(x => x.Id);
@@ -88,6 +93,7 @@ public sealed class Product : AggregateRoot<Guid>
     public string Name { get; private set; }
     public DateTimeOffset LastCheckTime { get; private set; }
     public int Weight { get; private set; }
+    public string? Description { get; private set; }
 
     public ProductCalculationResult? ProductCalculationResult { get; private set; }
 

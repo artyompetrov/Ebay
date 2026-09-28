@@ -324,6 +324,7 @@ public sealed class WebApiController : WebApiControllerBase
             weight: body.Weight,
             searchQueries: [.. body.SearchQueries.Select(x => x.Query)],
             ruSearchQueries: [.. body.RuSearchQueries.Select(x => x.Query)],
+            description: body.Description,
             cancellationToken: cancellationToken)).Id;
     }
 
@@ -338,6 +339,7 @@ public sealed class WebApiController : WebApiControllerBase
             weight: body.Weight,
             searchQueries: [.. body.SearchQueries.Select(x => new SearchQueryWithId(x.Id, x.Query))],
             ruSearchQueries: [.. body.RuSearchQueries.Select(x => new SearchQueryWithId(x.Id, x.Query))],
+            description: body.Description,
             cancellationToken: cancellationToken);
 
         return Ok();

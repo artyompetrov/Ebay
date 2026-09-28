@@ -11,4 +11,10 @@ public partial class Interop
 
     [JSImport(functionName: "StartQrScanner", moduleName: "interop")]
     public static partial Task<string> StartQrScanner();
+
+    [JSImport(functionName: "InitProductDescriptionEditor", moduleName: "interop")]
+    internal static partial void InitProductDescriptionEditor(string elementId, string initialHtml);
+
+    [JSImport(functionName: "GetProductDescriptionEditorHtml", moduleName: "interop")]
+    internal static partial string GetProductDescriptionEditorHtml(string elementId);
 }

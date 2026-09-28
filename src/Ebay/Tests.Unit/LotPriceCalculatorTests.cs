@@ -48,7 +48,8 @@ public sealed class LotPriceCalculatorTests
             RuSearchQueries: [],
             Weight: 10,
             CalculationResult: null,
-            LastCheckTime: DateTimeOffset.UtcNow);
+            LastCheckTime: DateTimeOffset.UtcNow,
+            Description: null);
 
         var currencyRates = new Dictionary<string, double> { ["USD"] = 1.0, ["KZT"] = 450.0 };
         var unitOfWork = new RecordingUnitOfWork();

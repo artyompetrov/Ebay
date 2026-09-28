@@ -5,6 +5,27 @@ export function SetFocusByElementId(elementId) {
     element.focus();
 }
 
+const productDescriptionEditors = new Map();
+
+export function InitProductDescriptionEditor(elementId, initialHtml) {
+    const container = document.getElementById(elementId);
+    if (!container) {
+        return;
+    }
+
+    const quill = new Quill(container, { theme: "snow" });
+    if (initialHtml) {
+        quill.clipboard.dangerouslyPasteHTML(initialHtml);
+    }
+
+    productDescriptionEditors.set(elementId, quill);
+}
+
+export function GetProductDescriptionEditorHtml(elementId) {
+    const quill = productDescriptionEditors.get(elementId);
+    return quill ? quill.root.innerHTML : "";
+}
+
 const mobileUserAgentPattern = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i;
 const mobileReaderClass = "qr-scanner-mobile";
 const nonMobileReaderClass = "qr-scanner-non-mobile";

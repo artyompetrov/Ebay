@@ -4,6 +4,9 @@
 @using System.Linq
 @inject WebApiClient EbayClientInstance
 
+<link href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"></script>
+
 @if (_product != null)
 {
     <EditForm EditContext="@_editContext">
@@ -13,6 +16,8 @@
 
 @code {
 
+    private const string DescriptionEditorElementId = "product-description-editor";
+
     private ProductWithoutId? _product;
     private Guid? _id;
     private ActionType _actionType;
@@ -20,6 +25,7 @@
     private EditContext _editContext = null!;
     private ValidationMessageStore _validationMessageStore = null!;
     private List<ProductPassportInfo> _passports = new();
+    private bool _descriptionEditorInitialized;
 
     [Parameter]
     [EditorRequired]
@@ -44,6 +50,7 @@
         _product = new ProductWithoutId { Weight = 0, SearchQueries = new List<SearchQuery> { new() { Id = Guid.NewGuid() } }, RuSearchQueries = new List<RuSearchQuery>() };
         _editContext = new EditContext(_product);
         _validationMessageStore = new ValidationMessageStore(_editContext);
+        _descriptionEditorInitialized = false;
         StateHasChanged();
     }
 
@@ -55,8 +62,20 @@
         _product = product.ToProductWithoutId();
         _editContext = new EditContext(_product);
         _validationMessageStore = new ValidationMessageStore(_editContext);
+        _descriptionEditorInitialized = false;
         await LoadPassportsAsync();
         StateHasChanged();
+    }
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_product != null && !_descriptionEditorInitialized)
+        {
+            Interop.InitProductDescriptionEditor(DescriptionEditorElementId, _product.Description ?? string.Empty);
+            _descriptionEditorInitialized = true;
+        }
+
+        return Task.CompletedTask;
     }
 
     private async Task OnSave()
@@ -65,6 +84,7 @@
         try
         {
             _validationMessageStore?.Clear();
+            _product.Description = Interop.GetProductDescriptionEditorHtml(DescriptionEditorElementId);
 
             switch (_actionType)
             {
@@ -88,7 +108,11 @@
         }
     }
 
-    public void Reset() => _product = null;
+    public void Reset()
+    {
+        _product = null;
+        _descriptionEditorInitialized = false;
+    }
 
     private string GetWindowHeader()
     {
@@ -213,6 +237,10 @@
                 <label for="weight">Вес без упаковки (грамм)</label>
                 <InputNumber id="weight" @bind-Value="_product!.Weight" class="form-control" />
                 <ValidationMessage For="@(() => _product!.Weight)" />
+            </div>
+            <div class="form-group">
+                <label>Описание для eBay</label>
+                <div id="@DescriptionEditorElementId" style="background-color: white; min-height: 200px;"></div>
             </div>
             <hr />
             @{

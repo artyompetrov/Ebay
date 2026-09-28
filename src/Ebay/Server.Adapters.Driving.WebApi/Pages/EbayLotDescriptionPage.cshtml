@@ -33,6 +33,11 @@
         return name;
     }
 }
+@if (!string.IsNullOrWhiteSpace(Model.Product.Description))
+{
+    @Html.Raw(Model.Product.Description)
+}
+
 @if (Model.Measurements.Count > 0)
 {
     <h2 style="text-align: center; ">@GetName(Model), See measurement results in table below 📈</h2>

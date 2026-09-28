@@ -48,6 +48,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IRandomNumberProvider, CryptoRandomNumberProvider>();
         // Singleton нужен для process-wide монотонной последовательности ID и предотвращения коллизий при параллельном создании лотов.
         services.AddSingleton<ILotForSaleIdGenerator, LotForSaleIdGenerator>();
+        services.AddTransient<ProductDescriptionSanitizer>();
         services.AddTransient<ProductService>();
         services.AddTransient<LotService>();
         services.AddTransient<ProductPassportService>();

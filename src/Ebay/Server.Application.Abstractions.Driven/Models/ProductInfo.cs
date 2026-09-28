@@ -13,6 +13,7 @@ namespace Server.Application.Abstractions.Driven.Models;
 /// <param name="Weight">Вес товара в условной шкале приоритета.</param>
 /// <param name="CalculationResult">Результат расчета цены и статистики продаж.</param>
 /// <param name="LastCheckTime">Дата и время последней проверки товара.</param>
+/// <param name="Description">Описание товара в формате HTML для отображения в листинге eBay.</param>
 public record ProductInfo(
     Guid Id,
     string Name,
@@ -20,5 +21,6 @@ public record ProductInfo(
     IReadOnlyList<SearchQueryWithId> RuSearchQueries,
     int Weight,
     ProductCalculationResult? CalculationResult,
-    DateTimeOffset LastCheckTime
+    DateTimeOffset LastCheckTime,
+    string? Description
 );

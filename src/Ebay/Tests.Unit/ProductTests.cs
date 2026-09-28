@@ -1,6 +1,7 @@
 using AwesomeAssertions;
 using Server.Domain;
 using Server.Domain.Product;
+using Tests.Shared;
 
 namespace Tests.Unit;
 
@@ -61,9 +62,50 @@ public sealed class ProductTests
         product.ProductCalculationResult.CalculationDate.Should().BeOnOrAfter(before).And.BeOnOrBefore(after);
     }
 
+    [Test]
+    [OpenSpecScenario("product-description", "Product description storage", "Setting a description on a product")]
+    public void Create_WithDescription_ExposesDescription()
+    {
+        var product = Product.Create(name: "Test product", weight: 100, searchQueries: [], ruSearchQueries: [], description: "<p>Great tube</p>");
+
+        product.Description.Should().Be("<p>Great tube</p>");
+    }
+
+    [Test]
+    [OpenSpecScenario("product-description", "Product description storage", "Product without a description")]
+    public void Create_WithoutDescription_HasNullDescription()
+    {
+        var product = CreateProduct();
+
+        product.Description.Should().BeNull();
+    }
+
+    [Test]
+    [OpenSpecScenario("product-description", "Product description storage", "Setting a description on a product")]
+    public void Update_WithDescription_ExposesDescription()
+    {
+        var product = CreateProduct();
+
+        product.Update(name: product.Name, weight: product.Weight, searchQueries: [], ruSearchQueries: [], description: "<p>Updated</p>");
+
+        product.Description.Should().Be("<p>Updated</p>");
+    }
+
+    [Test]
+    [OpenSpecScenario("product-description", "Product description storage", "Clearing an existing description")]
+    public void Update_ClearingDescription_RemovesStoredDescription()
+    {
+        var product = Product.Create(name: "Test product", weight: 100, searchQueries: [], ruSearchQueries: [], description: "<p>Great tube</p>");
+
+        product.Update(name: product.Name, weight: product.Weight, searchQueries: [], ruSearchQueries: [], description: null);
+
+        product.Description.Should().BeNull();
+    }
+
     private static Product CreateProduct() => Product.Create(
         name: "Test product",
         weight: 100,
         searchQueries: [],
-        ruSearchQueries: []);
+        ruSearchQueries: [],
+        description: null);
 }
