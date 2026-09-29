@@ -6,24 +6,56 @@ export function SetFocusByElementId(elementId) {
 }
 
 const productDescriptionEditors = new Map();
+let quillAssetsPromise = null;
+
+function loadQuillAssets() {
+    if (typeof Quill !== "undefined") {
+        return Promise.resolve();
+    }
+
+    if (!quillAssetsPromise) {
+        quillAssetsPromise = new Promise((resolve, reject) => {
+            const link = document.createElement("link");
+            link.rel = "stylesheet";
+            link.href = "https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css";
+            document.head.appendChild(link);
+
+            const script = document.createElement("script");
+            script.src = "https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js";
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error("Failed to load Quill"));
+            document.head.appendChild(script);
+        });
+    }
+
+    return quillAssetsPromise;
+}
 
 export function InitProductDescriptionEditor(elementId, initialHtml) {
-    const container = document.getElementById(elementId);
-    if (!container) {
-        return;
-    }
+    return loadQuillAssets().then(() => {
+        const container = document.getElementById(elementId);
+        if (!container) {
+            return;
+        }
 
-    const quill = new Quill(container, { theme: "snow" });
-    if (initialHtml) {
-        quill.clipboard.dangerouslyPasteHTML(initialHtml);
-    }
+        const quill = new Quill(container, { theme: "snow" });
+        if (initialHtml) {
+            quill.clipboard.dangerouslyPasteHTML(initialHtml);
+        }
 
-    productDescriptionEditors.set(elementId, quill);
+        productDescriptionEditors.set(elementId, quill);
+    });
 }
 
 export function GetProductDescriptionEditorHtml(elementId) {
     const quill = productDescriptionEditors.get(elementId);
-    return quill ? quill.root.innerHTML : "";
+    if (!quill) {
+        return "";
+    }
+
+    // Quill represents an empty document as a lone trailing newline (getLength() === 1),
+    // rendered as "<p><br></p>" - treat that as empty rather than persisting the placeholder markup.
+    return quill.getLength() <= 1 ? "" : quill.root.innerHTML;
 }
 
 const mobileUserAgentPattern = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i;
