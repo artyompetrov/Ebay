@@ -17,7 +17,7 @@ public sealed class ProductMetricsCalculatorTests
     [Test]
     public async Task CalculateAsync_RecalculatesAndSavesProductMetrics_WhenProductExists()
     {
-        var product = Product.Create(name: "test-product", weight: 10, searchQueries: [], ruSearchQueries: []);
+        var product = Product.Create(name: "test-product", weight: 10, searchQueries: [], ruSearchQueries: [], description: null);
         var lotCalculationResults = new[]
         {
             new LotCalculationResult { Revenue = 10.0, QuantityTotal = 1, ListingPriceSumm = 20.0, CalculationDate = DateTimeOffset.UtcNow }

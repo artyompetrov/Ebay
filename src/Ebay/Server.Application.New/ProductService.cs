@@ -18,6 +18,7 @@ public class ProductService
     private readonly IProductRepository _productRepository;
     private readonly IProductQueries _productQueries;
     private readonly IPriceRecalculationPublisher _priceRecalculationPublisher;
+    private readonly ProductDescriptionSanitizer _descriptionSanitizer;
 
     /// <summary>
     /// Создает сервис сценариев работы с товарами.
@@ -26,12 +27,14 @@ public class ProductService
         IWriteModelUnitOfWork unitOfWork,
         IProductRepository productRepository,
         IProductQueries productQueries,
-        IPriceRecalculationPublisher priceRecalculationPublisher)
+        IPriceRecalculationPublisher priceRecalculationPublisher,
+        ProductDescriptionSanitizer descriptionSanitizer)
     {
         _unitOfWork = unitOfWork;
         _productRepository = productRepository;
         _productQueries = productQueries;
         _priceRecalculationPublisher = priceRecalculationPublisher;
+        _descriptionSanitizer = descriptionSanitizer;
     }
 
     /// <summary>
@@ -51,13 +54,15 @@ public class ProductService
         int weight,
         IReadOnlyList<string> searchQueries,
         IReadOnlyList<string> ruSearchQueries,
+        string? description,
         CancellationToken cancellationToken)
     {
         var product = Product.Create(
             name: name,
             weight: weight,
             searchQueries: searchQueries,
-            ruSearchQueries: ruSearchQueries);
+            ruSearchQueries: ruSearchQueries,
+            description: _descriptionSanitizer.Sanitize(description));
 
         await _productRepository.AddAsync(aggregate: product, cancellationToken: cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken: cancellationToken);
@@ -73,12 +78,18 @@ public class ProductService
         int weight,
         IReadOnlyList<SearchQueryWithId> searchQueries,
         IReadOnlyList<SearchQueryWithId> ruSearchQueries,
+        string? description,
         CancellationToken cancellationToken
     )
     {
         var product = await _productRepository.GetByIdAsync(id: productId, cancellationToken: cancellationToken) ??
                       throw new InvalidOperationException("product not found");
-        product.Update(name: name, weight: weight, searchQueries: searchQueries, ruSearchQueries: ruSearchQueries);
+        product.Update(
+            name: name,
+            weight: weight,
+            searchQueries: searchQueries,
+            ruSearchQueries: ruSearchQueries,
+            description: _descriptionSanitizer.Sanitize(description));
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }

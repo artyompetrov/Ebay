@@ -19,6 +19,8 @@ internal sealed class ProductView : IViewProjection<Product, ProductView>
 
     public required ProductCalculationResult? ProductCalculationResult { get; set; }
 
+    public required string? Description { get; set; }
+
     public TubeWorkingPointView TubeWorkingPoint { get; set; } = null!;
 
     public static Expression<Func<Product, ProductView>> ToView => x =>
@@ -31,5 +33,6 @@ internal sealed class ProductView : IViewProjection<Product, ProductView>
             LastCheckTime = x.LastCheckTime,
             ProductCalculationResult = x.ProductCalculationResult,
             Weight = x.Weight,
+            Description = x.Description,
         };
 }

@@ -44,7 +44,8 @@ internal sealed class ProductQueries : IProductQueries
             RuSearchQueries: [.. result.RuSearchQueries.Select(x => new SearchQueryWithId(x.Id, x.Query))],
             Weight: result.Weight,
             CalculationResult: result.ProductCalculationResult,
-            LastCheckTime: result.LastCheckTime
+            LastCheckTime: result.LastCheckTime,
+            Description: result.Description
         );
     }
 
@@ -72,7 +73,8 @@ internal sealed class ProductQueries : IProductQueries
             RuSearchQueries: [.. p.RuSearchQueries.Select(q => new SearchQueryWithId(q.Id, q.Query))],
             Weight: p.Weight,
             CalculationResult: p.ProductCalculationResult,
-            LastCheckTime: p.LastCheckTime
+            LastCheckTime: p.LastCheckTime,
+            Description: p.Description
         )).ToList();
 
         return result;

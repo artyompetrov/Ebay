@@ -37,7 +37,8 @@ internal static class ModelsExtensions
         productCalculationResult: productInfo.Data.CalculationResult.ToApiLotCalculationResult(),
         productRegex: productInfo.ProductRegex.ToString(),
         isInteresting: productInfo.IsInteresting,
-        calculatedEbayWeight: productInfo.CalculatedEbayWeight
+        calculatedEbayWeight: productInfo.CalculatedEbayWeight,
+        description: productInfo.Data.Description
     );
     }
 

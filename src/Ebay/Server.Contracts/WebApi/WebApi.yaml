@@ -1130,6 +1130,11 @@ components:
         weight:
           type: integer
           minimum: 0
+        description:
+          description: Описание товара в формате HTML для отображения в листинге eBay.
+          type:
+          - string
+          - 'null'
       required:
       - name
       - searchQueries
@@ -1168,6 +1173,11 @@ components:
           type: string
         isInteresting:
           type: boolean
+        description:
+          description: Описание товара в формате HTML для отображения в листинге eBay.
+          type:
+          - string
+          - 'null'
       required:
       - id
       - name

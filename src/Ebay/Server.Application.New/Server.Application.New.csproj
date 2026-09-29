@@ -14,6 +14,8 @@
 
     <ItemGroup>
         <PackageReference Include="alglib.net" />
+        <!-- Нет безопасного способа реализовать allow-list HTML-санитайзер средствами BCL: без него описание товара, вводимое пользователем, нельзя безопасно рендерить как HTML на внешней странице листинга eBay. -->
+        <PackageReference Include="HtmlSanitizer" />
         <PackageReference Include="MassTransit" />
         <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
