@@ -1,4 +1,4 @@
-using Server.Application.New.LotForSale;
+using Server.Application.LotForSale;
 using Tests.Shared;
 
 namespace Tests.Unit;

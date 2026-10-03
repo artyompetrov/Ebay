@@ -1,5 +1,5 @@
 using AwesomeAssertions;
-using Server.Application.New;
+using Server.Application;
 using Tests.Shared;
 
 namespace Tests.Unit;

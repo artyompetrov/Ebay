@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
-using Server.Application.New;
-using Server.Application.New.LotForSale;
+using Server.Application;
+using Server.Application.LotForSale;
 
 namespace Tests.Unit;
 

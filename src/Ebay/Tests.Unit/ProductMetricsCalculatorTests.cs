@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
-using Server.Application.New.PriceCalculator;
+using Server.Application.PriceCalculator;
 using Server.Domain;
 using Server.Domain.Measurements;
 using Server.Domain.Product;

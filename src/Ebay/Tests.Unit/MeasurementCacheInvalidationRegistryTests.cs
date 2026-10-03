@@ -1,5 +1,5 @@
 using AwesomeAssertions;
-using Server.Application.New.Caching;
+using Server.Application.Caching;
 
 namespace Tests.Unit;
 

@@ -5,8 +5,8 @@ using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Abstractions.Driven.Models;
-using Server.Application.New;
-using Server.Application.New.Caching;
+using Server.Application;
+using Server.Application.Caching;
 using Server.Domain.Measurements;
 
 namespace Tests.Unit;

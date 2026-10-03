@@ -6,7 +6,7 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 - Before making changes to C# code, study not only `src/.editorconfig` but also `src/Ebay/Directory.Build.props`.
 - Use `System.Text.Json` for new C# contracts/clients.
 - For testable code in domain/application, avoid unnecessary dependencies on static methods.
-- In `Server.Application.New`, document all `public` types and `public` members with XML comments (`///`).
+- In `Server.Application`, document all `public` types and `public` members with XML comments (`///`).
 - Use `DateTimeOffset` and `DateOnly` for date/time; do not use `DateTime`.
 - Place business rules in `Server.Domain`; adapters contain only input/output translation.
 - Don't widen member visibility just for the sake of tests.
@@ -21,7 +21,7 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 - `Frontend/Tests` — dependency-free frontend JavaScript tests, run with Node's built-in test runner.
 - `Server` — backend host (composition root).
 - `Server.Contracts` — OpenAPI contracts.
-- `Server.Application.New` — application layer (use-case services, ports).
+- `Server.Application` — application layer (use-case services, ports).
 - `Server.Domain` — domain model.
 - `Server.Adapters.*` — adapters, including `Server.Adapters.Driven.EF.Identity` (ASP.NET Identity + Duende IdentityServer's operational store).
 - `Tests.Unit`, `Tests.Integration`, `Tests.Explicit` — test projects.
@@ -31,7 +31,7 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 ## Code generation
 - Single contract: `src/Ebay/Server.Contracts/WebApi/WebApi.yaml` (OpenAPI 3.1). All backend routes are grouped under the shared `/api` server root, with each endpoint keeping its own literal `ebay/v1/...`/`webapi/v1/...` path prefix so existing routes/URLs stay unchanged.
 - NSwag code generation runs automatically via MSBuild targets during the build, from this single document, for both the driving controller (`Server.Adapters.Driving.WebApi/ControllerGenerationConfig.json`, abstract `WebApiControllerBase` implemented by `WebApiController`) and the C#/TypeScript clients (`Server.Client/ClientGeneration.WebApi.json`, also feeding `src/ChromeExtension/src/clients/Generated/EbayToolWebApiClient.ts`).
-- `WebApiController` is the single driving adapter for the whole contract; it must not contain command-use-case logic, only map HTTP↔application and delegate to `Server.Application.New` services (see the "Layer-specific rules" root `AGENTS.md` entry).
+- `WebApiController` is the single driving adapter for the whole contract; it must not contain command-use-case logic, only map HTTP↔application and delegate to `Server.Application` services (see the "Layer-specific rules" root `AGENTS.md` entry).
 
 ## Local backend debugging
 - Run: `dotnet run --launch-profile Server --project /workspace/Ebay/src/Ebay/Server/Server.csproj`.
@@ -43,7 +43,7 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
   - `curl -i http://127.0.0.1:5080/chrome_extensions/<extension>.xml`
 
 ## DB migrations
-- DB infrastructure lives in the owning DB adapter, not in `Server.Application.New`.
+- DB infrastructure lives in the owning DB adapter, not in `Server.Application`.
 - For the write model, use:
   - `WriteModelDbContext`: `Server.Adapters.Driven.EF.WriteModel/WriteModelDbContext`
   - migrations project: `Server.Adapters.Driven.EF.WriteModel.Migrations`
@@ -76,9 +76,9 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 
 ### Hexagonal
 - `Server.Domain` — domain rules.
-- `Server.Application.New` — use cases and ports.
+- `Server.Application` — use cases and ports.
 - `Server.Adapters.*` — port implementations.
-- `Server.Application.New` must not reference `Server.Adapters.*`.
+- `Server.Application` must not reference `Server.Adapters.*`.
 
 ### Command/query split
 - **Commands** (state changes): an application-layer use-case service loads an aggregate through its repository port (`Server.Application.Abstractions.Driven.Abstractions.Repositories.I*Repository`), calls domain methods on it, and commits via `IWriteModelUnitOfWork`. The aggregate is always loaded and persisted as a whole; there is no partial/column-level command update.
@@ -89,15 +89,15 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 - An aggregate never exposes a public setter for behavior-bearing state. State changes go through a domain method (e.g. `ChangeState(...)`) that: 1) mutates the aggregate's own state first, 2) only then, and only if the value actually changed, calls `AddDomainEvent(...)` (see `AggregateRoot<TId>` in `Server.Domain.Abstractions`).
 - Application services call these domain methods; they never mutate aggregate state directly and never publish domain events themselves.
 - Domain events are dispatched automatically, not explicitly: `WriteModelDbContext.SaveChangesAsync` (the write-model unit of work) collects all changed aggregates with pending events, publishes each event via `IPublishEndpoint` (MassTransit outbox), then clears them, all before the actual `SaveChanges` write. Adding a new event type requires no publishing code beyond raising it from the aggregate.
-- Consumers/handlers for domain events live in `Server.Adapters.Driving.MassTransit` (+ a handler in `Server.Application.New`), following the existing `MeasurementStateChanged`/`MeasurementStateChangedConsumer` pattern.
+- Consumers/handlers for domain events live in `Server.Adapters.Driving.MassTransit` (+ a handler in `Server.Application`), following the existing `MeasurementStateChanged`/`MeasurementStateChangedConsumer` pattern.
 
 ## Review-error checklist (mandatory before a PR)
 - A repository (`Server.Adapters.Driven.*.Repositories`) does not call `SaveChanges/SaveChangesAsync`; committing changes happens in the application layer via `IWriteModelUnitOfWork`.
-- A repository does not contain business orchestration (e.g., reordering recalculation, scenario validation, cross-aggregate checks); this belongs in `Server.Domain` (aggregate behavior) and/or `Server.Application.New` (use-case service).
+- A repository does not contain business orchestration (e.g., reordering recalculation, scenario validation, cross-aggregate checks); this belongs in `Server.Domain` (aggregate behavior) and/or `Server.Application` (use-case service).
 - Controllers (`Server.Adapters.Driving.*`) must not implement command-use-case logic; they only map HTTP <-> application and delegate scenarios to application services.
-- Before submitting a PR, do a mandatory self-review by layer: **Domain rule? -> Domain**, **Use-case orchestration/commit? -> Application.New**, **I/O mapping only? -> Adapter**. If a point is violated — fix it before review.
+- Before submitting a PR, do a mandatory self-review by layer: **Domain rule? -> Domain**, **Use-case orchestration/commit? -> Application**, **I/O mapping only? -> Adapter**. If a point is violated — fix it before review.
 
 ## UI
 - Icons: Open Iconic (https://icones.js.org/collection/oi, https://github.com/iconic/open-iconic) or emoji.
 - JS interop uses .NET's native WASM interop (`System.Runtime.InteropServices.JavaScript`), not `IJSRuntime`: JS functions live in `Frontend/wwwroot/js/interop.js` (a single ES module loaded once via `JSHost.ImportAsync` in `Program.cs`), and C# declares matching `[JSImport(functionName:..., moduleName: "interop")] static partial` members on `Frontend/Interop.cs`. A third-party JS library used by only one page is loaded with a `<script>`/`<link>` tag directly in that page's `.razor` file (see `MeasurementPhotos.razor`/`Measurements.razor` for `html5-qrcode`, `ProductProperties.razor` for Quill), not in `index.html`.
-- `Product.Description` is a rich-text (HTML) field authored via a Quill WYSIWYG editor (`ProductProperties.razor` + the `InitProductDescriptionEditor`/`GetProductDescriptionEditorHtml` interop functions) and rendered at the top of the eBay listing description page (`EbayLotDescriptionPage.cshtml`). It is sanitized server-side in `Server.Application.New.ProductDescriptionSanitizer` (allow-list HTML sanitizer) before being persisted, so it is already safe to render with `@Html.Raw` - never render unsanitized user HTML this way.
+- `Product.Description` is a rich-text (HTML) field authored via a Quill WYSIWYG editor (`ProductProperties.razor` + the `InitProductDescriptionEditor`/`GetProductDescriptionEditorHtml` interop functions) and rendered at the top of the eBay listing description page (`EbayLotDescriptionPage.cshtml`). It is sanitized server-side in `Server.Application.ProductDescriptionSanitizer` (allow-list HTML sanitizer) before being persisted, so it is already safe to render with `@Html.Raw` - never render unsanitized user HTML this way.

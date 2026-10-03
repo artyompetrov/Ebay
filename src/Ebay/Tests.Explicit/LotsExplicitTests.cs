@@ -1,7 +1,7 @@
 using System.Globalization;
 using Client.Clients.Generated;
 using Server.Adapters.Driving.WebApi.Controllers;
-using Server.Application.New.LotDataExtractor;
+using Server.Application.LotDataExtractor;
 using Server.Domain;
 using Server.Domain.LotDataExtraction;
 

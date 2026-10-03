@@ -4,7 +4,7 @@ using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Abstractions.Driven.Models;
 using Server.Application.Abstractions.Driving.Models;
-using Server.Application.New;
+using Server.Application;
 using Server.Domain.Measurements;
 using Server.Domain.Measurements.MeasurementTypes;
 using Tests.Shared;

@@ -24,7 +24,7 @@ using Server.Adapters.Driving.MassTransit.Consumers.MeasurementCaching;
 using Server.Adapters.Driving.MassTransit.Consumers.MeasurementWatching;
 using Server.Adapters.Driving.MassTransit.Consumers.PriceCalculator;
 using Server.Adapters.Driving.WebApi;
-using Server.Application.New;
+using Server.Application;
 using Server.Configuration;
 using Secret = Duende.IdentityServer.Models.Secret;
 
@@ -50,7 +50,7 @@ public class Program
         // Каждый потребитель IMemoryCache получает свой именованный кеш вместо одного общего
         // service-wide экземпляра - так лимит размера одного кеша не задевает записи в другом.
         builder.Services.AddKeyedSingleton<IMemoryCache>(
-            Application.New.WellKnown.ImageCache.ServiceKey,
+            Application.WellKnown.ImageCache.ServiceKey,
             (sp, _) => new MemoryCache(new MemoryCacheOptions
             {
                 SizeLimit = sp.GetRequiredService<IOptions<ImageCacheOptions>>().Value.SizeLimitBytes

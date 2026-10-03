@@ -1,7 +1,7 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using Server.Application.Abstractions.Driving.Abstractions.Messages;
-using Server.Application.New.MeasurementPlot;
+using Server.Application.MeasurementPlot;
 
 namespace Server.Adapters.Driving.MassTransit.Consumers.EbayCurvesCacheWarmUp;
 
