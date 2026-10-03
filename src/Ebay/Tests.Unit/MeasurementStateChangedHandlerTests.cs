@@ -1,6 +1,6 @@
 using AwesomeAssertions;
-using Server.Application.New.Caching;
-using Server.Application.New.MeasurementCaching;
+using Server.Application.Caching;
+using Server.Application.MeasurementCaching;
 using Server.Domain.Measurements;
 using Tests.Shared;
 

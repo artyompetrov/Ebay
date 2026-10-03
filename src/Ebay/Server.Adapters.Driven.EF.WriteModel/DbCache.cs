@@ -2,7 +2,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Server.Application.Abstractions.Driven.Abstractions;
-using Server.Application.New;
+using Server.Application;
 
 namespace Server.Adapters.Driven.EF.WriteModel;
 

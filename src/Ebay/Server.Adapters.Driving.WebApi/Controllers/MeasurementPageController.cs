@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
-using Server.Application.New.MeasurementPlot;
+using Server.Application.MeasurementPlot;
 
 namespace Server.Adapters.Driving.WebApi.Controllers;
 
