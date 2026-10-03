@@ -4,7 +4,7 @@ services:
     container_name: ebay_postgres
     image: postgres:16.1
     ports:
-      - "15432:5432"
+      - "127.0.0.1:15432:5432"
     restart: unless-stopped
     environment:
       POSTGRES_USER: ebay
@@ -143,6 +143,23 @@ services:
     networks:
       - internal_network
     restart: unless-stopped
+
+  # One-shot: creates the read-only Grafana user used by the Grafana MCP server (see AGENTS.md)
+  ebay_grafana_init:
+    container_name: ebay_grafana_init
+    image: curlimages/curl:8.11.1
+    depends_on:
+      - ebay_grafana
+    environment:
+      GRAFANA_ADMIN_USER: admin
+      GRAFANA_ADMIN_PASSWORD: ${PG_PASSWORD}
+      MCP_PASSWORD: ${GRAFANA_MCP_PASSWORD:-}
+    volumes:
+      - ./config/grafana/init-mcp-user.sh:/init-mcp-user.sh:ro
+    entrypoint: [ "/bin/sh", "/init-mcp-user.sh" ]
+    networks:
+      - internal_network
+    restart: on-failure
 
   ebay_webdav:
     container_name: ebay_webdav

@@ -10,6 +10,7 @@ from getpass import getpass
 from pathlib import Path
 from urllib.parse import urlencode
 import re
+import socket
 
 repo_root = Path(__file__).resolve().parent.parent.parent
 docker_compose_file = str(repo_root / "deploy" / "docker-compose.yaml")
@@ -20,6 +21,13 @@ from_host: Optional[str] = os.getenv("EBAY_HELPER_BACKEND_DOMAIN")
 if from_host is None:
     raise EnvironmentError("EBAY_HELPER_BACKEND_DOMAIN environment variable is required")
     
+# Postgres на сервере слушает только 127.0.0.1, поэтому к нему ходим через SSH-туннель
+ssh_user: Optional[str] = os.getenv("EBAY_HELPER_SSH_USER")
+if ssh_user is None:
+    raise EnvironmentError("EBAY_HELPER_SSH_USER environment variable is required")
+
+tunnel_port = 25432  # локальный порт туннеля, не пересекается с локальной БД на 15432
+
 to_host = "localhost"
 backup_path_folder = r"C:\Users\APETROV\files\yandex.disk\YandexDisk\Backups\Ebay"
 
@@ -35,32 +43,59 @@ os.environ["PGPASSWORD"] = remote_pg_password
 backup_path = os.path.join(backup_path_folder, datetime.now().strftime('%Y-%m-%d-%H-%M-%S'))
 Path(backup_path).mkdir(parents=True, exist_ok=True)
 
+def wait_for_port(port: int, timeout: float = 15) -> None:
+    deadline = time.monotonic() + timeout
+    while True:
+        try:
+            with socket.create_connection(("127.0.0.1", port), timeout=1):
+                return
+        except OSError:
+            if time.monotonic() > deadline:
+                raise TimeoutError(f"SSH tunnel on port {port} did not come up")
+            time.sleep(0.5)
+
+
 # Создание бэкапов
 print("!!! creating backups")
-
-# Бэкап Ebay
-print("!!! backing up ebay_helper")
-extensions_backup_file_ebay = os.path.join(backup_path, "extensions_ebay.sql")
-subprocess.run([
-    r"C:\Program Files\PostgreSQL\16\bin\psql.exe",
-    "--host", from_host,
-    "--port", "15432",
-    "--username", "ebay",
-    "--dbname", "ebay",
-    "--command", "COPY (SELECT 'CREATE EXTENSION IF NOT EXISTS ' || extname || ';' FROM pg_extension) TO STDOUT;"
-], stdout=open(extensions_backup_file_ebay, 'w'))
-
-subprocess.run([
-    r"C:\Program Files\PostgreSQL\16\bin\pg_dump.exe",
-    "--verbose",
-    "--host", from_host,
-    "--port", "15432",
-    "--username", "ebay",
-    "--format=c",
-    "--compress=6",
-    "--file", os.path.join(backup_path, "ebay"),
-    "ebay"
+print("!!! opening SSH tunnel")
+tunnel = subprocess.Popen([
+    "ssh", "-N",
+    "-o", "ExitOnForwardFailure=yes",
+    "-o", "BatchMode=yes",
+    "-L", f"{tunnel_port}:127.0.0.1:15432",
+    f"{ssh_user}@{from_host}"
 ])
+
+extensions_backup_file_ebay = os.path.join(backup_path, "extensions_ebay.sql")
+try:
+    wait_for_port(tunnel_port)
+
+    # Бэкап Ebay
+    print("!!! backing up ebay_helper")
+    with open(extensions_backup_file_ebay, 'w') as extensions_file:
+        subprocess.run([
+            r"C:\Program Files\PostgreSQL\16\bin\psql.exe",
+            "--host", "localhost",
+            "--port", str(tunnel_port),
+            "--username", "ebay",
+            "--dbname", "ebay",
+            "--command", "COPY (SELECT 'CREATE EXTENSION IF NOT EXISTS ' || extname || ';' FROM pg_extension) TO STDOUT;"
+        ], stdout=extensions_file, check=True)
+
+    subprocess.run([
+        r"C:\Program Files\PostgreSQL\16\bin\pg_dump.exe",
+        "--verbose",
+        "--host", "localhost",
+        "--port", str(tunnel_port),
+        "--username", "ebay",
+        "--format=c",
+        "--compress=6",
+        "--file", os.path.join(backup_path, "ebay"),
+        "ebay"
+    ], check=True)
+finally:
+    print("!!! closing SSH tunnel")
+    tunnel.terminate()
 
 # Остановка контейнеров
 print("!!! stopping containers")

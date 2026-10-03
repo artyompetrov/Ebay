@@ -3,6 +3,15 @@
     "deepwiki": {
       "type": "http",
       "url": "https://mcp.deepwiki.com/mcp"
+    },
+    "grafana": {
+      "command": "uvx",
+      "args": ["mcp-grafana"],
+      "env": {
+        "GRAFANA_URL": "https://anode.su:8443",
+        "GRAFANA_USERNAME": "mcp",
+        "GRAFANA_PASSWORD": "${GRAFANA_MCP_PASSWORD}"
+      }
     }
   }
 }

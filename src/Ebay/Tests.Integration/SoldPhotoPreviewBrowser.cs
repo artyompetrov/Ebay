@@ -56,18 +56,25 @@ internal static class SoldPhotoPreviewBrowser
             images.Keys.Should().NotContain(photoUrl + "content");
 
             var label = photo.Locator(".photo-hover-thumb-label");
-            if (touch)
-            {
-                await label.TapAsync();
-            }
-            else
-            {
-                await label.HoverAsync();
-            }
+            // The full-size image is requested only after the interaction. NetworkIdle has already been reached
+            // while loading the page, so waiting for it again returns immediately and does not wait for this request.
+            // Wait for the exact request to finish; the route handler records the response before fulfilling it.
+            await page.RunAndWaitForRequestFinishedAsync(
+                async () =>
+                {
+                    if (touch)
+                    {
+                        await label.TapAsync();
+                    }
+                    else
+                    {
+                        await label.HoverAsync();
+                    }
+                },
+                new() { Predicate = request => request.Url == photoUrl + "content" });
 
             await Assertions.Expect(full).ToBeVisibleAsync();
             await Assertions.Expect(full).ToHaveCSSAsync("background-image", $"url(\"{photoUrl}content\")");
-            await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
             await AssertPlaceholderAsync(page, images, photoUrl + "content", original);
             images.Values.Should().OnlyContain(image => !image.Bytes.SequenceEqual(original));
             context.Pages.Should().HaveCount(1);
