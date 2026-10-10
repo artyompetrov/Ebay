@@ -46,8 +46,8 @@ When a measurement photo is uploaded, the system SHALL generate a size-capped th
 - **WHEN** staff uploads a photo for a measurement
 - **THEN** the system generates a size-capped thumbnail from the uploaded content and stores it together with the photo, without a separate request
 
-### Requirement: Bounded original photo size
-When a measurement photo is uploaded, the system SHALL cap the stored "original" content to a bounded maximum resolution and encoded quality, re-encoding it if the uploaded file exceeds that bound, instead of storing the uploaded bytes unmodified regardless of size. Measurement photos stored before this bound existed SHALL be brought within the same bound by a one-time migration.
+### Requirement: Bounded original photo size on upload
+When a measurement photo is uploaded, the system SHALL cap the stored "original" content to a bounded maximum resolution and encoded quality, re-encoding it if the uploaded file exceeds that bound, instead of storing the uploaded bytes unmodified regardless of size.
 
 #### Scenario: Uploading a photo above the bound
 - **WHEN** staff uploads a photo whose resolution or file size exceeds the configured bound
@@ -56,10 +56,6 @@ When a measurement photo is uploaded, the system SHALL cap the stored "original"
 #### Scenario: Uploading a photo within the bound
 - **WHEN** staff uploads a photo whose resolution and file size are already within the configured bound
 - **THEN** the system stores the photo without unnecessary re-encoding beyond what upload processing already does
-
-#### Scenario: Previously stored photo exceeding the bound is migrated
-- **WHEN** the one-time migration runs against measurement photos stored before this bound existed
-- **THEN** every stored "original" photo content that exceeds the bound is replaced with a re-encoded version within the bound, and photos already within the bound are left unchanged
 
 ### Requirement: Photo previews on the phone-oriented management page
 The `MeasurementPhotos.razor` ("Фото измерений") page SHALL render each uploaded photo in its list as a thumbnail image rather than a plain filename link. The thumbnail SHALL NOT be a navigable link; hovering or tapping/clicking it SHALL preview the corresponding full-size photo in place on the same page, centered in the viewport, using CSS only (no JavaScript, no new tab, no navigation, no file download).

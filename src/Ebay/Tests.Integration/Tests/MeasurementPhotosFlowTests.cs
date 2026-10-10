@@ -363,7 +363,7 @@ public class MeasurementPhotosFlowTests
     }
 
     [Test]
-    [OpenSpecScenario("measurement-photos", "Bounded original photo size", "Uploading a photo above the bound")]
+    [OpenSpecScenario("measurement-photos", "Bounded original photo size on upload", "Uploading a photo above the bound")]
     public async Task UploadOversizedPng_ReturnsBoundedJpegWithMatchingContentTypeAndThumbnail()
     {
         const int MaximumDimension = 2000;
