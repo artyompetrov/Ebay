@@ -19,7 +19,8 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 ## Module structure
 - `Frontend` — Blazor WebAssembly.
 - `Frontend/Tests` — dependency-free frontend JavaScript tests, run with Node's built-in test runner.
-- `Server` — backend host (composition root).
+- `Server` — backend host (composition root). It only assembles the app: adapters and platform assemblies are wired through their `Add*`/`Map*` extension methods; it must not register logging, telemetry, metrics or health checks itself.
+- `Server.Platform` — platform assembly with a deliberately narrow scope: host-wide setup (ASPNETCORE_ env config, strict DI validation), logging, OpenTelemetry/OTLP export, (future) metrics/tracing and health checks. Plugged in once with `builder.AddPlatform()` right after `CreateBuilder` and `app.MapPlatform()`; new cross-cutting platform registrations go here, not into `Server/Program.cs`.
 - `Server.Contracts` — OpenAPI contracts.
 - `Server.Application` — application layer (use-case services, ports).
 - `Server.Domain` — domain model.

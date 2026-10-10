@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.DataProtection.Repositories;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
-using OpenTelemetry.Logs;
 using Server.Adapters.Driven.ChipFind;
 using Server.Adapters.Driven.EF.Identity;
 using Server.Adapters.Driven.EF.ReadModel;
@@ -26,6 +25,7 @@ using Server.Adapters.Driving.MassTransit.Consumers.PriceCalculator;
 using Server.Adapters.Driving.WebApi;
 using Server.Application;
 using Server.Configuration;
+using Server.Platform;
 using Secret = Duende.IdentityServer.Models.Secret;
 
 namespace Server;
@@ -38,13 +38,7 @@ public class Program
         //IdentityModelEventSource.ShowPII = true;
 
         var builder = WebApplication.CreateBuilder(args);
-        builder.Configuration.AddEnvironmentVariables(prefix: "ASPNETCORE_");
-
-        builder.Host.UseDefaultServiceProvider(options =>
-        {
-            options.ValidateOnBuild = true;
-            options.ValidateScopes = true;
-        });
+        builder.AddPlatform();
 
         // Add services to the container.
         // Каждый потребитель IMemoryCache получает свой именованный кеш вместо одного общего
@@ -70,11 +64,9 @@ public class Program
         builder.Services.AddEfWriteModelAdapter();
         builder.Services.AddEfIdentityAdapter();
         builder.Services.AddMassTransitAdapter();
-        builder.Services.AddHealthChecks();
         ConfigureMassTransit(builder.Services);
 
         ConfigureIdentity(builder.Services);
-        AddOpenTelemetry(builder);
 
         builder.Services.AddResponseCaching();
 
@@ -108,7 +100,7 @@ public class Program
 
         app.MapRazorPages();
         app.MapControllers();
-        app.MapHealthChecks("/api/health");
+        app.MapPlatform();
         app.MapFallbackToFile("index.html");
 
         app.Run();
@@ -164,22 +156,6 @@ public class Program
                 cfg.UseSqlMessageScheduler();
                 cfg.ConfigureEndpoints(context);
             });
-        });
-    }
-
-    private static void AddOpenTelemetry(WebApplicationBuilder builder)
-    {
-        builder.Logging.ClearProviders();
-
-        builder.Logging.AddConsole();
-        builder.Logging.SetMinimumLevel(LogLevel.Information);
-
-        builder.Logging.AddOpenTelemetry(o =>
-        {
-            o.IncludeScopes = true;
-            o.IncludeFormattedMessage = true;
-            o.ParseStateValues = true;
-            o.AddOtlpExporter();
         });
     }
 

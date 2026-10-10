@@ -1,4 +1,4 @@
-﻿<Solution>
+<Solution>
   <Configurations>
     <Platform Name="Any CPU" />
     <Platform Name="x64" />
@@ -24,6 +24,9 @@
   <Folder Name="/Contacts/">
       <Project Path="Server.Client/Server.Client.csproj" />
       <Project Path="Server.Contracts/Server.Contracts.csproj" />
+  </Folder>
+  <Folder Name="/Platform/">
+    <Project Path="Server.Platform/Server.Platform.csproj" />
   </Folder>
   <Project Path="Frontend/Frontend.csproj" />
   <Project Path="Server.Application.Abstractions.Driven/Server.Application.Abstractions.Driven.csproj" />
