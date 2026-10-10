@@ -26,7 +26,7 @@
       <Project Path="Server.Contracts/Server.Contracts.csproj" />
   </Folder>
   <Folder Name="/Platform/">
-    <Project Path="Server.Platform.Observability/Server.Platform.Observability.csproj" />
+    <Project Path="Server.Platform/Server.Platform.csproj" />
   </Folder>
   <Project Path="Frontend/Frontend.csproj" />
   <Project Path="Server.Application.Abstractions.Driven/Server.Application.Abstractions.Driven.csproj" />

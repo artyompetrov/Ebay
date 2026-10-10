@@ -25,7 +25,7 @@ using Server.Adapters.Driving.MassTransit.Consumers.PriceCalculator;
 using Server.Adapters.Driving.WebApi;
 using Server.Application;
 using Server.Configuration;
-using Server.Platform.Observability;
+using Server.Platform;
 using Secret = Duende.IdentityServer.Models.Secret;
 
 namespace Server;
@@ -73,7 +73,7 @@ public class Program
         ConfigureMassTransit(builder.Services);
 
         ConfigureIdentity(builder.Services);
-        builder.AddObservability();
+        builder.AddPlatform();
 
         builder.Services.AddResponseCaching();
 
@@ -107,7 +107,7 @@ public class Program
 
         app.MapRazorPages();
         app.MapControllers();
-        app.MapObservability();
+        app.MapPlatform();
         app.MapFallbackToFile("index.html");
 
         app.Run();

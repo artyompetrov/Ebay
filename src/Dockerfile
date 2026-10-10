@@ -1,10 +1,13 @@
+# syntax=docker/dockerfile:1
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build_dotnet
 WORKDIR /src
-# Копируем весь исходный код сразу, чтобы не поддерживать вручную список *.csproj
-# при добавлении новых проектов в solution.
 COPY .editorconfig /
-COPY Ebay/ Ebay/
+# Для restore копируем только проектные файлы (COPY --parents сохраняет структуру каталогов),
+# чтобы слой с пакетами кешировался, пока не менялись зависимости, и чтобы не поддерживать
+# вручную список *.csproj при добавлении новых проектов в solution.
+COPY --parents Ebay/**/*.csproj Ebay/*.props Ebay/*.slnx Ebay/nuget.config ./
 RUN dotnet restore "Ebay/Ebay.slnx"
+COPY Ebay/ Ebay/
 WORKDIR "/src/Ebay/"
 WORKDIR "/src/Ebay/Server"
 ARG BUILD_VERSION="1.0.0.0"

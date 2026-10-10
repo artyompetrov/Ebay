@@ -5,23 +5,23 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
 
-namespace Server.Platform.Observability;
+namespace Server.Platform;
 
 /// <summary>
 /// Platform-level observability: logging, telemetry export and health checks.
-/// The composition root only calls <see cref="AddObservability"/> and <see cref="MapObservability"/>;
+/// The composition root only calls <see cref="AddPlatform"/> and <see cref="MapPlatform"/>;
 /// everything else (providers, exporters, endpoints) is owned by this assembly.
 /// </summary>
-public static class ObservabilityExtensions
+public static class PlatformExtensions
 {
-    /// <summary>Path of the liveness endpoint registered by <see cref="MapObservability"/>.</summary>
+    /// <summary>Path of the liveness endpoint registered by <see cref="MapPlatform"/>.</summary>
     public const string HealthEndpointPath = "/api/health";
 
     /// <summary>
     /// Registers logging (console + OpenTelemetry OTLP export) and health checks.
     /// The OTLP exporter is configured via the standard <c>OTEL_*</c> environment variables.
     /// </summary>
-    public static TBuilder AddObservability<TBuilder>(this TBuilder builder)
+    public static TBuilder AddPlatform<TBuilder>(this TBuilder builder)
         where TBuilder : IHostApplicationBuilder
     {
         builder.Logging.ClearProviders();
@@ -41,7 +41,7 @@ public static class ObservabilityExtensions
     }
 
     /// <summary>Maps the observability endpoints (currently the health check at <see cref="HealthEndpointPath"/>).</summary>
-    public static IEndpointRouteBuilder MapObservability(this IEndpointRouteBuilder endpoints)
+    public static IEndpointRouteBuilder MapPlatform(this IEndpointRouteBuilder endpoints)
     {
         endpoints.MapHealthChecks(HealthEndpointPath);
         return endpoints;
