@@ -37,7 +37,9 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 ## Local backend debugging
 - Run: `dotnet run --launch-profile Server --project /workspace/Ebay/src/Ebay/Server/Server.csproj`.
 - Use `launchSettings.json` for backend runtime settings; don't use `appsettings*.json`.
-- Use PostgreSQL on port `15432` for the local DB; backend tests depend on the DB being available.
+- Use PostgreSQL on port `15432` for the local DB (running the app manually).
+- `Tests.Integration` gets its PostgreSQL from `PostgresTestServer`: a Testcontainers `postgres:16` container by default (Docker is the only prerequisite), or the server in `EBAY_TESTS_POSTGRES_CONNECTION_STRING` if set (CI points it at its `postgres` service; locally it can point at the `15432` DB). Each fixture creates and drops its own scratch database; don't connect tests to the shared `ebay` database. Don't disable Testcontainers cleanup (`WithCleanUp(false)` is banned).
+- In cloud sandboxes `init.sh` starts `dockerd`, and the Claude hook sets `TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=mirror.gcr.io` because anonymous Docker Hub pulls get HTTP 429 there.
 - For eventual consistency in integration tests, use `Tests.Integration/TestHelpers.RetryUntilValidationSuccessAsync`.
 - Useful API checks:
   - `curl -i http://127.0.0.1:5080/chrome_extensions/auth`

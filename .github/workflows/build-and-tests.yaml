@@ -67,7 +67,8 @@ jobs:
 
       - name: Run integration tests
         env:
-          ConnectionStrings__DefaultConnection: User ID=ebay;Password=catnip0-spoil4-untrimmed;Server=localhost;Port=15432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=60;Enlist=true;Include Error Detail=true;
+          # Use the postgres service above instead of starting a Testcontainers container.
+          EBAY_TESTS_POSTGRES_CONNECTION_STRING: User ID=ebay;Password=catnip0-spoil4-untrimmed;Server=localhost;Port=15432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=30;Enlist=true;Include Error Detail=true;
           EbayServer__TargetEmail: integration-tests@localhost
           EbayServer__IsLocalRun: true
         run: |

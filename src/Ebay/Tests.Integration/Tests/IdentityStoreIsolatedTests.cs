@@ -5,7 +5,6 @@ using Duende.IdentityServer.EntityFramework.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Npgsql;
 using Server.Adapters.Driven.EF.Identity;
 
 namespace Tests.Integration.Tests;
@@ -24,12 +23,7 @@ public class IdentityStoreIsolatedTests
     [OneTimeSetUp]
     public async Task OneTimeSetUp()
     {
-        var baseConnectionString = ReadConnectionStringFromLaunchSettings();
-        var connectionStringBuilder = new NpgsqlConnectionStringBuilder(baseConnectionString)
-        {
-            Database = DatabaseName
-        };
-        _connectionString = connectionStringBuilder.ConnectionString;
+        _connectionString = PostgresTestServer.CreateDatabaseConnectionString(DatabaseName);
 
         var services = new ServiceCollection();
         services.AddDataProtection();
@@ -50,7 +44,7 @@ public class IdentityStoreIsolatedTests
     public async Task OneTimeTearDown()
     {
         await _serviceProvider.DisposeAsync();
-        await DropDatabaseAsync();
+        await PostgresTestServer.DropDatabaseAsync(DatabaseName);
     }
 
     [Test]
@@ -112,56 +106,5 @@ public class IdentityStoreIsolatedTests
                 .SingleOrDefaultAsync(g => g.Key == grantKey);
             remaining.Should().BeNull();
         }
-    }
-
-    private static string ReadConnectionStringFromLaunchSettings()
-    {
-        var serverProjectDirectory = Path.GetFullPath(
-            Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../Server"));
-        var launchSettingsPath = Path.Combine(serverProjectDirectory, "Properties", "launchSettings.json");
-        if (!File.Exists(launchSettingsPath))
-        {
-            throw new InvalidOperationException($"Launch settings file not found: {launchSettingsPath}");
-        }
-
-        using var document = JsonDocument.Parse(File.ReadAllText(launchSettingsPath));
-        if (!document.RootElement.TryGetProperty("profiles", out var profiles)
-            || !profiles.TryGetProperty("Server", out var serverProfile)
-            || !serverProfile.TryGetProperty("environmentVariables", out var environmentVariables)
-            || !environmentVariables.TryGetProperty("ConnectionStrings__DefaultConnection", out var connectionStringElement)
-            || string.IsNullOrWhiteSpace(connectionStringElement.GetString()))
-        {
-            throw new InvalidOperationException("ConnectionStrings__DefaultConnection is required in Server launchSettings.json.");
-        }
-
-        return connectionStringElement.GetString()!;
-    }
-
-    private async Task DropDatabaseAsync()
-    {
-        var adminConnectionStringBuilder = new NpgsqlConnectionStringBuilder(_connectionString)
-        {
-            Database = "postgres",
-            Pooling = false
-        };
-
-        await using var connection = new NpgsqlConnection(adminConnectionStringBuilder.ConnectionString);
-        await connection.OpenAsync();
-
-        await using (var terminateCommand = connection.CreateCommand())
-        {
-            terminateCommand.CommandText =
-                $"""
-                 SELECT pg_terminate_backend(pid)
-                 FROM pg_stat_activity
-                 WHERE datname = '{DatabaseName}'
-                   AND pid <> pg_backend_pid();
-                 """;
-            await terminateCommand.ExecuteNonQueryAsync();
-        }
-
-        await using var dropCommand = connection.CreateCommand();
-        dropCommand.CommandText = $"""DROP DATABASE IF EXISTS "{DatabaseName}";""";
-        await dropCommand.ExecuteNonQueryAsync();
     }
 }
