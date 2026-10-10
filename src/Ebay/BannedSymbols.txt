@@ -1,5 +1,14 @@
-M:Microsoft.Extensions.Configuration.ConfigurationExtensions.GetRequiredSection(Microsoft.Extensions.Configuration.IConfiguration,System.String);Use services.AddOptions<T>().BindConfiguration(T.SectionName).ValidateDataAnnotations().ValidateOnStart() and inject IOptions<T>
-M:Microsoft.Extensions.Configuration.ConfigurationBinder.Get``1(Microsoft.Extensions.Configuration.IConfiguration);Use services.AddOptions<T>().BindConfiguration(T.SectionName).ValidateDataAnnotations().ValidateOnStart() and inject IOptions<T>
-M:Microsoft.Extensions.Configuration.ConfigurationBinder.Get``1(Microsoft.Extensions.Configuration.IConfiguration,System.Action{Microsoft.Extensions.Configuration.BinderOptions});Use services.AddOptions<T>().BindConfiguration(T.SectionName).ValidateDataAnnotations().ValidateOnStart() and inject IOptions<T>
-M:Microsoft.Extensions.Configuration.ConfigurationBinder.Get(Microsoft.Extensions.Configuration.IConfiguration,System.Type);Use services.AddOptions<T>().BindConfiguration(T.SectionName).ValidateDataAnnotations().ValidateOnStart() and inject IOptions<T>
-M:Microsoft.Extensions.Configuration.ConfigurationBinder.Get(Microsoft.Extensions.Configuration.IConfiguration,System.Type,System.Action{Microsoft.Extensions.Configuration.BinderOptions});Use services.AddOptions<T>().BindConfiguration(T.SectionName).ValidateDataAnnotations().ValidateOnStart() and inject IOptions<T>
+# Do not edit manually - this file is mirrored.
+#
+# Запрещённые API для Microsoft.CodeAnalysis.BannedApiAnalyzers (диагностика RS0030).
+# Формат: <DocumentationCommentId>;<сообщение>. Локальные запреты сервиса - в src/BannedSymbols.txt.
+
+# Testcontainers: очистка включена по умолчанию, её отключение оставляет остановленные Docker-контейнеры.
+# Анализатор не умеет запрещать вызов по значению аргумента, поэтому запрещён сам WithCleanUp.
+M:DotNet.Testcontainers.Builders.AbstractBuilder`4.WithCleanUp(System.Boolean);Не отключайте очистку Testcontainers через WithCleanUp(false): после тестов остаются остановленные Docker-контейнеры. Используйте штатный cleanup и настройте доступный образ Resource Reaper (Ryuk).
+M:DotNet.Testcontainers.Builders.IAbstractBuilder`3.WithCleanUp(System.Boolean);Не отключайте очистку Testcontainers через WithCleanUp(false): после тестов остаются остановленные Docker-контейнеры. Используйте штатный cleanup и настройте доступный образ Resource Reaper (Ryuk).
+
+# Опции: не читаем IConfiguration напрямую. Индексатор IConfiguration["..."] BannedApiAnalyzers не ловит
+# (проверено для P:/M:get_Item), его запрет не выразить этим механизмом.
+T:Microsoft.Extensions.Configuration.ConfigurationBinder;Не читайте настройки напрямую из IConfiguration (Get<T>/Bind/GetValue): регистрируйте опции через services.AddOptions<T>().BindConfiguration(T.SectionName).ValidateDataAnnotations().ValidateOnStart() и получайте через IOptions<T>/IOptionsMonitor<T>/IOptionsSnapshot<T>.
+P:Microsoft.Extensions.Configuration.IConfigurationSection.Value;Не читайте настройки через IConfigurationSection.Value: регистрируйте опции через AddOptions<T>().BindConfiguration(T.SectionName) и получайте через IOptions<T>.
