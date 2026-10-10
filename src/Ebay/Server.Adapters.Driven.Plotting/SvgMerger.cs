@@ -1,9 +1,9 @@
 using System.Globalization;
 using System.Xml.Linq;
 
-namespace Server.Application.MeasurementPlot;
+namespace Server.Adapters.Driven.Plotting;
 
-public static class SvgMerger
+internal static class SvgMerger
 {
     public record Svg(string? SvgXml, bool ReplaceFont);
 

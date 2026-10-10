@@ -16,6 +16,7 @@
     <Project Path="Server.Adapters.Driven.Smtp/Server.Adapters.Driven.Smtp.csproj" />
     <Project Path="Server.Adapters.Driven.uTracer/Server.Adapters.Driven.uTracer.csproj" />
     <Project Path="Server.Adapters.Driven.ImageProcessing/Server.Adapters.Driven.ImageProcessing.csproj" />
+    <Project Path="Server.Adapters.Driven.Plotting/Server.Adapters.Driven.Plotting.csproj" />
   </Folder>
     <Folder Name="/Adapters.Driving/">
       <Project Path="Server.Adapters.Driving.WebApi/Server.Adapters.Driving.WebApi.csproj" />

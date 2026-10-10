@@ -18,6 +18,7 @@
       <ProjectReference Include="..\Server.Adapters.Driven.GeoIp\Server.Adapters.Driven.GeoIp.csproj" />
       <ProjectReference Include="..\Server.Adapters.Driven.ImageProcessing\Server.Adapters.Driven.ImageProcessing.csproj" />
       <ProjectReference Include="..\Server.Adapters.Driven.OpenExchangeRates\Server.Adapters.Driven.OpenExchangeRates.csproj" />
+      <ProjectReference Include="..\Server.Adapters.Driven.Plotting\Server.Adapters.Driven.Plotting.csproj" />
       <ProjectReference Include="..\Server.Adapters.Driven.Smtp\Server.Adapters.Driven.Smtp.csproj" />
       <ProjectReference Include="..\Server.Adapters.Driven.uTracer\Server.Adapters.Driven.uTracer.csproj" />
       <ProjectReference Include="..\Server.Adapters.MassTransit\Server.Adapters.MassTransit.csproj" />

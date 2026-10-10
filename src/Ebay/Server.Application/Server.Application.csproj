@@ -19,7 +19,6 @@
         <PackageReference Include="Microsoft.Extensions.Options" />
         <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
         <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" />
-        <PackageReference Include="ScottPlot" />
     </ItemGroup>
 
     <ItemGroup>

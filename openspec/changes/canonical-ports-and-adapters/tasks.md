@@ -39,10 +39,10 @@ Each numbered group is one pull request (see `design.md` - "One change, six pull
 
 ## 5. Plotting adapter
 
-- [ ] 5.1 Define the plot-rendering port and its input models in `Server.Application.Abstractions.Driven` (no external types in signatures). Resolve the two design Open Questions here and record the outcome in `design.md`. Verify: the port assembly still passes its `ArchitectureTest` case.
-- [ ] 5.2 Create `Server.Adapters.Driven.Plotting` (csproj with `ScottPlot`, `Ebay.slnx`, reference from `Server`, `AddPlottingAdapter()`); move `CreatePlot` and the SVG helpers (`SvgMerger`, quick-test, status, tester-range, tube-info) into the port implementation. Verify: adapter unit tests render a plot from fixed input and assert well-formed SVG containing the expected series labels.
+- [x] 5.1 Define the plot-rendering port and its input models in `Server.Application.Abstractions.Driven` (no external types in signatures). Resolve the two design Open Questions here and record the outcome in `design.md`. Verify: the port assembly still passes its `ArchitectureTest` case.
+- [x] 5.2 Create `Server.Adapters.Driven.Plotting` (csproj with `ScottPlot`, `Ebay.slnx`, reference from `Server`, `AddPlottingAdapter()`); move `CreatePlot` and the SVG helpers (`SvgMerger`, quick-test, status, tester-range, tube-info) into the port implementation. Verify: adapter unit tests render a plot from fixed input and assert well-formed SVG containing the expected series labels.
 - [ ] 5.3 Reduce `MeasurementPlotService` to orchestration over the port; remove the "should be moved to an adapter" todo. Verify: service unit tests with a faked renderer cover the cache-key and "selling only" decisions; `Tests.Integration` plot endpoints return the same responses as on `main` for the fixture measurements; `measurement-plots` scenario mappings still pass.
-- [ ] 5.4 Remove `ScottPlot` from `Server.Application.csproj` and from the application list in `ArchitectureTest`; add the project to `AGENTS.md` "Module structure". Verify: `Application_assembly_should_reference_only_allowed_external_assemblies` passes.
+- [x] 5.4 Remove `ScottPlot` from `Server.Application.csproj` and from the application list in `ArchitectureTest`; add the project to `AGENTS.md` "Module structure". Verify: `Application_assembly_should_reference_only_allowed_external_assemblies` passes.
 
 ## 6. In-memory cache adapter
 

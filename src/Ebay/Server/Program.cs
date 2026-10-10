@@ -7,6 +7,7 @@ using Server.Adapters.Driven.EF.WriteModel;
 using Server.Adapters.Driven.GeoIp;
 using Server.Adapters.Driven.ImageProcessing;
 using Server.Adapters.Driven.OpenExchangeRates;
+using Server.Adapters.Driven.Plotting;
 using Server.Adapters.Driven.Smtp;
 using Server.Adapters.Driven.uTracer;
 using Server.Adapters.Driving.BackgroundTasks;
@@ -42,6 +43,7 @@ public class Program
         builder.Services.AddGeoIpAdapter();
         builder.Services.AddChipFindAdapter();
         builder.Services.AddOpenExchangeRatesAdapter();
+        builder.Services.AddPlottingAdapter();
         builder.Services.AddEfReadModelAdapter();
         builder.Services.AddApplication();
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();

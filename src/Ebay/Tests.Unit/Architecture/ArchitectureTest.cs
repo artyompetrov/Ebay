@@ -52,8 +52,7 @@ public sealed class ArchitectureTest
         "Microsoft.Extensions.Options",
         "Microsoft.Extensions.Options.ConfigurationExtensions",
         "Microsoft.Extensions.Options.DataAnnotations",
-        "Microsoft.Extensions.Primitives",
-        "ScottPlot"
+        "Microsoft.Extensions.Primitives"
     ];
 
     // Исключения: допустимые внешние сборки в слое domain.
