@@ -35,6 +35,7 @@ indent_size = 4
 tab_width = 4
 
 
+
 [*.cs]
 # Organize usings
 dotnet_separate_import_directive_groups = false
@@ -323,3 +324,7 @@ resharper_suggest_var_or_type_simple_types_highlighting = hint
 resharper_web_config_module_not_resolved_highlighting = warning
 resharper_web_config_type_not_resolved_highlighting = warning
 resharper_web_config_wrong_module_highlighting = warning
+
+[*.cs]
+# Banned APIs (see Ebay/BannedSymbols.txt)
+dotnet_diagnostic.RS0030.severity = error

@@ -6,4 +6,7 @@
             $(WarningsNotAsErrors),
         </WarningsNotAsErrors>
     </PropertyGroup>
+    <ItemGroup>
+        <AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" />
+    </ItemGroup>
 </Project>
