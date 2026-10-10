@@ -25,6 +25,7 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 - `Server.Application` — application layer (use-case services, ports).
 - `Server.Domain` — domain model.
 - `Server.Adapters.*` — adapters, including `Server.Adapters.Driven.EF.Identity` (ASP.NET Identity + Duende IdentityServer's operational store).
+- `Server.Adapters.Driving.BackgroundTasks` — driving adapter for periodic/startup background jobs (ChipFind monitoring, currency rates, sale advertisement cleanup, DB cache cleanup, measurement plot warmup). Each hosted service only creates a scope, applies the `EbayServer:IsLocalRun` switch where relevant, and calls one application use-case method; scheduling constants live here, business thresholds stay in `Server.Application`. Hosted services (`IHostedService`) live only in adapter assemblies.
 - `Tests.Unit`, `Tests.Integration`, `Tests.Explicit` — test projects.
 - `Tests.Frontend` — bUnit component tests and Playwright Chromium checks of rendered photo previews. Install Chromium with the generated `playwright.ps1` after building.
 - `Tests.Shared` — shared test infrastructure referenced by the test projects above; `OpenSpecScenarioAttribute` and shared browser assertions (see the `write-tests` skill).
@@ -83,7 +84,7 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 - `Server.Application` — use cases and ports.
 - `Server.Adapters.*` — port implementations.
 - `Server.Application` must not reference `Server.Adapters.*`.
-- `Tests.Unit/Architecture/ArchitectureTest.cs` enforces this: `Server` (composition root), `Server.Application` and `Server.Domain` may reference only framework/solution assemblies plus an explicit exception list, and must not contain hosted services. The exception lists hold current violations (tech debt) - shrink them, don't extend them without justification.
+- `Tests.Unit/Architecture/ArchitectureTest.cs` enforces this: `Server` (composition root), `Server.Application` and `Server.Domain` may reference only framework/solution assemblies plus an explicit exception list, and must not contain hosted services (no exceptions); the port assemblies `Server.Application.Abstractions.Driven`/`.Driving` may reference no external assemblies at all. The remaining external-assembly exception lists hold current violations (tech debt) - shrink them, don't extend them without justification.
 
 ### Command/query split
 - **Commands** (state changes): an application-layer use-case service loads an aggregate through its repository port (`Server.Application.Abstractions.Driven.Abstractions.Repositories.I*Repository`), calls domain methods on it, and commits via `IWriteModelUnitOfWork`. The aggregate is always loaded and persisted as a whole; there is no partial/column-level command update.

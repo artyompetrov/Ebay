@@ -50,8 +50,6 @@ public static class WellKnown
     public static class CurrencyRate
     {
         public const string BaseCurrency = "USD";
-        public static readonly TimeSpan UpdateTime = TimeSpan.FromHours(12);
-        public static readonly TimeSpan ErrorDelay = TimeSpan.FromMinutes(5);
     }
 
     /// <summary>
@@ -59,8 +57,6 @@ public static class WellKnown
     /// </summary>
     public static class ChipFind
     {
-        public static readonly TimeSpan UpdateTime = TimeSpan.FromMinutes(20);
-        public static readonly TimeSpan ErrorDelay = TimeSpan.FromMinutes(5);
         public const string Marketplace = "Chipfind";
     }
 
@@ -69,9 +65,6 @@ public static class WellKnown
     /// </summary>
     public static class SaleAdvertisements
     {
-        public static readonly TimeSpan UpdateTime = TimeSpan.FromDays(1);
-        public static readonly TimeSpan ErrorDelay = TimeSpan.FromMinutes(5);
-
         /// <summary>
         /// Время через которое не обновлявшиеся объявления о продаже считаются устаревшими и удаляются.
         /// </summary>

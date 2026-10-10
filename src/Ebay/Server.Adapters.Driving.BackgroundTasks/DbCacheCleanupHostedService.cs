@@ -1,11 +1,11 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Server.Application.Abstractions.Driven.Abstractions;
+using Server.Application.DbCache;
 
-namespace Server.Application.HostedServices.DbCache;
+namespace Server.Adapters.Driving.BackgroundTasks;
 
-public class DbCacheCleanupHostedService : IHostedService
+internal sealed class DbCacheCleanupHostedService : IHostedService
 {
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly ILogger<DbCacheCleanupHostedService> _logger;
@@ -23,9 +23,9 @@ public class DbCacheCleanupHostedService : IHostedService
         _logger.LogInformation("Service started");
 
         using var scope = _serviceScopeFactory.CreateScope();
-        var cacheStore = scope.ServiceProvider.GetRequiredService<ICacheStore>();
+        var cleanupService = scope.ServiceProvider.GetRequiredService<DbCacheCleanupService>();
 
-        await cacheStore.RemoveOldVersionsAsync(cancellationToken);
+        await cleanupService.RemoveOldVersionsAsync(cancellationToken);
         _logger.LogInformation("Removed old db cache versions");
     }
 

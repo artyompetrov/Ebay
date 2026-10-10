@@ -1,79 +1,77 @@
 using System.Text.RegularExpressions;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Abstractions.Driven.Models;
-using Server.Application.Infrastructure;
 using Server.Domain;
 
-namespace Server.Application.HostedServices.ChipFind;
+namespace Server.Application.SaleAdvertisements;
 
-public class ChipfindBackgroundTask : BackgroundTask
+/// <summary>
+/// Сценарий мониторинга объявлений о продаже на chipfind.ru: сопоставляет свежие объявления с товарами,
+/// ведёт историю отправки писем и уведомляет о новых интересных объявлениях.
+/// </summary>
+public class ChipfindMonitoringService
 {
-    private readonly ILogger<ChipfindBackgroundTask> _logger;
-    private readonly EbayServerOptions _ebayServerOptions;
-    private readonly IServiceScopeFactory _serviceScopeFactory;
-    private const int DelayMilliseconds = 5000;
+    private const int DelayAfterEmailMilliseconds = 5000;
 
-    public ChipfindBackgroundTask(
-        ILogger<ChipfindBackgroundTask> logger,
-        EbayServerOptions ebayServerOptions,
-        IServiceScopeFactory serviceScopeFactory)
-        : base(logger)
+    private readonly ILogger<ChipfindMonitoringService> _logger;
+    private readonly IProductEmailSendHistoryRepository _productEmailSendHistoryRepository;
+    private readonly IProductEmailSendHistoryQueries _productEmailSendHistoryQueries;
+    private readonly IWriteModelUnitOfWork _unitOfWork;
+    private readonly IChipfindAdapter _chipfindAdapter;
+    private readonly IEmailSender _emailSender;
+    private readonly ProductService _productService;
+
+    /// <summary>
+    /// Создает сервис мониторинга объявлений о продаже на chipfind.ru.
+    /// </summary>
+    public ChipfindMonitoringService(
+        ILogger<ChipfindMonitoringService> logger,
+        IProductEmailSendHistoryRepository productEmailSendHistoryRepository,
+        IProductEmailSendHistoryQueries productEmailSendHistoryQueries,
+        IWriteModelUnitOfWork unitOfWork,
+        IChipfindAdapter chipfindAdapter,
+        IEmailSender emailSender,
+        ProductService productService)
     {
         _logger = logger;
-        _ebayServerOptions = ebayServerOptions;
-        _serviceScopeFactory = serviceScopeFactory;
+        _productEmailSendHistoryRepository = productEmailSendHistoryRepository;
+        _productEmailSendHistoryQueries = productEmailSendHistoryQueries;
+        _unitOfWork = unitOfWork;
+        _chipfindAdapter = chipfindAdapter;
+        _emailSender = emailSender;
+        _productService = productService;
     }
 
-    public override TimeSpan UpdateTime => WellKnown.ChipFind.UpdateTime;
-    public override TimeSpan ErrorDelay => WellKnown.ChipFind.ErrorDelay;
+    private sealed record ProductInner(Guid ProductId, Regex Regex, bool IsInteresting);
 
-    private record ProductInner(Guid ProductId, Regex Regex, bool IsInteresting);
-
-    protected override async Task BackgroundTaskImplementation(CancellationToken cancellationToken)
+    /// <summary>
+    /// Обрабатывает свежие объявления о продаже и отправляет письма о новых интересных объявлениях.
+    /// </summary>
+    /// <param name="targetEmail">Адрес, на который отправляются уведомления.</param>
+    /// <param name="cancellationToken">Токен отмены операции.</param>
+    public async Task ProcessRecentAdvertisementsAsync(string targetEmail, CancellationToken cancellationToken)
     {
-        if (_ebayServerOptions.IsLocalRun)
-        {
-            return;
-        }
+        var products = await GetProducts(cancellationToken);
 
-        using var scope = _serviceScopeFactory.CreateScope();
-        var productEmailSendHistoryRepository = scope.ServiceProvider.GetRequiredService<IProductEmailSendHistoryRepository>();
-        var productEmailSendHistoryQueries = scope.ServiceProvider.GetRequiredService<IProductEmailSendHistoryQueries>();
-        var unitOfWork = scope.ServiceProvider.GetRequiredService<IWriteModelUnitOfWork>();
-        var chipfindAdapter = scope.ServiceProvider.GetRequiredService<IChipfindAdapter>();
-        var emailSender = scope.ServiceProvider.GetRequiredService<IEmailSender>();
-        var productService = scope.ServiceProvider.GetRequiredService<ProductService>();
-
-        var products = await GetProducts(cancellationToken: cancellationToken, productService: productService);
-
-        var recentAdvertisements = await chipfindAdapter.GetRecentSaleAdvertisements(cancellationToken);
+        var recentAdvertisements = await _chipfindAdapter.GetRecentSaleAdvertisements(cancellationToken);
 
         foreach (var saleAdvertisement in recentAdvertisements)
         {
             await ProcessAdvertisement(
-                emailSender: emailSender,
-                chipfindAdapter: chipfindAdapter,
-                cancellationToken: cancellationToken,
+                targetEmail: targetEmail,
                 saleAdvertisement: saleAdvertisement,
                 products: products,
-                productEmailSendHistoryRepository: productEmailSendHistoryRepository,
-                productEmailSendHistoryQueries: productEmailSendHistoryQueries,
-                unitOfWork: unitOfWork);
+                cancellationToken: cancellationToken);
         }
     }
 
     private async Task ProcessAdvertisement(
-        IEmailSender emailSender,
-        IChipfindAdapter chipfindAdapter,
+        string targetEmail,
         SaleAdvertisement saleAdvertisement,
         IReadOnlyCollection<ProductInner> products,
-        IProductEmailSendHistoryRepository productEmailSendHistoryRepository,
-        IProductEmailSendHistoryQueries productEmailSendHistoryQueries,
-        IWriteModelUnitOfWork unitOfWork,
         CancellationToken cancellationToken)
     {
         var newInterestingAds = new HashSet<(bool IsAmbiguous, string Ad, string? Contact)>();
@@ -93,7 +91,7 @@ public class ChipfindBackgroundTask : BackgroundTask
                 continue;
             }
 
-            advertisementContact = await chipfindAdapter.TryGetAdvertisementContactAsync(
+            advertisementContact = await _chipfindAdapter.TryGetAdvertisementContactAsync(
                 saleAdvertisement,
                 cancellationToken);
 
@@ -103,7 +101,7 @@ public class ChipfindBackgroundTask : BackgroundTask
             {
                 if (!historyByProductId.TryGetValue(product.ProductId, out var record))
                 {
-                    var existingId = await productEmailSendHistoryQueries.FindIdAsync(
+                    var existingId = await _productEmailSendHistoryQueries.FindIdAsync(
                         productId: product.ProductId,
                         seller: saleAdvertisement.Seller,
                         marketplace: WellKnown.ChipFind.Marketplace,
@@ -111,7 +109,7 @@ public class ChipfindBackgroundTask : BackgroundTask
 
                     record = existingId is null
                         ? null
-                        : await productEmailSendHistoryRepository.GetByIdAsync(existingId.Value, cancellationToken);
+                        : await _productEmailSendHistoryRepository.GetByIdAsync(existingId.Value, cancellationToken);
                 }
 
                 if (record is null)
@@ -125,7 +123,7 @@ public class ChipfindBackgroundTask : BackgroundTask
                         advertisementDate: saleAdvertisement.Date,
                         contact: string.IsNullOrWhiteSpace(advertisementContact) ? null : advertisementContact);
 
-                    await productEmailSendHistoryRepository.AddAsync(newRecord, cancellationToken);
+                    await _productEmailSendHistoryRepository.AddAsync(newRecord, cancellationToken);
                     historyByProductId[product.ProductId] = newRecord;
 
                     if (product.IsInteresting)
@@ -148,9 +146,9 @@ public class ChipfindBackgroundTask : BackgroundTask
         // Deferred commit: if the email send below fails, the history rows written by SaveChangesAsync
         // must not persist, or the retry on the next run will see them as "already notified" via
         // FindIdAsync and silently drop the notification for good.
-        await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await _unitOfWork.BeginTransactionAsync(cancellationToken);
 
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         if (newInterestingAds.Count > 0)
         {
@@ -163,29 +161,25 @@ public class ChipfindBackgroundTask : BackgroundTask
             var emailTopic = $"{saleAdvertisement.Title} [{saleAdvertisement.Seller}]";
             _logger.LogInformation("Email sent {EmailTopic}", emailTopic);
             _logger.LogDebug("Email sent {EmailBody}", emailBody);
-            await emailSender.Send(
-                targetAddress: _ebayServerOptions.TargetEmail,
+            await _emailSender.Send(
+                targetAddress: targetEmail,
                 topic: emailTopic,
                 messageText: emailBody);
 
-            await Task.Delay(millisecondsDelay: DelayMilliseconds, cancellationToken: cancellationToken);
+            await Task.Delay(millisecondsDelay: DelayAfterEmailMilliseconds, cancellationToken: cancellationToken);
         }
 
         await transaction.CommitAsync(cancellationToken);
     }
 
-    private static async Task<IReadOnlyCollection<ProductInner>> GetProducts(
-        ProductService productService,
-        CancellationToken cancellationToken)
+    private async Task<IReadOnlyCollection<ProductInner>> GetProducts(CancellationToken cancellationToken)
     {
-        var products = await productService.GetAllProductsAsync(cancellationToken);
+        var products = await _productService.GetAllProductsAsync(cancellationToken);
 
-        var productsArray = products.Select(x => new ProductInner(
+        return products.Select(static x => new ProductInner(
                 ProductId: x.Data.Id,
                 Regex: x.ProductRegex,
                 IsInteresting: x.IsInteresting))
             .ToArray();
-
-        return productsArray;
     }
 }

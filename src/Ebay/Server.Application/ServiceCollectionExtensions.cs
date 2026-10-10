@@ -2,16 +2,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
 using Server.Application.Caching;
-using Server.Application.HostedServices.ChipFind;
-using Server.Application.HostedServices.Currencies;
-using Server.Application.HostedServices.DbCache;
-using Server.Application.HostedServices.Measurements;
-using Server.Application.HostedServices.SaleAdvertisements;
+using Server.Application.Currencies;
+using Server.Application.DbCache;
 using Server.Application.LotForSale;
 using Server.Application.MatchedPairs;
 using Server.Application.MeasurementCaching;
 using Server.Application.MeasurementPlot;
 using Server.Application.PriceCalculator;
+using Server.Application.SaleAdvertisements;
 using Server.Application.Services;
 using Server.Application.TubeWorkingPoints;
 
@@ -28,13 +26,6 @@ public static class ServiceCollectionExtensions
     /// <param name="services">Коллекция сервисов приложения.</param>
     public static void AddApplication(this IServiceCollection services)
     {
-        services.AddOptions<EbayServerOptions>()
-            .BindConfiguration("EbayServer")
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-
-        services.AddSingleton(sp => sp.GetRequiredService<IOptions<EbayServerOptions>>().Value);
-
         services.AddOptions<ImageCacheOptions>()
             .BindConfiguration(ImageCacheOptions.SectionName)
             .ValidateDataAnnotations()
@@ -64,10 +55,10 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IMeasurementMatchIdChangedHandler, MeasurementMatchIdChangedHandler>();
         services.AddTransient<ILotPriceCalculator, LotPriceCalculator>();
         services.AddTransient<IProductMetricsCalculator, ProductMetricsCalculator>();
-        services.AddHostedService<ChipfindBackgroundTask>();
-        services.AddHostedService<SaleAdvertisementCleanupBackgroundTask>();
-        services.AddHostedService<CurrencyRateBackgroundTask>();
-        services.AddHostedService<DbCacheCleanupHostedService>();
-        services.AddHostedService<MeasurementPlotWarmupHostedService>();
+        services.AddTransient<ChipfindMonitoringService>();
+        services.AddTransient<SaleAdvertisementCleanupService>();
+        services.AddTransient<CurrencyRateService>();
+        services.AddTransient<DbCacheCleanupService>();
+        services.AddTransient<MeasurementPlotWarmupService>();
     }
 }

@@ -16,6 +16,7 @@ using Server.Adapters.Driven.ImageProcessing;
 using Server.Adapters.Driven.OpenExchangeRates;
 using Server.Adapters.Driven.Smtp;
 using Server.Adapters.Driven.uTracer;
+using Server.Adapters.Driving.BackgroundTasks;
 using Server.Adapters.Driving.MassTransit;
 using Server.Adapters.Driving.MassTransit.Consumers.EbayCurvesCacheWarmUp;
 using Server.Adapters.Driving.MassTransit.Consumers.MatchedPairs;
@@ -64,6 +65,7 @@ public class Program
         builder.Services.AddEfWriteModelAdapter();
         builder.Services.AddEfIdentityAdapter();
         builder.Services.AddMassTransitAdapter();
+        builder.Services.AddBackgroundTasksAdapter();
         ConfigureMassTransit(builder.Services);
 
         ConfigureIdentity(builder.Services);

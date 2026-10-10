@@ -55,11 +55,9 @@ public sealed class ArchitectureTest
         "alglib.net",
         "AngleSharp",
         "HtmlSanitizer",
-        "MassTransit.Abstractions",
         "Microsoft.Extensions.Caching.Abstractions",
         "Microsoft.Extensions.Configuration.Binder",
         "Microsoft.Extensions.DependencyInjection.Abstractions",
-        "Microsoft.Extensions.Hosting.Abstractions",
         "Microsoft.Extensions.Logging.Abstractions",
         "Microsoft.Extensions.Options",
         "Microsoft.Extensions.Options.ConfigurationExtensions",
@@ -79,15 +77,6 @@ public sealed class ArchitectureTest
 
     // Сборки портов: только контракты (интерфейсы и модели), без внешних зависимостей.
     private static readonly string[] PortAllowedExternalAssemblies = [];
-
-    // Исключения: hosted services, которые пока живут не в адаптерной сборке.
-    private static readonly string[] AllowedHostedServiceTypes = [
-        "Server.Application.HostedServices.ChipFind.ChipfindBackgroundTask",
-        "Server.Application.HostedServices.Currencies.CurrencyRateBackgroundTask",
-        "Server.Application.HostedServices.DbCache.DbCacheCleanupHostedService",
-        "Server.Application.HostedServices.Measurements.MeasurementPlotWarmupHostedService",
-        "Server.Application.HostedServices.SaleAdvertisements.SaleAdvertisementCleanupBackgroundTask"
-    ];
 
     private static readonly Assembly RootAssembly = typeof(Server.Program).Assembly;
     private static readonly Assembly ApplicationAssembly = typeof(ServiceCollectionExtensions).Assembly;
@@ -145,7 +134,6 @@ public sealed class ArchitectureTest
         var hostedServices = assembly.GetTypes()
             .Where(static type => !type.IsAbstract && typeof(IHostedService).IsAssignableFrom(type))
             .Select(static type => type.FullName!)
-            .Where(static name => !AllowedHostedServiceTypes.Contains(name))
             .Order()
             .ToArray();
 

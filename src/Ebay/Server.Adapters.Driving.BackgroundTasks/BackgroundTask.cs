@@ -1,9 +1,9 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Server.Application.Infrastructure;
+namespace Server.Adapters.Driving.BackgroundTasks;
 
-public abstract class BackgroundTask : IHostedService, IDisposable
+internal abstract class BackgroundTask : IHostedService, IDisposable
 {
     protected BackgroundTask(ILogger logger)
     {

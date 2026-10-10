@@ -1,4 +1,4 @@
-namespace Server.Application.Infrastructure;
+namespace Server.Adapters.Driving.BackgroundTasks;
 
 internal static class ExceptionExtensions
 {
