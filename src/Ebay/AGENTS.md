@@ -83,6 +83,7 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 - `Server.Application` — use cases and ports.
 - `Server.Adapters.*` — port implementations.
 - `Server.Application` must not reference `Server.Adapters.*`.
+- `Tests.Unit/Architecture/ArchitectureTest.cs` enforces this: `Server` (composition root), `Server.Application` and `Server.Domain` may reference only framework/solution assemblies plus an explicit exception list, and must not contain hosted services. The exception lists hold current violations (tech debt) - shrink them, don't extend them without justification.
 
 ### Command/query split
 - **Commands** (state changes): an application-layer use-case service loads an aggregate through its repository port (`Server.Application.Abstractions.Driven.Abstractions.Repositories.I*Repository`), calls domain methods on it, and commits via `IWriteModelUnitOfWork`. The aggregate is always loaded and persisted as a whole; there is no partial/column-level command update.
