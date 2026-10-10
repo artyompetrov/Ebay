@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
 using Server.Domain.Measurements;
 
-namespace Server.Adapters.Driving.MassTransit.Consumers.MatchedPairs;
+namespace Server.Adapters.MassTransit.Driving.MatchedPairs;
 
 public class MatchedPairsCalculatorConsumer : IConsumer<MatchedPairComparisonRequested>
 {

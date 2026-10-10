@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
 using Server.Domain.Measurements;
 
-namespace Server.Adapters.Driving.MassTransit.Consumers.MeasurementCaching;
+namespace Server.Adapters.MassTransit.Driving.MeasurementCaching;
 
 public sealed class MeasurementStateChangedConsumer : IConsumer<MeasurementStateChanged>
 {

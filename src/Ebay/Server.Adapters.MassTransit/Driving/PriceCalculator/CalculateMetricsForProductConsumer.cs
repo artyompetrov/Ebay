@@ -2,7 +2,7 @@ using MassTransit;
 using Server.Application.Abstractions.Driving.Abstractions.Messages;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
 
-namespace Server.Adapters.Driving.MassTransit.Consumers.PriceCalculator;
+namespace Server.Adapters.MassTransit.Driving.PriceCalculator;
 
 public class CalculateMetricsForProductConsumer : IConsumer<Batch<CalculateMetricsForProduct>>
 {

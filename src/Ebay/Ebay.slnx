@@ -19,7 +19,7 @@
   </Folder>
     <Folder Name="/Adapters.Driving/">
       <Project Path="Server.Adapters.Driving.WebApi/Server.Adapters.Driving.WebApi.csproj" />
-      <Project Path="Server.Adapters.Driving.MassTransit/Server.Adapters.Driving.MassTransit.csproj" />
+      <Project Path="Server.Adapters.MassTransit/Server.Adapters.MassTransit.csproj" />
       <Project Path="Server.Adapters.Driving.BackgroundTasks/Server.Adapters.Driving.BackgroundTasks.csproj" />
   </Folder>
   <Folder Name="/Contacts/">

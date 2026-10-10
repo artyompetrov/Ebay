@@ -4,7 +4,7 @@ using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Abstractions.Driving.Abstractions.Messages;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
 
-namespace Server.Adapters.Driving.MassTransit.Consumers.MeasurementWatching;
+namespace Server.Adapters.MassTransit.Driving.MeasurementWatching;
 
 public sealed class MeasurementWatchedOnEbayHandler : IMeasurementWatchedOnEbayHandler
 {

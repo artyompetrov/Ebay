@@ -38,14 +38,7 @@ public sealed class ArchitectureTest
     // TODO: исключения ниже - текущие нарушения; со временем сокращать список, а не расширять.
     // Исключения: допустимые внешние сборки в корне (composition root).
     // Сборки, на которые ссылается сам Server.Platform, разрешаются автоматически (см. GetPlatformReferences).
-    private static readonly string[] RootAllowedExternalAssemblies = [
-        "Duende.IdentityServer",
-        "Duende.IdentityServer.Storage",
-        "MassTransit",
-        "MassTransit.Abstractions",
-        "MassTransit.EntityFrameworkCoreIntegration",
-        "MassTransit.SqlTransport.PostgreSql"
-    ];
+    private static readonly string[] RootAllowedExternalAssemblies = [];
 
     // Исключения: допустимые внешние сборки в слое application.
     // Слой мягче domain: допустимы абстракции и библиотеки, помогающие оркестрировать сценарии.

@@ -25,6 +25,9 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 - `Server.Application` — application layer (use-case services, ports).
 - `Server.Domain` — domain model.
 - `Server.Adapters.*` — adapters, including `Server.Adapters.Driven.EF.Identity` (ASP.NET Identity + Duende IdentityServer's operational store).
+- `Server.Adapters.MassTransit` — message bus adapter. It holds both sides of the bus: consumers (driving) under `Driving/` and publishers implementing driven ports under `Driven/`, and owns the whole bus configuration (`AddMassTransitAdapter()`: consumers, SQL transport, scheduler, EF outbox). It references `Server.Adapters.Driven.EF.WriteModel` - the single allowed adapter-to-adapter reference, because the transactional outbox (`AddEntityFrameworkOutbox<WriteModelDbContext>`) needs the write-model `DbContext` type. Don't add other adapter-to-adapter references.
+- Identity/authorization configuration (data protection, ASP.NET Identity, IdentityServer clients, JWT, `AuthorizationClientOptions`) lives in `Server.Adapters.Driven.EF.Identity` behind `AddEfIdentityAdapter()`/`UseEfIdentityAdapterAuthentication()`, not in `Program.cs`.
+- Adapter-private caches (e.g. GeoIp, ChipFind keyed `IMemoryCache`) are registered by their own adapter's `Add*Adapter()`.
 - `Server.Adapters.Driving.BackgroundTasks` — driving adapter for periodic/startup background jobs (ChipFind monitoring, currency rates, sale advertisement cleanup, DB cache cleanup, measurement plot warmup). Each hosted service only creates a scope, applies the `EbayServer:IsLocalRun` switch where relevant, and calls one application use-case method; scheduling constants live here, business thresholds stay in `Server.Application`. Hosted services (`IHostedService`) live only in adapter assemblies.
 - `Tests.Unit`, `Tests.Integration`, `Tests.Explicit` — test projects.
 - `Tests.Frontend` — bUnit component tests and Playwright Chromium checks of rendered photo previews. Install Chromium with the generated `playwright.ps1` after building.
@@ -95,7 +98,7 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 - An aggregate never exposes a public setter for behavior-bearing state. State changes go through a domain method (e.g. `ChangeState(...)`) that: 1) mutates the aggregate's own state first, 2) only then, and only if the value actually changed, calls `AddDomainEvent(...)` (see `AggregateRoot<TId>` in `Server.Domain.Abstractions`).
 - Application services call these domain methods; they never mutate aggregate state directly and never publish domain events themselves.
 - Domain events are dispatched automatically, not explicitly: `WriteModelDbContext.SaveChangesAsync` (the write-model unit of work) collects all changed aggregates with pending events, publishes each event via `IPublishEndpoint` (MassTransit outbox), then clears them, all before the actual `SaveChanges` write. Adding a new event type requires no publishing code beyond raising it from the aggregate.
-- Consumers/handlers for domain events live in `Server.Adapters.Driving.MassTransit` (+ a handler in `Server.Application`), following the existing `MeasurementStateChanged`/`MeasurementStateChangedConsumer` pattern.
+- Consumers for domain events live in `Server.Adapters.MassTransit/Driving` (+ a handler in `Server.Application`), following the existing `MeasurementStateChanged`/`MeasurementStateChangedConsumer` pattern; register new consumers in `AddMassTransitAdapter()`.
 
 ## Review-error checklist (mandatory before a PR)
 - A repository (`Server.Adapters.Driven.*.Repositories`) does not call `SaveChanges/SaveChangesAsync`; committing changes happens in the application layer via `IWriteModelUnitOfWork`.

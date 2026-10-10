@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Server.Configuration;
+namespace Server.Adapters.Driven.EF.Identity;
 
 public class AuthorizationClientOptions
 {
