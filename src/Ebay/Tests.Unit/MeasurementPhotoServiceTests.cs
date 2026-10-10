@@ -1,13 +1,12 @@
 using Tests.Shared;
 using AwesomeAssertions;
-using Microsoft.Extensions.Caching.Memory;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Abstractions.Driven.Models;
 using Server.Application;
-using Server.Application.Caching;
 using Server.Domain.Measurements;
+using Tests.Unit.Fakes;
 
 namespace Tests.Unit;
 
@@ -75,7 +74,7 @@ public sealed class MeasurementPhotoServiceTests
             new MeasurementPhotoInfo(PhotoId, MeasurementId, "file.heic", RealContentType, 0, RealContent),
             RealThumbnail);
         var measurementQueries = new FakeMeasurementQueries(MeasurementState.Selling);
-        var service = CreateService(measurementQueries, photoQueries, new MemoryCache(new MemoryCacheOptions()), new MeasurementCacheInvalidationRegistry());
+        var service = CreateService(measurementQueries, photoQueries, new InMemoryMeasurementContentCache());
 
         await service.GetContentAsync(MeasurementId, PhotoId, CancellationToken.None);
         await service.GetContentAsync(MeasurementId, PhotoId, CancellationToken.None);
@@ -91,7 +90,7 @@ public sealed class MeasurementPhotoServiceTests
             new MeasurementPhotoInfo(PhotoId, MeasurementId, "file.heic", RealContentType, 0, RealContent),
             RealThumbnail);
         var measurementQueries = new FakeMeasurementQueries(MeasurementState.Selling);
-        var service = CreateService(measurementQueries, photoQueries, new MemoryCache(new MemoryCacheOptions()), new MeasurementCacheInvalidationRegistry());
+        var service = CreateService(measurementQueries, photoQueries, new InMemoryMeasurementContentCache());
 
         var first = await service.GetContentAsync(MeasurementId, PhotoId, CancellationToken.None);
         first.Should().Be(new MeasurementPhotoContent(RealContent, RealContentType));
@@ -111,8 +110,8 @@ public sealed class MeasurementPhotoServiceTests
             new MeasurementPhotoInfo(PhotoId, MeasurementId, "file.heic", RealContentType, 0, RealContent),
             RealThumbnail);
         var measurementQueries = new FakeMeasurementQueries(MeasurementState.Selling);
-        var cacheInvalidationRegistry = new MeasurementCacheInvalidationRegistry();
-        var service = CreateService(measurementQueries, photoQueries, new MemoryCache(new MemoryCacheOptions()), cacheInvalidationRegistry);
+        var cache = new InMemoryMeasurementContentCache();
+        var service = CreateService(measurementQueries, photoQueries, cache);
 
         var beforeSale = await service.GetContentAsync(MeasurementId, PhotoId, CancellationToken.None);
         beforeSale.Should().Be(new MeasurementPhotoContent(RealContent, RealContentType));
@@ -123,7 +122,7 @@ public sealed class MeasurementPhotoServiceTests
         var stillCached = await service.GetContentAsync(MeasurementId, PhotoId, CancellationToken.None);
         stillCached.Should().Be(new MeasurementPhotoContent(RealContent, RealContentType));
 
-        cacheInvalidationRegistry.Invalidate(MeasurementId);
+        cache.Invalidate(MeasurementId);
         var afterInvalidation = await service.GetContentAsync(MeasurementId, PhotoId, CancellationToken.None);
 
         afterInvalidation.Should().NotBeNull();
@@ -138,8 +137,7 @@ public sealed class MeasurementPhotoServiceTests
             new MeasurementPhotoInfo(PhotoId, MeasurementId, "file.heic", RealContentType, 0, RealContent),
             RealThumbnail);
         var service = new MeasurementPhotoService(
-            cache: new MemoryCache(new MemoryCacheOptions()),
-            cacheInvalidationRegistry: new MeasurementCacheInvalidationRegistry(),
+            cache: new InMemoryMeasurementContentCache(),
             measurementPhotoQueries: photoQueries,
             measurementPhotoRepository: new CapturingMeasurementPhotoRepository(),
             measurementQueries: new FakeMeasurementQueries(MeasurementState.Selling),
@@ -165,8 +163,7 @@ public sealed class MeasurementPhotoServiceTests
         var thumbnailGenerator = new RecordingPhotoThumbnailGenerator(boundedOriginal, RealThumbnail);
         var repository = new CapturingMeasurementPhotoRepository();
         var service = new MeasurementPhotoService(
-            cache: new MemoryCache(new MemoryCacheOptions()),
-            cacheInvalidationRegistry: new MeasurementCacheInvalidationRegistry(),
+            cache: new InMemoryMeasurementContentCache(),
             measurementPhotoQueries: new FakeMeasurementPhotoQueries(null, null),
             measurementPhotoRepository: repository,
             measurementQueries: new FakeMeasurementQueries(MeasurementState.Created),
@@ -264,19 +261,16 @@ public sealed class MeasurementPhotoServiceTests
         return CreateService(
             new FakeMeasurementQueries(measurementState),
             photoQueries,
-            new MemoryCache(new MemoryCacheOptions()),
-            new MeasurementCacheInvalidationRegistry());
+            new InMemoryMeasurementContentCache());
     }
 
     private static MeasurementPhotoService CreateService(
         FakeMeasurementQueries measurementQueries,
         FakeMeasurementPhotoQueries photoQueries,
-        IMemoryCache cache,
-        MeasurementCacheInvalidationRegistry cacheInvalidationRegistry)
+        InMemoryMeasurementContentCache cache)
     {
         return new MeasurementPhotoService(
             cache: cache,
-            cacheInvalidationRegistry: cacheInvalidationRegistry,
             measurementPhotoQueries: photoQueries,
             measurementPhotoRepository: new NotSupportedMeasurementPhotoRepository(),
             measurementQueries: measurementQueries,
@@ -355,9 +349,6 @@ public sealed class MeasurementPhotoServiceTests
             IReadOnlyCollection<string> measurementIds, CancellationToken cancellationToken) =>
             Task.FromResult<IReadOnlyList<MeasurementPhotoMetadata>>(_photo is null ? [] :
                 [new MeasurementPhotoMetadata(_photo.Id, _photo.MeasurementId, _photo.FileName, _photo.Order)]);
-
-        public Task<IReadOnlyList<MeasurementPhotoInfo>> GetContentBatch(int skip, int take, CancellationToken cancellationToken) =>
-            throw new NotSupportedException();
     }
 
     private sealed class NotSupportedMeasurementPhotoRepository : IMeasurementPhotoRepository

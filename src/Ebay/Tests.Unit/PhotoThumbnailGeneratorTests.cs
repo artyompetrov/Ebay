@@ -55,7 +55,7 @@ public sealed class PhotoThumbnailGeneratorTests
     }
 
     [Test]
-    [OpenSpecScenario("measurement-photos", "Bounded original photo size", "Uploading a photo above the bound")]
+    [OpenSpecScenario("measurement-photos", "Bounded original photo size on upload", "Uploading a photo above the bound")]
     public async Task CreateBoundedOriginalAsync_ReEncodesWithinBound_WhenOriginalExceedsCap()
     {
         var original = CreatePngBytes(width: 4000, height: 2000);
@@ -68,7 +68,7 @@ public sealed class PhotoThumbnailGeneratorTests
     }
 
     [Test]
-    [OpenSpecScenario("measurement-photos", "Bounded original photo size", "Uploading a photo within the bound")]
+    [OpenSpecScenario("measurement-photos", "Bounded original photo size on upload", "Uploading a photo within the bound")]
     public async Task CreateBoundedOriginalAsync_ReturnsBytesUnchanged_WhenAlreadyWithinBound()
     {
         var original = CreatePngBytes(width: 800, height: 400);
@@ -87,7 +87,7 @@ public sealed class PhotoThumbnailGeneratorTests
     }
 
     [Test]
-    [OpenSpecScenario("measurement-photos", "Bounded original photo size", "Uploading a photo above the bound")]
+    [OpenSpecScenario("measurement-photos", "Bounded original photo size on upload", "Uploading a photo above the bound")]
     public async Task CreateBoundedOriginalAsync_CompressesByteOversizeEvenWithinPixelBound()
     {
         const int MaximumEncodedBytes = 2 * 1024 * 1024;

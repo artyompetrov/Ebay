@@ -3,11 +3,7 @@ using System.Net;
 using AwesomeAssertions;
 using Client.Clients.Generated;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
-using Server.Application.Abstractions.Driven.Abstractions.Repositories;
-using Server.Application.HostedServices;
 using SkiaSharp;
 
 namespace Tests.Integration.Tests;
@@ -322,55 +318,6 @@ public class MeasurementPhotosFlowTests
     }
 
     [Test]
-    [OpenSpecScenario("measurement-photos", "Bounded original photo size", "Previously stored photo exceeding the bound is migrated")]
-    public async Task MeasurementPhotoOriginalSizeBackfill_CompressesOversizedPhoto_AndLeavesCompliantPhotoUnchanged()
-    {
-        using var context = await CreateMeasurementContextAsync();
-
-        var compliantContent = TestHelpers.CreateValidPhotoBytes();
-        await context.WebApiClient.UploadMeasurementPhotoAsync(
-            context.MeasurementId,
-            new MeasurementPhotoUploadRequest { FileName = "small.jpg", ContentType = "image/png", File = compliantContent });
-        await context.WebApiClient.UploadMeasurementPhotoAsync(
-            context.MeasurementId,
-            new MeasurementPhotoUploadRequest { FileName = "to-be-oversized.jpg", ContentType = "image/png", File = compliantContent });
-
-        var photos = (await context.WebApiClient.GetMeasurementPhotosAsync(context.MeasurementId))
-            .OrderBy(x => x.Order)
-            .ToList();
-        var compliantPhotoId = photos[0].Id;
-        var toBeOversizedPhotoId = photos[1].Id;
-
-        using (var scope = IntegrationTestsSetupFixture.Factory.Services.CreateScope())
-        {
-            var repository = scope.ServiceProvider.GetRequiredService<IMeasurementPhotoRepository>();
-            var unitOfWork = scope.ServiceProvider.GetRequiredService<IWriteModelUnitOfWork>();
-
-            var photo = await repository.GetByIdAsync(toBeOversizedPhotoId, CancellationToken.None);
-            photo!.CompressOriginalContent(CreateOversizedPhotoBytes());
-            await unitOfWork.SaveChangesAsync(CancellationToken.None);
-        }
-
-#pragma warning disable CS0618 // Тест обсолетного одноразового backfill - будет удалён вместе с ним.
-        using (var scope = IntegrationTestsSetupFixture.Factory.Services.CreateScope())
-        {
-            var logger = scope.ServiceProvider.GetRequiredService<ILogger<MeasurementPhotoOriginalSizeBackfillHostedService>>();
-            var scopeFactory = scope.ServiceProvider.GetRequiredService<IServiceScopeFactory>();
-            await new MeasurementPhotoOriginalSizeBackfillHostedService(logger, scopeFactory).StartAsync(CancellationToken.None);
-        }
-#pragma warning restore CS0618
-
-        await AssertPhotoContentAsync(context.HttpClient, context.MeasurementId, compliantPhotoId, compliantContent);
-
-        using var oversizedResponse = await context.HttpClient.GetAsync(
-            $"/api/webapi/v1/measurements/{context.MeasurementId}/photos/{toBeOversizedPhotoId}/content");
-        var oversizedContentBytes = await oversizedResponse.Content.ReadAsByteArrayAsync();
-        using var decodedOversized = SKBitmap.Decode(oversizedContentBytes);
-
-        Assert.That(Math.Max(decodedOversized.Width, decodedOversized.Height), Is.LessThanOrEqualTo(2000));
-    }
-
-    [Test]
     [OpenSpecScenario("measurement-photos", "Photo binary retrieval", "Fetch missing photo content")]
     [TestCase(false)]
     [TestCase(true)]
@@ -416,7 +363,7 @@ public class MeasurementPhotosFlowTests
     }
 
     [Test]
-    [OpenSpecScenario("measurement-photos", "Bounded original photo size", "Uploading a photo above the bound")]
+    [OpenSpecScenario("measurement-photos", "Bounded original photo size on upload", "Uploading a photo above the bound")]
     public async Task UploadOversizedPng_ReturnsBoundedJpegWithMatchingContentTypeAndThumbnail()
     {
         const int MaximumDimension = 2000;
@@ -440,15 +387,6 @@ public class MeasurementPhotosFlowTests
         using var thumbnailResponse = await context.HttpClient.GetAsync($"/api/webapi/v1/measurements/{context.MeasurementId}/photos/{photo.Id}/thumbnail/content");
         using var thumbnail = SKBitmap.Decode(await thumbnailResponse.Content.ReadAsByteArrayAsync());
         thumbnail.Width.Should().Be(ThumbnailDimension);
-    }
-
-    private static byte[] CreateOversizedPhotoBytes()
-    {
-        using var bitmap = new SKBitmap(4000, 2000);
-        bitmap.Erase(SKColors.CornflowerBlue);
-        using var image = SKImage.FromBitmap(bitmap);
-        using var data = image.Encode(SKEncodedImageFormat.Jpeg, quality: 90);
-        return data.ToArray();
     }
 
     [Test]

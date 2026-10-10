@@ -1,32 +1,19 @@
-using Duende.IdentityServer.Models;
-using MassTransit;
-using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
-using Microsoft.AspNetCore.DataProtection.Repositories;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Options;
 using Server.Adapters.Driven.ChipFind;
 using Server.Adapters.Driven.EF.Identity;
 using Server.Adapters.Driven.EF.ReadModel;
 using Server.Adapters.Driven.EF.WriteModel;
 using Server.Adapters.Driven.GeoIp;
 using Server.Adapters.Driven.ImageProcessing;
+using Server.Adapters.Driven.MemoryCache;
 using Server.Adapters.Driven.OpenExchangeRates;
+using Server.Adapters.Driven.Plotting;
 using Server.Adapters.Driven.Smtp;
 using Server.Adapters.Driven.uTracer;
-using Server.Adapters.Driving.MassTransit;
-using Server.Adapters.Driving.MassTransit.Consumers.EbayCurvesCacheWarmUp;
-using Server.Adapters.Driving.MassTransit.Consumers.MatchedPairs;
-using Server.Adapters.Driving.MassTransit.Consumers.MeasurementCaching;
-using Server.Adapters.Driving.MassTransit.Consumers.MeasurementWatching;
-using Server.Adapters.Driving.MassTransit.Consumers.PriceCalculator;
+using Server.Adapters.Driving.BackgroundTasks;
+using Server.Adapters.MassTransit;
 using Server.Adapters.Driving.WebApi;
 using Server.Application;
-using Server.Configuration;
 using Server.Platform;
-using Secret = Duende.IdentityServer.Models.Secret;
 
 namespace Server;
 
@@ -40,33 +27,22 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
         builder.AddPlatform();
 
-        // Add services to the container.
-        // Каждый потребитель IMemoryCache получает свой именованный кеш вместо одного общего
-        // service-wide экземпляра - так лимит размера одного кеша не задевает записи в другом.
-        builder.Services.AddKeyedSingleton<IMemoryCache>(
-            Application.WellKnown.ImageCache.ServiceKey,
-            (sp, _) => new MemoryCache(new MemoryCacheOptions
-            {
-                SizeLimit = sp.GetRequiredService<IOptions<ImageCacheOptions>>().Value.SizeLimitBytes
-            }));
-        builder.Services.AddKeyedSingleton<IMemoryCache, MemoryCache>(WellKnown.CacheServiceKeys.GeoIp);
-        builder.Services.AddKeyedSingleton<IMemoryCache, MemoryCache>(WellKnown.CacheServiceKeys.ChipFind);
         builder.Services.AddEmailAdapter();
         builder.Services.AddUTracerAdapter();
         builder.Services.AddImageProcessingAdapter();
         builder.Services.AddGeoIpAdapter();
         builder.Services.AddChipFindAdapter();
         builder.Services.AddOpenExchangeRatesAdapter();
+        builder.Services.AddPlottingAdapter();
+        builder.Services.AddMemoryCacheAdapter();
         builder.Services.AddEfReadModelAdapter();
-        builder.Services.AddApplicationNewServices();
+        builder.Services.AddApplication();
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
         builder.Services.AddWebApiAdapter();
         builder.Services.AddEfWriteModelAdapter();
         builder.Services.AddEfIdentityAdapter();
         builder.Services.AddMassTransitAdapter();
-        ConfigureMassTransit(builder.Services);
-
-        ConfigureIdentity(builder.Services);
+        builder.Services.AddBackgroundTasksAdapter();
 
         builder.Services.AddResponseCaching();
 
@@ -94,9 +70,7 @@ public class Program
         app.UseRouting();
         app.UseResponseCaching();
 
-        app.UseAuthentication();
-        app.UseIdentityServer();
-        app.UseAuthorization();
+        app.UseEfIdentityAdapterAuthentication();
 
         app.MapRazorPages();
         app.MapControllers();
@@ -106,131 +80,4 @@ public class Program
         app.Run();
     }
 
-    private static void ConfigureMassTransit(IServiceCollection services)
-    {
-        services.AddOptions<SqlTransportOptions>()
-            .Configure<IConfiguration>((o, cfg) =>
-            {
-                o.ConnectionString = cfg.GetConnectionString("DefaultConnection")
-                                    ?? throw new InvalidOperationException("Connection string cannot be null");
-            });
-
-        services.AddPostgresMigrationHostedService(x =>
-        {
-            x.CreateDatabase = false;
-            x.CreateInfrastructure = true;
-        });
-
-        services.AddMassTransit(x =>
-        {
-            x.AddConsumer<CalculatePricesForAllConsumer>();
-            x.AddConsumer<CalculatePricesForProductConsumer>();
-            x.AddConsumer<CalculatePricesForLotConsumer>();
-            x.AddConsumer<MeasurementWatchedOnEbayConsumer>();
-            x.AddConsumer<MeasurementStateChangedConsumer>();
-            x.AddConsumer<MeasurementMatchIdChangedConsumer>();
-            x.AddConsumer<CalculateEbayCurvesForMeasurementConsumer>(c =>
-            {
-                c.UseConcurrencyLimit(10);
-            });
-            x.AddConsumer<MatchedPairsCalculatorConsumer>(c =>
-            {
-                c.UseConcurrencyLimit(1);
-            });
-            x.AddConsumer<CalculateMetricsForProductConsumer>(c => c.Options<BatchOptions>(o =>
-            {
-                o.ConcurrencyLimit = 1;
-                o.MessageLimit = 100;
-            }));
-
-            x.AddEntityFrameworkOutbox<WriteModelDbContext>(o =>
-            {
-                o.UsePostgres();
-                o.UseBusOutbox();
-            });
-
-            x.AddSqlMessageScheduler();
-
-            x.UsingPostgres((context, cfg) =>
-            {
-                cfg.UseSqlMessageScheduler();
-                cfg.ConfigureEndpoints(context);
-            });
-        });
-    }
-
-    private static void ConfigureIdentity(IServiceCollection services)
-    {
-        services
-            .AddOptions<AuthorizationClientOptions>()
-            .BindConfiguration(AuthorizationClientOptions.SectionName)
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-
-        services
-            .AddDataProtection()
-            .SetApplicationName("EbayHelper")
-            .SetDefaultKeyLifetime(TimeSpan.FromDays(90));
-
-        services.AddOptions<KeyManagementOptions>()
-            .Configure<IOptions<AuthorizationClientOptions>, ILoggerFactory>(
-                (options, authorizationClientOptions, loggerFactory) =>
-                {
-                    var directory = Directory.CreateDirectory(
-                        authorizationClientOptions.Value.DataProtectionKeysDirectory
-                    );
-
-                    options.XmlRepository = new FileSystemXmlRepository(directory, loggerFactory);
-                }
-            );
-
-        services.AddDefaultIdentity<ApplicationUser>(o => o.SignIn.RequireConfirmedAccount = true)
-            .AddEntityFrameworkStores<IdentityDbContext>();
-
-        services.AddIdentityServer()
-            .AddApiAuthorization<ApplicationUser, IdentityDbContext>();
-
-        services.AddOptions<ApiAuthorizationOptions>()
-            .PostConfigure<IOptions<AuthorizationClientOptions>>(
-                (options, authorizationClientOptions) =>
-                {
-                    var authorizationOptions = authorizationClientOptions.Value;
-
-                    var frontendClient = ClientBuilder
-                        .IdentityServerSPA("Frontend")
-                        .WithRedirectUri("/authentication/login-callback")
-                        .WithLogoutRedirectUri("/authentication/logout-callback")
-                        .WithScopes("openid", "profile", authorizationOptions.Scope)
-                        .Build();
-                    options.Clients.Add(frontendClient);
-
-                    var spaClient = ClientBuilder
-                        .SPA(WellKnown.ChromeExtension.ClientId)
-                        .WithRedirectUri($"https://{authorizationOptions.Domain}/chrome_extensions/auth")
-                        .WithLogoutRedirectUri($"https://{authorizationOptions.Domain}/chrome_extensions/logout")
-                        .WithScopes(authorizationOptions.Scope)
-                        .Build();
-
-                    spaClient.AllowedCorsOrigins =
-                    [
-                        $"chrome-extension://{WellKnown.ChromeExtension.Id}",
-                        "https://" + authorizationOptions.Domain
-                    ];
-                    spaClient.AccessTokenLifetime = (int)TimeSpan.FromDays(30).TotalSeconds;
-                    options.Clients.Add(spaClient);
-
-                    options.Clients.Add(
-                        new Duende.IdentityServer.Models.Client
-                        {
-                            ClientId = authorizationOptions.ClientId,
-                            ClientSecrets = [new Secret(authorizationOptions.ClientSecret.Sha256())],
-                            AllowedGrantTypes = GrantTypes.ClientCredentials,
-                            AllowedScopes = { authorizationOptions.Scope }
-                        }
-                    );
-                }
-            );
-
-        services.AddAuthentication().AddIdentityServerJwt();
-    }
 }

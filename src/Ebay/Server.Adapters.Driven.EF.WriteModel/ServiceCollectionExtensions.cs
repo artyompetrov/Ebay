@@ -39,6 +39,10 @@ public static class ServiceCollectionExtensions
             return new DatabaseConcurrentAccessSemaphore(
                 maxConcurrent: new Npgsql.NpgsqlConnectionStringBuilder(connectionString).MaxPoolSize / 2);
         });
+        services.AddOptions<DbCacheOptions>()
+            .BindConfiguration(DbCacheOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
         services.AddScoped<ICacheStore, DbCache>();
 
         services.AddScoped<IMeasurementRepository, MeasurementRepository>();

@@ -1,8 +1,8 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Server.Application.Abstractions.Driven.Abstractions;
-using Server.Application;
 
 namespace Server.Adapters.Driven.EF.WriteModel;
 
@@ -15,18 +15,18 @@ internal sealed class DbCache : ICacheStore
 
     private readonly WriteModelDbContext _context;
     private readonly DatabaseConcurrentAccessSemaphore _semaphore;
-    private readonly EbayServerOptions _options;
+    private readonly DbCacheOptions _options;
     private readonly ILogger<DbCache> _logger;
 
     public DbCache(
         WriteModelDbContext context,
         DatabaseConcurrentAccessSemaphore semaphore,
-        EbayServerOptions options,
+        IOptions<DbCacheOptions> options,
         ILogger<DbCache> logger)
     {
         _context = context;
         _semaphore = semaphore;
-        _options = options;
+        _options = options.Value;
         _logger = logger;
     }
 

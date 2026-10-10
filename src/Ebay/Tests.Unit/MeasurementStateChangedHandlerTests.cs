@@ -1,8 +1,8 @@
 using AwesomeAssertions;
-using Server.Application.Caching;
 using Server.Application.MeasurementCaching;
 using Server.Domain.Measurements;
 using Tests.Shared;
+using Tests.Unit.Fakes;
 
 namespace Tests.Unit;
 
@@ -12,15 +12,14 @@ public sealed class MeasurementStateChangedHandlerTests
 {
     [Test]
     [OpenSpecScenario("measurement-matching", "Cache invalidation follows lifecycle and pairing changes", "A status change invalidates that measurement's cache")]
-    public async Task HandleAsync_InvalidatesTheMessagesMeasurementCacheToken()
+    public async Task HandleAsync_InvalidatesTheMessagesMeasurementCache()
     {
         const string measurementId = "measurement-1";
-        var registry = new MeasurementCacheInvalidationRegistry();
-        using var tokenBeforeHandling = registry.AcquireToken(measurementId);
-        var handler = new MeasurementStateChangedHandler(registry);
+        var cache = new InMemoryMeasurementContentCache();
+        var handler = new MeasurementStateChangedHandler(cache);
 
         await handler.HandleAsync(new MeasurementStateChanged(measurementId), CancellationToken.None);
 
-        tokenBeforeHandling.ChangeToken.HasChanged.Should().BeTrue();
+        cache.InvalidatedMeasurementIds.Should().Equal(measurementId);
     }
 }

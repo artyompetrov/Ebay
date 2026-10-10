@@ -2,13 +2,15 @@ using System.Reflection;
 using AwesomeAssertions;
 using Microsoft.Extensions.Hosting;
 using Server.Application;
+using Server.Application.Abstractions.Driven.Abstractions;
+using Server.Application.Abstractions.Driving.Abstractions.Services;
 using Server.Domain;
 
 namespace Tests.Unit.Architecture;
 
 /// <summary>
 /// Контроль архитектуры "порты и адаптеры": корневая сборка - только composition root,
-/// application и domain не зависят от внешних сборок (кроме явного списка исключений).
+/// application, domain и сборки портов не зависят от внешних сборок, кроме явно разрешённых правилами ниже.
 /// </summary>
 [TestFixture]
 public sealed class ArchitectureTest
@@ -33,61 +35,38 @@ public sealed class ArchitectureTest
         "Microsoft.Extensions"
     ];
 
-    // TODO: исключения ниже - текущие нарушения; со временем сокращать список, а не расширять.
-    // Исключения: допустимые внешние сборки в корне (composition root).
+    // Композиционный корень: только фреймворк, сборки решения и Server.Platform. Конфигурация инфраструктуры
+    // (шина, identity, кеши) живёт в Add*Adapter() соответствующих адаптеров.
     // Сборки, на которые ссылается сам Server.Platform, разрешаются автоматически (см. GetPlatformReferences).
-    private static readonly string[] RootAllowedExternalAssemblies = [
-        "Duende.IdentityServer",
-        "Duende.IdentityServer.Storage",
-        "MassTransit",
-        "MassTransit.Abstractions",
-        "MassTransit.EntityFrameworkCoreIntegration",
-        "MassTransit.SqlTransport.PostgreSql"
-    ];
+    private static readonly string[] RootAllowedExternalAssemblies = [];
 
-    // Исключения: допустимые внешние сборки в слое application.
-    // Слой мягче domain: допустимы абстракции и библиотеки, помогающие оркестрировать сценарии.
-    // Конкретная инфраструктура (БД, web-фреймворк, брокер, SMTP, HTTP-клиенты) остаётся в адаптерах за портами.
+    // Application: только IO-free абстракции DI и логирования. Конкретная инфраструктура
+    // (БД, web-фреймворк, брокер, кеши, опции/конфигурация, отрисовка) остаётся в адаптерах за портами.
     // Проверка для ревьюера: замена БД, web-фреймворка или брокера сообщений не должна менять application.
     private static readonly string[] ApplicationAllowedExternalAssemblies = [
+        "Microsoft.Extensions.DependencyInjection.Abstractions",
+        "Microsoft.Extensions.Logging.Abstractions"
+    ];
+
+    // Domain: самый строгий слой - по умолчанию только базовая библиотека. Допустима лишь IO-free библиотека,
+    // которая помогает выразить модель (RBF-аппроксимация анодных кривых, allow-list санитайзер описания товара
+    // и его зависимость AngleSharp); фреймворки, диктующие форму модели, и библиотеки отрисовки недопустимы.
+    // Проверка для ревьюера: замена БД, web-фреймворка или брокера сообщений не должна менять domain.
+    private static readonly string[] DomainAllowedExternalAssemblies = [
         "alglib.net",
         "AngleSharp",
         "HtmlSanitizer",
-        "MassTransit.Abstractions",
-        "Microsoft.Extensions.Caching.Abstractions",
-        "Microsoft.Extensions.Configuration.Binder",
-        "Microsoft.Extensions.DependencyInjection.Abstractions",
-        "Microsoft.Extensions.Hosting.Abstractions",
-        "Microsoft.Extensions.Logging.Abstractions",
-        "Microsoft.Extensions.Options",
-        "Microsoft.Extensions.Options.ConfigurationExtensions",
-        "Microsoft.Extensions.Options.DataAnnotations",
-        "Microsoft.Extensions.Primitives",
-        "ScottPlot"
-    ];
-
-    // Исключения: допустимые внешние сборки в слое domain.
-    // Самый строгий слой: по умолчанию - только базовая библиотека.
-    // Исключение допустимо лишь для небольшой стабильной библиотеки без побочных эффектов,
-    // которая помогает выразить бизнес-модель; фреймворки, диктующие форму модели, недопустимы.
-    // Проверка для ревьюера: замена БД, web-фреймворка или брокера сообщений не должна менять domain.
-    private static readonly string[] DomainAllowedExternalAssemblies = [
         "JetBrains.Annotations"
     ];
 
-    // Исключения: hosted services, которые пока живут не в адаптерной сборке.
-    private static readonly string[] AllowedHostedServiceTypes = [
-        "Server.Application.HostedServices.ChipFind.ChipfindBackgroundTask",
-        "Server.Application.HostedServices.Currencies.CurrencyRateBackgroundTask",
-        "Server.Application.HostedServices.DbCache.DbCacheCleanupHostedService",
-        "Server.Application.HostedServices.MeasurementPhotoOriginalSizeBackfillHostedService",
-        "Server.Application.HostedServices.Measurements.MeasurementPlotWarmupHostedService",
-        "Server.Application.HostedServices.SaleAdvertisements.SaleAdvertisementCleanupBackgroundTask"
-    ];
+    // Сборки портов: только контракты (интерфейсы и модели), без внешних зависимостей.
+    private static readonly string[] PortAllowedExternalAssemblies = [];
 
     private static readonly Assembly RootAssembly = typeof(Server.Program).Assembly;
     private static readonly Assembly ApplicationAssembly = typeof(ServiceCollectionExtensions).Assembly;
     private static readonly Assembly DomainAssembly = typeof(Lot).Assembly;
+    private static readonly Assembly DrivenPortsAssembly = typeof(ICacheStore).Assembly;
+    private static readonly Assembly DrivingPortsAssembly = typeof(IMeasurementService).Assembly;
 
     [Test]
     public void Root_assembly_should_reference_only_solution_assemblies_and_platform()
@@ -122,13 +101,23 @@ public sealed class ArchitectureTest
         violations.Should().BeEmpty("domain не должен зависеть от внешних сборок, кроме списка исключений");
     }
 
+    [TestCaseSource(nameof(PortAssemblies))]
+    public void Port_assembly_should_reference_only_solution_assemblies(Assembly assembly)
+    {
+        var violations = GetExternalReferences(
+            assembly,
+            [.. FrameworkAssemblyPrefixes, SolutionAssemblyPrefix],
+            PortAllowedExternalAssemblies);
+
+        violations.Should().BeEmpty("порты - чистые контракты и не должны зависеть от внешних сборок");
+    }
+
     [TestCaseSource(nameof(NonAdapterAssemblies))]
     public void Non_adapter_assembly_should_not_contain_hosted_services(Assembly assembly)
     {
         var hostedServices = assembly.GetTypes()
             .Where(static type => !type.IsAbstract && typeof(IHostedService).IsAssignableFrom(type))
             .Select(static type => type.FullName!)
-            .Where(static name => !AllowedHostedServiceTypes.Contains(name))
             .Order()
             .ToArray();
 
@@ -140,6 +129,14 @@ public sealed class ArchitectureTest
         yield return new TestCaseData(RootAssembly).SetArgDisplayNames(nameof(RootAssembly));
         yield return new TestCaseData(ApplicationAssembly).SetArgDisplayNames(nameof(ApplicationAssembly));
         yield return new TestCaseData(DomainAssembly).SetArgDisplayNames(nameof(DomainAssembly));
+        yield return new TestCaseData(DrivenPortsAssembly).SetArgDisplayNames(nameof(DrivenPortsAssembly));
+        yield return new TestCaseData(DrivingPortsAssembly).SetArgDisplayNames(nameof(DrivingPortsAssembly));
+    }
+
+    private static IEnumerable<TestCaseData> PortAssemblies()
+    {
+        yield return new TestCaseData(DrivenPortsAssembly).SetArgDisplayNames(nameof(DrivenPortsAssembly));
+        yield return new TestCaseData(DrivingPortsAssembly).SetArgDisplayNames(nameof(DrivingPortsAssembly));
     }
 
     // Типы зависимостей Server.Platform попадают в метаданные корня через сигнатуры его API

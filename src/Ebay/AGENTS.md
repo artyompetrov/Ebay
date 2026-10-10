@@ -25,6 +25,12 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 - `Server.Application` — application layer (use-case services, ports).
 - `Server.Domain` — domain model.
 - `Server.Adapters.*` — adapters, including `Server.Adapters.Driven.EF.Identity` (ASP.NET Identity + Duende IdentityServer's operational store).
+- `Server.Adapters.MassTransit` — message bus adapter. It holds both sides of the bus: consumers (driving) under `Driving/` and publishers implementing driven ports under `Driven/`, and owns the whole bus configuration (`AddMassTransitAdapter()`: consumers, SQL transport, scheduler, EF outbox). It references `Server.Adapters.Driven.EF.WriteModel` - the single allowed adapter-to-adapter reference, because the transactional outbox (`AddEntityFrameworkOutbox<WriteModelDbContext>`) needs the write-model `DbContext` type. Don't add other adapter-to-adapter references.
+- Identity/authorization configuration (data protection, ASP.NET Identity, IdentityServer clients, JWT, `AuthorizationClientOptions`) lives in `Server.Adapters.Driven.EF.Identity` behind `AddEfIdentityAdapter()`/`UseEfIdentityAdapterAuthentication()`, not in `Program.cs`.
+- Adapter-private caches (e.g. GeoIp, ChipFind keyed `IMemoryCache`) are registered by their own adapter's `Add*Adapter()`.
+- `Server.Adapters.Driven.Plotting` — SVG rendering of measurement plots, status labels and tube-info cards (`ScottPlot`) behind `IPlottingAdapter`; `MeasurementPlotService` only orchestrates (loading, approximation, axis ranges, cache keys).
+- `Server.Adapters.Driven.MemoryCache` — process-wide in-memory cache for measurement-bound content (photo/thumbnail bytes, rendered eBay plots) behind `IMeasurementContentCacheAdapter`: size limit (`ImageCache` section), sliding expiration and per-measurement invalidation. The application decides keys and what is cacheable; `ICacheStore` (persistent Postgres cache) is a different port.
+- `Server.Adapters.Driving.BackgroundTasks` — driving adapter for periodic/startup background jobs (ChipFind monitoring, currency rates, sale advertisement cleanup, DB cache cleanup, measurement plot warmup). Each hosted service only creates a scope, applies the `EbayServer:IsLocalRun` switch where relevant, and calls one application use-case method; scheduling constants live here, business thresholds stay in `Server.Application`. Hosted services (`IHostedService`) live only in adapter assemblies.
 - `Tests.Unit`, `Tests.Integration`, `Tests.Explicit` — test projects.
 - `Tests.Frontend` — bUnit component tests and Playwright Chromium checks of rendered photo previews. Install Chromium with the generated `playwright.ps1` after building.
 - `Tests.Shared` — shared test infrastructure referenced by the test projects above; `OpenSpecScenarioAttribute` and shared browser assertions (see the `write-tests` skill).
@@ -83,7 +89,16 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 - `Server.Application` — use cases and ports.
 - `Server.Adapters.*` — port implementations.
 - `Server.Application` must not reference `Server.Adapters.*`.
-- `Tests.Unit/Architecture/ArchitectureTest.cs` enforces this: `Server` (composition root), `Server.Application` and `Server.Domain` may reference only framework/solution assemblies plus an explicit exception list, and must not contain hosted services. The exception lists hold current violations (tech debt) - shrink them, don't extend them without justification.
+- IO-free libraries in the domain: `Server.Domain` may reference an external library only if it performs no IO and helps express the model; today these are `alglib.net` (RBF approximation of anode curves, `Measurements/Approximation`) and `HtmlSanitizer` with its `AngleSharp` dependency (`Product/ProductDescriptionSanitizer`). Rendering/presentation libraries (e.g. `ScottPlot`) don't qualify even when IO-free.
+- Port placement: a driven port whose signature an aggregate needs lives in `Server.Domain` (today `IMeasurementFileParser`); every other driven port lives in `Server.Application.Abstractions.Driven`.
+- `Tests.Unit/Architecture/ArchitectureTest.cs` enforces these rules (they are permanent, not tech debt):
+  - `Server` (composition root) references only framework, solution and `Server.Platform` assemblies; `Program.cs` contains only `AddPlatform`, `Add*Adapter`, `AddApplication` and the HTTP pipeline;
+  - `Server.Application` references only `Microsoft.Extensions.DependencyInjection.Abstractions` and `Microsoft.Extensions.Logging.Abstractions` (no options/configuration binding, caches, hosting, bus or rendering libraries - those live in adapters behind ports);
+  - `Server.Domain` references only `JetBrains.Annotations` and the IO-free libraries listed below;
+  - the port assemblies `Server.Application.Abstractions.Driven`/`.Driving` reference no external assemblies;
+  - none of these assemblies contains a hosted service.
+  Adding an entry to these lists needs the same justification as a new rule.
+- No driven adapter references `Server.Application`; driven adapters depend only on `Server.Application.Abstractions.Driven` (and the domain).
 
 ### Command/query split
 - **Commands** (state changes): an application-layer use-case service loads an aggregate through its repository port (`Server.Application.Abstractions.Driven.Abstractions.Repositories.I*Repository`), calls domain methods on it, and commits via `IWriteModelUnitOfWork`. The aggregate is always loaded and persisted as a whole; there is no partial/column-level command update.
@@ -94,7 +109,7 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 - An aggregate never exposes a public setter for behavior-bearing state. State changes go through a domain method (e.g. `ChangeState(...)`) that: 1) mutates the aggregate's own state first, 2) only then, and only if the value actually changed, calls `AddDomainEvent(...)` (see `AggregateRoot<TId>` in `Server.Domain.Abstractions`).
 - Application services call these domain methods; they never mutate aggregate state directly and never publish domain events themselves.
 - Domain events are dispatched automatically, not explicitly: `WriteModelDbContext.SaveChangesAsync` (the write-model unit of work) collects all changed aggregates with pending events, publishes each event via `IPublishEndpoint` (MassTransit outbox), then clears them, all before the actual `SaveChanges` write. Adding a new event type requires no publishing code beyond raising it from the aggregate.
-- Consumers/handlers for domain events live in `Server.Adapters.Driving.MassTransit` (+ a handler in `Server.Application`), following the existing `MeasurementStateChanged`/`MeasurementStateChangedConsumer` pattern.
+- Consumers for domain events live in `Server.Adapters.MassTransit/Driving` (+ a handler in `Server.Application`), following the existing `MeasurementStateChanged`/`MeasurementStateChangedConsumer` pattern; register new consumers in `AddMassTransitAdapter()`.
 
 ## Review-error checklist (mandatory before a PR)
 - A repository (`Server.Adapters.Driven.*.Repositories`) does not call `SaveChanges/SaveChangesAsync`; committing changes happens in the application layer via `IWriteModelUnitOfWork`.
@@ -105,4 +120,4 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 ## UI
 - Icons: Open Iconic (https://icones.js.org/collection/oi, https://github.com/iconic/open-iconic) or emoji.
 - JS interop uses .NET's native WASM interop (`System.Runtime.InteropServices.JavaScript`), not `IJSRuntime`: JS functions live in `Frontend/wwwroot/js/interop.js` (a single ES module loaded once via `JSHost.ImportAsync` in `Program.cs`), and C# declares matching `[JSImport(functionName:..., moduleName: "interop")] static partial` members on `Frontend/Interop.cs`. A third-party JS library used by only one page is loaded with a `<script>`/`<link>` tag directly in that page's `.razor` file (see `MeasurementPhotos.razor`/`Measurements.razor` for `html5-qrcode`, `ProductProperties.razor` for Quill), not in `index.html`.
-- `Product.Description` is a rich-text (HTML) field authored via a Quill WYSIWYG editor (`ProductProperties.razor` + the `InitProductDescriptionEditor`/`GetProductDescriptionEditorHtml` interop functions) and rendered at the top of the eBay listing description page (`EbayLotDescriptionPage.cshtml`). It is sanitized server-side in `Server.Application.ProductDescriptionSanitizer` (allow-list HTML sanitizer) before being persisted, so it is already safe to render with `@Html.Raw` - never render unsanitized user HTML this way.
+- `Product.Description` is a rich-text (HTML) field authored via a Quill WYSIWYG editor (`ProductProperties.razor` + the `InitProductDescriptionEditor`/`GetProductDescriptionEditorHtml` interop functions) and rendered at the top of the eBay listing description page (`EbayLotDescriptionPage.cshtml`). It is sanitized server-side in `Server.Domain.Product.ProductDescriptionSanitizer` (allow-list HTML sanitizer) before being persisted, so it is already safe to render with `@Html.Raw` - never render unsanitized user HTML this way.

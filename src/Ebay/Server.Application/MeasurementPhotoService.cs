@@ -1,9 +1,6 @@
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.DependencyInjection;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
-using Server.Application.Caching;
 using Server.Domain.Measurements;
 
 namespace Server.Application;
@@ -23,8 +20,7 @@ public sealed class MeasurementPhotoService
     private static readonly byte[] HiddenPhotoPlaceholderContent = Convert.FromBase64String(
         "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=");
 
-    private readonly IMemoryCache _cache;
-    private readonly MeasurementCacheInvalidationRegistry _cacheInvalidationRegistry;
+    private readonly IMeasurementContentCacheAdapter _cache;
     private readonly IMeasurementPhotoQueries _measurementPhotoQueries;
     private readonly IMeasurementPhotoRepository _measurementPhotoRepository;
     private readonly IMeasurementInfoQueries _measurementQueries;
@@ -34,16 +30,14 @@ public sealed class MeasurementPhotoService
     /// <summary>
     /// Создает сервис сценариев работы с фотографиями замера.
     /// </summary>
-    /// <param name="cache">Выделенный in-memory кеш для байтов фото/миниатюр непроданных замеров.</param>
-    /// <param name="cacheInvalidationRegistry">Реестр токенов протухания кеша по измерению.</param>
+    /// <param name="cache">Процессный кеш байтов фото/миниатюр, привязанных к замеру.</param>
     /// <param name="measurementPhotoQueries">Запросы чтения фотографий замера.</param>
     /// <param name="measurementPhotoRepository">Репозиторий агрегата фотографии замера.</param>
     /// <param name="measurementQueries">Запросы чтения карточки замера.</param>
     /// <param name="photoThumbnailGenerator">Генератор миниатюр фотографий.</param>
     /// <param name="writeModelUnitOfWork">Unit of Work для сохранения write-model.</param>
     public MeasurementPhotoService(
-        [FromKeyedServices(WellKnown.ImageCache.ServiceKey)] IMemoryCache cache,
-        MeasurementCacheInvalidationRegistry cacheInvalidationRegistry,
+        IMeasurementContentCacheAdapter cache,
         IMeasurementPhotoQueries measurementPhotoQueries,
         IMeasurementPhotoRepository measurementPhotoRepository,
         IMeasurementInfoQueries measurementQueries,
@@ -51,7 +45,6 @@ public sealed class MeasurementPhotoService
         IWriteModelUnitOfWork writeModelUnitOfWork)
     {
         _cache = cache;
-        _cacheInvalidationRegistry = cacheInvalidationRegistry;
         _measurementPhotoQueries = measurementPhotoQueries;
         _measurementPhotoRepository = measurementPhotoRepository;
         _measurementQueries = measurementQueries;
@@ -117,6 +110,7 @@ public sealed class MeasurementPhotoService
         CancellationToken cancellationToken)
     {
         return await _cache.GetOrCreateAsync(
+            measurementId: measurementId,
             key: ContentCacheKey(measurementId, photoId),
             factory: async () =>
             {
@@ -137,8 +131,7 @@ public sealed class MeasurementPhotoService
                 var photo = await _measurementPhotoQueries.Get(measurementId, photoId, cancellationToken);
                 return photo == null ? null : new MeasurementPhotoContent(photo.Content, photo.ContentType);
             },
-            sizeSelector: static x => x.Content.LongLength,
-            invalidationTokenFactory: () => _cacheInvalidationRegistry.AcquireToken(measurementId));
+            sizeSelector: static x => x.Content.LongLength);
     }
 
     /// <summary>
@@ -155,6 +148,7 @@ public sealed class MeasurementPhotoService
         CancellationToken cancellationToken)
     {
         return await _cache.GetOrCreateAsync(
+            measurementId: measurementId,
             key: ThumbnailCacheKey(measurementId, photoId),
             factory: async () =>
             {
@@ -175,8 +169,7 @@ public sealed class MeasurementPhotoService
                 var thumbnail = await _measurementPhotoQueries.GetThumbnail(measurementId, photoId, cancellationToken);
                 return thumbnail == null ? null : new MeasurementPhotoContent(thumbnail, ThumbnailContentType);
             },
-            sizeSelector: static x => x.Content.LongLength,
-            invalidationTokenFactory: () => _cacheInvalidationRegistry.AcquireToken(measurementId));
+            sizeSelector: static x => x.Content.LongLength);
     }
 
     /// <summary>
