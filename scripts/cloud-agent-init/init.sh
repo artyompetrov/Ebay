@@ -32,6 +32,17 @@ sudo -u postgres psql -v ON_ERROR_STOP=1 <<'SQL'
      ALTER ROLE ebay CREATEROLE CREATEDB;
 SQL
 
+# --- Docker (integration tests start PostgreSQL via Testcontainers) ---
+# The sandbox ships Docker but does not start the daemon.
+if command -v dockerd >/dev/null 2>&1 && ! docker info >/dev/null 2>&1; then
+  sudo sh -c 'nohup dockerd >/var/log/dockerd.log 2>&1 &'
+  for _ in $(seq 1 30); do
+    docker info >/dev/null 2>&1 && break
+    sleep 1
+  done
+  docker info >/dev/null 2>&1 || echo "WARNING: Docker daemon did not start; see /var/log/dockerd.log" >&2
+fi
+
 # --- .NET SDK ---
 DOTNET_DIR=/opt/dotnet
 if [ ! -x "$DOTNET_DIR/dotnet" ]; then
@@ -67,4 +78,5 @@ if [ "$(openspec --version 2>/dev/null || true)" != "$OPENSPEC_VERSION" ]; then
 fi
 
 pg_lsclusters
+docker --version 2>/dev/null || true
 dotnet --version

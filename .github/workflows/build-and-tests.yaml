@@ -21,21 +21,6 @@ jobs:
     name: Build .NET, run tests and build extension
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: ebay
-          POSTGRES_PASSWORD: catnip0-spoil4-untrimmed
-          POSTGRES_DB: ebay
-        ports:
-          - 15432:5432
-        options: >-
-          --health-cmd="pg_isready -U ebay -d ebay"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
     steps:
       - uses: actions/checkout@v6
 
@@ -57,17 +42,8 @@ jobs:
       - name: Install Chromium for behavioral UI tests
         run: pwsh ./src/Ebay/Tests.Frontend/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
 
-      - name: Initialize integration test database
-        env:
-          PGPASSWORD: catnip0-spoil4-untrimmed
-        run: |
-          psql -h localhost -p 15432 -U ebay -d ebay -v ON_ERROR_STOP=1 <<'SQL'
-          CREATE EXTENSION IF NOT EXISTS hstore;
-          SQL
-
       - name: Run integration tests
         env:
-          ConnectionStrings__DefaultConnection: User ID=ebay;Password=catnip0-spoil4-untrimmed;Server=localhost;Port=15432;Database=ebay;Pooling=true;MinPoolSize=1;MaxPoolSize=60;Enlist=true;Include Error Detail=true;
           EbayServer__TargetEmail: integration-tests@localhost
           EbayServer__IsLocalRun: true
         run: |

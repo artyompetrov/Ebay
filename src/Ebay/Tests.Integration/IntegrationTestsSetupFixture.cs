@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Npgsql;
 
 namespace Tests.Integration;
 
@@ -13,7 +12,7 @@ public class IntegrationTestsSetupFixture
 {
     private static readonly string DatabaseName = $"test_ebay_{Guid.NewGuid():N}";
     private static readonly LaunchSettingsParameters LaunchSettings = ReadLaunchSettings();
-    private static readonly string ServerConnectionString = BuildServerConnectionString();
+    private static string _serverConnectionString = null!;
 
     public static string AuthorizationClientId => LaunchSettings.AuthorizationClientId;
 
@@ -28,6 +27,8 @@ public class IntegrationTestsSetupFixture
     [OneTimeSetUp]
     public async Task OneTimeSetUp()
     {
+        await PostgresTestServer.StartAsync();
+        _serverConnectionString = PostgresTestServer.CreateDatabaseConnectionString(DatabaseName);
 
         Factory = new WebApplicationFactory<Server.Program>()
             .WithWebHostBuilder(builder =>
@@ -37,7 +38,7 @@ public class IntegrationTestsSetupFixture
                 {
                     configBuilder.AddInMemoryCollection(new Dictionary<string, string?>
                     {
-                        ["ConnectionStrings:DefaultConnection"] = ServerConnectionString,
+                        ["ConnectionStrings:DefaultConnection"] = _serverConnectionString,
                         ["EbayServer:TargetEmail"] = "integration-tests@localhost",
                         ["EbayServer:IsLocalRun"] = "true",
                         ["AuthorizationClient:DataProtectionKeysDirectory"] = Path.Join(Path.GetTempPath(), "data_protection_keys_dir_tests"),
@@ -74,17 +75,8 @@ public class IntegrationTestsSetupFixture
     public async Task OneTimeTearDown()
     {
         await Factory.DisposeAsync();
-        await DropTestDatabaseAsync();
-    }
-
-    private static string BuildServerConnectionString()
-    {
-        var connectionStringBuilder = new NpgsqlConnectionStringBuilder(LaunchSettings.ConnectionString)
-        {
-            Database = DatabaseName
-        };
-
-        return connectionStringBuilder.ConnectionString;
+        await PostgresTestServer.DropDatabaseAsync(DatabaseName);
+        await PostgresTestServer.StopAsync();
     }
 
     private static LaunchSettingsParameters ReadLaunchSettings()
@@ -107,7 +99,6 @@ public class IntegrationTestsSetupFixture
         }
 
         return new LaunchSettingsParameters(
-            ConnectionString: ReadRequiredEnvironmentVariable(environmentVariables, "ConnectionStrings__DefaultConnection"),
             AuthorizationClientId: ReadRequiredEnvironmentVariable(environmentVariables, "AuthorizationClient__ClientId"),
             AuthorizationClientScope: ReadRequiredEnvironmentVariable(environmentVariables, "AuthorizationClient__Scope"),
             AuthorizationClientSecret: ReadRequiredEnvironmentVariable(environmentVariables, "AuthorizationClient__ClientSecret")
@@ -125,36 +116,7 @@ public class IntegrationTestsSetupFixture
         return valueElement.GetString()!;
     }
 
-    private static async Task DropTestDatabaseAsync()
-    {
-        var adminConnectionStringBuilder = new NpgsqlConnectionStringBuilder(ServerConnectionString)
-        {
-            Database = "postgres",
-            Pooling = false
-        };
-
-        await using var connection = new NpgsqlConnection(adminConnectionStringBuilder.ConnectionString);
-        await connection.OpenAsync();
-
-        await using (var terminateCommand = connection.CreateCommand())
-        {
-            terminateCommand.CommandText =
-                $"""
-                 SELECT pg_terminate_backend(pid)
-                 FROM pg_stat_activity
-                 WHERE datname = '{DatabaseName}'
-                   AND pid <> pg_backend_pid();
-                 """;
-            await terminateCommand.ExecuteNonQueryAsync();
-        }
-
-        await using var dropCommand = connection.CreateCommand();
-        dropCommand.CommandText = $"""DROP DATABASE IF EXISTS "{DatabaseName}";""";
-        await dropCommand.ExecuteNonQueryAsync();
-    }
-
     private sealed record LaunchSettingsParameters(
-        string ConnectionString,
         string AuthorizationClientId,
         string AuthorizationClientScope,
         string AuthorizationClientSecret
