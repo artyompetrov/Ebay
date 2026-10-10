@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -8,9 +9,10 @@ using OpenTelemetry.Logs;
 namespace Server.Platform;
 
 /// <summary>
-/// Platform-level observability: logging, telemetry export and health checks.
-/// The composition root only calls <see cref="AddPlatform"/> and <see cref="MapPlatform"/>;
-/// everything else (providers, exporters, endpoints) is owned by this assembly.
+/// Platform-level host setup: configuration sources, DI container validation, logging,
+/// telemetry export and health checks. The composition root calls <see cref="AddPlatform"/> once
+/// right after creating the builder and <see cref="MapPlatform"/> once when mapping endpoints;
+/// everything else is owned by this assembly.
 /// </summary>
 public static class PlatformExtensions
 {
@@ -18,12 +20,21 @@ public static class PlatformExtensions
     public const string HealthEndpointPath = "/api/health";
 
     /// <summary>
-    /// Registers logging (console + OpenTelemetry OTLP export) and health checks.
-    /// The OTLP exporter is configured via the standard <c>OTEL_*</c> environment variables.
+    /// Applies the platform setup: <c>ASPNETCORE_</c>-prefixed environment configuration, strict DI container
+    /// validation (<c>ValidateOnBuild</c>/<c>ValidateScopes</c>), logging (console + OpenTelemetry OTLP export,
+    /// configured via the standard <c>OTEL_*</c> environment variables) and health checks.
     /// </summary>
     public static TBuilder AddPlatform<TBuilder>(this TBuilder builder)
         where TBuilder : IHostApplicationBuilder
     {
+        builder.Configuration.AddEnvironmentVariables(prefix: "ASPNETCORE_");
+
+        builder.ConfigureContainer(new DefaultServiceProviderFactory(new ServiceProviderOptions
+        {
+            ValidateOnBuild = true,
+            ValidateScopes = true
+        }));
+
         builder.Logging.ClearProviders();
         builder.Logging.AddConsole();
         builder.Logging.SetMinimumLevel(LogLevel.Information);

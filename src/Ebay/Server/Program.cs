@@ -38,13 +38,7 @@ public class Program
         //IdentityModelEventSource.ShowPII = true;
 
         var builder = WebApplication.CreateBuilder(args);
-        builder.Configuration.AddEnvironmentVariables(prefix: "ASPNETCORE_");
-
-        builder.Host.UseDefaultServiceProvider(options =>
-        {
-            options.ValidateOnBuild = true;
-            options.ValidateScopes = true;
-        });
+        builder.AddPlatform();
 
         // Add services to the container.
         // Каждый потребитель IMemoryCache получает свой именованный кеш вместо одного общего
@@ -73,7 +67,6 @@ public class Program
         ConfigureMassTransit(builder.Services);
 
         ConfigureIdentity(builder.Services);
-        builder.AddPlatform();
 
         builder.Services.AddResponseCaching();
 
