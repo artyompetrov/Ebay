@@ -57,7 +57,7 @@ Each numbered group is one pull request (see `design.md` - "One change, six pull
 - [x] 7.1 Review `Program.cs` and all `Server.Adapters.Driven.*` csproj files against the Goals. Verify: `Program.cs` has only `AddPlatform`, `Add*Adapter`, `AddApplication` and the pipeline; `grep -l "Server.Application.csproj" src/Ebay/Server.Adapters.Driven.*/*.csproj` is empty.
 - [x] 7.2 Sync the `measurement-photos` delta into `openspec/specs` and re-point the two upload tests in `MeasurementPhotosFlowTests` to "Bounded original photo size on upload". Verify: `openspec validate canonical-ports-and-adapters --strict` passes and no `[OpenSpecScenario]` references the removed requirement name.
 - [x] 7.3 Run `./scripts/agent-check/agent-check.sh` from the repository root. Verify: it reports all checks passed.
-- [ ] 7.4 Run the app locally (`dotnet run --launch-profile Server`) and exercise login, a measurement plot, a measurement photo and one bus-driven flow. Verify: each behaves as on `main` and the log shows the five background tasks starting.
+- [x] 7.4 Run the app locally (`dotnet run --launch-profile Server`) and exercise login, a measurement plot, a measurement photo and one bus-driven flow. Verify: each behaves as on `main` and the log shows the five background tasks starting.
 
 ## Workflow follow-up
 
