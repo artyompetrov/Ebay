@@ -1,12 +1,14 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <!--
       Архитектурное правило (Domain):
       - доменный слой является независимым ядром системы;
       - запрещены ссылки на Server.Application*, Server.Adapters*, Server и любую инфраструктуру
         (ASP.NET Core, EF Core, Npgsql, MassTransit, HTTP/SMTP/очереди и т.п.);
-      - допустимы только платформенные зависимости и редкие внешние библиотеки,
-        не привязывающие домен к инфраструктуре.
+      - допустимы только платформенные зависимости и IO-free библиотеки, которые помогают выразить модель
+        (сейчас alglib.net, HtmlSanitizer и его зависимость AngleSharp); библиотеки отрисовки (ScottPlot) - нет;
+      - размещение портов: driven-порт, нужный агрегату в сигнатуре, живёт здесь (IMeasurementFileParser),
+        все остальные driven-порты - в Server.Application.Abstractions.Driven.
     -->
     <PropertyGroup>
         <ImplicitUsings>enable</ImplicitUsings>
@@ -14,6 +16,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <!-- IO-free библиотека: RBF-аппроксимация анодных кривых (Measurements/Approximation). -->
+      <PackageReference Include="alglib.net" />
+      <!-- IO-free библиотека: allow-list HTML-санитайзер описания товара (Product/ProductDescriptionSanitizer); средствами BCL безопасно не реализуется. -->
+      <PackageReference Include="HtmlSanitizer" />
       <PackageReference Include="JetBrains.Annotations" />
     </ItemGroup>
 

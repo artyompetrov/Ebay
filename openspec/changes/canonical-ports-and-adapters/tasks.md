@@ -32,10 +32,10 @@ Each numbered group is one pull request (see `design.md` - "One change, six pull
 
 ## 4. IO-free libraries into the domain
 
-- [ ] 4.1 Move the curve-approximation model and builder from `MeasurementApproximationService` into `Server.Domain` with the `alglib.net` package reference; update callers (`MatchedPairsCalculator`, `MeasurementPlotService`) and DI. Verify: existing approximation/matching unit tests pass after being moved with the class (`[TestOf]` updated).
-- [ ] 4.2 Move `ProductDescriptionSanitizer` into `Server.Domain` with the `HtmlSanitizer` package reference; update callers, DI and the `AGENTS.md` "UI" sentence that names its location. Verify: `ProductDescriptionSanitizerTests` pass with their three `[OpenSpecScenario]` mappings intact.
-- [ ] 4.3 In `ArchitectureTest` remove `alglib.net`, `HtmlSanitizer`, `AngleSharp` from the application list and add them to the domain list with a comment stating the rule (IO-free library that expresses the model). Verify: both layer tests pass; `Server.Application.csproj` no longer references either package.
-- [ ] 4.4 Update `src/Ebay/AGENTS.md` and the `Server.Domain.csproj` header comment with the rule for IO-free libraries in the domain and the placement rule for ports (aggregate-facing ports in the domain, all other driven ports in `Server.Application.Abstractions.Driven`). Verify: both files state the rule and name the allowed libraries.
+- [x] 4.1 Move the curve-approximation model and builder from `MeasurementApproximationService` into `Server.Domain` with the `alglib.net` package reference; update callers (`MatchedPairsCalculator`, `MeasurementPlotService`) and DI. Verify: existing approximation/matching unit tests pass after being moved with the class (`[TestOf]` updated).
+- [x] 4.2 Move `ProductDescriptionSanitizer` into `Server.Domain` with the `HtmlSanitizer` package reference; update callers, DI and the `AGENTS.md` "UI" sentence that names its location. Verify: `ProductDescriptionSanitizerTests` pass with their three `[OpenSpecScenario]` mappings intact.
+- [x] 4.3 In `ArchitectureTest` remove `alglib.net`, `HtmlSanitizer`, `AngleSharp` from the application list and add them to the domain list with a comment stating the rule (IO-free library that expresses the model). Verify: both layer tests pass; `Server.Application.csproj` no longer references either package.
+- [x] 4.4 Update `src/Ebay/AGENTS.md` and the `Server.Domain.csproj` header comment with the rule for IO-free libraries in the domain and the placement rule for ports (aggregate-facing ports in the domain, all other driven ports in `Server.Application.Abstractions.Driven`). Verify: both files state the rule and name the allowed libraries.
 
 ## 5. Plotting adapter
 

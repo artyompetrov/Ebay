@@ -7,10 +7,11 @@ using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Models;
 using Server.Application.Caching;
-using Server.Application.Services;
 using Server.Domain.Measurements;
 using Server.Domain.Measurements.MeasurementTypes;
 using Server.Domain.Measurements.MeasurementTypes.Base;
+using Server.Application.TubeWorkingPoints;
+using Server.Domain.Measurements.Approximation;
 
 namespace Server.Application.MeasurementPlot;
 
@@ -24,7 +25,6 @@ public class MeasurementPlotService
     private readonly IMeasurementFileParser _measurementFileParser;
     private readonly IMeasurementWatchedOnEbayPublisher _watchedOnEbayPublisher;
     private readonly ITubeWorkingPointQueries _workingPointQueries;
-    private readonly MeasurementApproximationService _measurementApproximationService;
 
     public MeasurementPlotService(
         ICacheStore cache,
@@ -33,8 +33,7 @@ public class MeasurementPlotService
         IMeasurementQueries measurementQueries,
         IMeasurementFileParser measurementFileParser,
         IMeasurementWatchedOnEbayPublisher watchedOnEbayPublisher,
-        ITubeWorkingPointQueries workingPointQueries,
-        MeasurementApproximationService measurementApproximationService)
+        ITubeWorkingPointQueries workingPointQueries)
     {
         _cache = cache;
         _memoryCache = memoryCache;
@@ -43,7 +42,6 @@ public class MeasurementPlotService
         _measurementFileParser = measurementFileParser;
         _watchedOnEbayPublisher = watchedOnEbayPublisher;
         _workingPointQueries = workingPointQueries;
-        _measurementApproximationService = measurementApproximationService;
     }
 
 #pragma warning disable CA1822 // Экземплярный метод для единообразного DI-контракта сервиса.
@@ -238,7 +236,7 @@ public class MeasurementPlotService
             return null;
         }
 
-        var model = _measurementApproximationService.GetModel(anodeCurves, x => x.I1, workingPointInfo);
+        var model = AnodeCurveModelBuilder.Build(anodeCurves, x => x.I1, workingPointInfo.ToApproximationWorkingPoint());
         var i = model.IatWorkingPoint();
         var transconductance = CalculateTransconductance(model, workingPointInfo.GridVoltageHalfWidth);
 
@@ -246,7 +244,7 @@ public class MeasurementPlotService
         double? transconductance2 = null;
         if (anodeCurves is DoubleTriodeAnodeCurves doubleTriodeAnodeCurves)
         {
-            var model2 = _measurementApproximationService.GetModel(doubleTriodeAnodeCurves, x => x.I2!, workingPointInfo);
+            var model2 = AnodeCurveModelBuilder.Build(doubleTriodeAnodeCurves, x => x.I2!, workingPointInfo.ToApproximationWorkingPoint());
             i2 = model2.IatWorkingPoint();
             transconductance2 = CalculateTransconductance(model2, workingPointInfo.GridVoltageHalfWidth);
         }
@@ -260,7 +258,7 @@ public class MeasurementPlotService
             Transconductance2: transconductance2);
     }
 
-    private static double CalculateTransconductance(MeasurementApproximationService.Model model, double gridVoltageHalfWidth)
+    private static double CalculateTransconductance(AnodeCurveModel model, double gridVoltageHalfWidth)
     {
         var iaAtHigherGridVoltage = model.ApproximateAbsolute(anodeVoltage: 0, gridVoltage: 1);
         var iaAtLowerGridVoltage = model.ApproximateAbsolute(anodeVoltage: 0, gridVoltage: -1);

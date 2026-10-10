@@ -10,8 +10,8 @@ using Server.Application.MeasurementCaching;
 using Server.Application.MeasurementPlot;
 using Server.Application.PriceCalculator;
 using Server.Application.SaleAdvertisements;
-using Server.Application.Services;
 using Server.Application.TubeWorkingPoints;
+using Server.Domain.Product;
 
 namespace Server.Application;
 
@@ -31,7 +31,6 @@ public static class ServiceCollectionExtensions
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        services.AddTransient<MeasurementApproximationService>();
         services.AddTransient<IMeasurementService, MeasurementService>();
         services.AddTransient<IMatchedPairsCalculator, MatchedPairsCalculator>();
         services.AddTransient<ICurrentTimeProvider, SystemCurrentTimeProvider>();

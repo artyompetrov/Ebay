@@ -45,9 +45,6 @@ public sealed class ArchitectureTest
     // Конкретная инфраструктура (БД, web-фреймворк, брокер, SMTP, HTTP-клиенты) остаётся в адаптерах за портами.
     // Проверка для ревьюера: замена БД, web-фреймворка или брокера сообщений не должна менять application.
     private static readonly string[] ApplicationAllowedExternalAssemblies = [
-        "alglib.net",
-        "AngleSharp",
-        "HtmlSanitizer",
         "Microsoft.Extensions.Caching.Abstractions",
         "Microsoft.Extensions.Configuration.Binder",
         "Microsoft.Extensions.DependencyInjection.Abstractions",
@@ -64,7 +61,12 @@ public sealed class ArchitectureTest
     // Исключение допустимо лишь для небольшой стабильной библиотеки без побочных эффектов,
     // которая помогает выразить бизнес-модель; фреймворки, диктующие форму модели, недопустимы.
     // Проверка для ревьюера: замена БД, web-фреймворка или брокера сообщений не должна менять domain.
+    // Правило: в domain допустима только IO-free библиотека, которая помогает выразить модель
+    // (RBF-аппроксимация анодных кривых, allow-list санитайзер описания товара и его зависимость AngleSharp).
     private static readonly string[] DomainAllowedExternalAssemblies = [
+        "alglib.net",
+        "AngleSharp",
+        "HtmlSanitizer",
         "JetBrains.Annotations"
     ];
 

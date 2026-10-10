@@ -1,6 +1,6 @@
 using Ganss.Xss;
 
-namespace Server.Application;
+namespace Server.Domain.Product;
 
 /// <summary>
 /// Санитайзер HTML-описания товара для безопасного отображения в листинге eBay.

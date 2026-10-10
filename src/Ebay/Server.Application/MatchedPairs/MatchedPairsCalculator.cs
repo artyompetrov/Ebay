@@ -5,10 +5,11 @@ using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Abstractions.Driven.Models;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
-using Server.Application.Services;
 using Server.Domain.Measurements;
 using Server.Domain.Measurements.MeasurementTypes;
 using Server.Domain.Measurements.MeasurementTypes.Base;
+using Server.Application.TubeWorkingPoints;
+using Server.Domain.Measurements.Approximation;
 
 namespace Server.Application.MatchedPairs;
 
@@ -20,7 +21,6 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
     private readonly IMatchedPairDifferenceRepository _matchedPairDifferenceRepository;
     private readonly ITubeWorkingPointQueries _tubeWorkingPointQueries;
     private readonly IWriteModelUnitOfWork _unitOfWork;
-    private readonly MeasurementApproximationService _measurementApproximationService;
 
     public MatchedPairsCalculator(
         ILogger<MatchedPairsCalculator> logger,
@@ -28,8 +28,7 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
         IMeasurementFileParser measurementFileParser,
         IMatchedPairDifferenceRepository matchedPairDifferenceRepository,
         ITubeWorkingPointQueries tubeWorkingPointQueries,
-        IWriteModelUnitOfWork unitOfWork,
-        MeasurementApproximationService measurementApproximationService)
+        IWriteModelUnitOfWork unitOfWork)
     {
         _logger = logger;
         _measurementQueries = measurementQueries;
@@ -37,7 +36,6 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
         _matchedPairDifferenceRepository = matchedPairDifferenceRepository;
         _tubeWorkingPointQueries = tubeWorkingPointQueries;
         _unitOfWork = unitOfWork;
-        _measurementApproximationService = measurementApproximationService;
     }
 
     private sealed record MeasurementInfoWithAnodeCurves(MeasurementInfoWithData MeasurementInfoWithData, AnodeCurvesBase AnodeCurves);
@@ -189,13 +187,14 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
         int pointsPerBand,
         CancellationToken cancellationToken)
     {
-        var measurement1I1Model = _measurementApproximationService.GetModel(measurement1.AnodeCurves, x => x.I1, workingPoint);
-        var measurement2I1Model = _measurementApproximationService.GetModel(measurement2.AnodeCurves, x => x.I1, workingPoint);
+        var approximationWorkingPoint = workingPoint.ToApproximationWorkingPoint();
+        var measurement1I1Model = AnodeCurveModelBuilder.Build(measurement1.AnodeCurves, x => x.I1, approximationWorkingPoint);
+        var measurement2I1Model = AnodeCurveModelBuilder.Build(measurement2.AnodeCurves, x => x.I1, approximationWorkingPoint);
 
-        var measurement1I2Model = _measurementApproximationService.GetModel(measurement1.AnodeCurves,
-            x => x.I2 ?? throw new InvalidOperationException("I2 is expected to be not null"), workingPoint);
-        var measurement2I2Model = _measurementApproximationService.GetModel(measurement2.AnodeCurves,
-            x => x.I2 ?? throw new InvalidOperationException("I2 is expected to be not null"), workingPoint);
+        var measurement1I2Model = AnodeCurveModelBuilder.Build(measurement1.AnodeCurves,
+            x => x.I2 ?? throw new InvalidOperationException("I2 is expected to be not null"), approximationWorkingPoint);
+        var measurement2I2Model = AnodeCurveModelBuilder.Build(measurement2.AnodeCurves,
+            x => x.I2 ?? throw new InvalidOperationException("I2 is expected to be not null"), approximationWorkingPoint);
 
         if (measurement1.MeasurementInfoWithData.Id != measurement2.MeasurementInfoWithData.Id)
         {
@@ -261,8 +260,9 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
         int pointsPerBand,
         CancellationToken cancellationToken)
     {
-        var measurement1I1Model = _measurementApproximationService.GetModel(measurement1.AnodeCurves, x => x.I1, workingPoint);
-        var measurement2I1Model = _measurementApproximationService.GetModel(measurement2.AnodeCurves, x => x.I1, workingPoint);
+        var approximationWorkingPoint = workingPoint.ToApproximationWorkingPoint();
+        var measurement1I1Model = AnodeCurveModelBuilder.Build(measurement1.AnodeCurves, x => x.I1, approximationWorkingPoint);
+        var measurement2I1Model = AnodeCurveModelBuilder.Build(measurement2.AnodeCurves, x => x.I1, approximationWorkingPoint);
 
         var (mse, rmse, maxAbs) = SquaredDiffPointsInEllipse(
             model1: measurement1I1Model,
@@ -327,8 +327,8 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
     /// <param name="phiRad">Поворот эллипса.</param>
     /// <returns>Среднеквадратичная, корневая и максимальная абсолютная ошибка.</returns>
     private static (double mse, double rmse, double maxAbs) SquaredDiffPointsInEllipse(
-        MeasurementApproximationService.Model model1,
-        MeasurementApproximationService.Model model2,
+        AnodeCurveModel model1,
+        AnodeCurveModel model2,
         int radialBands,
         int pointsPerBand,
         TubeWorkingPointInfo workingPoint,
