@@ -2,7 +2,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
 using Server.Application.Caching;
-using Server.Application.HostedServices;
 using Server.Application.HostedServices.ChipFind;
 using Server.Application.HostedServices.Currencies;
 using Server.Application.HostedServices.DbCache;
@@ -27,7 +26,7 @@ public static class ServiceCollectionExtensions
     /// Добавляет сервисы application-слоя Server.Application в DI-контейнер.
     /// </summary>
     /// <param name="services">Коллекция сервисов приложения.</param>
-    public static void AddApplicationNewServices(this IServiceCollection services)
+    public static void AddApplication(this IServiceCollection services)
     {
         services.AddOptions<EbayServerOptions>()
             .BindConfiguration("EbayServer")
@@ -70,8 +69,5 @@ public static class ServiceCollectionExtensions
         services.AddHostedService<CurrencyRateBackgroundTask>();
         services.AddHostedService<DbCacheCleanupHostedService>();
         services.AddHostedService<MeasurementPlotWarmupHostedService>();
-#pragma warning disable CS0618 // Обсолетный одноразовый backfill - регистрация будет удалена вместе с ним, см. класс.
-        services.AddHostedService<MeasurementPhotoOriginalSizeBackfillHostedService>();
-#pragma warning restore CS0618
     }
 }

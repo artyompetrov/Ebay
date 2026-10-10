@@ -6,14 +6,14 @@ namespace Tests.Unit;
 
 [TestFixture]
 [TestOf(typeof(ServiceCollectionExtensions))]
-public sealed class ApplicationNewServiceCollectionExtensionsTests
+public sealed class ApplicationServiceCollectionExtensionsTests
 {
     [Test]
-    public void AddApplicationNewServices_RegistersLotForSaleIdGenerator_AsSingleton()
+    public void AddApplication_RegistersLotForSaleIdGenerator_AsSingleton()
     {
         var services = new ServiceCollection();
 
-        services.AddApplicationNewServices();
+        services.AddApplication();
 
         var descriptor = services.Single(x => x.ServiceType == typeof(ILotForSaleIdGenerator));
 

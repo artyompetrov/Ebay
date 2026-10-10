@@ -355,9 +355,6 @@ public sealed class MeasurementPhotoServiceTests
             IReadOnlyCollection<string> measurementIds, CancellationToken cancellationToken) =>
             Task.FromResult<IReadOnlyList<MeasurementPhotoMetadata>>(_photo is null ? [] :
                 [new MeasurementPhotoMetadata(_photo.Id, _photo.MeasurementId, _photo.FileName, _photo.Order)]);
-
-        public Task<IReadOnlyList<MeasurementPhotoInfo>> GetContentBatch(int skip, int take, CancellationToken cancellationToken) =>
-            throw new NotSupportedException();
     }
 
     private sealed class NotSupportedMeasurementPhotoRepository : IMeasurementPhotoRepository

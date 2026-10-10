@@ -4,10 +4,10 @@ Each numbered group is one pull request (see `design.md` - "One change, six pull
 
 ## 1. Test tightening and cleanup
 
-- [ ] 1.1 Add `Server.Application.Abstractions.Driven` and `Server.Application.Abstractions.Driving` to `ArchitectureTest`: a test asserting each references only framework and solution assemblies (empty exception list), and include both in `NonAdapterAssemblies` for the hosted-service check. Verify: the new test cases pass in `Tests.Unit`.
-- [ ] 1.2 Delete `MeasurementPhotoOriginalSizeBackfillHostedService`, its registration and `#pragma` in `ServiceCollectionExtensions`, `WellKnown.PhotoBackfill`, the backfill-only member(s) of `IMeasurementPhotoQueries` with their read-model implementation, and its entry in `AllowedHostedServiceTypes`. Verify: `grep -rni backfill src/Ebay --include=*.cs` returns only EF migration files; solution builds.
-- [ ] 1.3 Delete `MeasurementPhotoOriginalSizeBackfill_CompressesOversizedPhoto_AndLeavesCompliantPhotoUnchanged` from `MeasurementPhotosFlowTests` together with helpers used only by it. Leave the two upload tests mapped to the current requirement name until specs are synced (task 7.2). Verify: `Tests.Integration` passes and the coverage checker passes (the touched requirement is deferred while this change is active).
-- [ ] 1.4 Rename `AddApplicationNewServices` to `AddApplication` (definition, `Program.cs`, test fixtures). Verify: `grep -rn AddApplicationNewServices src/Ebay` is empty; solution builds.
+- [x] 1.1 Add `Server.Application.Abstractions.Driven` and `Server.Application.Abstractions.Driving` to `ArchitectureTest`: a test asserting each references only framework and solution assemblies (empty exception list), and include both in `NonAdapterAssemblies` for the hosted-service check. Verify: the new test cases pass in `Tests.Unit`.
+- [x] 1.2 Delete `MeasurementPhotoOriginalSizeBackfillHostedService`, its registration and `#pragma` in `ServiceCollectionExtensions`, `WellKnown.PhotoBackfill`, the backfill-only member(s) of `IMeasurementPhotoQueries` with their read-model implementation, and its entry in `AllowedHostedServiceTypes`. Verify: `grep -rni backfill src/Ebay --include=*.cs` returns only EF migration files; solution builds.
+- [x] 1.3 Delete `MeasurementPhotoOriginalSizeBackfill_CompressesOversizedPhoto_AndLeavesCompliantPhotoUnchanged` from `MeasurementPhotosFlowTests` together with helpers used only by it. Leave the two upload tests mapped to the current requirement name until specs are synced (task 7.2). Verify: `Tests.Integration` passes and the coverage checker passes (the touched requirement is deferred while this change is active).
+- [x] 1.4 Rename `AddApplicationNewServices` to `AddApplication` (definition, `Program.cs`, test fixtures). Verify: `grep -rn AddApplicationNewServices src/Ebay` is empty; solution builds.
 
 ## 2. Background tasks adapter
 

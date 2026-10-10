@@ -58,7 +58,7 @@ public class Program
         builder.Services.AddChipFindAdapter();
         builder.Services.AddOpenExchangeRatesAdapter();
         builder.Services.AddEfReadModelAdapter();
-        builder.Services.AddApplicationNewServices();
+        builder.Services.AddApplication();
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
         builder.Services.AddWebApiAdapter();
         builder.Services.AddEfWriteModelAdapter();

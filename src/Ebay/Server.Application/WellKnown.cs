@@ -78,16 +78,6 @@ public static class WellKnown
         public static readonly TimeSpan RemoveAdvertisementAfter = TimeSpan.FromDays(90);
     }
 
-    public static class PhotoBackfill
-    {
-        /// <summary>
-        /// Размер батча для одноразового приведения уже сохранённых "оригиналов" фото замеров
-        /// к ограничению по размеру. Ограничивает, сколько байтов фото одновременно живёт
-        /// в памяти и отслеживается EF change tracker'ом за один проход.
-        /// </summary>
-        public const int BatchSize = 100;
-    }
-
     /// <summary>
     /// Константы расчета цен и комиссий eBay/Payoneer, используемые при расчете выручки лота.
     /// </summary>

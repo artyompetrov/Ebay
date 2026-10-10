@@ -2,6 +2,8 @@ using System.Reflection;
 using AwesomeAssertions;
 using Microsoft.Extensions.Hosting;
 using Server.Application;
+using Server.Application.Abstractions.Driven.Abstractions;
+using Server.Application.Abstractions.Driving.Abstractions.Services;
 using Server.Domain;
 
 namespace Tests.Unit.Architecture;
@@ -75,12 +77,14 @@ public sealed class ArchitectureTest
         "JetBrains.Annotations"
     ];
 
+    // Сборки портов: только контракты (интерфейсы и модели), без внешних зависимостей.
+    private static readonly string[] PortAllowedExternalAssemblies = [];
+
     // Исключения: hosted services, которые пока живут не в адаптерной сборке.
     private static readonly string[] AllowedHostedServiceTypes = [
         "Server.Application.HostedServices.ChipFind.ChipfindBackgroundTask",
         "Server.Application.HostedServices.Currencies.CurrencyRateBackgroundTask",
         "Server.Application.HostedServices.DbCache.DbCacheCleanupHostedService",
-        "Server.Application.HostedServices.MeasurementPhotoOriginalSizeBackfillHostedService",
         "Server.Application.HostedServices.Measurements.MeasurementPlotWarmupHostedService",
         "Server.Application.HostedServices.SaleAdvertisements.SaleAdvertisementCleanupBackgroundTask"
     ];
@@ -88,6 +92,8 @@ public sealed class ArchitectureTest
     private static readonly Assembly RootAssembly = typeof(Server.Program).Assembly;
     private static readonly Assembly ApplicationAssembly = typeof(ServiceCollectionExtensions).Assembly;
     private static readonly Assembly DomainAssembly = typeof(Lot).Assembly;
+    private static readonly Assembly DrivenPortsAssembly = typeof(ICacheStore).Assembly;
+    private static readonly Assembly DrivingPortsAssembly = typeof(IMeasurementService).Assembly;
 
     [Test]
     public void Root_assembly_should_reference_only_solution_assemblies_and_platform()
@@ -122,6 +128,17 @@ public sealed class ArchitectureTest
         violations.Should().BeEmpty("domain не должен зависеть от внешних сборок, кроме списка исключений");
     }
 
+    [TestCaseSource(nameof(PortAssemblies))]
+    public void Port_assembly_should_reference_only_solution_assemblies(Assembly assembly)
+    {
+        var violations = GetExternalReferences(
+            assembly,
+            [.. FrameworkAssemblyPrefixes, SolutionAssemblyPrefix],
+            PortAllowedExternalAssemblies);
+
+        violations.Should().BeEmpty("порты - чистые контракты и не должны зависеть от внешних сборок");
+    }
+
     [TestCaseSource(nameof(NonAdapterAssemblies))]
     public void Non_adapter_assembly_should_not_contain_hosted_services(Assembly assembly)
     {
@@ -140,6 +157,14 @@ public sealed class ArchitectureTest
         yield return new TestCaseData(RootAssembly).SetArgDisplayNames(nameof(RootAssembly));
         yield return new TestCaseData(ApplicationAssembly).SetArgDisplayNames(nameof(ApplicationAssembly));
         yield return new TestCaseData(DomainAssembly).SetArgDisplayNames(nameof(DomainAssembly));
+        yield return new TestCaseData(DrivenPortsAssembly).SetArgDisplayNames(nameof(DrivenPortsAssembly));
+        yield return new TestCaseData(DrivingPortsAssembly).SetArgDisplayNames(nameof(DrivingPortsAssembly));
+    }
+
+    private static IEnumerable<TestCaseData> PortAssemblies()
+    {
+        yield return new TestCaseData(DrivenPortsAssembly).SetArgDisplayNames(nameof(DrivenPortsAssembly));
+        yield return new TestCaseData(DrivingPortsAssembly).SetArgDisplayNames(nameof(DrivingPortsAssembly));
     }
 
     // Типы зависимостей Server.Platform попадают в метаданные корня через сигнатуры его API
