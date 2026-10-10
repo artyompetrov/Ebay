@@ -64,6 +64,7 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 - `Singleton` — only with an explicit justification.
 - In `Program.cs`, don't read parameters directly via `GetSection`/`GetRequiredSection` during container registration.
 - Use `AddOptions<...>().BindConfiguration("...").ValidateDataAnnotations().ValidateOnStart()`.
+- `GetRequiredSection` and `ConfigurationBinder.Get`/`Get<T>` are banned via `BannedSymbols.txt` (BannedApiAnalyzers, RS0030 = error); do not suppress, bind options as above.
 
 ## Architectural constraints
 ### DDD
