@@ -1,6 +1,6 @@
+using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
-using Server.Application.Caching;
 using Server.Domain.Measurements;
 
 namespace Server.Application.MeasurementCaching;
@@ -10,19 +10,19 @@ namespace Server.Application.MeasurementCaching;
 /// </summary>
 public sealed class MeasurementMatchIdChangedHandler : IMeasurementMatchIdChangedHandler
 {
-    private readonly MeasurementCacheInvalidationRegistry _cacheInvalidationRegistry;
+    private readonly IMeasurementContentCacheAdapter _cache;
     private readonly IMeasurementQueries _measurementQueries;
 
     /// <summary>
     /// Создает обработчик события изменения matched pair замера.
     /// </summary>
-    /// <param name="cacheInvalidationRegistry">Реестр токенов протухания кеша по измерению.</param>
+    /// <param name="cache">Процессный кеш значений, привязанных к замеру.</param>
     /// <param name="measurementQueries">Запросы чтения замеров.</param>
     public MeasurementMatchIdChangedHandler(
-        MeasurementCacheInvalidationRegistry cacheInvalidationRegistry,
+        IMeasurementContentCacheAdapter cache,
         IMeasurementQueries measurementQueries)
     {
-        _cacheInvalidationRegistry = cacheInvalidationRegistry;
+        _cache = cache;
         _measurementQueries = measurementQueries;
     }
 
@@ -50,7 +50,7 @@ public sealed class MeasurementMatchIdChangedHandler : IMeasurementMatchIdChange
 
         foreach (var measurementId in affectedMeasurementIds)
         {
-            _cacheInvalidationRegistry.Invalidate(measurementId);
+            _cache.Invalidate(measurementId);
         }
     }
 }

@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Primitives;
 
-namespace Server.Application.Caching;
+namespace Server.Adapters.Driven.MemoryCache;
 
 /// <summary>
 /// Реестр per-measurement токенов инвалидации общего <see cref="Microsoft.Extensions.Caching.Memory.IMemoryCache"/>
@@ -9,7 +9,7 @@ namespace Server.Application.Caching;
 /// не привязаны напрямую к measurementId — этот реестр позволяет разом протухнуть все записи одного измерения,
 /// не зная заранее их конкретных ключей.
 /// </summary>
-public sealed class MeasurementCacheInvalidationRegistry
+internal sealed class MeasurementCacheInvalidationRegistry
 {
     private readonly ConcurrentDictionary<string, TokenSourceEntry> _tokenSources = new();
 

@@ -1,11 +1,11 @@
 using Microsoft.Extensions.Primitives;
 
-namespace Server.Application.Caching;
+namespace Server.Adapters.Driven.MemoryCache;
 
 /// <summary>
 /// Lease токена инвалидации записи image-cache.
 /// </summary>
-public sealed class MeasurementCacheInvalidationLease : IDisposable
+internal sealed class MeasurementCacheInvalidationLease : IDisposable
 {
     private readonly Action _release;
     private bool _disposed;

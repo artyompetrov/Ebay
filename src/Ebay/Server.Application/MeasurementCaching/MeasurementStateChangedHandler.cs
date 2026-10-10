@@ -1,5 +1,5 @@
+using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
-using Server.Application.Caching;
 using Server.Domain.Measurements;
 
 namespace Server.Application.MeasurementCaching;
@@ -9,16 +9,16 @@ namespace Server.Application.MeasurementCaching;
 /// </summary>
 public sealed class MeasurementStateChangedHandler : IMeasurementStateChangedHandler
 {
-    private readonly MeasurementCacheInvalidationRegistry _cacheInvalidationRegistry;
+    private readonly IMeasurementContentCacheAdapter _cache;
 
-    public MeasurementStateChangedHandler(MeasurementCacheInvalidationRegistry cacheInvalidationRegistry)
+    public MeasurementStateChangedHandler(IMeasurementContentCacheAdapter cache)
     {
-        _cacheInvalidationRegistry = cacheInvalidationRegistry;
+        _cache = cache;
     }
 
     public Task HandleAsync(MeasurementStateChanged message, CancellationToken cancellationToken)
     {
-        _cacheInvalidationRegistry.Invalidate(message.MeasurementId);
+        _cache.Invalidate(message.MeasurementId);
         return Task.CompletedTask;
     }
 }

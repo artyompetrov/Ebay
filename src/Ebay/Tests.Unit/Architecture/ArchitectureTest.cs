@@ -10,7 +10,7 @@ namespace Tests.Unit.Architecture;
 
 /// <summary>
 /// Контроль архитектуры "порты и адаптеры": корневая сборка - только composition root,
-/// application и domain не зависят от внешних сборок (кроме явного списка исключений).
+/// application, domain и сборки портов не зависят от внешних сборок, кроме явно разрешённых правилами ниже.
 /// </summary>
 [TestFixture]
 public sealed class ArchitectureTest
@@ -35,33 +35,23 @@ public sealed class ArchitectureTest
         "Microsoft.Extensions"
     ];
 
-    // TODO: исключения ниже - текущие нарушения; со временем сокращать список, а не расширять.
-    // Исключения: допустимые внешние сборки в корне (composition root).
+    // Композиционный корень: только фреймворк, сборки решения и Server.Platform. Конфигурация инфраструктуры
+    // (шина, identity, кеши) живёт в Add*Adapter() соответствующих адаптеров.
     // Сборки, на которые ссылается сам Server.Platform, разрешаются автоматически (см. GetPlatformReferences).
     private static readonly string[] RootAllowedExternalAssemblies = [];
 
-    // Исключения: допустимые внешние сборки в слое application.
-    // Слой мягче domain: допустимы абстракции и библиотеки, помогающие оркестрировать сценарии.
-    // Конкретная инфраструктура (БД, web-фреймворк, брокер, SMTP, HTTP-клиенты) остаётся в адаптерах за портами.
+    // Application: только IO-free абстракции DI и логирования. Конкретная инфраструктура
+    // (БД, web-фреймворк, брокер, кеши, опции/конфигурация, отрисовка) остаётся в адаптерах за портами.
     // Проверка для ревьюера: замена БД, web-фреймворка или брокера сообщений не должна менять application.
     private static readonly string[] ApplicationAllowedExternalAssemblies = [
-        "Microsoft.Extensions.Caching.Abstractions",
-        "Microsoft.Extensions.Configuration.Binder",
         "Microsoft.Extensions.DependencyInjection.Abstractions",
-        "Microsoft.Extensions.Logging.Abstractions",
-        "Microsoft.Extensions.Options",
-        "Microsoft.Extensions.Options.ConfigurationExtensions",
-        "Microsoft.Extensions.Options.DataAnnotations",
-        "Microsoft.Extensions.Primitives"
+        "Microsoft.Extensions.Logging.Abstractions"
     ];
 
-    // Исключения: допустимые внешние сборки в слое domain.
-    // Самый строгий слой: по умолчанию - только базовая библиотека.
-    // Исключение допустимо лишь для небольшой стабильной библиотеки без побочных эффектов,
-    // которая помогает выразить бизнес-модель; фреймворки, диктующие форму модели, недопустимы.
+    // Domain: самый строгий слой - по умолчанию только базовая библиотека. Допустима лишь IO-free библиотека,
+    // которая помогает выразить модель (RBF-аппроксимация анодных кривых, allow-list санитайзер описания товара
+    // и его зависимость AngleSharp); фреймворки, диктующие форму модели, и библиотеки отрисовки недопустимы.
     // Проверка для ревьюера: замена БД, web-фреймворка или брокера сообщений не должна менять domain.
-    // Правило: в domain допустима только IO-free библиотека, которая помогает выразить модель
-    // (RBF-аппроксимация анодных кривых, allow-list санитайзер описания товара и его зависимость AngleSharp).
     private static readonly string[] DomainAllowedExternalAssemblies = [
         "alglib.net",
         "AngleSharp",

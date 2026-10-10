@@ -25,25 +25,6 @@ public static class WellKnown
     /// </summary>
     public const double EbayWeightMultiplier = 1.5;
 
-    public static class ImageCache
-    {
-        /// <summary>
-        /// Ключ keyed-регистрации выделенного <see cref="Microsoft.Extensions.Caching.Memory.IMemoryCache"/>
-        /// для байтов фото/миниатюр непроданных замеров и отрендеренных графиков для eBay. Отдельный от
-        /// service-wide кеша (используемого, например, GeoIP-логированием), чтобы ограничение размера
-        /// этого кеша не задевало записи, которые не проставляют Size.
-        /// </summary>
-        public const string ServiceKey = "measurement-image-cache";
-
-        public const string SectionName = "ImageCache";
-
-        /// <summary>
-        /// Максимальный суммарный размер (в байтах) записей, удерживаемых одновременно в общем
-        /// кеше фото/миниатюр замеров и отрендеренных графиков для eBay.
-        /// </summary>
-        public const long DefaultSizeLimitBytes = 200 * 1024 * 1024;
-    }
-
     /// <summary>
     /// Константы обновления курсов валют.
     /// </summary>

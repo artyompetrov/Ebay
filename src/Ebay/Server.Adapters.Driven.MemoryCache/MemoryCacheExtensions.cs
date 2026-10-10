@@ -1,14 +1,14 @@
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Primitives;
 
-namespace Server.Application.Caching;
+namespace Server.Adapters.Driven.MemoryCache;
 
 /// <summary>
 /// Общая политика заполнения общего <see cref="IMemoryCache"/> для неизменяемых после первого
 /// вычисления значений (байты фото/миниатюр, отрендеренные графики): скользящее время жизни записи
 /// и явный размер записи, без которого лимит общего размера кеша не работает.
 /// </summary>
-public static class MemoryCacheExtensions
+internal static class MemoryCacheExtensions
 {
     private static readonly TimeSpan CacheEntrySlidingExpiration = TimeSpan.FromHours(24);
     private static readonly TimeSpan CacheEntryAbsoluteExpiration = TimeSpan.FromHours(24);

@@ -29,6 +29,7 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 - Identity/authorization configuration (data protection, ASP.NET Identity, IdentityServer clients, JWT, `AuthorizationClientOptions`) lives in `Server.Adapters.Driven.EF.Identity` behind `AddEfIdentityAdapter()`/`UseEfIdentityAdapterAuthentication()`, not in `Program.cs`.
 - Adapter-private caches (e.g. GeoIp, ChipFind keyed `IMemoryCache`) are registered by their own adapter's `Add*Adapter()`.
 - `Server.Adapters.Driven.Plotting` — SVG rendering of measurement plots, status labels and tube-info cards (`ScottPlot`) behind `IPlottingAdapter`; `MeasurementPlotService` only orchestrates (loading, approximation, axis ranges, cache keys).
+- `Server.Adapters.Driven.MemoryCache` — process-wide in-memory cache for measurement-bound content (photo/thumbnail bytes, rendered eBay plots) behind `IMeasurementContentCacheAdapter`: size limit (`ImageCache` section), sliding expiration and per-measurement invalidation. The application decides keys and what is cacheable; `ICacheStore` (persistent Postgres cache) is a different port.
 - `Server.Adapters.Driving.BackgroundTasks` — driving adapter for periodic/startup background jobs (ChipFind monitoring, currency rates, sale advertisement cleanup, DB cache cleanup, measurement plot warmup). Each hosted service only creates a scope, applies the `EbayServer:IsLocalRun` switch where relevant, and calls one application use-case method; scheduling constants live here, business thresholds stay in `Server.Application`. Hosted services (`IHostedService`) live only in adapter assemblies.
 - `Tests.Unit`, `Tests.Integration`, `Tests.Explicit` — test projects.
 - `Tests.Frontend` — bUnit component tests and Playwright Chromium checks of rendered photo previews. Install Chromium with the generated `playwright.ps1` after building.
@@ -90,7 +91,14 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 - `Server.Application` must not reference `Server.Adapters.*`.
 - IO-free libraries in the domain: `Server.Domain` may reference an external library only if it performs no IO and helps express the model; today these are `alglib.net` (RBF approximation of anode curves, `Measurements/Approximation`) and `HtmlSanitizer` with its `AngleSharp` dependency (`Product/ProductDescriptionSanitizer`). Rendering/presentation libraries (e.g. `ScottPlot`) don't qualify even when IO-free.
 - Port placement: a driven port whose signature an aggregate needs lives in `Server.Domain` (today `IMeasurementFileParser`); every other driven port lives in `Server.Application.Abstractions.Driven`.
-- `Tests.Unit/Architecture/ArchitectureTest.cs` enforces this: `Server` (composition root), `Server.Application` and `Server.Domain` may reference only framework/solution assemblies plus an explicit exception list, and must not contain hosted services (no exceptions); the port assemblies `Server.Application.Abstractions.Driven`/`.Driving` may reference no external assemblies at all. The remaining external-assembly exception lists hold current violations (tech debt) - shrink them, don't extend them without justification.
+- `Tests.Unit/Architecture/ArchitectureTest.cs` enforces these rules (they are permanent, not tech debt):
+  - `Server` (composition root) references only framework, solution and `Server.Platform` assemblies; `Program.cs` contains only `AddPlatform`, `Add*Adapter`, `AddApplication` and the HTTP pipeline;
+  - `Server.Application` references only `Microsoft.Extensions.DependencyInjection.Abstractions` and `Microsoft.Extensions.Logging.Abstractions` (no options/configuration binding, caches, hosting, bus or rendering libraries - those live in adapters behind ports);
+  - `Server.Domain` references only `JetBrains.Annotations` and the IO-free libraries listed below;
+  - the port assemblies `Server.Application.Abstractions.Driven`/`.Driving` reference no external assemblies;
+  - none of these assemblies contains a hosted service.
+  Adding an entry to these lists needs the same justification as a new rule.
+- No driven adapter references `Server.Application`; driven adapters depend only on `Server.Application.Abstractions.Driven` (and the domain).
 
 ### Command/query split
 - **Commands** (state changes): an application-layer use-case service loads an aggregate through its repository port (`Server.Application.Abstractions.Driven.Abstractions.Repositories.I*Repository`), calls domain methods on it, and commits via `IWriteModelUnitOfWork`. The aggregate is always loaded and persisted as a whole; there is no partial/column-level command update.

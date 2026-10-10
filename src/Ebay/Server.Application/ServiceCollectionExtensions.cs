@@ -1,7 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
-using Server.Application.Caching;
 using Server.Application.Currencies;
 using Server.Application.DbCache;
 using Server.Application.LotForSale;
@@ -26,11 +24,6 @@ public static class ServiceCollectionExtensions
     /// <param name="services">Коллекция сервисов приложения.</param>
     public static void AddApplication(this IServiceCollection services)
     {
-        services.AddOptions<ImageCacheOptions>()
-            .BindConfiguration(ImageCacheOptions.SectionName)
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-
         services.AddTransient<IMeasurementService, MeasurementService>();
         services.AddTransient<IMatchedPairsCalculator, MatchedPairsCalculator>();
         services.AddTransient<ICurrentTimeProvider, SystemCurrentTimeProvider>();
@@ -48,8 +41,6 @@ public static class ServiceCollectionExtensions
         services.AddTransient<TubeWorkingPointService>();
         services.AddTransient<LotForSaleService>();
         services.AddTransient<MeasurementPhotoService>();
-        // Singleton нужен, чтобы токены инвалидации по measurementId были общими для всех запросов процесса, а не per-request.
-        services.AddSingleton<MeasurementCacheInvalidationRegistry>();
         services.AddTransient<IMeasurementStateChangedHandler, MeasurementStateChangedHandler>();
         services.AddTransient<IMeasurementMatchIdChangedHandler, MeasurementMatchIdChangedHandler>();
         services.AddTransient<ILotPriceCalculator, LotPriceCalculator>();

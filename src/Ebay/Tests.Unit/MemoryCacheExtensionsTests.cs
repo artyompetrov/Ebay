@@ -1,6 +1,6 @@
 using AwesomeAssertions;
 using Microsoft.Extensions.Caching.Memory;
-using Server.Application.Caching;
+using Server.Adapters.Driven.MemoryCache;
 
 namespace Tests.Unit;
 

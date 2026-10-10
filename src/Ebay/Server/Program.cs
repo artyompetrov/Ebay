@@ -1,11 +1,10 @@
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Options;
 using Server.Adapters.Driven.ChipFind;
 using Server.Adapters.Driven.EF.Identity;
 using Server.Adapters.Driven.EF.ReadModel;
 using Server.Adapters.Driven.EF.WriteModel;
 using Server.Adapters.Driven.GeoIp;
 using Server.Adapters.Driven.ImageProcessing;
+using Server.Adapters.Driven.MemoryCache;
 using Server.Adapters.Driven.OpenExchangeRates;
 using Server.Adapters.Driven.Plotting;
 using Server.Adapters.Driven.Smtp;
@@ -28,15 +27,6 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
         builder.AddPlatform();
 
-        // Add services to the container.
-        // Каждый потребитель IMemoryCache получает свой именованный кеш вместо одного общего
-        // service-wide экземпляра - так лимит размера одного кеша не задевает записи в другом.
-        builder.Services.AddKeyedSingleton<IMemoryCache>(
-            Application.WellKnown.ImageCache.ServiceKey,
-            (sp, _) => new MemoryCache(new MemoryCacheOptions
-            {
-                SizeLimit = sp.GetRequiredService<IOptions<ImageCacheOptions>>().Value.SizeLimitBytes
-            }));
         builder.Services.AddEmailAdapter();
         builder.Services.AddUTracerAdapter();
         builder.Services.AddImageProcessingAdapter();
@@ -44,6 +34,7 @@ public class Program
         builder.Services.AddChipFindAdapter();
         builder.Services.AddOpenExchangeRatesAdapter();
         builder.Services.AddPlottingAdapter();
+        builder.Services.AddMemoryCacheAdapter();
         builder.Services.AddEfReadModelAdapter();
         builder.Services.AddApplication();
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();

@@ -1,10 +1,10 @@
 using AwesomeAssertions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Models;
-using Server.Application.Caching;
 using Server.Application.MeasurementCaching;
 using Server.Domain.Measurements;
 using Tests.Shared;
+using Tests.Unit.Fakes;
 
 namespace Tests.Unit;
 
@@ -13,16 +13,15 @@ namespace Tests.Unit;
 public sealed class MeasurementMatchIdChangedHandlerTests
 {
     [Test]
-    public async Task HandleAsync_InvalidatesTheMessagesMeasurementCacheToken()
+    public async Task HandleAsync_InvalidatesTheMessagesMeasurementCache()
     {
         const string measurementId = "measurement-1";
-        var registry = new MeasurementCacheInvalidationRegistry();
-        using var tokenBeforeHandling = registry.AcquireToken(measurementId);
-        var handler = new MeasurementMatchIdChangedHandler(registry, new FakeMeasurementQueries([]));
+        var cache = new InMemoryMeasurementContentCache();
+        var handler = new MeasurementMatchIdChangedHandler(cache, new FakeMeasurementQueries([]));
 
         await handler.HandleAsync(new MeasurementMatchIdChanged(measurementId, null, "pair-1"), CancellationToken.None);
 
-        tokenBeforeHandling.ChangeToken.HasChanged.Should().BeTrue();
+        cache.InvalidatedMeasurementIds.Should().Contain(measurementId);
     }
 
     [Test]
@@ -32,26 +31,16 @@ public sealed class MeasurementMatchIdChangedHandlerTests
         const string changedMeasurementId = "measurement-1";
         const string oldPairMeasurementId = "measurement-2";
         const string newPairMeasurementId = "measurement-3";
-        var registry = new MeasurementCacheInvalidationRegistry();
-        using var changedToken = registry.AcquireToken(changedMeasurementId);
-        using var oldPairToken = registry.AcquireToken(oldPairMeasurementId);
-        using var newPairToken = registry.AcquireToken(newPairMeasurementId);
-        using var unrelatedToken = registry.AcquireToken("measurement-4");
+        var cache = new InMemoryMeasurementContentCache();
         var handler = new MeasurementMatchIdChangedHandler(
-            registry,
+            cache,
             new FakeMeasurementQueries([oldPairMeasurementId, newPairMeasurementId]));
 
         await handler.HandleAsync(
             new MeasurementMatchIdChanged(changedMeasurementId, "old-pair", "new-pair"),
             CancellationToken.None);
 
-        using (Assert.EnterMultipleScope())
-        {
-            changedToken.ChangeToken.HasChanged.Should().BeTrue();
-            oldPairToken.ChangeToken.HasChanged.Should().BeTrue();
-            newPairToken.ChangeToken.HasChanged.Should().BeTrue();
-            unrelatedToken.ChangeToken.HasChanged.Should().BeFalse();
-        }
+        cache.InvalidatedMeasurementIds.Should().BeEquivalentTo([changedMeasurementId, oldPairMeasurementId, newPairMeasurementId]);
     }
 
     private sealed class FakeMeasurementQueries : IMeasurementQueries

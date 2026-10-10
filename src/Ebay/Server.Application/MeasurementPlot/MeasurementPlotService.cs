@@ -1,10 +1,7 @@
 using System.Text;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.DependencyInjection;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Models;
-using Server.Application.Caching;
 using Server.Domain.Measurements;
 using Server.Domain.Measurements.MeasurementTypes;
 using Server.Domain.Measurements.MeasurementTypes.Base;
@@ -16,8 +13,7 @@ namespace Server.Application.MeasurementPlot;
 public class MeasurementPlotService
 {
     private readonly ICacheStore _cache;
-    private readonly IMemoryCache _memoryCache;
-    private readonly MeasurementCacheInvalidationRegistry _cacheInvalidationRegistry;
+    private readonly IMeasurementContentCacheAdapter _contentCache;
     private readonly IMeasurementQueries _measurementQueries;
     private readonly IMeasurementFileParser _measurementFileParser;
     private readonly IMeasurementWatchedOnEbayPublisher _watchedOnEbayPublisher;
@@ -26,8 +22,7 @@ public class MeasurementPlotService
 
     public MeasurementPlotService(
         ICacheStore cache,
-        [FromKeyedServices(WellKnown.ImageCache.ServiceKey)] IMemoryCache memoryCache,
-        MeasurementCacheInvalidationRegistry cacheInvalidationRegistry,
+        IMeasurementContentCacheAdapter contentCache,
         IMeasurementQueries measurementQueries,
         IMeasurementFileParser measurementFileParser,
         IMeasurementWatchedOnEbayPublisher watchedOnEbayPublisher,
@@ -35,8 +30,7 @@ public class MeasurementPlotService
         IPlottingAdapter plottingAdapter)
     {
         _cache = cache;
-        _memoryCache = memoryCache;
-        _cacheInvalidationRegistry = cacheInvalidationRegistry;
+        _contentCache = contentCache;
         _measurementQueries = measurementQueries;
         _measurementFileParser = measurementFileParser;
         _watchedOnEbayPublisher = watchedOnEbayPublisher;
@@ -110,11 +104,11 @@ public class MeasurementPlotService
                 height: 400);
         }
 
-        return await _memoryCache.GetOrCreateAsync(
+        return await _contentCache.GetOrCreateAsync(
+            measurementId: measurementId,
             key: SellingOnlyPlotCacheKey(measurementId),
             factory: () => ResolveSellingOnlyPlotUncached(measurementId, cancellationToken),
-            sizeSelector: static s => Encoding.UTF8.GetByteCount(s),
-            invalidationTokenFactory: () => _cacheInvalidationRegistry.AcquireToken(measurementId));
+            sizeSelector: static s => Encoding.UTF8.GetByteCount(s));
     }
 
     private async Task<string?> ResolveSellingOnlyPlotUncached(string measurementId, CancellationToken cancellationToken)
@@ -159,7 +153,8 @@ public class MeasurementPlotService
         var cacheKey =
             $"measurementPlot_{mergeVertical}_{legendVertical}_{width}_{height}_{addQuickTest}_{measurementId}_{string.Join(",", matchedPairMeasurementsIds)}";
 
-        return await _memoryCache.GetOrCreateAsync(
+        return await _contentCache.GetOrCreateAsync(
+            measurementId: measurementId,
             key: cacheKey,
             factory: () => PlotForMeasurementIdUncached(
                 measurementId: measurementId,
@@ -171,8 +166,7 @@ public class MeasurementPlotService
                 matchedPairMeasurementsIds: matchedPairMeasurementsIds,
                 cacheKey: cacheKey,
                 cancellationToken: cancellationToken),
-            sizeSelector: static s => Encoding.UTF8.GetByteCount(s),
-            invalidationTokenFactory: () => _cacheInvalidationRegistry.AcquireToken(measurementId));
+            sizeSelector: static s => Encoding.UTF8.GetByteCount(s));
     }
 
     private async Task<string?> PlotForMeasurementIdUncached(
@@ -350,11 +344,11 @@ public class MeasurementPlotService
             return await GetEbayTubeDescriptionForMeasurementId(measurementId, cancellationToken);
         }
 
-        return await _memoryCache.GetOrCreateAsync(
+        return await _contentCache.GetOrCreateAsync(
+            measurementId: measurementId,
             key: SellingOnlyTubeDescriptionCacheKey(measurementId),
             factory: () => ResolveSellingOnlyTubeDescriptionUncached(measurementId, cancellationToken),
-            sizeSelector: static s => Encoding.UTF8.GetByteCount(s),
-            invalidationTokenFactory: () => _cacheInvalidationRegistry.AcquireToken(measurementId));
+            sizeSelector: static s => Encoding.UTF8.GetByteCount(s));
     }
 
     private async Task<string?> ResolveSellingOnlyTubeDescriptionUncached(string measurementId, CancellationToken cancellationToken)
@@ -390,26 +384,26 @@ public class MeasurementPlotService
         var cacheKey =
             $"ebayTubeDescription_{measurementId}_{string.Join(",", matchedPairMeasurementsIds)}";
 
-        return await _memoryCache.GetOrCreateAsync(
+        return await _contentCache.GetOrCreateAsync(
+            measurementId: measurementId,
             key: cacheKey,
             factory: () => GetEbayTubeDescriptionUncached(
                 measurementId: measurementId,
                 matchedPairMeasurementsIds: matchedPairMeasurementsIds,
                 cacheKey: cacheKey,
                 cancellationToken: cancellationToken),
-            sizeSelector: static s => Encoding.UTF8.GetByteCount(s),
-            invalidationTokenFactory: () => _cacheInvalidationRegistry.AcquireToken(measurementId));
+            sizeSelector: static s => Encoding.UTF8.GetByteCount(s));
     }
 
     private async Task<IReadOnlyList<string>> GetMatchedPairMeasurementIds(
         string measurementId,
         CancellationToken cancellationToken)
     {
-        return await _memoryCache.GetOrCreateAsync(
+        return await _contentCache.GetOrCreateAsync(
+            measurementId: measurementId,
             key: MatchedPairMeasurementIdsCacheKey(measurementId),
             factory: async () => await _measurementQueries.GetMeasurementPairMeasurements(measurementId, cancellationToken),
-            sizeSelector: static ids => ids.Count + ids.Sum(static id => Encoding.UTF8.GetByteCount(id)),
-            invalidationTokenFactory: () => _cacheInvalidationRegistry.AcquireToken(measurementId))
+            sizeSelector: static ids => ids.Count + ids.Sum(static id => Encoding.UTF8.GetByteCount(id)))
             ?? [];
     }
 
