@@ -104,9 +104,9 @@ subprocess.run(["docker-compose", "-f", docker_compose_file, "--env-file", docke
 print("!!! pulling containers")
 subprocess.run(["docker-compose", "-f", docker_compose_file, "--env-file", docker_compose_env_file, "pull"])
 
-# Запуск контейнеров
-print("!!! starting containers with RESTORE option")
-subprocess.run(["docker-compose", "-f", docker_compose_file, "--env-file", docker_compose_env_file, "up", "-d"], env={"RESTORE": "true"})
+# Запуск только базы данных: ebay_helper не должен стартовать (и накатывать миграции) до восстановления бэкапа
+print("!!! starting database only")
+subprocess.run(["docker-compose", "-f", docker_compose_file, "--env-file", docker_compose_env_file, "up", "-d", "ebay_postgres"])
 time.sleep(5)
 
 # Переключаем пароль для локальной базы данных
