@@ -115,8 +115,6 @@ services:
     volumes:
       - portainer_data:/data
       - /var/run/docker.sock:/var/run/docker.sock
-    networks:
-      - internal_network
 
   ebay_loki:
     container_name: ebay_loki
