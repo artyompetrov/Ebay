@@ -6,7 +6,8 @@ namespace Server.Application.Abstractions.Driven.Abstractions.Repositories;
 public interface IIgnoredLotRepository
 {
     /// <summary>
-    /// Добавляет отметки об игнорировании для лотов, для которых их ещё нет.
+    /// Добавляет отметки об игнорировании для лотов, для которых их ещё нет. Устойчиво к параллельной вставке
+    /// той же пары; сохранение (<see cref="IWriteModelUnitOfWork.SaveChangesAsync"/>) остаётся за вызывающим кодом.
     /// </summary>
     Task InsertMissingAsync(IWriteModelUnitOfWork unitOfWork, Guid productId, IReadOnlySet<long> lotIds, CancellationToken cancellationToken);
 

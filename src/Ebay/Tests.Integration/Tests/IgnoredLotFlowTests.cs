@@ -28,4 +28,21 @@ public class IgnoredLotFlowTests
         var ignoredLotsAfterRepeat = await ebayClient.GetIgnoredLotsAsync(productId);
         Assert.That(ignoredLotsAfterRepeat.Count(x => x == lotId), Is.EqualTo(1));
     }
+
+    [Test]
+    public async Task IgnoreLotsAsync_ConcurrentRequestsForSameLots_AllSucceedAndStoreEachLotOnce()
+    {
+        const int concurrentRequests = 8;
+        var httpClient = IntegrationTestsSetupFixture.Factory.CreateClient();
+        await TestHelpers.AuthenticateWithClientCredentialsAsync(httpClient);
+        var ebayClient = TestHelpers.CreateWebApiClient(httpClient);
+        var productId = await TestHelpers.CreateProductAsync(ebayClient);
+        long[] lotIds = [TestHelpers.NextMeasurementSeed(), TestHelpers.NextMeasurementSeed()];
+
+        await Task.WhenAll(Enumerable.Range(0, concurrentRequests)
+            .Select(_ => ebayClient.IgnoreLotsAsync(lotIds, productId)));
+
+        var ignoredLots = await ebayClient.GetIgnoredLotsAsync(productId);
+        Assert.That(ignoredLots.Where(lotIds.Contains), Is.EquivalentTo(lotIds));
+    }
 }

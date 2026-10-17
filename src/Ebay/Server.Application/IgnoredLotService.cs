@@ -37,9 +37,8 @@ public class IgnoredLotService
 
         if (!alreadySaved)
         {
-            // IIgnoredLotRepository.InsertMissingAsync commits itself (with conflict-tolerant retry against a
-            // concurrent insert of the same pair), so there is nothing left for the unit of work to flush here.
             await _ignoredLotRepository.InsertMissingAsync(unitOfWork, productId, lotIds, cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
         }
     }
 }
