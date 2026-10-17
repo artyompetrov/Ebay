@@ -127,11 +127,11 @@ public class MeasurementPhotosFlowTests
     [Test]
     [OpenSpecScenario("measurement-photos", "Photos shown on the eBay listing description page", "Measurement with photos")]
     [OpenSpecScenario("measurement-photos", "Photos shown on the eBay listing description page", "Measurement with no photos")]
-    [OpenSpecScenario("measurement-photos", "Photos shown on the eBay listing description page", "Hovering a thumbnail previews the full photo in place")]
-    [OpenSpecScenario("measurement-photos", "Photos shown on the eBay listing description page", "Tapping or clicking a thumbnail previews the full photo in place (mobile-friendly)")]
-    [OpenSpecScenario("measurement-photos", "Photos shown on the eBay listing description page", "Tapping or clicking the backdrop closes the preview")]
-    [OpenSpecScenario("measurement-photos", "Photos shown on the eBay listing description page", "Thumbnail is not a clickable link")]
-    [OpenSpecScenario("measurement-photos", "Photos shown on the eBay listing description page", "Instruction shown when the lot has photos")]
+    [OpenSpecScenario("measurement-photos", "In-place full-size photo preview on the eBay listing description page", "Hovering a thumbnail previews the full photo in place")]
+    [OpenSpecScenario("measurement-photos", "In-place full-size photo preview on the eBay listing description page", "Tapping or clicking a thumbnail previews the full photo in place (mobile-friendly)")]
+    [OpenSpecScenario("measurement-photos", "In-place full-size photo preview on the eBay listing description page", "Tapping or clicking the backdrop closes the preview")]
+    [OpenSpecScenario("measurement-photos", "In-place full-size photo preview on the eBay listing description page", "Thumbnail is not a clickable link")]
+    [OpenSpecScenario("measurement-photos", "Photo viewing instruction on the eBay listing description page", "Instruction shown when the lot has photos")]
     [OpenSpecScenario("measurement-photos", "Deferred loading of the full-size preview image on the eBay listing description page", "Full-size image not requested on page load")]
     [OpenSpecScenario("measurement-photos", "Deferred loading of the full-size preview image on the eBay listing description page", "Full-size image requested only on interaction")]
     public async Task EbayDescriptionPage_ShowsPhotosForMeasurementsThatHaveThem()
@@ -211,7 +211,7 @@ public class MeasurementPhotosFlowTests
     }
 
     [Test]
-    [OpenSpecScenario("measurement-photos", "Photos shown on the eBay listing description page", "A sold measurement's photo no longer reveals the real photo")]
+    [OpenSpecScenario("measurement-photos", "Thumbnail size follows the returned image on the eBay listing description page", "A sold measurement's photo no longer reveals the real photo")]
     public async Task SoldPhoto_InRenderedListing_ShowsDisplayablePlaceholders_OnHoverAndTap()
     {
         using var context = await CreateMeasurementContextAsync();
@@ -330,7 +330,7 @@ public class MeasurementPhotosFlowTests
     }
 
     [Test]
-    [OpenSpecScenario("measurement-photos", "Photos shown on the eBay listing description page", "Instruction absent when the lot has no photos")]
+    [OpenSpecScenario("measurement-photos", "Photo viewing instruction on the eBay listing description page", "Instruction absent when the lot has no photos")]
     public async Task ListingWithoutPhotos_OmitsInstructionAndImages()
     {
         using var context = await CreateMeasurementContextAsync();

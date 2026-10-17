@@ -40,7 +40,7 @@ The justification is required - an empty flag is a reported issue, not a valid e
 
 An active change is **started** when `openspec list --json` reports `completedTasks > 0`:
 at least one tracked task is checked `[x]` (including `[X]`). No tasks, only unchecked tasks,
-or only deliberately skipped `[~]` tasks do not activate the exemption. There is no
+or only deliberately skipped tasks (plain `- Skipped X.Y: ...` bullets, or any non-`[x]` marker such as `[~]`) do not activate the exemption. There is no
 `implemented` flag, and completing every task does not end the exemption while the change
 remains active.
 

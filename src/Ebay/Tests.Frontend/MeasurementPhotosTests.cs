@@ -100,8 +100,8 @@ public sealed class MeasurementPhotosTests
     [Test]
     [TestCase(true, "none")]
     [TestCase(false, "matrix(-1, 0, 0, 1, 0, 0)")]
-    [OpenSpecScenario("measurement-photos", "Phone-based photo upload", "Rear-camera preview on a detected mobile client")]
-    [OpenSpecScenario("measurement-photos", "Phone-based photo upload", "Scanner preview on a non-mobile client")]
+    [OpenSpecScenario("measurement-photos", "Scanner preview orientation by client type", "Rear-camera preview on a detected mobile client")]
+    [OpenSpecScenario("measurement-photos", "Scanner preview orientation by client type", "Scanner preview on a non-mobile client")]
     public async Task ScannerPreview_UsesClientSpecificOrientation(bool mobile, string expectedTransform)
     {
         await using var context = new BunitContext();

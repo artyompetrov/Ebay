@@ -168,7 +168,7 @@ public class ChipfindAdapterTests
     }
 
     [TestCaseSource(nameof(InvalidAdvertisementPartsForFeedParsing))]
-    [OpenSpecScenario("chipfind-monitoring", "Sale advertisement feed parsing", "Malformed items are skipped without failing the feed")]
+    [OpenSpecScenario("chipfind-monitoring", "Malformed sale advertisement feed items are skipped", "Malformed items are skipped without failing the feed")]
     public async Task GetRecentSaleAdvertisements_WhenFeedContainsInvalidItem_DoesNotThrowAndParsesValidItems(string invalidAdvertisementPart)
     {
         var xml = $"""
@@ -284,7 +284,7 @@ public class ChipfindAdapterTests
     }
 
     [Test]
-    [OpenSpecScenario("chipfind-monitoring", "Seller contact resolution from an advertisement page", "Repeated contact lookups for the same seller are cached")]
+    [OpenSpecScenario("chipfind-monitoring", "Seller contact caching", "Repeated contact lookups for the same seller are cached")]
     public async Task TryGetAdvertisementContactAsync_SecondCallForSameSeller_IsServedFromCache_WithoutFetchingPageAgain()
     {
         const string html = """

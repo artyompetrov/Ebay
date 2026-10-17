@@ -60,7 +60,7 @@ function expectFailure(result, message) {
 test('no completed task keeps missing coverage and new mappings strict', (t) => {
   const f = fixture(t);
   f.spec('catalog', requirement('Changed'));
-  for (const tasks of [null, '- [ ] Implement\n', '- [~] Deliberately skipped\n']) {
+  for (const tasks of [null, '- [ ] Implement\n', '- [~] Deliberately skipped\n', '- Skipped 1.1: Deliberately skipped\n']) {
     if (tasks === null) {
       f.change('update-catalog', { catalog: '## MODIFIED Requirements\n' + requirement('Changed') }, tasks);
     } else {

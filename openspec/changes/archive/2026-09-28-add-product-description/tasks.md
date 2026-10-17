@@ -23,7 +23,7 @@
 
 - [x] 5.1 Add the Quill library to `Frontend` (script/link tags in `index.html`, no npm/build pipeline in this project) and a new JS interop module (e.g. `wwwroot/js/productDescriptionEditor.js`) following the existing `wwwroot/js/interop.js` ES-module pattern, exposing init/get-content functions.
 - [x] 5.2 Wire the editor into `ProductProperties.razor`: initialize it with the product's current description on load, and read its HTML content back into the update request payload on save.
-- [~] 5.3 Manually verify in the running app: create/edit a product, enter formatted text (bold, list, link) in the editor, save, reload the page, and confirm the formatting persists. Skipped: no browser UI available in this environment to drive the Blazor WASM app interactively; behavior is covered instead by the automated API round-trip test (`ProductDescriptionFlowTests.CreateAndGetProduct_RoundTripsDescription`) and by building/running the Frontend project successfully.
+- Skipped 5.3: Manually verify in the running app: create/edit a product, enter formatted text (bold, list, link) in the editor, save, reload the page, and confirm the formatting persists. Skipped: no browser UI available in this environment to drive the Blazor WASM app interactively; behavior is covered instead by the automated API round-trip test (`ProductDescriptionFlowTests.CreateAndGetProduct_RoundTripsDescription`) and by building/running the Frontend project successfully.
 
 ## 6. Spec coverage & docs
 

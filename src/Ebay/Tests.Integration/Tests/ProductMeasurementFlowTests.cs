@@ -93,7 +93,7 @@ public class ProductMeasurementFlowTests
     [NonParallelizable]
     [OpenSpecScenario("measurement-plots", "Cached serving of eBay curve and tube-description images", "Repeated curve plot request served from cache")]
     [OpenSpecScenario("measurement-plots", "Cached serving of eBay curve and tube-description images", "Repeated tube-description request served from cache")]
-    [OpenSpecScenario("measurement-plots", "Cached serving of eBay curve and tube-description images", "Requests between status changes never re-check the database")]
+    [OpenSpecScenario("measurement-plots", "Plot cache invalidation on measurement status change", "Requests between status changes never re-check the database")]
     public async Task EbayCurvesAndTubeDescription_DoNotQueryDatabase_OnSecondNotSoldRequest()
     {
         using var context = await CreateMeasurementContextAsync();
@@ -115,7 +115,7 @@ public class ProductMeasurementFlowTests
     }
 
     [Test]
-    [OpenSpecScenario("measurement-plots", "Cached serving of eBay curve and tube-description images", "Sale still takes effect immediately despite cached images")]
+    [OpenSpecScenario("measurement-plots", "Plot cache invalidation on measurement status change", "Sale still takes effect immediately despite cached images")]
     public async Task EbayCurves_ReturnsSoldImage_AfterCachedRealPlotIsInvalidatedByStatusChange()
     {
         using var context = await CreateMeasurementContextAsync();

@@ -54,9 +54,9 @@ test("ApplyQrScannerOrientation retains exactly one state across repeated calls"
     assert.deepEqual([...classes].sort(), ["existing-reader-class", "qr-scanner-non-mobile"]);
 });
 
-// [OpenSpecScenario("measurement-photos", "Phone-based photo upload", "Rear-camera preview on a detected mobile client")]
-// [OpenSpecScenario("measurement-photos", "Phone-based photo upload", "Scanner preview on a non-mobile client")]
-// [OpenSpecScenario("measurement-photos", "Phone-based photo upload", "Mobile detection compatibility fallback")]
+// [OpenSpecScenario("measurement-photos", "Scanner preview orientation by client type", "Rear-camera preview on a detected mobile client")]
+// [OpenSpecScenario("measurement-photos", "Scanner preview orientation by client type", "Scanner preview on a non-mobile client")]
+// [OpenSpecScenario("measurement-photos", "Scanner preview orientation by client type", "Mobile detection compatibility fallback")]
 test("StartQrScanner classifies the client, requests the rear camera, and resolves the scanned barcode", async () => {
     const { runInNewContext } = await import("node:vm");
     for (const client of [
@@ -167,7 +167,7 @@ function createZoomTestSandbox({ zoomCapabilities = null, decodeImmediately = fa
     };
 }
 
-// [OpenSpecScenario("measurement-photos", "Phone-based photo upload", "Zoom control shown when the camera supports zoom")]
+// [OpenSpecScenario("measurement-photos", "Scanner zoom control", "Zoom control shown when the camera supports zoom")]
 test("StartQrScanner shows a zoom slider bounded by the camera's reported zoom capability", async () => {
     const { runInNewContext } = await import("node:vm");
     const interopModuleSource = interopSource.replaceAll("export function", "function");
@@ -186,7 +186,7 @@ test("StartQrScanner shows a zoom slider bounded by the camera's reported zoom c
     assert.equal(slider.value, 1);
 });
 
-// [OpenSpecScenario("measurement-photos", "Phone-based photo upload", "Zoom control absent when the camera does not support zoom")]
+// [OpenSpecScenario("measurement-photos", "Scanner zoom control", "Zoom control absent when the camera does not support zoom")]
 test("StartQrScanner shows no zoom slider when the camera reports no zoom capability, and scanning still resolves as before", async () => {
     const { runInNewContext } = await import("node:vm");
     const interopModuleSource = interopSource.replaceAll("export function", "function");
@@ -201,7 +201,7 @@ test("StartQrScanner shows no zoom slider when the camera reports no zoom capabi
     assert.equal(harness.insertedElements.length, 0);
 });
 
-// [OpenSpecScenario("measurement-photos", "Phone-based photo upload", "Adjusting the zoom control changes the live preview")]
+// [OpenSpecScenario("measurement-photos", "Scanner zoom control", "Adjusting the zoom control changes the live preview")]
 test("Adjusting the zoom slider applies the corresponding zoom constraint to the running camera track", async () => {
     const { runInNewContext } = await import("node:vm");
     const interopModuleSource = interopSource.replaceAll("export function", "function");

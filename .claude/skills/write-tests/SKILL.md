@@ -80,7 +80,7 @@ A scenario is either covered by at least one `[OpenSpecScenario]` attribute or f
 
 Requirements touched by an active change with at least one completed task are temporarily
 excluded from coverage and mapping checks. The checker uses `completedTasks > 0` from
-`openspec list --json`; unchecked or skipped `[~]` tasks alone do not qualify. ADDED,
+`openspec list --json`; unchecked or deliberately skipped tasks alone do not qualify. ADDED,
 MODIFIED, REMOVED, and both RENAMED names are deferred at requirement scope. Unrelated
 requirements remain strict. New-only scenarios are not required until synced, and new test
 tags are accepted early only for requirements deferred by a started change.

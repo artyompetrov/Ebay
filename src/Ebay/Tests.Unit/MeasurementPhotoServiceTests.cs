@@ -67,7 +67,7 @@ public sealed class MeasurementPhotoServiceTests
     }
 
     [Test]
-    [OpenSpecScenario("measurement-photos", "Cached serving of photo and thumbnail content", "Requests between status changes never re-check the database")]
+    [OpenSpecScenario("measurement-photos", "Photo cache invalidation on measurement status change", "Requests between status changes never re-check the database")]
     public async Task GetContentAsync_SecondCall_DoesNotReCheckMeasurementStatus_WhenNothingInvalidatedIt()
     {
         var photoQueries = new FakeMeasurementPhotoQueries(
@@ -103,7 +103,7 @@ public sealed class MeasurementPhotoServiceTests
     }
 
     [Test]
-    [OpenSpecScenario("measurement-photos", "Cached serving of photo and thumbnail content", "Sale still takes effect immediately despite cached bytes")]
+    [OpenSpecScenario("measurement-photos", "Photo cache invalidation on measurement status change", "Sale still takes effect immediately despite cached bytes")]
     public async Task GetContentAsync_ReturnsPlaceholder_NotPreviouslyCachedRealBytes_AfterCacheIsInvalidatedForASale()
     {
         var photoQueries = new FakeMeasurementPhotoQueries(

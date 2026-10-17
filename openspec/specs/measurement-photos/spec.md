@@ -5,7 +5,7 @@ End-to-end capability covering measurement photo upload (phone), storage, retrie
 ## Requirements
 
 ### Requirement: Phone-based photo upload
-Staff SHALL be able to identify a measurement by scanning its barcode with a phone camera and upload one or more photos for that measurement directly from the phone's camera roll or camera. The page SHALL automatically classify the current browser client as mobile or non-mobile without asking the user. For a client classified as mobile, the environment-facing barcode camera preview SHALL be displayed in its natural, non-mirrored orientation; for a client classified as non-mobile, the scanner preview SHALL retain its existing horizontally mirrored presentation. When the active camera track reports a zoom capability, the page SHALL present a manual zoom control alongside the scanner preview so staff can zoom in on a barcode instead of physically moving the phone closer than the camera can focus; when the active camera track does not report a zoom capability, the page SHALL NOT present a zoom control and scanning SHALL behave exactly as it did before this capability existed.
+Staff SHALL be able to identify a measurement by scanning its barcode with a phone camera and upload one or more photos for that measurement directly from the phone's camera roll or camera.
 
 #### Scenario: Upload after scanning a barcode
 - **WHEN** staff scans a measurement's barcode on the `/measurement-photos` page and then selects one or more photo files
@@ -14,6 +14,9 @@ Staff SHALL be able to identify a measurement by scanning its barcode with a pho
 #### Scenario: Upload blocked without a known measurement
 - **WHEN** no measurement id has been established yet (no scan performed and no id supplied)
 - **THEN** the upload control is disabled and no upload request is sent
+
+### Requirement: Scanner preview orientation by client type
+The photo upload page SHALL automatically classify the current browser client as mobile or non-mobile without asking the user. For a client classified as mobile, the environment-facing barcode camera preview SHALL be displayed in its natural, non-mirrored orientation; for a client classified as non-mobile, the scanner preview SHALL retain its existing horizontally mirrored presentation.
 
 #### Scenario: Rear-camera preview on a detected mobile client
 - **WHEN** staff starts barcode scanning on a client that the browser identifies as mobile and the scanner requests the environment-facing camera
@@ -26,6 +29,9 @@ Staff SHALL be able to identify a measurement by scanning its barcode with a pho
 #### Scenario: Mobile detection compatibility fallback
 - **WHEN** the browser does not expose its structured mobile-client indicator
 - **THEN** the page determines mobile status using a browser-compatible client identification fallback and still starts the barcode scanner
+
+### Requirement: Scanner zoom control
+When the active camera track reports a zoom capability, the photo upload page SHALL present a manual zoom control alongside the scanner preview so staff can zoom in on a barcode instead of physically moving the phone closer than the camera can focus; when the active camera track does not report a zoom capability, the page SHALL NOT present a zoom control and scanning SHALL behave exactly as it did before this capability existed.
 
 #### Scenario: Zoom control shown when the camera supports zoom
 - **WHEN** staff starts barcode scanning and the active camera track reports a zoom capability
@@ -111,7 +117,7 @@ The system SHALL expose an API endpoint that returns the stored thumbnail image 
 - **THEN** the response is a valid, displayable placeholder image and not the stored thumbnail's real content
 
 ### Requirement: Cached serving of photo and thumbnail content
-For a measurement that has not been sold, the system SHALL serve a photo's full content and thumbnail content from an in-memory cache after the first successful retrieval, instead of re-reading the binary content from the database on every request. The system SHALL NOT re-check the measurement's sold/not-sold status against the database on every request. Instead, whenever the measurement's status changes, the system SHALL invalidate that measurement's cached photo/thumbnail results so the next request re-resolves them, rather than relying on a per-request live status check.
+For a measurement that has not been sold, the system SHALL serve a photo's full content and thumbnail content from an in-memory cache after the first successful retrieval, instead of re-reading the binary content from the database on every request.
 
 #### Scenario: Repeated content request served from cache
 - **WHEN** a photo's full content is requested twice for a measurement that has not been sold
@@ -120,6 +126,9 @@ For a measurement that has not been sold, the system SHALL serve a photo's full 
 #### Scenario: Repeated thumbnail request served from cache
 - **WHEN** a photo's thumbnail content is requested twice for a measurement that has not been sold
 - **THEN** the second request's thumbnail content is served from the in-memory cache without re-reading it from the database
+
+### Requirement: Photo cache invalidation on measurement status change
+The system SHALL NOT re-check the measurement's sold/not-sold status against the database on every photo or thumbnail request. Instead, whenever the measurement's status changes, the system SHALL invalidate that measurement's cached photo/thumbnail results so the next request re-resolves them, rather than relying on a per-request live status check.
 
 #### Scenario: Requests between status changes never re-check the database
 - **WHEN** a photo's content or thumbnail has already been resolved once for a measurement whose status has not changed since
@@ -141,7 +150,7 @@ The system SHALL provide a read query that returns photo metadata (id, file name
 - **THEN** the system SHALL return an empty result for that measurement id rather than an error
 
 ### Requirement: Photos shown on the eBay listing description page
-The eBay lot description page (the page whose rendered HTML is pulled into the live eBay listing) SHALL display a thumbnail for each of the uploaded photos for each measurement/tube it lists, arranged horizontally within that measurement's row, alongside the existing measurement curve plots. Thumbnails SHALL NOT be navigable links; hovering or tapping/clicking a thumbnail SHALL preview the corresponding full-size photo in place on the same page, as an overlay anchored to that thumbnail, using CSS only (no JavaScript, no new tab, no navigation, no file download), since this page is embedded directly into a live eBay listing — viewed on both desktop and mobile — and must never cause the viewer to leave or be redirected away from that listing. When the lot has at least one measurement photo, the page SHALL also display a short instruction telling buyers to hover or tap a thumbnail to view it full-size; this instruction SHALL NOT be shown when the lot has no measurement photos at all. A thumbnail's on-page size SHALL be driven by the dimensions of the image actually returned for it (capped to a bounded display size for a real photo), rather than a fixed size independent of that image, so that a measurement whose tube has since been sold — and whose photo therefore no longer resolves to the real image — visually collapses away instead of leaving a same-size blank box where the photo used to be.
+The eBay lot description page (the page whose rendered HTML is pulled into the live eBay listing) SHALL display a thumbnail for each of the uploaded photos for each measurement/tube it lists, arranged horizontally within that measurement's row, alongside the existing measurement curve plots.
 
 #### Scenario: Measurement with photos
 - **WHEN** the eBay description page is rendered for a lot whose measurements include one that has uploaded photos
@@ -150,6 +159,9 @@ The eBay lot description page (the page whose rendered HTML is pulled into the l
 #### Scenario: Measurement with no photos
 - **WHEN** the eBay description page is rendered for a measurement that has no uploaded photos
 - **THEN** the page renders that measurement's row without any photo images and without errors
+
+### Requirement: In-place full-size photo preview on the eBay listing description page
+Thumbnails on the eBay lot description page SHALL NOT be navigable links; hovering or tapping/clicking a thumbnail SHALL preview the corresponding full-size photo in place, as an overlay anchored to that thumbnail, using CSS only (no JavaScript, new tab, navigation or file download), since this page is embedded into a live eBay listing, viewed on desktop and mobile, and must never cause the viewer to leave that listing.
 
 #### Scenario: Hovering a thumbnail previews the full photo in place
 - **WHEN** a viewer of the eBay description page hovers one of a measurement's photo thumbnails
@@ -167,6 +179,9 @@ The eBay lot description page (the page whose rendered HTML is pulled into the l
 - **WHEN** a viewer of the eBay description page clicks a photo thumbnail
 - **THEN** the click has no navigation effect — the viewer stays on the current eBay listing page (only the local preview overlay opens)
 
+### Requirement: Photo viewing instruction on the eBay listing description page
+When the lot has at least one measurement photo, the eBay lot description page SHALL display a short instruction telling buyers to hover or tap a thumbnail to view it full-size; this instruction SHALL NOT be shown when the lot has no measurement photos at all.
+
 #### Scenario: Instruction shown when the lot has photos
 - **WHEN** the eBay description page is rendered for a lot that has at least one measurement photo
 - **THEN** the page displays a short instruction telling buyers to hover or tap a thumbnail to view it full-size
@@ -174,6 +189,9 @@ The eBay lot description page (the page whose rendered HTML is pulled into the l
 #### Scenario: Instruction absent when the lot has no photos
 - **WHEN** the eBay description page is rendered for a lot whose measurements have no uploaded photos at all
 - **THEN** the page does not display the hover/tap instruction
+
+### Requirement: Thumbnail size follows the returned image on the eBay listing description page
+A thumbnail's on-page size on the eBay lot description page SHALL be driven by the dimensions of the image actually returned for it (capped to a bounded display size for a real photo), rather than a fixed size, so that a measurement whose tube has since been sold, and whose photo therefore no longer resolves to the real image, visually collapses away instead of leaving a same-size blank box.
 
 #### Scenario: A sold measurement's photo no longer reveals the real photo
 - **WHEN** a viewer of the eBay description page views or interacts with (hovers/taps) a photo thumbnail belonging to a measurement whose tube has since been sold
