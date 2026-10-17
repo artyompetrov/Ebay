@@ -8,8 +8,6 @@ COPY .editorconfig /
 COPY --parents Ebay/**/*.csproj Ebay/*.props Ebay/*.slnx Ebay/nuget.config ./
 RUN dotnet restore "Ebay/Ebay.slnx"
 COPY Ebay/ Ebay/
-# Service-local banned APIs, included by Ebay/Directory.Build.props as ../BannedSymbols.txt.
-COPY BannedSymbols.txt ./
 WORKDIR "/src/Ebay/"
 WORKDIR "/src/Ebay/Server"
 ARG BUILD_VERSION="1.0.0.0"
