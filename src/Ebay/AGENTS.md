@@ -70,15 +70,15 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
   - identity: `ConnectionStrings__DefaultConnection="$CONN" dotnet ef migrations add NewMigrationName --project src/Ebay/Server.Adapters.Driven.EF.Identity.Migrations/Server.Adapters.Driven.EF.Identity.Migrations.csproj --startup-project src/Ebay/Server.Adapters.Driven.EF.Identity.Migrations/Server.Adapters.Driven.EF.Identity.Migrations.csproj --context Server.Adapters.Driven.EF.Identity.IdentityDbContext`
 
 ## Configuration and DI
-- Every service is a stateless `Singleton` (`AddSingleton`). `Scoped`/`Transient` registrations and `AddDbContext`/`AddDbContextPool` are banned at compile time (RS0030, `src/BannedSymbols.txt`); per-operation state is passed as method arguments, never kept in fields.
+- Every service is a stateless `Singleton` (`AddSingleton`). `Scoped`/`Transient` registrations and `AddDbContext`/`AddDbContextPool` are banned at compile time (RS0030, `src/Ebay/BannedSymbols.txt`); per-operation state is passed as method arguments, never kept in fields.
 - EF contexts come from `IDbContextFactory<T>`; a write operation passes its `IWriteModelUnitOfWork` explicitly (see "Command/query split").
 - HTTP: inject `IHttpClientFactory` and create a named client per call; don't register typed clients (`AddHttpClient<TClient, TImpl>`) or capture an `HttpClient` in a singleton.
-- Scoped/transient services registered internally by libraries (ASP.NET Core, ASP.NET Identity/Duende, MassTransit consumers, the scoped context the EF factories add) are allowed; the full list of exceptions and reasons is at the top of `src/BannedSymbols.txt`.
+- Scoped/transient services registered internally by libraries (ASP.NET Core, ASP.NET Identity/Duende, MassTransit consumers, the scoped context the EF factories add) are allowed; the full list of exceptions and reasons is in the EXCEPTIONS section of `src/Ebay/BannedSymbols.txt`.
 - The host validates the container in every environment (`ValidateScopes`/`ValidateOnBuild`, `Server.Platform` and `Frontend/Program.cs`), so a singleton that captures a scoped service fails at startup.
 - In `Program.cs`, don't read parameters directly via `GetSection`/`GetRequiredSection` during container registration.
 - Use `AddOptions<...>().BindConfiguration("...").ValidateDataAnnotations().ValidateOnStart()`.
 - `GetRequiredSection` and `ConfigurationBinder.Get`/`Get<T>` are banned via `BannedSymbols.txt` (BannedApiAnalyzers, RS0030 = error); do not suppress, bind options as above.
-- `IConfiguration` (with its members such as `GetSection`) and `GetConnectionString` are banned too (`src/BannedSymbols.txt`). BannedApiAnalyzers does not check generic type arguments or the indexer, so `GetService<IConfiguration>()`/`GetRequiredService<IConfiguration>()`/`Configure<IConfiguration>(...)` and `cfg["..."]` still compile - don't use them either.
+- `IConfiguration` (with its members such as `GetSection`) and `GetConnectionString` are banned too (`src/Ebay/BannedSymbols.txt`). BannedApiAnalyzers does not check generic type arguments or the indexer, so `GetService<IConfiguration>()`/`GetRequiredService<IConfiguration>()`/`Configure<IConfiguration>(...)` and `cfg["..."]` still compile - don't use them either.
 
 ## Architectural constraints
 ### DDD
