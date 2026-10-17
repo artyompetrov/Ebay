@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.DataProtection.Repositories;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -34,8 +37,27 @@ public static class ServiceCollectionExtensions
         });
 
         ConfigureIdentity(services);
+        DisableRegistrationPages(services);
 
         MakeContextOptionsConfigurationsSingleton(services);
+    }
+
+    /// <summary>
+    /// The application has no self-service sign-up: removing the routes of the registration-related Identity UI
+    /// pages makes their handlers (including account creation) unreachable for any request.
+    /// </summary>
+    private static void DisableRegistrationPages(IServiceCollection services)
+    {
+        services.Configure<RazorPagesOptions>(static options =>
+        {
+            foreach (var page in WellKnown.IdentityUi.DisabledPages)
+            {
+                options.Conventions.AddAreaPageRouteModelConvention(
+                    WellKnown.IdentityUi.Area,
+                    page,
+                    static model => model.Selectors.Clear());
+            }
+        });
     }
 
     /// <summary>
@@ -77,6 +99,18 @@ public static class ServiceCollectionExtensions
         app.UseAuthentication();
         app.UseIdentityServer();
         app.UseAuthorization();
+    }
+
+    /// <summary>
+    /// Answers the paths of the disabled registration pages with <c>404 Not Found</c>. Without these endpoints the
+    /// SPA fallback (<c>MapFallbackToFile</c>) would serve them as the frontend's <c>index.html</c>.
+    /// </summary>
+    public static void MapEfIdentityAdapter(this IEndpointRouteBuilder endpoints)
+    {
+        foreach (var page in WellKnown.IdentityUi.DisabledPages)
+        {
+            endpoints.Map($"/{WellKnown.IdentityUi.Area}{page}", static () => Results.NotFound());
+        }
     }
 
     public static void UseEfIdentityAdapter(this IServiceProvider serviceProvider)

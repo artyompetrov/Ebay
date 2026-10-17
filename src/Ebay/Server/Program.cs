@@ -73,6 +73,7 @@ public class Program
         app.UseEfIdentityAdapterAuthentication();
 
         app.MapRazorPages();
+        app.MapEfIdentityAdapter();
         app.MapControllers();
         app.MapPlatform();
         app.MapFallbackToFile("index.html");
