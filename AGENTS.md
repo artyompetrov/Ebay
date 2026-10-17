@@ -17,7 +17,7 @@ Project composition:
 - Prefer systemic, consistent solutions over local workarounds.
 
 ## DI and services
-- Default and only DI registration in our code: `Singleton`. `Scoped`/`Transient` are banned at compile time (RS0030); exceptions are listed with reasons in `src/BannedSymbols.txt`.
+- Default and only DI registration in our code: `Singleton`. `Scoped`/`Transient` are banned at compile time (RS0030); exceptions are listed with reasons in `src/Ebay/BannedSymbols.txt`.
 - Per-operation state (EF contexts, units of work) is created per call or passed as a method argument, never stored in a service field.
 - Services are stateless (don't store mutable state in fields unless it is deliberately process-wide and thread-safe).
 
