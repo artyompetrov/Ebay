@@ -36,7 +36,7 @@ Project composition:
 - `.github/workflows/backup-database.yaml` — scheduled job that dumps the production DB over SSH and uploads it to Yandex Disk (`scripts/backup-database/upload_to_yandex_disk.sh`); requires the `SSH_PRIVATE_KEY`/`SSH_HOST`/`SSH_USER` secrets (shared with the deploy job), a `YANDEX_DISK_TOKEN` secret (OAuth token for the Yandex Disk API), and a `YANDEX_OAUTH_CLIENT_ID` secret (client_id of the Yandex OAuth app that issued the token, used to build the re-authorization link when the token expires).
 - `src/Ebay` — backend + Blazor frontend (details: `src/Ebay/AGENTS.md`).
 - `src/ChromeExtension` — Chrome extension (details: `src/ChromeExtension/AGENTS.md`).
-- `src/Dockerfile` — builds the solution into a container.
+- `src/Dockerfile` — builds the solution into a container. The final stage is the chiseled (distroless) `aspnet:*-noble-chiseled-extra` image: no shell or package manager, runs as the non-root `app` user (uid 1654). In `deploy/docker-compose.yaml` `ebay_helper` runs with a read-only root filesystem (only `/tmp` tmpfs and mounted volumes are writable); the one-shot `ebay_helper_init` service chowns the DataProtection keys volume to uid 1654. Don't add shell-based `entrypoint`/`command` overrides for it.
 - `deploy` — docker-compose for running the app.
 - `scripts/cloud-agent-init` — shared cloud sandbox init script (Claude Code, Codex), see its `README.md`.
 - `scripts/agent-check` — pre-PR check script (`agent-check.sh`).

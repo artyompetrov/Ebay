@@ -21,9 +21,22 @@ services:
     image: ghcr.io/artyompetrov/ebay:latest
     build: ../src/
     depends_on:
-      - ebay_postgres
-      - ebay_otelcollector
+      ebay_postgres:
+        condition: service_started
+      ebay_otelcollector:
+        condition: service_started
+      ebay_helper_init:
+        condition: service_completed_successfully
     restart: unless-stopped
+    # The image is chiseled (no shell) and runs as the non-root `app` user (uid 1654).
+    # Only the volumes below and /tmp are writable.
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     volumes:
       - ${NETCORE_CERTIFICATE}:/certs/cert.pfx:ro
       - ebay_helper_keys:/app/DataProtection-Keys/
@@ -51,20 +64,19 @@ services:
       - Smtp__Login=${SMTP_LOGIN}
       - Smtp__Password=${SMTP_PASSWORD}
       - Smtp__Email=${EMAIL}
-      - RESTORE=${RESTORE:-false}
     networks:
       - internal_network
-    entrypoint:
-      - bash
-      - -c
-    command:
-      - >
-        if [ "${RESTORE:-false}" = "true" ]; then
-          echo "Restoring backup...";
-          while true; do sleep 86400; done;
-        else
-          dotnet Server.dll
-        fi;
+
+  # One-shot: gives the non-root app user (uid 1654 in the chiseled image) ownership of the
+  # DataProtection keys volume. Needed because volumes created by earlier root-based images are owned by root.
+  ebay_helper_init:
+    container_name: ebay_helper_init
+    image: busybox:1.37
+    volumes:
+      - ebay_helper_keys:/keys/
+    entrypoint: [ "chown", "-R", "1654:1654", "/keys" ]
+    network_mode: none
+    restart: "no"
 
   ebay_nginx:
     container_name: ebay_nginx
