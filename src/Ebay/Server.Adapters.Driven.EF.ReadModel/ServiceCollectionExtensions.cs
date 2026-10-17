@@ -1,8 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Server.Adapters.Driven.EF.ReadModel.Queries;
+using Server.Adapters.Driven.PostgreSql;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 
 namespace Server.Adapters.Driven.EF.ReadModel;
@@ -18,12 +19,12 @@ public static class ServiceCollectionExtensions
     /// <param name="services">Сервисы</param>
     public static void AddEfReadModelAdapter(this IServiceCollection services)
     {
+        services.AddPostgreSqlOptions();
+
         // Pooled factory: ReadDbContext has no constructor dependencies beyond DbContextOptions.
         services.AddPooledDbContextFactory<ReadDbContext>((sp, o) =>
         {
-            var connectionString = sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection")
-                                   ?? throw new InvalidOperationException("Connection string cannot be null");
-            o.UseNpgsql(connectionString);
+            o.UseNpgsql(sp.GetRequiredService<IOptions<PostgreSqlOptions>>().Value.DefaultConnection);
             // Set through options, not in the constructor: a pooled context resets its change tracker to the
             // options' defaults when it is returned to the pool.
             o.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);

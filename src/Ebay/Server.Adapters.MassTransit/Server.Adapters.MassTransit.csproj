@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Server.Adapters.Driven.PostgreSql\Server.Adapters.Driven.PostgreSql.csproj" />
     <ProjectReference Include="..\Server.Application.Abstractions.Driving\Server.Application.Abstractions.Driving.csproj" />
     <ProjectReference Include="..\Server.Application\Server.Application.csproj" />
     <!-- The single allowed adapter-to-adapter reference: the transactional outbox (AddEntityFrameworkOutbox<WriteModelDbContext>) needs the write-model DbContext type. -->

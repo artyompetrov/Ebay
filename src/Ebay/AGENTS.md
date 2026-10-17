@@ -29,6 +29,7 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 - Identity/authorization configuration (data protection, ASP.NET Identity, IdentityServer clients, JWT, `AuthorizationClientOptions`) lives in `Server.Adapters.Driven.EF.Identity` behind `AddEfIdentityAdapter()`/`UseEfIdentityAdapterAuthentication()`, not in `Program.cs`.
 - Adapter-private caches (e.g. GeoIp, ChipFind keyed `IMemoryCache`) are registered by their own adapter's `Add*Adapter()`.
 - `Server.Adapters.Driven.Plotting` — SVG rendering of measurement plots, status labels and tube-info cards (`ScottPlot`) behind `IPlottingAdapter`; `MeasurementPlotService` only orchestrates (loading, approximation, axis ranges, cache keys).
+- `Server.Adapters.Driven.PostgreSql` — `PostgreSqlOptions` (the `ConnectionStrings` section, `ConnectionStrings__DefaultConnection`) for the shared PostgreSQL database; every adapter that connects to it (EF read/write model, EF Identity, MassTransit SQL transport, design-time migration factories) calls the idempotent `AddPostgreSqlOptions()` and reads `IOptions<PostgreSqlOptions>`.
 - `Server.Adapters.Driven.MemoryCache` — process-wide in-memory cache for measurement-bound content (photo/thumbnail bytes, rendered eBay plots) behind `IMeasurementContentCacheAdapter`: size limit (`ImageCache` section), sliding expiration and per-measurement invalidation. The application decides keys and what is cacheable; `ICacheStore` (persistent Postgres cache) is a different port.
 - `Server.Adapters.Driving.BackgroundTasks` — driving adapter for periodic/startup background jobs (ChipFind monitoring, currency rates, sale advertisement cleanup, DB cache cleanup, measurement plot warmup). Each hosted service injects its (singleton) application use-case service, applies the `EbayServer:IsLocalRun` switch where relevant, and calls one use-case method; scheduling constants live here, business thresholds stay in `Server.Application`. Hosted services (`IHostedService`) live only in adapter assemblies.
 - `Tests.Unit`, `Tests.Integration`, `Tests.Explicit` — test projects.
@@ -77,6 +78,7 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 - In `Program.cs`, don't read parameters directly via `GetSection`/`GetRequiredSection` during container registration.
 - Use `AddOptions<...>().BindConfiguration("...").ValidateDataAnnotations().ValidateOnStart()`.
 - `GetRequiredSection` and `ConfigurationBinder.Get`/`Get<T>` are banned via `BannedSymbols.txt` (BannedApiAnalyzers, RS0030 = error); do not suppress, bind options as above.
+- `IConfiguration` (with its members such as `GetSection`) and `GetConnectionString` are banned too (`src/BannedSymbols.txt`). BannedApiAnalyzers does not check generic type arguments or the indexer, so `GetService<IConfiguration>()`/`GetRequiredService<IConfiguration>()`/`Configure<IConfiguration>(...)` and `cfg["..."]` still compile - don't use them either.
 
 ## Architectural constraints
 ### DDD

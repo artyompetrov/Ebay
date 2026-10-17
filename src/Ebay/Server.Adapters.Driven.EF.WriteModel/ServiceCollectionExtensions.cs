@@ -1,8 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Server.Adapters.Driven.EF.WriteModel.Repositories;
+using Server.Adapters.Driven.PostgreSql;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 
@@ -23,13 +24,14 @@ public static class ServiceCollectionExtensions
     public static void AddEfWriteModelAdapter(
         this IServiceCollection services)
     {
+        services.AddPostgreSqlOptions();
+
         // Pooled factory: WriteModelDbContext has no constructor dependencies beyond DbContextOptions. The factory
         // also registers the context itself as scoped; only WriteModelUnitOfWork resolves it (inside its own
         // scope), because the MassTransit EF bus outbox needs the scoped context instance.
         services.AddPooledDbContextFactory<WriteModelDbContext>((sp, o) =>
         {
-            var connectionString = sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection")
-                                   ?? throw new InvalidOperationException("Connection string cannot be null");
+            var connectionString = sp.GetRequiredService<IOptions<PostgreSqlOptions>>().Value.DefaultConnection;
             o.UseNpgsql(connectionString, b =>
                 b.MigrationsAssembly("Server.Adapters.Driven.EF.WriteModel.Migrations"));
             o.AddInterceptors(sp.GetServices<IInterceptor>());
@@ -37,8 +39,7 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton(sp =>
         {
-            var connectionString = sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection")
-                                   ?? throw new InvalidOperationException("Connection string cannot be null");
+            var connectionString = sp.GetRequiredService<IOptions<PostgreSqlOptions>>().Value.DefaultConnection;
             return new DatabaseConcurrentAccessSemaphore(
                 maxConcurrent: new Npgsql.NpgsqlConnectionStringBuilder(connectionString).MaxPoolSize / 2);
         });

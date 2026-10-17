@@ -139,3 +139,12 @@ M:Microsoft.Extensions.DependencyInjection.HttpClientFactoryServiceCollectionExt
 M:Microsoft.Extensions.DependencyInjection.HttpClientFactoryServiceCollectionExtensions.AddHttpClient``2(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String,System.Action{System.Net.Http.HttpClient});Typed HttpClients are transient and get captured by singletons: register a named client with AddHttpClient(name, ...) and create it per call from IHttpClientFactory.
 M:Microsoft.Extensions.DependencyInjection.HttpClientFactoryServiceCollectionExtensions.AddHttpClient``2(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String,System.Func{System.Net.Http.HttpClient,System.IServiceProvider,``1});Typed HttpClients are transient and get captured by singletons: register a named client with AddHttpClient(name, ...) and create it per call from IHttpClientFactory.
 M:Microsoft.Extensions.DependencyInjection.HttpClientFactoryServiceCollectionExtensions.AddHttpClient``2(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String,System.Func{System.Net.Http.HttpClient,``1});Typed HttpClients are transient and get captured by singletons: register a named client with AddHttpClient(name, ...) and create it per call from IHttpClientFactory.
+
+# Configuration: settings are read only through IOptions<T> (see also the ConfigurationBinder ban in the mirrored
+# src/Ebay/BannedSymbols.txt). Banning the type also bans its members (GetSection, GetChildren, ...), but
+# BannedApiAnalyzers checks neither generic type arguments nor the IConfiguration indexer, so
+# sp.GetService<IConfiguration>(), GetRequiredService<IConfiguration>(), Configure<IConfiguration>(...) and cfg["..."]
+# still compile; GetConnectionString is banned separately because it is an extension method and reads through
+# that indexer.
+T:Microsoft.Extensions.Configuration.IConfiguration;Do not read IConfiguration directly: register options with services.AddOptions<T>().BindConfiguration(T.SectionName).ValidateDataAnnotations().ValidateOnStart() and consume IOptions<T>.
+M:Microsoft.Extensions.Configuration.ConfigurationExtensions.GetConnectionString(Microsoft.Extensions.Configuration.IConfiguration,System.String);Do not read connection strings from IConfiguration: use IOptions<PostgreSqlOptions> (Server.Adapters.Driven.PostgreSql, registered by AddPostgreSqlOptions).
