@@ -14,7 +14,7 @@ namespace Server.Application;
 /// </summary>
 public class ProductService
 {
-    private readonly IWriteModelUnitOfWork _unitOfWork;
+    private readonly IWriteModelUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IProductRepository _productRepository;
     private readonly IProductQueries _productQueries;
     private readonly IPriceRecalculationPublisher _priceRecalculationPublisher;
@@ -24,13 +24,13 @@ public class ProductService
     /// Создает сервис сценариев работы с товарами.
     /// </summary>
     public ProductService(
-        IWriteModelUnitOfWork unitOfWork,
+        IWriteModelUnitOfWorkFactory unitOfWorkFactory,
         IProductRepository productRepository,
         IProductQueries productQueries,
         IPriceRecalculationPublisher priceRecalculationPublisher,
         ProductDescriptionSanitizer descriptionSanitizer)
     {
-        _unitOfWork = unitOfWork;
+        _unitOfWorkFactory = unitOfWorkFactory;
         _productRepository = productRepository;
         _productQueries = productQueries;
         _priceRecalculationPublisher = priceRecalculationPublisher;
@@ -42,8 +42,10 @@ public class ProductService
     /// </summary>
     public async Task CalculatePricesForProductAsync(Guid productId, CancellationToken cancellationToken)
     {
-        await _priceRecalculationPublisher.PublishForProductAsync(productId, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
+        await _priceRecalculationPublisher.PublishForProductAsync(unitOfWork, productId, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     /// <summary>
@@ -57,6 +59,8 @@ public class ProductService
         string? description,
         CancellationToken cancellationToken)
     {
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
         var product = Product.Create(
             name: name,
             weight: weight,
@@ -64,8 +68,8 @@ public class ProductService
             ruSearchQueries: ruSearchQueries,
             description: _descriptionSanitizer.Sanitize(description));
 
-        await _productRepository.AddAsync(aggregate: product, cancellationToken: cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken: cancellationToken);
+        await _productRepository.AddAsync(unitOfWork, aggregate: product, cancellationToken: cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken: cancellationToken);
         return product;
     }
 
@@ -82,7 +86,9 @@ public class ProductService
         CancellationToken cancellationToken
     )
     {
-        var product = await _productRepository.GetByIdAsync(id: productId, cancellationToken: cancellationToken) ??
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
+        var product = await _productRepository.GetByIdAsync(unitOfWork, id: productId, cancellationToken: cancellationToken) ??
                       throw new InvalidOperationException("product not found");
         product.Update(
             name: name,
@@ -91,7 +97,7 @@ public class ProductService
             ruSearchQueries: ruSearchQueries,
             description: _descriptionSanitizer.Sanitize(description));
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     /// <summary>
@@ -99,7 +105,12 @@ public class ProductService
     /// </summary>
     public async Task DeleteProductAsync(
         Guid id,
-        CancellationToken cancellationToken) => await _productRepository.RemoveAsync(id, cancellationToken);
+        CancellationToken cancellationToken)
+    {
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
+        await _productRepository.RemoveAsync(unitOfWork, id, cancellationToken);
+    }
 
     /// <summary>
     /// Обновляет время последней проверки товара.
@@ -109,11 +120,13 @@ public class ProductService
         CancellationToken cancellationToken
     )
     {
-        var product = await _productRepository.GetByIdAsync(id, cancellationToken) ??
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
+        var product = await _productRepository.GetByIdAsync(unitOfWork, id, cancellationToken) ??
                       throw new InvalidOperationException("Product not found");
         product.MarkAsChecked();
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     /// <summary>

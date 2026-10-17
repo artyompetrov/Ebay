@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Domain.Product;
 
@@ -6,18 +7,13 @@ namespace Server.Adapters.Driven.EF.WriteModel.Repositories;
 
 internal sealed class ProductRepository : IProductRepository
 {
-    private readonly WriteModelDbContext _dbContext;
-
-    public ProductRepository(WriteModelDbContext dbContext)
+    public async Task<Product?> GetByIdAsync(IWriteModelUnitOfWork unitOfWork, Guid id, CancellationToken cancellationToken)
     {
-        _dbContext = dbContext;
-    }
+        var dbContext = WriteModelUnitOfWork.From(unitOfWork).DbContext;
 
-    public async Task<Product?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
-    {
-        await using var transaction = await TransactionHelper.EnsureRepeatableReadOrStartAsync(_dbContext, cancellationToken);
+        await using var transaction = await TransactionHelper.EnsureRepeatableReadOrStartAsync(dbContext, cancellationToken);
 
-        var result = await _dbContext.Products
+        var result = await dbContext.Products
             .AsSplitQuery()
             .Include(x => x.RuSearchQueries)
             .Include(x => x.SearchQueries)
@@ -28,16 +24,20 @@ internal sealed class ProductRepository : IProductRepository
         return result;
     }
 
-    public async Task AddAsync(Product aggregate, CancellationToken cancellationToken) => _ = await _dbContext.Products.AddAsync(aggregate, cancellationToken);
+    public async Task AddAsync(IWriteModelUnitOfWork unitOfWork, Product aggregate, CancellationToken cancellationToken) => _ = await WriteModelUnitOfWork.From(unitOfWork).DbContext.Products.AddAsync(aggregate, cancellationToken);
 
-    public async Task RemoveAsync(Guid id, CancellationToken cancellationToken)
+    public async Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, Guid id, CancellationToken cancellationToken)
     {
-        await _dbContext.Products.Where(o => o.Id == id)
+        var dbContext = WriteModelUnitOfWork.From(unitOfWork).DbContext;
+
+        await dbContext.Products.Where(o => o.Id == id)
             .ExecuteDeleteAsync(cancellationToken: cancellationToken);
     }
 
-    public async Task RemoveAsync(IReadOnlySet<Guid> ids, CancellationToken cancellationToken)
+    public async Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, IReadOnlySet<Guid> ids, CancellationToken cancellationToken)
     {
+        var dbContext = WriteModelUnitOfWork.From(unitOfWork).DbContext;
+
         if (ids.Count == 0)
         {
             return;
@@ -46,7 +46,7 @@ internal sealed class ProductRepository : IProductRepository
         const int batchSize = 1000; // безопасный размер IN (...)
         foreach (var batch in ids.Chunk(batchSize))
         {
-            await _dbContext.Products
+            await dbContext.Products
                 .Where(x => batch.Contains(x.Id))
                 .ExecuteDeleteAsync(cancellationToken);
         }

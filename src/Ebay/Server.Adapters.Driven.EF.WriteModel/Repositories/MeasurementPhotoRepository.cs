@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Domain.Measurements;
 
@@ -6,33 +7,35 @@ namespace Server.Adapters.Driven.EF.WriteModel.Repositories;
 
 public sealed class MeasurementPhotoRepository : IMeasurementPhotoRepository
 {
-    private readonly WriteModelDbContext _context;
-
-    public MeasurementPhotoRepository(WriteModelDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task<MeasurementPhoto?> GetByIdAsync(
+        IWriteModelUnitOfWork unitOfWork,
         Guid id,
         CancellationToken cancellationToken)
     {
-        return await _context.MeasurementPhotos
+        var dbContext = WriteModelUnitOfWork.From(unitOfWork).DbContext;
+
+        return await dbContext.MeasurementPhotos
             .SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
     public async Task AddAsync(
+        IWriteModelUnitOfWork unitOfWork,
         MeasurementPhoto aggregate,
         CancellationToken cancellationToken)
     {
-        await _context.MeasurementPhotos.AddAsync(aggregate, cancellationToken);
+        var dbContext = WriteModelUnitOfWork.From(unitOfWork).DbContext;
+
+        await dbContext.MeasurementPhotos.AddAsync(aggregate, cancellationToken);
     }
 
     public async Task RemoveAsync(
+        IWriteModelUnitOfWork unitOfWork,
         Guid id,
         CancellationToken cancellationToken)
     {
-        var entity = await _context.MeasurementPhotos
+        var dbContext = WriteModelUnitOfWork.From(unitOfWork).DbContext;
+
+        var entity = await dbContext.MeasurementPhotos
             .SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
 
         if (entity == null)
@@ -40,17 +43,20 @@ public sealed class MeasurementPhotoRepository : IMeasurementPhotoRepository
             return;
         }
 
-        _context.MeasurementPhotos.Remove(entity);
+        dbContext.MeasurementPhotos.Remove(entity);
     }
 
     public async Task RemoveAsync(
+        IWriteModelUnitOfWork unitOfWork,
         IReadOnlySet<Guid> id,
         CancellationToken cancellationToken)
     {
-        var entities = await _context.MeasurementPhotos
+        var dbContext = WriteModelUnitOfWork.From(unitOfWork).DbContext;
+
+        var entities = await dbContext.MeasurementPhotos
             .Where(x => id.Contains(x.Id))
             .ToListAsync(cancellationToken);
 
-        _context.MeasurementPhotos.RemoveRange(entities);
+        dbContext.MeasurementPhotos.RemoveRange(entities);
     }
 }

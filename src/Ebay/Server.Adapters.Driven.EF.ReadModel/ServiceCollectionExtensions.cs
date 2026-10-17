@@ -18,23 +18,27 @@ public static class ServiceCollectionExtensions
     /// <param name="services">Сервисы</param>
     public static void AddEfReadModelAdapter(this IServiceCollection services)
     {
-        services.AddDbContext<ReadDbContext>((sp, o) =>
+        // Pooled factory: ReadDbContext has no constructor dependencies beyond DbContextOptions.
+        services.AddPooledDbContextFactory<ReadDbContext>((sp, o) =>
         {
             var connectionString = sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection")
                                    ?? throw new InvalidOperationException("Connection string cannot be null");
             o.UseNpgsql(connectionString);
+            // Set through options, not in the constructor: a pooled context resets its change tracker to the
+            // options' defaults when it is returned to the pool.
+            o.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
             o.AddInterceptors(sp.GetServices<IInterceptor>());
         });
-        services.AddScoped<IProductQueries, ProductQueries>();
-        services.AddScoped<IPassportQueries, PassportQueries>();
-        services.AddScoped<IMeasurementQueries, MeasurementQueries>();
-        services.AddScoped<IMeasurementInfoQueries, MeasurementQueries>();
-        services.AddScoped<IMeasurementPhotoQueries, MeasurementPhotoQueries>();
-        services.AddScoped<ITubeWorkingPointQueries, TubeWorkingPointQueries>();
-        services.AddScoped<ILotForSaleQueries, LotForSaleQueries>();
-        services.AddScoped<ILotQueries, LotQueries>();
-        services.AddScoped<ICurrencyQueries, CurrencyQueries>();
-        services.AddScoped<IProductEmailSendHistoryQueries, ProductEmailSendHistoryQueries>();
-        services.AddScoped<IIgnoredLotQueries, IgnoredLotQueries>();
+        services.AddSingleton<IProductQueries, ProductQueries>();
+        services.AddSingleton<IPassportQueries, PassportQueries>();
+        services.AddSingleton<IMeasurementQueries, MeasurementQueries>();
+        services.AddSingleton<IMeasurementInfoQueries, MeasurementQueries>();
+        services.AddSingleton<IMeasurementPhotoQueries, MeasurementPhotoQueries>();
+        services.AddSingleton<ITubeWorkingPointQueries, TubeWorkingPointQueries>();
+        services.AddSingleton<ILotForSaleQueries, LotForSaleQueries>();
+        services.AddSingleton<ILotQueries, LotQueries>();
+        services.AddSingleton<ICurrencyQueries, CurrencyQueries>();
+        services.AddSingleton<IProductEmailSendHistoryQueries, ProductEmailSendHistoryQueries>();
+        services.AddSingleton<IIgnoredLotQueries, IgnoredLotQueries>();
     }
 }

@@ -6,16 +6,18 @@ namespace Server.Adapters.Driven.EF.ReadModel.Queries;
 
 internal sealed class LotForSaleQueries : ILotForSaleQueries
 {
-    private readonly ReadDbContext _dbContext;
+    private readonly IDbContextFactory<ReadDbContext> _dbContextFactory;
 
-    public LotForSaleQueries(ReadDbContext dbContext)
+    public LotForSaleQueries(IDbContextFactory<ReadDbContext> dbContextFactory)
     {
-        _dbContext = dbContext;
+        _dbContextFactory = dbContextFactory;
     }
 
     public async Task<IReadOnlyCollection<LotForSaleInfo>> GetLotForSalesAsync(CancellationToken cancellationToken)
     {
-        return await _dbContext.LotForSales
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        return await dbContext.LotForSales
             .OrderBy(x => x.Id)
             .Select(x => new LotForSaleInfo(x.Id, x.Name, x.ProductId, x.ProductState, x.MeasurementState))
             .ToListAsync(cancellationToken);
@@ -23,7 +25,9 @@ internal sealed class LotForSaleQueries : ILotForSaleQueries
 
     public async Task<LotForSaleInfo?> GetLotForSaleByIdAsync(string lotId, CancellationToken cancellationToken)
     {
-        return await _dbContext.LotForSales
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        return await dbContext.LotForSales
             .Where(x => x.Id == lotId)
             .Select(x => new LotForSaleInfo(x.Id, x.Name, x.ProductId, x.ProductState, x.MeasurementState))
             .FirstOrDefaultAsync(cancellationToken);

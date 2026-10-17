@@ -20,7 +20,7 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
     private readonly IMeasurementFileParser _measurementFileParser;
     private readonly IMatchedPairDifferenceRepository _matchedPairDifferenceRepository;
     private readonly ITubeWorkingPointQueries _tubeWorkingPointQueries;
-    private readonly IWriteModelUnitOfWork _unitOfWork;
+    private readonly IWriteModelUnitOfWorkFactory _unitOfWorkFactory;
 
     public MatchedPairsCalculator(
         ILogger<MatchedPairsCalculator> logger,
@@ -28,14 +28,14 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
         IMeasurementFileParser measurementFileParser,
         IMatchedPairDifferenceRepository matchedPairDifferenceRepository,
         ITubeWorkingPointQueries tubeWorkingPointQueries,
-        IWriteModelUnitOfWork unitOfWork)
+        IWriteModelUnitOfWorkFactory unitOfWorkFactory)
     {
         _logger = logger;
         _measurementQueries = measurementQueries;
         _measurementFileParser = measurementFileParser;
         _matchedPairDifferenceRepository = matchedPairDifferenceRepository;
         _tubeWorkingPointQueries = tubeWorkingPointQueries;
-        _unitOfWork = unitOfWork;
+        _unitOfWorkFactory = unitOfWorkFactory;
     }
 
     private sealed record MeasurementInfoWithAnodeCurves(MeasurementInfoWithData MeasurementInfoWithData, AnodeCurvesBase AnodeCurves);
@@ -107,6 +107,8 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
             measurement2dto,
             AnodeCurves: _measurementFileParser.Parse(measurement2dto.Data).MeasurementConfigTableParseResult.AnodeCurves);
 
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
         switch (measurement1.AnodeCurves)
         {
             case PentodeAnodeCurves:
@@ -123,6 +125,7 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
                     }
 
                     await CalculateForOneSectionTubes(
+                        unitOfWork: unitOfWork,
                         measurement1: measurement1,
                         measurement2: measurement2,
                         cancellationToken: cancellationToken,
@@ -147,6 +150,7 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
                     }
 
                     await CalculateForOneSectionTubes(
+                        unitOfWork: unitOfWork,
                         measurement1: measurement1,
                         measurement2: measurement2,
                         cancellationToken: cancellationToken,
@@ -165,6 +169,7 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
                     }
 
                     await CalculateForTwoSectionTubes(
+                        unitOfWork: unitOfWork,
                         measurement1: measurement1,
                         measurement2: measurement2,
                         cancellationToken: cancellationToken,
@@ -180,6 +185,7 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
     }
 
     private async Task CalculateForTwoSectionTubes(
+        IWriteModelUnitOfWork unitOfWork,
         MeasurementInfoWithAnodeCurves measurement1,
         MeasurementInfoWithAnodeCurves measurement2,
         TubeWorkingPointInfo workingPoint,
@@ -213,6 +219,7 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
                 workingPoint: workingPoint);
 
             await SaveToDatabase(
+                unitOfWork: unitOfWork,
                 measurementId1: measurement1.MeasurementInfoWithData.Id,
                 measurementId2: measurement2.MeasurementInfoWithData.Id,
                 cancellationToken: cancellationToken,
@@ -240,6 +247,7 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
             workingPoint: workingPoint);
 
         await SaveToDatabase(
+            unitOfWork: unitOfWork,
             measurementId1: measurement1.MeasurementInfoWithData.Id,
             measurementId2: measurement2.MeasurementInfoWithData.Id,
             cancellationToken: cancellationToken,
@@ -253,6 +261,7 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
     }
 
     private async Task CalculateForOneSectionTubes(
+        IWriteModelUnitOfWork unitOfWork,
         MeasurementInfoWithAnodeCurves measurement1,
         MeasurementInfoWithAnodeCurves measurement2,
         TubeWorkingPointInfo workingPoint,
@@ -273,6 +282,7 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
         );
 
         await SaveToDatabase(
+            unitOfWork: unitOfWork,
             measurementId1: measurement1.MeasurementInfoWithData.Id,
             measurementId2: measurement2.MeasurementInfoWithData.Id,
             cancellationToken: cancellationToken,
@@ -284,6 +294,7 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
     }
 
     private async Task SaveToDatabase(
+        IWriteModelUnitOfWork unitOfWork,
         string measurementId1,
         string measurementId2,
         ComparisonMode comparisonMode,
@@ -306,14 +317,16 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
             maxAbsSection2: maxAbsSection2);
 
         await _matchedPairDifferenceRepository.RemoveAsync(
+            unitOfWork,
             newMatchedPairDifference.Id,
             cancellationToken);
 
         await _matchedPairDifferenceRepository.AddAsync(
+            unitOfWork,
             newMatchedPairDifference,
             cancellationToken);
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     /// <summary>

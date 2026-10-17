@@ -10,7 +10,8 @@ public interface IMatchedPairDifferenceRepository : IRepository<MatchedPairDiffe
     /// <summary>
     /// Удаляет все записи разниц, связанные с указанными идентификаторами замеров.
     /// </summary>
+    /// <param name="unitOfWork">Unit of Work операции, в контексте которой выполняется вызов.</param>
     /// <param name="measurementIds">Идентификаторы замеров.</param>
     /// <param name="cancellationToken">Токен отмены операции.</param>
-    Task RemoveByMeasurementIds(IReadOnlySet<string> measurementIds, CancellationToken cancellationToken);
+    Task RemoveByMeasurementIds(IWriteModelUnitOfWork unitOfWork, IReadOnlySet<string> measurementIds, CancellationToken cancellationToken);
 }

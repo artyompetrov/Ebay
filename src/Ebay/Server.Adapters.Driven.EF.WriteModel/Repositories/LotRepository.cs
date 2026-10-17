@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Domain;
 
@@ -6,27 +7,24 @@ namespace Server.Adapters.Driven.EF.WriteModel.Repositories;
 
 internal sealed class LotRepository : ILotRepository
 {
-    private readonly WriteModelDbContext _dbContext;
-
-    public LotRepository(WriteModelDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
-    public async Task<Lot?> GetByIdAsync(long id, CancellationToken cancellationToken) => await _dbContext.Lots
+    public async Task<Lot?> GetByIdAsync(IWriteModelUnitOfWork unitOfWork, long id, CancellationToken cancellationToken) => await WriteModelUnitOfWork.From(unitOfWork).DbContext.Lots
         .Include(x => x.Purchases)
         .SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
 
-    public async Task AddAsync(Lot aggregate, CancellationToken cancellationToken) => _ = await _dbContext.Lots.AddAsync(aggregate, cancellationToken);
+    public async Task AddAsync(IWriteModelUnitOfWork unitOfWork, Lot aggregate, CancellationToken cancellationToken) => _ = await WriteModelUnitOfWork.From(unitOfWork).DbContext.Lots.AddAsync(aggregate, cancellationToken);
 
-    public async Task RemoveAsync(long id, CancellationToken cancellationToken)
+    public async Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, long id, CancellationToken cancellationToken)
     {
-        await _dbContext.Lots.Where(o => o.Id == id)
+        var dbContext = WriteModelUnitOfWork.From(unitOfWork).DbContext;
+
+        await dbContext.Lots.Where(o => o.Id == id)
             .ExecuteDeleteAsync(cancellationToken: cancellationToken);
     }
 
-    public async Task RemoveAsync(IReadOnlySet<long> ids, CancellationToken cancellationToken)
+    public async Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, IReadOnlySet<long> ids, CancellationToken cancellationToken)
     {
+        var dbContext = WriteModelUnitOfWork.From(unitOfWork).DbContext;
+
         if (ids.Count == 0)
         {
             return;
@@ -35,7 +33,7 @@ internal sealed class LotRepository : ILotRepository
         const int batchSize = 1000; // безопасный размер IN (...)
         foreach (var batch in ids.Chunk(batchSize))
         {
-            await _dbContext.Lots
+            await dbContext.Lots
                 .Where(x => batch.Contains(x.Id))
                 .ExecuteDeleteAsync(cancellationToken);
         }

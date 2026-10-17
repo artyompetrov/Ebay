@@ -27,16 +27,19 @@ public class IdentityStoreIsolatedTests
 
         var services = new ServiceCollection();
         services.AddDataProtection();
-        services.AddDbContext<IdentityDbContext>(o =>
+        services.AddDbContextFactory<IdentityDbContext>(o =>
             o.UseNpgsql(_connectionString, b => b.MigrationsAssembly("Server.Adapters.Driven.EF.Identity.Migrations")));
         services.AddIdentityCore<ApplicationUser>()
             .AddEntityFrameworkStores<IdentityDbContext>()
             .AddDefaultTokenProviders();
 
-        _serviceProvider = services.BuildServiceProvider();
+        _serviceProvider = services.BuildServiceProvider(new ServiceProviderOptions
+        {
+            ValidateOnBuild = true,
+            ValidateScopes = true
+        });
 
-        using var scope = _serviceProvider.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        await using var dbContext = await CreateDbContextAsync();
         await dbContext.Database.MigrateAsync();
     }
 
@@ -72,9 +75,8 @@ public class IdentityStoreIsolatedTests
     {
         var grantKey = Guid.NewGuid().ToString();
 
-        using (var writeScope = _serviceProvider.CreateScope())
+        await using (var writeContext = await CreateDbContextAsync())
         {
-            var writeContext = writeScope.ServiceProvider.GetRequiredService<IdentityDbContext>();
             ((IPersistedGrantDbContext)writeContext).PersistedGrants.Add(new PersistedGrant
             {
                 Key = grantKey,
@@ -88,9 +90,8 @@ public class IdentityStoreIsolatedTests
             await writeContext.SaveChangesAsync();
         }
 
-        using (var readScope = _serviceProvider.CreateScope())
+        await using (var readContext = await CreateDbContextAsync())
         {
-            var readContext = readScope.ServiceProvider.GetRequiredService<IdentityDbContext>();
             var persistedGrants = ((IPersistedGrantDbContext)readContext).PersistedGrants;
             var storedGrant = await persistedGrants.SingleAsync(g => g.Key == grantKey);
             storedGrant.ClientId.Should().Be("test-client");
@@ -99,12 +100,15 @@ public class IdentityStoreIsolatedTests
             await readContext.SaveChangesAsync();
         }
 
-        using (var verifyScope = _serviceProvider.CreateScope())
+        await using (var verifyContext = await CreateDbContextAsync())
         {
-            var verifyContext = verifyScope.ServiceProvider.GetRequiredService<IdentityDbContext>();
             var remaining = await ((IPersistedGrantDbContext)verifyContext).PersistedGrants
                 .SingleOrDefaultAsync(g => g.Key == grantKey);
             remaining.Should().BeNull();
         }
     }
+
+    private Task<IdentityDbContext> CreateDbContextAsync() => _serviceProvider
+        .GetRequiredService<IDbContextFactory<IdentityDbContext>>()
+        .CreateDbContextAsync(CancellationToken.None);
 }

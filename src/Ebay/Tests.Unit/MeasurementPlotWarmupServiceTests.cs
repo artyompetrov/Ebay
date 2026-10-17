@@ -7,6 +7,7 @@ using Server.Application.Abstractions.Driven.Models;
 using Server.Application.MeasurementPlot;
 using Server.Domain;
 using Server.Domain.Measurements;
+using Tests.Unit.Fakes;
 
 namespace Tests.Unit;
 
@@ -26,7 +27,7 @@ public sealed class MeasurementPlotWarmupServiceTests
             NullLogger<MeasurementPlotWarmupService>.Instance,
             new StaticMeasurementQueries(measurementIds),
             new RecordingPublisher(events),
-            new RecordingUnitOfWork(events));
+            new SingleUnitOfWorkFactory(new RecordingUnitOfWork(events)));
 
         await service.PublishWarmupForAllMeasurementsAsync(CancellationToken.None);
 
@@ -51,7 +52,7 @@ public sealed class MeasurementPlotWarmupServiceTests
             _events = events;
         }
 
-        public Task PublishAsync(string measurementId, CancellationToken cancellationToken)
+        public Task PublishAsync(IWriteModelUnitOfWork unitOfWork, string measurementId, CancellationToken cancellationToken)
         {
             _events.Add(measurementId);
             return Task.CompletedTask;
@@ -60,6 +61,8 @@ public sealed class MeasurementPlotWarmupServiceTests
 
     private sealed class RecordingUnitOfWork : IWriteModelUnitOfWork
     {
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
         private readonly List<string> _events;
 
         public RecordingUnitOfWork(List<string> events)

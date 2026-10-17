@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Domain;
 
@@ -6,26 +7,23 @@ namespace Server.Adapters.Driven.EF.WriteModel.Repositories;
 
 internal sealed class ProductEmailSendHistoryRepository : IProductEmailSendHistoryRepository
 {
-    private readonly WriteModelDbContext _dbContext;
-
-    public ProductEmailSendHistoryRepository(WriteModelDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
-    public async Task<ProductEmailSendHistory?> GetByIdAsync(Guid id, CancellationToken cancellationToken) => await _dbContext.ProductEmailSendHistories
+    public async Task<ProductEmailSendHistory?> GetByIdAsync(IWriteModelUnitOfWork unitOfWork, Guid id, CancellationToken cancellationToken) => await WriteModelUnitOfWork.From(unitOfWork).DbContext.ProductEmailSendHistories
         .SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
 
-    public async Task AddAsync(ProductEmailSendHistory aggregate, CancellationToken cancellationToken) => _ = await _dbContext.ProductEmailSendHistories.AddAsync(aggregate, cancellationToken);
+    public async Task AddAsync(IWriteModelUnitOfWork unitOfWork, ProductEmailSendHistory aggregate, CancellationToken cancellationToken) => _ = await WriteModelUnitOfWork.From(unitOfWork).DbContext.ProductEmailSendHistories.AddAsync(aggregate, cancellationToken);
 
-    public async Task RemoveAsync(Guid id, CancellationToken cancellationToken)
+    public async Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, Guid id, CancellationToken cancellationToken)
     {
-        await _dbContext.ProductEmailSendHistories.Where(o => o.Id == id)
+        var dbContext = WriteModelUnitOfWork.From(unitOfWork).DbContext;
+
+        await dbContext.ProductEmailSendHistories.Where(o => o.Id == id)
             .ExecuteDeleteAsync(cancellationToken: cancellationToken);
     }
 
-    public async Task RemoveAsync(IReadOnlySet<Guid> ids, CancellationToken cancellationToken)
+    public async Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, IReadOnlySet<Guid> ids, CancellationToken cancellationToken)
     {
+        var dbContext = WriteModelUnitOfWork.From(unitOfWork).DbContext;
+
         if (ids.Count == 0)
         {
             return;
@@ -34,15 +32,17 @@ internal sealed class ProductEmailSendHistoryRepository : IProductEmailSendHisto
         const int batchSize = 1000; // безопасный размер IN (...)
         foreach (var batch in ids.Chunk(batchSize))
         {
-            await _dbContext.ProductEmailSendHistories
+            await dbContext.ProductEmailSendHistories
                 .Where(x => batch.Contains(x.Id))
                 .ExecuteDeleteAsync(cancellationToken);
         }
     }
 
-    public async Task RemoveOlderThanAsync(DateTimeOffset threshold, CancellationToken cancellationToken)
+    public async Task RemoveOlderThanAsync(IWriteModelUnitOfWork unitOfWork, DateTimeOffset threshold, CancellationToken cancellationToken)
     {
-        await _dbContext.ProductEmailSendHistories
+        var dbContext = WriteModelUnitOfWork.From(unitOfWork).DbContext;
+
+        await dbContext.ProductEmailSendHistories
             .Where(x => x.AdvertisementDate < threshold)
             .ExecuteDeleteAsync(cancellationToken);
     }

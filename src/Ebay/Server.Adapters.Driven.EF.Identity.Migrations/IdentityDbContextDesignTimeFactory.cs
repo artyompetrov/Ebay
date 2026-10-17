@@ -26,13 +26,13 @@ public sealed class IdentityDbContextDesignTimeFactory : IDesignTimeDbContextFac
                                ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is required for design-time migrations.");
 
         var services = new ServiceCollection();
-        services.AddDbContext<IdentityDbContext>(o =>
+        services.AddDbContextFactory<IdentityDbContext>(o =>
             o.UseNpgsql(connectionString, b => b.MigrationsAssembly("Server.Adapters.Driven.EF.Identity.Migrations")));
         services.AddDefaultIdentity<ApplicationUser>(o => o.SignIn.RequireConfirmedAccount = true)
             .AddEntityFrameworkStores<IdentityDbContext>();
         services.AddIdentityServer()
             .AddApiAuthorization<ApplicationUser, IdentityDbContext>();
 
-        return services.BuildServiceProvider().GetRequiredService<IdentityDbContext>();
+        return services.BuildServiceProvider().GetRequiredService<IDbContextFactory<IdentityDbContext>>().CreateDbContext();
     }
 }

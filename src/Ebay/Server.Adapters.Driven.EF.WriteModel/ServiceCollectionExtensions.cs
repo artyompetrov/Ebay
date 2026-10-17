@@ -13,9 +13,9 @@ public static class ServiceCollectionExtensions
 
     public static void UseEfWriteModelAdapter(this IServiceProvider serviceProvider)
     {
-        using var serviceScope = serviceProvider.CreateScope();
-
-        var writeModelDbContext = serviceScope.ServiceProvider.GetRequiredService<WriteModelDbContext>();
+        using var writeModelDbContext = serviceProvider
+            .GetRequiredService<IDbContextFactory<WriteModelDbContext>>()
+            .CreateDbContext();
 
         writeModelDbContext.Database.Migrate();
     }
@@ -23,7 +23,10 @@ public static class ServiceCollectionExtensions
     public static void AddEfWriteModelAdapter(
         this IServiceCollection services)
     {
-        services.AddDbContext<WriteModelDbContext>((sp, o) =>
+        // Pooled factory: WriteModelDbContext has no constructor dependencies beyond DbContextOptions. The factory
+        // also registers the context itself as scoped; only WriteModelUnitOfWork resolves it (inside its own
+        // scope), because the MassTransit EF bus outbox needs the scoped context instance.
+        services.AddPooledDbContextFactory<WriteModelDbContext>((sp, o) =>
         {
             var connectionString = sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection")
                                    ?? throw new InvalidOperationException("Connection string cannot be null");
@@ -43,20 +46,20 @@ public static class ServiceCollectionExtensions
             .BindConfiguration(DbCacheOptions.SectionName)
             .ValidateDataAnnotations()
             .ValidateOnStart();
-        services.AddScoped<ICacheStore, DbCache>();
+        services.AddSingleton<ICacheStore, DbCache>();
+        services.AddSingleton<IWriteModelUnitOfWorkFactory, WriteModelUnitOfWorkFactory>();
 
-        services.AddScoped<IMeasurementRepository, MeasurementRepository>();
-        services.AddScoped<IMatchedPairDifferenceRepository, MatchedPairDifferenceRepository>();
-        services.AddScoped<ITubeWorkingPointsRepository, TubeWorkingPointsRepository>();
-        services.AddScoped<IProductRepository, ProductRepository>();
-        services.AddScoped<ILotForSaleRepository, LotForSaleRepository>();
-        services.AddScoped<ILotRepository, LotRepository>();
-        services.AddScoped<ICurrencyRepository, CurrencyRepository>();
-        services.AddScoped<IProductEmailSendHistoryRepository, ProductEmailSendHistoryRepository>();
-        services.AddScoped<IProductPassportRepository, ProductPassportRepository>();
-        services.AddScoped<IIgnoredLotRepository, IgnoredLotRepository>();
-        services.AddScoped<IClientErrorRepository, ClientErrorRepository>();
-        services.AddScoped<IMeasurementPhotoRepository, MeasurementPhotoRepository>();
-        services.AddScoped<IWriteModelUnitOfWork>(sp => sp.GetRequiredService<WriteModelDbContext>());
+        services.AddSingleton<IMeasurementRepository, MeasurementRepository>();
+        services.AddSingleton<IMatchedPairDifferenceRepository, MatchedPairDifferenceRepository>();
+        services.AddSingleton<ITubeWorkingPointsRepository, TubeWorkingPointsRepository>();
+        services.AddSingleton<IProductRepository, ProductRepository>();
+        services.AddSingleton<ILotForSaleRepository, LotForSaleRepository>();
+        services.AddSingleton<ILotRepository, LotRepository>();
+        services.AddSingleton<ICurrencyRepository, CurrencyRepository>();
+        services.AddSingleton<IProductEmailSendHistoryRepository, ProductEmailSendHistoryRepository>();
+        services.AddSingleton<IProductPassportRepository, ProductPassportRepository>();
+        services.AddSingleton<IIgnoredLotRepository, IgnoredLotRepository>();
+        services.AddSingleton<IClientErrorRepository, ClientErrorRepository>();
+        services.AddSingleton<IMeasurementPhotoRepository, MeasurementPhotoRepository>();
     }
 }

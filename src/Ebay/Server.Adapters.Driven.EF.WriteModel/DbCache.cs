@@ -13,18 +13,18 @@ internal sealed class DbCache : ICacheStore
     /// </summary>
     private const string Version = "14";
 
-    private readonly WriteModelDbContext _context;
+    private readonly IDbContextFactory<WriteModelDbContext> _dbContextFactory;
     private readonly DatabaseConcurrentAccessSemaphore _semaphore;
     private readonly DbCacheOptions _options;
     private readonly ILogger<DbCache> _logger;
 
     public DbCache(
-        WriteModelDbContext context,
+        IDbContextFactory<WriteModelDbContext> dbContextFactory,
         DatabaseConcurrentAccessSemaphore semaphore,
         IOptions<DbCacheOptions> options,
         ILogger<DbCache> logger)
     {
-        _context = context;
+        _dbContextFactory = dbContextFactory;
         _semaphore = semaphore;
         _options = options.Value;
         _logger = logger;
@@ -42,7 +42,9 @@ internal sealed class DbCache : ICacheStore
         await _semaphore.Semaphore.WaitAsync(cancellationToken);
         try
         {
-            var entry = await _context.Set<CacheEntry>()
+            await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+            var entry = await dbContext.Set<CacheEntry>()
                 .FirstOrDefaultAsync(x => x.Key == key && x.Version == Version, cancellationToken);
 
             if (entry is not null && entry.ExpiresAt > DateTimeOffset.UtcNow)
@@ -59,31 +61,25 @@ internal sealed class DbCache : ICacheStore
             var json = JsonSerializer.Serialize(value, jsonOptions);
             var expiresAt = DateTimeOffset.UtcNow.Add(ttl);
 
-            CacheEntry trackedEntry;
             if (entry is null)
             {
-                trackedEntry = new CacheEntry { Key = key, Version = Version, Value = json, ExpiresAt = expiresAt };
-                _context.Add(trackedEntry);
+                dbContext.Add(new CacheEntry { Key = key, Version = Version, Value = json, ExpiresAt = expiresAt });
             }
             else
             {
                 entry.Value = json;
                 entry.ExpiresAt = expiresAt;
-                _context.Update(entry);
-                trackedEntry = entry;
+                dbContext.Update(entry);
             }
 
             try
             {
-                await _context.SaveChangesAsync(cancellationToken);
+                await dbContext.SaveChangesAsync(cancellationToken);
             }
             catch (DbUpdateException ex)
             {
-                // _context is request-scoped and shared with other saves later in the same scope (e.g. domain
-                // events flushed by MeasurementWatchedOnEbayPublisher) - leaving this entry tracked as
-                // Added/Modified would make every later SaveChangesAsync on this context retry and fail on the
-                // same conflict, turning a tolerated cache race into an unrelated request failure.
-                _context.Entry(trackedEntry).State = EntityState.Detached;
+                // A concurrent writer stored the same key first; the cache tolerates this race. The context is
+                // private to this call, so the failed entry cannot leak into any other save.
                 _logger.LogWarning(ex, "Error while updating measurement cache entry");
             }
 
@@ -95,9 +91,11 @@ internal sealed class DbCache : ICacheStore
         }
     }
 
-    public Task RemoveOldVersionsAsync(CancellationToken cancellationToken)
+    public async Task RemoveOldVersionsAsync(CancellationToken cancellationToken)
     {
-        return _context.Set<CacheEntry>()
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        await dbContext.Set<CacheEntry>()
             .Where(x => x.Version != Version)
             .ExecuteDeleteAsync(cancellationToken);
     }

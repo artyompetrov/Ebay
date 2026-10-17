@@ -6,16 +6,18 @@ namespace Server.Adapters.Driven.EF.ReadModel.Queries;
 
 internal sealed class PassportQueries : IPassportQueries
 {
-    private readonly ReadDbContext _readDbContext;
+    private readonly IDbContextFactory<ReadDbContext> _dbContextFactory;
 
-    public PassportQueries(ReadDbContext readDbContext)
+    public PassportQueries(IDbContextFactory<ReadDbContext> dbContextFactory)
     {
-        _readDbContext = readDbContext;
+        _dbContextFactory = dbContextFactory;
     }
 
     public async Task<IReadOnlyList<Passport>> GetPassports(Guid productId, CancellationToken cancellationToken)
     {
-        return await _readDbContext.Passports
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        return await dbContext.Passports
             .Where(x => x.ProductId == productId)
             .OrderBy(x => x.Order)
             .Select(x => new Passport(x.Id, x.FileName, x.Order))
@@ -24,7 +26,9 @@ internal sealed class PassportQueries : IPassportQueries
 
     public async Task<PassportFile?> GetPassportFileAsync(Guid productId, Guid passportId, CancellationToken cancellationToken)
     {
-        return await _readDbContext.Passports
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        return await dbContext.Passports
             .Where(x => x.ProductId == productId && x.Id == passportId)
             .Select(x => new PassportFile(x.FileName, x.ContentType, x.Content))
             .SingleOrDefaultAsync(cancellationToken);

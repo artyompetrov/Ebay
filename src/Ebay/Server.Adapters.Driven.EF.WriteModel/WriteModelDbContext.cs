@@ -1,12 +1,8 @@
-using System.Data;
 using System.Text.Json;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Domain;
 using Server.Domain.Abstractions;
 using Server.Domain.LotForSale;
@@ -15,7 +11,7 @@ using Server.Domain.Product;
 
 namespace Server.Adapters.Driven.EF.WriteModel;
 
-public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
+public sealed class WriteModelDbContext : DbContext
 {
     public WriteModelDbContext(DbContextOptions<WriteModelDbContext> options) : base(options)
     {
@@ -384,54 +380,25 @@ public sealed class WriteModelDbContext : DbContext, IWriteModelUnitOfWork
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
+        // Domain events are dispatched to the transactional outbox by WriteModelUnitOfWork before it calls
+        // this method. Saving aggregates with pending events directly would silently drop those events.
+        if (ChangeTracker.Entries<IAggregateRoot>().Any(entry => entry.State != EntityState.Detached && entry.Entity.HasEvents))
+        {
+            throw new InvalidOperationException(
+                $"Aggregates with pending domain events must be saved through {nameof(WriteModelUnitOfWork)}.");
+        }
+
         ApplyAudit();
-        await PublishDomainEventsAsync(cancellationToken);
         return await base.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<IUnitOfWorkTransaction> BeginTransactionAsync(
-        CancellationToken cancellationToken,
-        IsolationLevel isolationLevel = IsolationLevel.ReadCommitted) => new WriteModelDbContextTransaction(await Database.BeginTransactionAsync(isolationLevel: isolationLevel, cancellationToken));
-
-    private sealed class WriteModelDbContextTransaction : IUnitOfWorkTransaction
-    {
-        private readonly IDbContextTransaction _transaction;
-
-        public WriteModelDbContextTransaction(IDbContextTransaction transaction)
-        {
-            _transaction = transaction;
-        }
-
-        public async ValueTask DisposeAsync() => await _transaction.DisposeAsync();
-
-        public Task CommitAsync(CancellationToken cancellationToken) => _transaction.CommitAsync(cancellationToken);
-
-        public void Dispose() => _transaction.Dispose();
-    }
-
-    private async Task PublishDomainEventsAsync(CancellationToken cancellationToken)
-    {
-        var aggregateEntries = ChangeTracker.Entries<IAggregateRoot>()
-            .Where(entry => entry.State != EntityState.Detached && entry.Entity.HasEvents)
-            .ToList();
-
-        if (aggregateEntries.Count == 0)
-        {
-            return;
-        }
-
-        var publishEndpoint = this.GetService<IPublishEndpoint>();
-
-        foreach (var aggregateEntry in aggregateEntries)
-        {
-            foreach (var domainEvent in aggregateEntry.Entity.GetDomainEvents())
-            {
-                await publishEndpoint.Publish((object)domainEvent, cancellationToken);
-            }
-
-            aggregateEntry.Entity.ClearDomainEvents();
-        }
-    }
+    /// <summary>
+    /// Агрегаты с неопубликованными доменными событиями, отслеживаемые контекстом.
+    /// </summary>
+    internal IReadOnlyCollection<IAggregateRoot> GetAggregatesWithEvents() => ChangeTracker.Entries<IAggregateRoot>()
+        .Where(entry => entry.State != EntityState.Detached && entry.Entity.HasEvents)
+        .Select(entry => entry.Entity)
+        .ToArray();
 
     /// <summary>
     /// Добавляем метки времени изменеиния для сущностей

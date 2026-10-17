@@ -8,6 +8,7 @@ using Server.Application.PriceCalculator;
 using Server.Domain;
 using Server.Domain.Measurements;
 using Tests.Shared;
+using Tests.Unit.Fakes;
 
 namespace Tests.Unit;
 
@@ -58,7 +59,7 @@ public sealed class LotPriceCalculatorTests
             lotRepository: new SingleLotRepository(lot),
             productQueries: new SingleProductQueries(product),
             currencyQueries: new StaticCurrencyQueries(currencyRates),
-            unitOfWork: unitOfWork,
+            unitOfWorkFactory: new SingleUnitOfWorkFactory(unitOfWork),
             logger: NullLogger<LotPriceCalculator>.Instance);
 
         var returnedProductId = await calculator.CalculateAsync(lot.Id, CancellationToken.None);
@@ -80,14 +81,14 @@ public sealed class LotPriceCalculatorTests
             _lot = lot;
         }
 
-        public Task<Lot?> GetByIdAsync(long id, CancellationToken cancellationToken) =>
+        public Task<Lot?> GetByIdAsync(IWriteModelUnitOfWork unitOfWork, long id, CancellationToken cancellationToken) =>
             Task.FromResult(_lot.Id == id ? _lot : null);
 
-        public Task AddAsync(Lot aggregate, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task AddAsync(IWriteModelUnitOfWork unitOfWork, Lot aggregate, CancellationToken cancellationToken) => throw new NotSupportedException();
 
-        public Task RemoveAsync(long id, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, long id, CancellationToken cancellationToken) => throw new NotSupportedException();
 
-        public Task RemoveAsync(IReadOnlySet<long> id, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, IReadOnlySet<long> id, CancellationToken cancellationToken) => throw new NotSupportedException();
     }
 
     private sealed class SingleProductQueries : IProductQueries
@@ -132,6 +133,8 @@ public sealed class LotPriceCalculatorTests
 
     private sealed class RecordingUnitOfWork : IWriteModelUnitOfWork
     {
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
         public int SaveChangesCallCount { get; private set; }
 
         public Task<int> SaveChangesAsync(CancellationToken cancellationToken)

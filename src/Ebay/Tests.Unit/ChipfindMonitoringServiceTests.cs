@@ -10,6 +10,7 @@ using Server.Application.SaleAdvertisements;
 using Server.Domain;
 using Server.Domain.Measurements;
 using Server.Domain.Product;
+using Tests.Unit.Fakes;
 
 namespace Tests.Unit;
 
@@ -95,7 +96,7 @@ public sealed class ChipfindMonitoringServiceTests
             LastCheckTime: AdvertisementDate,
             Description: null);
         var productService = new ProductService(
-            unitOfWork,
+            new SingleUnitOfWorkFactory(unitOfWork),
             new NotSupportedProductRepository(),
             new StaticProductQueries(product),
             new NotSupportedPriceRecalculationPublisher(),
@@ -105,7 +106,7 @@ public sealed class ChipfindMonitoringServiceTests
             NullLogger<ChipfindMonitoringService>.Instance,
             historyRepository,
             historyQueries,
-            unitOfWork,
+            new SingleUnitOfWorkFactory(unitOfWork),
             new StaticChipfindAdapter(advertisement),
             emailSender,
             productService);
@@ -131,20 +132,20 @@ public sealed class ChipfindMonitoringServiceTests
 
         public List<ProductEmailSendHistory> Added { get; } = [];
 
-        public Task<ProductEmailSendHistory?> GetByIdAsync(Guid id, CancellationToken cancellationToken) =>
+        public Task<ProductEmailSendHistory?> GetByIdAsync(IWriteModelUnitOfWork unitOfWork, Guid id, CancellationToken cancellationToken) =>
             Task.FromResult(_existing?.Id == id ? _existing : null);
 
-        public Task AddAsync(ProductEmailSendHistory aggregate, CancellationToken cancellationToken)
+        public Task AddAsync(IWriteModelUnitOfWork unitOfWork, ProductEmailSendHistory aggregate, CancellationToken cancellationToken)
         {
             Added.Add(aggregate);
             return Task.CompletedTask;
         }
 
-        public Task RemoveAsync(Guid id, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, Guid id, CancellationToken cancellationToken) => throw new NotSupportedException();
 
-        public Task RemoveAsync(IReadOnlySet<Guid> id, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, IReadOnlySet<Guid> id, CancellationToken cancellationToken) => throw new NotSupportedException();
 
-        public Task RemoveOlderThanAsync(DateTimeOffset threshold, CancellationToken cancellationToken) =>
+        public Task RemoveOlderThanAsync(IWriteModelUnitOfWork unitOfWork, DateTimeOffset threshold, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
     }
 
@@ -193,6 +194,8 @@ public sealed class ChipfindMonitoringServiceTests
 
     private sealed class RecordingUnitOfWork : IWriteModelUnitOfWork
     {
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
         public int SaveChangesCallCount { get; private set; }
 
         public int CommittedTransactionCount { get; private set; }
@@ -262,21 +265,21 @@ public sealed class ChipfindMonitoringServiceTests
 
     private sealed class NotSupportedProductRepository : IProductRepository
     {
-        public Task<Product?> GetByIdAsync(Guid id, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task<Product?> GetByIdAsync(IWriteModelUnitOfWork unitOfWork, Guid id, CancellationToken cancellationToken) => throw new NotSupportedException();
 
-        public Task AddAsync(Product aggregate, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task AddAsync(IWriteModelUnitOfWork unitOfWork, Product aggregate, CancellationToken cancellationToken) => throw new NotSupportedException();
 
-        public Task RemoveAsync(Guid id, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, Guid id, CancellationToken cancellationToken) => throw new NotSupportedException();
 
-        public Task RemoveAsync(IReadOnlySet<Guid> id, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, IReadOnlySet<Guid> id, CancellationToken cancellationToken) => throw new NotSupportedException();
     }
 
     private sealed class NotSupportedPriceRecalculationPublisher : IPriceRecalculationPublisher
     {
-        public Task PublishForLotAsync(long lotId, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task PublishForLotAsync(IWriteModelUnitOfWork unitOfWork, long lotId, CancellationToken cancellationToken) => throw new NotSupportedException();
 
-        public Task PublishForProductAsync(Guid productId, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task PublishForProductAsync(IWriteModelUnitOfWork unitOfWork, Guid productId, CancellationToken cancellationToken) => throw new NotSupportedException();
 
-        public Task PublishForAllAsync(CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task PublishForAllAsync(IWriteModelUnitOfWork unitOfWork, CancellationToken cancellationToken) => throw new NotSupportedException();
     }
 }

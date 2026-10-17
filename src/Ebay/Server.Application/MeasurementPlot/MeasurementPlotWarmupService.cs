@@ -17,7 +17,7 @@ public class MeasurementPlotWarmupService
     private readonly ILogger<MeasurementPlotWarmupService> _logger;
     private readonly IMeasurementQueries _measurementQueries;
     private readonly IMeasurementPlotWarmupPublisher _warmupPublisher;
-    private readonly IWriteModelUnitOfWork _unitOfWork;
+    private readonly IWriteModelUnitOfWorkFactory _unitOfWorkFactory;
 
     /// <summary>
     /// Создает сервис прогрева кеша eBay-графиков.
@@ -26,12 +26,12 @@ public class MeasurementPlotWarmupService
         ILogger<MeasurementPlotWarmupService> logger,
         IMeasurementQueries measurementQueries,
         IMeasurementPlotWarmupPublisher warmupPublisher,
-        IWriteModelUnitOfWork unitOfWork)
+        IWriteModelUnitOfWorkFactory unitOfWorkFactory)
     {
         _logger = logger;
         _measurementQueries = measurementQueries;
         _warmupPublisher = warmupPublisher;
-        _unitOfWork = unitOfWork;
+        _unitOfWorkFactory = unitOfWorkFactory;
     }
 
     /// <summary>
@@ -40,6 +40,8 @@ public class MeasurementPlotWarmupService
     /// <param name="cancellationToken">Токен отмены операции.</param>
     public async Task PublishWarmupForAllMeasurementsAsync(CancellationToken cancellationToken)
     {
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
         // Pre-populates the Postgres-backed DbCache to avoid a slow first plot render after deploy.
         // It is independent of the per-process in-memory image cache invalidated by measurement state changes.
         var measurementIds = await _measurementQueries.GetAllMeasurementIds(cancellationToken);
@@ -48,10 +50,10 @@ public class MeasurementPlotWarmupService
         {
             foreach (var id in batch)
             {
-                await _warmupPublisher.PublishAsync(id, cancellationToken);
+                await _warmupPublisher.PublishAsync(unitOfWork, id, cancellationToken);
             }
 
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
         _logger.LogInformation("Published {Count} measurement plot warmup commands", measurementIds.Count);

@@ -10,7 +10,7 @@ namespace Server.Application;
 /// </summary>
 public class ProductPassportService
 {
-    private readonly IWriteModelUnitOfWork _unitOfWork;
+    private readonly IWriteModelUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IProductPassportRepository _productPassportRepository;
     private readonly IPassportQueries _passportQueries;
 
@@ -18,11 +18,11 @@ public class ProductPassportService
     /// Создает сервис сценариев работы с паспортами товара.
     /// </summary>
     public ProductPassportService(
-        IWriteModelUnitOfWork unitOfWork,
+        IWriteModelUnitOfWorkFactory unitOfWorkFactory,
         IProductPassportRepository productPassportRepository,
         IPassportQueries passportQueries)
     {
-        _unitOfWork = unitOfWork;
+        _unitOfWorkFactory = unitOfWorkFactory;
         _productPassportRepository = productPassportRepository;
         _passportQueries = passportQueries;
     }
@@ -38,6 +38,8 @@ public class ProductPassportService
         byte[] content,
         CancellationToken cancellationToken)
     {
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
         if (order == null)
         {
             var existingPassports = await _passportQueries.GetPassports(productId, cancellationToken);
@@ -51,8 +53,8 @@ public class ProductPassportService
             order: order.Value,
             content: content);
 
-        await _productPassportRepository.AddAsync(entity, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await _productPassportRepository.AddAsync(unitOfWork, entity, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     /// <summary>
@@ -61,6 +63,8 @@ public class ProductPassportService
     /// </summary>
     public async Task<bool> DeleteAsync(Guid productId, Guid passportId, CancellationToken cancellationToken)
     {
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
         var passports = await _passportQueries.GetPassports(productId, cancellationToken);
         var passport = passports.SingleOrDefault(x => x.Id == passportId);
         if (passport == null)
@@ -72,19 +76,19 @@ public class ProductPassportService
         // through the change tracker, so without an explicit transaction it would commit independently of the
         // order-shift flushed by SaveChangesAsync below - an explicit transaction keeps the deletion and the
         // reorder atomic.
-        await using var transaction = await _unitOfWork.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken);
 
-        await _productPassportRepository.RemoveAsync(passportId, cancellationToken);
+        await _productPassportRepository.RemoveAsync(unitOfWork, passportId, cancellationToken);
 
         var passportsToDecrement = passports.Where(x => x.Order > passport.Order);
         foreach (var p in passportsToDecrement)
         {
-            var tracked = await _productPassportRepository.GetByIdAsync(p.Id, cancellationToken) ??
+            var tracked = await _productPassportRepository.GetByIdAsync(unitOfWork, p.Id, cancellationToken) ??
                           throw new InvalidOperationException($"ProductPassport {p.Id} not found");
             tracked.SetOrder(tracked.Order - 1);
         }
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return true;
     }
@@ -95,6 +99,8 @@ public class ProductPassportService
     /// </summary>
     public async Task<bool> UpdateOrderAsync(Guid productId, Guid passportId, int newOrder, CancellationToken cancellationToken)
     {
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
         var passports = await _passportQueries.GetPassports(productId, cancellationToken);
         var current = passports.SingleOrDefault(x => x.Id == passportId);
         if (current == null)
@@ -114,16 +120,16 @@ public class ProductPassportService
         var orderShift = newOrder < current.Order ? 1 : -1;
         foreach (var p in affected)
         {
-            var tracked = await _productPassportRepository.GetByIdAsync(p.Id, cancellationToken) ??
+            var tracked = await _productPassportRepository.GetByIdAsync(unitOfWork, p.Id, cancellationToken) ??
                           throw new InvalidOperationException($"ProductPassport {p.Id} not found");
             tracked.SetOrder(tracked.Order + orderShift);
         }
 
-        var entity = await _productPassportRepository.GetByIdAsync(passportId, cancellationToken) ??
+        var entity = await _productPassportRepository.GetByIdAsync(unitOfWork, passportId, cancellationToken) ??
                      throw new InvalidOperationException($"ProductPassport {passportId} not found");
         entity.SetOrder(newOrder);
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
         return true;
     }
 }

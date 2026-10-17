@@ -9,15 +9,15 @@ public interface IPriceRecalculationPublisher
     /// <summary>
     /// Публикует запрос на пересчет цен и выручки для лота.
     /// </summary>
-    Task PublishForLotAsync(long lotId, CancellationToken cancellationToken);
+    Task PublishForLotAsync(IWriteModelUnitOfWork unitOfWork, long lotId, CancellationToken cancellationToken);
 
     /// <summary>
     /// Публикует запрос на пересчет цен всех лотов товара.
     /// </summary>
-    Task PublishForProductAsync(Guid productId, CancellationToken cancellationToken);
+    Task PublishForProductAsync(IWriteModelUnitOfWork unitOfWork, Guid productId, CancellationToken cancellationToken);
 
     /// <summary>
     /// Публикует запрос на пересчет цен всех товаров.
     /// </summary>
-    Task PublishForAllAsync(CancellationToken cancellationToken);
+    Task PublishForAllAsync(IWriteModelUnitOfWork unitOfWork, CancellationToken cancellationToken);
 }

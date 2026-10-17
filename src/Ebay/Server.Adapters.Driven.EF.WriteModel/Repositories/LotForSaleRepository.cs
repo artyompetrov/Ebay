@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Domain.LotForSale;
 
@@ -6,33 +7,34 @@ namespace Server.Adapters.Driven.EF.WriteModel.Repositories;
 
 internal sealed class LotForSaleRepository : ILotForSaleRepository
 {
-    private readonly WriteModelDbContext _dbContext;
-
-    public LotForSaleRepository(WriteModelDbContext dbContext)
+    public async Task<LotForSale?> GetByIdAsync(IWriteModelUnitOfWork unitOfWork, string id, CancellationToken cancellationToken)
     {
-        _dbContext = dbContext;
-    }
+        var dbContext = WriteModelUnitOfWork.From(unitOfWork).DbContext;
 
-    public async Task<LotForSale?> GetByIdAsync(string id, CancellationToken cancellationToken)
-    {
-        return await _dbContext.LotForSales
+        return await dbContext.LotForSales
             .SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
-    public async Task AddAsync(LotForSale aggregate, CancellationToken cancellationToken)
+    public async Task AddAsync(IWriteModelUnitOfWork unitOfWork, LotForSale aggregate, CancellationToken cancellationToken)
     {
-        await _dbContext.LotForSales.AddAsync(aggregate, cancellationToken);
+        var dbContext = WriteModelUnitOfWork.From(unitOfWork).DbContext;
+
+        await dbContext.LotForSales.AddAsync(aggregate, cancellationToken);
     }
 
-    public async Task RemoveAsync(string id, CancellationToken cancellationToken)
+    public async Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, string id, CancellationToken cancellationToken)
     {
-        await _dbContext.LotForSales
+        var dbContext = WriteModelUnitOfWork.From(unitOfWork).DbContext;
+
+        await dbContext.LotForSales
             .Where(x => x.Id == id)
             .ExecuteDeleteAsync(cancellationToken);
     }
 
-    public async Task RemoveAsync(IReadOnlySet<string> ids, CancellationToken cancellationToken)
+    public async Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, IReadOnlySet<string> ids, CancellationToken cancellationToken)
     {
+        var dbContext = WriteModelUnitOfWork.From(unitOfWork).DbContext;
+
         if (ids.Count == 0)
         {
             return;
@@ -41,7 +43,7 @@ internal sealed class LotForSaleRepository : ILotForSaleRepository
         const int batchSize = 1000;
         foreach (var batch in ids.Chunk(batchSize))
         {
-            await _dbContext.LotForSales
+            await dbContext.LotForSales
                 .Where(x => batch.Contains(x.Id))
                 .ExecuteDeleteAsync(cancellationToken);
         }

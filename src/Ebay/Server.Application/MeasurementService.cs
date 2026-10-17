@@ -13,21 +13,21 @@ internal sealed class MeasurementService : IMeasurementService
     private readonly IMatchedPairDifferenceRepository _matchedPairDifferenceRepository;
     private readonly IMeasurementQueries _measurementQueries;
     private readonly IMeasurementFileParser _measurementFileParser;
-    private readonly IWriteModelUnitOfWork _unitOfWork;
+    private readonly IWriteModelUnitOfWorkFactory _unitOfWorkFactory;
 
     public MeasurementService(
         IMeasurementRepository productMeasurementRepository,
         IMatchedPairDifferenceRepository matchedPairDifferenceRepository,
         IMeasurementQueries measurementQueries,
         IMeasurementFileParser measurementFileParser,
-        IWriteModelUnitOfWork unitOfWork
+        IWriteModelUnitOfWorkFactory unitOfWorkFactory
     )
     {
         _productMeasurementRepository = productMeasurementRepository;
         _matchedPairDifferenceRepository = matchedPairDifferenceRepository;
         _measurementQueries = measurementQueries;
         _measurementFileParser = measurementFileParser;
-        _unitOfWork = unitOfWork;
+        _unitOfWorkFactory = unitOfWorkFactory;
     }
 
     public async Task SaveMeasurement(
@@ -38,6 +38,8 @@ internal sealed class MeasurementService : IMeasurementService
         Guid productId,
         CancellationToken cancellationToken)
     {
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
         var measurement = ProductMeasurement.Create(
             id: measurementId,
             productId: productId,
@@ -47,9 +49,9 @@ internal sealed class MeasurementService : IMeasurementService
             measurementFileParser: _measurementFileParser
         );
 
-        await _productMeasurementRepository.AddAsync(measurement, cancellationToken);
+        await _productMeasurementRepository.AddAsync(unitOfWork, measurement, cancellationToken);
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     public async Task UpdateMeasurementLocation(
@@ -57,12 +59,14 @@ internal sealed class MeasurementService : IMeasurementService
         string measurementId,
         CancellationToken cancellationToken)
     {
-        var productMeasurement = await _productMeasurementRepository.GetByIdAsync(measurementId, cancellationToken) ?? throw new InvalidOperationException("Measurement not found.");
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
+        var productMeasurement = await _productMeasurementRepository.GetByIdAsync(unitOfWork, measurementId, cancellationToken) ?? throw new InvalidOperationException("Measurement not found.");
         productMeasurement.Location = string.IsNullOrWhiteSpace(location)
             ? null
             : location.Trim();
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     public async Task UpdateMeasurementManufactureCode(
@@ -70,10 +74,12 @@ internal sealed class MeasurementService : IMeasurementService
         string measurementId,
         CancellationToken cancellationToken)
     {
-        var productMeasurement = await _productMeasurementRepository.GetByIdAsync(measurementId, cancellationToken) ?? throw new InvalidOperationException("Measurement not found.");
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
+        var productMeasurement = await _productMeasurementRepository.GetByIdAsync(unitOfWork, measurementId, cancellationToken) ?? throw new InvalidOperationException("Measurement not found.");
         productMeasurement.UpdateManufactureCode(manufactureCode);
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     public async Task UpdateMeasurementMatchId(
@@ -81,13 +87,15 @@ internal sealed class MeasurementService : IMeasurementService
         string measurementId,
         CancellationToken cancellationToken)
     {
-        var productMeasurement = await _productMeasurementRepository.GetByIdAsync(measurementId, cancellationToken) ?? throw new InvalidOperationException("Measurement not found.");
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
+        var productMeasurement = await _productMeasurementRepository.GetByIdAsync(unitOfWork, measurementId, cancellationToken) ?? throw new InvalidOperationException("Measurement not found.");
         if (!productMeasurement.ChangeMatchId(matchId))
         {
             return;
         }
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     public async Task UpdateMeasurementLotId(
@@ -95,10 +103,12 @@ internal sealed class MeasurementService : IMeasurementService
         string measurementId,
         CancellationToken cancellationToken)
     {
-        var productMeasurement = await _productMeasurementRepository.GetByIdAsync(measurementId, cancellationToken) ?? throw new InvalidOperationException("Measurement not found.");
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
+        var productMeasurement = await _productMeasurementRepository.GetByIdAsync(unitOfWork, measurementId, cancellationToken) ?? throw new InvalidOperationException("Measurement not found.");
         productMeasurement.LotId = string.IsNullOrWhiteSpace(lotId) ? null : lotId.Trim();
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     public async Task UpdateMeasurementState(
@@ -106,23 +116,28 @@ internal sealed class MeasurementService : IMeasurementService
         string measurementId,
         CancellationToken cancellationToken)
     {
-        var productMeasurement = await _productMeasurementRepository.GetByIdAsync(measurementId, cancellationToken) ?? throw new InvalidOperationException("Measurement not found.");
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
+        var productMeasurement = await _productMeasurementRepository.GetByIdAsync(unitOfWork, measurementId, cancellationToken) ?? throw new InvalidOperationException("Measurement not found.");
         productMeasurement.ChangeState(state);
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     public async Task DeleteMeasurement(
         string measurementId,
         CancellationToken cancellationToken)
     {
-        await using var transaction = await _unitOfWork.BeginTransactionAsync(cancellationToken: cancellationToken);
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
+        await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken: cancellationToken);
 
         await _matchedPairDifferenceRepository.RemoveByMeasurementIds(
+            unitOfWork,
             measurementIds: new HashSet<string> { measurementId },
             cancellationToken);
 
-        await _productMeasurementRepository.RemoveAsync(measurementId, cancellationToken);
+        await _productMeasurementRepository.RemoveAsync(unitOfWork, measurementId, cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
     }

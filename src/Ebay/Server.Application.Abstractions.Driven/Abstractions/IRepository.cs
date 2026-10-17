@@ -13,33 +13,37 @@ public interface IRepository<TAggregate, TId>
     /// <summary>
     /// Материализовать агрегат
     /// </summary>
+    /// <param name="unitOfWork">Unit of Work операции, в контексте которой выполняется вызов.</param>
     /// <param name="id">Идентификатор агрегата</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<TAggregate?> GetByIdAsync(TId id, CancellationToken cancellationToken);
+    Task<TAggregate?> GetByIdAsync(IWriteModelUnitOfWork unitOfWork, TId id, CancellationToken cancellationToken);
 
     /// <summary>
     /// Добавить новый агрегат.
     /// </summary>
+    /// <param name="unitOfWork">Unit of Work операции, в контексте которой выполняется вызов.</param>
     /// <param name="aggregate">Инстанс агрегата.</param>
     /// <param name="cancellationToken">Токен отмены.</param>
-    Task AddAsync(TAggregate aggregate, CancellationToken cancellationToken);
+    Task AddAsync(IWriteModelUnitOfWork unitOfWork, TAggregate aggregate, CancellationToken cancellationToken);
 
     //todo удаление сейчас выполняется не по DDD что не совсем корректно
 
     /// <summary>
     /// Удалить агрегат
     /// </summary>
+    /// <param name="unitOfWork">Unit of Work операции, в контексте которой выполняется вызов.</param>
     /// <param name="id">Идентификатор агрегата</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task RemoveAsync(TId id, CancellationToken cancellationToken);
+    Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, TId id, CancellationToken cancellationToken);
 
     /// <summary>
     /// Удалить агрегаты
     /// </summary>
+    /// <param name="unitOfWork">Unit of Work операции, в контексте которой выполняется вызов.</param>
     /// <param name="id">Идентификаторы агрегата</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task RemoveAsync(IReadOnlySet<TId> id, CancellationToken cancellationToken);
+    Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, IReadOnlySet<TId> id, CancellationToken cancellationToken);
 }

@@ -1,4 +1,4 @@
-using MassTransit;
+using Server.Adapters.Driven.EF.WriteModel;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driving.Abstractions.Messages;
 
@@ -6,18 +6,19 @@ namespace Server.Adapters.MassTransit.Driven;
 
 internal sealed class MeasurementWatchedOnEbayPublisher : IMeasurementWatchedOnEbayPublisher
 {
-    private readonly IPublishEndpoint _publishEndpoint;
-    private readonly IWriteModelUnitOfWork _unitOfWork;
+    private readonly IWriteModelUnitOfWorkFactory _unitOfWorkFactory;
 
-    public MeasurementWatchedOnEbayPublisher(IPublishEndpoint publishEndpoint, IWriteModelUnitOfWork unitOfWork)
+    public MeasurementWatchedOnEbayPublisher(IWriteModelUnitOfWorkFactory unitOfWorkFactory)
     {
-        _publishEndpoint = publishEndpoint;
-        _unitOfWork = unitOfWork;
+        _unitOfWorkFactory = unitOfWorkFactory;
     }
 
     public async Task PublishAsync(string measurementId, DateTimeOffset watchedAtUtc, CancellationToken cancellationToken)
     {
-        await _publishEndpoint.Publish(new MeasurementWatchedOnEbay(measurementId, watchedAtUtc), cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
+        await WriteModelOutbox.GetPublishEndpoint(unitOfWork)
+            .Publish(new MeasurementWatchedOnEbay(measurementId, watchedAtUtc), cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

@@ -19,7 +19,7 @@ public class ChipfindMonitoringService
     private readonly ILogger<ChipfindMonitoringService> _logger;
     private readonly IProductEmailSendHistoryRepository _productEmailSendHistoryRepository;
     private readonly IProductEmailSendHistoryQueries _productEmailSendHistoryQueries;
-    private readonly IWriteModelUnitOfWork _unitOfWork;
+    private readonly IWriteModelUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IChipfindAdapter _chipfindAdapter;
     private readonly IEmailSender _emailSender;
     private readonly ProductService _productService;
@@ -31,7 +31,7 @@ public class ChipfindMonitoringService
         ILogger<ChipfindMonitoringService> logger,
         IProductEmailSendHistoryRepository productEmailSendHistoryRepository,
         IProductEmailSendHistoryQueries productEmailSendHistoryQueries,
-        IWriteModelUnitOfWork unitOfWork,
+        IWriteModelUnitOfWorkFactory unitOfWorkFactory,
         IChipfindAdapter chipfindAdapter,
         IEmailSender emailSender,
         ProductService productService)
@@ -39,7 +39,7 @@ public class ChipfindMonitoringService
         _logger = logger;
         _productEmailSendHistoryRepository = productEmailSendHistoryRepository;
         _productEmailSendHistoryQueries = productEmailSendHistoryQueries;
-        _unitOfWork = unitOfWork;
+        _unitOfWorkFactory = unitOfWorkFactory;
         _chipfindAdapter = chipfindAdapter;
         _emailSender = emailSender;
         _productService = productService;
@@ -74,6 +74,8 @@ public class ChipfindMonitoringService
         IReadOnlyCollection<ProductInner> products,
         CancellationToken cancellationToken)
     {
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
         var newInterestingAds = new HashSet<(bool IsAmbiguous, string Ad, string? Contact)>();
         // Кеш агрегатов, уже загруженных или созданных в рамках обработки этого объявления -
         // один продавец может встретиться в нескольких items объявления, а запись ещё не сохранена в БД.
@@ -109,7 +111,7 @@ public class ChipfindMonitoringService
 
                     record = existingId is null
                         ? null
-                        : await _productEmailSendHistoryRepository.GetByIdAsync(existingId.Value, cancellationToken);
+                        : await _productEmailSendHistoryRepository.GetByIdAsync(unitOfWork, existingId.Value, cancellationToken);
                 }
 
                 if (record is null)
@@ -123,7 +125,7 @@ public class ChipfindMonitoringService
                         advertisementDate: saleAdvertisement.Date,
                         contact: string.IsNullOrWhiteSpace(advertisementContact) ? null : advertisementContact);
 
-                    await _productEmailSendHistoryRepository.AddAsync(newRecord, cancellationToken);
+                    await _productEmailSendHistoryRepository.AddAsync(unitOfWork, newRecord, cancellationToken);
                     historyByProductId[product.ProductId] = newRecord;
 
                     if (product.IsInteresting)
@@ -146,9 +148,9 @@ public class ChipfindMonitoringService
         // Deferred commit: if the email send below fails, the history rows written by SaveChangesAsync
         // must not persist, or the retry on the next run will see them as "already notified" via
         // FindIdAsync and silently drop the notification for good.
-        await using var transaction = await _unitOfWork.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken);
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         if (newInterestingAds.Count > 0)
         {

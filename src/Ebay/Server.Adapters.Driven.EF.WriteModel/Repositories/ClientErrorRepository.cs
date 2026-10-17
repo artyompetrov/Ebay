@@ -1,3 +1,4 @@
+using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Domain;
 
@@ -5,12 +6,5 @@ namespace Server.Adapters.Driven.EF.WriteModel.Repositories;
 
 internal sealed class ClientErrorRepository : IClientErrorRepository
 {
-    private readonly WriteModelDbContext _dbContext;
-
-    public ClientErrorRepository(WriteModelDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
-    public async Task AddAsync(ClientError error, CancellationToken cancellationToken) => await _dbContext.ClientErrors.AddAsync(error, cancellationToken);
+    public async Task AddAsync(IWriteModelUnitOfWork unitOfWork, ClientError error, CancellationToken cancellationToken) => await WriteModelUnitOfWork.From(unitOfWork).DbContext.ClientErrors.AddAsync(error, cancellationToken);
 }

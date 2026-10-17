@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Domain;
 
@@ -6,17 +7,12 @@ namespace Server.Adapters.Driven.EF.WriteModel.Repositories;
 
 internal sealed class IgnoredLotRepository : IIgnoredLotRepository
 {
-    private readonly WriteModelDbContext _dbContext;
-
-    public IgnoredLotRepository(WriteModelDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
     private const int InsertMissingMaxAttempts = 3;
 
-    public async Task InsertMissingAsync(Guid productId, IReadOnlySet<long> lotIds, CancellationToken cancellationToken)
+    public async Task InsertMissingAsync(IWriteModelUnitOfWork unitOfWork, Guid productId, IReadOnlySet<long> lotIds, CancellationToken cancellationToken)
     {
+        var dbContext = WriteModelUnitOfWork.From(unitOfWork).DbContext;
+
         if (lotIds.Count == 0)
         {
             return;
@@ -24,7 +20,7 @@ internal sealed class IgnoredLotRepository : IIgnoredLotRepository
 
         for (var attempt = 1; attempt <= InsertMissingMaxAttempts; attempt++)
         {
-            var existingLotIds = await _dbContext.IgnoredLots
+            var existingLotIds = await dbContext.IgnoredLots
                 .Where(x => x.ProductId == productId && lotIds.Contains(x.LotId))
                 .Select(x => x.LotId)
                 .ToListAsync(cancellationToken);
@@ -38,11 +34,11 @@ internal sealed class IgnoredLotRepository : IIgnoredLotRepository
             }
 
             var entries = missing.Select(lotId => IgnoredLot.Create(productId, lotId)).ToList();
-            await _dbContext.IgnoredLots.AddRangeAsync(entries, cancellationToken);
+            await dbContext.IgnoredLots.AddRangeAsync(entries, cancellationToken);
 
             try
             {
-                await _dbContext.SaveChangesAsync(cancellationToken);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
                 return;
             }
             catch (DbUpdateException) when (attempt < InsertMissingMaxAttempts)
@@ -53,15 +49,17 @@ internal sealed class IgnoredLotRepository : IIgnoredLotRepository
                 // UpsertRange-based implementation tolerated exactly this race.
                 foreach (var entry in entries)
                 {
-                    _dbContext.Entry(entry).State = EntityState.Detached;
+                    dbContext.Entry(entry).State = EntityState.Detached;
                 }
             }
         }
     }
 
-    public async Task RemoveAsync(Guid productId, long lotId, CancellationToken cancellationToken)
+    public async Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, Guid productId, long lotId, CancellationToken cancellationToken)
     {
-        await _dbContext.IgnoredLots
+        var dbContext = WriteModelUnitOfWork.From(unitOfWork).DbContext;
+
+        await dbContext.IgnoredLots
             .Where(x => x.ProductId == productId && x.LotId == lotId)
             .ExecuteDeleteAsync(cancellationToken);
     }

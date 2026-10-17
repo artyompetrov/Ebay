@@ -130,11 +130,12 @@ public class LotPricingFlowTests
 
     private static async Task EnsureCurrencyExistsAsync(string currencyEbayName)
     {
-        using var scope = IntegrationTestsSetupFixture.Factory.Services.CreateScope();
-        var currencyRepository = scope.ServiceProvider.GetRequiredService<ICurrencyRepository>();
-        var unitOfWork = scope.ServiceProvider.GetRequiredService<IWriteModelUnitOfWork>();
+        var services = IntegrationTestsSetupFixture.Factory.Services;
+        var currencyRepository = services.GetRequiredService<ICurrencyRepository>();
+        await using var unitOfWork = await services.GetRequiredService<IWriteModelUnitOfWorkFactory>()
+            .BeginAsync(CancellationToken.None);
 
-        var existing = await currencyRepository.GetByIdAsync(currencyEbayName, CancellationToken.None);
+        var existing = await currencyRepository.GetByIdAsync(unitOfWork, currencyEbayName, CancellationToken.None);
         if (existing != null)
         {
             return;
@@ -146,7 +147,7 @@ public class LotPricingFlowTests
             currencyApiName: currencyEbayName,
             currencyRate: 1.0,
             lastUpdate: DateTimeOffset.UtcNow);
-        await currencyRepository.AddAsync(currency, CancellationToken.None);
+        await currencyRepository.AddAsync(unitOfWork, currency, CancellationToken.None);
         await unitOfWork.SaveChangesAsync(CancellationToken.None);
     }
 }

@@ -6,18 +6,20 @@ namespace Server.Adapters.Driven.EF.ReadModel.Queries;
 
 internal sealed class MeasurementPhotoQueries : IMeasurementPhotoQueries
 {
-    private readonly ReadDbContext _context;
+    private readonly IDbContextFactory<ReadDbContext> _dbContextFactory;
 
-    public MeasurementPhotoQueries(ReadDbContext context)
+    public MeasurementPhotoQueries(IDbContextFactory<ReadDbContext> dbContextFactory)
     {
-        _context = context;
+        _dbContextFactory = dbContextFactory;
     }
 
     public async Task<int> GetNextOrder(
         string measurementId,
         CancellationToken cancellationToken)
     {
-        var maxOrder = await _context.MeasurementPhotos
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        var maxOrder = await dbContext.MeasurementPhotos
             .Where(x => x.MeasurementId == measurementId)
             .Select(x => (int?)x.Order)
             .MaxAsync(cancellationToken);
@@ -29,7 +31,9 @@ internal sealed class MeasurementPhotoQueries : IMeasurementPhotoQueries
         string measurementId,
         CancellationToken cancellationToken)
     {
-        return await _context.MeasurementPhotos
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        return await dbContext.MeasurementPhotos
             .Where(x => x.MeasurementId == measurementId)
             .OrderBy(x => x.Order)
             .Select(x => new MeasurementPhotoInfo(
@@ -47,7 +51,9 @@ internal sealed class MeasurementPhotoQueries : IMeasurementPhotoQueries
         Guid photoId,
         CancellationToken cancellationToken)
     {
-        return await _context.MeasurementPhotos
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        return await dbContext.MeasurementPhotos
             .Where(x => x.MeasurementId == measurementId && x.Id == photoId)
             .Select(x => new MeasurementPhotoInfo(
                 x.Id,
@@ -63,7 +69,9 @@ internal sealed class MeasurementPhotoQueries : IMeasurementPhotoQueries
         IReadOnlyCollection<string> measurementIds,
         CancellationToken cancellationToken)
     {
-        return await _context.MeasurementPhotos
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        return await dbContext.MeasurementPhotos
             .Where(x => measurementIds.Contains(x.MeasurementId))
             .OrderBy(x => x.Order)
             .Select(x => new MeasurementPhotoMetadata(
@@ -79,7 +87,9 @@ internal sealed class MeasurementPhotoQueries : IMeasurementPhotoQueries
         Guid photoId,
         CancellationToken cancellationToken)
     {
-        return await _context.MeasurementPhotos
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        return await dbContext.MeasurementPhotos
             .Where(x => x.MeasurementId == measurementId && x.Id == photoId)
             .Select(x => x.ThumbnailContent)
             .SingleOrDefaultAsync(cancellationToken);

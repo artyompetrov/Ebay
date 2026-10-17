@@ -9,7 +9,7 @@ namespace Server.Application;
 /// </summary>
 public class LotService
 {
-    private readonly IWriteModelUnitOfWork _unitOfWork;
+    private readonly IWriteModelUnitOfWorkFactory _unitOfWorkFactory;
     private readonly ILotRepository _lotRepository;
     private readonly IIgnoredLotRepository _ignoredLotRepository;
     private readonly IPriceRecalculationPublisher _priceRecalculationPublisher;
@@ -18,12 +18,12 @@ public class LotService
     /// Создает сервис сценариев работы с лотами.
     /// </summary>
     public LotService(
-        IWriteModelUnitOfWork unitOfWork,
+        IWriteModelUnitOfWorkFactory unitOfWorkFactory,
         ILotRepository lotRepository,
         IIgnoredLotRepository ignoredLotRepository,
         IPriceRecalculationPublisher priceRecalculationPublisher)
     {
-        _unitOfWork = unitOfWork;
+        _unitOfWorkFactory = unitOfWorkFactory;
         _lotRepository = lotRepository;
         _ignoredLotRepository = ignoredLotRepository;
         _priceRecalculationPublisher = priceRecalculationPublisher;
@@ -56,7 +56,9 @@ public class LotService
         IReadOnlyList<(DateTimeOffset Date, double? Price, int Quantity)> purchaseHistory,
         CancellationToken cancellationToken)
     {
-        var lot = await _lotRepository.GetByIdAsync(lotId, cancellationToken);
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
+        var lot = await _lotRepository.GetByIdAsync(unitOfWork, lotId, cancellationToken);
         if (lot == null)
         {
             lot = Lot.Create(
@@ -79,7 +81,7 @@ public class LotService
                 titleChangeDate: titleChangeDate,
                 updateDate: updateDate,
                 categories: categories);
-            await _lotRepository.AddAsync(lot, cancellationToken);
+            await _lotRepository.AddAsync(unitOfWork, lot, cancellationToken);
         }
         else
         {
@@ -115,18 +117,18 @@ public class LotService
 
         lot.RemovePurchasesBefore(titleChangeDate);
 
-        await _priceRecalculationPublisher.PublishForLotAsync(lotId, cancellationToken);
+        await _priceRecalculationPublisher.PublishForLotAsync(unitOfWork, lotId, cancellationToken);
 
         // IIgnoredLotRepository.RemoveAsync executes an immediate ExecuteDeleteAsync rather than going through
         // the change tracker, so without an explicit transaction it would commit independently of the lot
         // upsert and the outbox message flushed by SaveChangesAsync below - an explicit transaction keeps the
         // un-ignore, the lot upsert, and the recalculation trigger atomic.
-        await using var transaction = await _unitOfWork.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken);
 
         // Лот больше не считается проигнорированным, раз для него снова пришли актуальные данные.
-        await _ignoredLotRepository.RemoveAsync(productId, lotId, cancellationToken);
+        await _ignoredLotRepository.RemoveAsync(unitOfWork, productId, lotId, cancellationToken);
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
     }
 
@@ -135,18 +137,20 @@ public class LotService
     /// </summary>
     public async Task DeleteLotInfoAsync(long lotId, CancellationToken cancellationToken)
     {
-        var lot = await _lotRepository.GetByIdAsync(lotId, cancellationToken) ??
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
+        var lot = await _lotRepository.GetByIdAsync(unitOfWork, lotId, cancellationToken) ??
                   throw new InvalidOperationException($"Lot with id {lotId} not found");
 
-        await _priceRecalculationPublisher.PublishForProductAsync(lot.ProductId, cancellationToken);
+        await _priceRecalculationPublisher.PublishForProductAsync(unitOfWork, lot.ProductId, cancellationToken);
 
         // ILotRepository.RemoveAsync executes an immediate ExecuteDeleteAsync rather than going through the
         // change tracker, so without an explicit transaction it would commit independently of the outbox
         // message flushed by SaveChangesAsync below - an explicit transaction keeps the deletion and the
         // recalculation trigger atomic.
-        await using var transaction = await _unitOfWork.BeginTransactionAsync(cancellationToken);
-        await _lotRepository.RemoveAsync(lotId, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken);
+        await _lotRepository.RemoveAsync(unitOfWork, lotId, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
     }
 
@@ -155,7 +159,9 @@ public class LotService
     /// </summary>
     public async Task CalculatePricesForAllAsync(CancellationToken cancellationToken)
     {
-        await _priceRecalculationPublisher.PublishForAllAsync(cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
+        await _priceRecalculationPublisher.PublishForAllAsync(unitOfWork, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }
