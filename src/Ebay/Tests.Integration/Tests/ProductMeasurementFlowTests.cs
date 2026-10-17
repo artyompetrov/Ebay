@@ -4,6 +4,7 @@ using System.IO.Compression;
 using System.Net;
 using Client.Clients.Generated;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using ComparisonMode = Server.Domain.Measurements.ComparisonMode;
 using MatchedPairDifferenceId = Server.Domain.Measurements.MatchedPairDifferenceId;
@@ -53,9 +54,11 @@ public class ProductMeasurementFlowTests
         var expectedId = new MatchedPairDifferenceId(context.MeasurementId, secondMeasurementId, ComparisonMode.Direct);
         await TestHelpers.RetryUntilValidationSuccessAsync(async () =>
         {
-            using var scope = IntegrationTestsSetupFixture.Factory.Services.CreateScope();
-            var repository = scope.ServiceProvider.GetRequiredService<IMatchedPairDifferenceRepository>();
-            var difference = await repository.GetByIdAsync(expectedId, CancellationToken.None);
+            var services = IntegrationTestsSetupFixture.Factory.Services;
+            var repository = services.GetRequiredService<IMatchedPairDifferenceRepository>();
+            await using var unitOfWork = await services.GetRequiredService<IWriteModelUnitOfWorkFactory>()
+                .BeginAsync(CancellationToken.None);
+            var difference = await repository.GetByIdAsync(unitOfWork, expectedId, CancellationToken.None);
             Assert.That(difference, Is.Not.Null, "Expected the MatchedPairsCalculatorConsumer to have computed the pair difference by now.");
         });
     }

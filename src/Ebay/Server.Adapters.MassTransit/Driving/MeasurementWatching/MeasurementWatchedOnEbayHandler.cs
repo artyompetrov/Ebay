@@ -10,21 +10,23 @@ public sealed class MeasurementWatchedOnEbayHandler : IMeasurementWatchedOnEbayH
 {
     private readonly ILogger<MeasurementWatchedOnEbayHandler> _logger;
     private readonly IMeasurementRepository _measurementRepository;
-    private readonly IWriteModelUnitOfWork _unitOfWork;
+    private readonly IWriteModelUnitOfWorkFactory _unitOfWorkFactory;
 
     public MeasurementWatchedOnEbayHandler(
         ILogger<MeasurementWatchedOnEbayHandler> logger,
         IMeasurementRepository measurementRepository,
-        IWriteModelUnitOfWork unitOfWork)
+        IWriteModelUnitOfWorkFactory unitOfWorkFactory)
     {
         _logger = logger;
         _measurementRepository = measurementRepository;
-        _unitOfWork = unitOfWork;
+        _unitOfWorkFactory = unitOfWorkFactory;
     }
 
     public async Task HandleAsync(MeasurementWatchedOnEbay message, CancellationToken cancellationToken)
     {
-        var measurement = await _measurementRepository.GetByIdAsync(message.MeasurementId, cancellationToken);
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
+        var measurement = await _measurementRepository.GetByIdAsync(unitOfWork, message.MeasurementId, cancellationToken);
 
         if (measurement is null)
         {
@@ -36,6 +38,6 @@ public sealed class MeasurementWatchedOnEbayHandler : IMeasurementWatchedOnEbayH
 
         measurement.MarkWatchedOnEbay(message.WatchedAtUtc);
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

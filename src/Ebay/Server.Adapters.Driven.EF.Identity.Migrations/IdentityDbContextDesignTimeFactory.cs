@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+using Server.Adapters.Driven.PostgreSql;
 
 namespace Server.Adapters.Driven.EF.Identity.Migrations;
 
@@ -15,24 +17,25 @@ public sealed class IdentityDbContextDesignTimeFactory : IDesignTimeDbContextFac
 {
     public IdentityDbContext CreateDbContext(string[] args)
     {
-        var configuration = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json", optional: true)
-            .AddJsonFile("appsettings.Development.json", optional: true)
-            .AddEnvironmentVariables()
-            .Build();
+        // Development: the same appsettings files and environment variables as a local run of the server.
+        var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
+        {
+            Args = args,
+            EnvironmentName = Environments.Development,
+            ContentRootPath = Directory.GetCurrentDirectory()
+        });
 
-        var connectionString = configuration.GetConnectionString("DefaultConnection")
-                               ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is required for design-time migrations.");
-
-        var services = new ServiceCollection();
-        services.AddDbContext<IdentityDbContext>(o =>
-            o.UseNpgsql(connectionString, b => b.MigrationsAssembly("Server.Adapters.Driven.EF.Identity.Migrations")));
+        var services = builder.Services;
+        services.AddPostgreSqlOptions();
+        services.AddDbContextFactory<IdentityDbContext>(static (sp, o) =>
+            o.UseNpgsql(
+                sp.GetRequiredService<IOptions<PostgreSqlOptions>>().Value.DefaultConnection,
+                b => b.MigrationsAssembly("Server.Adapters.Driven.EF.Identity.Migrations")));
         services.AddDefaultIdentity<ApplicationUser>(o => o.SignIn.RequireConfirmedAccount = true)
             .AddEntityFrameworkStores<IdentityDbContext>();
         services.AddIdentityServer()
             .AddApiAuthorization<ApplicationUser, IdentityDbContext>();
 
-        return services.BuildServiceProvider().GetRequiredService<IdentityDbContext>();
+        return services.BuildServiceProvider().GetRequiredService<IDbContextFactory<IdentityDbContext>>().CreateDbContext();
     }
 }

@@ -7,10 +7,11 @@ using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.DataProtection.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Server.Adapters.Driven.PostgreSql;
 using Secret = Duende.IdentityServer.Models.Secret;
 
 namespace Server.Adapters.Driven.EF.Identity;
@@ -19,16 +20,53 @@ public static class ServiceCollectionExtensions
 {
     public static void AddEfIdentityAdapter(this IServiceCollection services)
     {
-        services.AddDbContext<IdentityDbContext>((sp, o) =>
+        services.AddPostgreSqlOptions();
+
+        // Non-pooled factory: IdentityDbContext also takes IOptions<OperationalStoreOptions> in its constructor, which
+        // context pooling does not support. The factory also registers the context itself as scoped, which the
+        // ASP.NET Identity and Duende operational stores (scoped library services) consume.
+        services.AddDbContextFactory<IdentityDbContext>((sp, o) =>
         {
-            var connectionString = sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection")
-                                   ?? throw new InvalidOperationException("Connection string cannot be null");
+            var connectionString = sp.GetRequiredService<IOptions<PostgreSqlOptions>>().Value.DefaultConnection;
             o.UseNpgsql(connectionString, b =>
                 b.MigrationsAssembly("Server.Adapters.Driven.EF.Identity.Migrations"));
             o.AddInterceptors(sp.GetServices<IInterceptor>());
         });
 
         ConfigureIdentity(services);
+
+        MakeContextOptionsConfigurationsSingleton(services);
+    }
+
+    /// <summary>
+    /// Duende's <c>AddOperationalStore</c> (called by <c>AddApiAuthorization</c>) registers the context through
+    /// <c>AddDbContext&lt;TContext&gt;</c>, which adds its options configuration with the scoped options lifetime.
+    /// The singleton <see cref="IDbContextFactory{TContext}"/> reads every configuration, so a scoped one makes it
+    /// unresolvable under <c>ValidateScopes</c>. The configuration itself is kept as is; only its lifetime changes.
+    /// </summary>
+    // TODO: Remove this workaround by fixing its cause: AddApiAuthorization (the deprecated
+    // Microsoft.AspNetCore.ApiAuthorization.IdentityServer package, no releases for .NET 8+) hard-wires
+    // AddOperationalStore, which goes through AddDbContext with scoped lifetimes. Configure Duende directly instead
+    // (AddAspNetIdentity, clients/resources/signing credentials, operational stores via AddPersistedGrantStore<>/
+    // AddDeviceFlowStore<>/AddSigningKeyStore<> with IPersistedGrantDbContext taken from our factory), so nothing
+    // calls AddDbContext; ideally drop the package altogether (ApiAuthorizationDbContext, ClientBuilder,
+    // ApiAuthorizationOptions, AddIdentityServerJwt). Deferred: it changes production authentication and needs
+    // login coverage for the frontend and the Chrome extension.
+    private static void MakeContextOptionsConfigurationsSingleton(IServiceCollection services)
+    {
+        var scopedConfigurations = services
+            .Where(static d => d.ServiceType == typeof(IDbContextOptionsConfiguration<IdentityDbContext>) &&
+                               d.Lifetime != ServiceLifetime.Singleton)
+            .ToArray();
+
+        foreach (var descriptor in scopedConfigurations)
+        {
+            var factory = descriptor.ImplementationFactory ?? throw new InvalidOperationException(
+                $"{descriptor.ServiceType} is expected to be registered by a factory.");
+            // Same position: EF applies options configurations in registration order.
+            services[services.IndexOf(descriptor)] =
+                new ServiceDescriptor(descriptor.ServiceType, factory, ServiceLifetime.Singleton);
+        }
     }
 
     /// <summary>
@@ -43,9 +81,9 @@ public static class ServiceCollectionExtensions
 
     public static void UseEfIdentityAdapter(this IServiceProvider serviceProvider)
     {
-        using var serviceScope = serviceProvider.CreateScope();
-
-        var identityDbContext = serviceScope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        using var identityDbContext = serviceProvider
+            .GetRequiredService<IDbContextFactory<IdentityDbContext>>()
+            .CreateDbContext();
 
         identityDbContext.Database.Migrate();
     }

@@ -6,16 +6,18 @@ namespace Server.Adapters.Driven.EF.ReadModel.Queries;
 
 internal sealed class TubeWorkingPointQueries : ITubeWorkingPointQueries
 {
-    private readonly ReadDbContext _context;
+    private readonly IDbContextFactory<ReadDbContext> _dbContextFactory;
 
-    public TubeWorkingPointQueries(ReadDbContext context)
+    public TubeWorkingPointQueries(IDbContextFactory<ReadDbContext> dbContextFactory)
     {
-        _context = context;
+        _dbContextFactory = dbContextFactory;
     }
 
     public async Task<TubeWorkingPointInfo?> GetWorkingPointInfo(Guid productId, CancellationToken cancellationToken)
     {
-        var tubeWorkingPoint = await _context.TubeWorkingPoints.SingleOrDefaultAsync(
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        var tubeWorkingPoint = await dbContext.TubeWorkingPoints.SingleOrDefaultAsync(
             x => x.Id == productId,
             cancellationToken: cancellationToken);
 

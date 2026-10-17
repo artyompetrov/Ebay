@@ -8,6 +8,7 @@ using Server.Application;
 using Server.Domain.Measurements;
 using Server.Domain.Measurements.MeasurementTypes;
 using Tests.Shared;
+using Tests.Unit.Fakes;
 
 namespace Tests.Unit;
 
@@ -58,7 +59,7 @@ public sealed class MeasurementServiceTests
             matchedPairDifferenceRepository: new NotSupportedMatchedPairDifferenceRepository(),
             measurementQueries: new NotSupportedMeasurementQueries(),
             measurementFileParser: new FakeMeasurementFileParser(),
-            unitOfWork: unitOfWork);
+            unitOfWorkFactory: new SingleUnitOfWorkFactory(unitOfWork));
     }
 
     private static ProductMeasurement CreateMeasurement(string measurementId)
@@ -81,34 +82,34 @@ public sealed class MeasurementServiceTests
             _measurement = measurement;
         }
 
-        public Task<ProductMeasurement?> GetByIdAsync(string id, CancellationToken cancellationToken) =>
+        public Task<ProductMeasurement?> GetByIdAsync(IWriteModelUnitOfWork unitOfWork, string id, CancellationToken cancellationToken) =>
             Task.FromResult<ProductMeasurement?>(_measurement.Id == id ? _measurement : null);
 
-        public Task AddAsync(ProductMeasurement aggregate, CancellationToken cancellationToken) =>
+        public Task AddAsync(IWriteModelUnitOfWork unitOfWork, ProductMeasurement aggregate, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
 
-        public Task RemoveAsync(string id, CancellationToken cancellationToken) =>
+        public Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, string id, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
 
-        public Task RemoveAsync(IReadOnlySet<string> id, CancellationToken cancellationToken) =>
+        public Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, IReadOnlySet<string> id, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
     }
 
     private sealed class NotSupportedMatchedPairDifferenceRepository : IMatchedPairDifferenceRepository
     {
-        public Task<MatchedPairDifference?> GetByIdAsync(MatchedPairDifferenceId id, CancellationToken cancellationToken) =>
+        public Task<MatchedPairDifference?> GetByIdAsync(IWriteModelUnitOfWork unitOfWork, MatchedPairDifferenceId id, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
 
-        public Task AddAsync(MatchedPairDifference aggregate, CancellationToken cancellationToken) =>
+        public Task AddAsync(IWriteModelUnitOfWork unitOfWork, MatchedPairDifference aggregate, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
 
-        public Task RemoveAsync(MatchedPairDifferenceId id, CancellationToken cancellationToken) =>
+        public Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, MatchedPairDifferenceId id, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
 
-        public Task RemoveAsync(IReadOnlySet<MatchedPairDifferenceId> id, CancellationToken cancellationToken) =>
+        public Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, IReadOnlySet<MatchedPairDifferenceId> id, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
 
-        public Task RemoveByMeasurementIds(IReadOnlySet<string> measurementIds, CancellationToken cancellationToken) =>
+        public Task RemoveByMeasurementIds(IWriteModelUnitOfWork unitOfWork, IReadOnlySet<string> measurementIds, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
     }
 
@@ -184,6 +185,8 @@ public sealed class MeasurementServiceTests
 
     private sealed class RecordingUnitOfWork : IWriteModelUnitOfWork
     {
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
         public int SaveChangesCallCount { get; private set; }
 
         public Task<int> SaveChangesAsync(CancellationToken cancellationToken)

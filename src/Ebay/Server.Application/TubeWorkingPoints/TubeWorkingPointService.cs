@@ -9,18 +9,18 @@ namespace Server.Application.TubeWorkingPoints;
 public class TubeWorkingPointService
 {
     private readonly IProductQueries _productQueries;
-    private readonly IWriteModelUnitOfWork _unitOfWork;
+    private readonly IWriteModelUnitOfWorkFactory _unitOfWorkFactory;
     private readonly ITubeWorkingPointQueries _tubeWorkingPointQueries;
     private readonly ITubeWorkingPointsRepository _tubeWorkingPointsRepository;
 
     public TubeWorkingPointService(
         IProductQueries productQueries,
-        IWriteModelUnitOfWork unitOfWork,
+        IWriteModelUnitOfWorkFactory unitOfWorkFactory,
         ITubeWorkingPointQueries tubeWorkingPointQueries,
         ITubeWorkingPointsRepository tubeWorkingPointsRepository)
     {
         _productQueries = productQueries;
-        _unitOfWork = unitOfWork;
+        _unitOfWorkFactory = unitOfWorkFactory;
         _tubeWorkingPointQueries = tubeWorkingPointQueries;
         _tubeWorkingPointsRepository = tubeWorkingPointsRepository;
     }
@@ -35,6 +35,8 @@ public class TubeWorkingPointService
         double nominalCurrent,
         CancellationToken cancellationToken)
     {
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
         var product = await _productQueries.GetProductAsync(tubeProductId, cancellationToken);
 
         if (product is null)
@@ -43,6 +45,7 @@ public class TubeWorkingPointService
         }
 
         var tubeWorkingPoint = await _tubeWorkingPointsRepository.GetByIdAsync(
+            unitOfWork,
             id: tubeProductId,
             cancellationToken: cancellationToken);
 
@@ -65,10 +68,10 @@ public class TubeWorkingPointService
                 gridVoltageHalfWidth: gridVoltageHalfWidth,
                 nominalCurrent: nominalCurrent);
 
-            await _tubeWorkingPointsRepository.AddAsync(tubeWorkingPoint, cancellationToken);
+            await _tubeWorkingPointsRepository.AddAsync(unitOfWork, tubeWorkingPoint, cancellationToken);
         }
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
         return true;
     }
 

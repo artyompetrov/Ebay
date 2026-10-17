@@ -9,15 +9,15 @@ namespace Server.Application;
 /// </summary>
 public class ClientErrorService
 {
-    private readonly IWriteModelUnitOfWork _unitOfWork;
+    private readonly IWriteModelUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IClientErrorRepository _clientErrorRepository;
 
     /// <summary>
     /// Создает сервис сценариев сохранения ошибок, сообщённых клиентом.
     /// </summary>
-    public ClientErrorService(IWriteModelUnitOfWork unitOfWork, IClientErrorRepository clientErrorRepository)
+    public ClientErrorService(IWriteModelUnitOfWorkFactory unitOfWorkFactory, IClientErrorRepository clientErrorRepository)
     {
-        _unitOfWork = unitOfWork;
+        _unitOfWorkFactory = unitOfWorkFactory;
         _clientErrorRepository = clientErrorRepository;
     }
 
@@ -26,7 +26,9 @@ public class ClientErrorService
     /// </summary>
     public async Task SaveErrorAsync(string url, string errorText, CancellationToken cancellationToken)
     {
-        await _clientErrorRepository.AddAsync(ClientError.Create(url: url, errorText: errorText), cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
+        await _clientErrorRepository.AddAsync(unitOfWork, ClientError.Create(url: url, errorText: errorText), cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

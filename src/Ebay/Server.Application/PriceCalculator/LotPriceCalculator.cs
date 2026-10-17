@@ -16,7 +16,7 @@ public sealed class LotPriceCalculator : ILotPriceCalculator
     private readonly ILotRepository _lotRepository;
     private readonly IProductQueries _productQueries;
     private readonly ICurrencyQueries _currencyQueries;
-    private readonly IWriteModelUnitOfWork _unitOfWork;
+    private readonly IWriteModelUnitOfWorkFactory _unitOfWorkFactory;
     private readonly ILogger<LotPriceCalculator> _logger;
 
     /// <summary>
@@ -26,22 +26,24 @@ public sealed class LotPriceCalculator : ILotPriceCalculator
         ILotRepository lotRepository,
         IProductQueries productQueries,
         ICurrencyQueries currencyQueries,
-        IWriteModelUnitOfWork unitOfWork,
+        IWriteModelUnitOfWorkFactory unitOfWorkFactory,
         ILogger<LotPriceCalculator> logger)
     {
         _lotRepository = lotRepository;
         _productQueries = productQueries;
         _currencyQueries = currencyQueries;
-        _unitOfWork = unitOfWork;
+        _unitOfWorkFactory = unitOfWorkFactory;
         _logger = logger;
     }
 
     /// <inheritdoc />
     public async Task<Guid> CalculateAsync(long lotId, CancellationToken cancellationToken)
     {
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
         _logger.LogInformation("Calculation started for {LotId}", lotId);
 
-        var lot = await _lotRepository.GetByIdAsync(lotId, cancellationToken) ??
+        var lot = await _lotRepository.GetByIdAsync(unitOfWork, lotId, cancellationToken) ??
                   throw new InvalidOperationException($"Lot with {lotId} not found");
 
         var product =
@@ -111,7 +113,7 @@ public sealed class LotPriceCalculator : ILotPriceCalculator
             CalculationDate = currentDate
         });
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
         // ReSharper restore IdentifierTypo
 
         return lot.ProductId;

@@ -25,12 +25,13 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 - `Server.Application` — application layer (use-case services, ports).
 - `Server.Domain` — domain model.
 - `Server.Adapters.*` — adapters, including `Server.Adapters.Driven.EF.Identity` (ASP.NET Identity + Duende IdentityServer's operational store).
-- `Server.Adapters.MassTransit` — message bus adapter. It holds both sides of the bus: consumers (driving) under `Driving/` and publishers implementing driven ports under `Driven/`, and owns the whole bus configuration (`AddMassTransitAdapter()`: consumers, SQL transport, scheduler, EF outbox). It references `Server.Adapters.Driven.EF.WriteModel` - the single allowed adapter-to-adapter reference, because the transactional outbox (`AddEntityFrameworkOutbox<WriteModelDbContext>`) needs the write-model `DbContext` type. Don't add other adapter-to-adapter references.
+- `Server.Adapters.MassTransit` — message bus adapter. It holds both sides of the bus: consumers (driving) under `Driving/` and publishers implementing driven ports under `Driven/`, and owns the whole bus configuration (`AddMassTransitAdapter()`: consumers, SQL transport, scheduler, EF outbox). It references `Server.Adapters.Driven.EF.WriteModel` - the single allowed adapter-to-adapter reference, because the transactional outbox (`AddEntityFrameworkOutbox<WriteModelDbContext>`) needs the write-model `DbContext` type and its publishers enqueue messages into a unit of work's outbox via `WriteModelOutbox.GetPublishEndpoint(unitOfWork)`. Don't add other adapter-to-adapter references.
 - Identity/authorization configuration (data protection, ASP.NET Identity, IdentityServer clients, JWT, `AuthorizationClientOptions`) lives in `Server.Adapters.Driven.EF.Identity` behind `AddEfIdentityAdapter()`/`UseEfIdentityAdapterAuthentication()`, not in `Program.cs`.
 - Adapter-private caches (e.g. GeoIp, ChipFind keyed `IMemoryCache`) are registered by their own adapter's `Add*Adapter()`.
 - `Server.Adapters.Driven.Plotting` — SVG rendering of measurement plots, status labels and tube-info cards (`ScottPlot`) behind `IPlottingAdapter`; `MeasurementPlotService` only orchestrates (loading, approximation, axis ranges, cache keys).
+- `Server.Adapters.Driven.PostgreSql` — `PostgreSqlOptions` (the `ConnectionStrings` section, `ConnectionStrings__DefaultConnection`) for the shared PostgreSQL database; every adapter that connects to it (EF read/write model, EF Identity, MassTransit SQL transport, design-time migration factories) calls the idempotent `AddPostgreSqlOptions()` and reads `IOptions<PostgreSqlOptions>`.
 - `Server.Adapters.Driven.MemoryCache` — process-wide in-memory cache for measurement-bound content (photo/thumbnail bytes, rendered eBay plots) behind `IMeasurementContentCacheAdapter`: size limit (`ImageCache` section), sliding expiration and per-measurement invalidation. The application decides keys and what is cacheable; `ICacheStore` (persistent Postgres cache) is a different port.
-- `Server.Adapters.Driving.BackgroundTasks` — driving adapter for periodic/startup background jobs (ChipFind monitoring, currency rates, sale advertisement cleanup, DB cache cleanup, measurement plot warmup). Each hosted service only creates a scope, applies the `EbayServer:IsLocalRun` switch where relevant, and calls one application use-case method; scheduling constants live here, business thresholds stay in `Server.Application`. Hosted services (`IHostedService`) live only in adapter assemblies.
+- `Server.Adapters.Driving.BackgroundTasks` — driving adapter for periodic/startup background jobs (ChipFind monitoring, currency rates, sale advertisement cleanup, DB cache cleanup, measurement plot warmup). Each hosted service injects its (singleton) application use-case service, applies the `EbayServer:IsLocalRun` switch where relevant, and calls one use-case method; scheduling constants live here, business thresholds stay in `Server.Application`. Hosted services (`IHostedService`) live only in adapter assemblies.
 - `Tests.Unit`, `Tests.Integration`, `Tests.Explicit` — test projects.
 - `Tests.Frontend` — bUnit component tests and Playwright Chromium checks of rendered photo previews. Install Chromium with the generated `playwright.ps1` after building.
 - `Tests.Shared` — shared test infrastructure referenced by the test projects above; `OpenSpecScenarioAttribute` and shared browser assertions (see the `write-tests` skill).
@@ -53,6 +54,7 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 
 ## DB migrations
 - DB infrastructure lives in the owning DB adapter, not in `Server.Application`.
+- DbContexts are never injected directly. `WriteModelDbContext` and `ReadDbContext` are registered with `AddPooledDbContextFactory` (no constructor dependencies beyond `DbContextOptions`); `IdentityDbContext` with `AddDbContextFactory` (its constructor also takes `IOptions<OperationalStoreOptions>`, which pooling doesn't support). Read-model queries create a context per call (`await using var dbContext = await factory.CreateDbContextAsync(ct)`, `NoTracking` via options); the write model goes through `IWriteModelUnitOfWorkFactory`. The scoped context registration the factories add is consumed only by library code (MassTransit's EF bus outbox inside `WriteModelUnitOfWork`, ASP.NET Identity/Duende stores).
 - For the write model, use:
   - `WriteModelDbContext`: `Server.Adapters.Driven.EF.WriteModel/WriteModelDbContext`
   - migrations project: `Server.Adapters.Driven.EF.WriteModel.Migrations`
@@ -68,12 +70,15 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
   - identity: `ConnectionStrings__DefaultConnection="$CONN" dotnet ef migrations add NewMigrationName --project src/Ebay/Server.Adapters.Driven.EF.Identity.Migrations/Server.Adapters.Driven.EF.Identity.Migrations.csproj --startup-project src/Ebay/Server.Adapters.Driven.EF.Identity.Migrations/Server.Adapters.Driven.EF.Identity.Migrations.csproj --context Server.Adapters.Driven.EF.Identity.IdentityDbContext`
 
 ## Configuration and DI
-- Default services: `Transient`.
-- `Scoped` — only for a shared operation context (primarily EF `DbContext`).
-- `Singleton` — only with an explicit justification.
+- Every service is a stateless `Singleton` (`AddSingleton`). `Scoped`/`Transient` registrations and `AddDbContext`/`AddDbContextPool` are banned at compile time (RS0030, `src/Ebay/BannedSymbols.txt`); per-operation state is passed as method arguments, never kept in fields.
+- EF contexts come from `IDbContextFactory<T>`; a write operation passes its `IWriteModelUnitOfWork` explicitly (see "Command/query split").
+- HTTP: inject `IHttpClientFactory` and create a named client per call; don't register typed clients (`AddHttpClient<TClient, TImpl>`) or capture an `HttpClient` in a singleton.
+- Scoped/transient services registered internally by libraries (ASP.NET Core, ASP.NET Identity/Duende, MassTransit consumers, the scoped context the EF factories add) are allowed; the full list of exceptions and reasons is in the EXCEPTIONS section of `src/Ebay/BannedSymbols.txt`.
+- The host validates the container in every environment (`ValidateScopes`/`ValidateOnBuild`, `Server.Platform` and `Frontend/Program.cs`), so a singleton that captures a scoped service fails at startup.
 - In `Program.cs`, don't read parameters directly via `GetSection`/`GetRequiredSection` during container registration.
 - Use `AddOptions<...>().BindConfiguration("...").ValidateDataAnnotations().ValidateOnStart()`.
 - `GetRequiredSection` and `ConfigurationBinder.Get`/`Get<T>` are banned via `BannedSymbols.txt` (BannedApiAnalyzers, RS0030 = error); do not suppress, bind options as above.
+- `IConfiguration` (with its members such as `GetSection`) and `GetConnectionString` are banned too (`src/Ebay/BannedSymbols.txt`). BannedApiAnalyzers does not check generic type arguments or the indexer, so `GetService<IConfiguration>()`/`GetRequiredService<IConfiguration>()`/`Configure<IConfiguration>(...)` and `cfg["..."]` still compile - don't use them either.
 
 ## Architectural constraints
 ### DDD
@@ -101,14 +106,14 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 - No driven adapter references `Server.Application`; driven adapters depend only on `Server.Application.Abstractions.Driven` (and the domain).
 
 ### Command/query split
-- **Commands** (state changes): an application-layer use-case service loads an aggregate through its repository port (`Server.Application.Abstractions.Driven.Abstractions.Repositories.I*Repository`), calls domain methods on it, and commits via `IWriteModelUnitOfWork`. The aggregate is always loaded and persisted as a whole; there is no partial/column-level command update.
+- **Commands** (state changes): an application-layer use-case service loads an aggregate through its repository port (`Server.Application.Abstractions.Driven.Abstractions.Repositories.I*Repository`), calls domain methods on it, and commits via `IWriteModelUnitOfWork`. Each operation opens its own unit of work with `await using var unitOfWork = await unitOfWorkFactory.BeginAsync(ct)` (`IWriteModelUnitOfWorkFactory`) and passes it explicitly to every repository and outbox publisher (`IPriceRecalculationPublisher`, `IMeasurementPlotWarmupPublisher`) taking part in that atomic operation; services never keep a unit of work or `DbContext` in a field. The aggregate is always loaded and persisted as a whole; there is no partial/column-level command update.
 - **Queries** (reads): go through dedicated query ports (`Server.Application.Abstractions.Driven.Abstractions.Queries.I*Queries`) implemented directly against the read model (`Server.Adapters.Driven.EF.ReadModel`). Queries project straight to DTOs and never load or go through aggregates/repositories.
 - Don't use a repository to serve a read, and don't use a query port to perform a write.
 
 ### Domain model pattern and domain events
 - An aggregate never exposes a public setter for behavior-bearing state. State changes go through a domain method (e.g. `ChangeState(...)`) that: 1) mutates the aggregate's own state first, 2) only then, and only if the value actually changed, calls `AddDomainEvent(...)` (see `AggregateRoot<TId>` in `Server.Domain.Abstractions`).
 - Application services call these domain methods; they never mutate aggregate state directly and never publish domain events themselves.
-- Domain events are dispatched automatically, not explicitly: `WriteModelDbContext.SaveChangesAsync` (the write-model unit of work) collects all changed aggregates with pending events, publishes each event via `IPublishEndpoint` (MassTransit outbox), then clears them, all before the actual `SaveChanges` write. Adding a new event type requires no publishing code beyond raising it from the aggregate.
+- Domain events are dispatched automatically, not explicitly: `IWriteModelUnitOfWork.SaveChangesAsync` (`WriteModelUnitOfWork` in the EF write-model adapter) collects all changed aggregates with pending events, publishes each event via `IPublishEndpoint` (MassTransit outbox), then clears them, all before the actual `SaveChanges` write. `WriteModelDbContext.SaveChangesAsync` itself throws if tracked aggregates still have pending events, so a direct save can't silently drop them. Adding a new event type requires no publishing code beyond raising it from the aggregate.
 - Consumers for domain events live in `Server.Adapters.MassTransit/Driving` (+ a handler in `Server.Application`), following the existing `MeasurementStateChanged`/`MeasurementStateChangedConsumer` pattern; register new consumers in `AddMassTransitAdapter()`.
 
 ## Review-error checklist (mandatory before a PR)

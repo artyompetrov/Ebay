@@ -1,7 +1,8 @@
 using MassTransit;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Server.Adapters.Driven.EF.WriteModel;
+using Server.Adapters.Driven.PostgreSql;
 using Server.Adapters.MassTransit.Driven;
 using Server.Adapters.MassTransit.Driving.EbayCurvesCacheWarmUp;
 using Server.Adapters.MassTransit.Driving.MatchedPairs;
@@ -17,17 +18,15 @@ public static class ServiceCollectionExtensions
 {
     public static void AddMassTransitAdapter(this IServiceCollection services)
     {
-        services.AddTransient<IMeasurementWatchedOnEbayPublisher, MeasurementWatchedOnEbayPublisher>();
-        services.AddTransient<IMeasurementWatchedOnEbayHandler, MeasurementWatchedOnEbayHandler>();
-        services.AddTransient<IPriceRecalculationPublisher, PriceRecalculationPublisher>();
-        services.AddTransient<IMeasurementPlotWarmupPublisher, MeasurementPlotWarmupPublisher>();
+        services.AddSingleton<IMeasurementWatchedOnEbayPublisher, MeasurementWatchedOnEbayPublisher>();
+        services.AddSingleton<IMeasurementWatchedOnEbayHandler, MeasurementWatchedOnEbayHandler>();
+        services.AddSingleton<IPriceRecalculationPublisher, PriceRecalculationPublisher>();
+        services.AddSingleton<IMeasurementPlotWarmupPublisher, MeasurementPlotWarmupPublisher>();
 
+        services.AddPostgreSqlOptions();
         services.AddOptions<SqlTransportOptions>()
-            .Configure<IConfiguration>((o, cfg) =>
-            {
-                o.ConnectionString = cfg.GetConnectionString("DefaultConnection")
-                                    ?? throw new InvalidOperationException("Connection string cannot be null");
-            });
+            .Configure<IOptions<PostgreSqlOptions>>(static (o, postgreSqlOptions) =>
+                o.ConnectionString = postgreSqlOptions.Value.DefaultConnection);
 
         services.AddPostgresMigrationHostedService(x =>
         {

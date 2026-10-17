@@ -10,5 +10,5 @@ public interface IProductEmailSendHistoryRepository : IRepository<ProductEmailSe
     /// <summary>
     /// Удаляет записи об отправке писем, устаревшие к указанному моменту времени.
     /// </summary>
-    Task RemoveOlderThanAsync(DateTimeOffset threshold, CancellationToken cancellationToken);
+    Task RemoveOlderThanAsync(IWriteModelUnitOfWork unitOfWork, DateTimeOffset threshold, CancellationToken cancellationToken);
 }

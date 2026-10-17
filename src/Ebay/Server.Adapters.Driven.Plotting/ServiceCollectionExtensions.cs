@@ -7,6 +7,6 @@ public static class ServiceCollectionExtensions
 {
     public static void AddPlottingAdapter(this IServiceCollection services)
     {
-        services.AddTransient<IPlottingAdapter, PlottingAdapter>();
+        services.AddSingleton<IPlottingAdapter, PlottingAdapter>();
     }
 }

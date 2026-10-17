@@ -13,7 +13,7 @@ public sealed class MatchedMeasurementService
     private readonly ITubeWorkingPointQueries _tubeWorkingPointQueries;
     private readonly IMeasurementRepository _measurementRepository;
     private readonly IMatchedPairDifferenceRepository _matchedPairDifferenceRepository;
-    private readonly IWriteModelUnitOfWork _unitOfWork;
+    private readonly IWriteModelUnitOfWorkFactory _unitOfWorkFactory;
     private readonly ILogger<MatchedMeasurementService> _logger;
 
     public MatchedMeasurementService(
@@ -21,14 +21,14 @@ public sealed class MatchedMeasurementService
         ITubeWorkingPointQueries tubeWorkingPointQueries,
         IMeasurementRepository measurementRepository,
         IMatchedPairDifferenceRepository matchedPairDifferenceRepository,
-        IWriteModelUnitOfWork unitOfWork,
+        IWriteModelUnitOfWorkFactory unitOfWorkFactory,
         ILogger<MatchedMeasurementService> logger)
     {
         _measurementQueries = measurementQueries;
         _tubeWorkingPointQueries = tubeWorkingPointQueries;
         _measurementRepository = measurementRepository;
         _matchedPairDifferenceRepository = matchedPairDifferenceRepository;
-        _unitOfWork = unitOfWork;
+        _unitOfWorkFactory = unitOfWorkFactory;
         _logger = logger;
     }
 
@@ -37,12 +37,15 @@ public sealed class MatchedMeasurementService
         CancellationToken cancellationToken)
     {
         var _ = await _tubeWorkingPointQueries.GetWorkingPointInfo(productId, cancellationToken) ?? throw new DomainException("Рабочая точка не задана.");
-        await DeletePreviousResults(productId: productId, cancellationToken: cancellationToken);
 
-        await RequestComparisons(productId: productId, cancellationToken: cancellationToken);
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
+        await DeletePreviousResults(unitOfWork: unitOfWork, productId: productId, cancellationToken: cancellationToken);
+
+        await RequestComparisons(unitOfWork: unitOfWork, productId: productId, cancellationToken: cancellationToken);
     }
 
-    private async Task RequestComparisons(Guid productId, CancellationToken cancellationToken)
+    private async Task RequestComparisons(IWriteModelUnitOfWork unitOfWork, Guid productId, CancellationToken cancellationToken)
     {
         var unsoldMeasurements = (await _measurementQueries.GetMeasurementsInfo(
             productId: productId,
@@ -51,7 +54,7 @@ public sealed class MatchedMeasurementService
 
         foreach (var measurementId1 in unsoldMeasurements)
         {
-            var measurement1 = await _measurementRepository.GetByIdAsync(measurementId1, cancellationToken) ?? throw new InvalidOperationException($"Measurement {measurementId1} not found.");
+            var measurement1 = await _measurementRepository.GetByIdAsync(unitOfWork, measurementId1, cancellationToken) ?? throw new InvalidOperationException($"Measurement {measurementId1} not found.");
 
             foreach (var measurementId2 in unsoldMeasurements)
             {
@@ -63,11 +66,11 @@ public sealed class MatchedMeasurementService
                 nameof(MatchedPairComparisonRequested),
                 measurementId1,
                 string.Join(",", unsoldMeasurements));
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
         }
     }
 
-    private async Task DeletePreviousResults(Guid productId, CancellationToken cancellationToken)
+    private async Task DeletePreviousResults(IWriteModelUnitOfWork unitOfWork, Guid productId, CancellationToken cancellationToken)
     {
         var measurementIds = (await _measurementQueries.GetMeasurementsInfo(
             productId: productId,
@@ -76,8 +79,8 @@ public sealed class MatchedMeasurementService
 
         _logger.LogInformation("Starting matching task for {ProductId}, {MeasurementIds}", productId, string.Join(",", measurementIds));
 
-        await _matchedPairDifferenceRepository.RemoveByMeasurementIds(measurementIds, cancellationToken);
+        await _matchedPairDifferenceRepository.RemoveByMeasurementIds(unitOfWork, measurementIds, cancellationToken);
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

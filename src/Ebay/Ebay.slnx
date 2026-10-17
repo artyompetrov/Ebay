@@ -4,25 +4,28 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Folder Name="/Adapters.Driven/">
+  <Folder Name="/Adapters/">
+    <Project Path="Server.Adapters.MassTransit/Server.Adapters.MassTransit.csproj" />
+  </Folder>
+  <Folder Name="/Adapters/Adapters.Driven/">
     <Project Path="Server.Adapters.Driven.ChipFind/Server.Adapters.Driven.ChipFind.csproj" />
-    <Project Path="Server.Adapters.Driven.EF.ReadModel/Server.Adapters.Driven.EF.ReadModel.csproj" />
     <Project Path="Server.Adapters.Driven.EF.Identity.Migrations/Server.Adapters.Driven.EF.Identity.Migrations.csproj" />
     <Project Path="Server.Adapters.Driven.EF.Identity/Server.Adapters.Driven.EF.Identity.csproj" />
+    <Project Path="Server.Adapters.Driven.EF.ReadModel/Server.Adapters.Driven.EF.ReadModel.csproj" />
     <Project Path="Server.Adapters.Driven.EF.WriteModel.Migrations/Server.Adapters.Driven.EF.WriteModel.Migrations.csproj" />
     <Project Path="Server.Adapters.Driven.EF.WriteModel/Server.Adapters.Driven.EF.WriteModel.csproj" />
     <Project Path="Server.Adapters.Driven.GeoIp/Server.Adapters.Driven.GeoIp.csproj" />
+    <Project Path="Server.Adapters.Driven.ImageProcessing/Server.Adapters.Driven.ImageProcessing.csproj" />
+    <Project Path="Server.Adapters.Driven.MemoryCache/Server.Adapters.Driven.MemoryCache.csproj" />
     <Project Path="Server.Adapters.Driven.OpenExchangeRates/Server.Adapters.Driven.OpenExchangeRates.csproj" />
+    <Project Path="Server.Adapters.Driven.Plotting/Server.Adapters.Driven.Plotting.csproj" />
+    <Project Path="Server.Adapters.Driven.PostgreSql/Server.Adapters.Driven.PostgreSql.csproj" />
     <Project Path="Server.Adapters.Driven.Smtp/Server.Adapters.Driven.Smtp.csproj" />
     <Project Path="Server.Adapters.Driven.uTracer/Server.Adapters.Driven.uTracer.csproj" />
-    <Project Path="Server.Adapters.Driven.ImageProcessing/Server.Adapters.Driven.ImageProcessing.csproj" />
-    <Project Path="Server.Adapters.Driven.Plotting/Server.Adapters.Driven.Plotting.csproj" />
-    <Project Path="Server.Adapters.Driven.MemoryCache/Server.Adapters.Driven.MemoryCache.csproj" />
   </Folder>
-    <Folder Name="/Adapters.Driving/">
-      <Project Path="Server.Adapters.Driving.WebApi/Server.Adapters.Driving.WebApi.csproj" />
-      <Project Path="Server.Adapters.MassTransit/Server.Adapters.MassTransit.csproj" />
-      <Project Path="Server.Adapters.Driving.BackgroundTasks/Server.Adapters.Driving.BackgroundTasks.csproj" />
+  <Folder Name="/Adapters/Adapters.Driving/">
+    <Project Path="Server.Adapters.Driving.BackgroundTasks/Server.Adapters.Driving.BackgroundTasks.csproj" />
+    <Project Path="Server.Adapters.Driving.WebApi/Server.Adapters.Driving.WebApi.csproj" />
   </Folder>
   <Folder Name="/Contacts/">
       <Project Path="Server.Client/Server.Client.csproj" />

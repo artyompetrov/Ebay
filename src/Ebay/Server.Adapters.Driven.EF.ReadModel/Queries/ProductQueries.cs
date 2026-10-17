@@ -10,20 +10,22 @@ namespace Server.Adapters.Driven.EF.ReadModel.Queries;
 
 internal sealed class ProductQueries : IProductQueries
 {
-    private readonly ReadDbContext _readDbContext;
+    private readonly IDbContextFactory<ReadDbContext> _dbContextFactory;
 
-    public ProductQueries(ReadDbContext readDbContext)
+    public ProductQueries(IDbContextFactory<ReadDbContext> dbContextFactory)
     {
-        _readDbContext = readDbContext;
+        _dbContextFactory = dbContextFactory;
     }
 
     public async Task<ProductInfo?> GetProductAsync(Guid productId, CancellationToken cancellationToken)
     {
-        await using var transaction = await _readDbContext.Database.BeginTransactionAsync(
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(
             isolationLevel: IsolationLevel.RepeatableRead,
             cancellationToken: cancellationToken);
 
-        var result = await _readDbContext
+        var result = await dbContext
             .Products
             .AsSplitQuery()
             .Include(x => x.SearchQueries)
@@ -51,11 +53,13 @@ internal sealed class ProductQueries : IProductQueries
 
     public async Task<IReadOnlyList<ProductInfo>> GetAllProductsAsync(CancellationToken cancellationToken)
     {
-        await using var transaction = await _readDbContext.Database.BeginTransactionAsync(
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(
             isolationLevel: IsolationLevel.RepeatableRead,
             cancellationToken: cancellationToken);
 
-        var products = await _readDbContext
+        var products = await dbContext
             .Products
             .AsNoTracking()
             .AsSplitQuery()
@@ -80,11 +84,18 @@ internal sealed class ProductQueries : IProductQueries
         return result;
     }
 
-    public async Task<IReadOnlyList<Guid>> GetAllProductsIdsAsync(CancellationToken cancellationToken) => await _readDbContext.Products.Select(x => x.Id).ToListAsync(cancellationToken: cancellationToken);
+    public async Task<IReadOnlyList<Guid>> GetAllProductsIdsAsync(CancellationToken cancellationToken)
+    {
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        return await dbContext.Products.Select(x => x.Id).ToListAsync(cancellationToken: cancellationToken);
+    }
 
     public async Task<IReadOnlyList<LotCalculationResult>> GetLotCalculationResultsAsync(Guid productId, CancellationToken cancellationToken)
     {
-        var result = await _readDbContext.Lots
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        var result = await dbContext.Lots
             .Where(x => x.ProductId == productId && x.LotCalculationResult != null)
             .Select(x => x.LotCalculationResult!)
             .ToListAsync(cancellationToken);
@@ -98,7 +109,9 @@ internal sealed class ProductQueries : IProductQueries
         DateTimeOffset publishedThreshold,
         CancellationToken cancellationToken)
     {
-        var result = await _readDbContext.ProductMeasurements
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        var result = await dbContext.ProductMeasurements
             .CountAsync(
                 x => x.ProductId == productId &&
                      x.MeasurementState == measurementState &&

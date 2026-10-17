@@ -6,16 +6,18 @@ namespace Server.Adapters.Driven.EF.ReadModel.Queries;
 
 internal sealed class LotQueries : ILotQueries
 {
-    private readonly ReadDbContext _readDbContext;
+    private readonly IDbContextFactory<ReadDbContext> _dbContextFactory;
 
-    public LotQueries(ReadDbContext readDbContext)
+    public LotQueries(IDbContextFactory<ReadDbContext> dbContextFactory)
     {
-        _readDbContext = readDbContext;
+        _dbContextFactory = dbContextFactory;
     }
 
     public async Task<IReadOnlyList<LotDetails>> GetLotsForProductAsync(Guid productId, CancellationToken cancellationToken)
     {
-        var lots = await _readDbContext.Lots
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        var lots = await dbContext.Lots
             .AsSplitQuery()
             .Include(x => x.Purchases)
             .Where(x => x.ProductId == productId)
@@ -26,7 +28,9 @@ internal sealed class LotQueries : ILotQueries
 
     public async Task<LotDetails?> GetLotAsync(long lotId, CancellationToken cancellationToken)
     {
-        var lot = await _readDbContext.Lots
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        var lot = await dbContext.Lots
             .AsSplitQuery()
             .Include(x => x.Purchases)
             .SingleOrDefaultAsync(x => x.Id == lotId, cancellationToken);
@@ -34,15 +38,25 @@ internal sealed class LotQueries : ILotQueries
         return lot == null ? null : Map(lot);
     }
 
-    public async Task<IReadOnlyList<long>> GetAllLotIdsAsync(CancellationToken cancellationToken) =>
-        await _readDbContext.Lots.Select(x => x.Id).ToListAsync(cancellationToken);
+    public async Task<IReadOnlyList<long>> GetAllLotIdsAsync(CancellationToken cancellationToken)
+    {
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
 
-    public async Task<IReadOnlyList<long>> GetLotIdsForProductAsync(Guid productId, CancellationToken cancellationToken) =>
-        await _readDbContext.Lots.Where(x => x.ProductId == productId).Select(x => x.Id).ToListAsync(cancellationToken);
+        return await dbContext.Lots.Select(x => x.Id).ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<long>> GetLotIdsForProductAsync(Guid productId, CancellationToken cancellationToken)
+    {
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        return await dbContext.Lots.Where(x => x.ProductId == productId).Select(x => x.Id).ToListAsync(cancellationToken);
+    }
 
     public async Task<IReadOnlyList<LotUpdateInfo>> GetLotUpdateInfoAsync(IReadOnlySet<long> lotIds, CancellationToken cancellationToken)
     {
-        var result = await _readDbContext.Lots
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        var result = await dbContext.Lots
             .Where(x => lotIds.Contains(x.Id))
             .Select(x => new { x.Id, x.UpdateDate })
             .ToListAsync(cancellationToken);
@@ -50,8 +64,12 @@ internal sealed class LotQueries : ILotQueries
         return [.. result.Select(x => new LotUpdateInfo(x.Id, x.UpdateDate))];
     }
 
-    public async Task<bool> AnyLotExistsForProductAsync(Guid productId, IReadOnlySet<long> lotIds, CancellationToken cancellationToken) =>
-        await _readDbContext.Lots.AnyAsync(x => x.ProductId == productId && lotIds.Contains(x.Id), cancellationToken);
+    public async Task<bool> AnyLotExistsForProductAsync(Guid productId, IReadOnlySet<long> lotIds, CancellationToken cancellationToken)
+    {
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        return await dbContext.Lots.AnyAsync(x => x.ProductId == productId && lotIds.Contains(x.Id), cancellationToken);
+    }
 
     private static LotDetails Map(ReadModelSchema.LotView lot) => new(
         Id: lot.Id,

@@ -1,4 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Server.Application.Currencies;
@@ -7,16 +6,16 @@ namespace Server.Adapters.Driving.BackgroundTasks;
 
 internal sealed class CurrencyRateBackgroundTask : BackgroundTask
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory;
+    private readonly CurrencyRateService _currencyRateService;
     private readonly BackgroundTasksOptions _options;
 
     public CurrencyRateBackgroundTask(
-        IServiceScopeFactory serviceScopeFactory,
+        CurrencyRateService currencyRateService,
         ILogger<CurrencyRateBackgroundTask> logger,
         IOptions<BackgroundTasksOptions> options)
         : base(logger)
     {
-        _serviceScopeFactory = serviceScopeFactory;
+        _currencyRateService = currencyRateService;
         _options = options.Value;
     }
 
@@ -30,9 +29,6 @@ internal sealed class CurrencyRateBackgroundTask : BackgroundTask
             return;
         }
 
-        using var scope = _serviceScopeFactory.CreateScope();
-        var currencyRateService = scope.ServiceProvider.GetRequiredService<CurrencyRateService>();
-
-        await currencyRateService.RefreshRatesAsync(cancellationToken);
+        await _currencyRateService.RefreshRatesAsync(cancellationToken);
     }
 }

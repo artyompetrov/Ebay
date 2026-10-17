@@ -17,10 +17,9 @@ Project composition:
 - Prefer systemic, consistent solutions over local workarounds.
 
 ## DI and services
-- Default DI registration: `Transient`.
-- `Scoped` — only when a shared operation context is genuinely needed (primarily EF `DbContext`).
-- `Singleton` — only deliberately and with an explicit justification next to the registration.
-- Prefer stateless services (don't store mutable state in fields unless necessary).
+- Default and only DI registration in our code: `Singleton`. `Scoped`/`Transient` are banned at compile time (RS0030); exceptions are listed with reasons in `src/Ebay/BannedSymbols.txt`.
+- Per-operation state (EF contexts, units of work) is created per call or passed as a method argument, never stored in a service field.
+- Services are stateless (don't store mutable state in fields unless it is deliberately process-wide and thread-safe).
 
 ## Tests
 - For unit tests, use a separate test class per production class where possible.

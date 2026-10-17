@@ -13,7 +13,6 @@ internal sealed class ReadDbContext : DbContext
         DbContextOptions<ReadDbContext> options
     ) : base(options: options)
     {
-        ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
     }
 
     protected override void OnModelCreating(ModelBuilder b)

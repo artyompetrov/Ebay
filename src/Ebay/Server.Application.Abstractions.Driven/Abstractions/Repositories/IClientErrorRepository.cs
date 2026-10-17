@@ -7,5 +7,5 @@ namespace Server.Application.Abstractions.Driven.Abstractions.Repositories;
 /// </summary>
 public interface IClientErrorRepository
 {
-    Task AddAsync(ClientError error, CancellationToken cancellationToken);
+    Task AddAsync(IWriteModelUnitOfWork unitOfWork, ClientError error, CancellationToken cancellationToken);
 }

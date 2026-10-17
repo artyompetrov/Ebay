@@ -142,7 +142,7 @@ public sealed class MeasurementPhotoServiceTests
             measurementPhotoRepository: new CapturingMeasurementPhotoRepository(),
             measurementQueries: new FakeMeasurementQueries(MeasurementState.Selling),
             photoThumbnailGenerator: new NotSupportedPhotoThumbnailGenerator(),
-            writeModelUnitOfWork: new NoOpWriteModelUnitOfWork());
+            unitOfWorkFactory: new SingleUnitOfWorkFactory(new NoOpWriteModelUnitOfWork()));
 
         await service.GetContentAsync(MeasurementId, PhotoId, CancellationToken.None);
         photoQueries.GetCallCount.Should().Be(1);
@@ -168,7 +168,7 @@ public sealed class MeasurementPhotoServiceTests
             measurementPhotoRepository: repository,
             measurementQueries: new FakeMeasurementQueries(MeasurementState.Created),
             photoThumbnailGenerator: thumbnailGenerator,
-            writeModelUnitOfWork: new NoOpWriteModelUnitOfWork());
+            unitOfWorkFactory: new SingleUnitOfWorkFactory(new NoOpWriteModelUnitOfWork()));
 
         var uploadedContent = new byte[] { 1, 2, 3, 4, 5 };
         var uploaded = await service.UploadAsync(
@@ -275,7 +275,7 @@ public sealed class MeasurementPhotoServiceTests
             measurementPhotoRepository: new NotSupportedMeasurementPhotoRepository(),
             measurementQueries: measurementQueries,
             photoThumbnailGenerator: new NotSupportedPhotoThumbnailGenerator(),
-            writeModelUnitOfWork: new NotSupportedWriteModelUnitOfWork());
+            unitOfWorkFactory: new SingleUnitOfWorkFactory(new NotSupportedWriteModelUnitOfWork()));
     }
 
     private sealed class FakeMeasurementQueries : IMeasurementInfoQueries
@@ -353,16 +353,16 @@ public sealed class MeasurementPhotoServiceTests
 
     private sealed class NotSupportedMeasurementPhotoRepository : IMeasurementPhotoRepository
     {
-        public Task<MeasurementPhoto?> GetByIdAsync(Guid id, CancellationToken cancellationToken) =>
+        public Task<MeasurementPhoto?> GetByIdAsync(IWriteModelUnitOfWork unitOfWork, Guid id, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
 
-        public Task AddAsync(MeasurementPhoto aggregate, CancellationToken cancellationToken) =>
+        public Task AddAsync(IWriteModelUnitOfWork unitOfWork, MeasurementPhoto aggregate, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
 
-        public Task RemoveAsync(Guid id, CancellationToken cancellationToken) =>
+        public Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, Guid id, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
 
-        public Task RemoveAsync(IReadOnlySet<Guid> id, CancellationToken cancellationToken) =>
+        public Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, IReadOnlySet<Guid> id, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
     }
 
@@ -377,6 +377,8 @@ public sealed class MeasurementPhotoServiceTests
 
     private sealed class NotSupportedWriteModelUnitOfWork : IWriteModelUnitOfWork
     {
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
         public Task<int> SaveChangesAsync(CancellationToken cancellationToken) =>
             throw new NotSupportedException();
 
@@ -413,23 +415,25 @@ public sealed class MeasurementPhotoServiceTests
     {
         public MeasurementPhoto? Added { get; private set; }
 
-        public Task<MeasurementPhoto?> GetByIdAsync(Guid id, CancellationToken cancellationToken) =>
+        public Task<MeasurementPhoto?> GetByIdAsync(IWriteModelUnitOfWork unitOfWork, Guid id, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
 
-        public Task AddAsync(MeasurementPhoto aggregate, CancellationToken cancellationToken)
+        public Task AddAsync(IWriteModelUnitOfWork unitOfWork, MeasurementPhoto aggregate, CancellationToken cancellationToken)
         {
             Added = aggregate;
             return Task.CompletedTask;
         }
 
-        public Task RemoveAsync(Guid id, CancellationToken cancellationToken) => Task.CompletedTask;
+        public Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, Guid id, CancellationToken cancellationToken) => Task.CompletedTask;
 
-        public Task RemoveAsync(IReadOnlySet<Guid> id, CancellationToken cancellationToken) =>
+        public Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, IReadOnlySet<Guid> id, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
     }
 
     private sealed class NoOpWriteModelUnitOfWork : IWriteModelUnitOfWork
     {
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
         public Task<int> SaveChangesAsync(CancellationToken cancellationToken) => Task.FromResult(0);
 
         public Task<IUnitOfWorkTransaction> BeginTransactionAsync(

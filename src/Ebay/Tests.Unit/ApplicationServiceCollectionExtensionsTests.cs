@@ -19,4 +19,19 @@ public sealed class ApplicationServiceCollectionExtensionsTests
 
         Assert.That(descriptor.Lifetime, Is.EqualTo(ServiceLifetime.Singleton));
     }
+
+    [Test]
+    public void AddApplication_RegistersEveryServiceAsSingleton()
+    {
+        var services = new ServiceCollection();
+
+        services.AddApplication();
+
+        var nonSingletons = services
+            .Where(static x => x.Lifetime != ServiceLifetime.Singleton)
+            .Select(static x => x.ServiceType.FullName)
+            .ToArray();
+
+        Assert.That(nonSingletons, Is.Empty);
+    }
 }

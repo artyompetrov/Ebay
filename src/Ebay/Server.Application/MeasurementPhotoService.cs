@@ -25,7 +25,7 @@ public sealed class MeasurementPhotoService
     private readonly IMeasurementPhotoRepository _measurementPhotoRepository;
     private readonly IMeasurementInfoQueries _measurementQueries;
     private readonly IPhotoThumbnailGenerator _photoThumbnailGenerator;
-    private readonly IWriteModelUnitOfWork _writeModelUnitOfWork;
+    private readonly IWriteModelUnitOfWorkFactory _unitOfWorkFactory;
 
     /// <summary>
     /// Создает сервис сценариев работы с фотографиями замера.
@@ -35,21 +35,21 @@ public sealed class MeasurementPhotoService
     /// <param name="measurementPhotoRepository">Репозиторий агрегата фотографии замера.</param>
     /// <param name="measurementQueries">Запросы чтения карточки замера.</param>
     /// <param name="photoThumbnailGenerator">Генератор миниатюр фотографий.</param>
-    /// <param name="writeModelUnitOfWork">Unit of Work для сохранения write-model.</param>
+    /// <param name="unitOfWorkFactory">Фабрика Unit of Work для операций записи write-model.</param>
     public MeasurementPhotoService(
         IMeasurementContentCacheAdapter cache,
         IMeasurementPhotoQueries measurementPhotoQueries,
         IMeasurementPhotoRepository measurementPhotoRepository,
         IMeasurementInfoQueries measurementQueries,
         IPhotoThumbnailGenerator photoThumbnailGenerator,
-        IWriteModelUnitOfWork writeModelUnitOfWork)
+        IWriteModelUnitOfWorkFactory unitOfWorkFactory)
     {
         _cache = cache;
         _measurementPhotoQueries = measurementPhotoQueries;
         _measurementPhotoRepository = measurementPhotoRepository;
         _measurementQueries = measurementQueries;
         _photoThumbnailGenerator = photoThumbnailGenerator;
-        _writeModelUnitOfWork = writeModelUnitOfWork;
+        _unitOfWorkFactory = unitOfWorkFactory;
     }
 
     /// <summary>
@@ -70,6 +70,8 @@ public sealed class MeasurementPhotoService
         int? order,
         CancellationToken cancellationToken)
     {
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
         var measurement = await _measurementQueries.GetMeasurementInfo(measurementId, cancellationToken);
         if (measurement == null)
         {
@@ -81,6 +83,7 @@ public sealed class MeasurementPhotoService
         var boundedContent = await _photoThumbnailGenerator.CreateBoundedOriginalAsync(content, cancellationToken);
 
         await _measurementPhotoRepository.AddAsync(
+            unitOfWork,
             MeasurementPhoto.Create(
                 id: Guid.NewGuid(),
                 measurementId: measurementId,
@@ -91,7 +94,7 @@ public sealed class MeasurementPhotoService
                 thumbnailContent: thumbnailContent),
             cancellationToken);
 
-        await _writeModelUnitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return true;
     }
@@ -184,6 +187,8 @@ public sealed class MeasurementPhotoService
         Guid photoId,
         CancellationToken cancellationToken)
     {
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
         var photo = await _measurementPhotoQueries.Get(measurementId, photoId, cancellationToken);
         if (photo == null)
         {
@@ -198,12 +203,12 @@ public sealed class MeasurementPhotoService
 
         foreach (var id in idsToShift)
         {
-            var aggregate = await _measurementPhotoRepository.GetByIdAsync(id, cancellationToken);
+            var aggregate = await _measurementPhotoRepository.GetByIdAsync(unitOfWork, id, cancellationToken);
             aggregate?.ShiftOrderDown();
         }
 
-        await _measurementPhotoRepository.RemoveAsync(photoId, cancellationToken);
-        await _writeModelUnitOfWork.SaveChangesAsync(cancellationToken);
+        await _measurementPhotoRepository.RemoveAsync(unitOfWork, photoId, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         _cache.Remove(ContentCacheKey(measurementId, photoId));
         _cache.Remove(ThumbnailCacheKey(measurementId, photoId));

@@ -15,7 +15,7 @@ public class CurrencyRateService
     private readonly ICurrencyQueries _currencyQueries;
     private readonly ICurrencyRepository _currencyRepository;
     private readonly ICurrencyRateSource _currencyRateSource;
-    private readonly IWriteModelUnitOfWork _unitOfWork;
+    private readonly IWriteModelUnitOfWorkFactory _unitOfWorkFactory;
     private readonly ICurrentTimeProvider _currentTimeProvider;
 
     /// <summary>
@@ -26,14 +26,14 @@ public class CurrencyRateService
         ICurrencyQueries currencyQueries,
         ICurrencyRepository currencyRepository,
         ICurrencyRateSource currencyRateSource,
-        IWriteModelUnitOfWork unitOfWork,
+        IWriteModelUnitOfWorkFactory unitOfWorkFactory,
         ICurrentTimeProvider currentTimeProvider)
     {
         _logger = logger;
         _currencyQueries = currencyQueries;
         _currencyRepository = currencyRepository;
         _currencyRateSource = currencyRateSource;
-        _unitOfWork = unitOfWork;
+        _unitOfWorkFactory = unitOfWorkFactory;
         _currentTimeProvider = currentTimeProvider;
     }
 
@@ -43,6 +43,8 @@ public class CurrencyRateService
     /// <param name="cancellationToken">Токен отмены операции.</param>
     public async Task RefreshRatesAsync(CancellationToken cancellationToken)
     {
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
         _logger.LogInformation("Refreshing currency rates");
 
         var currencies = await _currencyQueries.GetAllCurrenciesAsync(cancellationToken);
@@ -59,11 +61,11 @@ public class CurrencyRateService
         {
             var currency = currencyByApiName[apiCurrencyName];
 
-            var dbCurrency = await _currencyRepository.GetByIdAsync(currency.CurrencyEbayName, cancellationToken) ??
+            var dbCurrency = await _currencyRepository.GetByIdAsync(unitOfWork, currency.CurrencyEbayName, cancellationToken) ??
                               throw new InvalidOperationException($"Currency {currency.CurrencyEbayName} not found");
             dbCurrency.UpdateRate(value, currentTime);
         }
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

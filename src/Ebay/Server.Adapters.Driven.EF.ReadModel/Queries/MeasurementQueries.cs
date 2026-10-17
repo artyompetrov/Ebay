@@ -7,15 +7,18 @@ namespace Server.Adapters.Driven.EF.ReadModel.Queries;
 
 internal sealed class MeasurementQueries : IMeasurementQueries
 {
-    private readonly ReadDbContext _dbContext;
-    public MeasurementQueries(ReadDbContext dbContext)
+    private readonly IDbContextFactory<ReadDbContext> _dbContextFactory;
+
+    public MeasurementQueries(IDbContextFactory<ReadDbContext> dbContextFactory)
     {
-        _dbContext = dbContext;
+        _dbContextFactory = dbContextFactory;
     }
 
     public async Task<MeasurementInfo?> GetMeasurementInfo(string measurementId, CancellationToken cancellationToken)
     {
-        return await _dbContext.ProductMeasurements
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        return await dbContext.ProductMeasurements
             .Where(x => x.Id == measurementId)
             .Select(x => new MeasurementInfo(
                 x.Id,
@@ -36,7 +39,9 @@ internal sealed class MeasurementQueries : IMeasurementQueries
         IReadOnlyList<string> ids,
         CancellationToken cancellationToken)
     {
-        var measurements = await _dbContext.ProductMeasurements
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        var measurements = await dbContext.ProductMeasurements
             .AsNoTracking()
             .Where(pm => ids.Contains(pm.Id))
             .Select(pm => new MeasurementInfoWithData(
@@ -60,7 +65,9 @@ internal sealed class MeasurementQueries : IMeasurementQueries
 
     public async Task<double?> GetDoubleTriodeSectionRmse(string measurementId, CancellationToken cancellationToken)
     {
-        return await _dbContext.MatchedPairDifferences
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        return await dbContext.MatchedPairDifferences
             .AsNoTracking()
             .Where(x => x.Measurement1Id == measurementId
                         && x.Measurement2Id == measurementId
@@ -71,9 +78,11 @@ internal sealed class MeasurementQueries : IMeasurementQueries
 
     public async Task<IReadOnlyList<string>> GetMeasurementPairMeasurements(string id, CancellationToken cancellationToken)
     {
-        return await _dbContext.ProductMeasurements
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        return await dbContext.ProductMeasurements
              .Where(x => x.MatchId != null) // чтоб не тянуть весь null
-             .Where(x => x.MatchId == _dbContext.ProductMeasurements
+             .Where(x => x.MatchId == dbContext.ProductMeasurements
                  .Where(m => m.Id == id)
                  .Select(m => m.MatchId)
                  .FirstOrDefault())
@@ -87,7 +96,9 @@ internal sealed class MeasurementQueries : IMeasurementQueries
         IReadOnlySet<string> matchIds,
         CancellationToken cancellationToken)
     {
-        return await _dbContext.ProductMeasurements
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        return await dbContext.ProductMeasurements
             .AsNoTracking()
             .Where(x => x.MatchId != null && matchIds.Contains(x.MatchId))
             .Select(x => x.Id)
@@ -97,7 +108,9 @@ internal sealed class MeasurementQueries : IMeasurementQueries
 
     public async Task<IReadOnlySet<string?>> GetLotIds(Guid productId, CancellationToken cancellationToken)
     {
-        return await _dbContext.ProductMeasurements.Where(x => x.ProductId == productId)
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        return await dbContext.ProductMeasurements.Where(x => x.ProductId == productId)
             .Select(x => x.LotId)
             .Distinct()
             .OrderByDescending(x => x)
@@ -109,7 +122,9 @@ internal sealed class MeasurementQueries : IMeasurementQueries
         IReadOnlyCollection<MeasurementState> measurementStates,
         CancellationToken cancellationToken)
     {
-        var measurementsQuery = await _dbContext.ProductMeasurements
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        var measurementsQuery = await dbContext.ProductMeasurements
             .AsNoTracking()
             .Where(m => m.ProductId == productId)
             .Where(m => measurementStates.Contains(m.MeasurementState))
@@ -172,13 +187,15 @@ internal sealed class MeasurementQueries : IMeasurementQueries
             IReadOnlyCollection<MeasurementState> measurementStates,
             CancellationToken cancellationToken)
     {
-        var measurementsQuery = from measurement in _dbContext.ProductMeasurements
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        var measurementsQuery = from measurement in dbContext.ProductMeasurements
                                 where measurement.ProductId == productId
                                 where !withLotIdFilter || measurement.LotId == lotId
                                 where productStates.Contains(measurement.ProductState)
                                 where measurementStates.Contains(measurement.MeasurementState)
                                 join difference in
-                                    _dbContext.MatchedPairDifferences.AsNoTracking() // этот джойн нужен для двойных триодов
+                                    dbContext.MatchedPairDifferences.AsNoTracking() // этот джойн нужен для двойных триодов
                                     on new
                                     {
                                         MeasurementId1 = measurement.Id,
@@ -225,6 +242,7 @@ internal sealed class MeasurementQueries : IMeasurementQueries
             .ToArray();
 
         var similarMeasurementsLookup = await GetSimilarMeasurements(
+            dbContext: dbContext,
             cancellationToken: cancellationToken,
             measurementIds: measurementIds);
 
@@ -251,10 +269,10 @@ internal sealed class MeasurementQueries : IMeasurementQueries
         return result;
     }
 
-    private async Task<Dictionary<string, IReadOnlyCollection<SimilarMeasurementInfo>>> GetSimilarMeasurements(
-        string[] measurementIds, CancellationToken cancellationToken)
+    private static async Task<Dictionary<string, IReadOnlyCollection<SimilarMeasurementInfo>>> GetSimilarMeasurements(
+        ReadDbContext dbContext, string[] measurementIds, CancellationToken cancellationToken)
     {
-        var similarMeasurements = await _dbContext.MatchedPairDifferences
+        var similarMeasurements = await dbContext.MatchedPairDifferences
             .AsNoTracking()
             .Where(x => measurementIds.Contains(x.Measurement1Id))
             .Where(x => x.Measurement1Id != x.Measurement2Id)
@@ -272,11 +290,11 @@ internal sealed class MeasurementQueries : IMeasurementQueries
                 ManufactureCode2 = x.Measurement2.ManufactureCode,
                 IsMatchedPair = x.Measurement2.MatchId != null && x.Measurement1.MatchId == x.Measurement2.MatchId,
                 x.Measurement2.MatchId,
-                DoubleTriodeSectionRmseTube1 = _dbContext.MatchedPairDifferences
+                DoubleTriodeSectionRmseTube1 = dbContext.MatchedPairDifferences
                     .Where(m => m.Measurement1Id == x.Measurement1Id && m.Measurement2Id == x.Measurement1Id && m.ComparisonMode == ComparisonMode.Cross)
                     .Select(m => m.RmseSection1)     // любой скалярный столбец
                     .FirstOrDefault(),
-                DoubleTriodeSectionRmseTube2 = _dbContext.MatchedPairDifferences
+                DoubleTriodeSectionRmseTube2 = dbContext.MatchedPairDifferences
                     .Where(m => m.Measurement1Id == x.Measurement2Id && m.Measurement2Id == x.Measurement2Id && m.ComparisonMode == ComparisonMode.Cross)
                     .Select(m => m.RmseSection1)     // любой скалярный столбец
                     .FirstOrDefault()
@@ -327,7 +345,9 @@ internal sealed class MeasurementQueries : IMeasurementQueries
 
     public async Task<IReadOnlyList<string>> GetAllMeasurementIds(CancellationToken cancellationToken)
     {
-        return await _dbContext.ProductMeasurements
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        return await dbContext.ProductMeasurements
             .AsNoTracking()
             .Select(x => x.Id)
             .ToListAsync(cancellationToken);
@@ -337,7 +357,9 @@ internal sealed class MeasurementQueries : IMeasurementQueries
         string measurementId,
         CancellationToken cancellationToken)
     {
-        var measurementInfo = await _dbContext.ProductMeasurements
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        var measurementInfo = await dbContext.ProductMeasurements
             .AsNoTracking()
             .Where(x => x.Id == measurementId)
             .Select(x => new MeasurementInfoWithData(

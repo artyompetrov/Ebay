@@ -7,6 +7,7 @@ using Server.Application.PriceCalculator;
 using Server.Domain;
 using Server.Domain.Measurements;
 using Server.Domain.Product;
+using Tests.Unit.Fakes;
 
 namespace Tests.Unit;
 
@@ -27,7 +28,7 @@ public sealed class ProductMetricsCalculatorTests
         var calculator = new ProductMetricsCalculator(
             productQueries: new StaticProductQueries(lotCalculationResults, unpublishedCreated: 2, unpublishedSelling: 3),
             productRepository: new SingleProductRepository(product),
-            unitOfWork: unitOfWork,
+            unitOfWorkFactory: new SingleUnitOfWorkFactory(unitOfWork),
             logger: NullLogger<ProductMetricsCalculator>.Instance);
 
         await calculator.CalculateAsync(product.Id, CancellationToken.None);
@@ -46,7 +47,7 @@ public sealed class ProductMetricsCalculatorTests
         var calculator = new ProductMetricsCalculator(
             productQueries: new StaticProductQueries([], unpublishedCreated: 0, unpublishedSelling: 0),
             productRepository: new SingleProductRepository(null),
-            unitOfWork: unitOfWork,
+            unitOfWorkFactory: new SingleUnitOfWorkFactory(unitOfWork),
             logger: NullLogger<ProductMetricsCalculator>.Instance);
 
         await calculator.CalculateAsync(Guid.NewGuid(), CancellationToken.None);
@@ -63,14 +64,14 @@ public sealed class ProductMetricsCalculatorTests
             _product = product;
         }
 
-        public Task<Product?> GetByIdAsync(Guid id, CancellationToken cancellationToken) =>
+        public Task<Product?> GetByIdAsync(IWriteModelUnitOfWork unitOfWork, Guid id, CancellationToken cancellationToken) =>
             Task.FromResult(_product != null && _product.Id == id ? _product : null);
 
-        public Task AddAsync(Product aggregate, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task AddAsync(IWriteModelUnitOfWork unitOfWork, Product aggregate, CancellationToken cancellationToken) => throw new NotSupportedException();
 
-        public Task RemoveAsync(Guid id, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, Guid id, CancellationToken cancellationToken) => throw new NotSupportedException();
 
-        public Task RemoveAsync(IReadOnlySet<Guid> id, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, IReadOnlySet<Guid> id, CancellationToken cancellationToken) => throw new NotSupportedException();
     }
 
     private sealed class StaticProductQueries : IProductQueries
@@ -107,6 +108,8 @@ public sealed class ProductMetricsCalculatorTests
 
     private sealed class RecordingUnitOfWork : IWriteModelUnitOfWork
     {
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
         public int SaveChangesCallCount { get; private set; }
 
         public Task<int> SaveChangesAsync(CancellationToken cancellationToken)

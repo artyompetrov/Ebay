@@ -9,6 +9,7 @@ using Server.Application.Abstractions.Driven.Models;
 using Server.Application.Currencies;
 using Server.Application.LotForSale;
 using Server.Domain;
+using Tests.Unit.Fakes;
 
 namespace Tests.Unit;
 
@@ -31,7 +32,7 @@ public sealed class CurrencyRateServiceTests
             new StaticCurrencyQueries([ToInfo(euro), ToInfo(pound)]),
             new InMemoryCurrencyRepository(euro, pound),
             rateSource,
-            unitOfWork,
+            new SingleUnitOfWorkFactory(unitOfWork),
             new FixedTimeProvider(Now));
 
         await service.RefreshRatesAsync(CancellationToken.None);
@@ -107,18 +108,20 @@ public sealed class CurrencyRateServiceTests
             _currencies = currencies.ToDictionary(static x => x.Id);
         }
 
-        public Task<Currency?> GetByIdAsync(string id, CancellationToken cancellationToken) =>
+        public Task<Currency?> GetByIdAsync(IWriteModelUnitOfWork unitOfWork, string id, CancellationToken cancellationToken) =>
             Task.FromResult(_currencies.GetValueOrDefault(id));
 
-        public Task AddAsync(Currency aggregate, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task AddAsync(IWriteModelUnitOfWork unitOfWork, Currency aggregate, CancellationToken cancellationToken) => throw new NotSupportedException();
 
-        public Task RemoveAsync(string id, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, string id, CancellationToken cancellationToken) => throw new NotSupportedException();
 
-        public Task RemoveAsync(IReadOnlySet<string> id, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, IReadOnlySet<string> id, CancellationToken cancellationToken) => throw new NotSupportedException();
     }
 
     private sealed class RecordingUnitOfWork : IWriteModelUnitOfWork
     {
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
         public int SaveChangesCallCount { get; private set; }
 
         public Task<int> SaveChangesAsync(CancellationToken cancellationToken)

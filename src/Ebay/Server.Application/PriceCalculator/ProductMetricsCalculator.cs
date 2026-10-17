@@ -19,7 +19,7 @@ public sealed class ProductMetricsCalculator : IProductMetricsCalculator
 
     private readonly IProductQueries _productQueries;
     private readonly IProductRepository _productRepository;
-    private readonly IWriteModelUnitOfWork _unitOfWork;
+    private readonly IWriteModelUnitOfWorkFactory _unitOfWorkFactory;
     private readonly ILogger<ProductMetricsCalculator> _logger;
 
     /// <summary>
@@ -28,18 +28,20 @@ public sealed class ProductMetricsCalculator : IProductMetricsCalculator
     public ProductMetricsCalculator(
         IProductQueries productQueries,
         IProductRepository productRepository,
-        IWriteModelUnitOfWork unitOfWork,
+        IWriteModelUnitOfWorkFactory unitOfWorkFactory,
         ILogger<ProductMetricsCalculator> logger)
     {
         _productQueries = productQueries;
         _productRepository = productRepository;
-        _unitOfWork = unitOfWork;
+        _unitOfWorkFactory = unitOfWorkFactory;
         _logger = logger;
     }
 
     /// <inheritdoc />
     public async Task CalculateAsync(Guid productId, CancellationToken cancellationToken)
     {
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
         var lotCalculationResults = await _productQueries.GetLotCalculationResultsAsync(productId, cancellationToken);
 
         var publishedThreshold = DateTimeOffset.UtcNow.AddDays(-UnpublishedThresholdDays);
@@ -54,7 +56,7 @@ public sealed class ProductMetricsCalculator : IProductMetricsCalculator
             publishedThreshold,
             cancellationToken);
 
-        var product = await _productRepository.GetByIdAsync(productId, cancellationToken);
+        var product = await _productRepository.GetByIdAsync(unitOfWork, productId, cancellationToken);
         if (product == null)
         {
             _logger.LogWarning("Product with id {ProductId} not found", productId);
@@ -63,6 +65,6 @@ public sealed class ProductMetricsCalculator : IProductMetricsCalculator
 
         product.RecalculateMetrics(lotCalculationResults, unpublishedOnEbayCountCreated, unpublishedOnEbayCountSelling);
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

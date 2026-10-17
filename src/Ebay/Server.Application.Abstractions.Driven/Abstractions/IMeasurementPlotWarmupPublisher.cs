@@ -9,5 +9,5 @@ public interface IMeasurementPlotWarmupPublisher
     /// <summary>
     /// Публикует команду прогрева кеша eBay-графиков и описания лампы для замера.
     /// </summary>
-    Task PublishAsync(string measurementId, CancellationToken cancellationToken);
+    Task PublishAsync(IWriteModelUnitOfWork unitOfWork, string measurementId, CancellationToken cancellationToken);
 }

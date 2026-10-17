@@ -14,7 +14,7 @@ public sealed class LotForSaleService
 {
     private readonly ILotForSaleQueries _lotForSaleQueries;
     private readonly ILotForSaleRepository _lotForSaleRepository;
-    private readonly IWriteModelUnitOfWork _writeModelUnitOfWork;
+    private readonly IWriteModelUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IMeasurementQueries _measurementQueries;
     private readonly ILotForSaleIdGenerator _lotForSaleIdGenerator;
 
@@ -23,19 +23,19 @@ public sealed class LotForSaleService
     /// </summary>
     /// <param name="lotForSaleQueries">Запросы для чтения лотов для продажи.</param>
     /// <param name="lotForSaleRepository">Репозиторий агрегата лота для продажи.</param>
-    /// <param name="writeModelUnitOfWork">Unit of Work для сохранения изменений write-model.</param>
+    /// <param name="unitOfWorkFactory">Фабрика Unit of Work для операций записи write-model.</param>
     /// <param name="measurementQueries">Запросы для чтения замеров.</param>
     /// <param name="lotForSaleIdGenerator">Генератор идентификаторов лота для продажи.</param>
     public LotForSaleService(
         ILotForSaleQueries lotForSaleQueries,
         ILotForSaleRepository lotForSaleRepository,
-        IWriteModelUnitOfWork writeModelUnitOfWork,
+        IWriteModelUnitOfWorkFactory unitOfWorkFactory,
         IMeasurementQueries measurementQueries,
         ILotForSaleIdGenerator lotForSaleIdGenerator)
     {
         _lotForSaleQueries = lotForSaleQueries;
         _lotForSaleRepository = lotForSaleRepository;
-        _writeModelUnitOfWork = writeModelUnitOfWork;
+        _unitOfWorkFactory = unitOfWorkFactory;
         _measurementQueries = measurementQueries;
         _lotForSaleIdGenerator = lotForSaleIdGenerator;
     }
@@ -71,6 +71,8 @@ public sealed class LotForSaleService
     /// <param name="cancellationToken">Токен отмены операции.</param>
     public async Task CreateLotForSaleAsync(string name, Guid productId, ProductState productState, MeasurementState measurementState, CancellationToken cancellationToken)
     {
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
         if (measurementState == MeasurementState.Sold)
         {
             throw new ArgumentException("Sold measurement state is not allowed for lot-for-sale creation.", nameof(measurementState));
@@ -78,8 +80,8 @@ public sealed class LotForSaleService
 
         var lotId = _lotForSaleIdGenerator.GenerateNextId();
         var aggregate = Domain.LotForSale.LotForSale.Create(lotId, name, productId, productState, measurementState);
-        await _lotForSaleRepository.AddAsync(aggregate, cancellationToken);
-        await _writeModelUnitOfWork.SaveChangesAsync(cancellationToken);
+        await _lotForSaleRepository.AddAsync(unitOfWork, aggregate, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     /// <summary>
@@ -89,7 +91,9 @@ public sealed class LotForSaleService
     /// <param name="cancellationToken">Токен отмены операции.</param>
     public async Task DeleteLotForSaleAsync(string lotId, CancellationToken cancellationToken)
     {
-        var lotForSale = await _lotForSaleRepository.GetByIdAsync(lotId, cancellationToken)
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
+        var lotForSale = await _lotForSaleRepository.GetByIdAsync(unitOfWork, lotId, cancellationToken)
             ?? throw new InvalidOperationException("Lot for sale not found.");
 
         // todo тут надо наверное переделать на генерацию события и потом удаление 
@@ -106,7 +110,7 @@ public sealed class LotForSaleService
             },
             cancellationToken);
 
-        await _lotForSaleRepository.RemoveAsync(lotForSale.Id, cancellationToken);
-        await _writeModelUnitOfWork.SaveChangesAsync(cancellationToken);
+        await _lotForSaleRepository.RemoveAsync(unitOfWork, lotForSale.Id, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }
