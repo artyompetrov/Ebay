@@ -21,11 +21,11 @@ schema: spec-driven
 
 rules:
   tasks:
-    - Before archiving, turn any task you are deliberately skipping or blocking into
+    - 'Before archiving, turn any task you are deliberately skipping or blocking into
       a plain bullet without a checkbox, `- Skipped X.Y: <task> (<short explanation>)`,
       instead of leaving it as `[ ]`. CI runs `openspec validate --archived`, which
       treats every checkbox other than `[x]` (including `[~]`) in an archived change
-      as an incomplete task and fails the build.
+      as an incomplete task and fails the build.'
   specs:
     - Write requirements and scenarios so they are testable - concrete, observable
       inputs/outputs and behavior, not vague or subjective statements — each
