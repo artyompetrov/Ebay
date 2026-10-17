@@ -8,18 +8,24 @@ namespace Server.Adapters.Driven.GeoIp;
 
 internal sealed class GeoIpService : IGeoIpService, IDisposable
 {
+    /// <summary>
+    /// Named <see cref="HttpClient"/> of this adapter. A client is created per lookup instead of being captured,
+    /// so the singleton picks up handler rotation from <see cref="IHttpClientFactory"/>.
+    /// </summary>
+    internal const string HttpClientName = "GeoIp";
+
     private const string IpApiStatusSuccess = "success";
-    private readonly HttpClient _httpClient;
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<GeoIpService> _logger;
     private readonly IMemoryCache _cache;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
 
     public GeoIpService(
-        HttpClient httpClient,
+        IHttpClientFactory httpClientFactory,
         ILogger<GeoIpService> logger,
         [FromKeyedServices(WellKnown.CacheServiceKey)] IMemoryCache cache)
     {
-        _httpClient = httpClient;
+        _httpClientFactory = httpClientFactory;
         _logger = logger;
         _cache = cache;
     }
@@ -45,7 +51,7 @@ internal sealed class GeoIpService : IGeoIpService, IDisposable
     {
         try
         {
-            var response = await _httpClient.GetFromJsonAsync<IpApiResponse>(
+            var response = await _httpClientFactory.CreateClient(HttpClientName).GetFromJsonAsync<IpApiResponse>(
                 $"http://ip-api.com/json/{ip}?fields=status,message,country,city",
                 cancellationToken);
 
@@ -69,7 +75,7 @@ internal sealed class GeoIpService : IGeoIpService, IDisposable
     {
         try
         {
-            var response = await _httpClient.GetFromJsonAsync<IpInfoResponse>(
+            var response = await _httpClientFactory.CreateClient(HttpClientName).GetFromJsonAsync<IpInfoResponse>(
                 $"https://ipinfo.io/{ip}/json",
                 cancellationToken);
 
@@ -150,7 +156,6 @@ internal sealed class GeoIpService : IGeoIpService, IDisposable
 
     public void Dispose()
     {
-        _httpClient.Dispose();
         _semaphore.Dispose();
         GC.SuppressFinalize(this);
     }

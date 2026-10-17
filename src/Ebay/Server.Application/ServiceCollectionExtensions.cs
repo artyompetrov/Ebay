@@ -24,31 +24,31 @@ public static class ServiceCollectionExtensions
     /// <param name="services">Коллекция сервисов приложения.</param>
     public static void AddApplication(this IServiceCollection services)
     {
-        services.AddTransient<IMeasurementService, MeasurementService>();
-        services.AddTransient<IMatchedPairsCalculator, MatchedPairsCalculator>();
-        services.AddTransient<ICurrentTimeProvider, SystemCurrentTimeProvider>();
-        services.AddTransient<IRandomNumberProvider, CryptoRandomNumberProvider>();
+        services.AddSingleton<IMeasurementService, MeasurementService>();
+        services.AddSingleton<IMatchedPairsCalculator, MatchedPairsCalculator>();
+        services.AddSingleton<ICurrentTimeProvider, SystemCurrentTimeProvider>();
+        services.AddSingleton<IRandomNumberProvider, CryptoRandomNumberProvider>();
         // Singleton нужен для process-wide монотонной последовательности ID и предотвращения коллизий при параллельном создании лотов.
         services.AddSingleton<ILotForSaleIdGenerator, LotForSaleIdGenerator>();
-        services.AddTransient<ProductDescriptionSanitizer>();
-        services.AddTransient<ProductService>();
-        services.AddTransient<LotService>();
-        services.AddTransient<ProductPassportService>();
-        services.AddTransient<IgnoredLotService>();
-        services.AddTransient<ClientErrorService>();
-        services.AddTransient<MatchedMeasurementService>();
-        services.AddTransient<MeasurementPlotService>();
-        services.AddTransient<TubeWorkingPointService>();
-        services.AddTransient<LotForSaleService>();
-        services.AddTransient<MeasurementPhotoService>();
-        services.AddTransient<IMeasurementStateChangedHandler, MeasurementStateChangedHandler>();
-        services.AddTransient<IMeasurementMatchIdChangedHandler, MeasurementMatchIdChangedHandler>();
-        services.AddTransient<ILotPriceCalculator, LotPriceCalculator>();
-        services.AddTransient<IProductMetricsCalculator, ProductMetricsCalculator>();
-        services.AddTransient<ChipfindMonitoringService>();
-        services.AddTransient<SaleAdvertisementCleanupService>();
-        services.AddTransient<CurrencyRateService>();
-        services.AddTransient<DbCacheCleanupService>();
-        services.AddTransient<MeasurementPlotWarmupService>();
+        services.AddSingleton<ProductDescriptionSanitizer>();
+        services.AddSingleton<ProductService>();
+        services.AddSingleton<LotService>();
+        services.AddSingleton<ProductPassportService>();
+        services.AddSingleton<IgnoredLotService>();
+        services.AddSingleton<ClientErrorService>();
+        services.AddSingleton<MatchedMeasurementService>();
+        services.AddSingleton<MeasurementPlotService>();
+        services.AddSingleton<TubeWorkingPointService>();
+        services.AddSingleton<LotForSaleService>();
+        services.AddSingleton<MeasurementPhotoService>();
+        services.AddSingleton<IMeasurementStateChangedHandler, MeasurementStateChangedHandler>();
+        services.AddSingleton<IMeasurementMatchIdChangedHandler, MeasurementMatchIdChangedHandler>();
+        services.AddSingleton<ILotPriceCalculator, LotPriceCalculator>();
+        services.AddSingleton<IProductMetricsCalculator, ProductMetricsCalculator>();
+        services.AddSingleton<ChipfindMonitoringService>();
+        services.AddSingleton<SaleAdvertisementCleanupService>();
+        services.AddSingleton<CurrencyRateService>();
+        services.AddSingleton<DbCacheCleanupService>();
+        services.AddSingleton<MeasurementPlotWarmupService>();
     }
 }

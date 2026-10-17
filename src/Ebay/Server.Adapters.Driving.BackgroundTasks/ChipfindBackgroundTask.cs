@@ -1,4 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Server.Application.SaleAdvertisements;
@@ -8,16 +7,16 @@ namespace Server.Adapters.Driving.BackgroundTasks;
 internal sealed class ChipfindBackgroundTask : BackgroundTask
 {
     private readonly BackgroundTasksOptions _options;
-    private readonly IServiceScopeFactory _serviceScopeFactory;
+    private readonly ChipfindMonitoringService _monitoringService;
 
     public ChipfindBackgroundTask(
         ILogger<ChipfindBackgroundTask> logger,
         IOptions<BackgroundTasksOptions> options,
-        IServiceScopeFactory serviceScopeFactory)
+        ChipfindMonitoringService monitoringService)
         : base(logger)
     {
         _options = options.Value;
-        _serviceScopeFactory = serviceScopeFactory;
+        _monitoringService = monitoringService;
     }
 
     public override TimeSpan UpdateTime => WellKnown.ChipFind.UpdateTime;
@@ -30,9 +29,6 @@ internal sealed class ChipfindBackgroundTask : BackgroundTask
             return;
         }
 
-        using var scope = _serviceScopeFactory.CreateScope();
-        var monitoringService = scope.ServiceProvider.GetRequiredService<ChipfindMonitoringService>();
-
-        await monitoringService.ProcessRecentAdvertisementsAsync(_options.TargetEmail, cancellationToken);
+        await _monitoringService.ProcessRecentAdvertisementsAsync(_options.TargetEmail, cancellationToken);
     }
 }

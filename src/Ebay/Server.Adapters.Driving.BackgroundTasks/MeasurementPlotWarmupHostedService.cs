@@ -1,4 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -8,16 +7,16 @@ namespace Server.Adapters.Driving.BackgroundTasks;
 
 internal sealed class MeasurementPlotWarmupHostedService : IHostedService
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory;
+    private readonly MeasurementPlotWarmupService _warmupService;
     private readonly ILogger<MeasurementPlotWarmupHostedService> _logger;
     private readonly BackgroundTasksOptions _options;
 
     public MeasurementPlotWarmupHostedService(
-        IServiceScopeFactory serviceScopeFactory,
+        MeasurementPlotWarmupService warmupService,
         ILogger<MeasurementPlotWarmupHostedService> logger,
         IOptions<BackgroundTasksOptions> options)
     {
-        _serviceScopeFactory = serviceScopeFactory;
+        _warmupService = warmupService;
         _logger = logger;
         _options = options.Value;
     }
@@ -31,10 +30,7 @@ internal sealed class MeasurementPlotWarmupHostedService : IHostedService
 
         _logger.LogInformation("Started");
 
-        using var scope = _serviceScopeFactory.CreateScope();
-        var warmupService = scope.ServiceProvider.GetRequiredService<MeasurementPlotWarmupService>();
-
-        await warmupService.PublishWarmupForAllMeasurementsAsync(cancellationToken);
+        await _warmupService.PublishWarmupForAllMeasurementsAsync(cancellationToken);
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;

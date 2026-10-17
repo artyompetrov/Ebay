@@ -7,6 +7,6 @@ public static class ServiceCollectionExtensions
 {
     public static void AddOpenExchangeRatesAdapter(this IServiceCollection services)
     {
-        services.AddTransient<ICurrencyRateSource, OpenExchangeRatesCurrencyRateSource>();
+        services.AddSingleton<ICurrencyRateSource, OpenExchangeRatesCurrencyRateSource>();
     }
 }

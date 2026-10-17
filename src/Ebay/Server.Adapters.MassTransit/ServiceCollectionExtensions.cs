@@ -17,10 +17,10 @@ public static class ServiceCollectionExtensions
 {
     public static void AddMassTransitAdapter(this IServiceCollection services)
     {
-        services.AddTransient<IMeasurementWatchedOnEbayPublisher, MeasurementWatchedOnEbayPublisher>();
-        services.AddTransient<IMeasurementWatchedOnEbayHandler, MeasurementWatchedOnEbayHandler>();
-        services.AddTransient<IPriceRecalculationPublisher, PriceRecalculationPublisher>();
-        services.AddTransient<IMeasurementPlotWarmupPublisher, MeasurementPlotWarmupPublisher>();
+        services.AddSingleton<IMeasurementWatchedOnEbayPublisher, MeasurementWatchedOnEbayPublisher>();
+        services.AddSingleton<IMeasurementWatchedOnEbayHandler, MeasurementWatchedOnEbayHandler>();
+        services.AddSingleton<IPriceRecalculationPublisher, PriceRecalculationPublisher>();
+        services.AddSingleton<IMeasurementPlotWarmupPublisher, MeasurementPlotWarmupPublisher>();
 
         services.AddOptions<SqlTransportOptions>()
             .Configure<IConfiguration>((o, cfg) =>

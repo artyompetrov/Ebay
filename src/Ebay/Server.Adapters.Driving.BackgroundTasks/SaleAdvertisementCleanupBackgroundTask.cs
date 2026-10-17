@@ -1,4 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Server.Application.SaleAdvertisements;
 
@@ -6,14 +5,14 @@ namespace Server.Adapters.Driving.BackgroundTasks;
 
 internal sealed class SaleAdvertisementCleanupBackgroundTask : BackgroundTask
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory;
+    private readonly SaleAdvertisementCleanupService _cleanupService;
 
     public SaleAdvertisementCleanupBackgroundTask(
         ILogger<SaleAdvertisementCleanupBackgroundTask> logger,
-        IServiceScopeFactory serviceScopeFactory)
+        SaleAdvertisementCleanupService cleanupService)
         : base(logger)
     {
-        _serviceScopeFactory = serviceScopeFactory;
+        _cleanupService = cleanupService;
     }
 
     public override TimeSpan UpdateTime => WellKnown.SaleAdvertisements.UpdateTime;
@@ -21,9 +20,7 @@ internal sealed class SaleAdvertisementCleanupBackgroundTask : BackgroundTask
 
     protected override async Task BackgroundTaskImplementation(CancellationToken cancellationToken)
     {
-        using var scope = _serviceScopeFactory.CreateScope();
-        var cleanupService = scope.ServiceProvider.GetRequiredService<SaleAdvertisementCleanupService>();
 
-        await cleanupService.RemoveStaleAdvertisementsAsync(cancellationToken);
+        await _cleanupService.RemoveStaleAdvertisementsAsync(cancellationToken);
     }
 }

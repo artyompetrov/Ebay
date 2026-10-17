@@ -12,6 +12,6 @@ public static class ServiceCollectionExtensions
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        services.AddTransient<IEmailSender, EmailSender>();
+        services.AddSingleton<IEmailSender, EmailSender>();
     }
 }

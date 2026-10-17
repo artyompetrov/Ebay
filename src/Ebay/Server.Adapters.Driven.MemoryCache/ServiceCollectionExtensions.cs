@@ -24,6 +24,6 @@ public static class ServiceCollectionExtensions
             }));
         // Singleton нужен, чтобы токены инвалидации по measurementId были общими для всех запросов процесса, а не per-request.
         services.AddSingleton<MeasurementCacheInvalidationRegistry>();
-        services.AddTransient<IMeasurementContentCacheAdapter, MeasurementContentCacheAdapter>();
+        services.AddSingleton<IMeasurementContentCacheAdapter, MeasurementContentCacheAdapter>();
     }
 }

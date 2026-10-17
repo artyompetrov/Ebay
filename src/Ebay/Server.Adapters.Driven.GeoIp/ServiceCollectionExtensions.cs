@@ -13,9 +13,10 @@ public static class ServiceCollectionExtensions
         // Singleton: процессный кеш адаптера; свой keyed-экземпляр, чтобы лимиты и вытеснение
         // других кешей процесса не задевали его записи.
         services.AddKeyedSingleton<IMemoryCache, MemoryCache>(WellKnown.CacheServiceKey);
-        services.AddHttpClient<IGeoIpService, GeoIpService>(c =>
+        services.AddHttpClient(GeoIpService.HttpClientName, static c =>
         {
             c.Timeout = TimeSpan.FromSeconds(GeoIpRequestTimeoutSeconds);
         });
+        services.AddSingleton<IGeoIpService, GeoIpService>();
     }
 }

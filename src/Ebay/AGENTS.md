@@ -30,7 +30,7 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 - Adapter-private caches (e.g. GeoIp, ChipFind keyed `IMemoryCache`) are registered by their own adapter's `Add*Adapter()`.
 - `Server.Adapters.Driven.Plotting` — SVG rendering of measurement plots, status labels and tube-info cards (`ScottPlot`) behind `IPlottingAdapter`; `MeasurementPlotService` only orchestrates (loading, approximation, axis ranges, cache keys).
 - `Server.Adapters.Driven.MemoryCache` — process-wide in-memory cache for measurement-bound content (photo/thumbnail bytes, rendered eBay plots) behind `IMeasurementContentCacheAdapter`: size limit (`ImageCache` section), sliding expiration and per-measurement invalidation. The application decides keys and what is cacheable; `ICacheStore` (persistent Postgres cache) is a different port.
-- `Server.Adapters.Driving.BackgroundTasks` — driving adapter for periodic/startup background jobs (ChipFind monitoring, currency rates, sale advertisement cleanup, DB cache cleanup, measurement plot warmup). Each hosted service only creates a scope, applies the `EbayServer:IsLocalRun` switch where relevant, and calls one application use-case method; scheduling constants live here, business thresholds stay in `Server.Application`. Hosted services (`IHostedService`) live only in adapter assemblies.
+- `Server.Adapters.Driving.BackgroundTasks` — driving adapter for periodic/startup background jobs (ChipFind monitoring, currency rates, sale advertisement cleanup, DB cache cleanup, measurement plot warmup). Each hosted service injects its (singleton) application use-case service, applies the `EbayServer:IsLocalRun` switch where relevant, and calls one use-case method; scheduling constants live here, business thresholds stay in `Server.Application`. Hosted services (`IHostedService`) live only in adapter assemblies.
 - `Tests.Unit`, `Tests.Integration`, `Tests.Explicit` — test projects.
 - `Tests.Frontend` — bUnit component tests and Playwright Chromium checks of rendered photo previews. Install Chromium with the generated `playwright.ps1` after building.
 - `Tests.Shared` — shared test infrastructure referenced by the test projects above; `OpenSpecScenarioAttribute` and shared browser assertions (see the `write-tests` skill).
@@ -69,9 +69,11 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
   - identity: `ConnectionStrings__DefaultConnection="$CONN" dotnet ef migrations add NewMigrationName --project src/Ebay/Server.Adapters.Driven.EF.Identity.Migrations/Server.Adapters.Driven.EF.Identity.Migrations.csproj --startup-project src/Ebay/Server.Adapters.Driven.EF.Identity.Migrations/Server.Adapters.Driven.EF.Identity.Migrations.csproj --context Server.Adapters.Driven.EF.Identity.IdentityDbContext`
 
 ## Configuration and DI
-- Default services: `Transient`.
-- `Scoped` — only for a shared operation context (primarily EF `DbContext`).
-- `Singleton` — only with an explicit justification.
+- Every service is a stateless `Singleton` (`AddSingleton`). `Scoped`/`Transient` registrations and `AddDbContext`/`AddDbContextPool` are banned at compile time (RS0030, `src/BannedSymbols.txt`); per-operation state is passed as method arguments, never kept in fields.
+- EF contexts come from `IDbContextFactory<T>`; a write operation passes its `IWriteModelUnitOfWork` explicitly (see "Command/query split").
+- HTTP: inject `IHttpClientFactory` and create a named client per call; don't register typed clients (`AddHttpClient<TClient, TImpl>`) or capture an `HttpClient` in a singleton.
+- Scoped/transient services registered internally by libraries (ASP.NET Core, ASP.NET Identity/Duende, MassTransit consumers, the scoped context the EF factories add) are allowed; the full list of exceptions and reasons is at the top of `src/BannedSymbols.txt`.
+- The host validates the container in every environment (`ValidateScopes`/`ValidateOnBuild`, `Server.Platform` and `Frontend/Program.cs`), so a singleton that captures a scoped service fails at startup.
 - In `Program.cs`, don't read parameters directly via `GetSection`/`GetRequiredSection` during container registration.
 - Use `AddOptions<...>().BindConfiguration("...").ValidateDataAnnotations().ValidateOnStart()`.
 - `GetRequiredSection` and `ConfigurationBinder.Get`/`Get<T>` are banned via `BannedSymbols.txt` (BannedApiAnalyzers, RS0030 = error); do not suppress, bind options as above.
