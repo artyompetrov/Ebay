@@ -85,7 +85,6 @@ services:
     ports:
       - "80:80"
       - "443:443"
-      - "9443:9443"
       - "8443:8443"
       - "8080:8080"
     volumes:
@@ -105,6 +104,14 @@ services:
     restart: unless-stopped
     command: >
       --admin-password '${PORTAINER_HASH}'
+      --http-enabled
+      --bind-https=127.0.0.1:9443
+    # Has the Docker socket (root on the host), so it is not exposed publicly:
+    # reach it through an SSH tunnel, see AGENTS.md. The SSH tunnel provides encryption, so
+    # Portainer serves plain HTTP; its always-on self-signed HTTPS listener is bound to the
+    # container's loopback, where nothing can reach it.
+    ports:
+      - "127.0.0.1:9000:9000"
     volumes:
       - portainer_data:/data
       - /var/run/docker.sock:/var/run/docker.sock

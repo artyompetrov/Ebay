@@ -37,7 +37,7 @@ Project composition:
 - `src/Ebay` — backend + Blazor frontend (details: `src/Ebay/AGENTS.md`).
 - `src/ChromeExtension` — Chrome extension (details: `src/ChromeExtension/AGENTS.md`).
 - `src/Dockerfile` — builds the solution into a container. The final stage is the chiseled (distroless) `aspnet:*-noble-chiseled-extra` image: no shell or package manager, runs as the non-root `app` user (uid 1654). In `deploy/docker-compose.yaml` `ebay_helper` runs with a read-only root filesystem (only `/tmp` tmpfs and mounted volumes are writable); the one-shot `ebay_helper_init` service chowns the DataProtection keys volume to uid 1654. Don't add shell-based `entrypoint`/`command` overrides for it.
-- `deploy` — docker-compose for running the app.
+- `deploy` — docker-compose for running the app. Portainer (`ebay_portainer`) mounts the Docker socket, so it serves plain HTTP published only on the server's `127.0.0.1:9000` and is not proxied by nginx; open it through an SSH tunnel: `ssh -L 9000:127.0.0.1:9000 <user>@<server>`, then `http://localhost:9000`.
 - `scripts/cloud-agent-init` — shared cloud sandbox init script (Claude Code, Codex), see its `README.md`.
 - `scripts/agent-check` — pre-PR check script (`agent-check.sh`).
 - `scripts/deploy-on-server` — script run on the production server to redeploy containers (invoked by the server's own `update.sh`, outside this repo).
