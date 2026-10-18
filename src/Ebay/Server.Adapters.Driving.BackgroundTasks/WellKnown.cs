@@ -13,7 +13,7 @@ internal static class WellKnown
 
     public static class SaleAdvertisementMonitoring
     {
-        public static readonly TimeSpan UpdateTime = TimeSpan.FromMinutes(20);
+        public static readonly TimeSpan UpdateTime = TimeSpan.FromMinutes(30);
         public static readonly TimeSpan ErrorDelay = TimeSpan.FromMinutes(5);
     }
 
