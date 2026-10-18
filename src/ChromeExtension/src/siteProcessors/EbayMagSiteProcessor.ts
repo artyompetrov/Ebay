@@ -1,32 +1,8 @@
 import { ISiteProcessor } from './ISiteProcessor';
 import * as utils from "../infrastructure/Utils";
 import { ClientsFactory } from "../clients/ClientsFactory";
+import { highlightStockRows } from "./ebayMag/StockQuantityHighlighter";
 import type { EbayToolWebApiClient as EbayToolWebApiClientType } from "../clients/Generated/EbayToolWebApiClient";
-
-const SkuColumnHeader = 'SKU';
-const QuantityColumnHeader = 'Quantity';
-const KnownSkuColor = 'green';
-const QuantityOverStockColor = 'red';
-const QuantityUnderStockColor = '#d4a000';
-// Хранит исходные color/title элемента, чтобы при снятии подсветки вернуть то, что выставил ebaymag.
-const HighlightDatasetKey = 'ebayToolHighlight';
-const CellSelector = 'div[role="cell"], div[role="columnheader"]';
-
-interface StockColumns {
-    skuIndex: number;
-    quantityIndex: number;
-}
-
-interface Highlight {
-    color: string;
-    title: string | null;
-}
-
-interface OriginalStyle {
-    color: string;
-    colorPriority: string;
-    title: string | null;
-}
 
 export function tryGetEbayMagSiteProcessor(): ISiteProcessor | null {
     let currentPage = location.protocol + '//' + location.host + location.pathname;
@@ -56,7 +32,7 @@ class EbayMagSiteProcessor implements ISiteProcessor {
         const startBackground = async () => {
             while (true) {
                 try {
-                    this.highlightStockRows(availableQuantityByLotId);
+                    highlightStockRows(document, availableQuantityByLotId);
                     await this.searchForDescription();
                 }
                 catch (e) {
@@ -68,109 +44,6 @@ class EbayMagSiteProcessor implements ISiteProcessor {
         };
 
         void startBackground();
-    }
-
-    // Строки таблицы ebaymag переиспользуются и перерисовываются, поэтому на каждом проходе
-    // подсветка выставляется заново и снимается там, где она больше не применима.
-    private highlightStockRows(availableQuantityByLotId: ReadonlyMap<string, number>): void {
-        const rows = Array.from(document.querySelectorAll<HTMLElement>('div[role="row"]'));
-        const columns = this.findStockColumns(rows);
-        if (!columns) return;
-
-        for (const row of rows) {
-            const cells = this.getRowCells(row);
-            const skuElement = cells[columns.skuIndex]?.querySelector<HTMLElement>('div[role="button"]');
-            if (!skuElement) continue;
-
-            const quantityElement = cells[columns.quantityIndex]?.querySelector<HTMLElement>('button') ?? null;
-            const sku = skuElement.textContent?.trim() ?? '';
-            const availableQuantity = availableQuantityByLotId.get(sku);
-
-            if (availableQuantity === undefined) {
-                this.setHighlight(skuElement, null);
-                if (quantityElement) this.setHighlight(quantityElement, null);
-                continue;
-            }
-
-            this.setHighlight(skuElement, { color: KnownSkuColor, title: null });
-            if (quantityElement) {
-                this.setHighlight(quantityElement, this.getQuantityHighlight(quantityElement, availableQuantity));
-            }
-        }
-    }
-
-    private findStockColumns(rows: readonly HTMLElement[]): StockColumns | null {
-        for (const row of rows) {
-            const cellTexts = this.getRowCells(row).map(cell => cell.textContent?.trim() ?? '');
-            const skuIndex = cellTexts.indexOf(SkuColumnHeader);
-            const quantityIndex = cellTexts.indexOf(QuantityColumnHeader);
-            if (skuIndex >= 0 && quantityIndex >= 0) {
-                return { skuIndex, quantityIndex };
-            }
-        }
-
-        return null;
-    }
-
-    // Ячейки лежат во вложенных обёртках, поэтому берём все ячейки строки, кроме вложенных в другие ячейки.
-    private getRowCells(row: HTMLElement): HTMLElement[] {
-        return Array.from(row.querySelectorAll<HTMLElement>(CellSelector))
-            .filter(cell => cell.parentElement?.closest(CellSelector) === null);
-    }
-
-    private getQuantityHighlight(quantityElement: HTMLElement, availableQuantity: number): Highlight | null {
-        const quantityText = quantityElement.textContent?.trim() ?? '';
-        if (!/^\d+$/.test(quantityText)) return null;
-
-        const listedQuantity = Number(quantityText);
-        if (listedQuantity > availableQuantity) {
-            return { color: QuantityOverStockColor, title: `Only ${availableQuantity} in stock` };
-        }
-
-        if (listedQuantity < availableQuantity) {
-            return { color: QuantityUnderStockColor, title: `${availableQuantity} in stock` };
-        }
-
-        return null;
-    }
-
-    // Снимаем только то, что выставили сами, и возвращаем исходные color/title ebaymag.
-    private setHighlight(element: HTMLElement, highlight: Highlight | null): void {
-        const savedOriginal = element.dataset[HighlightDatasetKey];
-
-        if (!highlight) {
-            if (savedOriginal === undefined) return;
-
-            const original: OriginalStyle = JSON.parse(savedOriginal);
-            if (original.color) {
-                element.style.setProperty('color', original.color, original.colorPriority);
-            } else {
-                element.style.removeProperty('color');
-            }
-            this.setTitle(element, original.title);
-            delete element.dataset[HighlightDatasetKey];
-            return;
-        }
-
-        const original: OriginalStyle = savedOriginal === undefined
-            ? {
-                color: element.style.getPropertyValue('color'),
-                colorPriority: element.style.getPropertyPriority('color'),
-                title: element.getAttribute('title'),
-            }
-            : JSON.parse(savedOriginal);
-        element.dataset[HighlightDatasetKey] = JSON.stringify(original);
-
-        element.style.setProperty('color', highlight.color, 'important');
-        this.setTitle(element, highlight.title ?? original.title);
-    }
-
-    private setTitle(element: HTMLElement, title: string | null): void {
-        if (title === null) {
-            element.removeAttribute('title');
-        } else {
-            element.title = title;
-        }
     }
 
     private async searchForDescription(): Promise<void> {

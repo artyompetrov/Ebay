@@ -22,9 +22,13 @@ function unescapeAttributeString(value) {
 }
 
 // Where [OpenSpecScenario(...)] is looked for in each test suite. C# has real attributes; the
-// Node test runner (src/Ebay/Frontend/Tests) does not, so JS tests use the identical
+// Node test runner (src/Ebay/Frontend/Tests, src/ChromeExtension/tests) does not, so JS/TS tests use the identical
 // `[OpenSpecScenario("...", "...", "...")]` text in a `//` comment directly above the test() call.
-const ATTRIBUTE_SOURCE_GLOBS = ['src/Ebay/Tests.*/**/*.cs', 'src/Ebay/Frontend/Tests/**/*.mjs'];
+const ATTRIBUTE_SOURCE_GLOBS = [
+  'src/Ebay/Tests.*/**/*.cs',
+  'src/Ebay/Frontend/Tests/**/*.mjs',
+  'src/ChromeExtension/tests/**/*.test.ts',
+];
 
 function scenarioKey(specId, requirement, scenario) {
   return `${specId}\u0000${requirement}\u0000${scenario}`;
@@ -281,7 +285,7 @@ async function main() {
     }
     console.error(
       '\nEach implemented scenario (openspec/specs/**) needs a test tagged [OpenSpecScenario(specId, requirement, scenario)] ' +
-        '- a C# attribute (Tests.Shared) or a `//` comment with the same text above a Frontend/Tests test() call - ' +
+        '- a C# attribute (Tests.Shared) or a `//` comment with the same text above a Frontend/Tests or ChromeExtension/tests test() call - ' +
         'or a "- **NOT COVERED BY TEST:** <reason>" bullet inside the scenario. See the write-tests skill.',
     );
     process.exit(1);

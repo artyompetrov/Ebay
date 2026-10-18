@@ -12,7 +12,8 @@ A C# test method is tagged with `[OpenSpecScenario(specId, requirement, scenario
 `### Requirement:` / `#### Scenario:` heading text it verifies. A test can carry more
 than one such attribute; each attribute names exactly one scenario.
 
-`Frontend/Tests` uses the Node test runner, which has no real attributes, so JS tests use the
+`src/Ebay/Frontend/Tests` and `src/ChromeExtension/tests` use the Node test runner, which has no
+real attributes, so JS/TS tests use the
 identical `[OpenSpecScenario("specId", "requirement", "scenario")]` text in a `//` comment
 directly above the `test(...)` call instead. The script matches the same text either way.
 
@@ -66,8 +67,8 @@ not remove an active change's exemption. Do not archive with unsynced specs or u
 
 ### Known limitation: text matching, not test execution
 
-The script matches `[OpenSpecScenario(...)]` against raw source text under `src/Ebay/Tests.*`
-and `src/Ebay/Frontend/Tests`; it does not verify that the usage sits on a test that actually
+The script matches `[OpenSpecScenario(...)]` against raw source text under `src/Ebay/Tests.*`,
+`src/Ebay/Frontend/Tests` and `src/ChromeExtension/tests`; it does not verify that the usage sits on a test that actually
 runs. A commented-out test, the text in a string literal, or an attribute placed on a
 non-test/helper method would all still count as "covered" - and for the JS convention, the
 usage is *always* a comment, so there is no attribute-vs-runnable-method distinction to check
