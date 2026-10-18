@@ -14,6 +14,11 @@ export const Urls = {
     ebayAuthRedirectUrl: `https://auth2.ebay.com/oauth2/ThirdPartyAuthSucessFailure`
 };
 
+// Blazor-приложение обслуживается тем же доменом, что и бэкенд.
+export function getProductMeasurementsUrl(productId: string): string {
+    return `${backendBaseUrl}/Product/${encodeURIComponent(productId)}/Measurements`;
+}
+
 export const Auth = {
     Ebay: {
         Server: "https://auth.ebay.com/",
