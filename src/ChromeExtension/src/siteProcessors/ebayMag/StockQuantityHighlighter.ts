@@ -18,6 +18,8 @@ const ProductLinkTitle = 'Open the product in Ebay tool';
 const SkuColorDatasetKey = 'ebayToolSkuColor';
 const BadgesAttribute = 'data-ebay-tool-sku-badges';
 const BadgesStateDatasetKey = 'ebayToolSkuBadgesState';
+// SKU, для которого построены бейджи: строку могут переиспользовать под другой наш лот.
+const BadgesSkuDatasetKey = 'ebayToolSkuBadgesSku';
 const CellSelector = 'div[role="cell"], div[role="columnheader"]';
 // Клики и нажатия по бейджам не должны доходить до обработчиков строки ebaymag (открытие редактора).
 const BlockedEvents = ['click', 'auxclick', 'mousedown', 'mouseup', 'pointerdown', 'pointerup'] as const;
@@ -49,7 +51,8 @@ export function highlightStockRows(root: ParentNode, lotsById: ReadonlyMap<strin
         const skuElement = cells[columns.skuIndex]?.querySelector<HTMLElement>('div[role="button"]');
         if (!skuElement) continue;
 
-        const lot = lotsById.get(skuElement.textContent?.trim() ?? '');
+        const sku = skuElement.textContent?.trim() ?? '';
+        const lot = lotsById.get(sku);
         if (!lot) {
             setSkuColor(skuElement, null);
             removeBadges(skuElement);
@@ -60,10 +63,11 @@ export function highlightStockRows(root: ParentNode, lotsById: ReadonlyMap<strin
 
         const listedQuantity = readListedQuantity(cells[columns.quantityIndex]);
         // Пока ячейка количества в режиме редактирования, число не читается: оставляем бейджи как были,
-        // чтобы маркер не пропадал ровно тогда, когда оператор меняет количество.
-        if (listedQuantity === null && findBadges(skuElement)) continue;
+        // чтобы маркер не пропадал ровно тогда, когда оператор меняет количество. Но только если они
+        // построены для этого же SKU, иначе ссылка и маркер остались бы от другого лота.
+        if (listedQuantity === null && findBadges(skuElement)?.dataset[BadgesSkuDatasetKey] === sku) continue;
 
-        renderBadges(skuElement, getStockMarker(listedQuantity, lot.availableQuantity), lot.productUrl);
+        renderBadges(skuElement, sku, getStockMarker(listedQuantity, lot.availableQuantity), lot.productUrl);
     }
 }
 
@@ -147,8 +151,8 @@ function removeBadges(skuElement: HTMLElement): void {
 }
 
 // Пересобираем бейджи только при изменении содержимого, чтобы не сбрасывать hover каждую секунду.
-function renderBadges(skuElement: HTMLElement, marker: StockMarker | null, productUrl: string): void {
-    const state = JSON.stringify({ marker, productUrl });
+function renderBadges(skuElement: HTMLElement, sku: string, marker: StockMarker | null, productUrl: string): void {
+    const state = JSON.stringify({ sku, marker, productUrl });
     const existing = findBadges(skuElement);
     if (existing?.dataset[BadgesStateDatasetKey] === state) return;
 
@@ -156,6 +160,7 @@ function renderBadges(skuElement: HTMLElement, marker: StockMarker | null, produ
     const badges = document.createElement('span');
     badges.setAttribute(BadgesAttribute, 'true');
     badges.dataset[BadgesStateDatasetKey] = state;
+    badges.dataset[BadgesSkuDatasetKey] = sku;
     badges.style.marginLeft = '4px';
     badges.style.whiteSpace = 'nowrap';
     for (const eventName of BlockedEvents) {

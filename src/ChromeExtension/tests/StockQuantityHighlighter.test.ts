@@ -200,6 +200,25 @@ test('the marker stays while the quantity cell is replaced by an edit control', 
     assert.equal(marker(row)?.textContent, '❗');
 });
 
+test('a row reused for another of our lots while its quantity is edited drops the previous lot badges', () => {
+    const document = loadStockPage();
+    const row = setQuantity(document, '55SOIJ2', '4');
+    const otherProductUrl = 'https://anode.su/Product/00000000-0000-0000-0000-000000000001/Measurements';
+    const lotsById = new Map<string, StockLot>([
+        ['55SOIJ2', { availableQuantity: 2, productUrl: ProductUrl }],
+        ['4VC20NV', { availableQuantity: 1, productUrl: otherProductUrl }],
+    ]);
+    highlightStockRows(document, lotsById);
+    assert.equal(marker(row)?.textContent, '❗');
+
+    row.quantity.replaceWith(document.createElement('input'));
+    row.sku.textContent = '4VC20NV';
+    highlightStockRows(document, lotsById);
+
+    assert.equal(marker(row), null);
+    assert.equal(productLink(row)?.href, otherProductUrl);
+});
+
 // [OpenSpecScenario("ebaymag-stock-quantity-check", "Markers follow the current row content", "Row is reused for an unknown SKU")]
 test('a row reused for an unknown SKU loses the highlight, marker and link', () => {
     const document = loadStockPage();
