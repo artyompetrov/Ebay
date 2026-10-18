@@ -101,7 +101,13 @@ public sealed class WebApiController : WebApiControllerBase
         var lotForSales = await _lotForSaleService.GetLotForSalesAsync(cancellationToken);
 
         var response = lotForSales
-            .Select(x => new LotForSaleResponse(x.Id, ToApiMeasurementState(x.MeasurementState), x.Name, x.ProductId, ToApiProductState(x.ProductState)))
+            .Select(x => new LotForSaleResponse(
+                availableQuantity: x.AvailableQuantity,
+                id: x.Id,
+                measurementState: ToApiMeasurementState(x.MeasurementState),
+                name: x.Name,
+                productId: x.ProductId,
+                productState: ToApiProductState(x.ProductState)))
             .ToList();
 
         return response;

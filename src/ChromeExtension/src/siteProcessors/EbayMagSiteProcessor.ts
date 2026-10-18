@@ -1,6 +1,7 @@
 import { ISiteProcessor } from './ISiteProcessor';
 import * as utils from "../infrastructure/Utils";
 import { ClientsFactory } from "../clients/ClientsFactory";
+import { highlightStockRows } from "./ebayMag/StockQuantityHighlighter";
 import type { EbayToolWebApiClient as EbayToolWebApiClientType } from "../clients/Generated/EbayToolWebApiClient";
 
 export function tryGetEbayMagSiteProcessor(): ISiteProcessor | null {
@@ -24,13 +25,14 @@ class EbayMagSiteProcessor implements ISiteProcessor {
         let clientsFactory = new ClientsFactory();
         this.backendClient = await clientsFactory.getEbayToolWebApiClient();
 
-        let lotsForSale = await this.backendClient.getLotForSales();
-        const lotForSaleIds = new Set(lotsForSale.map(x => x.id));
+        const lotsForSale = await this.backendClient.getLotForSales();
+        const availableQuantityByLotId: ReadonlyMap<string, number> =
+            new Map(lotsForSale.map(x => [x.id, x.availableQuantity]));
 
         const startBackground = async () => {
             while (true) {
                 try {
-                    this.highlightKnownSkuElements(lotForSaleIds);
+                    highlightStockRows(document, availableQuantityByLotId);
                     await this.searchForDescription();
                 }
                 catch (e) {
@@ -42,18 +44,6 @@ class EbayMagSiteProcessor implements ISiteProcessor {
         };
 
         void startBackground();
-    }
-
-    private highlightKnownSkuElements(lotForSaleIds: ReadonlySet<string>): void {
-        const skuElements = Array.from(document.querySelectorAll<HTMLElement>('div[role="button"]'))
-            .filter(element => element.textContent?.trim().length === 7);
-
-        for (const skuElement of skuElements) {
-            const sku = skuElement.textContent?.trim();
-            if (sku && lotForSaleIds.has(sku)) {
-                skuElement.style.setProperty('color', 'green', 'important');
-            }
-        }
     }
 
     private async searchForDescription(): Promise<void> {

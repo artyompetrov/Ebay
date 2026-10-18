@@ -53,6 +53,18 @@ jobs:
       - name: Run frontend JavaScript tests
         run: node --test ./src/Ebay/Frontend/Tests/*.test.mjs
 
+      # Chrome extension tests run TypeScript directly via Node's built-in type stripping (Node 22.18+).
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Run Chrome extension tests
+        run: |
+          cd ./src/ChromeExtension
+          npm ci
+          npm test
+
 
   openspec_validate:
     name: Validate OpenSpec

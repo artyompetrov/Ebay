@@ -16,6 +16,7 @@ run_step "Install Chromium for behavioral UI tests" bash -lc "node '$ROOT_DIR/sr
 run_step "Run backend tests" bash -lc "cd '$ROOT_DIR/src/Ebay' && dotnet test --no-build"
 run_step "Run frontend JavaScript tests" bash -lc "node --test '$ROOT_DIR'/src/Ebay/Frontend/Tests/*.test.mjs"
 run_step "Install Chrome extension dependencies" bash -lc "cd '$ROOT_DIR/src/ChromeExtension' && npm ci"
+run_step "Run Chrome extension tests" bash -lc "cd '$ROOT_DIR/src/ChromeExtension' && npm test"
 run_step "Build Chrome extension" bash -lc "cd '$ROOT_DIR/src/ChromeExtension' && npm run build"
 run_step "Check OpenSpec CLI and skills versions" bash -lc "'$ROOT_DIR/scripts/check-openspec-version/check-openspec-version.sh'"
 run_step "Validate OpenSpec catalog" bash -lc "cd '$ROOT_DIR' && openspec validate --all --strict --json"
