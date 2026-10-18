@@ -15,6 +15,8 @@ namespace Tests.Integration.Tests;
 // create the same physical tables, is deferred to a later task) so it cannot share that fixture's database.
 public class IdentityStoreIsolatedTests
 {
+    private const int AppMaxLengthForKeys = 128;
+
     private static readonly string DatabaseName = $"test_ebay_identity_{Guid.NewGuid():N}";
 
     private string _connectionString = null!;
@@ -29,7 +31,11 @@ public class IdentityStoreIsolatedTests
         services.AddDataProtection();
         services.AddDbContextFactory<IdentityDbContext>(o =>
             o.UseNpgsql(_connectionString, b => b.MigrationsAssembly("Server.Adapters.Driven.EF.Identity.Migrations")));
-        services.AddIdentityCore<ApplicationUser>()
+        // The app registers Identity with AddDefaultIdentity, which sets MaxLengthForKeys = 128, and the Identity
+        // migrations were generated with it. IdentityDbContext reads this option while building its model, so the
+        // test must use the same value; otherwise the model differs from the snapshot and Migrate() reports
+        // pending model changes.
+        services.AddIdentityCore<ApplicationUser>(static o => o.Stores.MaxLengthForKeys = AppMaxLengthForKeys)
             .AddEntityFrameworkStores<IdentityDbContext>()
             .AddDefaultTokenProviders();
 
