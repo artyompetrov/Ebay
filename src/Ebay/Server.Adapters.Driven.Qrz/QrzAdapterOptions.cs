@@ -5,7 +5,7 @@ namespace Server.Adapters.Driven.Qrz;
 /// <summary>
 /// Настройки сбора объявлений с доски qrz.ru.
 /// </summary>
-public sealed record QrzAdapterOptions
+public sealed record QrzAdapterOptions : IValidatableObject
 {
     public const string SectionName = "Qrz";
 
@@ -14,6 +14,7 @@ public sealed record QrzAdapterOptions
     /// переменные окружения <c>Qrz__Categories__0</c>, <c>Qrz__Categories__1</c>, ... Пустой список означает
     /// категории по умолчанию (<see cref="WellKnown.DefaultCategories"/>): инициализатор массива для этого не годится,
     /// потому что binder дописывает значения из конфигурации к уже существующим элементам, а не заменяет их.
+    /// Пустые элементы запрещены.
     /// </summary>
     public string[] Categories { get; init; } = [];
 
@@ -24,4 +25,12 @@ public sealed record QrzAdapterOptions
     public TimeSpan RequestDelay { get; init; } = TimeSpan.FromSeconds(5);
 
     internal IReadOnlyList<string> EffectiveCategories => Categories.Length > 0 ? Categories : WellKnown.DefaultCategories;
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (Categories.Any(static x => string.IsNullOrWhiteSpace(x.Trim('/'))))
+        {
+            yield return new ValidationResult("Qrz category must not be empty.", [nameof(Categories)]);
+        }
+    }
 }

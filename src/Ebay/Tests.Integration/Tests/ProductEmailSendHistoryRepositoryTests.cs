@@ -1,8 +1,10 @@
 using AwesomeAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Application;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Domain;
+using Tests.Shared;
 
 namespace Tests.Integration.Tests;
 
@@ -31,15 +33,20 @@ public class ProductEmailSendHistoryRepositoryTests
     }
 
     [Test]
-    public async Task RemoveOlderThanAsync_DeletesOnlyRecordsOlderThanThreshold()
+    [OpenSpecScenario("sale-advertisement-monitoring", "Records expire two years after their latest advertisement date", "Record older than two years is removed")]
+    [OpenSpecScenario("sale-advertisement-monitoring", "Records expire two years after their latest advertisement date", "Record within two years is kept")]
+    public async Task RemoveOlderThanAsync_CleanupOnOctober18_RemovesRecordOlderThanTwoYearsAndKeepsRecentOne()
     {
+        // Порог считается так же, как в SaleAdvertisementCleanupService: момент запуска минус срок хранения.
+        var cleanupRunAt = new DateTimeOffset(2026, 10, 18, 12, 0, 0, TimeSpan.Zero);
+        var threshold = cleanupRunAt - WellKnown.SaleAdvertisements.RemoveAdvertisementAfter;
         var productId = await CreateProductAsync();
-        var stale = await SaveAsync(productId, $"stale-{Guid.NewGuid():N}", "Qrz", Threshold.AddDays(-1));
-        var fresh = await SaveAsync(productId, $"fresh-{Guid.NewGuid():N}", "Qrz", Threshold.AddDays(1));
+        var stale = await SaveAsync(productId, $"stale-{Guid.NewGuid():N}", "Qrz", new DateTimeOffset(2024, 10, 17, 12, 0, 0, TimeSpan.Zero));
+        var fresh = await SaveAsync(productId, $"fresh-{Guid.NewGuid():N}", "Qrz", new DateTimeOffset(2026, 6, 20, 12, 0, 0, TimeSpan.Zero));
 
         await using (var unitOfWork = await BeginAsync())
         {
-            await GetRepository().RemoveOlderThanAsync(unitOfWork, Threshold, CancellationToken.None);
+            await GetRepository().RemoveOlderThanAsync(unitOfWork, threshold, CancellationToken.None);
         }
 
         await using var readUnitOfWork = await BeginAsync();
