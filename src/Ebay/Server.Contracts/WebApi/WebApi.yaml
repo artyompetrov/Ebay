@@ -1031,6 +1031,7 @@ components:
       - productId
       - productState
       - measurementState
+      - availableQuantity
       properties:
         id:
           type: string
@@ -1045,6 +1046,11 @@ components:
           $ref: '#/components/schemas/LotForSaleProductState'
         measurementState:
           $ref: '#/components/schemas/LotForSaleMeasurementState'
+        availableQuantity:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Number of sellable units among the lot's measurements that are not Sold; a matched set (one match id) counts as one unit.
     LotForSaleMeasurementState:
       type: string
       enum:
