@@ -101,6 +101,8 @@ public class SaleAdvertisementMonitoringService
 
         try
         {
+            _logger.LogInformation("Starting processing advertisements from {Marketplace}", adapter.Marketplace);
+            
             var advertisements = await adapter.GetRecentAdvertisementsAsync(cancellationToken);
             activity?.SetTag(SaleAdvertisementsTracing.AdvertisementsCountTag, advertisements.Count);
 

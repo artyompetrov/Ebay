@@ -32,7 +32,7 @@ public static class ServiceCollectionExtensions
         services.AddPooledDbContextFactory<WriteModelDbContext>((sp, o) =>
         {
             var connectionString = sp.GetRequiredService<IOptions<PostgreSqlOptions>>().Value.DefaultConnection;
-            o.UseNpgsql(connectionString, b =>
+            o.UsePostgreSql(connectionString, b =>
                 b.MigrationsAssembly("Server.Adapters.Driven.EF.WriteModel.Migrations"));
             o.AddInterceptors(sp.GetServices<IInterceptor>());
         });

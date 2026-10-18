@@ -31,7 +31,7 @@ public static class ServiceCollectionExtensions
         services.AddDbContextFactory<IdentityDbContext>((sp, o) =>
         {
             var connectionString = sp.GetRequiredService<IOptions<PostgreSqlOptions>>().Value.DefaultConnection;
-            o.UseNpgsql(connectionString, b =>
+            o.UsePostgreSql(connectionString, b =>
                 b.MigrationsAssembly("Server.Adapters.Driven.EF.Identity.Migrations"));
             o.AddInterceptors(sp.GetServices<IInterceptor>());
         });

@@ -24,7 +24,7 @@ public static class ServiceCollectionExtensions
         // Pooled factory: ReadDbContext has no constructor dependencies beyond DbContextOptions.
         services.AddPooledDbContextFactory<ReadDbContext>((sp, o) =>
         {
-            o.UseNpgsql(sp.GetRequiredService<IOptions<PostgreSqlOptions>>().Value.DefaultConnection);
+            o.UsePostgreSql(sp.GetRequiredService<IOptions<PostgreSqlOptions>>().Value.DefaultConnection);
             // Set through options, not in the constructor: a pooled context resets its change tracker to the
             // options' defaults when it is returned to the pool.
             o.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
