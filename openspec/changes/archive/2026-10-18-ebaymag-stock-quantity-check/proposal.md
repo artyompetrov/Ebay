@@ -28,6 +28,6 @@ On the ebaymag stock page (`https://ebaymag.com/stock`) the quantity of each lis
 
 - Contract: `src/Ebay/Server.Contracts/WebApi/WebApi.yaml` (`LotForSaleResponse.availableQuantity`), regenerated C# server/client code and the extension's generated TypeScript client (`src/ChromeExtension/src/clients/Generated/EbayToolWebApiClient.ts`).
 - Backend: `LotForSaleInfo`, `LotForSaleQueries` (read model), `WebApiController.GetLotForSales` mapping; integration tests for the count.
-- Extension: `src/ChromeExtension/src/siteProcessors/EbayMagSiteProcessor.ts`.
+- Extension: `src/ChromeExtension/src/siteProcessors/EbayMagSiteProcessor.ts`, new DOM-only module `src/siteProcessors/ebayMag/StockQuantityHighlighter.ts`, new extension tests (`src/ChromeExtension/tests`, `npm test`, `jsdom` dev dependency) wired into `agent-check.sh`, CI and the OpenSpec coverage checker.
 - Frontend test stub `src/Ebay/Tests.Frontend/OfficeApiHandler.cs` if it builds `LotForSaleResponse` payloads.
 - No DB schema change.
