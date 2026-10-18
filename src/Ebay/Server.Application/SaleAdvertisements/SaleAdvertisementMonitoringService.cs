@@ -108,6 +108,8 @@ public class SaleAdvertisementMonitoringService
             {
                 await ProcessAdvertisementAsync(targetEmail, adapter, advertisement, products, cancellationToken);
             }
+            
+            _logger.LogInformation("Successfully processed advertisements from {Marketplace}", adapter.Marketplace);
         }
         catch (Exception e) when (!cancellationToken.IsCancellationRequested)
         {
