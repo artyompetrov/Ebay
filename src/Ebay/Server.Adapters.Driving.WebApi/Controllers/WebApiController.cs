@@ -391,7 +391,7 @@ public sealed class WebApiController : WebApiControllerBase
                 isAmbiguous: x.IsAmbiguous,
                 link: x.Link,
                 marketplace: x.Marketplace,
-                seller: x.Seller,
+                seller: x.SellerName,
                 contact: x.Contact))];
     }
 

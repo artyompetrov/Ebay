@@ -11,7 +11,7 @@ public static class ServiceCollectionExtensions
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        services.AddHostedService<ChipfindBackgroundTask>();
+        services.AddHostedService<SaleAdvertisementMonitoringBackgroundTask>();
         services.AddHostedService<SaleAdvertisementCleanupBackgroundTask>();
         services.AddHostedService<CurrencyRateBackgroundTask>();
         services.AddHostedService<DbCacheCleanupHostedService>();

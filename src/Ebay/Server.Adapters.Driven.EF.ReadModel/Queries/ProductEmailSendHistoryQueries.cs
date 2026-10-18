@@ -13,16 +13,6 @@ internal sealed class ProductEmailSendHistoryQueries : IProductEmailSendHistoryQ
         _dbContextFactory = dbContextFactory;
     }
 
-    public async Task<Guid?> FindIdAsync(Guid productId, string seller, string marketplace, CancellationToken cancellationToken)
-    {
-        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
-
-        return await dbContext.ProductEmailSendHistories
-            .Where(x => x.ProductId == productId && x.Seller == seller && x.Marketplace == marketplace)
-            .Select(x => (Guid?)x.Id)
-            .SingleOrDefaultAsync(cancellationToken);
-    }
-
     public async Task<IReadOnlyList<ProductEmailSendHistoryDetails>> GetForProductAsync(Guid productId, CancellationToken cancellationToken)
     {
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
@@ -35,7 +25,8 @@ internal sealed class ProductEmailSendHistoryQueries : IProductEmailSendHistoryQ
         return [.. history.Select(x => new ProductEmailSendHistoryDetails(
             Id: x.Id,
             ProductId: x.ProductId,
-            Seller: x.Seller,
+            SellerKey: x.SellerKey,
+            SellerName: x.SellerName,
             Link: x.Link,
             Marketplace: x.Marketplace,
             IsAmbiguous: x.IsAmbiguous,

@@ -45,7 +45,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IMeasurementMatchIdChangedHandler, MeasurementMatchIdChangedHandler>();
         services.AddSingleton<ILotPriceCalculator, LotPriceCalculator>();
         services.AddSingleton<IProductMetricsCalculator, ProductMetricsCalculator>();
-        services.AddSingleton<ChipfindMonitoringService>();
+        services.AddSingleton<SaleAdvertisementMonitoringService>();
         services.AddSingleton<SaleAdvertisementCleanupService>();
         services.AddSingleton<CurrencyRateService>();
         services.AddSingleton<DbCacheCleanupService>();

@@ -11,7 +11,7 @@ internal static class WellKnown
         public static readonly TimeSpan ErrorDelay = TimeSpan.FromMinutes(5);
     }
 
-    public static class ChipFind
+    public static class SaleAdvertisementMonitoring
     {
         public static readonly TimeSpan UpdateTime = TimeSpan.FromMinutes(20);
         public static readonly TimeSpan ErrorDelay = TimeSpan.FromMinutes(5);

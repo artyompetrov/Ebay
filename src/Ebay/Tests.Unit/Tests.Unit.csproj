@@ -7,13 +7,17 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="AwesomeAssertions"/>
-        <PackageReference Include="Microsoft.NET.Test.Sdk"/>
-        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing"/>
-        <PackageReference Include="NUnit"/>
-        <PackageReference Include="NUnit3TestAdapter"/>
-        <PackageReference Include="NUnit.Analyzers"/>
-        <PackageReference Include="coverlet.collector"/>
+        <PackageReference Include="AwesomeAssertions" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+        <PackageReference Include="NUnit" />
+        <PackageReference Include="NUnit3TestAdapter" />
+        <PackageReference Include="NUnit.Analyzers" />
+        <PackageReference Include="coverlet.collector" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="Fixtures\**\*" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 
     <ItemGroup>
@@ -24,6 +28,7 @@
       <ProjectReference Include="..\Server.Adapters.Driven.Plotting\Server.Adapters.Driven.Plotting.csproj" />
       <ProjectReference Include="..\Server.Adapters.Driven.MemoryCache\Server.Adapters.Driven.MemoryCache.csproj" />
       <ProjectReference Include="..\Tests.Shared\Tests.Shared.csproj" />
+      <ProjectReference Include="..\Server.Adapters.Driven.Qrz\Server.Adapters.Driven.Qrz.csproj" />
     </ItemGroup>
 
 </Project>

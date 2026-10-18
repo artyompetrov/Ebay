@@ -14,6 +14,6 @@ public static class ServiceCollectionExtensions
         services.AddKeyedSingleton<IMemoryCache, MemoryCache>(WellKnown.CacheServiceKey);
         services.AddHttpClient();
         services.AddSingleton(new ChipFindAdapterOptions(DelayMilliseconds: 5000));
-        services.AddSingleton<IChipfindAdapter, ChipfindAdapter>();
+        services.AddSingleton<ISaleAdvertisementAdapter, ChipfindAdapter>();
     }
 }

@@ -34,22 +34,28 @@ public static class WellKnown
     }
 
     /// <summary>
-    /// Константы мониторинга объявлений о продаже на chipfind.ru.
-    /// </summary>
-    public static class ChipFind
-    {
-        public const string Marketplace = "Chipfind";
-    }
-
-    /// <summary>
-    /// Константы очистки истории отправленных писем по объявлениям о продаже.
+    /// Константы мониторинга объявлений о продаже и очистки истории отправленных писем по ним.
     /// </summary>
     public static class SaleAdvertisements
     {
         /// <summary>
-        /// Время через которое не обновлявшиеся объявления о продаже считаются устаревшими и удаляются.
+        /// Срок хранения записи дедупликации после даты самого свежего учтённого объявления (два года):
+        /// только чтобы база не копила мусор, а не чтобы повторно уведомлять о том же продавце.
         /// </summary>
-        public static readonly TimeSpan RemoveAdvertisementAfter = TimeSpan.FromDays(90);
+        public static readonly TimeSpan RemoveAdvertisementAfter = TimeSpan.FromDays(DaysInYear * RetentionYears);
+
+        /// <summary>
+        /// Пауза после отправки письма, чтобы не упереться в ограничения SMTP-сервера.
+        /// </summary>
+        public static readonly TimeSpan DelayAfterEmail = TimeSpan.FromSeconds(5);
+
+        /// <summary>
+        /// Имя источника спанов мониторинга объявлений (для будущей подписки трассировки через AddSource).
+        /// </summary>
+        public const string ActivitySourceName = "Server.Application.SaleAdvertisements";
+
+        private const int DaysInYear = 365;
+        private const int RetentionYears = 2;
     }
 
     /// <summary>

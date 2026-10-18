@@ -10,6 +10,17 @@ internal sealed class ProductEmailSendHistoryRepository : IProductEmailSendHisto
     public async Task<ProductEmailSendHistory?> GetByIdAsync(IWriteModelUnitOfWork unitOfWork, Guid id, CancellationToken cancellationToken) => await WriteModelUnitOfWork.From(unitOfWork).DbContext.ProductEmailSendHistories
         .SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
 
+    public async Task<ProductEmailSendHistory?> FindAsync(
+        IWriteModelUnitOfWork unitOfWork,
+        Guid productId,
+        string sellerKey,
+        string marketplace,
+        CancellationToken cancellationToken) =>
+        await WriteModelUnitOfWork.From(unitOfWork).DbContext.ProductEmailSendHistories
+            .SingleOrDefaultAsync(
+                x => x.ProductId == productId && x.SellerKey == sellerKey && x.Marketplace == marketplace,
+                cancellationToken);
+
     public async Task AddAsync(IWriteModelUnitOfWork unitOfWork, ProductEmailSendHistory aggregate, CancellationToken cancellationToken) => _ = await WriteModelUnitOfWork.From(unitOfWork).DbContext.ProductEmailSendHistories.AddAsync(aggregate, cancellationToken);
 
     public async Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, Guid id, CancellationToken cancellationToken)
