@@ -11,7 +11,8 @@ public sealed class ProductEmailSendHistory : AggregateRoot<Guid>
     private ProductEmailSendHistory(
         Guid id,
         Guid productId,
-        string seller,
+        string sellerKey,
+        string sellerName,
         string link,
         string marketplace,
         bool isAmbiguous,
@@ -20,7 +21,8 @@ public sealed class ProductEmailSendHistory : AggregateRoot<Guid>
         : base(id)
     {
         ProductId = productId;
-        Seller = seller;
+        SellerKey = sellerKey;
+        SellerName = sellerName;
         Link = link;
         Marketplace = marketplace;
         IsAmbiguous = isAmbiguous;
@@ -30,7 +32,8 @@ public sealed class ProductEmailSendHistory : AggregateRoot<Guid>
 
     public static ProductEmailSendHistory Create(
         Guid productId,
-        string seller,
+        string sellerKey,
+        string sellerName,
         string link,
         string marketplace,
         bool isAmbiguous,
@@ -39,16 +42,26 @@ public sealed class ProductEmailSendHistory : AggregateRoot<Guid>
         new(
             id: Guid.NewGuid(),
             productId: productId,
-            seller: seller,
+            sellerKey: sellerKey,
+            sellerName: sellerName,
             link: link,
             marketplace: marketplace,
             isAmbiguous: isAmbiguous,
             advertisementDate: advertisementDate,
-            contact: contact);
+            contact: string.IsNullOrWhiteSpace(contact) ? null : contact);
 
     public Guid ProductId { get; }
 
-    public string Seller { get; }
+    /// <summary>
+    /// Стабильный ключ продавца в рамках маркетплейса: синтетический идентификатор, если площадка его даёт,
+    /// иначе нормализованное видимое имя. По нему (вместе с товаром и маркетплейсом) идёт дедупликация.
+    /// </summary>
+    public string SellerKey { get; }
+
+    /// <summary>
+    /// Отображаемое имя продавца из последнего учтённого объявления.
+    /// </summary>
+    public string SellerName { get; private set; }
 
     public string Link { get; private set; }
 
@@ -57,18 +70,32 @@ public sealed class ProductEmailSendHistory : AggregateRoot<Guid>
     public bool IsAmbiguous { get; private set; }
 
     /// <summary>
-    /// Дата публикации объявления (не путать с унаследованным техническим <see cref="Entity{TId}.CreatedAt"/>).
+    /// Дата публикации самого свежего учтённого объявления (не путать с унаследованным техническим
+    /// <see cref="Entity{TId}.CreatedAt"/>). Никогда не уменьшается.
     /// </summary>
     public DateTimeOffset AdvertisementDate { get; private set; }
 
-    //todo нужно сделать логику чтобы не затиралась null значениями
     public string? Contact { get; private set; }
 
-    public void UpdateForNewAdvertisement(string link, DateTimeOffset advertisementDate, bool isAmbiguous, string? contact)
+    /// <summary>
+    /// Учитывает повторное появление товара у этого продавца. Данные объявления (ссылка, дата, неоднозначность,
+    /// имя продавца) принимаются, только если оно не старее уже учтённого; непустой контакт принимается всегда.
+    /// </summary>
+    public void UpdateForNewAdvertisement(
+        string link,
+        DateTimeOffset advertisementDate,
+        bool isAmbiguous,
+        string sellerName,
+        string? contact)
     {
-        Link = link;
-        AdvertisementDate = advertisementDate;
-        IsAmbiguous = isAmbiguous;
+        if (advertisementDate >= AdvertisementDate)
+        {
+            Link = link;
+            AdvertisementDate = advertisementDate;
+            IsAmbiguous = isAmbiguous;
+            SellerName = sellerName;
+        }
+
         if (!string.IsNullOrWhiteSpace(contact))
         {
             Contact = contact;

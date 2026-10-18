@@ -1,0 +1,218 @@
+using System.Net;
+using AwesomeAssertions;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
+using Server.Adapters.Driven.Qrz;
+using Server.Application.Abstractions.Driven.Models;
+using Tests.Shared;
+using Tests.Unit.Fakes;
+
+namespace Tests.Unit;
+
+[TestFixture]
+[TestOf(typeof(QrzAdapter))]
+public sealed class QrzAdapterTests
+{
+    private const string ListPagePath = "/classifieds/category/components/tubes";
+    private const string ListingHref = "/classifieds/detail/radiolampy-6s19p-w_439891";
+    private const string SellerHash = "af7abbd4175636376db6b7c22d1809c8";
+
+    private static readonly DateTimeOffset Now = new(2026, 10, 18, 12, 0, 0, TimeSpan.Zero);
+
+    [Test]
+    [OpenSpecScenario("qrz-monitoring", "Configured categories are polled for offers only", "One category produces three list requests")]
+    public async Task GetRecentAdvertisementsAsync_OneCategory_RequestsDateSortedFirstPageForSellExchangeAndGiveAway()
+    {
+        var handler = new RoutingHandler(listPage: static _ => QrzHtml.ListPage());
+        var adapter = CreateAdapter(handler, ["components/tubes"]);
+
+        await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
+
+        handler.Requests.Select(static x => x.PathAndQuery).Should().BeEquivalentTo(
+        [
+            $"{ListPagePath}?o=date&type=0",
+            $"{ListPagePath}?o=date&type=2",
+            $"{ListPagePath}?o=date&type=3"
+        ]);
+    }
+
+    [Test]
+    public async Task GetRecentAdvertisementsAsync_CategoriesNotConfigured_PollsDefaultTubesCategory()
+    {
+        var handler = new RoutingHandler(listPage: static _ => QrzHtml.ListPage());
+        var adapter = CreateAdapter(handler, []);
+
+        await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
+
+        handler.Requests.Should().HaveCount(3).And.OnlyContain(static x => x.AbsolutePath == ListPagePath);
+    }
+
+    [Test]
+    [OpenSpecScenario("qrz-monitoring", "Configured categories are polled for offers only", "Listing present under two types is collected once")]
+    public async Task GetRecentAdvertisementsAsync_ListingUnderTwoTypes_IsCollectedAndFetchedOnce()
+    {
+        var handler = new RoutingHandler(listPage: static query =>
+            query.EndsWith("type=1", StringComparison.Ordinal)
+                ? QrzHtml.ListPage()
+                : QrzHtml.ListPage(QrzHtml.ListEntry(ListingHref, "17.10.2026 06:36")));
+        var adapter = CreateAdapter(handler, ["components/tubes"]);
+
+        var advertisements = await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
+
+        var advertisement = advertisements.Should().ContainSingle().Subject;
+        advertisement.SellerKey.Should().Be(SellerHash);
+        advertisement.SellerName.Should().Be("Иван Петров");
+        advertisement.Link.Should().Be(new Uri($"https://www.qrz.ru{ListingHref}"));
+        handler.ListingRequestCount.Should().Be(1);
+    }
+
+    [Test]
+    [OpenSpecScenario("qrz-monitoring", "Listing pages are fetched only for new or changed listings", "Unchanged listing is not fetched again")]
+    public async Task GetRecentAdvertisementsAsync_SameListingAndDateOnNextRun_IsServedFromCache()
+    {
+        var handler = new RoutingHandler(listPage: static _ => QrzHtml.ListPage(QrzHtml.ListEntry(ListingHref, "17.10.2026 06:36")));
+        var adapter = CreateAdapter(handler, ["components/tubes"]);
+
+        var first = await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
+        var second = await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
+
+        handler.ListingRequestCount.Should().Be(1);
+        second.Should().ContainSingle().Which.Should().Be(first.Single());
+    }
+
+    [Test]
+    [OpenSpecScenario("qrz-monitoring", "Listing pages are fetched only for new or changed listings", "Re-dated listing is fetched again")]
+    public async Task GetRecentAdvertisementsAsync_ListingWithNewDate_IsFetchedAgain()
+    {
+        var date = "16.10.2026 20:47";
+        var handler = new RoutingHandler(listPage: _ => QrzHtml.ListPage(QrzHtml.ListEntry(ListingHref, date)));
+        var adapter = CreateAdapter(handler, ["components/tubes"]);
+
+        await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
+        date = "Сегодня 11:19";
+        var advertisements = await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
+
+        handler.ListingRequestCount.Should().Be(2);
+        advertisements.Should().ContainSingle().Which.Date.Should().Be(new DateTimeOffset(2026, 10, 18, 11, 19, 0, TimeSpan.FromHours(3)));
+    }
+
+    [Test]
+    public async Task GetRecentAdvertisementsAsync_ListingPageFails_SkipsItAndRetriesOnNextRun()
+    {
+        var handler = new RoutingHandler(listPage: static _ => QrzHtml.ListPage(QrzHtml.ListEntry(ListingHref, "17.10.2026 06:36")))
+        {
+            FailListingRequests = 1
+        };
+        var adapter = CreateAdapter(handler, ["components/tubes"]);
+
+        var first = await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
+        var second = await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
+
+        first.Should().BeEmpty();
+        second.Should().ContainSingle();
+    }
+
+    [Test]
+    [OpenSpecScenario("qrz-monitoring", "Seller contact is the author's profile link", "Contact is the profile URL")]
+    public async Task TryGetContactAsync_ReturnsProfileUrlWithoutHttpRequests()
+    {
+        var handler = new RoutingHandler(listPage: static _ => QrzHtml.ListPage());
+        var adapter = CreateAdapter(handler, ["components/tubes"]);
+        var advertisement = new SaleAdvertisement(
+            Title: "Лампы",
+            SellerKey: SellerHash,
+            SellerName: "Иван Петров",
+            Date: Now,
+            Link: new Uri($"https://www.qrz.ru{ListingHref}"),
+            Items: ["Лампы"]);
+
+        var contact = await adapter.TryGetContactAsync(advertisement, CancellationToken.None);
+
+        contact.Should().Be($"https://www.qrz.ru/user/{SellerHash}");
+        handler.Requests.Should().BeEmpty();
+    }
+
+    private static QrzAdapter CreateAdapter(RoutingHandler handler, string[] categories) =>
+        new(
+            new RecordingLogger<QrzAdapter>(),
+            new SingleClientFactory(new HttpClient(handler)),
+            new MemoryCache(new MemoryCacheOptions()),
+            new FixedTimeProvider(Now),
+            Options.Create(new QrzAdapterOptions { Categories = categories, RequestDelay = TimeSpan.Zero }));
+
+    private sealed class RoutingHandler : HttpMessageHandler
+    {
+        private readonly Func<string, string> _listPage;
+        private readonly List<Uri> _requests = [];
+
+        public RoutingHandler(Func<string, string> listPage)
+        {
+            _listPage = listPage;
+        }
+
+        public int FailListingRequests { get; set; }
+
+        public IReadOnlyList<Uri> Requests
+        {
+            get
+            {
+                lock (_requests)
+                {
+                    return [.. _requests];
+                }
+            }
+        }
+
+        public int ListingRequestCount => Requests.Count(static x => x.AbsolutePath.StartsWith("/classifieds/detail/", StringComparison.Ordinal));
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            var uri = request.RequestUri ?? throw new InvalidOperationException("Request without URI");
+
+            lock (_requests)
+            {
+                _requests.Add(uri);
+            }
+
+            if (uri.AbsolutePath.StartsWith("/classifieds/detail/", StringComparison.Ordinal))
+            {
+                if (FailListingRequests > 0)
+                {
+                    FailListingRequests--;
+                    return Task.FromResult(new HttpResponseMessage(HttpStatusCode.BadGateway));
+                }
+
+                return Ok(QrzHtml.ListingPage("Радиолампы 6С19П-В", "Иван Петров.", $"/user/{SellerHash}", "6С19П-В новые"));
+            }
+
+            return Ok(_listPage(uri.Query));
+        }
+
+        private static Task<HttpResponseMessage> Ok(string content) =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(content) });
+    }
+
+    private sealed class SingleClientFactory : IHttpClientFactory
+    {
+        private readonly HttpClient _client;
+
+        public SingleClientFactory(HttpClient client)
+        {
+            _client = client;
+        }
+
+        public HttpClient CreateClient(string name) => _client;
+    }
+
+    private sealed class FixedTimeProvider : TimeProvider
+    {
+        private readonly DateTimeOffset _utcNow;
+
+        public FixedTimeProvider(DateTimeOffset utcNow)
+        {
+            _utcNow = utcNow;
+        }
+
+        public override DateTimeOffset GetUtcNow() => _utcNow;
+    }
+}

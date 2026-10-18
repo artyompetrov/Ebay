@@ -9,7 +9,9 @@ internal sealed class ProductEmailSendHistoryView : IViewProjection<ProductEmail
 
     public required Guid ProductId { get; set; }
 
-    public required string Seller { get; set; }
+    public required string SellerKey { get; set; }
+
+    public required string SellerName { get; set; }
 
     public required string Link { get; set; }
 
@@ -26,7 +28,8 @@ internal sealed class ProductEmailSendHistoryView : IViewProjection<ProductEmail
         {
             Id = x.Id,
             ProductId = x.ProductId,
-            Seller = x.Seller,
+            SellerKey = x.SellerKey,
+            SellerName = x.SellerName,
             Link = x.Link,
             Marketplace = x.Marketplace,
             IsAmbiguous = x.IsAmbiguous,

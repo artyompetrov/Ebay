@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
@@ -10,8 +11,10 @@ using Server.Application.Abstractions.Driven.Models;
 
 namespace Server.Adapters.Driven.ChipFind;
 
-public class ChipfindAdapter : IChipfindAdapter
+public class ChipfindAdapter : ISaleAdvertisementAdapter
 {
+    private static readonly ActivitySource ActivitySource = new(WellKnown.ActivitySourceName);
+
     private readonly ILogger<ChipfindAdapter> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IMemoryCache _memoryCache;
@@ -29,9 +32,13 @@ public class ChipfindAdapter : IChipfindAdapter
         _options = options;
     }
 
-    public async Task<IReadOnlyCollection<SaleAdvertisement>> GetRecentSaleAdvertisements(
+    public string Marketplace => WellKnown.Marketplace;
+
+    public async Task<IReadOnlyCollection<SaleAdvertisement>> GetRecentAdvertisementsAsync(
         CancellationToken cancellationToken)
     {
+        using var activity = ActivitySource.StartActivity(WellKnown.FeedSpan);
+
         var url = "https://www.chipfind.ru/market/sale_full.xml";
 
         var httpClient = _httpClientFactory.CreateClient("chipfind");
@@ -110,21 +117,28 @@ public class ChipfindAdapter : IChipfindAdapter
             result.Add(
                 new SaleAdvertisement(
                     Title: title,
-                    Seller: seller.ToLower(CultureInfo.InvariantCulture),
+                    SellerKey: seller.ToLower(CultureInfo.InvariantCulture),
+                    SellerName: seller,
                     Date: parsedDate.ToUniversalTime(),
                     Link: advertisementLink,
-                    Items: items,
-                    Body: description));
+                    Items: items));
         }
+
+        activity?.SetTag(WellKnown.AdvertisementsCountTag, result.Count);
 
         return result;
     }
 
-    public async Task<string?> TryGetAdvertisementContactAsync(SaleAdvertisement saleAdvertisement, CancellationToken cancellationToken)
+    public async Task<string?> TryGetContactAsync(SaleAdvertisement saleAdvertisement, CancellationToken cancellationToken)
     {
-        var cacheKey = $"seller_contact_information_{saleAdvertisement.Seller}";
+        using var activity = ActivitySource.StartActivity(WellKnown.ContactPageSpan);
 
-        if (_memoryCache.TryGetValue<string?>(cacheKey, out var contact))
+        var cacheKey = $"seller_contact_information_{saleAdvertisement.SellerKey}";
+
+        var isCacheHit = _memoryCache.TryGetValue<string?>(cacheKey, out var contact);
+        activity?.SetTag(WellKnown.CacheHitTag, isCacheHit);
+
+        if (isCacheHit)
         {
             return contact;
         }
@@ -157,8 +171,10 @@ public class ChipfindAdapter : IChipfindAdapter
 
             return result;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
         {
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            activity?.AddException(ex);
             _logger.LogWarning(ex, "Failed to parse advertisement contact from {Link}", saleAdvertisement.Link);
             return null;
         }

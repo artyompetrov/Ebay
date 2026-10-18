@@ -702,7 +702,11 @@ namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelD
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Seller")
+                    b.Property<string>("SellerKey")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("SellerName")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -718,7 +722,7 @@ namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelD
 
                     b.HasIndex("ProductId");
 
-                    b.HasIndex("ProductId", "Seller", "Marketplace")
+                    b.HasIndex("ProductId", "SellerKey", "Marketplace")
                         .IsUnique();
 
                     b.ToTable("ProductEmailSendHistories", "wm");

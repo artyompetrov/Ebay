@@ -289,7 +289,10 @@ public sealed class WriteModelDbContext : DbContext
             entity.Property(x => x.Id)
                 .ValueGeneratedNever();
 
-            entity.Property(x => x.Seller)
+            entity.Property(x => x.SellerKey)
+                .IsRequired();
+
+            entity.Property(x => x.SellerName)
                 .IsRequired();
 
             entity.Property(x => x.Link)
@@ -304,7 +307,7 @@ public sealed class WriteModelDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasIndex(x => x.ProductId);
-            entity.HasIndex(x => new { x.ProductId, x.Seller, x.Marketplace }).IsUnique();
+            entity.HasIndex(x => new { x.ProductId, x.SellerKey, x.Marketplace }).IsUnique();
             entity.HasIndex(x => x.AdvertisementDate);
         });
 

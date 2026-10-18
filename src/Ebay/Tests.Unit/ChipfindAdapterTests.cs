@@ -1,4 +1,5 @@
 using System.Net;
+using AwesomeAssertions;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Server.Adapters.Driven.ChipFind;
@@ -31,7 +32,7 @@ public class ChipfindAdapterTests
         var logger = new TestLogger<ChipfindAdapter>();
         var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
 
-        var ads = await adapter.GetRecentSaleAdvertisements(CancellationToken.None);
+        var ads = await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
         Assert.That(ads, Has.Count.EqualTo(1));
         var ad = ads.Single();
         using (Assert.EnterMultipleScope())
@@ -61,7 +62,7 @@ public class ChipfindAdapterTests
         var logger = new TestLogger<ChipfindAdapter>();
         var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
 
-        var ads = await adapter.GetRecentSaleAdvertisements(CancellationToken.None);
+        var ads = await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
         var ad = ads.Single();
         using (Assert.EnterMultipleScope())
         {
@@ -90,7 +91,7 @@ public class ChipfindAdapterTests
         var logger = new TestLogger<ChipfindAdapter>();
         var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
 
-        var ads = await adapter.GetRecentSaleAdvertisements(CancellationToken.None);
+        var ads = await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
         var ad = ads.Single();
         using (Assert.EnterMultipleScope())
         {
@@ -186,7 +187,7 @@ public class ChipfindAdapterTests
         var logger = new TestLogger<ChipfindAdapter>();
         var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
 
-        var ads = await adapter.GetRecentSaleAdvertisements(CancellationToken.None);
+        var ads = await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -194,6 +195,31 @@ public class ChipfindAdapterTests
             Assert.That(ads.Single().Link, Is.EqualTo(new Uri("http://example.com/valid")));
             Assert.That(logger.HasWarning, Is.True);
         }
+    }
+
+    [Test]
+    [OpenSpecScenario("chipfind-monitoring", "Sale advertisement feed parsing", "Seller key is lowercased and display name is kept as published")]
+    public async Task Parse_SellerInTitle_ProducesLowercasedKeyAndPublishedDisplayName()
+    {
+        var xml = """
+<rss><channel><item>
+<title>Лампы 6Н2П [Ivan Petrov]</title>
+<description><![CDATA[ 6Н2П 10 шт ]]></description>
+<pubDate>Sun, 31 Aug 2025 19:22:26 +0300</pubDate>
+<link>http://example.com/4</link>
+<guid>4</guid>
+</item></channel></rss>
+""";
+
+        var handler = new StaticMessageHandler(xml);
+        var factory = new TestHttpClientFactory(new HttpClient(handler));
+        var adapter = new ChipfindAdapter(new TestLogger<ChipfindAdapter>(), factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
+
+        var ad = (await adapter.GetRecentAdvertisementsAsync(CancellationToken.None)).Single();
+
+        ad.SellerKey.Should().Be("ivan petrov");
+        ad.SellerName.Should().Be("Ivan Petrov");
+        ad.Title.Should().Be("Лампы 6Н2П");
     }
 
     [Test]
@@ -212,14 +238,14 @@ public class ChipfindAdapterTests
         var logger = new TestLogger<ChipfindAdapter>();
         var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
 
-        var contact = await adapter.TryGetAdvertisementContactAsync(
+        var contact = await adapter.TryGetContactAsync(
             saleAdvertisement: new SaleAdvertisement(
                 Title: "title",
-                Seller: "seller",
+                SellerKey: "seller",
+                SellerName: "Seller",
                 Date: DateTimeOffset.MaxValue,
                 Link: new Uri("https://www.chipfind.ru/market/msg_prodam_1610251451.htm"),
-                Items: [""],
-                Body: ""),
+                Items: [""]),
             CancellationToken.None);
 
         Assert.That(contact, Is.EqualTo("E-mail:info.post47@yandex.ru"));
@@ -241,14 +267,14 @@ public class ChipfindAdapterTests
         var logger = new TestLogger<ChipfindAdapter>();
         var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
 
-        var contact = await adapter.TryGetAdvertisementContactAsync(
+        var contact = await adapter.TryGetContactAsync(
             saleAdvertisement: new SaleAdvertisement(
                 Title: "title",
-                Seller: "seller",
+                SellerKey: "seller",
+                SellerName: "Seller",
                 Date: DateTimeOffset.MaxValue,
                 Link: new Uri("https://www.chipfind.ru/market/msg_prodam_1610251451.htm"),
-                Items: [""],
-                Body: ""),
+                Items: [""]),
             CancellationToken.None);
 
         Assert.That(contact, Is.EqualTo("E-mail:info.post47@yandex.ru"));
@@ -270,14 +296,14 @@ public class ChipfindAdapterTests
         var logger = new TestLogger<ChipfindAdapter>();
         var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
 
-        var contact = await adapter.TryGetAdvertisementContactAsync(
+        var contact = await adapter.TryGetContactAsync(
             saleAdvertisement: new SaleAdvertisement(
                 Title: "title",
-                Seller: "seller",
+                SellerKey: "seller",
+                SellerName: "Seller",
                 Date: DateTimeOffset.MaxValue,
                 Link: new Uri("https://www.chipfind.ru/market/msg_prodam_1610251451.htm"),
-                Items: [""],
-                Body: ""),
+                Items: [""]),
             CancellationToken.None);
 
         Assert.That(contact, Is.EqualTo("Телефон: +7 (000) 000-00-00"));
@@ -300,14 +326,14 @@ public class ChipfindAdapterTests
         var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
         var saleAdvertisement = new SaleAdvertisement(
             Title: "title",
-            Seller: "seller",
+            SellerKey: "seller",
+            SellerName: "Seller",
             Date: DateTimeOffset.MaxValue,
             Link: new Uri("https://www.chipfind.ru/market/msg_prodam_1610251451.htm"),
-            Items: [""],
-            Body: "");
+            Items: [""]);
 
-        var firstContact = await adapter.TryGetAdvertisementContactAsync(saleAdvertisement, CancellationToken.None);
-        var secondContact = await adapter.TryGetAdvertisementContactAsync(saleAdvertisement, CancellationToken.None);
+        var firstContact = await adapter.TryGetContactAsync(saleAdvertisement, CancellationToken.None);
+        var secondContact = await adapter.TryGetContactAsync(saleAdvertisement, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {

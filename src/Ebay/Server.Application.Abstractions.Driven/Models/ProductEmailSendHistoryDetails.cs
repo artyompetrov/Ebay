@@ -6,7 +6,8 @@ namespace Server.Application.Abstractions.Driven.Models;
 public record ProductEmailSendHistoryDetails(
     Guid Id,
     Guid ProductId,
-    string Seller,
+    string SellerKey,
+    string SellerName,
     string Link,
     string Marketplace,
     bool IsAmbiguous,
