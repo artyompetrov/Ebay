@@ -17,6 +17,15 @@ public sealed class WriteModelDbContext : DbContext
     {
     }
 
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        base.ConfigureConventions(configurationBuilder);
+
+        // Npgsql writes DateTimeOffset to 'timestamp with time zone' only with offset 0, so the conversion to UTC
+        // lives here once instead of in every adapter or aggregate that produces a date with a local offset.
+        configurationBuilder.Properties<DateTimeOffset>().HaveConversion<UtcDateTimeOffsetConverter>();
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

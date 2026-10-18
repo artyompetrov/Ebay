@@ -33,6 +33,22 @@ public class ProductEmailSendHistoryRepositoryTests
     }
 
     [Test]
+    public async Task AddAsync_DateWithMoscowOffset_IsSavedAsTheSameInstantInUtc()
+    {
+        // qrz.ru dates carry the Moscow offset; Npgsql rejects non-UTC DateTimeOffset unless the write model converts it.
+        var moscowDate = new DateTimeOffset(2026, 10, 17, 6, 36, 0, TimeSpan.FromHours(3));
+        var productId = await CreateProductAsync();
+        var saved = await SaveAsync(productId, $"moscow-{Guid.NewGuid():N}", "Qrz", moscowDate);
+
+        await using var unitOfWork = await BeginAsync();
+        var loaded = await GetRepository().GetByIdAsync(unitOfWork, saved.Id, CancellationToken.None);
+
+        loaded.Should().NotBeNull();
+        loaded!.AdvertisementDate.Should().Be(moscowDate);
+        loaded.AdvertisementDate.Offset.Should().Be(TimeSpan.Zero);
+    }
+
+    [Test]
     [OpenSpecScenario("sale-advertisement-monitoring", "Records expire two years after their latest advertisement date", "Record older than two years is removed")]
     [OpenSpecScenario("sale-advertisement-monitoring", "Records expire two years after their latest advertisement date", "Record within two years is kept")]
     public async Task RemoveOlderThanAsync_CleanupOnOctober18_RemovesRecordOlderThanTwoYearsAndKeepsRecentOne()
