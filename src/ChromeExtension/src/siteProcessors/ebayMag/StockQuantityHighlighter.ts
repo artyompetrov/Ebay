@@ -1,34 +1,45 @@
-// Подсветка количества на странице ebaymag.com/stock: сравнивает количество в листинге с наличием лота.
-// Модуль зависит только от DOM, чтобы его можно было тестировать на снимке разметки (tests/).
+// Разметка строк ebaymag.com/stock для наших лотов: зелёный SKU, рядом маркер расхождения количества
+// с наличием и ссылка на страницу товара. Модуль зависит только от DOM, чтобы его можно было
+// тестировать на снимке разметки (tests/).
+
+export interface StockLot {
+    availableQuantity: number;
+    productUrl: string;
+}
 
 const SkuColumnHeader = 'SKU';
 const QuantityColumnHeader = 'Quantity';
 const KnownSkuColor = 'green';
-const QuantityOverStockColor = 'red';
-const QuantityUnderStockColor = '#d4a000';
-// Хранит исходные color/title элемента, чтобы при снятии подсветки вернуть то, что выставил ebaymag.
-const HighlightDatasetKey = 'ebayToolHighlight';
+const OverStockMarker = '❗';
+const UnderStockMarker = '⚠️';
+const ProductLinkText = '🔗';
+const ProductLinkTitle = 'Open the product in Ebay tool';
+// Хранит исходный inline-цвет SKU, чтобы при снятии подсветки вернуть то, что выставил ebaymag.
+const SkuColorDatasetKey = 'ebayToolSkuColor';
+const BadgesAttribute = 'data-ebay-tool-sku-badges';
+const BadgesStateDatasetKey = 'ebayToolSkuBadgesState';
 const CellSelector = 'div[role="cell"], div[role="columnheader"]';
+// Клики и нажатия по бейджам не должны доходить до обработчиков строки ebaymag (открытие редактора).
+const BlockedEvents = ['click', 'auxclick', 'mousedown', 'mouseup', 'pointerdown', 'pointerup'] as const;
 
 interface StockColumns {
     skuIndex: number;
     quantityIndex: number;
 }
 
-interface Highlight {
-    color: string;
-    title: string | null;
+interface StockMarker {
+    text: string;
+    title: string;
 }
 
-interface OriginalStyle {
+interface OriginalColor {
     color: string;
-    colorPriority: string;
-    title: string | null;
+    priority: string;
 }
 
 // Строки таблицы ebaymag переиспользуются и перерисовываются, поэтому на каждом проходе
-// подсветка выставляется заново и снимается там, где она больше не применима.
-export function highlightStockRows(root: ParentNode, availableQuantityByLotId: ReadonlyMap<string, number>): void {
+// разметка приводится к текущему SKU и количеству строки и снимается там, где больше не нужна.
+export function highlightStockRows(root: ParentNode, lotsById: ReadonlyMap<string, StockLot>): void {
     const rows = Array.from(root.querySelectorAll<HTMLElement>('div[role="row"]'));
     const columns = findStockColumns(rows);
     if (!columns) return;
@@ -38,20 +49,21 @@ export function highlightStockRows(root: ParentNode, availableQuantityByLotId: R
         const skuElement = cells[columns.skuIndex]?.querySelector<HTMLElement>('div[role="button"]');
         if (!skuElement) continue;
 
-        const quantityElement = cells[columns.quantityIndex]?.querySelector<HTMLElement>('button') ?? null;
-        const sku = skuElement.textContent?.trim() ?? '';
-        const availableQuantity = availableQuantityByLotId.get(sku);
-
-        if (availableQuantity === undefined) {
-            setHighlight(skuElement, null);
-            if (quantityElement) setHighlight(quantityElement, null);
+        const lot = lotsById.get(skuElement.textContent?.trim() ?? '');
+        if (!lot) {
+            setSkuColor(skuElement, null);
+            removeBadges(skuElement);
             continue;
         }
 
-        setHighlight(skuElement, { color: KnownSkuColor, title: null });
-        if (quantityElement) {
-            setHighlight(quantityElement, getQuantityHighlight(quantityElement, availableQuantity));
-        }
+        setSkuColor(skuElement, KnownSkuColor);
+
+        const listedQuantity = readListedQuantity(cells[columns.quantityIndex]);
+        // Пока ячейка количества в режиме редактирования, число не читается: оставляем бейджи как были,
+        // чтобы маркер не пропадал ровно тогда, когда оператор меняет количество.
+        if (listedQuantity === null && findBadges(skuElement)) continue;
+
+        renderBadges(skuElement, getStockMarker(listedQuantity, lot.availableQuantity), lot.productUrl);
     }
 }
 
@@ -74,57 +86,104 @@ function getRowCells(row: HTMLElement): HTMLElement[] {
         .filter(cell => cell.parentElement?.closest(CellSelector) === null);
 }
 
-function getQuantityHighlight(quantityElement: HTMLElement, availableQuantity: number): Highlight | null {
-    const quantityText = quantityElement.textContent?.trim() ?? '';
-    if (!/^\d+$/.test(quantityText)) return null;
+function readListedQuantity(quantityCell: HTMLElement | undefined): number | null {
+    const quantityText = quantityCell?.querySelector<HTMLElement>('button')?.textContent?.trim() ?? '';
+    return /^\d+$/.test(quantityText) ? Number(quantityText) : null;
+}
 
-    const listedQuantity = Number(quantityText);
+function getStockMarker(listedQuantity: number | null, availableQuantity: number): StockMarker | null {
+    if (listedQuantity === null) return null;
+
     if (listedQuantity > availableQuantity) {
-        return { color: QuantityOverStockColor, title: `Only ${availableQuantity} in stock` };
+        return {
+            text: OverStockMarker,
+            title: `Listed ${listedQuantity}, only ${availableQuantity} in stock: reduce the quantity`,
+        };
     }
 
     if (listedQuantity < availableQuantity) {
-        return { color: QuantityUnderStockColor, title: `${availableQuantity} in stock` };
+        return {
+            text: UnderStockMarker,
+            title: `Listed ${listedQuantity}, ${availableQuantity} in stock: the quantity can be increased`,
+        };
     }
 
     return null;
 }
 
-// Снимаем только то, что выставили сами, и возвращаем исходные color/title ebaymag.
-function setHighlight(element: HTMLElement, highlight: Highlight | null): void {
-    const savedOriginal = element.dataset[HighlightDatasetKey];
+function setSkuColor(skuElement: HTMLElement, color: string | null): void {
+    const savedOriginal = skuElement.dataset[SkuColorDatasetKey];
 
-    if (!highlight) {
+    if (color === null) {
         if (savedOriginal === undefined) return;
 
-        const original: OriginalStyle = JSON.parse(savedOriginal);
+        const original: OriginalColor = JSON.parse(savedOriginal);
         if (original.color) {
-            element.style.setProperty('color', original.color, original.colorPriority);
+            skuElement.style.setProperty('color', original.color, original.priority);
         } else {
-            element.style.removeProperty('color');
+            skuElement.style.removeProperty('color');
         }
-        setTitle(element, original.title);
-        delete element.dataset[HighlightDatasetKey];
+        delete skuElement.dataset[SkuColorDatasetKey];
         return;
     }
 
-    const original: OriginalStyle = savedOriginal === undefined
-        ? {
-            color: element.style.getPropertyValue('color'),
-            colorPriority: element.style.getPropertyPriority('color'),
-            title: element.getAttribute('title'),
-        }
-        : JSON.parse(savedOriginal);
-    element.dataset[HighlightDatasetKey] = JSON.stringify(original);
+    if (savedOriginal === undefined) {
+        const original: OriginalColor = {
+            color: skuElement.style.getPropertyValue('color'),
+            priority: skuElement.style.getPropertyPriority('color'),
+        };
+        skuElement.dataset[SkuColorDatasetKey] = JSON.stringify(original);
+    }
 
-    element.style.setProperty('color', highlight.color, 'important');
-    setTitle(element, highlight.title ?? original.title);
+    skuElement.style.setProperty('color', color, 'important');
 }
 
-function setTitle(element: HTMLElement, title: string | null): void {
-    if (title === null) {
-        element.removeAttribute('title');
+function findBadges(skuElement: HTMLElement): HTMLElement | null {
+    return skuElement.parentElement?.querySelector<HTMLElement>(`:scope > [${BadgesAttribute}]`) ?? null;
+}
+
+function removeBadges(skuElement: HTMLElement): void {
+    findBadges(skuElement)?.remove();
+}
+
+// Пересобираем бейджи только при изменении содержимого, чтобы не сбрасывать hover каждую секунду.
+function renderBadges(skuElement: HTMLElement, marker: StockMarker | null, productUrl: string): void {
+    const state = JSON.stringify({ marker, productUrl });
+    const existing = findBadges(skuElement);
+    if (existing?.dataset[BadgesStateDatasetKey] === state) return;
+
+    const document = skuElement.ownerDocument;
+    const badges = document.createElement('span');
+    badges.setAttribute(BadgesAttribute, 'true');
+    badges.dataset[BadgesStateDatasetKey] = state;
+    badges.style.marginLeft = '4px';
+    badges.style.whiteSpace = 'nowrap';
+    for (const eventName of BlockedEvents) {
+        badges.addEventListener(eventName, event => event.stopPropagation());
+    }
+
+    if (marker) {
+        const markerElement = document.createElement('span');
+        markerElement.setAttribute('data-ebay-tool-stock-marker', 'true');
+        markerElement.textContent = marker.text;
+        markerElement.title = marker.title;
+        markerElement.style.cursor = 'help';
+        badges.appendChild(markerElement);
+    }
+
+    const link = document.createElement('a');
+    link.setAttribute('data-ebay-tool-product-link', 'true');
+    link.href = productUrl;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = ProductLinkText;
+    link.title = ProductLinkTitle;
+    link.style.textDecoration = 'none';
+    badges.appendChild(link);
+
+    if (existing) {
+        existing.replaceWith(badges);
     } else {
-        element.title = title;
+        skuElement.after(badges);
     }
 }

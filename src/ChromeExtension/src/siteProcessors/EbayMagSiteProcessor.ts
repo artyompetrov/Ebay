@@ -1,7 +1,8 @@
 import { ISiteProcessor } from './ISiteProcessor';
 import * as utils from "../infrastructure/Utils";
 import { ClientsFactory } from "../clients/ClientsFactory";
-import { highlightStockRows } from "./ebayMag/StockQuantityHighlighter";
+import { highlightStockRows, StockLot } from "./ebayMag/StockQuantityHighlighter";
+import { getProductMeasurementsUrl } from "../constants";
 import type { EbayToolWebApiClient as EbayToolWebApiClientType } from "../clients/Generated/EbayToolWebApiClient";
 
 export function tryGetEbayMagSiteProcessor(): ISiteProcessor | null {
@@ -26,13 +27,15 @@ class EbayMagSiteProcessor implements ISiteProcessor {
         this.backendClient = await clientsFactory.getEbayToolWebApiClient();
 
         const lotsForSale = await this.backendClient.getLotForSales();
-        const availableQuantityByLotId: ReadonlyMap<string, number> =
-            new Map(lotsForSale.map(x => [x.id, x.availableQuantity]));
+        const stockLotsById: ReadonlyMap<string, StockLot> = new Map(lotsForSale.map(x => [x.id, {
+            availableQuantity: x.availableQuantity,
+            productUrl: getProductMeasurementsUrl(x.productId),
+        }]));
 
         const startBackground = async () => {
             while (true) {
                 try {
-                    highlightStockRows(document, availableQuantityByLotId);
+                    highlightStockRows(document, stockLotsById);
                     await this.searchForDescription();
                 }
                 catch (e) {
