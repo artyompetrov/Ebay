@@ -7,7 +7,7 @@ Fetching and parsing chipfind.ru's public sale-advertisement feed into structure
 ## Requirements
 
 ### Requirement: Sale advertisement feed parsing
-The system SHALL fetch chipfind.ru's sale advertisement feed and parse each feed item into a title, a normalized (lowercased) seller name, a publication date, a link, and a flat list of individual sale items extracted from the item's description - whether those items are wrapped in `<pre>` tags, mixed with plain `<br>`-separated lines, or entirely plain lines.
+The system SHALL fetch chipfind.ru's sale advertisement feed and parse each feed item into a title, a seller key (the seller name lowercased, since chipfind.ru exposes no synthetic seller id), a seller display name (the seller name as published), a publication date, a link, and a flat list of individual sale items extracted from the item's description - whether those items are wrapped in `<pre>` tags, mixed with plain `<br>`-separated lines, or entirely plain lines.
 
 #### Scenario: Parses pre-formatted description items
 - **WHEN** a feed item's description wraps each sale line in `<pre>` tags
@@ -20,6 +20,10 @@ The system SHALL fetch chipfind.ru's sale advertisement feed and parse each feed
 #### Scenario: Parses a description of only plain lines
 - **WHEN** a feed item's description contains only plain `<br>`-separated lines
 - **THEN** every line is extracted as a separate sale item, and no warning is logged
+
+#### Scenario: Seller key is lowercased and display name is kept as published
+- **WHEN** a feed item's title is "Лампы 6Н2П [Ivan Petrov]"
+- **THEN** the advertisement's seller key is "ivan petrov" and its seller display name is "Ivan Petrov"
 
 ### Requirement: Malformed sale advertisement feed items are skipped
 A feed item missing a required field (title, link, description, publication date), whose title does not match the "text [seller]" format, whose publication date cannot be parsed, or whose link is not a valid absolute URI SHALL be skipped with a logged warning, without failing the parsing of the other well-formed items in the same feed.
