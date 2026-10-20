@@ -17,10 +17,17 @@ public sealed class QrzAdapterTests
     private const string ListingHref = "/classifieds/detail/radiolampy-6s19p-w_439891";
     private const string SellerHash = "af7abbd4175636376db6b7c22d1809c8";
 
+    private const string SellType = "type=0";
+
+    // Now = 15:00 по Москве: «Сегодня 14:30» попадает в двухчасовое окно свежести, «Сегодня 11:00» - нет.
+    private const string RecentDate = "Сегодня 14:30";
+    private const string StaleDate = "Сегодня 11:00";
+
     private static readonly DateTimeOffset Now = new(2026, 10, 18, 12, 0, 0, TimeSpan.Zero);
 
     [Test]
     [OpenSpecScenario("qrz-monitoring", "Configured categories are polled for offers only", "One category produces three list requests")]
+    [OpenSpecScenario("qrz-monitoring", "Recent list pages are read until entries get older than the lookback window", "Paging stops at a page older than the lookback window")]
     public async Task GetRecentAdvertisementsAsync_OneCategory_RequestsDateSortedFirstPageForSellExchangeAndGiveAway()
     {
         var handler = new RoutingHandler(listPage: static _ => QrzHtml.ListPage());
@@ -34,6 +41,78 @@ public sealed class QrzAdapterTests
             $"{ListPagePath}?o=date&type=2",
             $"{ListPagePath}?o=date&type=3"
         ]);
+    }
+
+    [Test]
+    [OpenSpecScenario("qrz-monitoring", "Recent list pages are read until entries get older than the lookback window", "Next page is read while the page has recent entries")]
+    public async Task GetRecentAdvertisementsAsync_PagesWithRecentEntries_ReadsNextPagesUntilStalePage()
+    {
+        var handler = new RoutingHandler(listPage: static query => (IsSellType(query), GetPage(query)) switch
+        {
+            (true, 1) => QrzHtml.ListPage(QrzHtml.ListEntry(DetailHref(1), RecentDate)),
+            (true, 2) => QrzHtml.ListPage(QrzHtml.ListEntry(DetailHref(2), RecentDate), QrzHtml.ListEntry(DetailHref(3), StaleDate)),
+            (true, 3) => QrzHtml.ListPage(QrzHtml.ListEntry(DetailHref(4), StaleDate)),
+            (true, _) => QrzHtml.ListPage(QrzHtml.ListEntry(DetailHref(5), StaleDate)),
+            _ => QrzHtml.ListPage()
+        });
+        var adapter = CreateAdapter(handler, ["components/tubes"]);
+
+        var advertisements = await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
+
+        SellListRequests(handler).Should().Equal(
+            $"{ListPagePath}?o=date&type=0",
+            $"{ListPagePath}?o=date&type=0&p=2",
+            $"{ListPagePath}?o=date&type=0&p=3");
+        advertisements.Select(static x => x.Link.AbsolutePath).Should().BeEquivalentTo(
+            [DetailHref(1), DetailHref(2), DetailHref(3), DetailHref(4)]);
+    }
+
+    [Test]
+    [OpenSpecScenario("qrz-monitoring", "Recent list pages are read until entries get older than the lookback window", "Paging stops at an empty page")]
+    public async Task GetRecentAdvertisementsAsync_EmptyNextPage_StopsPaging()
+    {
+        var handler = new RoutingHandler(listPage: static query => IsSellType(query) && GetPage(query) == 1
+            ? QrzHtml.ListPage(QrzHtml.ListEntry(DetailHref(1), RecentDate))
+            : QrzHtml.ListPage());
+        var adapter = CreateAdapter(handler, ["components/tubes"]);
+
+        await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
+
+        SellListRequests(handler).Should().Equal(
+            $"{ListPagePath}?o=date&type=0",
+            $"{ListPagePath}?o=date&type=0&p=2");
+    }
+
+    [Test]
+    [OpenSpecScenario("qrz-monitoring", "Recent list pages are read until entries get older than the lookback window", "Paging stops at a page without new listings")]
+    public async Task GetRecentAdvertisementsAsync_SamePageReturnedForEveryPageNumber_StopsPaging()
+    {
+        var handler = new RoutingHandler(listPage: static query => IsSellType(query)
+            ? QrzHtml.ListPage(QrzHtml.ListEntry(DetailHref(1), RecentDate))
+            : QrzHtml.ListPage());
+        var adapter = CreateAdapter(handler, ["components/tubes"]);
+
+        await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
+
+        SellListRequests(handler).Should().HaveCount(2);
+    }
+
+    [Test]
+    [OpenSpecScenario("qrz-monitoring", "Recent list pages are read until entries get older than the lookback window", "Paging stops at the page limit")]
+    public async Task GetRecentAdvertisementsAsync_EveryPageRecent_StopsAtPageLimitWithWarning()
+    {
+        const int maxListPages = 3;
+        var handler = new RoutingHandler(listPage: static query => IsSellType(query)
+            ? QrzHtml.ListPage(QrzHtml.ListEntry(DetailHref(GetPage(query)), RecentDate))
+            : QrzHtml.ListPage());
+        var logger = new RecordingLogger<QrzAdapter>();
+        var adapter = CreateAdapter(handler, ["components/tubes"], logger, maxListPages);
+
+        var advertisements = await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
+
+        SellListRequests(handler).Should().HaveCount(maxListPages);
+        advertisements.Should().HaveCount(maxListPages);
+        logger.HasWarning.Should().BeTrue();
     }
 
     [Test]
@@ -132,13 +211,39 @@ public sealed class QrzAdapterTests
         handler.Requests.Should().BeEmpty();
     }
 
-    private static QrzAdapter CreateAdapter(RoutingHandler handler, string[] categories) =>
-        new(
-            new RecordingLogger<QrzAdapter>(),
+    private static QrzAdapter CreateAdapter(
+        RoutingHandler handler,
+        string[] categories,
+        RecordingLogger<QrzAdapter>? logger = null,
+        int? maxListPages = null)
+    {
+        var options = new QrzAdapterOptions { Categories = categories, RequestDelay = TimeSpan.Zero };
+
+        return new QrzAdapter(
+            logger ?? new RecordingLogger<QrzAdapter>(),
             new SingleClientFactory(new HttpClient(handler)),
             new MemoryCache(new MemoryCacheOptions()),
             new FixedTimeProvider(Now),
-            Options.Create(new QrzAdapterOptions { Categories = categories, RequestDelay = TimeSpan.Zero }));
+            Options.Create(maxListPages is { } pages ? options with { MaxListPages = pages } : options));
+    }
+
+    private static string DetailHref(int id) => $"/classifieds/detail/lampa_{id}";
+
+    private static bool IsSellType(string query) => query.Contains(SellType, StringComparison.Ordinal);
+
+    private static int GetPage(string query)
+    {
+        const string pagePrefix = "&p=";
+        var index = query.IndexOf(pagePrefix, StringComparison.Ordinal);
+        return index < 0 ? 1 : int.Parse(query[(index + pagePrefix.Length)..], System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    private static string[] SellListRequests(RoutingHandler handler) =>
+    [
+        .. handler.Requests
+            .Where(static x => x.AbsolutePath == ListPagePath && IsSellType(x.Query))
+            .Select(static x => x.PathAndQuery)
+    ];
 
     private sealed class RoutingHandler : HttpMessageHandler
     {

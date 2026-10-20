@@ -10,8 +10,9 @@ using Server.Application.Abstractions.Driven.Models;
 namespace Server.Adapters.Driven.Qrz;
 
 /// <summary>
-/// Источник объявлений о продаже с доски qrz.ru: первая страница каждой настроенной категории (по дате) для типов
-/// «продам», «меняю», «подарю», затем страница каждого нового или изменившегося объявления.
+/// Источник объявлений о продаже с доски qrz.ru: страницы списка каждой настроенной категории (по дате) для типов
+/// «продам», «меняю», «подарю», пока на странице есть свежие объявления, затем страница каждого нового или
+/// изменившегося объявления.
 /// </summary>
 internal sealed class QrzAdapter : ISaleAdvertisementAdapter
 {
@@ -47,7 +48,7 @@ internal sealed class QrzAdapter : ISaleAdvertisementAdapter
         {
             foreach (var offerType in WellKnown.OfferTypes)
             {
-                foreach (var listing in await FetchListPageAsync(category, offerType, cancellationToken))
+                foreach (var listing in await FetchRecentListingsAsync(category, offerType, cancellationToken))
                 {
                     if (!listings.TryGetValue(listing.Id, out var known) || listing.Date > known.Date)
                     {
@@ -80,15 +81,50 @@ internal sealed class QrzAdapter : ISaleAdvertisementAdapter
     public Task<string?> TryGetContactAsync(SaleAdvertisement saleAdvertisement, CancellationToken cancellationToken) =>
         Task.FromResult<string?>(QrzListingPageParser.GetProfileUri(saleAdvertisement.SellerKey).ToString());
 
-    private async Task<QrzListing[]> FetchListPageAsync(string category, int offerType, CancellationToken cancellationToken)
+    /// <summary>
+    /// Читает страницы списка по порядку, пока на них есть объявления свежее окна <see cref="QrzAdapterOptions.ListLookback"/>:
+    /// массовое поднятие объявлений за несколько минут вытесняет свежие объявления с первой страницы.
+    /// Остановка: страница целиком старше окна, пустая страница (за последней страницей qrz.ru отдаёт пустую),
+    /// страница без новых объявлений (защита от повтора одной и той же страницы) или лимит страниц.
+    /// </summary>
+    private async Task<List<QrzListing>> FetchRecentListingsAsync(string category, int offerType, CancellationToken cancellationToken)
+    {
+        var cutoff = _timeProvider.GetUtcNow() - _options.ListLookback;
+        var seenIds = new HashSet<long>();
+        var result = new List<QrzListing>();
+
+        for (var page = 1; page <= _options.MaxListPages; page++)
+        {
+            var listings = await FetchListPageAsync(category, offerType, page, cancellationToken);
+            var newListings = listings.Where(x => seenIds.Add(x.Id)).ToArray();
+            result.AddRange(newListings);
+
+            if (newListings.Length == 0 || newListings.All(x => x.Date < cutoff))
+            {
+                return result;
+            }
+        }
+
+        _logger.LogWarning(
+            "Stopped reading qrz.ru category {Category} (type {OfferType}) at the {MaxListPages}-page limit while pages still had recent listings; older recent listings may be missed",
+            category,
+            offerType,
+            _options.MaxListPages);
+
+        return result;
+    }
+
+    private async Task<QrzListing[]> FetchListPageAsync(string category, int offerType, int page, CancellationToken cancellationToken)
     {
         using var activity = ActivitySource.StartActivity(WellKnown.Tracing.ListPageSpan);
         activity?.SetTag(WellKnown.Tracing.CategoryTag, category);
         activity?.SetTag(WellKnown.Tracing.OfferTypeTag, offerType);
+        activity?.SetTag(WellKnown.Tracing.PageTag, page);
 
+        var pageQuery = page == 1 ? string.Empty : $"&p={page.ToString(CultureInfo.InvariantCulture)}";
         var uri = new Uri(
             WellKnown.BaseUri,
-            $"classifieds/category/{category.Trim('/')}?o=date&type={offerType.ToString(CultureInfo.InvariantCulture)}");
+            $"classifieds/category/{category.Trim('/')}?o=date&type={offerType.ToString(CultureInfo.InvariantCulture)}{pageQuery}");
 
         try
         {

@@ -31,6 +31,21 @@ public sealed class QrzAdapterOptionsTests
         Validate(new QrzAdapterOptions { Categories = ["components/tubes", "components/other"] }).Should().BeEmpty();
     }
 
+    [TestCase(0)]
+    [TestCase(101)]
+    public void Validate_MaxListPagesOutOfRange_Fails(int maxListPages)
+    {
+        Validate(new QrzAdapterOptions { MaxListPages = maxListPages }).Should().ContainSingle()
+            .Which.MemberNames.Should().Equal(nameof(QrzAdapterOptions.MaxListPages));
+    }
+
+    [Test]
+    public void Validate_NegativeListLookback_Fails()
+    {
+        Validate(new QrzAdapterOptions { ListLookback = TimeSpan.FromMinutes(-1) }).Should().ContainSingle()
+            .Which.MemberNames.Should().Equal(nameof(QrzAdapterOptions.ListLookback));
+    }
+
     private static List<ValidationResult> Validate(QrzAdapterOptions options)
     {
         var results = new List<ValidationResult>();

@@ -50,6 +50,7 @@ internal static class WellKnown
         public const string ListingPageSpan = "qrz.listing-page";
         public const string CategoryTag = "category";
         public const string OfferTypeTag = "offer.type";
+        public const string PageTag = "page";
         public const string ListingIdTag = "listing.id";
         public const string CacheHitTag = "cache.hit";
     }
