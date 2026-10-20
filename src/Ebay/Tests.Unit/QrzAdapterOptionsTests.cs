@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using AwesomeAssertions;
 using Server.Adapters.Driven.Qrz;
 
@@ -39,10 +40,11 @@ public sealed class QrzAdapterOptionsTests
             .Which.MemberNames.Should().Equal(nameof(QrzAdapterOptions.MaxListPages));
     }
 
-    [Test]
-    public void Validate_NegativeListLookback_Fails()
+    [TestCase("00:29:00")]
+    [TestCase("7.00:01:00")]
+    public void Validate_ListLookbackOutOfRange_Fails(string listLookback)
     {
-        Validate(new QrzAdapterOptions { ListLookback = TimeSpan.FromMinutes(-1) }).Should().ContainSingle()
+        Validate(new QrzAdapterOptions { ListLookback = TimeSpan.Parse(listLookback, CultureInfo.InvariantCulture) }).Should().ContainSingle()
             .Which.MemberNames.Should().Equal(nameof(QrzAdapterOptions.ListLookback));
     }
 

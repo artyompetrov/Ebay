@@ -16,6 +16,8 @@ namespace Server.Adapters.Driven.Qrz;
 /// </summary>
 internal sealed class QrzAdapter : ISaleAdvertisementAdapter
 {
+    private const int FirstPage = 1;
+
     private static readonly ActivitySource ActivitySource = new(WellKnown.Tracing.ActivitySourceName);
 
     private readonly ILogger<QrzAdapter> _logger;
@@ -82,10 +84,12 @@ internal sealed class QrzAdapter : ISaleAdvertisementAdapter
         Task.FromResult<string?>(QrzListingPageParser.GetProfileUri(saleAdvertisement.SellerKey).ToString());
 
     /// <summary>
-    /// Читает страницы списка по порядку, пока на них есть объявления свежее окна <see cref="QrzAdapterOptions.ListLookback"/>:
-    /// массовое поднятие объявлений за несколько минут вытесняет свежие объявления с первой страницы.
-    /// Остановка: страница целиком старше окна, пустая страница (за последней страницей qrz.ru отдаёт пустую),
-    /// страница без новых объявлений (защита от повтора одной и той же страницы) или лимит страниц.
+    /// Читает страницы списка по порядку, пока на них есть новые объявления свежее окна
+    /// <see cref="QrzAdapterOptions.ListLookback"/>: массовое поднятие объявлений за несколько минут вытесняет свежие
+    /// объявления с первой страницы. Первая страница берётся целиком, со следующих - только свежие объявления, чтобы
+    /// холодный старт после перезапуска не перечитывал страницы старых объявлений.
+    /// Остановка: на странице нет новых свежих объявлений (это же покрывает пустую страницу за последней и повтор
+    /// уже прочитанной страницы), ошибка чтения не первой страницы или лимит страниц.
     /// </summary>
     private async Task<List<QrzListing>> FetchRecentListingsAsync(string category, int offerType, CancellationToken cancellationToken)
     {
@@ -93,13 +97,48 @@ internal sealed class QrzAdapter : ISaleAdvertisementAdapter
         var seenIds = new HashSet<long>();
         var result = new List<QrzListing>();
 
-        for (var page = 1; page <= _options.MaxListPages; page++)
+        for (var page = FirstPage; page <= _options.MaxListPages; page++)
         {
-            var listings = await FetchListPageAsync(category, offerType, page, cancellationToken);
-            var newListings = listings.Where(x => seenIds.Add(x.Id)).ToArray();
-            result.AddRange(newListings);
+            QrzListing[] listings;
 
-            if (newListings.Length == 0 || newListings.All(x => x.Date < cutoff))
+            try
+            {
+                listings = await FetchListPageAsync(category, offerType, page, cancellationToken);
+            }
+            catch (Exception e) when (page > FirstPage
+                                      && e is HttpRequestException or TaskCanceledException
+                                      && !cancellationToken.IsCancellationRequested)
+            {
+                // Уже собранное не теряем: пропущенное догонит следующий прогон, пока окно свежести его покрывает.
+                _logger.LogWarning(
+                    e,
+                    "Failed to fetch qrz.ru list page {Page} of category {Category} (type {OfferType}); keeping {ListingCount} listings from earlier pages",
+                    page,
+                    category,
+                    offerType,
+                    result.Count);
+                return result;
+            }
+
+            var hasRecentListing = false;
+
+            foreach (var listing in listings)
+            {
+                if (!seenIds.Add(listing.Id))
+                {
+                    continue;
+                }
+
+                var isRecent = listing.Date >= cutoff;
+                hasRecentListing |= isRecent;
+
+                if (page == FirstPage || isRecent)
+                {
+                    result.Add(listing);
+                }
+            }
+
+            if (!hasRecentListing)
             {
                 return result;
             }
@@ -121,7 +160,7 @@ internal sealed class QrzAdapter : ISaleAdvertisementAdapter
         activity?.SetTag(WellKnown.Tracing.OfferTypeTag, offerType);
         activity?.SetTag(WellKnown.Tracing.PageTag, page);
 
-        var pageQuery = page == 1 ? string.Empty : $"&p={page.ToString(CultureInfo.InvariantCulture)}";
+        var pageQuery = page == FirstPage ? string.Empty : $"&p={page.ToString(CultureInfo.InvariantCulture)}";
         var uri = new Uri(
             WellKnown.BaseUri,
             $"classifieds/category/{category.Trim('/')}?o=date&type={offerType.ToString(CultureInfo.InvariantCulture)}{pageQuery}");

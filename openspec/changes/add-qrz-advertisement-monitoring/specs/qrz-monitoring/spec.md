@@ -18,15 +18,19 @@ For each configured qrz.ru category, the system SHALL read the list sorted by da
 - **THEN** the collected advertisements contain that listing once
 
 ### Requirement: Recent list pages are read until entries get older than the lookback window
-Within one category and offer type, the system SHALL request the next list page while the current page has a newly seen listing within the lookback window (default 2 hours). Paging SHALL stop at a page that is empty, adds no new listing, or has only listings older than the window, and after the page limit (default 10) with a logged warning. Every listing on the pages read SHALL be collected.
+Within one category and offer type, the system SHALL request the next list page while the current page has a newly seen listing within the lookback window (default 2 hours). Paging SHALL stop at a page that is empty, adds no new listing, or has only listings older than the window, and after the page limit (default 10) with a logged warning. Every listing on the first page SHALL be collected; later pages SHALL contribute only listings within the window.
 
 #### Scenario: Next page is read while the page has recent entries
 - **WHEN** the first sell page has a listing from 30 minutes ago, the second page has one listing from 30 minutes ago and one from 4 hours ago, and the third page has only listings from 4 hours ago
-- **THEN** exactly the first three sell pages are requested, and every listing from them is collected
+- **THEN** exactly the first three sell pages are requested
+
+#### Scenario: Later pages contribute only recent listings
+- **WHEN** the first sell page has a listing from 30 minutes ago and one from 4 hours ago, and the second page has one listing from 30 minutes ago and one from 4 hours ago
+- **THEN** both first-page listings and only the recent second-page listing are collected
 
 #### Scenario: Paging stops at a page older than the lookback window
-- **WHEN** every listing on the first sell page is older than the lookback window
-- **THEN** the second sell page is not requested
+- **WHEN** every listing on the first page of each offer type is older than the lookback window
+- **THEN** no second page is requested, and the first-page listings are collected
 
 #### Scenario: Paging stops at an empty page
 - **WHEN** the first sell page has a recent listing and the second sell page has no entries
@@ -39,6 +43,13 @@ Within one category and offer type, the system SHALL request the next list page 
 #### Scenario: Paging stops at the page limit
 - **WHEN** every sell page has a new recent listing and the page limit is 3
 - **THEN** exactly three sell pages are requested, their listings are collected, and a warning is logged
+
+### Requirement: A failed later list page keeps the listings already collected
+If a list page after the first cannot be fetched, the system SHALL log a warning, stop paging that category and offer type, and keep the listings collected from earlier pages. A failure on the first page SHALL fail the collection as before, so the monitoring run logs it as an error.
+
+#### Scenario: Failure on the second page keeps first-page listings
+- **WHEN** the first sell page has a recent listing and the request for the second sell page fails
+- **THEN** the first-page listing is collected, no further sell page is requested, and a warning is logged
 
 ### Requirement: List page parsing
 The system SHALL extract from each list-page entry the listing id (the number after the last underscore of its `/classifieds/detail/` link), the absolute listing link and the publication date. Dates SHALL be read as Moscow time (UTC+3), either as `dd.MM.yyyy HH:mm` or as "Сегодня HH:mm" / "Вчера HH:mm" relative to the current Moscow date. An entry without a parsable id, link or date SHALL be skipped with a logged warning, without failing the other entries.

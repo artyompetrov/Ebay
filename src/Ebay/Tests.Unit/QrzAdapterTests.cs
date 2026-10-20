@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using AwesomeAssertions;
 using Microsoft.Extensions.Caching.Memory;
@@ -28,14 +29,15 @@ public sealed class QrzAdapterTests
     [Test]
     [OpenSpecScenario("qrz-monitoring", "Configured categories are polled for offers only", "One category produces three list requests")]
     [OpenSpecScenario("qrz-monitoring", "Recent list pages are read until entries get older than the lookback window", "Paging stops at a page older than the lookback window")]
-    public async Task GetRecentAdvertisementsAsync_OneCategory_RequestsDateSortedFirstPageForSellExchangeAndGiveAway()
+    public async Task GetRecentAdvertisementsAsync_FirstPagesOlderThanLookback_RequestsOnlyFirstPageForSellExchangeAndGiveAway()
     {
-        var handler = new RoutingHandler(listPage: static _ => QrzHtml.ListPage());
+        var handler = new RoutingHandler(listPage: static query => QrzHtml.ListPage(QrzHtml.ListEntry(DetailHref(OfferTypeId(query)), StaleDate)));
         var adapter = CreateAdapter(handler, ["components/tubes"]);
 
-        await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
+        var advertisements = await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
 
-        handler.Requests.Select(static x => x.PathAndQuery).Should().BeEquivalentTo(
+        advertisements.Should().HaveCount(3);
+        ListRequests(handler).Should().BeEquivalentTo(
         [
             $"{ListPagePath}?o=date&type=0",
             $"{ListPagePath}?o=date&type=2",
@@ -45,11 +47,12 @@ public sealed class QrzAdapterTests
 
     [Test]
     [OpenSpecScenario("qrz-monitoring", "Recent list pages are read until entries get older than the lookback window", "Next page is read while the page has recent entries")]
+    [OpenSpecScenario("qrz-monitoring", "Recent list pages are read until entries get older than the lookback window", "Later pages contribute only recent listings")]
     public async Task GetRecentAdvertisementsAsync_PagesWithRecentEntries_ReadsNextPagesUntilStalePage()
     {
         var handler = new RoutingHandler(listPage: static query => (IsSellType(query), GetPage(query)) switch
         {
-            (true, 1) => QrzHtml.ListPage(QrzHtml.ListEntry(DetailHref(1), RecentDate)),
+            (true, 1) => QrzHtml.ListPage(QrzHtml.ListEntry(DetailHref(1), RecentDate), QrzHtml.ListEntry(DetailHref(6), StaleDate)),
             (true, 2) => QrzHtml.ListPage(QrzHtml.ListEntry(DetailHref(2), RecentDate), QrzHtml.ListEntry(DetailHref(3), StaleDate)),
             (true, 3) => QrzHtml.ListPage(QrzHtml.ListEntry(DetailHref(4), StaleDate)),
             (true, _) => QrzHtml.ListPage(QrzHtml.ListEntry(DetailHref(5), StaleDate)),
@@ -64,7 +67,7 @@ public sealed class QrzAdapterTests
             $"{ListPagePath}?o=date&type=0&p=2",
             $"{ListPagePath}?o=date&type=0&p=3");
         advertisements.Select(static x => x.Link.AbsolutePath).Should().BeEquivalentTo(
-            [DetailHref(1), DetailHref(2), DetailHref(3), DetailHref(4)]);
+            [DetailHref(1), DetailHref(6), DetailHref(2)]);
     }
 
     [Test]
@@ -112,7 +115,41 @@ public sealed class QrzAdapterTests
 
         SellListRequests(handler).Should().HaveCount(maxListPages);
         advertisements.Should().HaveCount(maxListPages);
-        logger.HasWarning.Should().BeTrue();
+        logger.HasWarningContaining("page limit").Should().BeTrue();
+    }
+
+    [Test]
+    [OpenSpecScenario("qrz-monitoring", "A failed later list page keeps the listings already collected", "Failure on the second page keeps first-page listings")]
+    public async Task GetRecentAdvertisementsAsync_SecondPageFails_ReturnsFirstPageListingsWithWarning()
+    {
+        var handler = new RoutingHandler(listPage: static query => IsSellType(query)
+            ? QrzHtml.ListPage(QrzHtml.ListEntry(DetailHref(GetPage(query)), RecentDate))
+            : QrzHtml.ListPage())
+        {
+            FailListQuery = static query => IsSellType(query) && GetPage(query) == 2
+        };
+        var logger = new RecordingLogger<QrzAdapter>();
+        var adapter = CreateAdapter(handler, ["components/tubes"], logger);
+
+        var advertisements = await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
+
+        SellListRequests(handler).Should().HaveCount(2);
+        advertisements.Should().ContainSingle().Which.Link.AbsolutePath.Should().Be(DetailHref(1));
+        logger.HasWarningContaining("list page 2").Should().BeTrue();
+    }
+
+    [Test]
+    public async Task GetRecentAdvertisementsAsync_FirstPageFails_Throws()
+    {
+        var handler = new RoutingHandler(listPage: static _ => QrzHtml.ListPage())
+        {
+            FailListQuery = static _ => true
+        };
+        var adapter = CreateAdapter(handler, ["components/tubes"]);
+
+        var act = () => adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
+
+        await act.Should().ThrowAsync<HttpRequestException>();
     }
 
     [Test]
@@ -235,8 +272,22 @@ public sealed class QrzAdapterTests
     {
         const string pagePrefix = "&p=";
         var index = query.IndexOf(pagePrefix, StringComparison.Ordinal);
-        return index < 0 ? 1 : int.Parse(query[(index + pagePrefix.Length)..], System.Globalization.CultureInfo.InvariantCulture);
+        return index < 0 ? 1 : int.Parse(query[(index + pagePrefix.Length)..], CultureInfo.InvariantCulture);
     }
+
+    private static int OfferTypeId(string query)
+    {
+        const string typePrefix = "type=";
+        var index = query.IndexOf(typePrefix, StringComparison.Ordinal);
+        return int.Parse(query.AsSpan(index + typePrefix.Length, 1), CultureInfo.InvariantCulture);
+    }
+
+    private static string[] ListRequests(RoutingHandler handler) =>
+    [
+        .. handler.Requests
+            .Where(static x => x.AbsolutePath == ListPagePath)
+            .Select(static x => x.PathAndQuery)
+    ];
 
     private static string[] SellListRequests(RoutingHandler handler) =>
     [
@@ -256,6 +307,8 @@ public sealed class QrzAdapterTests
         }
 
         public int FailListingRequests { get; set; }
+
+        public Func<string, bool>? FailListQuery { get; init; }
 
         public IReadOnlyList<Uri> Requests
         {
@@ -288,6 +341,11 @@ public sealed class QrzAdapterTests
                 }
 
                 return Ok(QrzHtml.ListingPage("Радиолампы 6С19П-В", "Иван Петров.", $"/user/{SellerHash}", "6С19П-В новые"));
+            }
+
+            if (FailListQuery?.Invoke(uri.Query) == true)
+            {
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.BadGateway));
             }
 
             return Ok(_listPage(uri.Query));
