@@ -33,6 +33,10 @@ processors:
 exporters:
   otlphttp/loki:
     endpoint: http://ebay_loki:3100/otlp
+  otlp/tempo:
+    endpoint: ebay_tempo:4317
+    tls:
+      insecure: true
   debug:
     verbosity: detailed
 
@@ -42,3 +46,8 @@ service:
       receivers: [otlp]
       processors: [transform/level, groupbyattrs/level, transform/promote_level, batch]
       exporters: [debug, otlphttp/loki]
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      # No debug exporter here: detailed output for every span would flood the collector's stdout.
+      exporters: [otlp/tempo]

@@ -50,7 +50,7 @@ public static class WellKnown
         public static readonly TimeSpan DelayAfterEmail = TimeSpan.FromSeconds(5);
 
         /// <summary>
-        /// Имя источника спанов мониторинга объявлений (для будущей подписки трассировки через AddSource).
+        /// Имя источника спанов мониторинга объявлений. Экспортируется платформой, потому что начинается с <c>Server.</c>.
         /// </summary>
         public const string ActivitySourceName = "Server.Application.SaleAdvertisements";
 

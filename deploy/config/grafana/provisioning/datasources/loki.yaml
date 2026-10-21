@@ -2,6 +2,18 @@ apiVersion: 1
 datasources:
   - name: Loki
     type: loki
+    # Pinned to the UID Grafana generated for this datasource: the Loki dashboard and the Tempo datasource's
+    # trace-to-logs link refer to it.
+    uid: P8E80F9AEF21F6940
     access: proxy
     url: http://ebay_loki:3100
     isDefault: true
+    jsonData:
+      derivedFields:
+        # Log records written inside a span carry trace_id as structured metadata: link it to the trace in Tempo.
+        - name: TraceID
+          matcherType: label
+          matcherRegex: trace_id
+          datasourceUid: tempo
+          url: '${__value.raw}'
+          urlDisplayLabel: View trace

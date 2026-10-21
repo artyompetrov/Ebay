@@ -1,0 +1,35 @@
+# Grafana Tempo, single binary: stores traces received from ebay_otelcollector and serves them to Grafana.
+# See openspec/specs/observability-tracing.
+
+server:
+  http_listen_port: 3200
+  log_level: info
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          # Explicit bind: recent Tempo versions listen on localhost by default.
+          # Reachable only on the internal docker network, no ports are published.
+          endpoint: 0.0.0.0:4317
+
+ingester:
+  # Flush blocks often: a single small server, no need to keep traces in memory for long.
+  max_block_duration: 5m
+
+compactor:
+  compaction:
+    # 7 days.
+    block_retention: 168h
+
+storage:
+  trace:
+    backend: local
+    wal:
+      path: /var/tempo/wal
+    local:
+      path: /var/tempo/blocks
+
+usage_report:
+  reporting_enabled: false
