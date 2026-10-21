@@ -39,6 +39,9 @@ public static class ServiceCollectionExtensions
         ConfigureIdentity(services);
         DisableRegistrationPages(services);
 
+        services.AddSingleton<UnreadableSigningKeyCleaner>();
+        services.AddHostedService<UnreadableSigningKeyCleanupHostedService>();
+
         MakeContextOptionsConfigurationsSingleton(services);
     }
 
