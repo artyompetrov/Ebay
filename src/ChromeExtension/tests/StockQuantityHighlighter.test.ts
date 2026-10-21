@@ -9,7 +9,7 @@ const fixtureHtml = readFileSync(new URL('./fixtures/ebaymag-stock-table.html', 
 const SkuCellIndex = 1;
 const QuantityCellIndex = 2;
 const ProductId = '707ae646-8334-41e3-ad24-15164d5b2377';
-const ProductUrl = `https://anode.su/Product/${ProductId}/Measurements`;
+const ProductUrl = `https://example.com/Product/${ProductId}/Measurements`;
 
 interface RowElements {
     sku: HTMLElement;
@@ -203,7 +203,7 @@ test('the marker stays while the quantity cell is replaced by an edit control', 
 test('a row reused for another of our lots while its quantity is edited drops the previous lot badges', () => {
     const document = loadStockPage();
     const row = setQuantity(document, '55SOIJ2', '4');
-    const otherProductUrl = 'https://anode.su/Product/00000000-0000-0000-0000-000000000001/Measurements';
+    const otherProductUrl = 'https://example.com/Product/00000000-0000-0000-0000-000000000001/Measurements';
     const lotsById = new Map<string, StockLot>([
         ['55SOIJ2', { availableQuantity: 2, productUrl: ProductUrl }],
         ['4VC20NV', { availableQuantity: 1, productUrl: otherProductUrl }],

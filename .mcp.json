@@ -8,7 +8,7 @@
       "command": "uvx",
       "args": ["mcp-grafana"],
       "env": {
-        "GRAFANA_URL": "https://anode.su/grafana",
+        "GRAFANA_URL": "https://${EBAY_HELPER_BACKEND_DOMAIN}/grafana",
         "GRAFANA_USERNAME": "mcp",
         "GRAFANA_PASSWORD": "${GRAFANA_MCP_PASSWORD}"
       }
