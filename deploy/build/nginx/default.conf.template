@@ -186,21 +186,6 @@ server {
     }
 }
 
-# 8443 → redirect to https://${DOMAIN}/grafana/ (old Grafana address, kept so existing links work)
-server {
-    listen 8443 ssl http2;
-    server_name ${DOMAIN};
-
-    ssl_certificate     /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
-    ssl_session_timeout 30m;
-    ssl_protocols TLSv1.2 TLSv1.3;
-
-    location / {
-        return 301 https://$host/grafana$request_uri;
-    }
-}
-
 # WebDAV для Enpass
 server {
     listen 8080 ssl http2;
