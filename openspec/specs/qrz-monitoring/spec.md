@@ -1,21 +1,55 @@
-# Spec Delta
+# qrz-monitoring Specification
 
 ## Purpose
 
 Collects sale offers from qrz.ru's classifieds board in the configured categories and turns each listing into a structured advertisement, with a stable seller key, the seller's display name and a contact link, while keeping the load on the site low.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Configured categories are polled for offers only
-For each configured qrz.ru category, the system SHALL request the first list page sorted by date, once for each offer type "sell", "exchange" and "give away". It SHALL NOT request the "buy" type or any further list page. A listing returned for several offer types SHALL be collected once.
+For each configured qrz.ru category, the system SHALL read the list sorted by date, once for each offer type "sell", "exchange" and "give away", starting from the first page. It SHALL NOT request the "buy" type. A listing returned for several offer types or pages SHALL be collected once.
 
 #### Scenario: One category produces three list requests
-- **WHEN** the configured categories are `components/tubes` only and a collection runs
+- **WHEN** the configured categories are `components/tubes` only, every first-page entry is older than the lookback window, and a collection runs
 - **THEN** exactly three list pages are requested for `components/tubes`: date-sorted first pages of the sell, exchange and give-away types, and no buy-type page
 
 #### Scenario: Listing present under two types is collected once
 - **WHEN** the same listing id appears on two of the requested list pages
 - **THEN** the collected advertisements contain that listing once
+
+### Requirement: Recent list pages are read until entries get older than the lookback window
+Within one category and offer type, the system SHALL request the next list page while the current page has a newly seen listing within the lookback window (default 2 hours). Paging SHALL stop at a page that is empty, adds no new listing, or has only listings older than the window, and after the page limit (default 10) with a logged warning. Every listing on the first page SHALL be collected; later pages SHALL contribute only listings within the window.
+
+#### Scenario: Next page is read while the page has recent entries
+- **WHEN** the first sell page has a listing from 30 minutes ago, the second page has one listing from 30 minutes ago and one from 4 hours ago, and the third page has only listings from 4 hours ago
+- **THEN** exactly the first three sell pages are requested
+
+#### Scenario: Later pages contribute only recent listings
+- **WHEN** the first sell page has a listing from 30 minutes ago and one from 4 hours ago, and the second page has one listing from 30 minutes ago and one from 4 hours ago
+- **THEN** both first-page listings and only the recent second-page listing are collected
+
+#### Scenario: Paging stops at a page older than the lookback window
+- **WHEN** every listing on the first page of each offer type is older than the lookback window
+- **THEN** no second page is requested, and the first-page listings are collected
+
+#### Scenario: Paging stops at an empty page
+- **WHEN** the first sell page has a recent listing and the second sell page has no entries
+- **THEN** exactly the first two sell pages are requested
+
+#### Scenario: Paging stops at a page without new listings
+- **WHEN** qrz.ru returns the same page with a recent listing for every page number
+- **THEN** exactly the first two sell pages are requested
+
+#### Scenario: Paging stops at the page limit
+- **WHEN** every sell page has a new recent listing and the page limit is 3
+- **THEN** exactly three sell pages are requested, their listings are collected, and a warning is logged
+
+### Requirement: A failed later list page keeps the listings already collected
+If a list page after the first cannot be fetched, the system SHALL log a warning, stop paging that category and offer type, and keep the listings collected from earlier pages. A failure on the first page SHALL fail the collection as before, so the monitoring run logs it as an error.
+
+#### Scenario: Failure on the second page keeps first-page listings
+- **WHEN** the first sell page has a recent listing and the request for the second sell page fails
+- **THEN** the first-page listing is collected, no further sell page is requested, and a warning is logged
 
 ### Requirement: List page parsing
 The system SHALL extract from each list-page entry the listing id (the number after the last underscore of its `/classifieds/detail/` link), the absolute listing link and the publication date. Dates SHALL be read as Moscow time (UTC+3), either as `dd.MM.yyyy HH:mm` or as "Сегодня HH:mm" / "Вчера HH:mm" relative to the current Moscow date. An entry without a parsable id, link or date SHALL be skipped with a logged warning, without failing the other entries.

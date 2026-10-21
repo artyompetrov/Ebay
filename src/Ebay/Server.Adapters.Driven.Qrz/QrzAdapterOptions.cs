@@ -24,6 +24,22 @@ public sealed record QrzAdapterOptions : IValidatableObject
     [Range(typeof(TimeSpan), "00:00:00", "00:10:00")]
     public TimeSpan RequestDelay { get; init; } = TimeSpan.FromSeconds(5);
 
+    /// <summary>
+    /// Окно свежести списка: следующая страница списка читается, пока на текущей есть объявления не старше этого окна.
+    /// Должно покрывать период опроса плюс длительность прогона с запасом, иначе массовое поднятие объявлений
+    /// между прогонами вытеснит свежие объявления за пределы прочитанных страниц. Нижняя граница - период опроса
+    /// (30 минут): более короткое окно незаметно отключило бы чтение следующих страниц.
+    /// </summary>
+    [Range(typeof(TimeSpan), "00:30:00", "7.00:00:00")]
+    public TimeSpan ListLookback { get; init; } = TimeSpan.FromHours(2);
+
+    /// <summary>
+    /// Предел числа страниц списка на категорию и тип объявления за прогон, чтобы не уйти в глубину списка
+    /// при неожиданной разметке или очень массовом поднятии.
+    /// </summary>
+    [Range(1, 100)]
+    public int MaxListPages { get; init; } = 10;
+
     internal IReadOnlyList<string> EffectiveCategories => Categories.Length > 0 ? Categories : WellKnown.DefaultCategories;
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)

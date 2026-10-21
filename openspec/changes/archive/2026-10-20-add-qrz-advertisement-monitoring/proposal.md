@@ -14,7 +14,7 @@ Sale advertisements are currently collected only from chipfind.ru, and the monit
   - the write side looks records up through the write-model repository instead of the read-model query port.
 - A notification lists every advertisement line that matched a newly recorded interesting product, not only the first line per product.
 - Add a qrz.ru advertisement source:
-  - for each configured category (initially `components/tubes`), fetch the first page sorted by date (`?o=date`), once for each offer type: sell, exchange, give away. "Buy" is excluded;
+  - for each configured category (initially `components/tubes`), read the list sorted by date (`?o=date`), once for each offer type: sell, exchange, give away, continuing to the next page while a page still has listings from the last 2 hours (at most 10 pages). "Buy" is excluded;
   - read the seller and the full text from each listing page, fetching a page only when the listing is new or its date has changed;
   - use the seller's profile link as the contact;
   - make no AJAX calls (the phone number stays hidden).

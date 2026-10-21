@@ -10,11 +10,14 @@ using Server.Application.Abstractions.Driven.Models;
 namespace Server.Adapters.Driven.Qrz;
 
 /// <summary>
-/// Источник объявлений о продаже с доски qrz.ru: первая страница каждой настроенной категории (по дате) для типов
-/// «продам», «меняю», «подарю», затем страница каждого нового или изменившегося объявления.
+/// Источник объявлений о продаже с доски qrz.ru: страницы списка каждой настроенной категории (по дате) для типов
+/// «продам», «меняю», «подарю», пока на странице есть свежие объявления, затем страница каждого нового или
+/// изменившегося объявления.
 /// </summary>
 internal sealed class QrzAdapter : ISaleAdvertisementAdapter
 {
+    private const int FirstPage = 1;
+
     private static readonly ActivitySource ActivitySource = new(WellKnown.Tracing.ActivitySourceName);
 
     private readonly ILogger<QrzAdapter> _logger;
@@ -47,7 +50,7 @@ internal sealed class QrzAdapter : ISaleAdvertisementAdapter
         {
             foreach (var offerType in WellKnown.OfferTypes)
             {
-                foreach (var listing in await FetchListPageAsync(category, offerType, cancellationToken))
+                foreach (var listing in await FetchRecentListingsAsync(category, offerType, cancellationToken))
                 {
                     if (!listings.TryGetValue(listing.Id, out var known) || listing.Date > known.Date)
                     {
@@ -80,15 +83,87 @@ internal sealed class QrzAdapter : ISaleAdvertisementAdapter
     public Task<string?> TryGetContactAsync(SaleAdvertisement saleAdvertisement, CancellationToken cancellationToken) =>
         Task.FromResult<string?>(QrzListingPageParser.GetProfileUri(saleAdvertisement.SellerKey).ToString());
 
-    private async Task<QrzListing[]> FetchListPageAsync(string category, int offerType, CancellationToken cancellationToken)
+    /// <summary>
+    /// Читает страницы списка по порядку, пока на них есть новые объявления свежее окна
+    /// <see cref="QrzAdapterOptions.ListLookback"/>: массовое поднятие объявлений за несколько минут вытесняет свежие
+    /// объявления с первой страницы. Первая страница берётся целиком, со следующих - только свежие объявления, чтобы
+    /// холодный старт после перезапуска не перечитывал страницы старых объявлений.
+    /// Остановка: на странице нет новых свежих объявлений (это же покрывает пустую страницу за последней и повтор
+    /// уже прочитанной страницы), ошибка чтения не первой страницы или лимит страниц.
+    /// </summary>
+    private async Task<List<QrzListing>> FetchRecentListingsAsync(string category, int offerType, CancellationToken cancellationToken)
+    {
+        var cutoff = _timeProvider.GetUtcNow() - _options.ListLookback;
+        var seenIds = new HashSet<long>();
+        var result = new List<QrzListing>();
+
+        for (var page = FirstPage; page <= _options.MaxListPages; page++)
+        {
+            QrzListing[] listings;
+
+            try
+            {
+                listings = await FetchListPageAsync(category, offerType, page, cancellationToken);
+            }
+            catch (Exception e) when (page > FirstPage
+                                      && e is HttpRequestException or TaskCanceledException
+                                      && !cancellationToken.IsCancellationRequested)
+            {
+                // Уже собранное не теряем: пропущенное догонит следующий прогон, пока окно свежести его покрывает.
+                _logger.LogWarning(
+                    e,
+                    "Failed to fetch qrz.ru list page {Page} of category {Category} (type {OfferType}); keeping {ListingCount} listings from earlier pages",
+                    page,
+                    category,
+                    offerType,
+                    result.Count);
+                return result;
+            }
+
+            var hasRecentListing = false;
+
+            foreach (var listing in listings)
+            {
+                if (!seenIds.Add(listing.Id))
+                {
+                    continue;
+                }
+
+                var isRecent = listing.Date >= cutoff;
+                hasRecentListing |= isRecent;
+
+                if (page == FirstPage || isRecent)
+                {
+                    result.Add(listing);
+                }
+            }
+
+            if (!hasRecentListing)
+            {
+                return result;
+            }
+        }
+
+        _logger.LogWarning(
+            "Stopped reading qrz.ru category {Category} (type {OfferType}) at the {MaxListPages}-page limit while pages still had recent listings; older recent listings may be missed",
+            category,
+            offerType,
+            _options.MaxListPages);
+
+        return result;
+    }
+
+    private async Task<QrzListing[]> FetchListPageAsync(string category, int offerType, int page, CancellationToken cancellationToken)
     {
         using var activity = ActivitySource.StartActivity(WellKnown.Tracing.ListPageSpan);
         activity?.SetTag(WellKnown.Tracing.CategoryTag, category);
         activity?.SetTag(WellKnown.Tracing.OfferTypeTag, offerType);
+        activity?.SetTag(WellKnown.Tracing.PageTag, page);
 
+        var pageQuery = page == FirstPage ? string.Empty : $"&p={page.ToString(CultureInfo.InvariantCulture)}";
         var uri = new Uri(
             WellKnown.BaseUri,
-            $"classifieds/category/{category.Trim('/')}?o=date&type={offerType.ToString(CultureInfo.InvariantCulture)}");
+            $"classifieds/category/{category.Trim('/')}?o=date&type={offerType.ToString(CultureInfo.InvariantCulture)}{pageQuery}");
 
         try
         {
