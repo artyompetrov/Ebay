@@ -60,7 +60,7 @@ server {
     }
 }
 
-# 443 → ebayhelper (HTTPS upstream) + /nyygnwfdndcwdhq/ → 3x-ui (HTTP upstream)
+# 443 → ebayhelper (HTTPS upstream) + /nyygnwfdndcwdhq/ → 3x-ui (HTTP upstream) + /grafana/ → Grafana (HTTP upstream)
 server {
     listen 443 ssl http2;
     server_name ${DOMAIN};
@@ -135,6 +135,33 @@ server {
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains";
     }
 
+    # Grafana is served on 443 (not only on a custom port) so that cloud agent sandboxes,
+    # whose egress allows only ports 80/443, can reach it through the Grafana MCP server.
+    location = /grafana {
+        return 301 /grafana/;
+    }
+
+    location ^~ /grafana/ {
+        # No URI in proxy_pass: the /grafana/ prefix is kept, Grafana serves from that sub-path.
+        proxy_pass         http://ebaygrafana;
+        proxy_http_version 1.1;
+
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header   Upgrade $http_upgrade;
+        proxy_set_header   Connection $connection_upgrade;
+
+        proxy_set_header   Host $host;
+        proxy_set_header   X-Real-IP $remote_addr;
+        proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+        proxy_set_header   X-Forwarded-Host $host;
+
+        proxy_read_timeout  600s;
+        proxy_send_timeout  600s;
+
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains";
+    }
+
     location / {
         proxy_pass         https://ebayhelper;
         proxy_http_version 1.1;
@@ -159,7 +186,7 @@ server {
     }
 }
 
-# 8443 → Grafana (HTTP upstream)
+# 8443 → redirect to https://${DOMAIN}/grafana/ (old Grafana address, kept so existing links work)
 server {
     listen 8443 ssl http2;
     server_name ${DOMAIN};
@@ -170,23 +197,7 @@ server {
     ssl_protocols TLSv1.2 TLSv1.3;
 
     location / {
-        proxy_pass         http://ebaygrafana;
-        proxy_http_version 1.1;
-
-        proxy_cache_bypass $http_upgrade;
-        proxy_set_header   Upgrade $http_upgrade;
-        proxy_set_header   Connection $connection_upgrade;
-
-        proxy_set_header   Host $host;
-        proxy_set_header   X-Real-IP $remote_addr;
-        proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header   X-Forwarded-Proto $scheme;
-        proxy_set_header   X-Forwarded-Host $host;
-
-        proxy_read_timeout  600s;
-        proxy_send_timeout  600s;
-
-        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains";
+        return 301 https://$host/grafana$request_uri;
     }
 }
 

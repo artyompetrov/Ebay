@@ -8,7 +8,8 @@ if [ -z "${MCP_PASSWORD:-}" ]; then
   exit 0
 fi
 
-BASE="http://ebay_grafana:3000"
+# Grafana serves from the /grafana/ sub-path (GF_SERVER_SERVE_FROM_SUB_PATH), also on its internal port.
+BASE="http://ebay_grafana:3000/grafana"
 ADMIN="${GRAFANA_ADMIN_USER}:${GRAFANA_ADMIN_PASSWORD}"
 LOGIN="${MCP_LOGIN:-mcp}"
 
