@@ -40,7 +40,7 @@ Project composition:
 - `deploy` — docker-compose for running the app. Portainer (`ebay_portainer`) mounts the Docker socket, so it serves plain HTTP published only on the server's `127.0.0.1:9000` and is not proxied by nginx; open it through an SSH tunnel: `ssh -L 9000:127.0.0.1:9000 <user>@<server>`, then `http://localhost:9000`.
 - `scripts/cloud-agent-init` — shared cloud sandbox init script (Claude Code, Codex), see its `README.md`.
 - `scripts/agent-check` — pre-PR check script (`agent-check.sh`).
-- `scripts/deploy-on-server` — script run on the production server to redeploy containers (invoked by the server's own `update.sh`, outside this repo).
+- `scripts/deploy-on-server` — `deploy-on-server.sh` updates the production server's checkout to `origin/main` and redeploys the containers (`set -euo pipefail`, so any failed step fails the deploy). The CI deploy job pipes it over SSH from its own checkout into `${WORK_DIR}/Ebay` on the server, so the server keeps no deploy script outside the repo; to redeploy by hand, run it from inside that checkout.
 - `scripts/backup-database` — Yandex Disk upload helper used by `backup-database.yaml`.
 
 ## Pre-PR checks
