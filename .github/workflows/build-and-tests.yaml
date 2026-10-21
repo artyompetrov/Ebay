@@ -114,7 +114,10 @@ jobs:
     needs: [ dotnet_and_extension_build, openspec_validate, build_docker ]
     if: github.ref == 'refs/heads/main'  # Запускается только на ветке main
 
-    steps: 
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Install SSH Keys
         run: |
           mkdir -p ~/.ssh
@@ -122,8 +125,10 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Connect and Pull Latest Image
-        run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.WORK_DIR }} && ./update.sh"
+      # The script comes from this checkout, so the server needs no deploy script of its own.
+      # `bash -c "$(cat)"` reads the whole script before running it, so no command inside can consume it from stdin.
+      - name: Update and redeploy on the server
+        run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.WORK_DIR }}/Ebay && bash -c \"\$(cat)\"" < scripts/deploy-on-server/deploy-on-server.sh
 
       - name: Cleanup SSH
         run: rm -rf ~/.ssh

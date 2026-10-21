@@ -85,7 +85,6 @@ services:
     ports:
       - "80:80"
       - "443:443"
-      - "8443:8443"
       - "8080:8080"
     volumes:
       - ./mount/nginx/logs/:/var/log/nginx/
