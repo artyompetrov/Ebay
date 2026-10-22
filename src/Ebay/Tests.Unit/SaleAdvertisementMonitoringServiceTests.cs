@@ -1,5 +1,6 @@
 using System.Data;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using AwesomeAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Server.Application;
@@ -29,6 +30,7 @@ public sealed class SaleAdvertisementMonitoringServiceTests
 
     private static readonly DateTimeOffset AdvertisementDate = new(2026, 1, 2, 3, 4, 5, TimeSpan.Zero);
     private static readonly Uri AdvertisementLink = new("https://market.example/ad/");
+    private const double RubRate = 80;
 
     [Test]
     [OpenSpecScenario("sale-advertisement-monitoring", "Advertisement lines are matched against tracked products", "A line matching one product is attributed to it")]
@@ -192,6 +194,81 @@ public sealed class SaleAdvertisementMonitoringServiceTests
     }
 
     [Test]
+    [OpenSpecScenario("sale-advertisement-monitoring", "Notification lists notified products with their estimated prices", "Table row shows the product's estimated price in roubles")]
+    public async Task ProcessRecentAdvertisementsAsync_NotifiedProduct_ShowsEstimatedPriceInRoubles()
+    {
+        var product = CreateProduct("6Н2П", revenueAvgUsd: 15.4, quantityTotal: 7);
+        var context = new TestContext([product]);
+        var adapter = new StaticAdapter(Marketplace, CreateAdvertisement("Лампа 6Н2П новая"));
+
+        await context.CreateService(adapter).ProcessRecentAdvertisementsAsync(TargetEmail, CancellationToken.None);
+
+        var email = context.EmailSender.Sent.Should().ContainSingle().Subject;
+        email.Body.Should().Contain("<tr><td>6Н2П</td><td>1232 RUB</td><td>7</td></tr>");
+    }
+
+    [Test]
+    [OpenSpecScenario("sale-advertisement-monitoring", "Notification lists notified products with their estimated prices", "Products that did not trigger the notification are not listed")]
+    public async Task ProcessRecentAdvertisementsAsync_ProductsThatDidNotTriggerNotification_AreNotListed()
+    {
+        var notified = CreateProduct("6н2п", isInteresting: true);
+        var alreadyRecorded = CreateProduct("6н3п", isInteresting: true);
+        var notInteresting = CreateProduct("6н1п", isInteresting: false);
+        var context = new TestContext([notified, alreadyRecorded, notInteresting]);
+        context.Repository.Seed(alreadyRecorded.Id, SellerKey, Marketplace, AdvertisementDate, AdvertisementLink.ToString());
+        var adapter = new StaticAdapter(Marketplace, CreateAdvertisement("Лампа 6Н2П", "Лампа 6Н3П", "Лампа 6Н1П"));
+
+        await context.CreateService(adapter).ProcessRecentAdvertisementsAsync(TargetEmail, CancellationToken.None);
+
+        var email = context.EmailSender.Sent.Should().ContainSingle().Subject;
+        PriceTableRows(email.Body).Should().ContainSingle().Which.Should().StartWith("<tr><td>6н2п</td>");
+    }
+
+    [Test]
+    [OpenSpecScenario("sale-advertisement-monitoring", "Notification lists notified products with their estimated prices", "A product matched by several lines has one row")]
+    public async Task ProcessRecentAdvertisementsAsync_ProductMatchedBySeveralLines_HasOneRow()
+    {
+        var context = new TestContext([CreateProduct("6н2п", isInteresting: true)]);
+        var adapter = new StaticAdapter(Marketplace, CreateAdvertisement("6Н2П 10 шт", "6Н2П-ЕВ 5 шт"));
+
+        await context.CreateService(adapter).ProcessRecentAdvertisementsAsync(TargetEmail, CancellationToken.None);
+
+        var email = context.EmailSender.Sent.Should().ContainSingle().Subject;
+        PriceTableRows(email.Body).Should().ContainSingle();
+    }
+
+    [Test]
+    [OpenSpecScenario("sale-advertisement-monitoring", "Notification lists notified products with their estimated prices", "Product name is HTML-encoded")]
+    public async Task ProcessRecentAdvertisementsAsync_ProductNameWithMarkup_IsHtmlEncoded()
+    {
+        var product = CreateProduct("<b>6Н2П</b>", isInteresting: true) with
+        {
+            RuSearchQueries = [new SearchQueryWithId(Guid.NewGuid(), "6н2п")]
+        };
+        var context = new TestContext([product]);
+        var adapter = new StaticAdapter(Marketplace, CreateAdvertisement("Лампа 6Н2П новая"));
+
+        await context.CreateService(adapter).ProcessRecentAdvertisementsAsync(TargetEmail, CancellationToken.None);
+
+        var email = context.EmailSender.Sent.Should().ContainSingle().Subject;
+        email.Body.Should().Contain("<td>&lt;b&gt;6Н2П&lt;/b&gt;</td>").And.NotContain("<b>6Н2П</b>");
+    }
+
+    [Test]
+    [OpenSpecScenario("sale-advertisement-monitoring", "Estimated price falls back to USD without a RUB rate", "Missing RUB rate shows the price in dollars")]
+    public async Task ProcessRecentAdvertisementsAsync_NoRubRate_ShowsEstimatedPriceInDollars()
+    {
+        var product = CreateProduct("6Н2П", revenueAvgUsd: 15.4, quantityTotal: 7);
+        var context = new TestContext([product]) { CurrencyRates = new Dictionary<string, double>() };
+        var adapter = new StaticAdapter(Marketplace, CreateAdvertisement("Лампа 6Н2П новая"));
+
+        await context.CreateService(adapter).ProcessRecentAdvertisementsAsync(TargetEmail, CancellationToken.None);
+
+        var email = context.EmailSender.Sent.Should().ContainSingle().Subject;
+        email.Body.Should().Contain("<td>15 USD</td>");
+    }
+
+    [Test]
     [OpenSpecScenario("sale-advertisement-monitoring", "A failed notification is retried on the next run", "Email failure leaves no record behind")]
     public async Task ProcessRecentAdvertisementsAsync_EmailFails_PersistsNothingAndNextRunNotifies()
     {
@@ -273,6 +350,19 @@ public sealed class SaleAdvertisementMonitoringServiceTests
             LastCheckTime: AdvertisementDate,
             Description: null);
 
+    private static ProductInfo CreateProduct(string name, double revenueAvgUsd, int quantityTotal) =>
+        CreateProduct(name, isInteresting: true) with
+        {
+            CalculationResult = new ProductCalculationResult
+            {
+                Revenue = revenueAvgUsd * quantityTotal,
+                QuantityTotal = quantityTotal
+            }
+        };
+
+    private static string[] PriceTableRows(string body) =>
+        [.. Regex.Matches(body, "<tr><td>.*?</tr>").Select(static x => x.Value)];
+
     private static ProductCalculationResult InterestingCalculation() =>
         new()
         {
@@ -305,6 +395,9 @@ public sealed class SaleAdvertisementMonitoringServiceTests
 
         public CommittingUnitOfWork UnitOfWork { get; }
 
+        public IReadOnlyDictionary<string, double> CurrencyRates { get; init; } =
+            new Dictionary<string, double> { [WellKnown.CurrencyRate.TargetCurrency] = RubRate };
+
         public SaleAdvertisementMonitoringService CreateService(params ISaleAdvertisementAdapter[] adapters)
         {
             var productService = new ProductService(
@@ -321,6 +414,7 @@ public sealed class SaleAdvertisementMonitoringServiceTests
                 adapters,
                 EmailSender,
                 productService,
+                new StaticCurrencyQueries(CurrencyRates),
                 delayAfterEmail: TimeSpan.Zero);
         }
     }

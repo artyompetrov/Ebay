@@ -117,20 +117,6 @@ public sealed class LotPriceCalculatorTests
             CancellationToken cancellationToken) => throw new NotSupportedException();
     }
 
-    private sealed class StaticCurrencyQueries : ICurrencyQueries
-    {
-        private readonly IReadOnlyDictionary<string, double> _rates;
-
-        public StaticCurrencyQueries(IReadOnlyDictionary<string, double> rates)
-        {
-            _rates = rates;
-        }
-
-        public Task<IReadOnlyList<CurrencyInfo>> GetAllCurrenciesAsync(CancellationToken cancellationToken) => throw new NotSupportedException();
-
-        public Task<IReadOnlyDictionary<string, double>> GetCurrencyRatesAsync(CancellationToken cancellationToken) => Task.FromResult(_rates);
-    }
-
     private sealed class RecordingUnitOfWork : IWriteModelUnitOfWork
     {
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
