@@ -30,7 +30,8 @@ internal sealed class MeasurementPlotWarmupHostedService : IHostedService
 
         _logger.LogInformation("Started");
 
-        await _warmupService.PublishWarmupForAllMeasurementsAsync(cancellationToken);
+        await BackgroundJobTracing.RunAsync(
+            nameof(MeasurementPlotWarmupHostedService), _warmupService.PublishWarmupForAllMeasurementsAsync, cancellationToken);
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
