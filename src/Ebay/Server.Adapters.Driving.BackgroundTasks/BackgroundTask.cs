@@ -54,7 +54,7 @@ internal abstract class BackgroundTask : IHostedService, IDisposable
         {
             try
             {
-                await BackgroundTaskImplementation(cancellationToken);
+                await BackgroundJobTracing.RunAsync(GetType().Name, BackgroundTaskImplementation, cancellationToken);
 
                 await Task.Delay(delay: UpdateTime, cancellationToken: cancellationToken);
             }

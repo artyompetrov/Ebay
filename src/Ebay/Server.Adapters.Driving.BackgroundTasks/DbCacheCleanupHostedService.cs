@@ -21,7 +21,7 @@ internal sealed class DbCacheCleanupHostedService : IHostedService
     {
         _logger.LogInformation("Service started");
 
-        await _cleanupService.RemoveOldVersionsAsync(cancellationToken);
+        await BackgroundJobTracing.RunAsync(nameof(DbCacheCleanupHostedService), _cleanupService.RemoveOldVersionsAsync, cancellationToken);
         _logger.LogInformation("Removed old db cache versions");
     }
 
