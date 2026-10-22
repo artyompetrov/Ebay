@@ -178,41 +178,48 @@ internal static class ModelsExtensions
         ))];
     }
 
-    public static ProductState ToApiProductState(this DbProductState productState)
+    // Enum mappings return null for a numeric value outside the enum (C# enums accept any number):
+    // the caller answers a client's value with a validation problem and our own stored value as inconsistent data.
+
+    public static ProductState? ToApiProductState(this DbProductState productState)
     {
         return productState switch
         {
             DbProductState.New => ProductState.New,
-            DbProductState.Used => ProductState.Used
+            DbProductState.Used => ProductState.Used,
+            _ => null
         };
     }
 
-    public static DbProductState ToDbProductState(this ProductState productState)
+    public static DbProductState? ToDbProductState(this ProductState productState)
     {
         return productState switch
         {
             ProductState.New => DbProductState.New,
-            ProductState.Used => DbProductState.Used
+            ProductState.Used => DbProductState.Used,
+            _ => null
         };
     }
 
-    public static ApiMeasurementState ToApiMeasurementState(this DbMeasurementState state)
+    public static ApiMeasurementState? ToApiMeasurementState(this DbMeasurementState state)
     {
         return state switch
         {
             DbMeasurementState.Created => ApiMeasurementState.Created,
             DbMeasurementState.Selling => ApiMeasurementState.Selling,
-            DbMeasurementState.Sold => ApiMeasurementState.Sold
+            DbMeasurementState.Sold => ApiMeasurementState.Sold,
+            _ => null
         };
     }
 
-    public static DbMeasurementState ToDbMeasurementState(this ApiMeasurementState state)
+    public static DbMeasurementState? ToDbMeasurementState(this ApiMeasurementState state)
     {
         return state switch
         {
             ApiMeasurementState.Created => DbMeasurementState.Created,
             ApiMeasurementState.Selling => DbMeasurementState.Selling,
-            ApiMeasurementState.Sold => DbMeasurementState.Sold
+            ApiMeasurementState.Sold => DbMeasurementState.Sold,
+            _ => null
         };
     }
 

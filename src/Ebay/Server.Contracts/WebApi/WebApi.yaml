@@ -623,6 +623,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/MeasurementData'
+        '400':
+          description: The measurement state filter is unknown
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationProblemDetailedInfo'
       tags:
       - Ebay
     post:
@@ -900,11 +906,11 @@ paths:
         '200':
           description: Ok
         '400':
-          description: The measurement was not found
+          description: The measurement was not found (NotFoundProblemDetailedInfo type) or the state is unknown
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NotFoundProblemDetailedInfo'
+                $ref: '#/components/schemas/ValidationProblemDetailedInfo'
       tags:
       - Ebay
   /ebay/v1/lots/{lotId}/:

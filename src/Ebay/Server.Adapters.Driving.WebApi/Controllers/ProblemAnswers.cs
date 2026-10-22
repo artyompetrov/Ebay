@@ -28,6 +28,21 @@ internal static class ProblemAnswers
     /// </summary>
     public static ObjectResult DomainError(string field, DomainError error) => ValidationError(field, error.Message);
 
+    /// <summary>
+    /// The client sent a number that is not a member of the contract's enum.
+    /// </summary>
+    public static ObjectResult UnknownEnumValue(string field) => ValidationError(field, "Unknown value");
+
+    /// <summary>
+    /// Our own stored data can't be represented in the contract (e.g. an enum value outside the enum).
+    /// A fault of the server, not of the request; not declared in the contract, like other server errors.
+    /// </summary>
+    public static ObjectResult InconsistentData(string title) =>
+        new(new ProblemDetails { Type = "InconsistentData", Title = title, Status = StatusCodes.Status500InternalServerError })
+        {
+            StatusCode = StatusCodes.Status500InternalServerError
+        };
+
     public static ObjectResult ValidationError(string field, params string[] errors) =>
         ValidationError([(field, errors)]);
 
