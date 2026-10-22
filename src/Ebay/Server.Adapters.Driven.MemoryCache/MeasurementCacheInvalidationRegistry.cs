@@ -66,8 +66,6 @@ internal sealed class MeasurementCacheInvalidationRegistry
             case TokenSourceReleaseResult.DisposeOnly:
                 entry.Dispose();
                 return;
-            default:
-                throw new InvalidOperationException("Unknown token source release result.");
         }
     }
 

@@ -74,11 +74,12 @@ internal class PcsExtractor : ExtractorBase, IExtractor
 
         var extractionResult = new Dictionary<string, HashSet<ExtractionResult>>();
 
-        if (lotTextFields.LotSize != null)
+        if (lotTextFields.LotSize is { } lotSize)
         {
+            var lotSizeText = lotSize.ToString(CultureInfo.InvariantCulture);
             extractionResult.AppendOrCreateNewCollection(
-                key: lotTextFields.LotSize?.ToString(CultureInfo.InvariantCulture) ?? throw new InvalidOperationException("Null here is not expected"),
-                value: new ExtractionResult(ExtractedFrom: ExtractFrom.LotSize, Extractor: "lotSize", Match: lotTextFields.LotSize?.ToString(CultureInfo.InvariantCulture) ?? throw new InvalidOperationException("Null here is not expected"))
+                key: lotSizeText,
+                value: new ExtractionResult(ExtractedFrom: ExtractFrom.LotSize, Extractor: "lotSize", Match: lotSizeText)
             );
         }
 
@@ -143,13 +144,6 @@ internal class PcsExtractor : ExtractorBase, IExtractor
 
                     if (extractor.Result == null)
                     {
-                        if (match.Groups.Count != 2)
-                        {
-                            throw new InvalidOperationException(
-                                $"Expected only 2 groups, {extractor.Regex} {dataReplaced}"
-                            );
-                        }
-
                         result.AppendOrCreateNewCollection(
                             key: (int.Parse(match.Groups[1].ToString(), CultureInfo.InvariantCulture) * extractor.Multiplier).ToString(CultureInfo.InvariantCulture),
                             value: new ExtractionResult(
@@ -163,13 +157,6 @@ internal class PcsExtractor : ExtractorBase, IExtractor
                     }
                     else
                     {
-                        if (match.Groups.Count != 1)
-                        {
-                            throw new InvalidOperationException(
-                                $"Expected only 1 groups, {extractor.Regex} {dataReplaced}"
-                            );
-                        }
-
                         result.AppendOrCreateNewCollection(
                             key: (extractor.Result.Value * extractor.Multiplier).ToString(CultureInfo.InvariantCulture),
                             value: new ExtractionResult(

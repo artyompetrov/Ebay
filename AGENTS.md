@@ -15,6 +15,7 @@ Project composition:
 - Avoid copy-pasting; reuse existing solutions.
 - Fix the root cause of a problem, not the symptoms.
 - Prefer systemic, consistent solutions over local workarounds.
+- Don't throw exceptions in production C# code: return expected failures as `OneOf` results. Enforced by the `EBAY0001` analyzer (`src/Ebay/Analyzers`); details in `src/Ebay/AGENTS.md`.
 
 ## DI and services
 - Default and only DI registration in our code: `Singleton`. `Scoped`/`Transient` are banned at compile time (RS0030); exceptions are listed with reasons in `src/Ebay/BannedSymbols.txt`.

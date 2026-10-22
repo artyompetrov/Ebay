@@ -14,6 +14,7 @@
         <PackageReference Include="NUnit3TestAdapter" />
         <PackageReference Include="NUnit.Analyzers" />
         <PackageReference Include="coverlet.collector" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
     </ItemGroup>
 
     <ItemGroup>
@@ -28,6 +29,7 @@
       <ProjectReference Include="..\Server.Adapters.Driven.Plotting\Server.Adapters.Driven.Plotting.csproj" />
       <ProjectReference Include="..\Server.Adapters.Driven.MemoryCache\Server.Adapters.Driven.MemoryCache.csproj" />
       <ProjectReference Include="..\Tests.Shared\Tests.Shared.csproj" />
+      <ProjectReference Include="..\Analyzers\Analyzers.csproj" />
       <ProjectReference Include="..\Server.Adapters.Driven.Qrz\Server.Adapters.Driven.Qrz.csproj" />
       <ProjectReference Include="..\Server.Adapters.Driven.ScrapingProxy\Server.Adapters.Driven.ScrapingProxy.csproj" />
     </ItemGroup>

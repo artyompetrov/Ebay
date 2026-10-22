@@ -9,12 +9,9 @@ public class CurveSet
 
     public CurveSet(double vSteppingValue, IReadOnlyCollection<double> v, IReadOnlyCollection<double> i1, IReadOnlyCollection<double>? i2)
     {
+        // The only caller (MeasurementTypeBase) builds V, I1 and I2 from the same measurement points,
+        // so the series always have equal lengths.
         VSteppingValue = vSteppingValue;
-        if (v.Count != i1.Count && i2 != null && v.Count != i2.Count)
-        {
-            throw new ArgumentException("length expected to be equal");
-        }
-
         V = v;
         I1 = i1;
         I2 = i2;

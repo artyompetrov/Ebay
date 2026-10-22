@@ -17,8 +17,12 @@ public class CalculatePricesForLotConsumer : IConsumer<CalculatePricesForLot>
 
     public async Task Consume(ConsumeContext<CalculatePricesForLot> context)
     {
-        var productId = await _lotPriceCalculator.CalculateAsync(context.Message.LotId, context.CancellationToken);
+        var calculated = await _lotPriceCalculator.CalculateAsync(context.Message.LotId, context.CancellationToken);
 
-        await _publishEndpoint.Publish(new CalculateMetricsForProduct(productId), context.CancellationToken);
+        // A lot that is gone or can't be priced (the calculator logs why) leaves the product metrics unchanged.
+        if (calculated.TryPickT0(out var productId, out _))
+        {
+            await _publishEndpoint.Publish(new CalculateMetricsForProduct(productId), context.CancellationToken);
+        }
     }
 }

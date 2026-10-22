@@ -157,13 +157,6 @@ internal class ConditionExtractor : ExtractorBase, IExtractor
                         continue;
                     }
 
-                    if (match.Groups.Count != 1)
-                    {
-                        throw new InvalidOperationException(
-                            $"Expected only 1 groups, {extractor.Regex} {dataReplaced}"
-                        );
-                    }
-
                     result.AppendOrCreateNewCollection(
                         key: extractor.Result,
                         value: new ExtractionResult(

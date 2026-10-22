@@ -1,11 +1,15 @@
+using OneOf;
+using OneOf.Types;
 using Server.Domain.Abstractions;
-using Server.Domain.Exceptions;
+using Server.Domain.Errors;
 
 namespace Server.Domain.Measurements;
 
 public sealed class TubeWorkingPoint : AggregateRoot<Guid>
 {
     private const double MinMagnitude = 0.01;
+
+    private static readonly DomainError InvalidError = new($"{nameof(TubeWorkingPoint)} is not valid.");
 
     private TubeWorkingPoint(
         Guid id,
@@ -20,14 +24,9 @@ public sealed class TubeWorkingPoint : AggregateRoot<Guid>
         AnodeVoltageHalfWidth = anodeVoltageHalfWidth;
         GridVoltageHalfWidth = gridVoltageHalfWidth;
         NominalCurrent = nominalCurrent;
-
-        if (!IsValid)
-        {
-            throw new DomainException($"{nameof(TubeWorkingPoint)} is not valid.");
-        }
     }
 
-    public static TubeWorkingPoint Create(
+    public static OneOf<TubeWorkingPoint, DomainError> Create(
         Guid productId,
         double anodeVoltage,
         double gridVoltage,
@@ -35,7 +34,12 @@ public sealed class TubeWorkingPoint : AggregateRoot<Guid>
         double gridVoltageHalfWidth,
         double nominalCurrent)
     {
-        return new(
+        if (!IsValid(anodeVoltage, gridVoltage, anodeVoltageHalfWidth, gridVoltageHalfWidth, nominalCurrent))
+        {
+            return InvalidError;
+        }
+
+        return new TubeWorkingPoint(
             id: productId,
             anodeVoltage: anodeVoltage,
             gridVoltage: gridVoltage,
@@ -44,13 +48,17 @@ public sealed class TubeWorkingPoint : AggregateRoot<Guid>
             nominalCurrent: nominalCurrent);
     }
 
-    public void Update(
+    public OneOf<Success, DomainError> Update(
         double anodeVoltage,
         double gridVoltage,
         double anodeVoltageHalfWidth,
         double gridVoltageHalfWidth,
         double nominalCurrent)
     {
+        if (!IsValid(anodeVoltage, gridVoltage, anodeVoltageHalfWidth, gridVoltageHalfWidth, nominalCurrent))
+        {
+            return InvalidError;
+        }
 
         AnodeVoltage = anodeVoltage;
         GridVoltage = gridVoltage;
@@ -58,10 +66,7 @@ public sealed class TubeWorkingPoint : AggregateRoot<Guid>
         GridVoltageHalfWidth = gridVoltageHalfWidth;
         NominalCurrent = nominalCurrent;
 
-        if (!IsValid)
-        {
-            throw new DomainException($"{nameof(TubeWorkingPoint)} is not valid.");
-        }
+        return new Success();
     }
 
     public double AnodeVoltage { get; private set; }
@@ -79,10 +84,15 @@ public sealed class TubeWorkingPoint : AggregateRoot<Guid>
     /// - Все положительные значения должны быть не меньше 0.01
     /// - Напряжение сетки должно быть не больше -0.01
     /// </summary>
-    private bool IsValid =>
-        AnodeVoltageHalfWidth >= MinMagnitude &&
-        GridVoltageHalfWidth >= MinMagnitude &&
-        NominalCurrent >= MinMagnitude &&
-        AnodeVoltage >= MinMagnitude &&
-        GridVoltage <= -MinMagnitude;
+    private static bool IsValid(
+        double anodeVoltage,
+        double gridVoltage,
+        double anodeVoltageHalfWidth,
+        double gridVoltageHalfWidth,
+        double nominalCurrent) =>
+        anodeVoltageHalfWidth >= MinMagnitude &&
+        gridVoltageHalfWidth >= MinMagnitude &&
+        nominalCurrent >= MinMagnitude &&
+        anodeVoltage >= MinMagnitude &&
+        gridVoltage <= -MinMagnitude;
 }

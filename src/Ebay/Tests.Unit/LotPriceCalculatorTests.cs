@@ -64,7 +64,7 @@ public sealed class LotPriceCalculatorTests
 
         var returnedProductId = await calculator.CalculateAsync(lot.Id, CancellationToken.None);
 
-        returnedProductId.Should().Be(productId);
+        returnedProductId.AsT0.Should().Be(productId);
         lot.LotCalculationResult.Should().NotBeNull();
         lot.LotCalculationResult!.QuantityTotal.Should().Be(lot.Pcs * 3);
         lot.Purchases.Single().PurchaseCalculationResult.Should().NotBeNull();

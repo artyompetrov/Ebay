@@ -1,3 +1,7 @@
+using OneOf;
+using OneOf.Types;
+using Server.Domain.Errors;
+
 namespace Server.Application.Abstractions.Driving.Abstractions.Services;
 
 /// <summary>
@@ -10,6 +14,9 @@ public interface ILotPriceCalculator
     /// </summary>
     /// <param name="lotId">Идентификатор лота.</param>
     /// <param name="cancellationToken">Токен отмены операции.</param>
-    /// <returns>Идентификатор товара, которому принадлежит лот.</returns>
-    Task<Guid> CalculateAsync(long lotId, CancellationToken cancellationToken);
+    /// <returns>
+    /// Идентификатор товара, которому принадлежит лот; <see cref="NotFound"/>, если лот или его товар уже удалены;
+    /// <see cref="DomainError"/>, если цену доставки лота рассчитать нельзя.
+    /// </returns>
+    Task<OneOf<Guid, NotFound, DomainError>> CalculateAsync(long lotId, CancellationToken cancellationToken);
 }

@@ -49,10 +49,16 @@ public class CurrencyRateService
 
         var currencies = await _currencyQueries.GetAllCurrenciesAsync(cancellationToken);
 
-        var rates = await _currencyRateSource.GetLatestRatesAsync(
+        var latestRates = await _currencyRateSource.GetLatestRatesAsync(
             baseCurrency: WellKnown.CurrencyRate.BaseCurrency,
             currencyApiNames: currencies.Select(static x => x.CurrencyApiName),
             cancellationToken: cancellationToken);
+
+        if (latestRates.TryPickT1(out var error, out var rates))
+        {
+            _logger.LogError("Currency rates were not refreshed: {Error}", error.Value);
+            return;
+        }
 
         var currencyByApiName = currencies.ToDictionary(static x => x.CurrencyApiName);
 
@@ -61,8 +67,14 @@ public class CurrencyRateService
         {
             var currency = currencyByApiName[apiCurrencyName];
 
-            var dbCurrency = await _currencyRepository.GetByIdAsync(unitOfWork, currency.CurrencyEbayName, cancellationToken) ??
-                              throw new InvalidOperationException($"Currency {currency.CurrencyEbayName} not found");
+            var dbCurrency = await _currencyRepository.GetByIdAsync(unitOfWork, currency.CurrencyEbayName, cancellationToken);
+            if (dbCurrency is null)
+            {
+                // Deleted after the currency list was read: there is no rate to keep for it.
+                _logger.LogWarning("Currency {CurrencyEbayName} not found, its rate is not saved", currency.CurrencyEbayName);
+                continue;
+            }
+
             dbCurrency.UpdateRate(value, currentTime);
         }
 

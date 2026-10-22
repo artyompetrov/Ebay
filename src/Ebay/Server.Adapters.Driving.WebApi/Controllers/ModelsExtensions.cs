@@ -183,8 +183,7 @@ internal static class ModelsExtensions
         return productState switch
         {
             DbProductState.New => ProductState.New,
-            DbProductState.Used => ProductState.Used,
-            _ => throw new ArgumentOutOfRangeException(paramName: nameof(productState), actualValue: productState, message: null)
+            DbProductState.Used => ProductState.Used
         };
     }
 
@@ -193,8 +192,7 @@ internal static class ModelsExtensions
         return productState switch
         {
             ProductState.New => DbProductState.New,
-            ProductState.Used => DbProductState.Used,
-            _ => throw new ArgumentOutOfRangeException(nameof(productState), productState, null)
+            ProductState.Used => DbProductState.Used
         };
     }
 
@@ -204,8 +202,7 @@ internal static class ModelsExtensions
         {
             DbMeasurementState.Created => ApiMeasurementState.Created,
             DbMeasurementState.Selling => ApiMeasurementState.Selling,
-            DbMeasurementState.Sold => ApiMeasurementState.Sold,
-            _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
+            DbMeasurementState.Sold => ApiMeasurementState.Sold
         };
     }
 
@@ -215,8 +212,7 @@ internal static class ModelsExtensions
         {
             ApiMeasurementState.Created => DbMeasurementState.Created,
             ApiMeasurementState.Selling => DbMeasurementState.Selling,
-            ApiMeasurementState.Sold => DbMeasurementState.Sold,
-            _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
+            ApiMeasurementState.Sold => DbMeasurementState.Sold
         };
     }
 

@@ -1,8 +1,10 @@
+using OneOf;
+using OneOf.Types;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Abstractions.Driven.Models;
-using Server.Application.Exceptions;
+using Server.Domain.Errors;
 using Server.Domain.Measurements;
 
 namespace Server.Application.TubeWorkingPoints;
@@ -26,8 +28,11 @@ public class TubeWorkingPointService
         _tubeWorkingPointsRepository = tubeWorkingPointsRepository;
     }
 
-    /// <exception cref="NotFoundException">Товар с указанным идентификатором не найден.</exception>
-    public async Task CreateTubeWorkingPoint(
+    /// <summary>
+    /// Создает или обновляет рабочую точку лампы.
+    /// </summary>
+    /// <returns><see cref="NotFound"/>, если товар не найден; <see cref="DomainError"/>, если рабочая точка некорректна.</returns>
+    public async Task<OneOf<Success, NotFound, DomainError>> CreateTubeWorkingPoint(
         Guid tubeProductId,
         double anodeVoltage,
         double gridVoltage,
@@ -36,10 +41,12 @@ public class TubeWorkingPointService
         double nominalCurrent,
         CancellationToken cancellationToken)
     {
-        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+        if (await _productQueries.GetProductAsync(tubeProductId, cancellationToken) is null)
+        {
+            return new NotFound();
+        }
 
-        _ = await _productQueries.GetProductAsync(tubeProductId, cancellationToken) ??
-            throw new NotFoundException("Product", tubeProductId);
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
 
         var tubeWorkingPoint = await _tubeWorkingPointsRepository.GetByIdAsync(
             unitOfWork,
@@ -48,16 +55,21 @@ public class TubeWorkingPointService
 
         if (tubeWorkingPoint != null)
         {
-            tubeWorkingPoint.Update(
+            var updated = tubeWorkingPoint.Update(
                 anodeVoltage: anodeVoltage,
                 gridVoltage: gridVoltage,
                 anodeVoltageHalfWidth: anodeVoltageHalfWidth,
                 gridVoltageHalfWidth: gridVoltageHalfWidth,
                 nominalCurrent: nominalCurrent);
+
+            if (updated.TryPickT1(out var updateError, out _))
+            {
+                return updateError;
+            }
         }
         else
         {
-            tubeWorkingPoint = TubeWorkingPoint.Create(
+            var created = TubeWorkingPoint.Create(
                 productId: tubeProductId,
                 anodeVoltage: anodeVoltage,
                 gridVoltage: gridVoltage,
@@ -65,14 +77,25 @@ public class TubeWorkingPointService
                 gridVoltageHalfWidth: gridVoltageHalfWidth,
                 nominalCurrent: nominalCurrent);
 
-            await _tubeWorkingPointsRepository.AddAsync(unitOfWork, tubeWorkingPoint, cancellationToken);
+            if (created.TryPickT1(out var createError, out var newTubeWorkingPoint))
+            {
+                return createError;
+            }
+
+            await _tubeWorkingPointsRepository.AddAsync(unitOfWork, newTubeWorkingPoint, cancellationToken);
         }
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return new Success();
     }
 
-    /// <exception cref="NotFoundException">Рабочая точка товара не задана.</exception>
-    public async Task<TubeWorkingPointInfo> GetWorkingPointInfo(Guid productId, CancellationToken cancellationToken) =>
-        await _tubeWorkingPointQueries.GetWorkingPointInfo(productId, cancellationToken) ??
-        throw new NotFoundException(nameof(TubeWorkingPoint), productId);
+    /// <summary>
+    /// Возвращает рабочую точку лампы.
+    /// </summary>
+    /// <returns><see cref="NotFound"/>, если рабочая точка товара не задана.</returns>
+    public async Task<OneOf<TubeWorkingPointInfo, NotFound>> GetWorkingPointInfo(Guid productId, CancellationToken cancellationToken) =>
+        await _tubeWorkingPointQueries.GetWorkingPointInfo(productId, cancellationToken) is { } workingPoint
+            ? workingPoint
+            : new NotFound();
 }

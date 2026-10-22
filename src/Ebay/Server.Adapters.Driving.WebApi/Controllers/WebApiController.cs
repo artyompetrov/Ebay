@@ -9,7 +9,6 @@ using Server.Application.LotDataExtractor;
 using Server.Application.MatchedPairs;
 using Server.Application.TubeWorkingPoints;
 using Server.Domain;
-using Server.Domain.Exceptions;
 using Server.Domain.LotDataExtraction;
 using Server.Domain.Measurements;
 using Server.Domain.Product;
@@ -81,33 +80,43 @@ public sealed class WebApiController : WebApiControllerBase
 
     public override async Task<IActionResult> CreateLotForSale(LotForSaleCreateRequest body, CancellationToken cancellationToken = default)
     {
-        await _lotForSaleService.CreateLotForSaleAsync(
+        var created = await _lotForSaleService.CreateLotForSaleAsync(
             body.Name,
             body.ProductId,
             ToDomainProductState(body.ProductState),
             ToDomainMeasurementState(body.MeasurementState),
             cancellationToken);
-        return Ok();
+
+        return created.Match<IActionResult>(
+            _ => Ok(),
+            error => ProblemAnswers.DomainError(nameof(body), error));
     }
 
     public override async Task<IActionResult> DeleteLotForSale(string lotId, CancellationToken cancellationToken = default)
     {
-        await _lotForSaleService.DeleteLotForSaleAsync(lotId, cancellationToken);
-        return Ok();
+        var deleted = await _lotForSaleService.DeleteLotForSaleAsync(lotId, cancellationToken);
+
+        return deleted.Match<IActionResult>(
+            _ => Ok(),
+            _ => ProblemAnswers.NotFound(),
+            error => ProblemAnswers.DomainError(nameof(lotId), error));
     }
 
     public override async Task<ActionResult<ICollection<LotForSaleResponse>>> GetLotForSales(CancellationToken cancellationToken = default)
     {
         var lotForSales = await _lotForSaleService.GetLotForSalesAsync(cancellationToken);
 
+        // A lot for sale is never sold (LotForSale.Create rejects that state), the contract has no value for it.
         var response = lotForSales
+            .Select(x => (Lot: x, MeasurementState: ToApiMeasurementState(x.MeasurementState)))
+            .Where(static x => x.MeasurementState is not null)
             .Select(x => new LotForSaleResponse(
-                availableQuantity: x.AvailableQuantity,
-                id: x.Id,
-                measurementState: ToApiMeasurementState(x.MeasurementState),
-                name: x.Name,
-                productId: x.ProductId,
-                productState: ToApiProductState(x.ProductState)))
+                availableQuantity: x.Lot.AvailableQuantity,
+                id: x.Lot.Id,
+                measurementState: x.MeasurementState.GetValueOrDefault(),
+                name: x.Lot.Name,
+                productId: x.Lot.ProductId,
+                productState: ToApiProductState(x.Lot.ProductState)))
             .ToList();
 
         return response;
@@ -143,7 +152,7 @@ public sealed class WebApiController : WebApiControllerBase
         MeasurementPhotoUploadRequest body,
         CancellationToken cancellationToken = default)
     {
-        var isUploaded = await _measurementPhotoService.UploadAsync(
+        var uploaded = await _measurementPhotoService.UploadAsync(
             measurementId: measurementId,
             fileName: body.FileName,
             contentType: body.ContentType,
@@ -151,12 +160,10 @@ public sealed class WebApiController : WebApiControllerBase
             order: body.Order,
             cancellationToken: cancellationToken);
 
-        if (!isUploaded)
-        {
-            return NotFound();
-        }
-
-        return Ok();
+        return uploaded.Match<IActionResult>(
+            _ => Ok(),
+            _ => NotFound(),
+            error => ProblemAnswers.DomainError(nameof(body.File), error));
     }
 
     public override async Task<IActionResult> DeleteMeasurementPhoto(
@@ -253,9 +260,9 @@ public sealed class WebApiController : WebApiControllerBase
         Guid passportId,
         CancellationToken cancellationToken = default)
     {
-        await _productPassportService.DeleteAsync(productId, passportId, cancellationToken);
+        var deleted = await _productPassportService.DeleteAsync(productId, passportId, cancellationToken);
 
-        return Ok();
+        return deleted.Match<IActionResult>(_ => Ok(), _ => ProblemAnswers.NotFound());
     }
 
     public override async Task<ActionResult<TubeWorkingPoint>> GetTubeWorkingPoint(
@@ -264,7 +271,9 @@ public sealed class WebApiController : WebApiControllerBase
     {
         var workingPoint = await _tubeWorkingPointService.GetWorkingPointInfo(productId, cancellationToken);
 
-        return workingPoint.ToApiTubeWorkingPoint();
+        return workingPoint.Match<ActionResult<TubeWorkingPoint>>(
+            static x => x.ToApiTubeWorkingPoint(),
+            static _ => ProblemAnswers.NotFound());
     }
 
     public override async Task<IActionResult> UpsertTubeWorkingPoint(
@@ -272,23 +281,19 @@ public sealed class WebApiController : WebApiControllerBase
         Guid productId,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            await _tubeWorkingPointService.CreateTubeWorkingPoint(
-                tubeProductId: productId,
-                anodeVoltage: body.AnodeVoltage,
-                gridVoltage: body.GridVoltage,
-                anodeVoltageHalfWidth: body.AnodeVoltageHalfWidth,
-                gridVoltageHalfWidth: body.GridVoltageHalfWidth,
-                nominalCurrent: body.NominalCurrent,
-                cancellationToken: cancellationToken);
-        }
-        catch (DomainException ex)
-        {
-            return ProblemAnswers.ValidationError(nameof(body), ex.Message);
-        }
+        var upserted = await _tubeWorkingPointService.CreateTubeWorkingPoint(
+            tubeProductId: productId,
+            anodeVoltage: body.AnodeVoltage,
+            gridVoltage: body.GridVoltage,
+            anodeVoltageHalfWidth: body.AnodeVoltageHalfWidth,
+            gridVoltageHalfWidth: body.GridVoltageHalfWidth,
+            nominalCurrent: body.NominalCurrent,
+            cancellationToken: cancellationToken);
 
-        return Ok();
+        return upserted.Match<IActionResult>(
+            _ => Ok(),
+            _ => ProblemAnswers.NotFound(),
+            error => ProblemAnswers.DomainError(nameof(body), error));
     }
 
     public override async Task<IActionResult> UpdateProductPassport(
@@ -297,9 +302,9 @@ public sealed class WebApiController : WebApiControllerBase
         Guid passportId,
         CancellationToken cancellationToken = default)
     {
-        await _productPassportService.UpdateOrderAsync(productId, passportId, body.Order, cancellationToken);
+        var updated = await _productPassportService.UpdateOrderAsync(productId, passportId, body.Order, cancellationToken);
 
-        return Ok();
+        return updated.Match<IActionResult>(_ => Ok(), _ => ProblemAnswers.NotFound());
     }
 
     public override async Task<ActionResult<ICollection<ProductWithId>>> GetAllProducts(CancellationToken cancellationToken = default)
@@ -327,7 +332,7 @@ public sealed class WebApiController : WebApiControllerBase
         Guid id,
         CancellationToken cancellationToken = default)
     {
-        await _productService.UpdateProductAsync(
+        var updated = await _productService.UpdateProductAsync(
             productId: id,
             name: body.Name,
             weight: body.Weight,
@@ -336,7 +341,7 @@ public sealed class WebApiController : WebApiControllerBase
             description: body.Description,
             cancellationToken: cancellationToken);
 
-        return Ok();
+        return updated.Match<IActionResult>(_ => Ok(), _ => ProblemAnswers.NotFound());
     }
 
     public override async Task<ActionResult<ProductWithId>> GetProduct(
@@ -345,7 +350,9 @@ public sealed class WebApiController : WebApiControllerBase
     {
         var product = await _productService.GetProductAsync(id, cancellationToken);
 
-        return product.ToApiProduct();
+        return product.Match<ActionResult<ProductWithId>>(
+            static x => x.ToApiProduct(),
+            static _ => ProblemAnswers.NotFound());
     }
 
     public override async Task<IActionResult> DeleteProduct(Guid id, CancellationToken cancellationToken = default)
@@ -356,8 +363,9 @@ public sealed class WebApiController : WebApiControllerBase
 
     public override async Task<IActionResult> MarkProductAsChecked(Guid id, CancellationToken cancellationToken = default)
     {
-        await _productService.MarkProductAsCheckedAsync(id, cancellationToken);
-        return Ok();
+        var marked = await _productService.MarkProductAsCheckedAsync(id, cancellationToken);
+
+        return marked.Match<IActionResult>(_ => Ok(), _ => ProblemAnswers.NotFound());
     }
 
     public override async Task<ActionResult<ICollection<SaleAdvertisement>>> GetSaleAdvertisements(
@@ -365,7 +373,10 @@ public sealed class WebApiController : WebApiControllerBase
         CancellationToken cancellationToken = default)
     {
         // Answers "not found" for an unknown product instead of an empty list.
-        _ = await _productService.GetProductAsync(productId, cancellationToken);
+        if ((await _productService.GetProductAsync(productId, cancellationToken)).IsT1)
+        {
+            return ProblemAnswers.NotFound();
+        }
 
         var ads = await _productEmailSendHistoryQueries.GetForProductAsync(productId, cancellationToken);
 
@@ -384,7 +395,10 @@ public sealed class WebApiController : WebApiControllerBase
         CancellationToken cancellationToken = default)
     {
         // Answers "not found" for an unknown product instead of an empty list.
-        _ = await _productService.GetProductAsync(productId, cancellationToken);
+        if ((await _productService.GetProductAsync(productId, cancellationToken)).IsT1)
+        {
+            return ProblemAnswers.NotFound();
+        }
 
         var lots = await _lotQueries.GetLotsForProductAsync(productId, cancellationToken);
 
@@ -531,24 +545,17 @@ public sealed class WebApiController : WebApiControllerBase
         Guid productId,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            await _measurementService.SaveMeasurement(
-                measurementId: body.MeasurementId,
-                measurementsFile: body.File,
-                productState: body.ProductState.ToDbProductState(),
-                manufactureCode: body.ManufactureCode,
-                productId: productId,
-                cancellationToken: cancellationToken);
-        }
-        catch (MeasurementException measurementException)
-        {
-            return ProblemAnswers.ValidationError(
-                field: nameof(body),
-                measurementException.Message);
-        }
+        var saved = await _measurementService.SaveMeasurement(
+            measurementId: body.MeasurementId,
+            measurementsFile: body.File,
+            productState: body.ProductState.ToDbProductState(),
+            manufactureCode: body.ManufactureCode,
+            productId: productId,
+            cancellationToken: cancellationToken);
 
-        return Ok();
+        return saved.Match<IActionResult>(
+            _ => Ok(),
+            error => ProblemAnswers.DomainError(nameof(body), error));
     }
 
     public override async Task<ActionResult<ICollection<string?>>> GetLotIdsForProduct(Guid productId, CancellationToken cancellationToken = default) =>
@@ -574,12 +581,15 @@ public sealed class WebApiController : WebApiControllerBase
         string measurementId,
         CancellationToken cancellationToken = default)
     {
-        await _measurementService.UpdateMeasurementLocation(
+        var updated = await _measurementService.UpdateMeasurementLocation(
             location: body,
             measurementId: measurementId,
             cancellationToken: cancellationToken);
 
-        return Ok();
+        return updated.Match<IActionResult>(
+            _ => Ok(),
+            _ => ProblemAnswers.NotFound(),
+            error => ProblemAnswers.DomainError(nameof(body), error));
     }
 
     public override async Task<IActionResult> UpdateMeasurementManufactureCode(
@@ -588,12 +598,15 @@ public sealed class WebApiController : WebApiControllerBase
         string measurementId,
         CancellationToken cancellationToken = default)
     {
-        await _measurementService.UpdateMeasurementManufactureCode(
+        var updated = await _measurementService.UpdateMeasurementManufactureCode(
             manufactureCode: body,
             measurementId: measurementId,
             cancellationToken: cancellationToken);
 
-        return Ok();
+        return updated.Match<IActionResult>(
+            _ => Ok(),
+            _ => ProblemAnswers.NotFound(),
+            error => ProblemAnswers.DomainError(nameof(body), error));
     }
 
     public override async Task<IActionResult> UpdateMeasurementMatchId(
@@ -602,12 +615,15 @@ public sealed class WebApiController : WebApiControllerBase
         string measurementId,
         CancellationToken cancellationToken = default)
     {
-        await _measurementService.UpdateMeasurementMatchId(
+        var updated = await _measurementService.UpdateMeasurementMatchId(
             matchId: body,
             measurementId: measurementId,
             cancellationToken: cancellationToken);
 
-        return Ok();
+        return updated.Match<IActionResult>(
+            _ => Ok(),
+            _ => ProblemAnswers.NotFound(),
+            error => ProblemAnswers.DomainError(nameof(body), error));
     }
 
     public override async Task<IActionResult> UpdateMeasurementLotId(
@@ -616,12 +632,15 @@ public sealed class WebApiController : WebApiControllerBase
         string measurementId,
         CancellationToken cancellationToken = default)
     {
-        await _measurementService.UpdateMeasurementLotId(
+        var updated = await _measurementService.UpdateMeasurementLotId(
             lotId: body,
             measurementId: measurementId,
             cancellationToken: cancellationToken);
 
-        return Ok();
+        return updated.Match<IActionResult>(
+            _ => Ok(),
+            _ => ProblemAnswers.NotFound(),
+            error => ProblemAnswers.DomainError(nameof(body), error));
     }
 
     public override async Task<IActionResult> UpdateMeasurementState(
@@ -630,32 +649,25 @@ public sealed class WebApiController : WebApiControllerBase
         string measurementId,
         CancellationToken cancellationToken = default)
     {
-        await _measurementService.UpdateMeasurementState(
+        var updated = await _measurementService.UpdateMeasurementState(
             state: body.ToDbMeasurementState(),
             measurementId: measurementId,
             cancellationToken: cancellationToken);
 
-        return Ok();
+        return updated.Match<IActionResult>(_ => Ok(), _ => ProblemAnswers.NotFound());
     }
 
     public override async Task<IActionResult> FindMatchedMeasurements(
         Guid productId,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            await _matchedMeasurementService.FindMatchedMeasurementsAsync(
-                productId: productId,
-                cancellationToken: cancellationToken);
-        }
-        catch (DomainException ex)
-        {
-            return ProblemAnswers.ValidationError(
-                field: "tubeWorkingPoint",
-                errors: ex.Message);
-        }
+        var started = await _matchedMeasurementService.FindMatchedMeasurementsAsync(
+            productId: productId,
+            cancellationToken: cancellationToken);
 
-        return Ok();
+        return started.Match<IActionResult>(
+            _ => Ok(),
+            error => ProblemAnswers.DomainError("tubeWorkingPoint", error));
     }
 
     public override async Task<ActionResult<LotInfoWithProductId>> GetLotInfo(
@@ -669,8 +681,9 @@ public sealed class WebApiController : WebApiControllerBase
 
     public override async Task<IActionResult> DeleteLotInfo(long lotId, CancellationToken cancellationToken = default)
     {
-        await _lotService.DeleteLotInfoAsync(lotId, cancellationToken);
-        return Ok();
+        var deleted = await _lotService.DeleteLotInfoAsync(lotId, cancellationToken);
+
+        return deleted.Match<IActionResult>(_ => Ok(), _ => ProblemAnswers.NotFound());
     }
 
     public override async Task<ActionResult<ICollection<long>>> GetLotIds(CancellationToken cancellationToken = default) =>
@@ -761,8 +774,7 @@ public sealed class WebApiController : WebApiControllerBase
         return productState switch
         {
             LotForSaleProductState.New => DomainProductState.New,
-            LotForSaleProductState.Used => DomainProductState.Used,
-            _ => throw new ArgumentOutOfRangeException(nameof(productState), productState, null)
+            LotForSaleProductState.Used => DomainProductState.Used
         };
     }
 
@@ -771,19 +783,17 @@ public sealed class WebApiController : WebApiControllerBase
         return measurementState switch
         {
             LotForSaleMeasurementState.Created => DomainMeasurementState.Created,
-            LotForSaleMeasurementState.Selling => DomainMeasurementState.Selling,
-            _ => throw new ArgumentOutOfRangeException(nameof(measurementState), measurementState, null)
+            LotForSaleMeasurementState.Selling => DomainMeasurementState.Selling
         };
     }
 
-    private static LotForSaleMeasurementState ToApiMeasurementState(DomainMeasurementState measurementState)
+    private static LotForSaleMeasurementState? ToApiMeasurementState(DomainMeasurementState measurementState)
     {
         return measurementState switch
         {
             DomainMeasurementState.Created => LotForSaleMeasurementState.Created,
             DomainMeasurementState.Selling => LotForSaleMeasurementState.Selling,
-            DomainMeasurementState.Sold => throw new NotImplementedException(),
-            _ => throw new ArgumentOutOfRangeException(nameof(measurementState), measurementState, null)
+            DomainMeasurementState.Sold => null
         };
     }
     private static LotForSaleProductState ToApiProductState(DomainProductState productState)
@@ -791,8 +801,7 @@ public sealed class WebApiController : WebApiControllerBase
         return productState switch
         {
             DomainProductState.New => LotForSaleProductState.New,
-            DomainProductState.Used => LotForSaleProductState.Used,
-            _ => throw new ArgumentOutOfRangeException(nameof(productState), productState, null)
+            DomainProductState.Used => LotForSaleProductState.Used
         };
     }
 }

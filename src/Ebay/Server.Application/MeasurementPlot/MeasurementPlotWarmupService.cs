@@ -46,7 +46,7 @@ public class MeasurementPlotWarmupService
         // It is independent of the per-process in-memory image cache invalidated by measurement state changes.
         var measurementIds = await _measurementQueries.GetAllMeasurementIds(cancellationToken);
 
-        foreach (var batch in measurementIds.Batch(CommitBatchSize))
+        foreach (var batch in measurementIds.Chunk(CommitBatchSize))
         {
             foreach (var id in batch)
             {

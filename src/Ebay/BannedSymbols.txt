@@ -160,3 +160,29 @@ M:Microsoft.Extensions.DependencyInjection.HttpClientFactoryServiceCollectionExt
 # that indexer.
 T:Microsoft.Extensions.Configuration.IConfiguration;Do not read IConfiguration directly: register options with services.AddOptions<T>().BindConfiguration(T.SectionName).ValidateDataAnnotations().ValidateOnStart() and consume IOptions<T>.
 M:Microsoft.Extensions.Configuration.ConfigurationExtensions.GetConnectionString(Microsoft.Extensions.Configuration.IConfiguration,System.String);Do not read connection strings from IConfiguration: use IOptions<PostgreSqlOptions> (Server.Adapters.Driven.PostgreSql, registered by AddPostgreSqlOptions).
+
+# No exceptions: production code returns failures as OneOf results, EBAY0001 (Analyzers/NoThrowAnalyzer) forbids
+# `throw`, and these BCL throw helpers would raise exceptions without the keyword. Cooperative cancellation
+# (CancellationToken.ThrowIfCancellationRequested) stays allowed.
+M:System.ArgumentNullException.ThrowIfNull(System.Object,System.String);Не выбрасывайте исключения: верните ошибку как OneOf-результат (EBAY0001), не-nullable параметр проверять не нужно.
+M:System.ArgumentNullException.ThrowIfNull(System.Void*,System.String);Не выбрасывайте исключения: верните ошибку как OneOf-результат (EBAY0001).
+M:System.ArgumentException.ThrowIfNullOrEmpty(System.String,System.String);Не выбрасывайте исключения: верните ошибку как OneOf-результат (EBAY0001).
+M:System.ArgumentException.ThrowIfNullOrWhiteSpace(System.String,System.String);Не выбрасывайте исключения: верните ошибку как OneOf-результат (EBAY0001).
+M:System.ArgumentOutOfRangeException.ThrowIfZero``1(``0,System.String);Не выбрасывайте исключения: верните ошибку как OneOf-результат (EBAY0001).
+M:System.ArgumentOutOfRangeException.ThrowIfNegative``1(``0,System.String);Не выбрасывайте исключения: верните ошибку как OneOf-результат (EBAY0001).
+M:System.ArgumentOutOfRangeException.ThrowIfNegativeOrZero``1(``0,System.String);Не выбрасывайте исключения: верните ошибку как OneOf-результат (EBAY0001).
+M:System.ArgumentOutOfRangeException.ThrowIfEqual``1(``0,``0,System.String);Не выбрасывайте исключения: верните ошибку как OneOf-результат (EBAY0001).
+M:System.ArgumentOutOfRangeException.ThrowIfNotEqual``1(``0,``0,System.String);Не выбрасывайте исключения: верните ошибку как OneOf-результат (EBAY0001).
+M:System.ArgumentOutOfRangeException.ThrowIfGreaterThan``1(``0,``0,System.String);Не выбрасывайте исключения: верните ошибку как OneOf-результат (EBAY0001).
+M:System.ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual``1(``0,``0,System.String);Не выбрасывайте исключения: верните ошибку как OneOf-результат (EBAY0001).
+M:System.ArgumentOutOfRangeException.ThrowIfLessThan``1(``0,``0,System.String);Не выбрасывайте исключения: верните ошибку как OneOf-результат (EBAY0001).
+M:System.ArgumentOutOfRangeException.ThrowIfLessThanOrEqual``1(``0,``0,System.String);Не выбрасывайте исключения: верните ошибку как OneOf-результат (EBAY0001).
+M:System.ObjectDisposedException.ThrowIf(System.Boolean,System.Object);Не выбрасывайте исключения: верните ошибку как OneOf-результат (EBAY0001).
+M:System.ObjectDisposedException.ThrowIf(System.Boolean,System.Type);Не выбрасывайте исключения: верните ошибку как OneOf-результат (EBAY0001).
+M:System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw;Не выбрасывайте исключения: верните ошибку как OneOf-результат (EBAY0001).
+M:System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw(System.Exception);Не выбрасывайте исключения: верните ошибку как OneOf-результат (EBAY0001).
+M:System.Threading.Tasks.Task.FromException(System.Exception);Не выбрасывайте исключения через упавшую задачу: верните ошибку как OneOf-результат (EBAY0001).
+M:System.Threading.Tasks.Task.FromException``1(System.Exception);Не выбрасывайте исключения через упавшую задачу: верните ошибку как OneOf-результат (EBAY0001).
+
+# Ambient transactions: write-model transactions are opened explicitly through IWriteModelUnitOfWork.
+T:System.Transactions.TransactionScope;Не используйте ambient TransactionScope: открывайте транзакцию явно через IWriteModelUnitOfWork.BeginTransactionAsync.

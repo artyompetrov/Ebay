@@ -1,11 +1,12 @@
 using System.Data;
 using System.Text.RegularExpressions;
+using OneOf;
+using OneOf.Types;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Abstractions.Driven.Models;
 using Server.Application.Abstractions.Driving.Models;
-using Server.Application.Exceptions;
 using Server.Domain.Product;
 
 namespace Server.Application;
@@ -77,7 +78,8 @@ public class ProductService
     /// <summary>
     /// Обновляет товар и инициирует обработку доменных событий агрегата.
     /// </summary>
-    public async Task UpdateProductAsync(
+    /// <returns><see cref="NotFound"/>, если товар не найден.</returns>
+    public async Task<OneOf<Success, NotFound>> UpdateProductAsync(
         Guid productId,
         string name,
         int weight,
@@ -89,8 +91,12 @@ public class ProductService
     {
         await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
 
-        var product = await _productRepository.GetByIdAsync(unitOfWork, id: productId, cancellationToken: cancellationToken) ??
-                      throw new InvalidOperationException("product not found");
+        var product = await _productRepository.GetByIdAsync(unitOfWork, id: productId, cancellationToken: cancellationToken);
+        if (product is null)
+        {
+            return new NotFound();
+        }
+
         product.Update(
             name: name,
             weight: weight,
@@ -99,6 +105,8 @@ public class ProductService
             description: _descriptionSanitizer.Sanitize(description));
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return new Success();
     }
 
     /// <summary>
@@ -116,31 +124,35 @@ public class ProductService
     /// <summary>
     /// Обновляет время последней проверки товара.
     /// </summary>
-    public async Task MarkProductAsCheckedAsync(
+    /// <returns><see cref="NotFound"/>, если товар не найден.</returns>
+    public async Task<OneOf<Success, NotFound>> MarkProductAsCheckedAsync(
         Guid id,
         CancellationToken cancellationToken
     )
     {
         await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
 
-        var product = await _productRepository.GetByIdAsync(unitOfWork, id, cancellationToken) ??
-                      throw new InvalidOperationException("Product not found");
+        var product = await _productRepository.GetByIdAsync(unitOfWork, id, cancellationToken);
+        if (product is null)
+        {
+            return new NotFound();
+        }
+
         product.MarkAsChecked();
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return new Success();
     }
 
     /// <summary>
     /// Возвращает информацию о товаре.
     /// </summary>
-    /// <exception cref="NotFoundException">Товар с указанным идентификатором не найден.</exception>
-    public async Task<ProductInfoView> GetProductAsync(Guid id, CancellationToken cancellationToken)
-    {
-        var product = await _productQueries.GetProductAsync(id, cancellationToken) ??
-                      throw new NotFoundException("Product", id);
-
-        return Map(product);
-    }
+    /// <returns><see cref="NotFound"/>, если товар не найден.</returns>
+    public async Task<OneOf<ProductInfoView, NotFound>> GetProductAsync(Guid id, CancellationToken cancellationToken) =>
+        await _productQueries.GetProductAsync(id, cancellationToken) is { } product
+            ? Map(product)
+            : new NotFound();
 
     private static ProductInfoView Map(ProductInfo product)
     {
@@ -210,11 +222,6 @@ public class ProductService
         {
             productInfo.Name
         };
-
-        if (productInfo.RuSearchQueries == null)
-        {
-            throw new InvalidOperationException($"{nameof(productInfo.RuSearchQueries)} is null");
-        }
 
         foreach (var ruSearchQuery in productInfo.RuSearchQueries)
         {

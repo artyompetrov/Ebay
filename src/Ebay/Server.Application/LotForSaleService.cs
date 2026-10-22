@@ -1,8 +1,11 @@
+using OneOf;
+using OneOf.Types;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Abstractions.Driven.Models;
 using Server.Application.LotForSale;
+using Server.Domain.Errors;
 using Server.Domain.Measurements;
 
 namespace Server.Application;
@@ -69,19 +72,21 @@ public sealed class LotForSaleService
     /// <param name="productState">Состояние товара для лота.</param>
     /// <param name="measurementState">Статус замера для лота.</param>
     /// <param name="cancellationToken">Токен отмены операции.</param>
-    public async Task CreateLotForSaleAsync(string name, Guid productId, ProductState productState, MeasurementState measurementState, CancellationToken cancellationToken)
+    /// <returns><see cref="DomainError"/>, если параметры лота некорректны.</returns>
+    public async Task<OneOf<Success, DomainError>> CreateLotForSaleAsync(string name, Guid productId, ProductState productState, MeasurementState measurementState, CancellationToken cancellationToken)
     {
-        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
-
-        if (measurementState == MeasurementState.Sold)
+        var lotId = _lotForSaleIdGenerator.GenerateNextId();
+        var created = Domain.LotForSale.LotForSale.Create(lotId, name, productId, productState, measurementState);
+        if (created.TryPickT1(out var error, out var aggregate))
         {
-            throw new ArgumentException("Sold measurement state is not allowed for lot-for-sale creation.", nameof(measurementState));
+            return error;
         }
 
-        var lotId = _lotForSaleIdGenerator.GenerateNextId();
-        var aggregate = Domain.LotForSale.LotForSale.Create(lotId, name, productId, productState, measurementState);
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
         await _lotForSaleRepository.AddAsync(unitOfWork, aggregate, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return new Success();
     }
 
     /// <summary>
@@ -89,15 +94,19 @@ public sealed class LotForSaleService
     /// </summary>
     /// <param name="lotId">Идентификатор лота.</param>
     /// <param name="cancellationToken">Токен отмены операции.</param>
-    public async Task DeleteLotForSaleAsync(string lotId, CancellationToken cancellationToken)
+    /// <returns><see cref="NotFound"/>, если лот не найден; <see cref="DomainError"/>, если на лот ссылаются замеры.</returns>
+    public async Task<OneOf<Success, NotFound, DomainError>> DeleteLotForSaleAsync(string lotId, CancellationToken cancellationToken)
     {
         await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
 
-        var lotForSale = await _lotForSaleRepository.GetByIdAsync(unitOfWork, lotId, cancellationToken)
-            ?? throw new InvalidOperationException("Lot for sale not found.");
+        var lotForSale = await _lotForSaleRepository.GetByIdAsync(unitOfWork, lotId, cancellationToken);
+        if (lotForSale is null)
+        {
+            return new NotFound();
+        }
 
         // todo тут надо наверное переделать на генерацию события и потом удаление 
-        await lotForSale.EnsureCanBeDeletedAsync(async (productId, linkedLotId, productState, ct) =>
+        var canBeDeleted = await lotForSale.EnsureCanBeDeletedAsync(async (productId, linkedLotId, productState, ct) =>
             {
                 var linkedMeasurements = await _measurementQueries.GetMeasurementInfosWithSimilarMeasurements(
                     productId,
@@ -110,7 +119,14 @@ public sealed class LotForSaleService
             },
             cancellationToken);
 
+        if (canBeDeleted.TryPickT1(out var error, out _))
+        {
+            return error;
+        }
+
         await _lotForSaleRepository.RemoveAsync(unitOfWork, lotForSale.Id, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return new Success();
     }
 }

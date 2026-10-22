@@ -1,5 +1,7 @@
+using OneOf;
+using OneOf.Types;
 using Server.Domain.Abstractions;
-using Server.Domain.Exceptions;
+using Server.Domain.Errors;
 using Server.Domain.Measurements;
 
 namespace Server.Domain.LotForSale;
@@ -10,7 +12,6 @@ public sealed class LotForSale : AggregateRoot<string>
 
     private LotForSale(string id, string name, Guid productId, ProductState productState, MeasurementState measurementState) : base(id)
     {
-        ValidateId(id);
         Name = name;
         ProductId = productId;
         ProductState = productState;
@@ -25,11 +26,27 @@ public sealed class LotForSale : AggregateRoot<string>
 
     public MeasurementState MeasurementState { get; private set; }
 
-    public static LotForSale Create(string id, string name, Guid productId, ProductState productState, MeasurementState measurementState)
+    public static OneOf<LotForSale, DomainError> Create(string id, string name, Guid productId, ProductState productState, MeasurementState measurementState)
     {
-        ValidateId(id);
-        ValidateName(name);
-        ValidateProductId(productId);
+        if (string.IsNullOrWhiteSpace(id) || id.Length != IdLength)
+        {
+            return new DomainError($"LotForSale Id must contain exactly {IdLength} symbols.");
+        }
+
+        if (ValidateName(name) is { } nameError)
+        {
+            return nameError;
+        }
+
+        if (productId == Guid.Empty)
+        {
+            return new DomainError("ProductId is required.");
+        }
+
+        if (measurementState == MeasurementState.Sold)
+        {
+            return new DomainError("Sold measurement state is not allowed for lot-for-sale creation.");
+        }
 
         return new LotForSale(
             id: id,
@@ -39,46 +56,30 @@ public sealed class LotForSale : AggregateRoot<string>
             measurementState: measurementState);
     }
 
-    public void Rename(string name)
+    public OneOf<Success, DomainError> Rename(string name)
     {
-        ValidateName(name);
+        if (ValidateName(name) is { } nameError)
+        {
+            return nameError;
+        }
+
         Name = name.Trim();
+        return new Success();
     }
 
-    public async Task EnsureCanBeDeletedAsync(
+    public async Task<OneOf<Success, DomainError>> EnsureCanBeDeletedAsync(
         Func<Guid, string, ProductState, CancellationToken, Task<bool>> hasLinkedMeasurements,
         CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(hasLinkedMeasurements);
-
         var hasLinkedMeasurementsResult = await hasLinkedMeasurements(ProductId, Id, ProductState, cancellationToken);
         if (hasLinkedMeasurementsResult)
         {
-            throw new DomainException($"Lot '{Id}' cannot be deleted because it has linked measurements.");
+            return new DomainError($"Lot '{Id}' cannot be deleted because it has linked measurements.");
         }
+
+        return new Success();
     }
 
-    private static void ValidateId(string id)
-    {
-        if (string.IsNullOrWhiteSpace(id) || id.Length != IdLength)
-        {
-            throw new ArgumentException($"LotForSale Id must contain exactly {IdLength} symbols.", nameof(id));
-        }
-    }
-
-    private static void ValidateName(string name)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            throw new ArgumentException("LotForSale name is required.", nameof(name));
-        }
-    }
-
-    private static void ValidateProductId(Guid productId)
-    {
-        if (productId == Guid.Empty)
-        {
-            throw new ArgumentException("ProductId is required.", nameof(productId));
-        }
-    }
+    private static DomainError? ValidateName(string name) =>
+        string.IsNullOrWhiteSpace(name) ? new DomainError("LotForSale name is required.") : null;
 }

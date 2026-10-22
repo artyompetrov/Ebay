@@ -1,4 +1,4 @@
-using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
@@ -99,13 +99,22 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
             return;
         }
 
-        var measurement1 = new MeasurementInfoWithAnodeCurves(
-            measurement1dto,
-            AnodeCurves: _measurementFileParser.Parse(measurement1dto.Data).MeasurementConfigTableParseResult.AnodeCurves);
+        if (!TryParse(measurement1dto, out var measurement1) || !TryParse(measurement2dto, out var measurement2))
+        {
+            return;
+        }
 
-        var measurement2 = new MeasurementInfoWithAnodeCurves(
-            measurement2dto,
-            AnodeCurves: _measurementFileParser.Parse(measurement2dto.Data).MeasurementConfigTableParseResult.AnodeCurves);
+        if (measurement1.AnodeCurves.GetType() != measurement2.AnodeCurves.GetType())
+        {
+            // Measurements of one product are always taken with the same tube type.
+            _logger.LogError(
+                message: "Measurements {MeasurementId1} {MeasurementId2} have different anode curve types {AnodeCurvesType1}, {AnodeCurvesType2}",
+                measurementId1,
+                measurementId2,
+                measurement1.AnodeCurves.GetType().Name,
+                measurement2.AnodeCurves.GetType().Name);
+            return;
+        }
 
         await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
 
@@ -113,11 +122,6 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
         {
             case PentodeAnodeCurves:
                 {
-                    if (measurement2.AnodeCurves is not PentodeAnodeCurves)
-                    {
-                        throw new UnreachableException($"{nameof(measurement2)} is expected to be PentodeAnodeCurves");
-                    }
-
                     if (measurement1 == measurement2)
                     {
                         // игнорируем сравнение сами собой
@@ -138,11 +142,6 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
 
             case TriodeAnodeCurves:
                 {
-                    if (measurement2.AnodeCurves is not TriodeAnodeCurves)
-                    {
-                        throw new UnreachableException($"{nameof(measurement2)} is expected to be TriodeAnodeCurves");
-                    }
-
                     if (measurement1.MeasurementInfoWithData.Id == measurement2.MeasurementInfoWithData.Id)
                     {
                         // игнорируем сравнение сами собой
@@ -163,11 +162,6 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
 
             case DoubleTriodeAnodeCurves:
                 {
-                    if (measurement2.AnodeCurves is not DoubleTriodeAnodeCurves)
-                    {
-                        throw new UnreachableException($"{nameof(measurement2)} is expected to be DoubleTriodeAnodeCurves");
-                    }
-
                     await CalculateForTwoSectionTubes(
                         unitOfWork: unitOfWork,
                         measurement1: measurement1,
@@ -180,8 +174,31 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
 
                 break;
             default:
-                throw new NotSupportedException($"Unsupported subtype of {nameof(MeasurementTypeBase)}");
+                _logger.LogError(
+                    message: "Unsupported anode curves type {AnodeCurvesType} of {MeasurementId1}",
+                    measurement1.AnodeCurves.GetType().Name,
+                    measurementId1);
+                break;
         }
+    }
+
+    private bool TryParse(
+        MeasurementInfoWithData measurement,
+        [NotNullWhen(true)] out MeasurementInfoWithAnodeCurves? parsed)
+    {
+        var parseResult = _measurementFileParser.Parse(measurement.Data);
+        if (parseResult.TryPickT1(out var error, out var parsedFile))
+        {
+            _logger.LogError(
+                message: "Measurement {MeasurementId} file cannot be parsed: {Error}",
+                measurement.Id,
+                error.Message);
+            parsed = null;
+            return false;
+        }
+
+        parsed = new MeasurementInfoWithAnodeCurves(measurement, parsedFile.MeasurementConfigTableParseResult.AnodeCurves);
+        return true;
     }
 
     private async Task CalculateForTwoSectionTubes(
@@ -197,10 +214,9 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
         var measurement1I1Model = AnodeCurveModelBuilder.Build(measurement1.AnodeCurves, x => x.I1, approximationWorkingPoint);
         var measurement2I1Model = AnodeCurveModelBuilder.Build(measurement2.AnodeCurves, x => x.I1, approximationWorkingPoint);
 
-        var measurement1I2Model = AnodeCurveModelBuilder.Build(measurement1.AnodeCurves,
-            x => x.I2 ?? throw new InvalidOperationException("I2 is expected to be not null"), approximationWorkingPoint);
-        var measurement2I2Model = AnodeCurveModelBuilder.Build(measurement2.AnodeCurves,
-            x => x.I2 ?? throw new InvalidOperationException("I2 is expected to be not null"), approximationWorkingPoint);
+        // Two-section (double triode) curves always carry the second section's current I2 (HasSecondCurve).
+        var measurement1I2Model = AnodeCurveModelBuilder.Build(measurement1.AnodeCurves, static x => x.I2!, approximationWorkingPoint);
+        var measurement2I2Model = AnodeCurveModelBuilder.Build(measurement2.AnodeCurves, static x => x.I2!, approximationWorkingPoint);
 
         if (measurement1.MeasurementInfoWithData.Id != measurement2.MeasurementInfoWithData.Id)
         {

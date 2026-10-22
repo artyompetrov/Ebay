@@ -24,19 +24,10 @@ internal static class ModelExtensions
         foreach (var errorsAdditionalProperty in validationProblemDetails.Errors.AdditionalProperties)
         {
             var fieldName = errorsAdditionalProperty.Key;
-            var errors = new List<string>();
-            if (errorsAdditionalProperty.Value is JArray jArray)
-            {
-                foreach (var error in jArray)
-                {
-                    errors.Add(error.ToString());
-                }
-            }
-            else
-            {
-                throw new InvalidOperationException(
-                    $"{nameof(errorsAdditionalProperty)}.{nameof(errorsAdditionalProperty.Value)} expected to be jArray");
-            }
+            // The server sends an array of messages per field; anything else is shown as one message.
+            List<string> errors = errorsAdditionalProperty.Value is JArray jArray
+                ? [.. jArray.Select(static error => error.ToString())]
+                : [errorsAdditionalProperty.Value?.ToString() ?? string.Empty];
 
             yield return new ValidationProblemParsed(FieldName: fieldName, Errors: errors);
         }

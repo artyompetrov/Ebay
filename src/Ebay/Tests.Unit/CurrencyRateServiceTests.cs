@@ -1,6 +1,8 @@
 using System.Data;
 using AwesomeAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
+using OneOf;
+using OneOf.Types;
 using Server.Application;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
@@ -72,14 +74,14 @@ public sealed class CurrencyRateServiceTests
 
         public string[] RequestedApiNames { get; private set; } = [];
 
-        public Task<IReadOnlyDictionary<string, double>> GetLatestRatesAsync(
+        public Task<OneOf<IReadOnlyDictionary<string, double>, Error<string>>> GetLatestRatesAsync(
             string baseCurrency,
             IEnumerable<string> currencyApiNames,
             CancellationToken cancellationToken)
         {
             RequestedBaseCurrency = baseCurrency;
             RequestedApiNames = [.. currencyApiNames];
-            return Task.FromResult(_rates);
+            return Task.FromResult<OneOf<IReadOnlyDictionary<string, double>, Error<string>>>(OneOf<IReadOnlyDictionary<string, double>, Error<string>>.FromT0(_rates));
         }
     }
 

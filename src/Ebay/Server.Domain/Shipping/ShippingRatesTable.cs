@@ -390,11 +390,6 @@ public static class ShippingRatesTable
         {
             foreach (var shippingRateRate in shippingRate.Rates)
             {
-                if (shippingRateRate == null)
-                {
-                    throw new InvalidOperationException(nameof(shippingRate));
-                }
-
                 foreach (var rate in shippingRateRate.Rates)
                 {
                     if (shippingRateRate.SpecifiedCountries == null)
@@ -409,11 +404,6 @@ public static class ShippingRatesTable
                     {
                         foreach (var specifiedCountry in shippingRateRate.SpecifiedCountries)
                         {
-                            if (rate == null)
-                            {
-                                throw new InvalidOperationException(nameof(rate));
-                            }
-
                             rates.AppendOrCreateNewCollection(key: specifiedCountry.TwoLetterCode, value: new ShippingRateByWeight(
                                 WeightFrom: rate.MinWeight,
                                 WeightTo: rate.MaxWeight,

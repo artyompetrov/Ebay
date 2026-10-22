@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -26,11 +27,21 @@ public sealed class WriteModelDbContext : DbContext
         configurationBuilder.Properties<DateTimeOffset>().HaveConversion<UtcDateTimeOffsetConverter>();
     }
 
+    /// <summary>
+    /// Schema of every write-model table.
+    /// </summary>
+    internal const string Schema = "wm";
+
+    /// <summary>
+    /// Table of <see cref="IgnoredLot"/>; raw SQL in <c>IgnoredLotRepository</c> refers to it by this name.
+    /// </summary>
+    internal const string IgnoredLotsTable = nameof(IgnoredLots);
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.HasDefaultSchema("wm");
+        modelBuilder.HasDefaultSchema(Schema);
         modelBuilder.AddInboxStateEntity();
         modelBuilder.AddOutboxMessageEntity();
         modelBuilder.AddOutboxStateEntity();
@@ -354,7 +365,10 @@ public sealed class WriteModelDbContext : DbContext
 
         modelBuilder.Entity<IgnoredLot>(entity =>
         {
+            entity.ToTable(IgnoredLotsTable);
             entity.HasKey(x => new { x.ProductId, x.LotId });
+            entity.Property(x => x.ProductId).HasColumnName(nameof(IgnoredLot.ProductId));
+            entity.Property(x => x.LotId).HasColumnName(nameof(IgnoredLot.LotId));
 
             entity.HasOne<Product>()
                 .WithMany()
@@ -390,6 +404,8 @@ public sealed class WriteModelDbContext : DbContext
     public DbSet<IgnoredLot> IgnoredLots { get; set; } = null!;
     public DbSet<ClientError> ClientErrors { get; set; } = null!;
 
+    // EF's SaveChangesAsync contract has no way to return a failure, and saving here would silently drop the events.
+    [SuppressMessage("Design", "EBAY0001:Do not throw exceptions", Justification = "Framework override that cannot return a result; guards a programming error.")]
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         // Domain events are dispatched to the transactional outbox by WriteModelUnitOfWork before it calls

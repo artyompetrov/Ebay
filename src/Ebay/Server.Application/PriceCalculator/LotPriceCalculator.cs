@@ -1,9 +1,12 @@
 using Microsoft.Extensions.Logging;
+using OneOf;
+using OneOf.Types;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
 using Server.Domain;
+using Server.Domain.Errors;
 using Server.Domain.Shipping;
 
 namespace Server.Application.PriceCalculator;
@@ -37,18 +40,25 @@ public sealed class LotPriceCalculator : ILotPriceCalculator
     }
 
     /// <inheritdoc />
-    public async Task<Guid> CalculateAsync(long lotId, CancellationToken cancellationToken)
+    public async Task<OneOf<Guid, NotFound, DomainError>> CalculateAsync(long lotId, CancellationToken cancellationToken)
     {
         await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
 
         _logger.LogInformation("Calculation started for {LotId}", lotId);
 
-        var lot = await _lotRepository.GetByIdAsync(unitOfWork, lotId, cancellationToken) ??
-                  throw new InvalidOperationException($"Lot with {lotId} not found");
+        var lot = await _lotRepository.GetByIdAsync(unitOfWork, lotId, cancellationToken);
+        if (lot is null)
+        {
+            _logger.LogWarning("Lot {LotId} not found, calculation skipped", lotId);
+            return new NotFound();
+        }
 
-        var product =
-            await _productQueries.GetProductAsync(lot.ProductId, cancellationToken) ??
-            throw new InvalidOperationException($"Product with {lot.ProductId} not found");
+        var product = await _productQueries.GetProductAsync(lot.ProductId, cancellationToken);
+        if (product is null)
+        {
+            _logger.LogWarning("Product {ProductId} of lot {LotId} not found, calculation skipped", lot.ProductId, lotId);
+            return new NotFound();
+        }
 
         var currencyRates = await _currencyQueries.GetCurrencyRatesAsync(cancellationToken);
 
@@ -64,10 +74,18 @@ public sealed class LotPriceCalculator : ILotPriceCalculator
         {
             var количествоШтукВПродаже = lot.Pcs * purchase.Quantity;
 
-            var рассчетнаяЦенаДоставкиВДоллларахИзКазахстана = GetShippingPrice(
+            var shippingPrice = GetShippingPrice(
                 shippingCountry: lot.ShippingCountry,
                 weight: product.Weight * количествоШтукВПродаже * WellKnown.EbayWeightMultiplier,
                 currencyRates: currencyRates);
+            if (shippingPrice.TryPickT1(out var shippingPriceError, out var рассчетнаяЦенаДоставкиВДоллларахИзКазахстана))
+            {
+                _logger.LogError(
+                    "Calculation failed for {LotId}: {Error}",
+                    lotId,
+                    shippingPriceError.Message);
+                return shippingPriceError;
+            }
 
             var ценаЛотаВВалютеЛота = purchase.Price ?? lot.Price * (1.0 - WellKnown.Ebay.НеизвестнаяЦенаПродажиСкидка);
             var ценаДоставкиВВалютеЛота = lot.Shipping + lot.ShippingAdditional * (purchase.Quantity - 1);
@@ -119,22 +137,22 @@ public sealed class LotPriceCalculator : ILotPriceCalculator
         return lot.ProductId;
     }
 
-    private double GetShippingPrice(string shippingCountry, double weight, IReadOnlyDictionary<string, double> currencyRates)
+    private OneOf<double, DomainError> GetShippingPrice(string shippingCountry, double weight, IReadOnlyDictionary<string, double> currencyRates)
     {
         var shippingRatesDictionary = ShippingRatesTable.ShippingRatesDictionary;
         if (!shippingRatesDictionary.TryGetValue(key: shippingCountry, value: out var shippingRates))
         {
-            throw new InvalidOperationException($"{shippingCountry} not found in shippingRates");
+            return new DomainError($"{shippingCountry} not found in shippingRates");
         }
 
         var prices = shippingRatesDictionary[ShippingRatesTable.Worldwide].Concat(shippingRates).ToList();
 
-        try
-        {
-            return prices.Where(x => x.WeightFrom <= weight && weight <= x.WeightTo)
-                .Select(x => x.Price / currencyRates[x.Currency]).Min(x => x);
-        }
-        catch (Exception)
+        var matchingPrices = prices
+            .Where(x => x.WeightFrom <= weight && weight <= x.WeightTo)
+            .Select(x => x.Price / currencyRates[x.Currency])
+            .ToList();
+
+        if (matchingPrices.Count == 0)
         {
             var pricesString = string.Join(", ", prices);
             _logger.LogError(
@@ -143,7 +161,9 @@ public sealed class LotPriceCalculator : ILotPriceCalculator
                 weight,
                 pricesString);
 
-            throw;
+            return new DomainError($"No shipping rate to {shippingCountry} for weight {weight}");
         }
+
+        return matchingPrices.Min();
     }
 }

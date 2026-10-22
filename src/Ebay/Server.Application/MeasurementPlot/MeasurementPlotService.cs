@@ -192,7 +192,12 @@ public class MeasurementPlotService
                     return null;
                 }
 
-                var result = _measurementFileParser.Parse(measurementInfo.Data);
+                // Stored measurements were validated on upload; one that no longer parses has no plot.
+                if (!_measurementFileParser.Parse(measurementInfo.Data).TryPickT0(out var result, out _))
+                {
+                    return null;
+                }
+
                 var anodeCurves = result.MeasurementConfigTableParseResult.AnodeCurves;
                 var gridCurves = anodeCurves.ConvertToGridCurves();
 
@@ -289,8 +294,12 @@ public class MeasurementPlotService
                 continue;
             }
 
-            var pairAnodeCurves = _measurementFileParser.Parse(pair.Data)
-                .MeasurementConfigTableParseResult.AnodeCurves;
+            if (!_measurementFileParser.Parse(pair.Data).TryPickT0(out var pairParsed, out _))
+            {
+                continue;
+            }
+
+            var pairAnodeCurves = pairParsed.MeasurementConfigTableParseResult.AnodeCurves;
             var pairGridCurves = pairAnodeCurves.ConvertToGridCurves();
 
             // Anode

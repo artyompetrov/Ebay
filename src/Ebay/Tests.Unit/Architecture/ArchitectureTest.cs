@@ -43,24 +43,29 @@ public sealed class ArchitectureTest
     // Application: только IO-free абстракции DI и логирования. Конкретная инфраструктура
     // (БД, web-фреймворк, брокер, кеши, опции/конфигурация, отрисовка) остаётся в адаптерах за портами.
     // Проверка для ревьюера: замена БД, web-фреймворка или брокера сообщений не должна менять application.
+    // OneOf - результаты сценариев вместо исключений (см. EBAY0001), как и в domain и портах.
     private static readonly string[] ApplicationAllowedExternalAssemblies = [
         "Microsoft.Extensions.DependencyInjection.Abstractions",
-        "Microsoft.Extensions.Logging.Abstractions"
+        "Microsoft.Extensions.Logging.Abstractions",
+        "OneOf"
     ];
 
     // Domain: самый строгий слой - по умолчанию только базовая библиотека. Допустима лишь IO-free библиотека,
     // которая помогает выразить модель (RBF-аппроксимация анодных кривых, allow-list санитайзер описания товара
-    // и его зависимость AngleSharp); фреймворки, диктующие форму модели, и библиотеки отрисовки недопустимы.
+    // и его зависимость AngleSharp, размеченные объединения OneOf для результатов вместо исключений);
+    // фреймворки, диктующие форму модели, и библиотеки отрисовки недопустимы.
     // Проверка для ревьюера: замена БД, web-фреймворка или брокера сообщений не должна менять domain.
     private static readonly string[] DomainAllowedExternalAssemblies = [
         "alglib.net",
         "AngleSharp",
         "HtmlSanitizer",
-        "JetBrains.Annotations"
+        "JetBrains.Annotations",
+        "OneOf"
     ];
 
-    // Сборки портов: только контракты (интерфейсы и модели), без внешних зависимостей.
-    private static readonly string[] PortAllowedExternalAssemblies = [];
+    // Сборки портов: только контракты (интерфейсы и модели), без внешних зависимостей, кроме OneOf -
+    // типа результата, которым порты возвращают ожидаемые ошибки вместо исключений.
+    private static readonly string[] PortAllowedExternalAssemblies = ["OneOf"];
 
     private static readonly Assembly RootAssembly = typeof(Server.Program).Assembly;
     private static readonly Assembly ApplicationAssembly = typeof(ServiceCollectionExtensions).Assembly;
