@@ -18,7 +18,7 @@ The backend SHALL record a server span for every incoming HTTP request that is n
 - **THEN** a server span is recorded for that request in the trace given by the header
 
 ### Requirement: Infrastructure and static requests are not traced
-The backend SHALL NOT record spans for requests to the health check endpoint, to `/.well-known/` paths, to static frontend paths (under `/_framework/` or `/_content/`) or to files with a static asset extension (`.js`, `.css`, `.wasm`, `.map`, `.ico`, `.png`, `.jpg`, `.svg`, `.woff`, `.woff2`).
+The backend SHALL NOT record spans for requests to the health check endpoint, to `/.well-known/` paths, to static frontend paths (under `/_framework/` or `/_content/`) or to files with a static asset extension (`.js`, `.css`, `.wasm`, `.map`, `.ico`, `.png`, `.jpg`, `.svg`, `.woff`, `.woff2`, `.ttf`, `.otf`, `.eot`).
 
 #### Scenario: Health check is not traced
 - **WHEN** a client calls `/api/health` while spans are being collected

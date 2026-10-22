@@ -8,20 +8,22 @@ namespace Server.Platform.Tracing;
 /// </summary>
 internal static class TracedRequestFilter
 {
+    private const char PathSeparator = '/';
+
     private static readonly string[] ExcludedPathPrefixes = ["/_framework/", "/_content/", "/.well-known/"];
 
     private static readonly string[] StaticAssetExtensions =
-        [".js", ".css", ".wasm", ".map", ".ico", ".png", ".jpg", ".svg", ".woff", ".woff2"];
+        [".js", ".css", ".wasm", ".map", ".ico", ".png", ".jpg", ".svg", ".woff", ".woff2", ".ttf", ".otf", ".eot"];
 
     /// <summary>Returns <see langword="true"/> when a request to <paramref name="path"/> must be traced.</summary>
     public static bool IsTraced(PathString path)
     {
-        if (path.Equals(PlatformExtensions.HealthEndpointPath, StringComparison.OrdinalIgnoreCase))
+        var value = path.Value ?? string.Empty;
+        if (value.TrimEnd(PathSeparator).Equals(PlatformExtensions.HealthEndpointPath, StringComparison.OrdinalIgnoreCase))
         {
             return false;
         }
 
-        var value = path.Value ?? string.Empty;
         return !ExcludedPathPrefixes.Any(prefix => value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
             && !StaticAssetExtensions.Any(extension => value.EndsWith(extension, StringComparison.OrdinalIgnoreCase));
     }

@@ -65,6 +65,9 @@ public static class PlatformExtensions
             // Keep every trace, even when the caller's traceparent says "not sampled": traffic is low and the
             // trace someone needs to investigate must not be the one that was sampled out. Only children of spans
             // we dropped ourselves (filtered requests) are dropped too, so they don't show up as orphan traces.
+            // TODO: a message published under a filtered request still carries that request's trace id with the
+            // sampled flag off, and its consumer (a remote parent here) is recorded under a parent that was never
+            // exported. No filtered path publishes messages today; if one does, drop such consumer spans too.
             .SetSampler(new ParentBasedSampler(
                 new AlwaysOnSampler(),
                 remoteParentSampled: new AlwaysOnSampler(),

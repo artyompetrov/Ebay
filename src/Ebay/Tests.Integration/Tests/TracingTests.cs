@@ -23,6 +23,8 @@ public class TracingTests
     private const string DatabaseSourceName = "Npgsql";
     private const string HttpClientSourceName = "System.Net.Http";
     private const string LoopbackAddress = "127.0.0.1";
+    private const int GracePeriodChecks = 4;
+    private static readonly TimeSpan GracePeriodCheckInterval = TimeSpan.FromMilliseconds(250);
 
     // Our own test source: its name starts with "Server.", so the platform exports it like an application source.
     private static readonly ActivitySource TestSource = new("Server.Tests.Integration.Tracing");
@@ -41,7 +43,7 @@ public class TracingTests
 
         await TestHelpers.RetryUntilValidationSuccessAsync(() =>
         {
-            var serverSpan = Spans.SpansOf(traceId).Should().ContainSingle(span => IsServerSpan(span)).Subject;
+            var serverSpan = Spans.SpansOf(traceId).Should().ContainSingle(static span => IsServerSpan(span)).Subject;
             serverSpan.GetTagItem("http.request.method").Should().Be("GET");
             serverSpan.GetTagItem("http.route").Should().BeOfType<string>().Which.Should().Contain(ProductsRoute);
             serverSpan.GetTagItem("http.response.status_code").Should().Be((int)HttpStatusCode.OK);
@@ -61,7 +63,7 @@ public class TracingTests
 
         await TestHelpers.RetryUntilValidationSuccessAsync(() =>
         {
-            Spans.SpansOf(traceId).Should().ContainSingle(span => IsServerSpan(span));
+            Spans.SpansOf(traceId).Should().ContainSingle(static span => IsServerSpan(span));
             return Task.CompletedTask;
         });
     }
@@ -95,7 +97,7 @@ public class TracingTests
         await TestHelpers.RetryUntilValidationSuccessAsync(() =>
         {
             var trace = Spans.SpansOf(traceId);
-            var serverSpan = trace.Should().ContainSingle(span => IsServerSpan(span)).Subject;
+            var serverSpan = trace.Should().ContainSingle(static span => IsServerSpan(span)).Subject;
             trace.Where(IsDatabaseSpan).Should().Contain(span => HasAncestor(span, serverSpan, trace));
             return Task.CompletedTask;
         });
@@ -123,10 +125,10 @@ public class TracingTests
         await TestHelpers.RetryUntilValidationSuccessAsync(() =>
         {
             var trace = Spans.SpansOf(traceId);
-            trace.Should().Contain(span => IsServerSpan(span), "the request has finished and been exported");
+            trace.Should().Contain(static span => IsServerSpan(span), "the request has finished and been exported");
             var databaseSpans = trace.Where(IsDatabaseSpan).ToArray();
             databaseSpans.Should().NotBeEmpty();
-            databaseSpans.Should().AllSatisfy(span => TagValues(span).Should().NotContain(value => value.Contains(productName)));
+            databaseSpans.Should().AllSatisfy(span => SpanTexts(span).Should().NotContain(value => value.Contains(productName)));
             return Task.CompletedTask;
         });
     }
@@ -149,11 +151,11 @@ public class TracingTests
 
         await TestHelpers.RetryUntilValidationSuccessAsync(() =>
         {
-            Spans.SpansWhere(span => IsDatabaseSpan(span) && TagValues(span).Any(value => value.Contains(parentedMarker)))
+            Spans.SpansWhere(span => IsDatabaseSpan(span) && SpanTexts(span).Any(value => value.Contains(parentedMarker)))
                 .Should().NotBeEmpty();
             return Task.CompletedTask;
         });
-        Spans.SpansWhere(span => TagValues(span).Any(value => value.Contains(orphanMarker))).Should().BeEmpty();
+        await AssertStaysEmptyAsync(() => Spans.SpansWhere(span => SpanTexts(span).Any(value => value.Contains(orphanMarker))));
     }
 
     [Test]
@@ -181,7 +183,7 @@ public class TracingTests
         await TestHelpers.RetryUntilValidationSuccessAsync(() =>
         {
             var clientSpan = Spans.SpansOf(traceId)
-                .Should().ContainSingle(span => span.Source.Name == HttpClientSourceName && span.Kind == ActivityKind.Client)
+                .Should().ContainSingle(static span => span.Source.Name == HttpClientSourceName && span.Kind == ActivityKind.Client)
                 .Subject;
             clientSpan.ParentSpanId.Should().Be(parentSpanId);
             clientSpan.GetTagItem("http.request.method").Should().Be("GET");
@@ -236,8 +238,8 @@ public class TracingTests
         await TestHelpers.RetryUntilValidationSuccessAsync(() =>
         {
             var trace = Spans.SpansOf(traceId);
-            trace.Should().Contain(span => IsServerSpan(span));
-            trace.SelectMany(TagValues).Should().NotContain(value =>
+            trace.Should().Contain(static span => IsServerSpan(span));
+            trace.SelectMany(SpanTexts).Should().NotContain(value =>
                 value.Contains(queryValue) || value.Contains(queryParameterName) || value.Contains(token));
             return Task.CompletedTask;
         });
@@ -260,10 +262,25 @@ public class TracingTests
 
         await TestHelpers.RetryUntilValidationSuccessAsync(() =>
         {
-            Spans.SpansOf(controlTraceId).Should().Contain(span => IsServerSpan(span));
+            Spans.SpansOf(controlTraceId).Should().Contain(static span => IsServerSpan(span));
             return Task.CompletedTask;
         });
-        Spans.SpansOf(excludedTraceId).Should().BeEmpty();
+        await AssertStaysEmptyAsync(() => Spans.SpansOf(excludedTraceId));
+    }
+
+    /// <summary>
+    /// The control span only shows that export has caught up; the host may still end the earlier request's span
+    /// a moment after its response. Keep checking for a short grace period so a late span is not missed.
+    /// </summary>
+    private static async Task AssertStaysEmptyAsync(Func<Activity[]> spans)
+    {
+        for (var check = 0; check < GracePeriodChecks; check++)
+        {
+            spans().Should().BeEmpty();
+            await Task.Delay(GracePeriodCheckInterval);
+        }
+
+        spans().Should().BeEmpty();
     }
 
     private static async Task<HttpClient> CreateAuthenticatedClientAsync()
@@ -322,8 +339,12 @@ public class TracingTests
         return false;
     }
 
-    private static IEnumerable<string> TagValues(Activity span) =>
-        span.TagObjects.Select(static tag => tag.Value?.ToString() ?? string.Empty);
+    /// <summary>Every piece of text a span carries to the trace store: names, status, tags and event tags.</summary>
+    private static IEnumerable<string> SpanTexts(Activity span) =>
+        new[] { span.DisplayName, span.OperationName, span.StatusDescription ?? string.Empty }
+            .Concat(span.TagObjects.Select(static tag => tag.Value?.ToString() ?? string.Empty))
+            .Concat(span.Events.SelectMany(static spanEvent =>
+                spanEvent.Tags.Select(static tag => tag.Value?.ToString() ?? string.Empty).Prepend(spanEvent.Name)));
 
     /// <summary>
     /// A plain socket HTTP server on the loopback interface. Unlike TestServer, calls to it go through the real
@@ -332,7 +353,9 @@ public class TracingTests
     private sealed class LoopbackHttpStub : IDisposable
     {
         private const string Response = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
+        private const string EndOfHeaders = "\r\n\r\n";
         private const int RequestBufferSize = 4096;
+        private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(10);
 
         private readonly TcpListener _listener = new(IPAddress.Loopback, port: 0);
 
@@ -342,10 +365,26 @@ public class TracingTests
 
         public async Task ServeOneRequestAsync()
         {
-            using var socket = await _listener.AcceptSocketAsync();
+            using var timeout = new CancellationTokenSource(RequestTimeout);
+            using var socket = await _listener.AcceptSocketAsync(timeout.Token);
+
+            // Read the whole request head (a GET has no body) before answering: closing a socket with unread
+            // data resets the connection instead of finishing the response.
+            var request = new StringBuilder();
             var buffer = new byte[RequestBufferSize];
-            await socket.ReceiveAsync(buffer, SocketFlags.None);
-            await socket.SendAsync(Encoding.ASCII.GetBytes(Response), SocketFlags.None);
+            while (!request.ToString().Contains(EndOfHeaders, StringComparison.Ordinal))
+            {
+                var received = await socket.ReceiveAsync(buffer, SocketFlags.None, timeout.Token);
+                if (received == 0)
+                {
+                    throw new InvalidOperationException("The client closed the connection before sending the request.");
+                }
+
+                request.Append(Encoding.ASCII.GetString(buffer, 0, received));
+            }
+
+            await socket.SendAsync(Encoding.ASCII.GetBytes(Response), SocketFlags.None, timeout.Token);
+            socket.Shutdown(SocketShutdown.Send);
         }
 
         public void Dispose() => _listener.Stop();

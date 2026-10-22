@@ -13,7 +13,11 @@ datasources:
         tags:
           - key: service.name
             value: service_name
-        filterByTraceID: true
+        # Logs keep trace_id as structured metadata, not in the log line, so the built-in "filter by trace id"
+        # (a |= line filter) finds nothing; filter on the trace_id field instead.
+        # $$ escapes $ from Grafana's environment-variable expansion in provisioning files.
+        customQuery: true
+        query: '{$${__tags}} | trace_id="$${__span.traceId}"'
         spanStartTimeShift: '-5m'
         spanEndTimeShift: '5m'
       nodeGraph:

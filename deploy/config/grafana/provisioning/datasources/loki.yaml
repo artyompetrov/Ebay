@@ -15,5 +15,6 @@ datasources:
           matcherType: label
           matcherRegex: trace_id
           datasourceUid: tempo
-          url: '${__value.raw}'
+          # $$ escapes $ from Grafana's environment-variable expansion in provisioning files.
+          url: '$${__value.raw}'
           urlDisplayLabel: View trace

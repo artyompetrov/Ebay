@@ -25,7 +25,7 @@
 ## 4. Checks and rollout verification
 
 - [x] 4.1 Run `./scripts/agent-check/agent-check.sh` and `./scripts/check-openspec-test-coverage/check-openspec-test-coverage.sh`; verify both pass
-- [ ] 4.2 After deployment, as the `mcp` user through the Grafana MCP server, run `search_tempo_traces` for `service.name = "ebay_helper"` and open one result with `get_tempo_trace`; verify the trace has the request span with nested database spans, and check the log-to-trace and trace-to-logs links in Grafana Explore (apply the design's fallback if the Loki derived field does not work on Grafana 10.4.2)
+- [ ] 4.2 After deployment, as the `mcp` user through the Grafana MCP server, run `search_tempo_traces` for `service.name = "ebay_helper"` and open one result with `get_tempo_trace`; verify the trace has the request span with nested database spans, and check in Grafana Explore that a log line's `trace_id` opens its trace and that a span's "Logs for this span" link returns that request's log records (apply the design's fallback if the Loki derived field does not work on Grafana 10.4.2)
 
 ## Workflow follow-up
 
