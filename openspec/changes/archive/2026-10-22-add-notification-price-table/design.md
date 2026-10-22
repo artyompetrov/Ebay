@@ -18,7 +18,7 @@
 ## Decisions
 
 - **Carry the data in `ProductInner`.** Extend it with `Name`, `RevenueAvgUsd` and `QuantityTotal` taken from the already loaded `ProductInfoView`. Alternative: reload products per email - rejected, needless queries. Interesting products always have a calculation result (it is part of the `IsInteresting` rule), so notified rows never lack data.
-- **Load the RUB rate once per run**, next to `GetProducts`, via `ICurrencyQueries` injected into the service (it is already a singleton-safe query with its own DbContext per call). Pass `double? rubRate` down to `SendNotificationAsync`. Alternative: per advertisement - rejected, rates change at most daily.
+- **Load the RUB rate once per run**, next to `GetProducts`, via `ICurrencyQueries` injected into the service (it is already a singleton-safe query with its own DbContext per call). Pass `double? targetCurrencyRate` down to `SendNotificationAsync`. Alternative: per advertisement - rejected, rates change at most daily.
 - **Add `WellKnown.CurrencyRate.TargetCurrency = "RUB"`** in `Server.Application/WellKnown.cs`, next to `BaseCurrency`, instead of a string literal. The Frontend has its own copy of this constant; sharing it across projects is out of scope.
 - **Collect notified products in first-match order** with a list plus the existing `newInterestingProductIds` set, so the table order is deterministic.
 - **Formatting:** `Math.Round(value, MidpointRounding.AwayFromZero)` then `ToString("0", CultureInfo.InvariantCulture)` plus `" RUB"` / `" USD"`. Invariant culture keeps tests stable regardless of server locale and avoids non-breaking-space separators in mail clients.

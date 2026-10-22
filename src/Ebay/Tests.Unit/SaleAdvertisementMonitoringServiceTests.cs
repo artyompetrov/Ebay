@@ -2,7 +2,6 @@ using System.Data;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using AwesomeAssertions;
-using Microsoft.Extensions.Logging.Abstractions;
 using Server.Application;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
@@ -27,10 +26,10 @@ public sealed class SaleAdvertisementMonitoringServiceTests
     private const string Marketplace = "TestMarket";
     private const string AdvertisementTitle = "Продам лампы";
     private const string AmbiguousMarker = "[Нашлось несколько товаров]";
+    private const double RubRate = 80;
 
     private static readonly DateTimeOffset AdvertisementDate = new(2026, 1, 2, 3, 4, 5, TimeSpan.Zero);
     private static readonly Uri AdvertisementLink = new("https://market.example/ad/");
-    private const double RubRate = 80;
 
     [Test]
     [OpenSpecScenario("sale-advertisement-monitoring", "Advertisement lines are matched against tracked products", "A line matching one product is attributed to it")]
@@ -266,6 +265,7 @@ public sealed class SaleAdvertisementMonitoringServiceTests
 
         var email = context.EmailSender.Sent.Should().ContainSingle().Subject;
         email.Body.Should().Contain("<td>15 USD</td>");
+        context.Logger.HasWarningContaining("RUB").Should().BeTrue();
     }
 
     [Test]
@@ -395,6 +395,8 @@ public sealed class SaleAdvertisementMonitoringServiceTests
 
         public CommittingUnitOfWork UnitOfWork { get; }
 
+        public RecordingLogger<SaleAdvertisementMonitoringService> Logger { get; } = new();
+
         public IReadOnlyDictionary<string, double> CurrencyRates { get; init; } =
             new Dictionary<string, double> { [WellKnown.CurrencyRate.TargetCurrency] = RubRate };
 
@@ -408,7 +410,7 @@ public sealed class SaleAdvertisementMonitoringServiceTests
                 new ProductDescriptionSanitizer());
 
             return new SaleAdvertisementMonitoringService(
-                NullLogger<SaleAdvertisementMonitoringService>.Instance,
+                Logger,
                 Repository,
                 new SingleUnitOfWorkFactory(UnitOfWork),
                 adapters,
