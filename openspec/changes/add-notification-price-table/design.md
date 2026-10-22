@@ -12,7 +12,7 @@
 
 **Non-Goals:**
 - Moving email rendering to a template engine.
-- HTML-encoding the existing matched lines and contact (they stay as they are; a TODO is left at that spot).
+- HTML-encoding the existing matched lines and contact (they stay as they are).
 - Showing the listing price (`ListingPriceAvg`) or any other metric.
 
 ## Decisions

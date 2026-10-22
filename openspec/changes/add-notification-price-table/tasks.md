@@ -10,7 +10,6 @@
 
 - [ ] 2.1 In `ProcessAdvertisementAsync`, collect newly recorded interesting products in first-match order (no duplicates) and pass them with the rate to `SendNotificationAsync` (verify: covered by tests in 3.x).
 - [ ] 2.2 Render the table below the matched lines: header `Товар | Оценка | Продано шт.`, HTML-encoded name, price as `"{rounded} RUB"` or `"{rounded} USD"` fallback with invariant culture and `MidpointRounding.AwayFromZero`, inline-styled `<table>` (verify: covered by tests in 3.x).
-- [ ] 2.3 Leave a `// TODO:` at the existing matched-lines/contact HTML noting they are not HTML-encoded yet (verify: comment present).
 
 ## 3. Tests
 
