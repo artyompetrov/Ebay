@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using OpenTelemetry;
+using OpenTelemetry.Trace;
 
 namespace Tests.Integration;
 
@@ -23,6 +25,11 @@ public class IntegrationTestsSetupFixture
     public static WebApplicationFactory<Server.Program> Factory { get; private set; } = null!;
 
     public static DatabaseCommandCounter DatabaseCommandCounter { get; } = new();
+
+    public static SpanCollector SpanCollector { get; } = new();
+
+    /// <summary>Connection string of this fixture's scratch database.</summary>
+    public static string DatabaseConnectionString => _serverConnectionString;
 
     [OneTimeSetUp]
     public async Task OneTimeSetUp()
@@ -52,6 +59,9 @@ public class IntegrationTestsSetupFixture
                 builder.ConfigureServices(services =>
                 {
                     services.AddSingleton<IInterceptor>(DatabaseCommandCounter);
+                    // Registered after AddPlatform, so the platform's span processors run first, as in production.
+                    services.ConfigureOpenTelemetryTracerProvider(static tracing =>
+                        tracing.AddProcessor(new SimpleActivityExportProcessor(SpanCollector)));
                 });
             });
 

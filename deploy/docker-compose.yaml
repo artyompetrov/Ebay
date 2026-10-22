@@ -131,6 +131,36 @@ services:
       timeout: 2s
       retries: 10
 
+  # One-shot: gives Tempo's non-root user (uid 10001) ownership of its bind-mounted data directory.
+  ebay_tempo_init:
+    container_name: ebay_tempo_init
+    image: busybox:1.37
+    volumes:
+      - ./mount/tempo/:/tempo/
+    entrypoint: [ "chown", "-R", "10001:10001", "/tempo" ]
+    network_mode: none
+    restart: "no"
+
+  # Trace storage (openspec/specs/observability-tracing): receives OTLP from ebay_otelcollector, keeps traces 7 days,
+  # queried through the Grafana Tempo datasource. The image is distroless and has no health command, so no healthcheck.
+  ebay_tempo:
+    container_name: ebay_tempo
+    image: grafana/tempo:2.10.8
+    command: -config.file=/etc/tempo/tempo.yaml
+    depends_on:
+      ebay_tempo_init:
+        condition: service_completed_successfully
+    mem_limit: 512m
+    environment:
+      # Below mem_limit, so the Go runtime collects garbage before the container is OOM-killed.
+      GOMEMLIMIT: 450MiB
+    volumes:
+      - ./config/tempo/tempo.yaml:/etc/tempo/tempo.yaml:ro
+      - ./mount/tempo/:/var/tempo
+    networks:
+      - internal_network
+    restart: unless-stopped
+
   ebay_otelcollector:
     image: otel/opentelemetry-collector-contrib:0.117.0
     container_name: ebay_otelcollector
@@ -139,6 +169,7 @@ services:
     restart: unless-stopped
     depends_on:
       - ebay_loki
+      - ebay_tempo
     volumes:
       - ./config/otelcollector/config.yaml:/etc/otelcol-contrib/config.yaml:ro
 
@@ -147,6 +178,7 @@ services:
     image: grafana/grafana:10.4.2
     depends_on:
       - ebay_loki
+      - ebay_tempo
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: ${PG_PASSWORD}

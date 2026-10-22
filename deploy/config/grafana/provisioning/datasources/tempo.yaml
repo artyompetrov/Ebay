@@ -1,0 +1,24 @@
+apiVersion: 1
+datasources:
+  # Traces from ebay_tempo (openspec/specs/observability-tracing). The fixed UID is what the Loki derived field
+  # and the Grafana MCP server's Tempo tools refer to.
+  - name: Tempo
+    type: tempo
+    uid: tempo
+    access: proxy
+    url: http://ebay_tempo:3200
+    jsonData:
+      tracesToLogsV2:
+        datasourceUid: P8E80F9AEF21F6940
+        tags:
+          - key: service.name
+            value: service_name
+        # Logs keep trace_id as structured metadata, not in the log line, so the built-in "filter by trace id"
+        # (a |= line filter) finds nothing; filter on the trace_id field instead.
+        # $$ escapes $ from Grafana's environment-variable expansion in provisioning files.
+        customQuery: true
+        query: '{$${__tags}} | trace_id="$${__span.traceId}"'
+        spanStartTimeShift: '-5m'
+        spanEndTimeShift: '5m'
+      nodeGraph:
+        enabled: true
