@@ -18,7 +18,7 @@
 
 ## 4. Integration checks
 
-- [ ] 4.1 Run `./scripts/agent-check/agent-check.sh` from the repository root and verify it passes (build, tests, OpenSpec validation and scenario coverage).
+- [x] 4.1 Run `./scripts/agent-check/agent-check.sh` from the repository root and verify it passes (build, tests, OpenSpec validation and scenario coverage).
 
 ## Workflow follow-up
 
