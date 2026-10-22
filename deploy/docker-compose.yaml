@@ -64,6 +64,9 @@ services:
       - Smtp__Login=${SMTP_LOGIN}
       - Smtp__Password=${SMTP_PASSWORD}
       - Smtp__Email=${EMAIL}
+      - ScrapingProxy__Address=${SCRAPING_PROXY_ADDRESS:-}
+      - ScrapingProxy__Username=${SCRAPING_PROXY_USERNAME:-}
+      - ScrapingProxy__Password=${SCRAPING_PROXY_PASSWORD:-}
     networks:
       - internal_network
 

@@ -8,6 +8,11 @@ internal static class WellKnown
     public const string CacheServiceKey = "chipfind-cache";
 
     /// <summary>
+    /// Имя именованного HttpClient адаптера.
+    /// </summary>
+    public const string HttpClientName = "chipfind";
+
+    /// <summary>
     /// Имя маркетплейса в истории дедупликации; совпадает со значением в уже сохранённых записях, менять нельзя.
     /// </summary>
     public const string Marketplace = "Chipfind";

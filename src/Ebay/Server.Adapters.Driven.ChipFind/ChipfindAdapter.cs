@@ -41,7 +41,7 @@ public class ChipfindAdapter : ISaleAdvertisementAdapter
 
         var url = "https://www.chipfind.ru/market/sale_full.xml";
 
-        var httpClient = _httpClientFactory.CreateClient("chipfind");
+        var httpClient = _httpClientFactory.CreateClient(WellKnown.HttpClientName);
         var xmlContent = await httpClient.GetStringAsync(url, cancellationToken);
 
         var xdoc = XDocument.Parse(xmlContent);
@@ -145,7 +145,7 @@ public class ChipfindAdapter : ISaleAdvertisementAdapter
 
         try
         {
-            var httpClient = _httpClientFactory.CreateClient("chipfind");
+            var httpClient = _httpClientFactory.CreateClient(WellKnown.HttpClientName);
             using var response = await httpClient.GetAsync(saleAdvertisement.Link, cancellationToken);
 
             if (!response.IsSuccessStatusCode)

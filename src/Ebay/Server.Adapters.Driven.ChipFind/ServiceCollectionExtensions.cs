@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Adapters.Driven.ScrapingProxy;
 using Server.Application.Abstractions.Driven.Abstractions;
 
 namespace Server.Adapters.Driven.ChipFind;
@@ -12,7 +13,8 @@ public static class ServiceCollectionExtensions
         // Singleton: процессный кеш адаптера; свой keyed-экземпляр, чтобы лимиты и вытеснение
         // других кешей процесса не задевали его записи.
         services.AddKeyedSingleton<IMemoryCache, MemoryCache>(WellKnown.CacheServiceKey);
-        services.AddHttpClient();
+        services.AddScrapingProxyOptions();
+        services.AddHttpClient(WellKnown.HttpClientName).UseScrapingProxy();
         services.AddSingleton(new ChipFindAdapterOptions(DelayMilliseconds: 5000));
         services.AddSingleton<ISaleAdvertisementAdapter, ChipfindAdapter>();
     }
