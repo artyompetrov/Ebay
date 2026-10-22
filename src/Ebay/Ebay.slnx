@@ -21,6 +21,7 @@
     <Project Path="Server.Adapters.Driven.Plotting/Server.Adapters.Driven.Plotting.csproj" />
     <Project Path="Server.Adapters.Driven.PostgreSql/Server.Adapters.Driven.PostgreSql.csproj" />
     <Project Path="Server.Adapters.Driven.Qrz/Server.Adapters.Driven.Qrz.csproj" />
+    <Project Path="Server.Adapters.Driven.ScrapingProxy/Server.Adapters.Driven.ScrapingProxy.csproj" />
     <Project Path="Server.Adapters.Driven.Smtp/Server.Adapters.Driven.Smtp.csproj" />
     <Project Path="Server.Adapters.Driven.uTracer/Server.Adapters.Driven.uTracer.csproj" />
   </Folder>

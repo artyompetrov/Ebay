@@ -1,10 +1,13 @@
 using System.Net;
 using AwesomeAssertions;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Server.Adapters.Driven.ChipFind;
+using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Models;
 using Tests.Shared;
+using Tests.Unit.Fakes;
 
 namespace Tests.Unit;
 
@@ -340,6 +343,20 @@ public class ChipfindAdapterTests
             Assert.That(secondContact, Is.EqualTo(firstContact));
             Assert.That(handler.RequestCount, Is.EqualTo(1));
         }
+    }
+
+    [Test]
+    [OpenSpecScenario("scraping-proxy", "Scraping requests go through the configured proxy", "chipfind.ru request is tunnelled through the proxy with credentials")]
+    public async Task GetRecentAdvertisementsAsync_ProxyWithCredentials_TunnelsThroughProxyWithBasicCredentials()
+    {
+        await using var proxy = new StubProxy(requireAuthentication: true);
+        await using var services = ScrapingProxyServices.Build(static services => services.AddChipFindAdapter(), proxy.Address, withCredentials: true);
+
+        var collect = () => services.GetRequiredService<ISaleAdvertisementAdapter>().GetRecentAdvertisementsAsync(CancellationToken.None);
+
+        await collect.Should().ThrowAsync<HttpRequestException>();
+        proxy.Requests.Should().ContainSingle(static x => x.RequestLine.StartsWith("CONNECT www.chipfind.ru:443 ", StringComparison.Ordinal)
+                && x.ProxyAuthorization == ScrapingProxyServices.ExpectedBasicCredentials);
     }
 
     private sealed class CountingMessageHandler : HttpMessageHandler

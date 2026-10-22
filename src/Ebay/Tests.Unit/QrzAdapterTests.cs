@@ -1,9 +1,12 @@
 using System.Globalization;
 using System.Net;
+using System.Net.Sockets;
 using AwesomeAssertions;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Server.Adapters.Driven.Qrz;
+using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Models;
 using Tests.Shared;
 using Tests.Unit.Fakes;
@@ -247,6 +250,56 @@ public sealed class QrzAdapterTests
         contact.Should().Be($"https://www.qrz.ru/user/{SellerHash}");
         handler.Requests.Should().BeEmpty();
     }
+
+    [Test]
+    [OpenSpecScenario("scraping-proxy", "Scraping requests go through the configured proxy", "qrz.ru request is tunnelled through the proxy with credentials")]
+    public async Task GetRecentAdvertisementsAsync_ProxyWithCredentials_TunnelsThroughProxyWithBasicCredentials()
+    {
+        await using var proxy = new StubProxy(requireAuthentication: true);
+        await using var services = BuildServicesWithProxy(proxy.Address, withCredentials: true);
+
+        var collect = () => services.GetRequiredService<ISaleAdvertisementAdapter>().GetRecentAdvertisementsAsync(CancellationToken.None);
+
+        await collect.Should().ThrowAsync<HttpRequestException>();
+        proxy.Requests.Should().ContainSingle(static x => x.RequestLine.StartsWith("CONNECT www.qrz.ru:443 ", StringComparison.Ordinal)
+                && x.ProxyAuthorization == ScrapingProxyServices.ExpectedBasicCredentials);
+    }
+
+    [Test]
+    [OpenSpecScenario("scraping-proxy", "Scraping requests go through the configured proxy", "Proxy without credentials")]
+    public async Task GetRecentAdvertisementsAsync_ProxyWithoutCredentials_TunnelsThroughProxyWithoutAuthorization()
+    {
+        await using var proxy = new StubProxy(requireAuthentication: false);
+        await using var services = BuildServicesWithProxy(proxy.Address, withCredentials: false);
+
+        var collect = () => services.GetRequiredService<ISaleAdvertisementAdapter>().GetRecentAdvertisementsAsync(CancellationToken.None);
+
+        await collect.Should().ThrowAsync<HttpRequestException>();
+        proxy.Requests.Should().ContainSingle()
+            .Which.Should().Be(new ProxyRequest("CONNECT www.qrz.ru:443 HTTP/1.1", ProxyAuthorization: null));
+    }
+
+    [Test]
+    [OpenSpecScenario("scraping-proxy", "A proxy failure never falls back to a direct connection", "Unreachable proxy fails the qrz.ru collection")]
+    public async Task GetRecentAdvertisementsAsync_UnreachableProxy_Fails()
+    {
+        var closedPort = new TcpListener(IPAddress.Loopback, 0);
+        closedPort.Start();
+        var address = new Uri($"http://{IPAddress.Loopback}:{((IPEndPoint)closedPort.LocalEndpoint).Port}");
+        closedPort.Stop();
+        await using var services = BuildServicesWithProxy(address, withCredentials: true);
+
+        var collect = () => services.GetRequiredService<ISaleAdvertisementAdapter>().GetRecentAdvertisementsAsync(CancellationToken.None);
+
+        await collect.Should().ThrowAsync<HttpRequestException>();
+    }
+
+    private static ServiceProvider BuildServicesWithProxy(Uri proxyAddress, bool withCredentials) =>
+        ScrapingProxyServices.Build(
+            static services => services.AddQrzAdapter(),
+            proxyAddress,
+            withCredentials,
+            new Dictionary<string, string?> { ["Qrz:RequestDelay"] = "00:00:00" });
 
     private static QrzAdapter CreateAdapter(
         RoutingHandler handler,
