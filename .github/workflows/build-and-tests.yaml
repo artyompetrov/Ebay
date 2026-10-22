@@ -19,7 +19,7 @@ jobs:
 
   dotnet_and_extension_build:
     name: Build .NET, run tests and build extension
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v6
@@ -55,7 +55,7 @@ jobs:
 
       # Chrome extension tests run TypeScript directly via Node's built-in type stripping (Node 22.18+).
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
 
@@ -68,7 +68,7 @@ jobs:
 
   openspec_validate:
     name: Validate OpenSpec
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v6
@@ -90,7 +90,7 @@ jobs:
 
   build_docker:
     name: Build Docker Images
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v6
@@ -110,13 +110,13 @@ jobs:
 
   deploy:
     name: Deploy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [ dotnet_and_extension_build, openspec_validate, build_docker ]
     if: github.ref == 'refs/heads/main'  # Запускается только на ветке main
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install SSH Keys
         run: |

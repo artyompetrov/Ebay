@@ -5,6 +5,7 @@ using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Abstractions.Driven.Models;
 using Server.Application.Abstractions.Driving.Models;
+using Server.Application.Exceptions;
 using Server.Domain.Product;
 
 namespace Server.Application;
@@ -132,13 +133,11 @@ public class ProductService
     /// <summary>
     /// Возвращает информацию о товаре.
     /// </summary>
-    public async Task<ProductInfoView?> GetProductAsync(Guid id, CancellationToken cancellationToken)
+    /// <exception cref="NotFoundException">Товар с указанным идентификатором не найден.</exception>
+    public async Task<ProductInfoView> GetProductAsync(Guid id, CancellationToken cancellationToken)
     {
-
-        var product = await _productQueries.GetProductAsync(id, cancellationToken);
-
-        if (product == null)
-            return null;
+        var product = await _productQueries.GetProductAsync(id, cancellationToken) ??
+                      throw new NotFoundException("Product", id);
 
         return Map(product);
     }

@@ -9,6 +9,7 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 - In `Server.Application`, document all `public` types and `public` members with XML comments (`///`).
 - Use `DateTimeOffset` and `DateOnly` for date/time; do not use `DateTime`.
 - Place business rules in `Server.Domain`; adapters contain only input/output translation.
+- Failures are raised as exceptions of the application/domain layer and translated by the driving adapter, never as adapter exceptions thrown from use cases. A use case whose entity does not exist throws `Server.Application.Exceptions.NotFoundException`; the Web API adapter maps it in `ErrorFilter` to the contract's not-found answer (`ProblemAnswers`, adapter-internal), and controllers return `ProblemAnswers` results directly for their own input checks.
 - Don't widen member visibility just for the sake of tests.
 
 ## Build and quality

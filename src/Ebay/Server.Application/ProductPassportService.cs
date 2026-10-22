@@ -1,6 +1,7 @@
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
+using Server.Application.Exceptions;
 using Server.Domain;
 
 namespace Server.Application;
@@ -58,19 +59,16 @@ public class ProductPassportService
     }
 
     /// <summary>
-    /// Удаляет паспорт товара и сдвигает порядок оставшихся паспортов. Возвращает false, если паспорт
-    /// с указанным идентификатором не найден среди паспортов товара.
+    /// Удаляет паспорт товара и сдвигает порядок оставшихся паспортов.
     /// </summary>
-    public async Task<bool> DeleteAsync(Guid productId, Guid passportId, CancellationToken cancellationToken)
+    /// <exception cref="NotFoundException">Паспорт с указанным идентификатором не найден среди паспортов товара.</exception>
+    public async Task DeleteAsync(Guid productId, Guid passportId, CancellationToken cancellationToken)
     {
         await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
 
         var passports = await _passportQueries.GetPassports(productId, cancellationToken);
-        var passport = passports.SingleOrDefault(x => x.Id == passportId);
-        if (passport == null)
-        {
-            return false;
-        }
+        var passport = passports.SingleOrDefault(x => x.Id == passportId) ??
+                       throw new NotFoundException(nameof(ProductPassport), passportId);
 
         // IProductPassportRepository.RemoveAsync executes an immediate ExecuteDeleteAsync rather than going
         // through the change tracker, so without an explicit transaction it would commit independently of the
@@ -90,27 +88,23 @@ public class ProductPassportService
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
-        return true;
     }
 
     /// <summary>
-    /// Изменяет порядок паспорта товара, сдвигая порядок остальных паспортов в диапазоне. Возвращает false,
-    /// если паспорт с указанным идентификатором не найден среди паспортов товара.
+    /// Изменяет порядок паспорта товара, сдвигая порядок остальных паспортов в диапазоне.
     /// </summary>
-    public async Task<bool> UpdateOrderAsync(Guid productId, Guid passportId, int newOrder, CancellationToken cancellationToken)
+    /// <exception cref="NotFoundException">Паспорт с указанным идентификатором не найден среди паспортов товара.</exception>
+    public async Task UpdateOrderAsync(Guid productId, Guid passportId, int newOrder, CancellationToken cancellationToken)
     {
         await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
 
         var passports = await _passportQueries.GetPassports(productId, cancellationToken);
-        var current = passports.SingleOrDefault(x => x.Id == passportId);
-        if (current == null)
-        {
-            return false;
-        }
+        var current = passports.SingleOrDefault(x => x.Id == passportId) ??
+                      throw new NotFoundException(nameof(ProductPassport), passportId);
 
         if (current.Order == newOrder)
         {
-            return true;
+            return;
         }
 
         var minOrder = Math.Min(current.Order, newOrder);
@@ -130,6 +124,5 @@ public class ProductPassportService
         entity.SetOrder(newOrder);
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
-        return true;
     }
 }

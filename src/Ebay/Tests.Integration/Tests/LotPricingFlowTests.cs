@@ -121,7 +121,7 @@ public class LotPricingFlowTests
 
         Assert.That((await ebayClient.GetLotsAsync(productId)).Any(x => x.LotId == lotId), Is.False);
 
-        // The legacy Ebay.yaml contract documents this not-found case as HTTP 400 (NonOkHttpAnswerException.NotFound400), not 404.
+        // The legacy Ebay.yaml contract documents this not-found case as HTTP 400 (ProblemAnswers.NotFound), not 404.
         // Assert.CatchAsync (not ThrowsAsync, which requires an exact type match) accepts the generated
         // ApiException<NotFoundProblemDetailedInfo> subtype NSwag emits for this schema-typed error response.
         var exception = Assert.CatchAsync<ApiException>(() => ebayClient.GetLotInfoAsync(lotId));

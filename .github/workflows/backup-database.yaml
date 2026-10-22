@@ -14,7 +14,7 @@ jobs:
 
   backup_database:
     name: Backup production database to Yandex Disk
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v6
