@@ -253,10 +253,7 @@ public sealed class WebApiController : WebApiControllerBase
         Guid passportId,
         CancellationToken cancellationToken = default)
     {
-        if (!await _productPassportService.DeleteAsync(productId, passportId, cancellationToken))
-        {
-            throw NonOkHttpAnswerException.NotFound400();
-        }
+        await _productPassportService.DeleteAsync(productId, passportId, cancellationToken);
 
         return Ok();
     }
@@ -267,7 +264,7 @@ public sealed class WebApiController : WebApiControllerBase
     {
         var workingPoint = await _tubeWorkingPointService.GetWorkingPointInfo(productId, cancellationToken);
 
-        return workingPoint == null ? throw NonOkHttpAnswerException.NotFound400() : workingPoint.ToApiTubeWorkingPoint();
+        return workingPoint.ToApiTubeWorkingPoint();
     }
 
     public override async Task<IActionResult> UpsertTubeWorkingPoint(
@@ -275,10 +272,9 @@ public sealed class WebApiController : WebApiControllerBase
         Guid productId,
         CancellationToken cancellationToken = default)
     {
-        bool productFound;
         try
         {
-            productFound = await _tubeWorkingPointService.CreateTubeWorkingPoint(
+            await _tubeWorkingPointService.CreateTubeWorkingPoint(
                 tubeProductId: productId,
                 anodeVoltage: body.AnodeVoltage,
                 gridVoltage: body.GridVoltage,
@@ -289,12 +285,7 @@ public sealed class WebApiController : WebApiControllerBase
         }
         catch (DomainException ex)
         {
-            throw NonOkHttpAnswerException.ValidationError400(nameof(body), errors: [ex.Message]);
-        }
-
-        if (!productFound)
-        {
-            throw NonOkHttpAnswerException.NotFound400();
+            return ProblemAnswers.ValidationError(nameof(body), ex.Message);
         }
 
         return Ok();
@@ -306,10 +297,7 @@ public sealed class WebApiController : WebApiControllerBase
         Guid passportId,
         CancellationToken cancellationToken = default)
     {
-        if (!await _productPassportService.UpdateOrderAsync(productId, passportId, body.Order, cancellationToken))
-        {
-            throw NonOkHttpAnswerException.NotFound400();
-        }
+        await _productPassportService.UpdateOrderAsync(productId, passportId, body.Order, cancellationToken);
 
         return Ok();
     }
@@ -357,7 +345,7 @@ public sealed class WebApiController : WebApiControllerBase
     {
         var product = await _productService.GetProductAsync(id, cancellationToken);
 
-        return product == null ? throw NonOkHttpAnswerException.NotFound400() : product.ToApiProduct();
+        return product.ToApiProduct();
     }
 
     public override async Task<IActionResult> DeleteProduct(Guid id, CancellationToken cancellationToken = default)
@@ -376,12 +364,8 @@ public sealed class WebApiController : WebApiControllerBase
         Guid productId,
         CancellationToken cancellationToken = default)
     {
-        var product = await _productService.GetProductAsync(productId, cancellationToken);
-
-        if (product == null)
-        {
-            throw NonOkHttpAnswerException.NotFound400();
-        }
+        // Answers "not found" for an unknown product instead of an empty list.
+        _ = await _productService.GetProductAsync(productId, cancellationToken);
 
         var ads = await _productEmailSendHistoryQueries.GetForProductAsync(productId, cancellationToken);
 
@@ -399,12 +383,8 @@ public sealed class WebApiController : WebApiControllerBase
         Guid productId,
         CancellationToken cancellationToken = default)
     {
-        var product = await _productService.GetProductAsync(productId, cancellationToken);
-
-        if (product == null)
-        {
-            throw NonOkHttpAnswerException.NotFound400();
-        }
+        // Answers "not found" for an unknown product instead of an empty list.
+        _ = await _productService.GetProductAsync(productId, cancellationToken);
 
         var lots = await _lotQueries.GetLotsForProductAsync(productId, cancellationToken);
 
@@ -436,7 +416,7 @@ public sealed class WebApiController : WebApiControllerBase
 
         if (validationErrors.Count > 0)
         {
-            throw NonOkHttpAnswerException.ValidationError400(validationErrors);
+            return ProblemAnswers.ValidationError(validationErrors);
         }
 
         var categories = body.Categories.ToDictionary(x => x.Type, x => x.Value);
@@ -563,7 +543,7 @@ public sealed class WebApiController : WebApiControllerBase
         }
         catch (MeasurementException measurementException)
         {
-            throw NonOkHttpAnswerException.ValidationError400(
+            return ProblemAnswers.ValidationError(
                 field: nameof(body),
                 measurementException.Message);
         }
@@ -670,7 +650,7 @@ public sealed class WebApiController : WebApiControllerBase
         }
         catch (DomainException ex)
         {
-            throw NonOkHttpAnswerException.ValidationError400(
+            return ProblemAnswers.ValidationError(
                 field: "tubeWorkingPoint",
                 errors: ex.Message);
         }
@@ -684,7 +664,7 @@ public sealed class WebApiController : WebApiControllerBase
     {
         var lot = await _lotQueries.GetLotAsync(lotId, cancellationToken);
 
-        return lot == null ? throw NonOkHttpAnswerException.NotFound400() : lot.ToApiLot();
+        return lot == null ? ProblemAnswers.NotFound() : lot.ToApiLot();
     }
 
     public override async Task<IActionResult> DeleteLotInfo(long lotId, CancellationToken cancellationToken = default)

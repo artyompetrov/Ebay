@@ -2,6 +2,7 @@ using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Abstractions.Driven.Models;
+using Server.Application.Exceptions;
 using Server.Domain.Measurements;
 
 namespace Server.Application.TubeWorkingPoints;
@@ -25,8 +26,8 @@ public class TubeWorkingPointService
         _tubeWorkingPointsRepository = tubeWorkingPointsRepository;
     }
 
-    /// <returns><see langword="false" /> если товар с указанным идентификатором не найден.</returns>
-    public async Task<bool> CreateTubeWorkingPoint(
+    /// <exception cref="NotFoundException">Товар с указанным идентификатором не найден.</exception>
+    public async Task CreateTubeWorkingPoint(
         Guid tubeProductId,
         double anodeVoltage,
         double gridVoltage,
@@ -37,12 +38,8 @@ public class TubeWorkingPointService
     {
         await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
 
-        var product = await _productQueries.GetProductAsync(tubeProductId, cancellationToken);
-
-        if (product is null)
-        {
-            return false;
-        }
+        _ = await _productQueries.GetProductAsync(tubeProductId, cancellationToken) ??
+            throw new NotFoundException("Product", tubeProductId);
 
         var tubeWorkingPoint = await _tubeWorkingPointsRepository.GetByIdAsync(
             unitOfWork,
@@ -72,8 +69,10 @@ public class TubeWorkingPointService
         }
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
-        return true;
     }
 
-    public Task<TubeWorkingPointInfo?> GetWorkingPointInfo(Guid productId, CancellationToken cancellationToken) => _tubeWorkingPointQueries.GetWorkingPointInfo(productId, cancellationToken);
+    /// <exception cref="NotFoundException">Рабочая точка товара не задана.</exception>
+    public async Task<TubeWorkingPointInfo> GetWorkingPointInfo(Guid productId, CancellationToken cancellationToken) =>
+        await _tubeWorkingPointQueries.GetWorkingPointInfo(productId, cancellationToken) ??
+        throw new NotFoundException(nameof(TubeWorkingPoint), productId);
 }

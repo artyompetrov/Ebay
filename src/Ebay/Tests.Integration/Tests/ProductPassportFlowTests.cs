@@ -63,7 +63,7 @@ public class ProductPassportFlowTests
             Assert.That(afterReorder.Single(x => x.Id == lastPassportId).Order, Is.Zero);
         }
 
-        // Deleting/updating an unknown passport id returns 400 (NonOkHttpAnswerException.NotFound400).
+        // Deleting/updating an unknown passport id returns 400 (ProblemAnswers.NotFound).
         var deleteException = Assert.CatchAsync<ApiException>(() =>
             ebayClient.DeleteProductPassportAsync(productId, Guid.NewGuid()));
         Assert.That(deleteException!.StatusCode, Is.EqualTo((int)HttpStatusCode.BadRequest));

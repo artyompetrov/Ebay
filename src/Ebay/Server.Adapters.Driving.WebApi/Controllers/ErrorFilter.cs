@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Server.Adapters.Driving.WebApi.Generated;
+using Server.Application.Exceptions;
 
 namespace Server.Adapters.Driving.WebApi.Controllers;
 
@@ -39,12 +40,9 @@ public sealed class ErrorFilter : IAsyncActionFilter, IExceptionFilter
     {
         var exception = context.Exception;
 
-        if (exception is NonOkHttpAnswerException nonOkHttpAnswerException)
+        if (exception is NotFoundException)
         {
-            context.Result = new ObjectResult(nonOkHttpAnswerException.ProblemDetails)
-            {
-                StatusCode = nonOkHttpAnswerException.ProblemDetails.Status
-            };
+            context.Result = ProblemAnswers.NotFound();
         }
         else
         {
