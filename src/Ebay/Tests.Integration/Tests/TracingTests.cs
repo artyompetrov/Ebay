@@ -14,7 +14,6 @@ namespace Tests.Integration.Tests;
 [TestOf(typeof(PlatformExtensions))]
 public class TracingTests
 {
-    private const string SpecId = "observability-tracing";
     private const string TraceParentHeader = "traceparent";
     private const string ProductsPath = "/api/ebay/v1/products";
     private const string ProductsRoute = "ebay/v1/products";
@@ -32,7 +31,7 @@ public class TracingTests
     private static SpanCollector Spans => IntegrationTestsSetupFixture.SpanCollector;
 
     [Test]
-    [OpenSpecScenario(SpecId, "Incoming API requests are traced", "An API request produces a server span")]
+    [OpenSpecScenario("observability-tracing", "Incoming API requests are traced", "An API request produces a server span")]
     public async Task ApiRequest_ProducesServerSpanWithMethodRouteAndStatus()
     {
         using var client = await CreateAuthenticatedClientAsync();
@@ -52,7 +51,7 @@ public class TracingTests
     }
 
     [Test]
-    [OpenSpecScenario(SpecId, "Incoming API requests are traced", "A request marked as not sampled is still recorded")]
+    [OpenSpecScenario("observability-tracing", "Incoming API requests are traced", "A request marked as not sampled is still recorded")]
     public async Task RequestWithSampledFlagOff_IsStillRecorded()
     {
         using var client = await CreateAuthenticatedClientAsync();
@@ -69,23 +68,23 @@ public class TracingTests
     }
 
     [Test]
-    [OpenSpecScenario(SpecId, "Infrastructure and static requests are not traced", "Health check is not traced")]
+    [OpenSpecScenario("observability-tracing", "Infrastructure and static requests are not traced", "Health check is not traced")]
     public Task HealthCheck_IsNotTraced() => AssertNotTracedAsync(PlatformExtensions.HealthEndpointPath);
 
     [Test]
-    [OpenSpecScenario(SpecId, "Infrastructure and static requests are not traced", "Static frontend file is not traced")]
+    [OpenSpecScenario("observability-tracing", "Infrastructure and static requests are not traced", "Static frontend file is not traced")]
     public Task FrameworkFile_IsNotTraced() => AssertNotTracedAsync("/_framework/blazor.webassembly.js");
 
     [Test]
-    [OpenSpecScenario(SpecId, "Infrastructure and static requests are not traced", "Static asset by extension is not traced")]
+    [OpenSpecScenario("observability-tracing", "Infrastructure and static requests are not traced", "Static asset by extension is not traced")]
     public Task Favicon_IsNotTraced() => AssertNotTracedAsync("/favicon.ico");
 
     [Test]
-    [OpenSpecScenario(SpecId, "Infrastructure and static requests are not traced", "Well-known path is not traced")]
+    [OpenSpecScenario("observability-tracing", "Infrastructure and static requests are not traced", "Well-known path is not traced")]
     public Task WellKnownPath_IsNotTraced() => AssertNotTracedAsync("/.well-known/openid-configuration");
 
     [Test]
-    [OpenSpecScenario(SpecId, "Database commands are traced inside their request", "A request that reads the database has a nested database span")]
+    [OpenSpecScenario("observability-tracing", "Database commands are traced inside their request", "A request that reads the database has a nested database span")]
     public async Task RequestReadingDatabase_HasDatabaseSpanUnderServerSpan()
     {
         using var client = await CreateAuthenticatedClientAsync();
@@ -104,7 +103,7 @@ public class TracingTests
     }
 
     [Test]
-    [OpenSpecScenario(SpecId, "Database commands are traced inside their request", "Database spans contain no parameter values")]
+    [OpenSpecScenario("observability-tracing", "Database commands are traced inside their request", "Database spans contain no parameter values")]
     public async Task DatabaseSpans_DoNotContainParameterValues()
     {
         using var client = await CreateAuthenticatedClientAsync();
@@ -134,7 +133,7 @@ public class TracingTests
     }
 
     [Test]
-    [OpenSpecScenario(SpecId, "Database commands outside any span are not recorded", "A database command without a parent span is dropped")]
+    [OpenSpecScenario("observability-tracing", "Database commands outside any span are not recorded", "A database command without a parent span is dropped")]
     public async Task DatabaseCommandWithoutParentSpan_IsDropped()
     {
         var orphanMarker = $"orphan_{Guid.NewGuid():N}";
@@ -159,7 +158,7 @@ public class TracingTests
     }
 
     [Test]
-    [OpenSpecScenario(SpecId, "Outgoing HTTP calls are traced", "An outgoing call produces a client span")]
+    [OpenSpecScenario("observability-tracing", "Outgoing HTTP calls are traced", "An outgoing call produces a client span")]
     public async Task OutgoingCall_ProducesClientSpanUnderActiveSpan()
     {
         using var stub = new LoopbackHttpStub();
@@ -194,7 +193,7 @@ public class TracingTests
     }
 
     [Test]
-    [OpenSpecScenario(SpecId, "Application spans are exported", "Spans from every application source are recorded")]
+    [OpenSpecScenario("observability-tracing", "Application spans are exported", "Spans from every application source are recorded")]
     public async Task SpansFromEveryApplicationSource_AreRecorded()
     {
         string[] sourceNames = ["Server.Adapters.Driven.ChipFind", "Server.Adapters.Driven.Qrz", "Server.Application.SaleAdvertisements"];
@@ -221,7 +220,7 @@ public class TracingTests
     }
 
     [Test]
-    [OpenSpecScenario(SpecId, "Traces contain no credentials or query strings", "Query string and authorization header are not recorded")]
+    [OpenSpecScenario("observability-tracing", "Traces contain no credentials or query strings", "Query string and authorization header are not recorded")]
     public async Task QueryStringAndAuthorizationHeader_AreNotRecorded()
     {
         using var client = await CreateAuthenticatedClientAsync();

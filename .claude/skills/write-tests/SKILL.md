@@ -97,6 +97,8 @@ The checker and its integration tests run in `agent-check.sh` and CI. Structural
 remain strict even for deferred requirements. See `scripts/check-openspec-test-coverage/README.md`
 for the exact scope and OpenSpec integration constraints.
 
+Write all three `[OpenSpecScenario(...)]` arguments as string literals, never constants (`[OpenSpecScenario(SpecId, ...)]` compiles but the checker does not see it). While the change is active its requirements are deferred, so this only fails after archiving.
+
 The checker matches `[OpenSpecScenario(...)]` against raw source text; it does not verify that
 the attribute sits on a test that actually runs. Do not game this: don't leave the attribute on
 a commented-out test, on a non-test/helper method, or anywhere else it wouldn't correspond to a
