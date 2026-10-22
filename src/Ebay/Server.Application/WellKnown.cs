@@ -31,6 +31,11 @@ public static class WellKnown
     public static class CurrencyRate
     {
         public const string BaseCurrency = "USD";
+
+        /// <summary>
+        /// Валюта, в которой сотрудникам показываются оценочные цены товаров.
+        /// </summary>
+        public const string TargetCurrency = "RUB";
     }
 
     /// <summary>
