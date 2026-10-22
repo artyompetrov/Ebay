@@ -1,6 +1,7 @@
 using System.Net;
 using AwesomeAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Server.Adapters.Driven.ChipFind;
 using Server.Adapters.Driven.Qrz;
 using Tests.Shared;
@@ -61,6 +62,17 @@ public sealed class ScrapingProxyRegistrationTests
         // Без явного Proxy обработчик использует системные настройки процесса, а не прокси парсеров.
         handler.Should().BeOfType<SocketsHttpHandler>()
             .Which.Proxy.Should().BeNull();
+    }
+
+    [Test]
+    [OpenSpecScenario("scraping-proxy", "Invalid proxy settings fail startup", "Non-http proxy address")]
+    public async Task AddScrapingProxyOptions_InvalidAddress_FailsStartupValidation()
+    {
+        await using var services = BuildServices(new Uri("socks5://proxy.example:1080"));
+
+        var validate = () => services.GetRequiredService<IStartupValidator>().Validate();
+
+        validate.Should().Throw<OptionsValidationException>();
     }
 
     private static ServiceProvider BuildServices(Uri? proxyAddress, Action<IServiceCollection>? registerOther = null) =>

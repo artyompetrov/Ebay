@@ -23,7 +23,8 @@ internal static class ScrapingProxyServices
     {
         var settings = new Dictionary<string, string?>(extraSettings ?? new Dictionary<string, string?>())
         {
-            ["ScrapingProxy:Address"] = proxyAddress?.ToString(),
+            // Без прокси - пустая строка, как из docker-compose (`${SCRAPING_PROXY_ADDRESS:-}`).
+            ["ScrapingProxy:Address"] = proxyAddress?.ToString() ?? "",
         };
 
         if (withCredentials)

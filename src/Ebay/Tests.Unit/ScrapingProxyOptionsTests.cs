@@ -48,6 +48,19 @@ public sealed class ScrapingProxyOptionsTests
     }
 
     [Test]
+    public void Validate_WhitespacePassword_FailsForCredentials()
+    {
+        ShouldFailFor(new ScrapingProxyOptions { Address = ValidAddress, Username = Username, Password = " " }, nameof(ScrapingProxyOptions.Password));
+    }
+
+    [Test]
+    public void ToString_DoesNotContainPassword()
+    {
+        new ScrapingProxyOptions { Address = ValidAddress, Username = Username, Password = Password }.ToString()
+            .Should().NotContain(Password);
+    }
+
+    [Test]
     [OpenSpecScenario("scraping-proxy", "Invalid proxy settings fail startup", "Credentials without an address")]
     public void Validate_CredentialsWithoutAddress_FailsForCredentials()
     {

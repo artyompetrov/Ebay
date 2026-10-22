@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 
 namespace Server.Adapters.Driven.ScrapingProxy;
 
@@ -8,7 +9,7 @@ namespace Server.Adapters.Driven.ScrapingProxy;
 /// Переменные окружения <c>ScrapingProxy__Address</c>, <c>ScrapingProxy__Username</c>, <c>ScrapingProxy__Password</c>.
 /// Пустой адрес означает прямое подключение.
 /// </summary>
-public sealed record ScrapingProxyOptions : IValidatableObject
+internal sealed record ScrapingProxyOptions : IValidatableObject
 {
     public const string SectionName = "ScrapingProxy";
 
@@ -21,7 +22,7 @@ public sealed record ScrapingProxyOptions : IValidatableObject
 
     public string? Password { get; init; }
 
-    internal bool HasCredentials => !string.IsNullOrEmpty(Username) || !string.IsNullOrEmpty(Password);
+    internal bool HasCredentials => !string.IsNullOrWhiteSpace(Username) || !string.IsNullOrWhiteSpace(Password);
 
     /// <summary>
     /// Разобранный адрес прокси или <see langword="null"/>, если прокси не задан.
@@ -49,12 +50,21 @@ public sealed record ScrapingProxyOptions : IValidatableObject
                 [nameof(Address)]);
         }
 
-        if (string.IsNullOrEmpty(Username) != string.IsNullOrEmpty(Password))
+        if (string.IsNullOrWhiteSpace(Username) != string.IsNullOrWhiteSpace(Password))
         {
             yield return new ValidationResult(
                 "Scraping proxy username and password must be set together.",
                 [nameof(Username), nameof(Password)]);
         }
+    }
+
+    /// <summary>
+    /// Не печатает пароль: сгенерированный для record <c>ToString()</c> иначе выдал бы его в лог или отладчик.
+    /// </summary>
+    private bool PrintMembers(StringBuilder builder)
+    {
+        builder.Append($"{nameof(Address)} = {Address}, {nameof(Username)} = {Username}, {nameof(Password)} = ***");
+        return true;
     }
 
     private static bool IsValidAddress([NotNullWhen(true)] string? address) =>

@@ -13,7 +13,7 @@ public static class ServiceCollectionExtensions
     private static readonly TimeSpan PooledConnectionLifetime = TimeSpan.FromMinutes(2);
 
     /// <summary>
-    /// Регистрирует <see cref="ScrapingProxyOptions"/>; повторный вызов ничего не делает, поэтому его вызывает
+    /// Регистрирует настройки прокси (секция <c>ScrapingProxy</c>) с проверкой при старте хоста; повторный вызов ничего не делает, поэтому его вызывает
     /// каждый адаптер, которому нужен прокси.
     /// </summary>
     public static void AddScrapingProxyOptions(this IServiceCollection services)
@@ -30,7 +30,7 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Направляет запросы клиента через прокси из <see cref="ScrapingProxyOptions"/>, а без адреса - напрямую,
+    /// Направляет запросы клиента через прокси из секции <c>ScrapingProxy</c>, а без адреса - напрямую,
     /// игнорируя системные настройки прокси процесса (<c>HTTP_PROXY</c>/<c>HTTPS_PROXY</c>). Обхода прокси
     /// при его ошибке нет: запрос просто падает. Требует <see cref="AddScrapingProxyOptions"/>.
     /// </summary>

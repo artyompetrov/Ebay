@@ -261,8 +261,10 @@ public sealed class QrzAdapterTests
         var collect = () => services.GetRequiredService<ISaleAdvertisementAdapter>().GetRecentAdvertisementsAsync(CancellationToken.None);
 
         await collect.Should().ThrowAsync<HttpRequestException>();
-        proxy.Requests.Should().ContainSingle(static x => x.RequestLine.StartsWith("CONNECT www.qrz.ru:443 ", StringComparison.Ordinal)
-                && x.ProxyAuthorization == ScrapingProxyServices.ExpectedBasicCredentials);
+        // Сначала запрос без учётных данных, затем повтор с ними в ответ на 407.
+        proxy.Requests.Should().Equal(
+            new ProxyRequest("CONNECT www.qrz.ru:443 HTTP/1.1", ProxyAuthorization: null),
+            new ProxyRequest("CONNECT www.qrz.ru:443 HTTP/1.1", ScrapingProxyServices.ExpectedBasicCredentials));
     }
 
     [Test]
@@ -291,7 +293,9 @@ public sealed class QrzAdapterTests
 
         var collect = () => services.GetRequiredService<ISaleAdvertisementAdapter>().GetRecentAdvertisementsAsync(CancellationToken.None);
 
-        await collect.Should().ThrowAsync<HttpRequestException>();
+        // Отказ в соединении с портом прокси, а не ошибка DNS или ответа сайта, как было бы при прямом запросе.
+        (await collect.Should().ThrowAsync<HttpRequestException>())
+            .Which.HttpRequestError.Should().Be(HttpRequestError.ConnectionError);
     }
 
     private static ServiceProvider BuildServicesWithProxy(Uri proxyAddress, bool withCredentials) =>

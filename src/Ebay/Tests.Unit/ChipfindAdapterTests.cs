@@ -355,8 +355,10 @@ public class ChipfindAdapterTests
         var collect = () => services.GetRequiredService<ISaleAdvertisementAdapter>().GetRecentAdvertisementsAsync(CancellationToken.None);
 
         await collect.Should().ThrowAsync<HttpRequestException>();
-        proxy.Requests.Should().ContainSingle(static x => x.RequestLine.StartsWith("CONNECT www.chipfind.ru:443 ", StringComparison.Ordinal)
-                && x.ProxyAuthorization == ScrapingProxyServices.ExpectedBasicCredentials);
+        // Сначала запрос без учётных данных, затем повтор с ними в ответ на 407.
+        proxy.Requests.Should().Equal(
+            new ProxyRequest("CONNECT www.chipfind.ru:443 HTTP/1.1", ProxyAuthorization: null),
+            new ProxyRequest("CONNECT www.chipfind.ru:443 HTTP/1.1", ScrapingProxyServices.ExpectedBasicCredentials));
     }
 
     private sealed class CountingMessageHandler : HttpMessageHandler
