@@ -6,6 +6,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using Server.Platform.Tracing;
 
@@ -32,10 +33,32 @@ public static class PlatformExtensions
     internal const string MassTransitSourceName = "MassTransit";
 
     /// <summary>
+    /// MailKit's SMTP client source. MailKit creates it only after <c>MailKit.Telemetry.SmtpClient.Configure()</c>,
+    /// which the SMTP adapter calls, so the platform does not need to reference MailKit.
+    /// </summary>
+    internal const string MailKitSmtpSourceName = "MailKit.Net.SmtpClient";
+
+    /// <summary>Pattern of our own <see cref="System.Diagnostics.Metrics.Meter"/> names, same rule as for span sources.</summary>
+    internal const string ApplicationMetersPattern = "Server.*";
+
+    /// <summary>The .NET runtime's built-in meter (GC, thread pool, JIT, exceptions, memory).</summary>
+    internal const string RuntimeMeterName = "System.Runtime";
+
+    /// <summary>MassTransit's own meter (messages received, consumed, published and their durations).</summary>
+    internal const string MassTransitMeterName = "MassTransit";
+
+    /// <summary>MailKit's SMTP client meter, enabled by the SMTP adapter like its span source.</summary>
+    internal const string MailKitSmtpMeterName = "mailkit.net.smtp";
+
+    /// <summary>MailKit's socket meter (connection counts and durations), enabled by the SMTP adapter.</summary>
+    internal const string MailKitSocketMeterName = "mailkit.net.socket";
+
+    /// <summary>
     /// Applies the platform setup: <c>ASPNETCORE_</c>-prefixed environment configuration, strict DI container
     /// validation (<c>ValidateOnBuild</c>/<c>ValidateScopes</c>), logging (console + OpenTelemetry OTLP export),
-    /// tracing (incoming and outgoing HTTP, database commands and our own <c>Server.*</c> sources, OTLP export)
-    /// and health checks. OTLP export of both signals is configured via the standard <c>OTEL_*</c> environment variables.
+    /// tracing (incoming and outgoing HTTP, database commands, messages, email and our own <c>Server.*</c> sources),
+    /// metrics (requests, outgoing HTTP, database client, messages, email, runtime and our own <c>Server.*</c> meters)
+    /// and health checks. OTLP export of all three signals is configured via the standard <c>OTEL_*</c> environment variables.
     /// </summary>
     public static TBuilder AddPlatform<TBuilder>(this TBuilder builder)
         where TBuilder : IHostApplicationBuilder
@@ -74,14 +97,31 @@ public static class PlatformExtensions
                 remoteParentNotSampled: new AlwaysOnSampler(),
                 localParentSampled: new AlwaysOnSampler(),
                 localParentNotSampled: new AlwaysOffSampler()))
-            .AddSource(ApplicationSourcesPattern, MassTransitSourceName)
-            .AddAspNetCoreInstrumentation(static o => o.Filter = static context => TracedRequestFilter.IsTraced(context.Request.Path))
-            .AddHttpClientInstrumentation()
+            .AddSource(ApplicationSourcesPattern, MassTransitSourceName, MailKitSmtpSourceName)
+            .AddAspNetCoreInstrumentation(static o =>
+            {
+                o.Filter = static context => TracedRequestFilter.IsTraced(context.Request.Path);
+                // Only unhandled exceptions reach the instrumentation; the Web API adapter's error filter records
+                // the exceptions it answers itself.
+                o.RecordException = true;
+            })
+            .AddHttpClientInstrumentation(static o => o.RecordException = true)
             .AddNpgsql()
             // Processors run in registration order, so both must be added before the exporter.
             .AddProcessor(new OrphanDatabaseSpanFilter())
             .AddProcessor(new UrlQueryScrubber())
-            .AddOtlpExporter());
+            .AddOtlpExporter())
+            .WithMetrics(static metrics => metrics
+                .AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation()
+                .AddNpgsqlInstrumentation()
+                .AddMeter(
+                    ApplicationMetersPattern,
+                    RuntimeMeterName,
+                    MassTransitMeterName,
+                    MailKitSmtpMeterName,
+                    MailKitSocketMeterName)
+                .AddOtlpExporter());
 
         builder.Services.AddHealthChecks();
 

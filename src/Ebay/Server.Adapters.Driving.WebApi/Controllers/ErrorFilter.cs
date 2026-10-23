@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -40,6 +42,11 @@ public sealed class ErrorFilter : IAsyncActionFilter, IExceptionFilter
         // Expected failures come back as OneOf results and are answered by the controllers;
         // only exceptions of libraries and infrastructure (database, network) reach this point.
         var exception = context.Exception;
+
+        // The exception is handled here, so the tracing instrumentation never sees it: record it on the request's span.
+        var requestSpan = context.HttpContext.Features.Get<IHttpActivityFeature>()?.Activity;
+        requestSpan?.SetStatus(ActivityStatusCode.Error, exception.Message);
+        requestSpan?.AddException(exception);
 
         var problemDetails = _problemDetailsFactory.CreateProblemDetails(
             httpContext: context.HttpContext,

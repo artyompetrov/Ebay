@@ -21,6 +21,9 @@ public class TracingTests
     private const string AspNetCoreSourceName = "Microsoft.AspNetCore";
     private const string DatabaseSourceName = "Npgsql";
     private const string HttpClientSourceName = "System.Net.Http";
+    private const string EmailClientSourceName = "MailKit.Net.SmtpClient";
+    private const string ExceptionEventName = "exception";
+    private const string ExceptionTypeTag = "exception.type";
     private const string LoopbackAddress = "127.0.0.1";
     private const int GracePeriodChecks = 4;
     private static readonly TimeSpan GracePeriodCheckInterval = TimeSpan.FromMilliseconds(250);
@@ -193,6 +196,64 @@ public class TracingTests
     }
 
     [Test]
+    [OpenSpecScenario("observability-tracing", "Failed spans carry their exception", "A failed outgoing call records its exception")]
+    public async Task FailedOutgoingCall_RecordsExceptionOnClientSpan()
+    {
+        var closedPort = GetClosedLoopbackPort();
+        var httpClientFactory = IntegrationTestsSetupFixture.Factory.Services.GetRequiredService<IHttpClientFactory>();
+        using var httpClient = httpClientFactory.CreateClient();
+
+        ActivityTraceId traceId;
+        using (var parent = TestSource.StartActivity("parent-of-failed-outgoing-call")
+                   ?? throw new InvalidOperationException("The platform exports Server.* sources, so the activity must be created."))
+        {
+            traceId = parent.TraceId;
+            var call = () => httpClient.GetAsync($"http://{LoopbackAddress}:{closedPort}/refused");
+            await call.Should().ThrowAsync<HttpRequestException>();
+        }
+
+        await TestHelpers.RetryUntilValidationSuccessAsync(() =>
+        {
+            var clientSpan = Spans.SpansOf(traceId)
+                .Should().ContainSingle(static span => span.Source.Name == HttpClientSourceName && span.Kind == ActivityKind.Client)
+                .Subject;
+            clientSpan.Status.Should().Be(ActivityStatusCode.Error);
+            clientSpan.Events.Should().Contain(static spanEvent =>
+                spanEvent.Name == ExceptionEventName && spanEvent.Tags.Any(static tag => tag.Key == ExceptionTypeTag));
+            return Task.CompletedTask;
+        });
+    }
+
+    [Test]
+    [OpenSpecScenario("observability-tracing", "Email sending is traced", "A failed connection to the mail server is recorded")]
+    public async Task FailedConnectionToMailServer_IsRecordedUnderActiveSpan()
+    {
+        var closedPort = GetClosedLoopbackPort();
+
+        ActivityTraceId traceId;
+        Activity parentSpan;
+        using (var parent = TestSource.StartActivity("parent-of-email")
+                   ?? throw new InvalidOperationException("The platform exports Server.* sources, so the activity must be created."))
+        {
+            traceId = parent.TraceId;
+            parentSpan = parent;
+            using var smtpClient = new MailKit.Net.Smtp.SmtpClient();
+            var connect = () => smtpClient.ConnectAsync(LoopbackAddress, closedPort, MailKit.Security.SecureSocketOptions.None);
+            await connect.Should().ThrowAsync<Exception>();
+        }
+
+        await TestHelpers.RetryUntilValidationSuccessAsync(() =>
+        {
+            var trace = Spans.SpansOf(traceId);
+            var emailSpans = trace.Where(static span => span.Source.Name == EmailClientSourceName).ToArray();
+            emailSpans.Should().NotBeEmpty();
+            emailSpans.Should().AllSatisfy(span => HasAncestor(span, parentSpan, trace).Should().BeTrue());
+            emailSpans.Should().Contain(static span => span.Status == ActivityStatusCode.Error);
+            return Task.CompletedTask;
+        });
+    }
+
+    [Test]
     [OpenSpecScenario("observability-tracing", "Application spans are exported", "Spans from every application source are recorded")]
     public async Task SpansFromEveryApplicationSource_AreRecorded()
     {
@@ -309,6 +370,16 @@ public class TracingTests
         await connection.OpenAsync();
         await using var command = new NpgsqlCommand($"SELECT '{marker}'", connection);
         await command.ExecuteScalarAsync();
+    }
+
+    /// <summary>A loopback port nothing listens on: connections to it are refused right away.</summary>
+    private static int GetClosedLoopbackPort()
+    {
+        var listener = new TcpListener(IPAddress.Loopback, port: 0);
+        listener.Start();
+        var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+        listener.Stop();
+        return port;
     }
 
     private static bool IsServerSpan(Activity span) =>

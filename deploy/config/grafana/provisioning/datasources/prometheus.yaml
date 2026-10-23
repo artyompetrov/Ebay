@@ -1,0 +1,12 @@
+apiVersion: 1
+datasources:
+  # Metrics from ebay_prometheus (openspec/specs/observability-metrics). The fixed UID is what the Grafana MCP
+  # server's Prometheus tools refer to.
+  - name: Prometheus
+    type: prometheus
+    uid: prometheus
+    access: proxy
+    url: http://ebay_prometheus:9090
+    jsonData:
+      # The backend exports metrics once a minute (OTLP default), so a smaller step only shows gaps.
+      timeInterval: 60s

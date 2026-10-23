@@ -1,31 +1,53 @@
+using System.Net.Http.Json;
 using OneOf;
 using OneOf.Types;
-using OpenExchangeRates;
 using Server.Application.Abstractions.Driven.Abstractions;
 
 namespace Server.Adapters.Driven.OpenExchangeRates;
 
 internal sealed class OpenExchangeRatesCurrencyRateSource : ICurrencyRateSource
 {
+    /// <summary>
+    /// Named <see cref="HttpClient"/> of this adapter, created per call so the singleton picks up handler rotation
+    /// from <see cref="IHttpClientFactory"/>.
+    /// </summary>
+    internal const string HttpClientName = "OpenExchangeRates";
+
     private const string AppId = "2d0b695db0cb4dbab40a85a91a88bd24";
+    private const string LatestRatesUrl = "https://openexchangerates.org/api/latest.json";
+    private const string CurrencySeparator = ",";
+
+    private readonly IHttpClientFactory _httpClientFactory;
+
+    public OpenExchangeRatesCurrencyRateSource(IHttpClientFactory httpClientFactory)
+    {
+        _httpClientFactory = httpClientFactory;
+    }
 
     public async Task<OneOf<IReadOnlyDictionary<string, double>, Error<string>>> GetLatestRatesAsync(
         string baseCurrency,
         IEnumerable<string> currencyApiNames,
         CancellationToken cancellationToken)
     {
-        using var client = new OpenExchangeRatesClient(AppId);
+        // The app id travels in the query string, which tracing removes from spans.
+        var url = $"{LatestRatesUrl}?app_id={AppId}"
+                  + $"&base={Uri.EscapeDataString(baseCurrency)}"
+                  + $"&symbols={Uri.EscapeDataString(string.Join(CurrencySeparator, currencyApiNames))}";
 
-        var response = await client.GetLatestRatesAsync(
-            baseCurrency: baseCurrency,
-            currencies: currencyApiNames,
-            cancellationToken: cancellationToken);
-
-        if (response is null)
+        using var response = await _httpClientFactory.CreateClient(HttpClientName).GetAsync(url, cancellationToken);
+        if (!response.IsSuccessStatusCode)
         {
-            return new Error<string>("OpenExchangeRates returned no response");
+            return new Error<string>($"OpenExchangeRates answered {(int)response.StatusCode} ({response.StatusCode})");
         }
 
-        return response.Rates.ToDictionary(x => x.Key, x => decimal.ToDouble(x.Value));
+        var latestRates = await response.Content.ReadFromJsonAsync<LatestRatesResponse>(cancellationToken);
+        if (latestRates?.Rates is null)
+        {
+            return new Error<string>("OpenExchangeRates returned no rates");
+        }
+
+        return latestRates.Rates;
     }
+
+    private sealed record LatestRatesResponse(Dictionary<string, double>? Rates);
 }

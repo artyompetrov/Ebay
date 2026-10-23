@@ -8,6 +8,7 @@ using Server.Application.MeasurementCaching;
 using Server.Application.MeasurementPlot;
 using Server.Application.PriceCalculator;
 using Server.Application.SaleAdvertisements;
+using Server.Application.SigningKeys;
 using Server.Application.TubeWorkingPoints;
 using Server.Domain.Product;
 
@@ -49,6 +50,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<SaleAdvertisementCleanupService>();
         services.AddSingleton<CurrencyRateService>();
         services.AddSingleton<DbCacheCleanupService>();
+        services.AddSingleton<SigningKeyCleanupService>();
         services.AddSingleton<MeasurementPlotWarmupService>();
     }
 }

@@ -16,6 +16,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Server.Adapters.Driven.PostgreSql;
+using Server.Application.Abstractions.Driven.Abstractions;
 using Secret = Duende.IdentityServer.Models.Secret;
 
 namespace Server.Adapters.Driven.EF.Identity;
@@ -41,7 +42,7 @@ public static class ServiceCollectionExtensions
         DisableRegistrationPages(services);
 
         services.AddSingleton<UnreadableSigningKeyCleaner>();
-        services.AddHostedService<UnreadableSigningKeyCleanupHostedService>();
+        services.AddSingleton<ISigningKeyCleanupAdapter, SigningKeyCleanupAdapter>();
 
         MakeContextOptionsConfigurationsSingleton(services);
     }

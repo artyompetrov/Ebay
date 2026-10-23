@@ -1,4 +1,8 @@
 ﻿import * as constants from "../constants";
+import {PageTraceContext} from "./TraceContext";
+
+// Content scripts are loaded once per page, so this module-level context gives each page its own trace.
+const pageTraceContext = new PageTraceContext(constants.Urls.backendUrl);
 
 export function getMax(array: number[]) {
     let largest = 0;
@@ -96,12 +100,16 @@ export function matchesAnyRegex(regexSet: RegExp[], value: string): boolean {
     return regexSet.some((regex) => regex.test(value));
 }
 
-export async function fetchResource(input: RequestInfo, init: RequestInit): Promise<Response> {
+export async function fetchResource(input: RequestInfo, originalInit: RequestInit): Promise<Response> {
+    const init = pageTraceContext.withTraceParent(input, originalInit);
     return new Promise((resolve, reject) => {
         chrome.runtime.sendMessage({ input, init }, async messageResponse => {
             try {
                 const [response, error] = messageResponse;
                 let logEntry = "Request: " + JSON.stringify(input);
+                if (pageTraceContext.isBackendCall(input)) {
+                    logEntry += "\nTrace id: " + pageTraceContext.traceId;
+                }
                 if (constants.Settings.extendedLogging) {
                     logEntry += "\n\nRequest body: \n" + JSON.stringify(init);
                 }

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Application.Abstractions.Driven.Abstractions;
@@ -6,6 +7,8 @@ namespace Server.Adapters.Driven.MemoryCache;
 
 internal sealed class MeasurementContentCacheAdapter : IMeasurementContentCacheAdapter
 {
+    private static readonly ActivitySource ActivitySource = new(WellKnown.Tracing.ActivitySourceName);
+
     private readonly IMemoryCache _cache;
     private readonly MeasurementCacheInvalidationRegistry _invalidationRegistry;
 
@@ -17,17 +20,32 @@ internal sealed class MeasurementContentCacheAdapter : IMeasurementContentCacheA
         _invalidationRegistry = invalidationRegistry;
     }
 
-    public Task<T?> GetOrCreateAsync<T>(
+    public async Task<T?> GetOrCreateAsync<T>(
         string measurementId,
         string key,
         Func<Task<T?>> factory,
         Func<T, long> sizeSelector)
-        where T : class =>
-        _cache.GetOrCreateAsync(
+        where T : class
+    {
+        // Producing the content on a miss (rendering, database reads) runs inside this span.
+        using var activity = ActivitySource.StartActivity(WellKnown.Tracing.GetOrCreateSpan);
+        activity?.SetTag(WellKnown.Tracing.MeasurementIdTag, measurementId);
+        activity?.SetTag(WellKnown.Tracing.CacheKeyTag, key);
+
+        var isCacheHit = true;
+        var value = await _cache.GetOrCreateAsync(
             key: key,
-            factory: factory,
+            factory: () =>
+            {
+                isCacheHit = false;
+                return factory();
+            },
             sizeSelector: sizeSelector,
             invalidationTokenFactory: () => _invalidationRegistry.AcquireToken(measurementId));
+
+        activity?.SetTag(WellKnown.Tracing.CacheHitTag, isCacheHit);
+        return value;
+    }
 
     public void Remove(string key) => _cache.Remove(key);
 

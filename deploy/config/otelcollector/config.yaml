@@ -37,6 +37,9 @@ exporters:
     endpoint: ebay_tempo:4317
     tls:
       insecure: true
+  # Prometheus' native OTLP receiver; the exporter appends /v1/metrics to this endpoint.
+  otlphttp/prometheus:
+    endpoint: http://ebay_prometheus:9090/api/v1/otlp
   debug:
     verbosity: detailed
 
@@ -51,3 +54,7 @@ service:
       processors: [batch]
       # No debug exporter here: detailed output for every span would flood the collector's stdout.
       exporters: [otlp/tempo]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlphttp/prometheus]

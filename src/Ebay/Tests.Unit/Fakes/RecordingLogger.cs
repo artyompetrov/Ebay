@@ -8,7 +8,7 @@ namespace Tests.Unit.Fakes;
 internal sealed class RecordingLogger<T> : ILogger<T>
 {
     private readonly List<LogLevel> _levels = [];
-    private readonly List<string> _warnings = [];
+    private readonly List<(LogLevel Level, string Message)> _messages = [];
 
     public bool HasWarning
     {
@@ -21,11 +21,15 @@ internal sealed class RecordingLogger<T> : ILogger<T>
         }
     }
 
-    public bool HasWarningContaining(string text)
+    public bool HasWarningContaining(string text) => HasMessageContaining(LogLevel.Warning, text);
+
+    public bool HasErrorContaining(string text) => HasMessageContaining(LogLevel.Error, text);
+
+    private bool HasMessageContaining(LogLevel level, string text)
     {
         lock (_levels)
         {
-            return _warnings.Exists(x => x.Contains(text, StringComparison.Ordinal));
+            return _messages.Exists(x => x.Level == level && x.Message.Contains(text, StringComparison.Ordinal));
         }
     }
 
@@ -38,11 +42,7 @@ internal sealed class RecordingLogger<T> : ILogger<T>
         lock (_levels)
         {
             _levels.Add(logLevel);
-
-            if (logLevel == LogLevel.Warning)
-            {
-                _warnings.Add(formatter(state, exception));
-            }
+            _messages.Add((logLevel, formatter(state, exception)));
         }
     }
 }

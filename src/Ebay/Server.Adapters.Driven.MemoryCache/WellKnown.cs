@@ -8,4 +8,20 @@ internal static class WellKnown
     /// не задевало их записи.
     /// </summary>
     public const string ImageCacheServiceKey = "measurement-image-cache";
+
+    /// <summary>Span source and span names of cache lookups (<c>openspec/specs/observability-tracing</c>).</summary>
+    public static class Tracing
+    {
+        /// <summary>Exported by the platform because the name starts with <c>Server.</c>.</summary>
+        public const string ActivitySourceName = "Server.Adapters.Driven.MemoryCache";
+
+        public const string GetOrCreateSpan = "measurement-content-cache.get";
+
+        /// <summary>Same attribute name as the ChipFind and Qrz adapters' cache lookups.</summary>
+        public const string CacheHitTag = "cache.hit";
+
+        public const string CacheKeyTag = "cache.key";
+
+        public const string MeasurementIdTag = "measurement.id";
+    }
 }

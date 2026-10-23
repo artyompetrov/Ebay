@@ -164,6 +164,45 @@ services:
       - internal_network
     restart: unless-stopped
 
+  # One-shot: gives Prometheus' non-root user (nobody, uid 65534) ownership of its bind-mounted data directory.
+  ebay_prometheus_init:
+    container_name: ebay_prometheus_init
+    image: busybox:1.37
+    volumes:
+      - ./mount/prometheus/:/prometheus/
+    entrypoint: [ "chown", "-R", "65534:65534", "/prometheus" ]
+    network_mode: none
+    restart: "no"
+
+  # Metric storage (openspec/specs/observability-metrics): receives OTLP from ebay_otelcollector, keeps metrics
+  # 30 days, queried through the Grafana Prometheus datasource. Not published and not proxied by nginx.
+  ebay_prometheus:
+    container_name: ebay_prometheus
+    image: prom/prometheus:v3.5.0
+    command:
+      - --config.file=/etc/prometheus/prometheus.yaml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=30d
+      - --web.enable-otlp-receiver
+    depends_on:
+      ebay_prometheus_init:
+        condition: service_completed_successfully
+    mem_limit: 512m
+    environment:
+      # Below mem_limit, so the Go runtime collects garbage before the container is OOM-killed.
+      GOMEMLIMIT: 450MiB
+    volumes:
+      - ./config/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
+      - ./mount/prometheus/:/prometheus
+    networks:
+      - internal_network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:9090/-/ready" ]
+      interval: 10s
+      timeout: 2s
+      retries: 10
+
   ebay_otelcollector:
     image: otel/opentelemetry-collector-contrib:0.117.0
     container_name: ebay_otelcollector
@@ -173,6 +212,7 @@ services:
     depends_on:
       - ebay_loki
       - ebay_tempo
+      - ebay_prometheus
     volumes:
       - ./config/otelcollector/config.yaml:/etc/otelcol-contrib/config.yaml:ro
 
@@ -182,6 +222,7 @@ services:
     depends_on:
       - ebay_loki
       - ebay_tempo
+      - ebay_prometheus
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: ${PG_PASSWORD}
