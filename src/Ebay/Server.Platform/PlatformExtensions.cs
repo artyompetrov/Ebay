@@ -31,6 +31,9 @@ public static class PlatformExtensions
     /// <summary>MassTransit's own source: message spans give database commands inside consumers a parent span.</summary>
     internal const string MassTransitSourceName = "MassTransit";
 
+    /// <summary>Log category prefix of ASP.NET Core's own components, logged only from Warning up.</summary>
+    internal const string AspNetCoreLogCategory = "Microsoft.AspNetCore";
+
     /// <summary>
     /// Applies the platform setup: <c>ASPNETCORE_</c>-prefixed environment configuration, strict DI container
     /// validation (<c>ValidateOnBuild</c>/<c>ValidateScopes</c>), logging (console + OpenTelemetry OTLP export),
@@ -51,8 +54,10 @@ public static class PlatformExtensions
         builder.Logging.ClearProviders();
         builder.Logging.AddConsole();
         builder.Logging.SetMinimumLevel(LogLevel.Information);
-        // TODO: request logs (ASP.NET Core "Request finished" records) still carry query strings, which tracing
-        // deliberately drops; scrub them from logs as well.
+        // ASP.NET Core's per-request Information records (request start/finish, routing, static files, response
+        // caching) are most of the log volume and duplicate the incoming request spans in Tempo. Raising the
+        // category to Warning also keeps URL query strings out of the logs, as tracing already does.
+        builder.Logging.AddFilter(AspNetCoreLogCategory, LogLevel.Warning);
         builder.Logging.AddOpenTelemetry(o =>
         {
             o.IncludeScopes = true;
