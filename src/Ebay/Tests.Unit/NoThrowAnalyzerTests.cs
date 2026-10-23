@@ -61,7 +61,7 @@ public sealed class NoThrowAnalyzerTests
     }
 
     [Test]
-    public async Task MessageNamesOneOfAndAllowedPanics()
+    public async Task MessageNamesOneOfAndUnreachableException()
     {
         const string source = """
                               public static class C
@@ -73,7 +73,7 @@ public sealed class NoThrowAnalyzerTests
         var diagnostics = await AnalyzeAsync(source, "C.cs");
 
         diagnostics.Should().ContainSingle().Which.GetMessage(System.Globalization.CultureInfo.InvariantCulture)
-            .Should().ContainAll("InvalidOperationException", "OneOf", "UnreachableException", "ArgumentNullException.ThrowIfNull", "ArgumentOutOfRangeException.ThrowIf");
+            .Should().ContainAll("InvalidOperationException", "OneOf", "UnreachableException");
     }
 
     [Test]

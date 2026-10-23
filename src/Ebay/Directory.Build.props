@@ -10,7 +10,7 @@
         <AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" />
     </ItemGroup>
     <!-- EBAY0001 (Analyzers/NoThrowAnalyzer): production code returns expected failures as OneOf results and panics
-         on bugs only with UnreachableException / ArgumentNullException.ThrowIfNull / ArgumentOutOfRangeException.ThrowIf*.
+         on bugs only with UnreachableException.
          Test projects may throw (fakes simulate failing dependencies, assertions fail tests). -->
     <ItemGroup Condition="'$(MSBuildProjectName)' != 'Analyzers' and !$(MSBuildProjectName.StartsWith('Tests.'))">
         <ProjectReference Include="$(MSBuildThisFileDirectory)Analyzers/Analyzers.csproj"

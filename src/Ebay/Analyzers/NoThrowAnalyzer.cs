@@ -11,9 +11,8 @@ namespace Analyzers;
 /// <list type="bullet">
 /// <item>an expected failure (bad input, a business rule, a missing entity, a failing downstream system) is returned
 /// as a <c>OneOf</c> result;</item>
-/// <item>a bug - a state the code's own invariants rule out - is a "panic" and is raised only with the allowed bug
-/// exceptions: <c>throw new UnreachableException(...)</c>, <c>ArgumentNullException.ThrowIfNull</c> or
-/// <c>ArgumentOutOfRangeException.ThrowIf*</c> (the helpers are method calls, so this analyzer does not see them).</item>
+/// <item>a bug - a state the code's own invariants rule out - is a "panic", raised only with
+/// <c>throw new UnreachableException(...)</c>.</item>
 /// </list>
 /// Reports every other <c>throw</c> statement and <c>throw</c> expression. A bare <c>throw;</c> inside a <c>catch</c>
 /// block is allowed: it lets an exception raised by a library propagate unchanged after the block recorded it.
@@ -35,14 +34,12 @@ public sealed class NoThrowAnalyzer : DiagnosticAnalyzer
         title: "Do not throw exceptions",
         messageFormat: "Do not throw '{0}'. An expected failure (bad input, business rule, missing entity, failing downstream system) " +
                        "must be returned as a OneOf result (OneOf.Types.Success/NotFound, Server.Domain.Errors.DomainError, OneOf.Types.Error<string>). " +
-                       "A bug (a state the code's invariants rule out) is a panic: use only 'throw new UnreachableException(...)', " +
-                       "'ArgumentNullException.ThrowIfNull' or 'ArgumentOutOfRangeException.ThrowIf*'.",
+                       "A bug (a state the code's invariants rule out) is a panic: use only 'throw new UnreachableException(...)'.",
         category: "Design",
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
         description: "Expected failures are part of a method's signature and are returned as OneOf results. Bugs are panics raised " +
-                     "only with the allowed bug exceptions (UnreachableException, ArgumentNullException.ThrowIfNull, " +
-                     "ArgumentOutOfRangeException.ThrowIf*). A bare 'throw;' that rethrows the caught exception is allowed.");
+                     "only with 'throw new UnreachableException(...)'. A bare 'throw;' that rethrows the caught exception is allowed.");
 
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = [Rule];
