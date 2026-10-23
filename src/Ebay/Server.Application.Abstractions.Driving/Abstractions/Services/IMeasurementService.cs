@@ -117,8 +117,8 @@ public interface IMeasurementService
     /// </summary>
     /// <param name="measurementId">Идентификатор замера.</param>
     /// <param name="cancellationToken">Токен отмены операции.</param>
-    /// <returns>Содержимое zip-файла; <see cref="NotFound"/>, если замер не найден; <see cref="DomainError"/>, если сохраненный файл замера не читается.</returns>
-    Task<OneOf<byte[], NotFound, DomainError>> GetMeasurementFile(
+    /// <returns>Содержимое zip-файла; <see cref="NotFound"/>, если замер не найден.</returns>
+    Task<OneOf<byte[], NotFound>> GetMeasurementFile(
         string measurementId,
         CancellationToken cancellationToken);
 

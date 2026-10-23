@@ -5,15 +5,12 @@
         <WarningsNotAsErrors>
             $(WarningsNotAsErrors),
         </WarningsNotAsErrors>
-        <!-- CS8524: a switch over an enum that names every enum member still "misses" undefined numeric values.
-             Such switches need no `_ => throw` arm (EBAY0001): CS8509 keeps reporting a missing named member as an
-             error, and an undefined value cast to the enum fails with the runtime's SwitchExpressionException. -->
-        <NoWarn>$(NoWarn);CS8524</NoWarn>
     </PropertyGroup>
     <ItemGroup>
         <AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" />
     </ItemGroup>
-    <!-- EBAY0001 (Analyzers/NoThrowAnalyzer): production code must not throw, failures are returned as OneOf results.
+    <!-- EBAY0001 (Analyzers/NoThrowAnalyzer): production code returns expected failures as OneOf results and panics
+         on bugs only with UnreachableException / ArgumentNullException.ThrowIfNull / ArgumentOutOfRangeException.ThrowIf*.
          Test projects may throw (fakes simulate failing dependencies, assertions fail tests). -->
     <ItemGroup Condition="'$(MSBuildProjectName)' != 'Analyzers' and !$(MSBuildProjectName.StartsWith('Tests.'))">
         <ProjectReference Include="$(MSBuildThisFileDirectory)Analyzers/Analyzers.csproj"

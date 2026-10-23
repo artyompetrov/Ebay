@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using OneOf;
 using OneOf.Types;
@@ -53,12 +54,9 @@ public sealed class LotPriceCalculator : ILotPriceCalculator
             return new NotFound();
         }
 
-        var product = await _productQueries.GetProductAsync(lot.ProductId, cancellationToken);
-        if (product is null)
-        {
-            _logger.LogWarning("Product {ProductId} of lot {LotId} not found, calculation skipped", lot.ProductId, lotId);
-            return new NotFound();
-        }
+        // A lot references its product with a restricting foreign key, so the product can't be gone.
+        var product = await _productQueries.GetProductAsync(lot.ProductId, cancellationToken) ??
+                      throw new UnreachableException($"Product {lot.ProductId} of lot {lotId} not found");
 
         var currencyRates = await _currencyQueries.GetCurrencyRatesAsync(cancellationToken);
 

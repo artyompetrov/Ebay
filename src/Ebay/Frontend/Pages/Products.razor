@@ -259,8 +259,7 @@
                 result = SortMetric(result, p => p.ProductCalculationResult?.UnpublishedOnEbayCount_Selling ?? 0);
                 break;
 
-            // An unknown column leaves the default order.
-            default: break;
+            default: throw new UnreachableException($"Unknown sort column {_sortColumn}");
         }
 
         return result;

@@ -1,4 +1,4 @@
-using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics;
 using System.Text.Json;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -404,15 +404,13 @@ public sealed class WriteModelDbContext : DbContext
     public DbSet<IgnoredLot> IgnoredLots { get; set; } = null!;
     public DbSet<ClientError> ClientErrors { get; set; } = null!;
 
-    // EF's SaveChangesAsync contract has no way to return a failure, and saving here would silently drop the events.
-    [SuppressMessage("Design", "EBAY0001:Do not throw exceptions", Justification = "Framework override that cannot return a result; guards a programming error.")]
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         // Domain events are dispatched to the transactional outbox by WriteModelUnitOfWork before it calls
         // this method. Saving aggregates with pending events directly would silently drop those events.
         if (ChangeTracker.Entries<IAggregateRoot>().Any(entry => entry.State != EntityState.Detached && entry.Entity.HasEvents))
         {
-            throw new InvalidOperationException(
+            throw new UnreachableException(
                 $"Aggregates with pending domain events must be saved through {nameof(WriteModelUnitOfWork)}.");
         }
 

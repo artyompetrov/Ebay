@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Data;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -36,7 +37,9 @@ internal sealed class WriteModelUnitOfWork : IWriteModelUnitOfWork
     /// Returns the EF unit of work behind a port instance created by <see cref="WriteModelUnitOfWorkFactory"/>,
     /// the only <see cref="IWriteModelUnitOfWorkFactory"/> registered in the application.
     /// </summary>
-    public static WriteModelUnitOfWork From(IWriteModelUnitOfWork unitOfWork) => (WriteModelUnitOfWork)unitOfWork;
+    public static WriteModelUnitOfWork From(IWriteModelUnitOfWork unitOfWork) =>
+        unitOfWork as WriteModelUnitOfWork ?? throw new UnreachableException(
+            $"Unit of work must be created by {nameof(IWriteModelUnitOfWorkFactory)} of the EF write-model adapter, got {unitOfWork.GetType()}.");
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
     {

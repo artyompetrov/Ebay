@@ -27,7 +27,7 @@ public sealed class WriteModelDbContextTests
 
         var save = () => dbContext.SaveChangesAsync(CancellationToken.None);
 
-        await save.Should().ThrowAsync<InvalidOperationException>()
+        await save.Should().ThrowAsync<System.Diagnostics.UnreachableException>()
             .WithMessage("*WriteModelUnitOfWork*");
         product.HasEvents.Should().BeTrue();
     }

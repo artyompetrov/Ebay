@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Duende.IdentityServer.Models;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.AspNetCore.Authentication;
@@ -86,17 +87,11 @@ public static class ServiceCollectionExtensions
 
         foreach (var descriptor in scopedConfigurations)
         {
-            // EF registers these configurations by a factory. Instance registrations are always singletons, so
-            // nothing else can reach this point; anything unexpected stays as registered and fails the container's
-            // scope validation on startup instead of being silently captured by a singleton.
-            var singleton = descriptor switch
-            {
-                { ImplementationFactory: { } factory } => new ServiceDescriptor(descriptor.ServiceType, factory, ServiceLifetime.Singleton),
-                { ImplementationType: { } type } => new ServiceDescriptor(descriptor.ServiceType, type, ServiceLifetime.Singleton),
-                _ => descriptor
-            };
+            var factory = descriptor.ImplementationFactory ?? throw new UnreachableException(
+                $"{descriptor.ServiceType} is expected to be registered by a factory.");
             // Same position: EF applies options configurations in registration order.
-            services[services.IndexOf(descriptor)] = singleton;
+            services[services.IndexOf(descriptor)] =
+                new ServiceDescriptor(descriptor.ServiceType, factory, ServiceLifetime.Singleton);
         }
     }
 

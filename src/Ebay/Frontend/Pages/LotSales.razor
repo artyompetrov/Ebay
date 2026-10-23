@@ -249,22 +249,19 @@
                 WellKnown.Categories.TestState.NotTested => "#1D8348", //зеленый
                 WellKnown.Categories.TestState.Tested => "#B7950B", //желтый
                 WellKnown.Categories.TestState.Matched => "#B03A2E", //красный
-                _ => UnknownCategoryColor
+                _ => throw new UnreachableException($"Unknown test state {testState}")
             },
             WellKnown.Categories.Conditions.Used => testState switch
             {
                 WellKnown.Categories.TestState.NotTested => "#616A6B", //серый
                 WellKnown.Categories.TestState.Tested => "#5499C7", //бледно-синий
                 WellKnown.Categories.TestState.Matched => "#21618C", //синий
-                _ => UnknownCategoryColor
+                _ => throw new UnreachableException($"Unknown test state {testState}")
             },
             WellKnown.Categories.Conditions.NotWorking => "#000000",
-            _ => UnknownCategoryColor
+            _ => throw new UnreachableException($"Unknown condition {condition}")
         };
     }
-
-    // A category value this page does not know yet (added on the server) is shown in a neutral color.
-    private const string UnknownCategoryColor = "#808080";
 
 
     private string GetLinkToLot(LotInfoShort lot) => $"https://www.ebay.com/itm/{lot.LotId}?tool_productId={Product.Id}";

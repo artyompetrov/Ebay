@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 namespace Server.Domain.LotDataExtraction;
@@ -155,6 +156,13 @@ internal class ConditionExtractor : ExtractorBase, IExtractor
                         ))
                     {
                         continue;
+                    }
+
+                    if (match.Groups.Count != 1)
+                    {
+                        throw new UnreachableException(
+                            $"Expected only 1 groups, {extractor.Regex} {dataReplaced}"
+                        );
                     }
 
                     result.AppendOrCreateNewCollection(

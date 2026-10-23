@@ -27,11 +27,9 @@ public class MeasurementPageController : ControllerBase
     {
         var file = await _measurementService.GetMeasurementFile(measurementId, cancellationToken);
 
-        // A stored measurement that no longer parses is a fault of our data, not of the request.
         return file.Match<IActionResult>(
             zip => File(zip, "application/zip", $"{measurementId}.zip"),
-            _ => NotFound(),
-            error => Problem(detail: error.Message));
+            _ => NotFound());
     }
 
     [HttpGet("/m/{measurementId}/ebay_curves")]

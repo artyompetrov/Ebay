@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Primitives;
 
@@ -66,6 +67,8 @@ internal sealed class MeasurementCacheInvalidationRegistry
             case TokenSourceReleaseResult.DisposeOnly:
                 entry.Dispose();
                 return;
+            default:
+                throw new UnreachableException("Unknown token source release result.");
         }
     }
 

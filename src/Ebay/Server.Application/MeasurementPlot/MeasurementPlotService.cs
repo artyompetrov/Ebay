@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
@@ -192,11 +193,7 @@ public class MeasurementPlotService
                     return null;
                 }
 
-                // Stored measurements were validated on upload; one that no longer parses has no plot.
-                if (!_measurementFileParser.Parse(measurementInfo.Data).TryPickT0(out var result, out _))
-                {
-                    return null;
-                }
+                var result = ParseStored(measurementInfo.Id, measurementInfo.Data);
 
                 var anodeCurves = result.MeasurementConfigTableParseResult.AnodeCurves;
                 var gridCurves = anodeCurves.ConvertToGridCurves();
@@ -294,12 +291,7 @@ public class MeasurementPlotService
                 continue;
             }
 
-            if (!_measurementFileParser.Parse(pair.Data).TryPickT0(out var pairParsed, out _))
-            {
-                continue;
-            }
-
-            var pairAnodeCurves = pairParsed.MeasurementConfigTableParseResult.AnodeCurves;
+            var pairAnodeCurves = ParseStored(pair.Id, pair.Data).MeasurementConfigTableParseResult.AnodeCurves;
             var pairGridCurves = pairAnodeCurves.ConvertToGridCurves();
 
             // Anode
@@ -462,4 +454,10 @@ public class MeasurementPlotService
             cancellationToken: cancellationToken
         );
     }
+
+    // Stored measurements were validated by the same parser on upload.
+    private MeasurementFileParseResult ParseStored(string measurementId, byte[] data) =>
+        _measurementFileParser.Parse(data).Match(
+            static parsed => parsed,
+            error => throw new UnreachableException($"Stored measurement {measurementId} no longer parses: {error.Message}"));
 }

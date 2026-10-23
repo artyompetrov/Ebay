@@ -15,7 +15,7 @@ public interface ILotPriceCalculator
     /// <param name="lotId">Идентификатор лота.</param>
     /// <param name="cancellationToken">Токен отмены операции.</param>
     /// <returns>
-    /// Идентификатор товара, которому принадлежит лот; <see cref="NotFound"/>, если лот или его товар уже удалены;
+    /// Идентификатор товара, которому принадлежит лот; <see cref="NotFound"/>, если лот уже удален;
     /// <see cref="DomainError"/>, если цену доставки лота рассчитать нельзя.
     /// </returns>
     Task<OneOf<Guid, NotFound, DomainError>> CalculateAsync(long lotId, CancellationToken cancellationToken);

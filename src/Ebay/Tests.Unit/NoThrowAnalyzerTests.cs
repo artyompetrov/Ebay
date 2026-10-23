@@ -61,6 +61,51 @@ public sealed class NoThrowAnalyzerTests
     }
 
     [Test]
+    public async Task MessageNamesOneOfAndAllowedPanics()
+    {
+        const string source = """
+                              public static class C
+                              {
+                                  public static void M() { throw new System.InvalidOperationException(); }
+                              }
+                              """;
+
+        var diagnostics = await AnalyzeAsync(source, "C.cs");
+
+        diagnostics.Should().ContainSingle().Which.GetMessage(System.Globalization.CultureInfo.InvariantCulture)
+            .Should().ContainAll("InvalidOperationException", "OneOf", "UnreachableException", "ArgumentNullException.ThrowIfNull", "ArgumentOutOfRangeException.ThrowIf");
+    }
+
+    [Test]
+    public async Task AllowsUnreachableExceptionPanic()
+    {
+        const string source = """
+                              using System.Diagnostics;
+
+                              public enum E { A, B }
+
+                              public static class C
+                              {
+                                  public static void M(bool broken)
+                                  {
+                                      if (broken) { throw new UnreachableException("invariant broken"); }
+                                  }
+
+                                  public static int N(E value) => value switch
+                                  {
+                                      E.A => 1,
+                                      E.B => 2,
+                                      _ => throw new UnreachableException()
+                                  };
+                              }
+                              """;
+
+        var diagnostics = await AnalyzeAsync(source, "C.cs");
+
+        diagnostics.Should().BeEmpty();
+    }
+
+    [Test]
     public async Task AllowsBareRethrowInCatchBlock()
     {
         const string source = """

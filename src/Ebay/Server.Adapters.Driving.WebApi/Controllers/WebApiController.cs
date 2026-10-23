@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Globalization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -106,17 +107,14 @@ public sealed class WebApiController : WebApiControllerBase
     {
         var lotForSales = await _lotForSaleService.GetLotForSalesAsync(cancellationToken);
 
-        // A lot for sale is never sold (LotForSale.Create rejects that state), the contract has no value for it.
         var response = lotForSales
-            .Select(x => (Lot: x, MeasurementState: ToApiMeasurementState(x.MeasurementState)))
-            .Where(static x => x.MeasurementState is not null)
             .Select(x => new LotForSaleResponse(
-                availableQuantity: x.Lot.AvailableQuantity,
-                id: x.Lot.Id,
-                measurementState: x.MeasurementState.GetValueOrDefault(),
-                name: x.Lot.Name,
-                productId: x.Lot.ProductId,
-                productState: ToApiProductState(x.Lot.ProductState)))
+                availableQuantity: x.AvailableQuantity,
+                id: x.Id,
+                measurementState: ToApiMeasurementState(x.MeasurementState),
+                name: x.Name,
+                productId: x.ProductId,
+                productState: ToApiProductState(x.ProductState)))
             .ToList();
 
         return response;
@@ -774,7 +772,8 @@ public sealed class WebApiController : WebApiControllerBase
         return productState switch
         {
             LotForSaleProductState.New => DomainProductState.New,
-            LotForSaleProductState.Used => DomainProductState.Used
+            LotForSaleProductState.Used => DomainProductState.Used,
+            _ => throw new UnreachableException($"Unknown product state {productState}")
         };
     }
 
@@ -783,25 +782,30 @@ public sealed class WebApiController : WebApiControllerBase
         return measurementState switch
         {
             LotForSaleMeasurementState.Created => DomainMeasurementState.Created,
-            LotForSaleMeasurementState.Selling => DomainMeasurementState.Selling
+            LotForSaleMeasurementState.Selling => DomainMeasurementState.Selling,
+            _ => throw new UnreachableException($"Unknown measurement state {measurementState}")
         };
     }
 
-    private static LotForSaleMeasurementState? ToApiMeasurementState(DomainMeasurementState measurementState)
+    private static LotForSaleMeasurementState ToApiMeasurementState(DomainMeasurementState measurementState)
     {
         return measurementState switch
         {
             DomainMeasurementState.Created => LotForSaleMeasurementState.Created,
             DomainMeasurementState.Selling => LotForSaleMeasurementState.Selling,
-            DomainMeasurementState.Sold => null
+            // LotForSale.Create rejects the sold state and nothing changes it later.
+            DomainMeasurementState.Sold => throw new UnreachableException("A lot for sale is never sold"),
+            _ => throw new UnreachableException($"Unknown measurement state {measurementState}")
         };
     }
+
     private static LotForSaleProductState ToApiProductState(DomainProductState productState)
     {
         return productState switch
         {
             DomainProductState.New => LotForSaleProductState.New,
-            DomainProductState.Used => LotForSaleProductState.Used
+            DomainProductState.Used => LotForSaleProductState.Used,
+            _ => throw new UnreachableException($"Unknown product state {productState}")
         };
     }
 }

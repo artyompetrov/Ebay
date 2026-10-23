@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
@@ -144,6 +145,13 @@ internal class PcsExtractor : ExtractorBase, IExtractor
 
                     if (extractor.Result == null)
                     {
+                        if (match.Groups.Count != 2)
+                        {
+                            throw new UnreachableException(
+                                $"Expected only 2 groups, {extractor.Regex} {dataReplaced}"
+                            );
+                        }
+
                         result.AppendOrCreateNewCollection(
                             key: (int.Parse(match.Groups[1].ToString(), CultureInfo.InvariantCulture) * extractor.Multiplier).ToString(CultureInfo.InvariantCulture),
                             value: new ExtractionResult(
@@ -157,6 +165,13 @@ internal class PcsExtractor : ExtractorBase, IExtractor
                     }
                     else
                     {
+                        if (match.Groups.Count != 1)
+                        {
+                            throw new UnreachableException(
+                                $"Expected only 1 groups, {extractor.Regex} {dataReplaced}"
+                            );
+                        }
+
                         result.AppendOrCreateNewCollection(
                             key: (extractor.Result.Value * extractor.Multiplier).ToString(CultureInfo.InvariantCulture),
                             value: new ExtractionResult(

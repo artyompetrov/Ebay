@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using OneOf;
 using OneOf.Types;
 using Server.Application.Abstractions.Driven.Abstractions;
@@ -186,7 +187,7 @@ internal sealed class MeasurementService : IMeasurementService
         ))];
     }
 
-    public async Task<OneOf<byte[], NotFound, DomainError>> GetMeasurementFile(string measurementId, CancellationToken cancellationToken)
+    public async Task<OneOf<byte[], NotFound>> GetMeasurementFile(string measurementId, CancellationToken cancellationToken)
     {
         var zipBytes = await _measurementQueries.GetMeasurementInfoWithData(
             measurementId, cancellationToken);
@@ -198,7 +199,10 @@ internal sealed class MeasurementService : IMeasurementService
 
         var result = await _measurementFileParser.ToPrettifiedZip(zipBytes.Data, cancellationToken);
 
-        return result.Match<OneOf<byte[], NotFound, DomainError>>(static zip => zip, static error => error);
+        // Stored measurements were validated by the same parser on upload.
+        return result.Match<OneOf<byte[], NotFound>>(
+            static zip => zip,
+            error => throw new UnreachableException($"Stored measurement {measurementId} no longer parses: {error.Message}"));
     }
 
     public async Task<IReadOnlySet<string?>> GetLotIdsForProductAsync(Guid productId, CancellationToken cancellationToken) => await _measurementQueries.GetLotIds(productId, cancellationToken);
