@@ -654,6 +654,12 @@
                 return;
             }
 
+            if (_selectedState is not { } selectedState)
+            {
+                _error = "Тип измерения не выбран";
+                return;
+            }
+
             var qrCodeData = await Interop.StartQrScanner();
             var id = qrCodeData.Split('/').Last();
 
@@ -667,7 +673,7 @@
                     File = ms.ToArray(),
                     MeasurementId = id,
                     ManufactureCode = _manufactureCode,
-                    ProductState = _selectedState ?? throw new InvalidOperationException("Тип измерения не выбран"),
+                    ProductState = selectedState,
                 },
                 Product.Id,
                 CancellationToken.None);

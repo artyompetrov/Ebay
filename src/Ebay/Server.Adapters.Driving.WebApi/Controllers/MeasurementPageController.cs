@@ -27,7 +27,9 @@ public class MeasurementPageController : ControllerBase
     {
         var file = await _measurementService.GetMeasurementFile(measurementId, cancellationToken);
 
-        return file == null ? NotFound() : File(file, "application/zip", $"{measurementId}.zip");
+        return file.Match<IActionResult>(
+            zip => File(zip, "application/zip", $"{measurementId}.zip"),
+            _ => NotFound());
     }
 
     [HttpGet("/m/{measurementId}/ebay_curves")]

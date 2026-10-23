@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Client.Clients.Generated;
 using Microsoft.AspNetCore.Components.Forms;
 using Newtonsoft.Json.Linq;
@@ -24,19 +25,14 @@ internal static class ModelExtensions
         foreach (var errorsAdditionalProperty in validationProblemDetails.Errors.AdditionalProperties)
         {
             var fieldName = errorsAdditionalProperty.Key;
-            var errors = new List<string>();
-            if (errorsAdditionalProperty.Value is JArray jArray)
+            // The server always sends an array of messages per field (ProblemAnswers.ValidationError).
+            if (errorsAdditionalProperty.Value is not JArray jArray)
             {
-                foreach (var error in jArray)
-                {
-                    errors.Add(error.ToString());
-                }
-            }
-            else
-            {
-                throw new InvalidOperationException(
+                throw new UnreachableException(
                     $"{nameof(errorsAdditionalProperty)}.{nameof(errorsAdditionalProperty.Value)} expected to be jArray");
             }
+
+            List<string> errors = [.. jArray.Select(static error => error.ToString())];
 
             yield return new ValidationProblemParsed(FieldName: fieldName, Errors: errors);
         }

@@ -99,13 +99,8 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
             return;
         }
 
-        var measurement1 = new MeasurementInfoWithAnodeCurves(
-            measurement1dto,
-            AnodeCurves: _measurementFileParser.Parse(measurement1dto.Data).MeasurementConfigTableParseResult.AnodeCurves);
-
-        var measurement2 = new MeasurementInfoWithAnodeCurves(
-            measurement2dto,
-            AnodeCurves: _measurementFileParser.Parse(measurement2dto.Data).MeasurementConfigTableParseResult.AnodeCurves);
+        var measurement1 = Parse(measurement1dto);
+        var measurement2 = Parse(measurement2dto);
 
         await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
 
@@ -180,9 +175,15 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
 
                 break;
             default:
-                throw new NotSupportedException($"Unsupported subtype of {nameof(MeasurementTypeBase)}");
+                throw new UnreachableException($"Unsupported subtype of {nameof(MeasurementTypeBase)}");
         }
     }
+
+    // Stored measurements were validated by the same parser on upload.
+    private MeasurementInfoWithAnodeCurves Parse(MeasurementInfoWithData measurement) =>
+        _measurementFileParser.Parse(measurement.Data).Match(
+            parsedFile => new MeasurementInfoWithAnodeCurves(measurement, parsedFile.MeasurementConfigTableParseResult.AnodeCurves),
+            error => throw new UnreachableException($"Stored measurement {measurement.Id} no longer parses: {error.Message}"));
 
     private async Task CalculateForTwoSectionTubes(
         IWriteModelUnitOfWork unitOfWork,
@@ -198,9 +199,9 @@ internal sealed class MatchedPairsCalculator : IMatchedPairsCalculator
         var measurement2I1Model = AnodeCurveModelBuilder.Build(measurement2.AnodeCurves, x => x.I1, approximationWorkingPoint);
 
         var measurement1I2Model = AnodeCurveModelBuilder.Build(measurement1.AnodeCurves,
-            x => x.I2 ?? throw new InvalidOperationException("I2 is expected to be not null"), approximationWorkingPoint);
+            x => x.I2 ?? throw new UnreachableException("I2 is expected to be not null"), approximationWorkingPoint);
         var measurement2I2Model = AnodeCurveModelBuilder.Build(measurement2.AnodeCurves,
-            x => x.I2 ?? throw new InvalidOperationException("I2 is expected to be not null"), approximationWorkingPoint);
+            x => x.I2 ?? throw new UnreachableException("I2 is expected to be not null"), approximationWorkingPoint);
 
         if (measurement1.MeasurementInfoWithData.Id != measurement2.MeasurementInfoWithData.Id)
         {

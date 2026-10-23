@@ -34,6 +34,12 @@ paths:
       responses:
         '200':
           description: Ok
+        '400':
+          description: The lot for sale violates a business rule
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationProblemDetailedInfo'
   /webapi/v1/lot-for-sales/{lotId}/description:
     get:
       operationId: GetLotForSaleDescription
@@ -74,6 +80,12 @@ paths:
       responses:
         '200':
           description: Ok
+        '400':
+          description: The lot for sale was not found (NotFoundProblemDetailedInfo type) or is still linked to measurements
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationProblemDetailedInfo'
   /webapi/v1/measurements/{measurementId}/photos:
     get:
       operationId: GetMeasurementPhotos
@@ -119,6 +131,12 @@ paths:
           description: Ok
         '404':
           description: Measurement not found
+        '400':
+          description: The file is not an image
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationProblemDetailedInfo'
   /webapi/v1/measurements/{measurementId}/photos/{photoId}:
     delete:
       operationId: DeleteMeasurementPhoto
@@ -552,6 +570,12 @@ paths:
       responses:
         '200':
           description: Ok
+        '400':
+          description: The passport was not found among the product passports
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundProblemDetailedInfo'
       tags:
       - Ebay
     put:
@@ -565,6 +589,12 @@ paths:
       responses:
         '200':
           description: Ok
+        '400':
+          description: The passport was not found among the product passports
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundProblemDetailedInfo'
       tags:
       - Ebay
   /ebay/v1/products/{productId}/measurements/:
@@ -673,6 +703,12 @@ paths:
       responses:
         '200':
           description: Ok
+        '400':
+          description: The product has no tube working point
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationProblemDetailedInfo'
       tags:
       - Ebay
   /ebay/v1/products/{productId}/lotIds/:
@@ -739,6 +775,12 @@ paths:
       responses:
         '200':
           description: Ok
+        '400':
+          description: The measurement was not found (NotFoundProblemDetailedInfo type) or the location is invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationProblemDetailedInfo'
       tags:
       - Ebay
   /ebay/v1/products/{productId}/measurements/{measurementId}/manufacture_code/:
@@ -762,6 +804,12 @@ paths:
       responses:
         '200':
           description: Ok
+        '400':
+          description: The measurement was not found (NotFoundProblemDetailedInfo type) or the manufacture code is invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationProblemDetailedInfo'
       tags:
       - Ebay
   /ebay/v1/products/{productId}/measurements/{measurementId}/match/:
@@ -785,6 +833,12 @@ paths:
       responses:
         '200':
           description: Ok
+        '400':
+          description: The measurement was not found (NotFoundProblemDetailedInfo type) or the match id is invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationProblemDetailedInfo'
       tags:
       - Ebay
   /ebay/v1/products/{productId}/measurements/{measurementId}/lot/:
@@ -812,6 +866,12 @@ paths:
       responses:
         '200':
           description: Ok
+        '400':
+          description: The measurement was not found (NotFoundProblemDetailedInfo type) or the lot id is invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationProblemDetailedInfo'
       tags:
       - Ebay
   /ebay/v1/products/{productId}/measurements/{measurementId}/state/:
@@ -839,6 +899,12 @@ paths:
       responses:
         '200':
           description: Ok
+        '400':
+          description: The measurement was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundProblemDetailedInfo'
       tags:
       - Ebay
   /ebay/v1/lots/{lotId}/:

@@ -33,12 +33,13 @@ public class Program
         // the client already had; the browser fetch handler has no connection pooling or DNS state to refresh.
         builder.Services.AddSingleton(static sp =>
             new WebApiClient(sp.GetRequiredService<IHttpClientFactory>().CreateClient(ServerApiHttpClientName)));
-        builder.Services.AddSingleton<IBarcodeScanner, BarcodeScanner>();
 
         builder.Services.AddApiAuthorization();
 
         if (OperatingSystem.IsBrowser())
         {
+            // The scanner uses the browser camera through JS interop, so it exists only in the browser.
+            builder.Services.AddSingleton<IBarcodeScanner, BarcodeScanner>();
             await JSHost.ImportAsync(moduleName: "interop", moduleUrl: "/js/interop.js");
         }
 

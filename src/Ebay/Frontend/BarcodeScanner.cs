@@ -1,13 +1,10 @@
+using System.Runtime.Versioning;
+
 namespace Client;
 
+[SupportedOSPlatform("browser")]
 internal sealed class BarcodeScanner : IBarcodeScanner
 {
-    public Task<string> ScanAsync()
-    {
-        if (!OperatingSystem.IsBrowser())
-        {
-            throw new PlatformNotSupportedException("Barcode scanning requires a browser.");
-        }
-        return Interop.StartQrScanner();
-    }
+    // The app runs only in the browser (Blazor WebAssembly); component tests replace this scanner with a fake.
+    public Task<string> ScanAsync() => Interop.StartQrScanner();
 }

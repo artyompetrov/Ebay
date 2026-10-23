@@ -1,3 +1,5 @@
+using OneOf;
+using OneOf.Types;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Domain;
@@ -135,12 +137,16 @@ public class LotService
     /// <summary>
     /// Удаляет лот и инициирует пересчет цен товара.
     /// </summary>
-    public async Task DeleteLotInfoAsync(long lotId, CancellationToken cancellationToken)
+    /// <returns><see cref="NotFound"/>, если лот не найден.</returns>
+    public async Task<OneOf<Success, NotFound>> DeleteLotInfoAsync(long lotId, CancellationToken cancellationToken)
     {
         await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
 
-        var lot = await _lotRepository.GetByIdAsync(unitOfWork, lotId, cancellationToken) ??
-                  throw new InvalidOperationException($"Lot with id {lotId} not found");
+        var lot = await _lotRepository.GetByIdAsync(unitOfWork, lotId, cancellationToken);
+        if (lot is null)
+        {
+            return new NotFound();
+        }
 
         await _priceRecalculationPublisher.PublishForProductAsync(unitOfWork, lot.ProductId, cancellationToken);
 
@@ -152,6 +158,8 @@ public class LotService
         await _lotRepository.RemoveAsync(unitOfWork, lotId, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
+
+        return new Success();
     }
 
     /// <summary>

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -26,11 +27,21 @@ public sealed class WriteModelDbContext : DbContext
         configurationBuilder.Properties<DateTimeOffset>().HaveConversion<UtcDateTimeOffsetConverter>();
     }
 
+    /// <summary>
+    /// Schema of every write-model table.
+    /// </summary>
+    internal const string Schema = "wm";
+
+    /// <summary>
+    /// Table of <see cref="IgnoredLot"/>; raw SQL in <c>IgnoredLotRepository</c> refers to it by this name.
+    /// </summary>
+    internal const string IgnoredLotsTable = nameof(IgnoredLots);
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.HasDefaultSchema("wm");
+        modelBuilder.HasDefaultSchema(Schema);
         modelBuilder.AddInboxStateEntity();
         modelBuilder.AddOutboxMessageEntity();
         modelBuilder.AddOutboxStateEntity();
@@ -354,7 +365,10 @@ public sealed class WriteModelDbContext : DbContext
 
         modelBuilder.Entity<IgnoredLot>(entity =>
         {
+            entity.ToTable(IgnoredLotsTable);
             entity.HasKey(x => new { x.ProductId, x.LotId });
+            entity.Property(x => x.ProductId).HasColumnName(nameof(IgnoredLot.ProductId));
+            entity.Property(x => x.LotId).HasColumnName(nameof(IgnoredLot.LotId));
 
             entity.HasOne<Product>()
                 .WithMany()
@@ -396,7 +410,7 @@ public sealed class WriteModelDbContext : DbContext
         // this method. Saving aggregates with pending events directly would silently drop those events.
         if (ChangeTracker.Entries<IAggregateRoot>().Any(entry => entry.State != EntityState.Detached && entry.Entity.HasEvents))
         {
-            throw new InvalidOperationException(
+            throw new UnreachableException(
                 $"Aggregates with pending domain events must be saved through {nameof(WriteModelUnitOfWork)}.");
         }
 

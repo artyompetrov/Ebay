@@ -27,8 +27,10 @@
 
     private async Task OnSubmit()
     {
-        if (_questionState == null) throw new NullReferenceException(nameof(_questionState));
-        await _questionState.Value.OnSubmit.Invoke();
+        // The OK button is rendered only while a question is shown.
+        var questionState = _questionState ?? throw new UnreachableException($"{nameof(_questionState)} expected to be not null");
+
+        await questionState.OnSubmit.Invoke();
         _questionState = null;
     }
 

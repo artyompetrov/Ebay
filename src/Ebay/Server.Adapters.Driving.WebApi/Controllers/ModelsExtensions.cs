@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Globalization;
 using Server.Application.Abstractions.Driven.Models;
 using Server.Application.Abstractions.Driving.Models;
@@ -184,7 +185,7 @@ internal static class ModelsExtensions
         {
             DbProductState.New => ProductState.New,
             DbProductState.Used => ProductState.Used,
-            _ => throw new ArgumentOutOfRangeException(paramName: nameof(productState), actualValue: productState, message: null)
+            _ => throw new UnreachableException($"Unknown product state {productState}")
         };
     }
 
@@ -194,7 +195,7 @@ internal static class ModelsExtensions
         {
             ProductState.New => DbProductState.New,
             ProductState.Used => DbProductState.Used,
-            _ => throw new ArgumentOutOfRangeException(nameof(productState), productState, null)
+            _ => throw new UnreachableException($"Unknown product state {productState}")
         };
     }
 
@@ -205,7 +206,7 @@ internal static class ModelsExtensions
             DbMeasurementState.Created => ApiMeasurementState.Created,
             DbMeasurementState.Selling => ApiMeasurementState.Selling,
             DbMeasurementState.Sold => ApiMeasurementState.Sold,
-            _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
+            _ => throw new UnreachableException($"Unknown measurement state {state}")
         };
     }
 
@@ -216,7 +217,7 @@ internal static class ModelsExtensions
             ApiMeasurementState.Created => DbMeasurementState.Created,
             ApiMeasurementState.Selling => DbMeasurementState.Selling,
             ApiMeasurementState.Sold => DbMeasurementState.Sold,
-            _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
+            _ => throw new UnreachableException($"Unknown measurement state {state}")
         };
     }
 

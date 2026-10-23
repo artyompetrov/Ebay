@@ -1,12 +1,24 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
+using OneOf;
+using OneOf.Types;
 using Server.Domain.Abstractions;
+using Server.Domain.Errors;
 using Server.Domain.Measurements.MeasurementTypes;
 
 namespace Server.Domain.Measurements;
 
 public sealed partial class ProductMeasurement : AggregateRoot<string>
 {
+    private const int HashMaxLength = 128;
+    private const int ManufactureCodeMaxLength = 128;
+    private const int LocationMaxLength = 200;
+    private const int MatchIdMaxLength = 100;
+    private const int LotIdMaxLength = 100;
+    private const int ExpectedFileCount = 2;
+    private const int MinNumberOfIntervals = 30;
+    private const int MinSteppingVariableCount = 9;
+
     private ProductMeasurement(
         string id,
         Guid productId,
@@ -29,14 +41,12 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
         Location = location;
         MatchId = matchId;
         LotId = lotId;
-
-        Validate();
     }
 
     [GeneratedRegex("^[A-Z0-9]+$")]
     private static partial Regex MeasurementIdRegex();
 
-    public static ProductMeasurement Create(
+    public static OneOf<ProductMeasurement, DomainError> Create(
         string id,
         Guid productId,
         byte[] measurements,
@@ -47,31 +57,47 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
     {
         if (!MeasurementIdRegex().IsMatch(input: id))
         {
-            throw new MeasurementException($"Incorrect MeasurementId Format {id}");
+            return new DomainError($"Incorrect MeasurementId Format {id}");
         }
 
-        var parsedMeasurements = measurementFileParser.Parse(measurements);
-
-        if (parsedMeasurements.FileCount != 2)
+        if (manufactureCode.Length > ManufactureCodeMaxLength)
         {
-            throw new MeasurementException($"Exactly 2 files is expected but was {parsedMeasurements.FileCount}");
+            return TooLong(nameof(ManufactureCode), ManufactureCodeMaxLength);
         }
 
-        if (parsedMeasurements.MeasurementConfigTableParseResult.NumberOfIntervals < 30)
+        return measurementFileParser.Parse(measurements).Match<OneOf<ProductMeasurement, DomainError>>(
+            parsedMeasurements => Create(id, productId, measurements, manufactureCode, productState, parsedMeasurements),
+            static error => error);
+    }
+
+    private static OneOf<ProductMeasurement, DomainError> Create(
+        string id,
+        Guid productId,
+        byte[] measurements,
+        string manufactureCode,
+        ProductState productState,
+        MeasurementFileParseResult parsedMeasurements)
+    {
+        if (parsedMeasurements.FileCount != ExpectedFileCount)
         {
-            throw new MeasurementException("At least 30 intervals is expected");
+            return new DomainError($"Exactly {ExpectedFileCount} files is expected but was {parsedMeasurements.FileCount}");
         }
 
-        if (parsedMeasurements.MeasurementConfigTableParseResult.SteppingVariableCount < 9)
+        if (parsedMeasurements.MeasurementConfigTableParseResult.NumberOfIntervals < MinNumberOfIntervals)
         {
-            throw new MeasurementException("At least 9 stepping variables is expected");
+            return new DomainError($"At least {MinNumberOfIntervals} intervals is expected");
+        }
+
+        if (parsedMeasurements.MeasurementConfigTableParseResult.SteppingVariableCount < MinSteppingVariableCount)
+        {
+            return new DomainError($"At least {MinSteppingVariableCount} stepping variables is expected");
         }
 
         if (parsedMeasurements.MeasurementConfigTableParseResult.AnodeCurves is not TriodeAnodeCurves and
             not DoubleTriodeAnodeCurves and
             not PentodeAnodeCurves)
         {
-            throw new MeasurementException("AnodeCurves expected");
+            return new DomainError("AnodeCurves expected");
         }
 
         var hashes = new HashSet<string>
@@ -80,12 +106,17 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
             parsedMeasurements.HashAnodeCurves
         };
 
-        if (hashes.Count != 2)
+        if (hashes.Count != ExpectedFileCount)
         {
-            throw new MeasurementException("File duplicates");
+            return new DomainError("File duplicates");
         }
 
-        var product = new ProductMeasurement(
+        if (parsedMeasurements.HashAnodeCurves.Length > HashMaxLength)
+        {
+            return TooLong(nameof(HashAnodeCurves), HashMaxLength);
+        }
+
+        return new ProductMeasurement(
             id: id,
             productId: productId,
             measurements: measurements,
@@ -96,8 +127,6 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
             matchId: null,
             lotId: null
         );
-
-        return product;
     }
 
     public void ChangeState(MeasurementState newState)
@@ -111,11 +140,18 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
         AddDomainEvent(new MeasurementStateChanged(Id));
     }
 
-    public bool ChangeMatchId(string? matchId)
+    /// <summary>
+    /// Sets the matched-pair id (blank clears it).
+    /// </summary>
+    /// <returns><see langword="true"/> if the normalized id differs from the current one and was changed.</returns>
+    public OneOf<bool, DomainError> ChangeMatchId(string? matchId)
     {
-        var normalizedMatchId = string.IsNullOrWhiteSpace(matchId)
-            ? null
-            : matchId.Trim();
+        var normalizedMatchId = Normalize(matchId);
+        if (normalizedMatchId?.Length > MatchIdMaxLength)
+        {
+            return TooLong(nameof(MatchId), MatchIdMaxLength);
+        }
+
         if (MatchId == normalizedMatchId)
         {
             return false;
@@ -127,43 +163,59 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
         return true;
     }
 
+    /// <summary>
+    /// Sets the storage location (blank clears it).
+    /// </summary>
+    public OneOf<Success, DomainError> ChangeLocation(string? location)
+    {
+        var normalizedLocation = Normalize(location);
+        if (normalizedLocation?.Length > LocationMaxLength)
+        {
+            return TooLong(nameof(Location), LocationMaxLength);
+        }
+
+        Location = normalizedLocation;
+        return new Success();
+    }
+
+    /// <summary>
+    /// Links the measurement to a lot for sale (blank unlinks it).
+    /// </summary>
+    public OneOf<Success, DomainError> ChangeLotId(string? lotId)
+    {
+        var normalizedLotId = Normalize(lotId);
+        if (normalizedLotId?.Length > LotIdMaxLength)
+        {
+            return TooLong(nameof(LotId), LotIdMaxLength);
+        }
+
+        LotId = normalizedLotId;
+        return new Success();
+    }
+
     public void RequestMatchedPairComparison(string otherMeasurementId) => AddDomainEvent(new MatchedPairComparisonRequested(Id, otherMeasurementId));
 
-    public void UpdateManufactureCode(string manufactureCode)
+    public OneOf<Success, DomainError> UpdateManufactureCode(string manufactureCode)
     {
         if (string.IsNullOrWhiteSpace(manufactureCode))
         {
-            throw new ValidationException($"{nameof(ManufactureCode)} cannot be empty string");
+            return new DomainError($"{nameof(ManufactureCode)} cannot be empty string");
         }
 
-        ManufactureCode = manufactureCode.Trim();
+        var trimmedManufactureCode = manufactureCode.Trim();
+        if (trimmedManufactureCode.Length > ManufactureCodeMaxLength)
+        {
+            return TooLong(nameof(ManufactureCode), ManufactureCodeMaxLength);
+        }
 
-        Validate();
+        ManufactureCode = trimmedManufactureCode;
+        return new Success();
     }
 
-    private void Validate()
-    {
-        Validator.ValidateObject(
-            instance: this,
-            validationContext: new ValidationContext(this),
-            validateAllProperties: true
-        );
+    private static string? Normalize(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
-        if (MatchId is not null && string.IsNullOrWhiteSpace(MatchId))
-        {
-            throw new ValidationException($"{nameof(MatchId)} cannot be empty string");
-        }
-
-        if (Location is not null && string.IsNullOrWhiteSpace(Location))
-        {
-            throw new ValidationException($"{nameof(Location)} cannot be empty string");
-        }
-
-        if (LotId is not null && string.IsNullOrWhiteSpace(LotId))
-        {
-            throw new ValidationException($"{nameof(LotId)} cannot be empty string");
-        }
-    }
+    private static DomainError TooLong(string propertyName, int maxLength) =>
+        new($"{propertyName} must be at most {maxLength} characters long");
 
     public Guid ProductId { get; private set; }
 
@@ -171,49 +223,25 @@ public sealed partial class ProductMeasurement : AggregateRoot<string>
 
     public byte[] Measurements { get; private set; }
 
-    [MaxLength(128)]
+    [MaxLength(HashMaxLength)]
     public string HashAnodeCurves { get; private set; }
 
     /// <summary>
     /// Дата производства или код
     /// </summary>
-    [MaxLength(128)]
+    [MaxLength(ManufactureCodeMaxLength)]
     public string ManufactureCode { get; private set; }
 
     public ProductState ProductState { get; private set; }
 
-    [MaxLength(200)]
-    public string? Location
-    {
-        get;
-        set
-        {
-            field = value;
-            Validate();
-        }
-    }
+    [MaxLength(LocationMaxLength)]
+    public string? Location { get; private set; }
 
-    [MaxLength(100)]
-    public string? MatchId
-    {
-        get;
-        private set
-        {
-            field = value;
-            Validate();
-        }
-    }
+    [MaxLength(MatchIdMaxLength)]
+    public string? MatchId { get; private set; }
 
-    [MaxLength(100)]
-    public string? LotId
-    {
-        get;
-        set
-        {
-            field = value?.Trim();
-            Validate();
-        }
-    }
+    [MaxLength(LotIdMaxLength)]
+    public string? LotId { get; private set; }
 
     public DateTimeOffset? LastTimeWatchedOnEbay { get; private set; }
 

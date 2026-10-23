@@ -1,4 +1,6 @@
+using OneOf;
 using Server.Application.Abstractions.Driven.Abstractions;
+using Server.Domain.Errors;
 using SkiaSharp;
 
 namespace Server.Adapters.Driven.ImageProcessing;
@@ -12,25 +14,37 @@ internal sealed class PhotoThumbnailGenerator : IPhotoThumbnailGenerator
     private const int BoundedOriginalMaxBytes = 2 * 1024 * 1024;
     private const double OversizeDimensionScale = 0.8;
 
-    public Task<byte[]> CreateThumbnailAsync(byte[] originalContent, CancellationToken cancellationToken)
+    private static readonly DomainError NotAnImageError = new("Photo bytes could not be decoded as an image.");
+
+    public Task<OneOf<byte[], DomainError>> CreateThumbnailAsync(byte[] originalContent, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        using var original = DecodeOrThrow(originalContent);
+        using var original = Decode(originalContent);
+        if (original is null)
+        {
+            return Task.FromResult<OneOf<byte[], DomainError>>(NotAnImageError);
+        }
+
         var (targetWidth, targetHeight) = GetBoundedSize(original.Width, original.Height, ThumbnailMaxDimensionPixels);
 
-        return Task.FromResult(ResizeAndEncode(original, targetWidth, targetHeight, ThumbnailJpegQuality));
+        return Task.FromResult<OneOf<byte[], DomainError>>(ResizeAndEncode(original, targetWidth, targetHeight, ThumbnailJpegQuality));
     }
 
-    public Task<byte[]> CreateBoundedOriginalAsync(byte[] originalContent, CancellationToken cancellationToken)
+    public Task<OneOf<byte[], DomainError>> CreateBoundedOriginalAsync(byte[] originalContent, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        using var original = DecodeOrThrow(originalContent);
+        using var original = Decode(originalContent);
+        if (original is null)
+        {
+            return Task.FromResult<OneOf<byte[], DomainError>>(NotAnImageError);
+        }
+
         var longestSide = Math.Max(original.Width, original.Height);
         if (longestSide <= BoundedOriginalMaxDimensionPixels && originalContent.Length <= BoundedOriginalMaxBytes)
         {
-            return Task.FromResult(originalContent);
+            return Task.FromResult<OneOf<byte[], DomainError>>(originalContent);
         }
 
         var (targetWidth, targetHeight) = GetBoundedSize(original.Width, original.Height, BoundedOriginalMaxDimensionPixels);
@@ -42,18 +56,14 @@ internal sealed class PhotoThumbnailGenerator : IPhotoThumbnailGenerator
             targetHeight = Math.Max(1, (int)(targetHeight * OversizeDimensionScale));
             encoded = ResizeAndEncode(original, targetWidth, targetHeight, BoundedOriginalJpegQuality);
         }
-        return Task.FromResult(encoded);
+        return Task.FromResult<OneOf<byte[], DomainError>>(encoded);
     }
 
-    private static SKBitmap DecodeOrThrow(byte[] content)
+    private static SKBitmap? Decode(byte[] content)
     {
         using var stream = new SKMemoryStream(content);
         using var codec = SKCodec.Create(stream);
-        if (codec is null)
-        {
-            throw new InvalidOperationException("Photo bytes could not be decoded as an image.");
-        }
-        return SKBitmap.Decode(codec) ?? throw new InvalidOperationException("Photo bytes could not be decoded as an image.");
+        return codec is null ? null : SKBitmap.Decode(codec);
     }
 
     private static byte[] ResizeAndEncode(SKBitmap original, int targetWidth, int targetHeight, int jpegQuality)

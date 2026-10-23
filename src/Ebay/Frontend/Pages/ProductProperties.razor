@@ -75,31 +75,34 @@
 
     private async Task OnSave()
     {
-        if (_product == null) throw new InvalidOperationException($"{nameof(_product)} expected to be not null");
+        // The form (and its save button) is rendered only once the product and its edit context are loaded.
+        var product = _product ?? throw new UnreachableException($"{nameof(_product)} expected to be not null");
+        var validationMessageStore = _validationMessageStore ??
+                                     throw new UnreachableException($"{nameof(_validationMessageStore)} expected to be not null");
+
         try
         {
-            _validationMessageStore?.Clear();
-            _product.Description = Interop.GetProductDescriptionEditorHtml(DescriptionEditorElementId);
+            validationMessageStore.Clear();
+            product.Description = Interop.GetProductDescriptionEditorHtml(DescriptionEditorElementId);
 
             switch (_actionType)
             {
                 case ActionType.Create:
-                    await EbayClientInstance.CreateProductAsync(_product);
+                    await EbayClientInstance.CreateProductAsync(product);
                     break;
                 case ActionType.Edit:
-                    if (_id == null) throw new InvalidOperationException($"{nameof(_id)} expected to be not null");
-                    await EbayClientInstance.UpdateProductAsync(body: _product, id: _id.Value);
+                    var id = _id ?? throw new UnreachableException($"{nameof(_id)} expected to be not null");
+                    await EbayClientInstance.UpdateProductAsync(body: product, id: id);
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new UnreachableException($"Unknown action type {_actionType}");
             }
 
             await OnSuccess();
         }
         catch (ApiException<ValidationProblemDetailedInfo> validationError)
         {
-            validationError.FillValidationMessageStore(validationMessageStore: _validationMessageStore ?? throw new NullReferenceException(nameof(_validationMessageStore)),
-                model: _product ?? throw new NullReferenceException($"{nameof(_product)} expected to be not null"));
+            validationError.FillValidationMessageStore(validationMessageStore: validationMessageStore, model: product);
         }
     }
 
@@ -115,7 +118,7 @@
         {
             ActionType.Create => "Создать новый продукт",
             ActionType.Edit => $"Редактировать продукт '{_oldName}'",
-            _ => throw new ArgumentOutOfRangeException(nameof(_actionType))
+            _ => throw new UnreachableException($"Unknown action type {_actionType}")
         };
     }
 
@@ -125,29 +128,16 @@
         Edit
     }
 
-    private void AddRuSearchQuery()
-    {
-        if (_product == null) throw new InvalidOperationException($"{nameof(_product)} expected to be not null");
-        _product.RuSearchQueries.Add(new RuSearchQuery() { Id = Guid.NewGuid() });
-    }
+    // The search query buttons are rendered only inside the form of a loaded product.
+    private ProductWithoutId LoadedProduct => _product ?? throw new UnreachableException($"{nameof(_product)} expected to be not null");
 
-    private void AddSearchQuery()
-    {
-        if (_product == null) throw new InvalidOperationException($"{nameof(_product)} expected to be not null");
-        _product.SearchQueries.Add(new SearchQuery() { Id = Guid.NewGuid() });
-    }
+    private void AddRuSearchQuery() => LoadedProduct.RuSearchQueries.Add(new RuSearchQuery() { Id = Guid.NewGuid() });
 
-    private void RemoveRuSearchQuery(RuSearchQuery query)
-    {
-        if (_product == null) throw new InvalidOperationException($"{nameof(_product)} expected to be not null");
-        _product.RuSearchQueries.Remove(query);
-    }
+    private void AddSearchQuery() => LoadedProduct.SearchQueries.Add(new SearchQuery() { Id = Guid.NewGuid() });
 
-    private void RemoveSearchQuery(SearchQuery query)
-    {
-        if (_product == null) throw new InvalidOperationException($"{nameof(_product)} expected to be not null");
-        _product.SearchQueries.Remove(query);
-    }
+    private void RemoveRuSearchQuery(RuSearchQuery query) => LoadedProduct.RuSearchQueries.Remove(query);
+
+    private void RemoveSearchQuery(SearchQuery query) => LoadedProduct.SearchQueries.Remove(query);
 
     private async Task LoadPassportsAsync()
     {

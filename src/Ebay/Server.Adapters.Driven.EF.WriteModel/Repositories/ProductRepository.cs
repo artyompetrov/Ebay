@@ -1,3 +1,4 @@
+using System.Data;
 using Microsoft.EntityFrameworkCore;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
@@ -11,15 +12,24 @@ internal sealed class ProductRepository : IProductRepository
     {
         var dbContext = WriteModelUnitOfWork.From(unitOfWork).DbContext;
 
-        await using var transaction = await TransactionHelper.EnsureRepeatableReadOrStartAsync(dbContext, cancellationToken);
-
-        var result = await dbContext.Products
-            .AsSplitQuery()
+        var products = dbContext.Products
             .Include(x => x.RuSearchQueries)
             .Include(x => x.SearchQueries)
-            .SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+            .Where(x => x.Id == id);
 
-        await transaction.CommitIfOwnedAsync(cancellationToken);
+        if (dbContext.Database.CurrentTransaction is not null)
+        {
+            // Split queries need a snapshot that the caller's transaction may not give (its isolation level is the
+            // caller's choice); a single query is one statement and therefore always consistent.
+            return await products.AsSingleQuery().SingleOrDefaultAsync(cancellationToken);
+        }
+
+        // Repeatable read gives the split queries one snapshot of the aggregate.
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, cancellationToken);
+
+        var result = await products.AsSplitQuery().SingleOrDefaultAsync(cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
 
         return result;
     }

@@ -1,3 +1,6 @@
+using OneOf;
+using OneOf.Types;
+
 namespace Server.Application.Abstractions.Driven.Abstractions;
 
 /// <summary>
@@ -6,9 +9,10 @@ namespace Server.Application.Abstractions.Driven.Abstractions;
 public interface ICurrencyRateSource
 {
     /// <summary>
-    /// Возвращает курсы запрошенных валют относительно базовой валюты, индексированные по наименованию валюты в источнике.
+    /// Возвращает курсы запрошенных валют относительно базовой валюты, индексированные по наименованию валюты в источнике;
+    /// <see cref="Error{T}"/> с описанием, если источник не вернул курсы.
     /// </summary>
-    Task<IReadOnlyDictionary<string, double>> GetLatestRatesAsync(
+    Task<OneOf<IReadOnlyDictionary<string, double>, Error<string>>> GetLatestRatesAsync(
         string baseCurrency,
         IEnumerable<string> currencyApiNames,
         CancellationToken cancellationToken);

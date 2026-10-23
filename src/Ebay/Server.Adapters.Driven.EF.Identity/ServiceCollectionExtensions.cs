@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Duende.IdentityServer.Models;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.AspNetCore.Authentication;
@@ -86,7 +87,7 @@ public static class ServiceCollectionExtensions
 
         foreach (var descriptor in scopedConfigurations)
         {
-            var factory = descriptor.ImplementationFactory ?? throw new InvalidOperationException(
+            var factory = descriptor.ImplementationFactory ?? throw new UnreachableException(
                 $"{descriptor.ServiceType} is expected to be registered by a factory.");
             // Same position: EF applies options configurations in registration order.
             services[services.IndexOf(descriptor)] =

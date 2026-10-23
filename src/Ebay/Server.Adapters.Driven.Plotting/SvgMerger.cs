@@ -7,15 +7,11 @@ internal static class SvgMerger
 {
     public record Svg(string? SvgXml, bool ReplaceFont);
 
-    public static string MergeSvgs(bool mergeVertical, params Svg[] svg)
+    public static string MergeSvgs(bool mergeVertical, Svg first, params Svg[] rest)
     {
         const string defaultFontFamily = "Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif";
 
-        var svgList = svg.Where(x => x != null).Select(x => x!).ToArray() ?? throw new ArgumentException("List must not be empty");
-        if (svgList.Length == 0)
-        {
-            throw new ArgumentException("List must not be empty");
-        }
+        Svg[] svgList = [first, .. rest];
 
         var svgs = new List<XElement>();
         var widths = new List<double>();

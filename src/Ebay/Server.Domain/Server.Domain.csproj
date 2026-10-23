@@ -21,6 +21,8 @@
       <!-- IO-free библиотека: allow-list HTML-санитайзер описания товара (Product/ProductDescriptionSanitizer); средствами BCL безопасно не реализуется. -->
       <PackageReference Include="HtmlSanitizer" />
       <PackageReference Include="JetBrains.Annotations" />
+      <!-- IO-free библиотека: размеченные объединения OneOf - результаты операций вместо исключений (Errors/DomainError). -->
+      <PackageReference Include="OneOf" />
     </ItemGroup>
 
 </Project>

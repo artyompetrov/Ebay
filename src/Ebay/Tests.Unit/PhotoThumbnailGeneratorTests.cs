@@ -1,7 +1,8 @@
-using Tests.Shared;
 using AwesomeAssertions;
 using Server.Adapters.Driven.ImageProcessing;
+using Server.Domain.Errors;
 using SkiaSharp;
+using Tests.Shared;
 
 namespace Tests.Unit;
 
@@ -16,7 +17,7 @@ public sealed class PhotoThumbnailGeneratorTests
     {
         var original = CreatePngBytes(width: 800, height: 400);
 
-        var thumbnail = await _generator.CreateThumbnailAsync(original, CancellationToken.None);
+        var thumbnail = (await _generator.CreateThumbnailAsync(original, CancellationToken.None)).AsT0;
 
         using var decoded = SKBitmap.Decode(thumbnail);
         decoded.Width.Should().Be(400);
@@ -28,7 +29,7 @@ public sealed class PhotoThumbnailGeneratorTests
     {
         var original = CreatePngBytes(width: 50, height: 20);
 
-        var thumbnail = await _generator.CreateThumbnailAsync(original, CancellationToken.None);
+        var thumbnail = (await _generator.CreateThumbnailAsync(original, CancellationToken.None)).AsT0;
 
         using var decoded = SKBitmap.Decode(thumbnail);
         decoded.Width.Should().Be(50);
@@ -40,18 +41,18 @@ public sealed class PhotoThumbnailGeneratorTests
     {
         var original = CreatePngBytes(width: 100, height: 100);
 
-        var thumbnail = await _generator.CreateThumbnailAsync(original, CancellationToken.None);
+        var thumbnail = (await _generator.CreateThumbnailAsync(original, CancellationToken.None)).AsT0;
 
         using var codec = SKCodec.Create(new SKMemoryStream(thumbnail));
         codec.EncodedFormat.Should().Be(SKEncodedImageFormat.Jpeg);
     }
 
     [Test]
-    public async Task CreateThumbnailAsync_Throws_WhenBytesAreNotAnImage()
+    public async Task CreateThumbnailAsync_ReturnsDomainError_WhenBytesAreNotAnImage()
     {
-        var act = () => _generator.CreateThumbnailAsync([1, 2, 3], CancellationToken.None);
+        var result = await _generator.CreateThumbnailAsync([1, 2, 3], CancellationToken.None);
 
-        await act.Should().ThrowAsync<InvalidOperationException>();
+        result.Value.Should().BeOfType<DomainError>();
     }
 
     [Test]
@@ -60,7 +61,7 @@ public sealed class PhotoThumbnailGeneratorTests
     {
         var original = CreatePngBytes(width: 4000, height: 2000);
 
-        var bounded = await _generator.CreateBoundedOriginalAsync(original, CancellationToken.None);
+        var bounded = (await _generator.CreateBoundedOriginalAsync(original, CancellationToken.None)).AsT0;
 
         using var decoded = SKBitmap.Decode(bounded);
         decoded.Width.Should().Be(2000);
@@ -73,17 +74,17 @@ public sealed class PhotoThumbnailGeneratorTests
     {
         var original = CreatePngBytes(width: 800, height: 400);
 
-        var bounded = await _generator.CreateBoundedOriginalAsync(original, CancellationToken.None);
+        var bounded = (await _generator.CreateBoundedOriginalAsync(original, CancellationToken.None)).AsT0;
 
         bounded.Should().BeSameAs(original);
     }
 
     [Test]
-    public async Task CreateBoundedOriginalAsync_Throws_WhenBytesAreNotAnImage()
+    public async Task CreateBoundedOriginalAsync_ReturnsDomainError_WhenBytesAreNotAnImage()
     {
-        var act = () => _generator.CreateBoundedOriginalAsync([1, 2, 3], CancellationToken.None);
+        var result = await _generator.CreateBoundedOriginalAsync([1, 2, 3], CancellationToken.None);
 
-        await act.Should().ThrowAsync<InvalidOperationException>();
+        result.Value.Should().BeOfType<DomainError>();
     }
 
     [Test]
@@ -104,7 +105,7 @@ public sealed class PhotoThumbnailGeneratorTests
         using var data = image.Encode(SKEncodedImageFormat.Png, quality: 100);
         var original = data.ToArray();
         original.Length.Should().BeGreaterThan(MaximumEncodedBytes);
-        var bounded = await _generator.CreateBoundedOriginalAsync(original, CancellationToken.None);
+        var bounded = (await _generator.CreateBoundedOriginalAsync(original, CancellationToken.None)).AsT0;
         bounded.Length.Should().BeLessThanOrEqualTo(MaximumEncodedBytes);
         using var decoded = SKBitmap.Decode(bounded);
         decoded.Should().NotBeNull();

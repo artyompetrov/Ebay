@@ -1,12 +1,13 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Server.Adapters.Driving.WebApi.Generated;
+using Server.Domain.Errors;
 
 namespace Server.Adapters.Driving.WebApi.Controllers;
 
 /// <summary>
-/// Error answers of the Web API contract. Application exceptions are mapped to them in <see cref="ErrorFilter" />;
-/// controllers return them directly for failures of the adapter's own input checks.
+/// Error answers of the Web API contract. Controllers return them for the failure cases of application results
+/// (<c>OneOf.Types.NotFound</c>, <see cref="Server.Domain.Errors.DomainError" />) and for their own input checks.
 /// </summary>
 internal static class ProblemAnswers
 {
@@ -21,6 +22,11 @@ internal static class ProblemAnswers
             title: null,
             type: nameof(NotFoundProblemDetailedInfo),
             errors: null));
+
+    /// <summary>
+    /// A business rule rejected the request: answered as a validation problem of <paramref name="field" />.
+    /// </summary>
+    public static ObjectResult DomainError(string field, DomainError error) => ValidationError(field, error.Message);
 
     public static ObjectResult ValidationError(string field, params string[] errors) =>
         ValidationError([(field, errors)]);

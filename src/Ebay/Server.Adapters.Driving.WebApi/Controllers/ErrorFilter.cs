@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Server.Adapters.Driving.WebApi.Generated;
-using Server.Application.Exceptions;
 
 namespace Server.Adapters.Driving.WebApi.Controllers;
 
@@ -38,28 +37,21 @@ public sealed class ErrorFilter : IAsyncActionFilter, IExceptionFilter
 
     public void OnException(ExceptionContext context)
     {
+        // Expected failures come back as OneOf results and are answered by the controllers;
+        // only exceptions of libraries and infrastructure (database, network) reach this point.
         var exception = context.Exception;
 
-        if (exception is NotFoundException)
-        {
-            context.Result = ProblemAnswers.NotFound();
-        }
-        else
-        {
-            var httpContext = context.HttpContext;
+        var problemDetails = _problemDetailsFactory.CreateProblemDetails(
+            httpContext: context.HttpContext,
+            type: "UnhandledError",
+            statusCode: 500,
+            title: exception.Message,
+            detail: exception.ToString());
 
-            var problemDetails = _problemDetailsFactory.CreateProblemDetails(
-                httpContext: httpContext,
-                type: "UnhandledError",
-                statusCode: 500,
-                title: exception.Message,
-                detail: exception.ToString());
-
-            context.Result = new ObjectResult(problemDetails)
-            {
-                StatusCode = problemDetails.Status
-            };
-        }
+        context.Result = new ObjectResult(problemDetails)
+        {
+            StatusCode = problemDetails.Status
+        };
 
         context.ExceptionHandled = true;
     }

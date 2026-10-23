@@ -47,13 +47,11 @@ internal sealed class DbCache : ICacheStore
             var entry = await dbContext.Set<CacheEntry>()
                 .FirstOrDefaultAsync(x => x.Key == key && x.Version == Version, cancellationToken);
 
-            if (entry is not null && entry.ExpiresAt > DateTimeOffset.UtcNow)
+            // An entry that deserializes to nothing is treated as a miss and rebuilt below.
+            if (entry is not null && entry.ExpiresAt > DateTimeOffset.UtcNow && !_options.IsLocalRun &&
+                JsonSerializer.Deserialize<T>(entry.Value, jsonOptions) is { } cached)
             {
-                if (!_options.IsLocalRun)
-                {
-                    return JsonSerializer.Deserialize<T>(entry.Value, jsonOptions) ??
-                           throw new InvalidOperationException("Deserialization failed");
-                }
+                return cached;
             }
 
             // Create new value

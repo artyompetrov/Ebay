@@ -1,6 +1,9 @@
+using OneOf;
+using OneOf.Types;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
+using Server.Domain.Errors;
 using Server.Domain.Measurements;
 
 namespace Server.Application;
@@ -61,8 +64,8 @@ public sealed class MeasurementPhotoService
     /// <param name="content">Содержимое файла.</param>
     /// <param name="order">Порядковый номер в списке фотографий.</param>
     /// <param name="cancellationToken">Токен отмены операции.</param>
-    /// <returns><see langword="true"/>, если замер существует и фото сохранено; иначе <see langword="false"/>.</returns>
-    public async Task<bool> UploadAsync(
+    /// <returns><see cref="NotFound"/>, если замер не найден; <see cref="DomainError"/>, если файл не является изображением.</returns>
+    public async Task<OneOf<Success, NotFound, DomainError>> UploadAsync(
         string measurementId,
         string fileName,
         string contentType,
@@ -75,12 +78,22 @@ public sealed class MeasurementPhotoService
         var measurement = await _measurementQueries.GetMeasurementInfo(measurementId, cancellationToken);
         if (measurement == null)
         {
-            return false;
+            return new NotFound();
+        }
+
+        var thumbnail = await _photoThumbnailGenerator.CreateThumbnailAsync(content, cancellationToken);
+        if (thumbnail.TryPickT1(out var thumbnailError, out var thumbnailContent))
+        {
+            return thumbnailError;
+        }
+
+        var bounded = await _photoThumbnailGenerator.CreateBoundedOriginalAsync(content, cancellationToken);
+        if (bounded.TryPickT1(out var boundedError, out var boundedContent))
+        {
+            return boundedError;
         }
 
         var resolvedOrder = order ?? await _measurementPhotoQueries.GetNextOrder(measurementId, cancellationToken);
-        var thumbnailContent = await _photoThumbnailGenerator.CreateThumbnailAsync(content, cancellationToken);
-        var boundedContent = await _photoThumbnailGenerator.CreateBoundedOriginalAsync(content, cancellationToken);
 
         await _measurementPhotoRepository.AddAsync(
             unitOfWork,
@@ -96,7 +109,7 @@ public sealed class MeasurementPhotoService
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return true;
+        return new Success();
     }
 
     /// <summary>

@@ -36,6 +36,7 @@
   <Folder Name="/Platform/">
     <Project Path="Server.Platform/Server.Platform.csproj" />
   </Folder>
+  <Project Path="Analyzers/Analyzers.csproj" />
   <Project Path="Frontend/Frontend.csproj" />
   <Project Path="Server.Application.Abstractions.Driven/Server.Application.Abstractions.Driven.csproj" />
   <Project Path="Server.Application.Abstractions.Driving/Server.Application.Abstractions.Driving.csproj" />

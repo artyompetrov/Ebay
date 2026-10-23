@@ -1,11 +1,13 @@
-using Tests.Shared;
 using AwesomeAssertions;
+using OneOf;
+using Server.Application;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Abstractions.Driven.Models;
-using Server.Application;
+using Server.Domain.Errors;
 using Server.Domain.Measurements;
+using Tests.Shared;
 using Tests.Unit.Fakes;
 
 namespace Tests.Unit;
@@ -179,7 +181,7 @@ public sealed class MeasurementPhotoServiceTests
             order: 0,
             cancellationToken: CancellationToken.None);
 
-        uploaded.Should().BeTrue();
+        uploaded.IsT0.Should().BeTrue();
         repository.Added.Should().NotBeNull();
         repository.Added!.Content.Should().BeEquivalentTo(boundedOriginal);
         repository.Added.ThumbnailContent.Should().BeEquivalentTo(RealThumbnail);
@@ -368,10 +370,10 @@ public sealed class MeasurementPhotoServiceTests
 
     private sealed class NotSupportedPhotoThumbnailGenerator : IPhotoThumbnailGenerator
     {
-        public Task<byte[]> CreateThumbnailAsync(byte[] originalContent, CancellationToken cancellationToken) =>
+        public Task<OneOf<byte[], DomainError>> CreateThumbnailAsync(byte[] originalContent, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
 
-        public Task<byte[]> CreateBoundedOriginalAsync(byte[] originalContent, CancellationToken cancellationToken) =>
+        public Task<OneOf<byte[], DomainError>> CreateBoundedOriginalAsync(byte[] originalContent, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
     }
 
@@ -401,13 +403,13 @@ public sealed class MeasurementPhotoServiceTests
 
         public int BoundedOriginalCallCount { get; private set; }
 
-        public Task<byte[]> CreateThumbnailAsync(byte[] originalContent, CancellationToken cancellationToken) =>
-            Task.FromResult(_thumbnail);
+        public Task<OneOf<byte[], DomainError>> CreateThumbnailAsync(byte[] originalContent, CancellationToken cancellationToken) =>
+            Task.FromResult<OneOf<byte[], DomainError>>(_thumbnail);
 
-        public Task<byte[]> CreateBoundedOriginalAsync(byte[] originalContent, CancellationToken cancellationToken)
+        public Task<OneOf<byte[], DomainError>> CreateBoundedOriginalAsync(byte[] originalContent, CancellationToken cancellationToken)
         {
             BoundedOriginalCallCount++;
-            return Task.FromResult(_boundedOriginal);
+            return Task.FromResult<OneOf<byte[], DomainError>>(_boundedOriginal);
         }
     }
 

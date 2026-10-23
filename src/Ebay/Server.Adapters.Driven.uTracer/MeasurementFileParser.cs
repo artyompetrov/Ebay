@@ -3,6 +3,8 @@ using System.Globalization;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
+using OneOf;
+using Server.Domain.Errors;
 using Server.Domain.Measurements;
 using Server.Domain.Measurements.MeasurementTypes;
 using Server.Domain.Measurements.MeasurementTypes.Base;
@@ -11,7 +13,9 @@ namespace Server.Adapters.Driven.uTracer;
 
 internal sealed class MeasurementFileParser : IMeasurementFileParser
 {
-    public MeasurementFileParseResult Parse(byte[] measurements)
+    private const int MilliwattsPerWatt = 1000;
+
+    public OneOf<MeasurementFileParseResult, DomainError> Parse(byte[] measurements)
     {
         if (!ReadMeasurementFile(
                 measurementData: measurements,
@@ -20,12 +24,14 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
                 anodeCurves: out var anodeCurves,
                 fileCount: out var fileCount))
         {
-            // todo тут не стоит кидать exception по идее
-            throw new MeasurementException(
-                $"Errors during file parsing {string.Join(separator: ", ", values: fileErrors)}");
+            return FileErrors(fileErrors);
         }
 
-        var parsedMeasurement = ParseMeasurement(configBytes: anodeCurvesConfig, measurementBytes: anodeCurves);
+        if (ParseMeasurement(configBytes: anodeCurvesConfig, measurementBytes: anodeCurves)
+            .TryPickT1(out var parseError, out var parsedMeasurement))
+        {
+            return parseError;
+        }
 
         var hashAnodeCurvesConfig = ComputeEntryHashAsync(anodeCurvesConfig);
         var hashAnodeCurves = ComputeEntryHashAsync(anodeCurves);
@@ -37,7 +43,7 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
             HashAnodeCurvesConfig: hashAnodeCurvesConfig);
     }
 
-    public async Task<byte[]> ToPrettifiedZip(byte[] zipBytes, CancellationToken cancellationToken)
+    public async Task<OneOf<byte[], DomainError>> ToPrettifiedZip(byte[] zipBytes, CancellationToken cancellationToken)
     {
         if (!ReadMeasurementFile(
                 measurementData: zipBytes,
@@ -46,9 +52,7 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
                 anodeCurves: out var anodeCurves,
                 fileCount: out _))
         {
-            // todo тут не стоит кидать exception по идее
-            throw new MeasurementException(
-                $"Errors during file parsing {string.Join(separator: ", ", values: fileErrors)}");
+            return FileErrors(fileErrors);
         }
 
         using var zipStream = new MemoryStream();
@@ -67,6 +71,9 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
         return zipStream.ToArray();
     }
 
+    private static DomainError FileErrors(IEnumerable<string> fileErrors) =>
+        new($"Errors during file parsing {string.Join(separator: ", ", values: fileErrors)}");
+
     private static async Task SaveFileToZipArchive(ZipArchive archive, string fileName, byte[] content, CancellationToken cancellationToken)
     {
         var entry = archive.CreateEntry(fileName);
@@ -83,7 +90,7 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
         return memory.ToArray();
     }
 
-    private static AnodeCurvesBase GetMeasurementType(
+    private static OneOf<AnodeCurvesBase, DomainError> GetMeasurementType(
         int measurementType,
         int y2AxisVariable,
         double pmaxWatt,
@@ -102,14 +109,14 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
 
                 // Is
                 2 => new DoubleTriodeAnodeCurves(pmaxWatt, measurementPoints),
-                _ => throw new ArgumentOutOfRangeException(nameof(y2AxisVariable))
+                _ => new DomainError($"Unsupported Y2 axis variable {y2AxisVariable}")
             },
 
-            _ => throw new ArgumentOutOfRangeException(nameof(measurementType), $"Value: {measurementType}")
+            _ => new DomainError($"Unsupported measurement type {measurementType}")
         };
     }
 
-    private static MeasurementConfigTableParseResult ParseMeasurement(
+    private static OneOf<MeasurementConfigTableParseResult, DomainError> ParseMeasurement(
         byte[] configBytes,
         byte[] measurementBytes)
     {
@@ -118,7 +125,7 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
 
         var stringData = System.Text.Encoding.UTF8.GetString(configBytes);
 
-        var config = new Dictionary<string, int?>();
+        var config = new Dictionary<string, int>();
         var lines = stringData.Split('\n').Select(x => x.Trim());
 
         foreach (var line in lines)
@@ -135,19 +142,29 @@ internal sealed class MeasurementFileParser : IMeasurementFileParser
             config[comment] = value;
         }
 
-        var steppingVariableCount = config["number of stepping variables"]!.Value;
-        var numberOfIntervals = config["Variable 1 number of intervals"]!.Value;
+        const string steppingVariableCountKey = "number of stepping variables";
+        const string numberOfIntervalsKey = "Variable 1 number of intervals";
+        const string measurementTypeKey = "measurement type";
+        const string y2AxisVariableKey = "Y2 axis variable";
+        const string pmaxKey = "Pmax";
+
+        string[] requiredKeys = [steppingVariableCountKey, numberOfIntervalsKey, measurementTypeKey, y2AxisVariableKey, pmaxKey];
+        var missingKeys = requiredKeys.Where(key => !config.ContainsKey(key)).ToArray();
+        if (missingKeys.Length > 0)
+        {
+            return new DomainError($"Measurement config has no {string.Join(", ", missingKeys)}");
+        }
 
         var measurementType = GetMeasurementType(
-            measurementType: config["measurement type"]!.Value,
-            y2AxisVariable: config["Y2 axis variable"]!.Value,
-            pmaxWatt: config["Pmax"]!.Value / 1000.0,
+            measurementType: config[measurementTypeKey],
+            y2AxisVariable: config[y2AxisVariableKey],
+            pmaxWatt: config[pmaxKey] / (double)MilliwattsPerWatt,
             measurementPoints: ParseSpaceSeparatedTable(measurementBytes));
 
-        return new MeasurementConfigTableParseResult(
-            AnodeCurves: measurementType,
-            SteppingVariableCount: steppingVariableCount,
-            NumberOfIntervals: numberOfIntervals);
+        return measurementType.MapT0(anodeCurves => new MeasurementConfigTableParseResult(
+            AnodeCurves: anodeCurves,
+            SteppingVariableCount: config[steppingVariableCountKey],
+            NumberOfIntervals: config[numberOfIntervalsKey]));
     }
 
     private static bool ReadMeasurementFile(

@@ -1,10 +1,12 @@
 using System.Text.Json;
 using AwesomeAssertions;
+using OneOf;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Models;
 using Server.Application.MeasurementPlot;
 using Server.Domain;
+using Server.Domain.Errors;
 using Server.Domain.Measurements;
 using Tests.Unit.Fakes;
 
@@ -236,9 +238,9 @@ public sealed class MeasurementPlotServiceTests
 
     private sealed class NotSupportedMeasurementFileParser : IMeasurementFileParser
     {
-        public MeasurementFileParseResult Parse(byte[] measurements) => throw new NotSupportedException();
+        public OneOf<MeasurementFileParseResult, DomainError> Parse(byte[] measurements) => throw new NotSupportedException();
 
-        public Task<byte[]> ToPrettifiedZip(byte[] zipBytes, CancellationToken cancellationToken) =>
+        public Task<OneOf<byte[], DomainError>> ToPrettifiedZip(byte[] zipBytes, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
     }
 

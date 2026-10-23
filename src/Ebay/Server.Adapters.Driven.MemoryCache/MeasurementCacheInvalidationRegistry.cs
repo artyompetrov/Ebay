@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Primitives;
 
@@ -67,7 +68,7 @@ internal sealed class MeasurementCacheInvalidationRegistry
                 entry.Dispose();
                 return;
             default:
-                throw new InvalidOperationException("Unknown token source release result.");
+                throw new UnreachableException("Unknown token source release result.");
         }
     }
 

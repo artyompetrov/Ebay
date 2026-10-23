@@ -1,8 +1,12 @@
+using System.Diagnostics;
+using OneOf;
+using OneOf.Types;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
 using Server.Application.Abstractions.Driving.Models;
+using Server.Domain.Errors;
 using Server.Domain.Measurements;
 
 namespace Server.Application;
@@ -30,7 +34,7 @@ internal sealed class MeasurementService : IMeasurementService
         _unitOfWorkFactory = unitOfWorkFactory;
     }
 
-    public async Task SaveMeasurement(
+    public async Task<OneOf<Success, DomainError>> SaveMeasurement(
         string measurementId,
         byte[] measurementsFile,
         ProductState productState,
@@ -38,9 +42,7 @@ internal sealed class MeasurementService : IMeasurementService
         Guid productId,
         CancellationToken cancellationToken)
     {
-        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
-
-        var measurement = ProductMeasurement.Create(
+        var created = ProductMeasurement.Create(
             id: measurementId,
             productId: productId,
             measurements: measurementsFile,
@@ -49,79 +51,104 @@ internal sealed class MeasurementService : IMeasurementService
             measurementFileParser: _measurementFileParser
         );
 
+        if (created.TryPickT1(out var error, out var measurement))
+        {
+            return error;
+        }
+
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
         await _productMeasurementRepository.AddAsync(unitOfWork, measurement, cancellationToken);
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return new Success();
     }
 
-    public async Task UpdateMeasurementLocation(
+    public async Task<OneOf<Success, NotFound, DomainError>> UpdateMeasurementLocation(
         string location,
         string measurementId,
-        CancellationToken cancellationToken)
-    {
-        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+        CancellationToken cancellationToken) =>
+        await UpdateMeasurementAsync(
+            measurementId,
+            measurement => measurement.ChangeLocation(location).MapT0(static _ => true),
+            cancellationToken);
 
-        var productMeasurement = await _productMeasurementRepository.GetByIdAsync(unitOfWork, measurementId, cancellationToken) ?? throw new InvalidOperationException("Measurement not found.");
-        productMeasurement.Location = string.IsNullOrWhiteSpace(location)
-            ? null
-            : location.Trim();
-
-        await unitOfWork.SaveChangesAsync(cancellationToken);
-    }
-
-    public async Task UpdateMeasurementManufactureCode(
+    public async Task<OneOf<Success, NotFound, DomainError>> UpdateMeasurementManufactureCode(
         string manufactureCode,
         string measurementId,
-        CancellationToken cancellationToken)
-    {
-        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+        CancellationToken cancellationToken) =>
+        await UpdateMeasurementAsync(
+            measurementId,
+            measurement => measurement.UpdateManufactureCode(manufactureCode).MapT0(static _ => true),
+            cancellationToken);
 
-        var productMeasurement = await _productMeasurementRepository.GetByIdAsync(unitOfWork, measurementId, cancellationToken) ?? throw new InvalidOperationException("Measurement not found.");
-        productMeasurement.UpdateManufactureCode(manufactureCode);
-
-        await unitOfWork.SaveChangesAsync(cancellationToken);
-    }
-
-    public async Task UpdateMeasurementMatchId(
+    public async Task<OneOf<Success, NotFound, DomainError>> UpdateMeasurementMatchId(
         string? matchId,
         string measurementId,
-        CancellationToken cancellationToken)
-    {
-        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+        CancellationToken cancellationToken) =>
+        await UpdateMeasurementAsync(
+            measurementId,
+            measurement => measurement.ChangeMatchId(matchId),
+            cancellationToken);
 
-        var productMeasurement = await _productMeasurementRepository.GetByIdAsync(unitOfWork, measurementId, cancellationToken) ?? throw new InvalidOperationException("Measurement not found.");
-        if (!productMeasurement.ChangeMatchId(matchId))
-        {
-            return;
-        }
-
-        await unitOfWork.SaveChangesAsync(cancellationToken);
-    }
-
-    public async Task UpdateMeasurementLotId(
+    public async Task<OneOf<Success, NotFound, DomainError>> UpdateMeasurementLotId(
         string? lotId,
         string measurementId,
-        CancellationToken cancellationToken)
-    {
-        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+        CancellationToken cancellationToken) =>
+        await UpdateMeasurementAsync(
+            measurementId,
+            measurement => measurement.ChangeLotId(lotId).MapT0(static _ => true),
+            cancellationToken);
 
-        var productMeasurement = await _productMeasurementRepository.GetByIdAsync(unitOfWork, measurementId, cancellationToken) ?? throw new InvalidOperationException("Measurement not found.");
-        productMeasurement.LotId = string.IsNullOrWhiteSpace(lotId) ? null : lotId.Trim();
-
-        await unitOfWork.SaveChangesAsync(cancellationToken);
-    }
-
-    public async Task UpdateMeasurementState(
+    public async Task<OneOf<Success, NotFound>> UpdateMeasurementState(
         MeasurementState state,
         string measurementId,
         CancellationToken cancellationToken)
     {
         await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
 
-        var productMeasurement = await _productMeasurementRepository.GetByIdAsync(unitOfWork, measurementId, cancellationToken) ?? throw new InvalidOperationException("Measurement not found.");
+        var productMeasurement = await _productMeasurementRepository.GetByIdAsync(unitOfWork, measurementId, cancellationToken);
+        if (productMeasurement is null)
+        {
+            return new NotFound();
+        }
+
         productMeasurement.ChangeState(state);
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return new Success();
+    }
+
+    /// <summary>
+    /// Loads the measurement and applies <paramref name="update"/> to it; commits only if the update succeeded
+    /// and reported (<see langword="true"/>) that it changed the measurement.
+    /// </summary>
+    private async Task<OneOf<Success, NotFound, DomainError>> UpdateMeasurementAsync(
+        string measurementId,
+        Func<ProductMeasurement, OneOf<bool, DomainError>> update,
+        CancellationToken cancellationToken)
+    {
+        await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
+
+        var productMeasurement = await _productMeasurementRepository.GetByIdAsync(unitOfWork, measurementId, cancellationToken);
+        if (productMeasurement is null)
+        {
+            return new NotFound();
+        }
+
+        if (update(productMeasurement).TryPickT1(out var error, out var changed))
+        {
+            return error;
+        }
+
+        if (changed)
+        {
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+
+        return new Success();
     }
 
     public async Task DeleteMeasurement(
@@ -160,19 +187,22 @@ internal sealed class MeasurementService : IMeasurementService
         ))];
     }
 
-    public async Task<byte[]?> GetMeasurementFile(string measurementId, CancellationToken cancellationToken)
+    public async Task<OneOf<byte[], NotFound>> GetMeasurementFile(string measurementId, CancellationToken cancellationToken)
     {
         var zipBytes = await _measurementQueries.GetMeasurementInfoWithData(
             measurementId, cancellationToken);
 
         if (zipBytes == null)
         {
-            return null;
+            return new NotFound();
         }
 
         var result = await _measurementFileParser.ToPrettifiedZip(zipBytes.Data, cancellationToken);
 
-        return result;
+        // Stored measurements were validated by the same parser on upload.
+        return result.Match<OneOf<byte[], NotFound>>(
+            static zip => zip,
+            error => throw new UnreachableException($"Stored measurement {measurementId} no longer parses: {error.Message}"));
     }
 
     public async Task<IReadOnlySet<string?>> GetLotIdsForProductAsync(Guid productId, CancellationToken cancellationToken) => await _measurementQueries.GetLotIds(productId, cancellationToken);

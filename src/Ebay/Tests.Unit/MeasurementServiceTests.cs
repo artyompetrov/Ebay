@@ -1,10 +1,12 @@
 using AwesomeAssertions;
+using OneOf;
+using Server.Application;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Abstractions.Driven.Models;
 using Server.Application.Abstractions.Driving.Models;
-using Server.Application;
+using Server.Domain.Errors;
 using Server.Domain.Measurements;
 using Server.Domain.Measurements.MeasurementTypes;
 using Tests.Shared;
@@ -50,6 +52,31 @@ public sealed class MeasurementServiceTests
         measurement.GetDomainEvents().Should().BeEmpty();
     }
 
+    [Test]
+    public async Task UpdateMeasurementLocation_ReturnsNotFound_WhenMeasurementDoesNotExist()
+    {
+        var unitOfWork = new RecordingUnitOfWork();
+        var service = CreateService(CreateMeasurement("MEASUREMENT1"), unitOfWork);
+
+        var result = await service.UpdateMeasurementLocation("shelf", "UNKNOWN", CancellationToken.None);
+
+        result.Value.Should().BeOfType<OneOf.Types.NotFound>();
+        unitOfWork.SaveChangesCallCount.Should().Be(0);
+    }
+
+    [Test]
+    public async Task UpdateMeasurementManufactureCode_ReturnsDomainErrorWithoutSaving_WhenCodeIsBlank()
+    {
+        const string measurementId = "MEASUREMENT1";
+        var unitOfWork = new RecordingUnitOfWork();
+        var service = CreateService(CreateMeasurement(measurementId), unitOfWork);
+
+        var result = await service.UpdateMeasurementManufactureCode(" ", measurementId, CancellationToken.None);
+
+        result.Value.Should().BeOfType<DomainError>();
+        unitOfWork.SaveChangesCallCount.Should().Be(0);
+    }
+
     private static MeasurementService CreateService(
         ProductMeasurement measurement,
         IWriteModelUnitOfWork unitOfWork)
@@ -70,7 +97,7 @@ public sealed class MeasurementServiceTests
             measurements: [],
             manufactureCode: "Test",
             productState: ProductState.New,
-            measurementFileParser: new FakeMeasurementFileParser());
+            measurementFileParser: new FakeMeasurementFileParser()).AsT0;
     }
 
     private sealed class SingleMeasurementRepository : IMeasurementRepository
@@ -167,7 +194,7 @@ public sealed class MeasurementServiceTests
 
     private sealed class FakeMeasurementFileParser : IMeasurementFileParser
     {
-        public MeasurementFileParseResult Parse(byte[] measurements)
+        public OneOf<MeasurementFileParseResult, DomainError> Parse(byte[] measurements)
         {
             return new MeasurementFileParseResult(
                 FileCount: 2,
@@ -179,7 +206,7 @@ public sealed class MeasurementServiceTests
                 HashAnodeCurvesConfig: "hash-anode-curves-config");
         }
 
-        public Task<byte[]> ToPrettifiedZip(byte[] zipBytes, CancellationToken cancellationToken) =>
+        public Task<OneOf<byte[], DomainError>> ToPrettifiedZip(byte[] zipBytes, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
     }
 

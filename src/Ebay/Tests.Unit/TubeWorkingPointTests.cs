@@ -1,4 +1,5 @@
-using Server.Domain.Exceptions;
+using AwesomeAssertions;
+using Server.Domain.Errors;
 using Server.Domain.Measurements;
 using Tests.Shared;
 
@@ -20,7 +21,7 @@ public sealed class TubeWorkingPointTests
             gridVoltage: -0.5,
             anodeVoltageHalfWidth: 0.2,
             gridVoltageHalfWidth: 0.2,
-            nominalCurrent: 35);
+            nominalCurrent: 35).AsT0;
 
         using (Assert.EnterMultipleScope())
         {
@@ -35,25 +36,51 @@ public sealed class TubeWorkingPointTests
     [OpenSpecScenario("tube-working-point", "Tube working point value validation", "A working point exactly at the boundary is accepted")]
     public void Create_AcceptsBoundaryValue_OfPointZeroOne()
     {
-        Assert.DoesNotThrow(() => TubeWorkingPoint.Create(
+        var result = TubeWorkingPoint.Create(
             productId: Guid.NewGuid(),
             anodeVoltage: 0.01,
             gridVoltage: -0.01,
             anodeVoltageHalfWidth: 0.01,
             gridVoltageHalfWidth: 0.01,
-            nominalCurrent: 0.01));
+            nominalCurrent: 0.01);
+
+        result.IsT0.Should().BeTrue();
     }
 
     [Test]
     [OpenSpecScenario("tube-working-point", "Tube working point value validation", "A working point below the boundary is rejected")]
-    public void Create_Throws_WhenValueIsBelowPointZeroOne()
+    public void Create_ReturnsDomainError_WhenValueIsBelowPointZeroOne()
     {
-        Assert.Throws<DomainException>(() => TubeWorkingPoint.Create(
+        var result = TubeWorkingPoint.Create(
             productId: Guid.NewGuid(),
             anodeVoltage: 250,
             gridVoltage: -0.009,
             anodeVoltageHalfWidth: 0.009,
             gridVoltageHalfWidth: 0.2,
-            nominalCurrent: 35));
+            nominalCurrent: 35);
+
+        result.Value.Should().BeOfType<DomainError>();
+    }
+
+    [Test]
+    public void Update_ReturnsDomainErrorAndKeepsValues_WhenValueIsBelowPointZeroOne()
+    {
+        var workingPoint = TubeWorkingPoint.Create(
+            productId: Guid.NewGuid(),
+            anodeVoltage: 250,
+            gridVoltage: -0.5,
+            anodeVoltageHalfWidth: 0.2,
+            gridVoltageHalfWidth: 0.2,
+            nominalCurrent: 35).AsT0;
+
+        var result = workingPoint.Update(
+            anodeVoltage: 250,
+            gridVoltage: -0.009,
+            anodeVoltageHalfWidth: 0.2,
+            gridVoltageHalfWidth: 0.2,
+            nominalCurrent: 35);
+
+        result.Value.Should().BeOfType<DomainError>();
+        workingPoint.GridVoltage.Should().Be(-0.5);
     }
 }

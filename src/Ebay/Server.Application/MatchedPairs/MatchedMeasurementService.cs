@@ -1,8 +1,10 @@
 using Microsoft.Extensions.Logging;
+using OneOf;
+using OneOf.Types;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
-using Server.Domain.Exceptions;
+using Server.Domain.Errors;
 using Server.Domain.Measurements;
 
 namespace Server.Application.MatchedPairs;
@@ -32,17 +34,26 @@ public sealed class MatchedMeasurementService
         _logger = logger;
     }
 
-    public async Task FindMatchedMeasurementsAsync(
+    /// <summary>
+    /// Restarts matched-pair search for all unsold measurements of the product.
+    /// </summary>
+    /// <returns><see cref="DomainError"/>, if the product has no tube working point to compare measurements at.</returns>
+    public async Task<OneOf<Success, DomainError>> FindMatchedMeasurementsAsync(
         Guid productId,
         CancellationToken cancellationToken)
     {
-        var _ = await _tubeWorkingPointQueries.GetWorkingPointInfo(productId, cancellationToken) ?? throw new DomainException("Рабочая точка не задана.");
+        if (await _tubeWorkingPointQueries.GetWorkingPointInfo(productId, cancellationToken) is null)
+        {
+            return new DomainError("Рабочая точка не задана.");
+        }
 
         await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
 
         await DeletePreviousResults(unitOfWork: unitOfWork, productId: productId, cancellationToken: cancellationToken);
 
         await RequestComparisons(unitOfWork: unitOfWork, productId: productId, cancellationToken: cancellationToken);
+
+        return new Success();
     }
 
     private async Task RequestComparisons(IWriteModelUnitOfWork unitOfWork, Guid productId, CancellationToken cancellationToken)
@@ -54,7 +65,12 @@ public sealed class MatchedMeasurementService
 
         foreach (var measurementId1 in unsoldMeasurements)
         {
-            var measurement1 = await _measurementRepository.GetByIdAsync(unitOfWork, measurementId1, cancellationToken) ?? throw new InvalidOperationException($"Measurement {measurementId1} not found.");
+            var measurement1 = await _measurementRepository.GetByIdAsync(unitOfWork, measurementId1, cancellationToken);
+            if (measurement1 is null)
+            {
+                // Deleted after the measurement list was read: there is nothing left to compare.
+                continue;
+            }
 
             foreach (var measurementId2 in unsoldMeasurements)
             {

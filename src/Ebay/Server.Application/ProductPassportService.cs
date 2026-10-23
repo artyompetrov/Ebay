@@ -1,7 +1,8 @@
+using OneOf;
+using OneOf.Types;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
-using Server.Application.Exceptions;
 using Server.Domain;
 
 namespace Server.Application;
@@ -61,14 +62,17 @@ public class ProductPassportService
     /// <summary>
     /// Удаляет паспорт товара и сдвигает порядок оставшихся паспортов.
     /// </summary>
-    /// <exception cref="NotFoundException">Паспорт с указанным идентификатором не найден среди паспортов товара.</exception>
-    public async Task DeleteAsync(Guid productId, Guid passportId, CancellationToken cancellationToken)
+    /// <returns><see cref="NotFound"/>, если паспорт с указанным идентификатором не найден среди паспортов товара.</returns>
+    public async Task<OneOf<Success, NotFound>> DeleteAsync(Guid productId, Guid passportId, CancellationToken cancellationToken)
     {
         await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
 
         var passports = await _passportQueries.GetPassports(productId, cancellationToken);
-        var passport = passports.SingleOrDefault(x => x.Id == passportId) ??
-                       throw new NotFoundException(nameof(ProductPassport), passportId);
+        var passport = passports.SingleOrDefault(x => x.Id == passportId);
+        if (passport is null)
+        {
+            return new NotFound();
+        }
 
         // IProductPassportRepository.RemoveAsync executes an immediate ExecuteDeleteAsync rather than going
         // through the change tracker, so without an explicit transaction it would commit independently of the
@@ -81,30 +85,35 @@ public class ProductPassportService
         var passportsToDecrement = passports.Where(x => x.Order > passport.Order);
         foreach (var p in passportsToDecrement)
         {
-            var tracked = await _productPassportRepository.GetByIdAsync(unitOfWork, p.Id, cancellationToken) ??
-                          throw new InvalidOperationException($"ProductPassport {p.Id} not found");
-            tracked.SetOrder(tracked.Order - 1);
+            // A passport removed concurrently since it was read has no order left to shift.
+            var tracked = await _productPassportRepository.GetByIdAsync(unitOfWork, p.Id, cancellationToken);
+            tracked?.SetOrder(tracked.Order - 1);
         }
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
+
+        return new Success();
     }
 
     /// <summary>
     /// Изменяет порядок паспорта товара, сдвигая порядок остальных паспортов в диапазоне.
     /// </summary>
-    /// <exception cref="NotFoundException">Паспорт с указанным идентификатором не найден среди паспортов товара.</exception>
-    public async Task UpdateOrderAsync(Guid productId, Guid passportId, int newOrder, CancellationToken cancellationToken)
+    /// <returns><see cref="NotFound"/>, если паспорт с указанным идентификатором не найден среди паспортов товара.</returns>
+    public async Task<OneOf<Success, NotFound>> UpdateOrderAsync(Guid productId, Guid passportId, int newOrder, CancellationToken cancellationToken)
     {
         await using var unitOfWork = await _unitOfWorkFactory.BeginAsync(cancellationToken);
 
         var passports = await _passportQueries.GetPassports(productId, cancellationToken);
-        var current = passports.SingleOrDefault(x => x.Id == passportId) ??
-                      throw new NotFoundException(nameof(ProductPassport), passportId);
+        var current = passports.SingleOrDefault(x => x.Id == passportId);
+        if (current is null)
+        {
+            return new NotFound();
+        }
 
         if (current.Order == newOrder)
         {
-            return;
+            return new Success();
         }
 
         var minOrder = Math.Min(current.Order, newOrder);
@@ -114,15 +123,21 @@ public class ProductPassportService
         var orderShift = newOrder < current.Order ? 1 : -1;
         foreach (var p in affected)
         {
-            var tracked = await _productPassportRepository.GetByIdAsync(unitOfWork, p.Id, cancellationToken) ??
-                          throw new InvalidOperationException($"ProductPassport {p.Id} not found");
-            tracked.SetOrder(tracked.Order + orderShift);
+            // A passport removed concurrently since it was read has no order left to shift.
+            var tracked = await _productPassportRepository.GetByIdAsync(unitOfWork, p.Id, cancellationToken);
+            tracked?.SetOrder(tracked.Order + orderShift);
         }
 
-        var entity = await _productPassportRepository.GetByIdAsync(unitOfWork, passportId, cancellationToken) ??
-                     throw new InvalidOperationException($"ProductPassport {passportId} not found");
+        var entity = await _productPassportRepository.GetByIdAsync(unitOfWork, passportId, cancellationToken);
+        if (entity is null)
+        {
+            return new NotFound();
+        }
+
         entity.SetOrder(newOrder);
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return new Success();
     }
 }
