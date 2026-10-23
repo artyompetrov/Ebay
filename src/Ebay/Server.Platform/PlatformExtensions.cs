@@ -35,6 +35,17 @@ public static class PlatformExtensions
     internal const string AspNetCoreLogCategory = "Microsoft.AspNetCore";
 
     /// <summary>
+    /// Rare ASP.NET Core categories whose Information records are business-relevant and stay logged:
+    /// Identity UI (user logged in, registered, locked out) and DataProtection (keys created or loaded, which
+    /// explains cookies that stop decrypting after a restart).
+    /// </summary>
+    internal static readonly string[] AspNetCoreInformationLogCategories =
+    [
+        "Microsoft.AspNetCore.Identity",
+        "Microsoft.AspNetCore.DataProtection"
+    ];
+
+    /// <summary>
     /// Applies the platform setup: <c>ASPNETCORE_</c>-prefixed environment configuration, strict DI container
     /// validation (<c>ValidateOnBuild</c>/<c>ValidateScopes</c>), logging (console + OpenTelemetry OTLP export),
     /// tracing (incoming and outgoing HTTP, database commands and our own <c>Server.*</c> sources, OTLP export)
@@ -58,6 +69,10 @@ public static class PlatformExtensions
         // caching) are most of the log volume and duplicate the incoming request spans in Tempo. Raising the
         // category to Warning also keeps URL query strings out of the logs, as tracing already does.
         builder.Logging.AddFilter(AspNetCoreLogCategory, LogLevel.Warning);
+        foreach (var category in AspNetCoreInformationLogCategories)
+        {
+            builder.Logging.AddFilter(category, LogLevel.Information);
+        }
         builder.Logging.AddOpenTelemetry(o =>
         {
             o.IncludeScopes = true;
