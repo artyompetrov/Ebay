@@ -80,21 +80,11 @@ public sealed class WebApiController : WebApiControllerBase
 
     public override async Task<IActionResult> CreateLotForSale(LotForSaleCreateRequest body, CancellationToken cancellationToken = default)
     {
-        if (ToDomainProductState(body.ProductState) is not { } productState)
-        {
-            return ProblemAnswers.UnknownEnumValue(nameof(body.ProductState));
-        }
-
-        if (ToDomainMeasurementState(body.MeasurementState) is not { } measurementState)
-        {
-            return ProblemAnswers.UnknownEnumValue(nameof(body.MeasurementState));
-        }
-
         var created = await _lotForSaleService.CreateLotForSaleAsync(
             body.Name,
             body.ProductId,
-            productState,
-            measurementState,
+            ToDomainProductState(body.ProductState),
+            ToDomainMeasurementState(body.MeasurementState),
             cancellationToken);
 
         return created.Match<IActionResult>(
@@ -116,24 +106,18 @@ public sealed class WebApiController : WebApiControllerBase
     {
         var lotForSales = await _lotForSaleService.GetLotForSalesAsync(cancellationToken);
 
-        var response = new List<LotForSaleResponse>(lotForSales.Count);
         // A lot for sale is never sold (LotForSale.Create rejects that state), the contract has no value for it.
-        foreach (var lot in lotForSales.Where(static x => x.MeasurementState != DomainMeasurementState.Sold))
-        {
-            if (ToApiMeasurementState(lot.MeasurementState) is not { } measurementState ||
-                ToApiProductState(lot.ProductState) is not { } productState)
-            {
-                return ProblemAnswers.InconsistentData($"Lot for sale {lot.Id} has an unknown state");
-            }
-
-            response.Add(new LotForSaleResponse(
-                availableQuantity: lot.AvailableQuantity,
-                id: lot.Id,
-                measurementState: measurementState,
-                name: lot.Name,
-                productId: lot.ProductId,
-                productState: productState));
-        }
+        var response = lotForSales
+            .Select(x => (Lot: x, MeasurementState: ToApiMeasurementState(x.MeasurementState)))
+            .Where(static x => x.MeasurementState is not null)
+            .Select(x => new LotForSaleResponse(
+                availableQuantity: x.Lot.AvailableQuantity,
+                id: x.Lot.Id,
+                measurementState: x.MeasurementState.GetValueOrDefault(),
+                name: x.Lot.Name,
+                productId: x.Lot.ProductId,
+                productState: ToApiProductState(x.Lot.ProductState)))
+            .ToList();
 
         return response;
     }
@@ -514,20 +498,9 @@ public sealed class WebApiController : WebApiControllerBase
         Guid productId,
         CancellationToken cancellationToken = default)
     {
-        DomainMeasurementState[] measurementStates;
-        if (measurementState is { } requestedState)
-        {
-            if (requestedState.ToDbMeasurementState() is not { } domainState)
-            {
-                return ProblemAnswers.UnknownEnumValue(nameof(measurementState));
-            }
-
-            measurementStates = [domainState];
-        }
-        else
-        {
-            measurementStates = Enum.GetValues<DomainMeasurementState>();
-        }
+        var measurementStates = measurementState.HasValue
+            ? new[] { measurementState.Value.ToDbMeasurementState() }
+            : Enum.GetValues<DomainMeasurementState>();
 
         var productStates = Enum.GetValues<DomainProductState>();
 
@@ -537,25 +510,17 @@ public sealed class WebApiController : WebApiControllerBase
             measurementStates: measurementStates,
             cancellationToken: cancellationToken);
 
-        var result = new List<MeasurementData>(measurements.Count);
-        foreach (var x in measurements)
-        {
-            if (x.Data.MeasurementInfo.ProductState.ToApiProductState() is not { } apiProductState ||
-                x.Data.MeasurementInfo.MeasurementState.ToApiMeasurementState() is not { } apiMeasurementState)
-            {
-                return ProblemAnswers.InconsistentData($"Measurement {x.Data.MeasurementInfo.Id} has an unknown state");
-            }
-
-            result.Add(new MeasurementData(
+        var result = measurements
+            .Select(x => new MeasurementData(
                 doubleTriodeSectionRmse: x.Data.DoubleTriodeSectionRmse,
                 manufactureCode: x.Data.MeasurementInfo.ManufactureCode,
                 measurementId: x.Data.MeasurementInfo.Id,
                 isPublishedOnEbay: x.IsPublishedOnEbay,
-                productState: apiProductState,
+                productState: x.Data.MeasurementInfo.ProductState.ToApiProductState(),
                 location: x.Data.MeasurementInfo.Location,
                 matchId: x.Data.MeasurementInfo.MatchId,
                 lotId: x.Data.MeasurementInfo.LotId,
-                measurementState: apiMeasurementState,
+                measurementState: x.Data.MeasurementInfo.MeasurementState.ToApiMeasurementState(),
                 similarMeasurements: [.. x.Data.SimilarMeasurements
                     .Select(similarMeasurement => new ApiSimilarMeasurementInfo(
                         measurementId: similarMeasurement.MeasurementId,
@@ -569,8 +534,8 @@ public sealed class WebApiController : WebApiControllerBase
                         matchId: similarMeasurement.MatchId,
                         doubleTriodeSectionRmse: similarMeasurement.DoubleTriodeSectionRmse
                     ))],
-                createdAt: x.Data.MeasurementInfo.CreatedAt));
-        }
+                createdAt: x.Data.MeasurementInfo.CreatedAt))
+            .ToList();
 
         return result;
     }
@@ -580,15 +545,10 @@ public sealed class WebApiController : WebApiControllerBase
         Guid productId,
         CancellationToken cancellationToken = default)
     {
-        if (body.ProductState.ToDbProductState() is not { } productState)
-        {
-            return ProblemAnswers.UnknownEnumValue(nameof(body.ProductState));
-        }
-
         var saved = await _measurementService.SaveMeasurement(
             measurementId: body.MeasurementId,
             measurementsFile: body.File,
-            productState: productState,
+            productState: body.ProductState.ToDbProductState(),
             manufactureCode: body.ManufactureCode,
             productId: productId,
             cancellationToken: cancellationToken);
@@ -689,13 +649,8 @@ public sealed class WebApiController : WebApiControllerBase
         string measurementId,
         CancellationToken cancellationToken = default)
     {
-        if (body.ToDbMeasurementState() is not { } state)
-        {
-            return ProblemAnswers.UnknownEnumValue(nameof(body));
-        }
-
         var updated = await _measurementService.UpdateMeasurementState(
-            state: state,
+            state: body.ToDbMeasurementState(),
             measurementId: measurementId,
             cancellationToken: cancellationToken);
 
@@ -814,25 +769,21 @@ public sealed class WebApiController : WebApiControllerBase
         return Ok();
     }
 
-    // Enum mappings return null for a value that has no counterpart (see ModelsExtensions).
-
-    private static DomainProductState? ToDomainProductState(LotForSaleProductState productState)
+    private static DomainProductState ToDomainProductState(LotForSaleProductState productState)
     {
         return productState switch
         {
             LotForSaleProductState.New => DomainProductState.New,
-            LotForSaleProductState.Used => DomainProductState.Used,
-            _ => null
+            LotForSaleProductState.Used => DomainProductState.Used
         };
     }
 
-    private static DomainMeasurementState? ToDomainMeasurementState(LotForSaleMeasurementState measurementState)
+    private static DomainMeasurementState ToDomainMeasurementState(LotForSaleMeasurementState measurementState)
     {
         return measurementState switch
         {
             LotForSaleMeasurementState.Created => DomainMeasurementState.Created,
-            LotForSaleMeasurementState.Selling => DomainMeasurementState.Selling,
-            _ => null
+            LotForSaleMeasurementState.Selling => DomainMeasurementState.Selling
         };
     }
 
@@ -842,18 +793,15 @@ public sealed class WebApiController : WebApiControllerBase
         {
             DomainMeasurementState.Created => LotForSaleMeasurementState.Created,
             DomainMeasurementState.Selling => LotForSaleMeasurementState.Selling,
-            DomainMeasurementState.Sold => null,
-            _ => null
+            DomainMeasurementState.Sold => null
         };
     }
-
-    private static LotForSaleProductState? ToApiProductState(DomainProductState productState)
+    private static LotForSaleProductState ToApiProductState(DomainProductState productState)
     {
         return productState switch
         {
             DomainProductState.New => LotForSaleProductState.New,
-            DomainProductState.Used => LotForSaleProductState.Used,
-            _ => null
+            DomainProductState.Used => LotForSaleProductState.Used
         };
     }
 }

@@ -118,9 +118,7 @@
         return _actionType switch
         {
             ActionType.Create => "Создать новый продукт",
-            ActionType.Edit => $"Редактировать продукт '{_oldName}'",
-            // _actionType is only ever set to a named member; an unnamed number gets no header.
-            _ => string.Empty
+            ActionType.Edit => $"Редактировать продукт '{_oldName}'"
         };
     }
 
