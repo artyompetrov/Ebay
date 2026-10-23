@@ -1,0 +1,11 @@
+# Prometheus: stores the backend's metrics, pushed by ebay_otelcollector to the native OTLP receiver
+# (--web.enable-otlp-receiver), and serves them to Grafana. See openspec/specs/observability-metrics.
+# Nothing is scraped: there are no scrape_configs.
+
+global:
+  evaluation_interval: 1m
+
+storage:
+  tsdb:
+    # OTLP pushes are not perfectly ordered (batching in the SDK and the collector); accept slightly late samples.
+    out_of_order_time_window: 30m

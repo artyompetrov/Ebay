@@ -1,6 +1,9 @@
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using AwesomeAssertions;
 using Microsoft.Extensions.Caching.Memory;
 using Server.Adapters.Driven.MemoryCache;
+using Tests.Shared;
 using MsMemoryCache = Microsoft.Extensions.Caching.Memory.MemoryCache;
 
 namespace Tests.Unit;
@@ -11,6 +14,56 @@ public sealed class MeasurementContentCacheAdapterTests
 {
     private const string MeasurementId = "measurement-1";
     private const string OtherMeasurementId = "measurement-2";
+    private const string CacheSourceName = "Server.Adapters.Driven.MemoryCache";
+    private const string CacheSpanName = "measurement-content-cache.get";
+    private const string CacheHitTag = "cache.hit";
+    private const string CacheKeyTag = "cache.key";
+    private const string FactorySourceName = $"Tests.Unit.{nameof(MeasurementContentCacheAdapterTests)}";
+
+    private static readonly ActivitySource FactorySource = new(FactorySourceName);
+
+    [Test]
+    [OpenSpecScenario("observability-tracing", "Measurement content cache lookups are traced", "A cache miss is recorded")]
+    public async Task GetOrCreateAsync_Miss_RecordsSpanWithCacheHitFalseAndFactoryUnderIt()
+    {
+        using var recorder = new SpanRecorder();
+        using var memoryCache = new MsMemoryCache(new MemoryCacheOptions());
+        var adapter = new MeasurementContentCacheAdapter(memoryCache, new MeasurementCacheInvalidationRegistry());
+        var key = $"miss-{Guid.NewGuid():N}";
+        var factoryOperationName = $"produce-{key}";
+
+        await adapter.GetOrCreateAsync(
+            MeasurementId,
+            key,
+            () =>
+            {
+                FactorySource.StartActivity(factoryOperationName)?.Dispose();
+                return Task.FromResult<string?>(CountingFactory.Value);
+            },
+            static s => s.Length);
+
+        var lookup = recorder.LookupsOf(key).Should().ContainSingle().Subject;
+        lookup.GetTagItem(CacheHitTag).Should().Be(false);
+        var produce = recorder.Named(factoryOperationName).Should().ContainSingle().Subject;
+        produce.ParentSpanId.Should().Be(lookup.SpanId);
+    }
+
+    [Test]
+    [OpenSpecScenario("observability-tracing", "Measurement content cache lookups are traced", "A cache hit is recorded")]
+    public async Task GetOrCreateAsync_Hit_RecordsSpanWithCacheHitTrue()
+    {
+        using var recorder = new SpanRecorder();
+        using var memoryCache = new MsMemoryCache(new MemoryCacheOptions());
+        var adapter = new MeasurementContentCacheAdapter(memoryCache, new MeasurementCacheInvalidationRegistry());
+        var factory = new CountingFactory();
+        var key = $"hit-{Guid.NewGuid():N}";
+
+        await adapter.GetOrCreateAsync(MeasurementId, key, factory.Create, static s => s.Length);
+        await adapter.GetOrCreateAsync(MeasurementId, key, factory.Create, static s => s.Length);
+
+        recorder.LookupsOf(key).Select(static span => span.GetTagItem(CacheHitTag))
+            .Should().Equal(false, true);
+    }
 
     [Test]
     public async Task GetOrCreateAsync_SecondCall_IsServedFromCache()
@@ -77,5 +130,33 @@ public sealed class MeasurementContentCacheAdapterTests
             CallCount++;
             return Task.FromResult<string?>(Value);
         }
+    }
+
+    /// <summary>
+    /// Collects finished spans of the cache adapter and of this test's factory source. Tests run in parallel,
+    /// so each test looks only at spans of its own cache key or operation name.
+    /// </summary>
+    private sealed class SpanRecorder : IDisposable
+    {
+        private readonly ActivityListener _listener;
+        private readonly ConcurrentQueue<Activity> _spans = new();
+
+        public SpanRecorder()
+        {
+            _listener = new ActivityListener
+            {
+                ShouldListenTo = static source => source.Name is CacheSourceName or FactorySourceName,
+                Sample = static (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+                ActivityStopped = activity => _spans.Enqueue(activity)
+            };
+            ActivitySource.AddActivityListener(_listener);
+        }
+
+        public Activity[] LookupsOf(string key) =>
+            [.. _spans.Where(span => span.OperationName == CacheSpanName && (string?)span.GetTagItem(CacheKeyTag) == key)];
+
+        public Activity[] Named(string operationName) => [.. _spans.Where(span => span.OperationName == operationName)];
+
+        public void Dispose() => _listener.Dispose();
     }
 }

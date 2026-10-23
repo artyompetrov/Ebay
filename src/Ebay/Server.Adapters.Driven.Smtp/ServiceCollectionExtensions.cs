@@ -13,5 +13,9 @@ public static class ServiceCollectionExtensions
             .ValidateOnStart();
 
         services.AddSingleton<IEmailSender, EmailSender>();
+
+        // MailKit creates its span source and meters only after these calls; the platform exports them by name.
+        MailKit.Telemetry.SmtpClient.Configure();
+        MailKit.Telemetry.Socket.Configure();
     }
 }

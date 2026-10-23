@@ -7,6 +7,7 @@ public static class ServiceCollectionExtensions
 {
     public static void AddOpenExchangeRatesAdapter(this IServiceCollection services)
     {
+        services.AddHttpClient(OpenExchangeRatesCurrencyRateSource.HttpClientName);
         services.AddSingleton<ICurrencyRateSource, OpenExchangeRatesCurrencyRateSource>();
     }
 }

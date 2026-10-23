@@ -7,6 +7,7 @@ Rules for the Chrome extension in `src/ChromeExtension`.
 - Don't use `any` if a correct type can be described.
 - Specify input and output types for functions.
 - Move reusable utilities into `src/infrastructure`.
+- All HTTP goes through `fetchResource` (`src/infrastructure/Utils.ts`, executed by the background service worker). It adds a W3C `traceparent` to backend calls only (one trace id per loaded page, `src/infrastructure/TraceContext.ts`, `openspec/specs/observability-tracing`) and logs that trace id with the request, so the backend trace can be found in Grafana; don't send it to other hosts.
 
 ## Tests
 - Tests live in `tests/**/*.test.ts` and run with `npm test`: Node's built-in test runner executes TypeScript directly (type stripping, Node 22.18+), DOM is provided by `jsdom`. Tests are not type-checked, so keep them to erasable TypeScript syntax and import sources with an explicit `.ts` extension.

@@ -15,6 +15,7 @@ public static class ServiceCollectionExtensions
         services.AddHostedService<SaleAdvertisementCleanupBackgroundTask>();
         services.AddHostedService<CurrencyRateBackgroundTask>();
         services.AddHostedService<DbCacheCleanupHostedService>();
+        services.AddHostedService<SigningKeyCleanupHostedService>();
         services.AddHostedService<MeasurementPlotWarmupHostedService>();
     }
 }
