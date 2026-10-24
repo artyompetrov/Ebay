@@ -1,3 +1,5 @@
+using OneOf;
+using OneOf.Types;
 using Server.Application.Abstractions.Driven.Models;
 
 namespace Server.Application.Abstractions.Driven.Abstractions;
@@ -13,9 +15,10 @@ public interface ISaleAdvertisementAdapter
     string Marketplace { get; }
 
     /// <summary>
-    /// Возвращает свежие объявления о продаже с маркетплейса.
+    /// Возвращает свежие объявления о продаже с маркетплейса; <see cref="Error{T}"/> с описанием, если маркетплейс не дал
+    /// пригодного ответа (например, страница без ожидаемой разметки), чтобы сбор считался неудачным, а не пустым.
     /// </summary>
-    Task<IReadOnlyCollection<SaleAdvertisement>> GetRecentAdvertisementsAsync(CancellationToken cancellationToken);
+    Task<OneOf<IReadOnlyCollection<SaleAdvertisement>, Error<string>>> GetRecentAdvertisementsAsync(CancellationToken cancellationToken);
 
     /// <summary>
     /// Пытается получить контакт продавца объявления; вызывается только для объявлений, совпавших с товарами.

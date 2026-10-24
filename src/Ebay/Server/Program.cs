@@ -5,6 +5,7 @@ using Server.Adapters.Driven.EF.WriteModel;
 using Server.Adapters.Driven.GeoIp;
 using Server.Adapters.Driven.ImageProcessing;
 using Server.Adapters.Driven.MemoryCache;
+using Server.Adapters.Driven.NewAudioPortal;
 using Server.Adapters.Driven.OpenExchangeRates;
 using Server.Adapters.Driven.Plotting;
 using Server.Adapters.Driven.Qrz;
@@ -34,6 +35,7 @@ public class Program
         builder.Services.AddGeoIpAdapter();
         builder.Services.AddChipFindAdapter();
         builder.Services.AddQrzAdapter();
+        builder.Services.AddNewAudioPortalAdapter();
         builder.Services.AddOpenExchangeRatesAdapter();
         builder.Services.AddPlottingAdapter();
         builder.Services.AddMemoryCacheAdapter();

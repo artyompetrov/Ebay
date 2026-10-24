@@ -4,6 +4,8 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using OneOf;
+using OneOf.Types;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Models;
 
@@ -42,7 +44,7 @@ internal sealed class QrzAdapter : ISaleAdvertisementAdapter
 
     public string Marketplace => WellKnown.Marketplace;
 
-    public async Task<IReadOnlyCollection<SaleAdvertisement>> GetRecentAdvertisementsAsync(CancellationToken cancellationToken)
+    public async Task<OneOf<IReadOnlyCollection<SaleAdvertisement>, Error<string>>> GetRecentAdvertisementsAsync(CancellationToken cancellationToken)
     {
         var listings = new Dictionary<long, QrzListing>();
 
