@@ -21,7 +21,7 @@
 - [x] 4.1 In `SearchSitesProcessor.ts` remove the `while (true)` loop, `highlightWords`, `findMatches` and the old tooltip code; start `ProductHighlighter` with `window.requestIdleCallback` and `ProductTooltip` after products are loaded; verify `npm run build` succeeds
 - [x] 4.2 Change the injected highlight styles to `background-color` only (no `font-weight`) and cover "Highlighted element keeps its font" with a test on the stylesheet text, tagged `[OpenSpecScenario]`; verify `npm test` passes
 - [x] 4.3 Note the `searchSites/` modules and the idle-scheduling rule (page work only in idle callbacks, no handler per element) in `src/ChromeExtension/AGENTS.md`; verify the file describes them
-- [ ] 4.4 Manually check on avito and chipfind with Chrome DevTools Performance: while scrolling no long task from the extension, after the first pass no extension activity on an idle page, highlights appear and the tooltip works; record the result in the MR
+- [x] 4.4 Manually check on avito and chipfind with Chrome DevTools Performance: while scrolling no long task from the extension, after the first pass no extension activity on an idle page, highlights appear and the tooltip works; record the result in the MR
 
 ## Workflow follow-up
 
