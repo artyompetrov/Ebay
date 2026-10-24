@@ -247,17 +247,62 @@ public sealed class NewAudioPortalAdapterTests
     }
 
     [Test]
-    public async Task GetRecentAdvertisementsAsync_TopicWithoutAuthor_IsCachedAsSkipped()
+    [OpenSpecScenario("newaudioportal-monitoring", "Topics without any author fail the collection", "No topic has an author")]
+    public async Task GetRecentAdvertisementsAsync_NoTopicHasAuthor_ReturnsError()
+    {
+        var handler = new RoutingHandler
+        {
+            Section = NewAudioPortalHtml.SectionPage(NewAudioPortalHtml.TopicRow(1, LaterPost), NewAudioPortalHtml.TopicRow(2, LaterPost)),
+        };
+        handler.Topics[1] = [TopicWithoutAuthor()];
+        handler.Topics[2] = [TopicWithoutAuthor()];
+
+        var result = await CreateAdapter(handler).GetRecentAdvertisementsAsync(CancellationToken.None);
+
+        result.IsT1.Should().BeTrue();
+    }
+
+    [Test]
+    [OpenSpecScenario("newaudioportal-monitoring", "Topics without any author fail the collection", "Failure repeats while the topics are remembered")]
+    public async Task GetRecentAdvertisementsAsync_NoTopicHasAuthorOnNextRun_ReturnsErrorFromCache()
     {
         var handler = new RoutingHandler { Section = NewAudioPortalHtml.SectionPage(NewAudioPortalHtml.TopicRow(1, LaterPost)) };
-        handler.Topics[1] = [NewAudioPortalHtml.TopicPage("Лампы", 1, NewAudioPortalHtml.Post(1, authorId: null, "Guest", LaterPost, "<p>6Н2П</p>"))];
+        handler.Topics[1] = [TopicWithoutAuthor()];
         var adapter = CreateAdapter(handler);
 
         await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
-        var second = (await adapter.GetRecentAdvertisementsAsync(CancellationToken.None)).AsT0;
+        var second = await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
 
-        second.Should().BeEmpty();
+        second.IsT1.Should().BeTrue();
         handler.TopicRequests.Should().ContainSingle();
+    }
+
+    [Test]
+    [OpenSpecScenario("newaudioportal-monitoring", "Topics without any author fail the collection", "One topic without an author among others")]
+    public async Task GetRecentAdvertisementsAsync_OneTopicWithoutAuthor_SkipsOnlyIt()
+    {
+        var handler = new RoutingHandler
+        {
+            Section = NewAudioPortalHtml.SectionPage(NewAudioPortalHtml.TopicRow(1, LaterPost), NewAudioPortalHtml.TopicRow(2, EarlierPost)),
+        };
+        handler.Topics[1] = [TopicWithoutAuthor()];
+        handler.Topics[2] = [SinglePageTopic("6Н2П")];
+
+        var advertisements = (await CreateAdapter(handler).GetRecentAdvertisementsAsync(CancellationToken.None)).AsT0;
+
+        advertisements.Should().ContainSingle().Which.Items.Should().Contain("6Н2П");
+    }
+
+    [Test]
+    public async Task GetRecentAdvertisementsAsync_OnlyFailedTopics_IsNotAnError()
+    {
+        var handler = new RoutingHandler { Section = NewAudioPortalHtml.SectionPage(NewAudioPortalHtml.TopicRow(1, LaterPost)) };
+        handler.Topics[1] = [SinglePageTopic("6Н2П")];
+        handler.FailingTopicPages.Add("/topic/1-радиолампы/");
+
+        var result = await CreateAdapter(handler).GetRecentAdvertisementsAsync(CancellationToken.None);
+
+        result.AsT0.Should().BeEmpty();
     }
 
     [Test]
@@ -312,6 +357,9 @@ public sealed class NewAudioPortalAdapterTests
 
     private static string SinglePageTopic(string line) =>
         NewAudioPortalHtml.TopicPage("Лампы", 1, NewAudioPortalHtml.Post(1, StarterId, Starter, EarlierPost, $"<p>{line}</p>"));
+
+    private static string TopicWithoutAuthor() =>
+        NewAudioPortalHtml.TopicPage("Лампы", 1, NewAudioPortalHtml.Post(1, authorId: null, "Guest", LaterPost, "<p>6Н2П</p>"));
 
     private static SaleAdvertisement Advertisement(string sellerKey, string sellerName) =>
         new(

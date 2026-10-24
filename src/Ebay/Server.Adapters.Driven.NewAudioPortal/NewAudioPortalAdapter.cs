@@ -62,15 +62,23 @@ internal sealed partial class NewAudioPortalAdapter : ISaleAdvertisementAdapter
         }
 
         var result = new List<SaleAdvertisement>(topics.Count);
+        var topicsWithoutAuthor = 0;
 
         foreach (var topic in topics.Values.OrderByDescending(static x => x.LastPostDate))
         {
             var advertisement = await GetAdvertisementAsync(topic, cancellationToken);
 
-            if (advertisement is not null)
-            {
-                result.Add(advertisement);
-            }
+            advertisement.Switch(
+                result.Add,
+                _ => topicsWithoutAuthor++,
+                static _ => { });
+        }
+
+        // Ни у одной прочитанной темы нет автора - скорее всего, сменилась разметка: без ошибки сбор выглядел бы как
+        // тихий раздел, а закешированные темы без автора заглушили бы и предупреждения.
+        if (result.Count == 0 && topicsWithoutAuthor > 0)
+        {
+            return new Error<string>($"none of {topicsWithoutAuthor} newaudioportal.com topics has an opening post author with a profile link");
         }
 
         _logger.LogInformation(
@@ -122,7 +130,11 @@ internal sealed partial class NewAudioPortalAdapter : ISaleAdvertisementAdapter
         }
     }
 
-    private async Task<SaleAdvertisement?> GetAdvertisementAsync(NewAudioPortalTopicRow topic, CancellationToken cancellationToken)
+    /// <summary>
+    /// Объявление темы; <see cref="None"/>, если у первого сообщения нет автора с профилем; <see cref="Error{T}"/>, если
+    /// тему не удалось прочитать в этот раз.
+    /// </summary>
+    private async Task<OneOf<SaleAdvertisement, None, Error<string>>> GetAdvertisementAsync(NewAudioPortalTopicRow topic, CancellationToken cancellationToken)
     {
         using var activity = ActivitySource.StartActivity(WellKnown.Tracing.TopicSpan);
         activity?.SetTag(WellKnown.Tracing.TopicIdTag, topic.Id);
@@ -134,7 +146,7 @@ internal sealed partial class NewAudioPortalAdapter : ISaleAdvertisementAdapter
 
         if (isCacheHit)
         {
-            return cached;
+            return ToResult(cached);
         }
 
         OneOf<NewAudioPortalTopicPage[], Error<string>> pages;
@@ -154,22 +166,23 @@ internal sealed partial class NewAudioPortalAdapter : ISaleAdvertisementAdapter
             // Не кешируем: временная ошибка или заглушка вместо темы не должны скрыть тему до её следующего сообщения.
             activity?.SetStatus(ActivityStatusCode.Error, error.Value);
             _logger.LogWarning("Skipping newaudioportal.com topic {TopicId} from {Link}: {Error}", topic.Id, topic.Link, error.Value);
-            return null;
+            return error;
         }
 
         activity?.SetTag(WellKnown.Tracing.TopicPagesTag, topicPages[0].PageCount);
 
         // Тема без автора с профилем тоже кешируется (как null), чтобы не перечитывать её каждый прогон.
-        // TODO: если разметка сменится и ссылки на авторов пропадут у всех тем, сбор пройдёт «успешно» с нулём
-        // объявлений и одним предупреждением на тему; стоит считать такой прогон ошибкой сбора.
         var advertisement = NewAudioPortalAdvertisementBuilder.TryBuild(topic, topicPages, _logger);
         _memoryCache.Set(
             cacheKey,
             advertisement,
             new MemoryCacheEntryOptions { SlidingExpiration = WellKnown.TopicCacheSlidingExpiration });
 
-        return advertisement;
+        return ToResult(advertisement);
     }
+
+    private static OneOf<SaleAdvertisement, None, Error<string>> ToResult(SaleAdvertisement? advertisement) =>
+        advertisement is null ? new None() : advertisement;
 
     /// <summary>
     /// Первая страница (шапка) и, если страниц несколько, последняя (свежие сообщения); средние страницы не читаются.

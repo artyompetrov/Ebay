@@ -21,6 +21,10 @@
 - [x] 4.1 Update `src/Ebay/AGENTS.md`: add `Server.Adapters.Driven.NewAudioPortal` (sections from the `NewAudioPortal` options section, `NewAudioPortal__Sections__0=...`) to the sale advertisement sources list, extend the adapter-private cache example, note that `GetRecentAdvertisementsAsync` returns `OneOf<..., Error<string>>` for an expected collection failure, and replace "(qrz, chipfind)" in the `ScrapingProxy` entry with general wording; verify by reading the diff
 - [x] 4.2 Run `make agent-check` and verify it passes (build, tests, OpenSpec validation and coverage with this change's deferral)
 
+## 5. Topics without any author
+
+- [x] 5.1 Make `NewAudioPortalAdapter` return an `Error<string>` result when every resolved topic (read now or reused from the cache) lacks an opening post author, while fetch failures do not count; remove the TODO about it; add `NewAudioPortalAdapterTests` mapped to the "Topics without any author fail the collection" scenarios; verify `make agent-check` passes
+
 ## Workflow follow-up
 
 - Review the implementation (`openspec-verify-change` in a subagent).

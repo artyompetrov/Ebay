@@ -98,6 +98,21 @@ The seller key SHALL be the numeric id from the opening post author's profile li
 - **WHEN** a topic's opening post has no link to an author profile
 - **THEN** the topic is not returned, and a warning is logged
 
+### Requirement: Topics without any author fail the collection
+When the listed topics that were read in a collection, or reused from earlier reads, all lack an opening post author with a profile link, the collection SHALL fail instead of returning no advertisements, so a markup change that hides authors is reported on every run. Topics that could not be fetched SHALL NOT count. A single topic without an author among topics with authors SHALL only be skipped.
+
+#### Scenario: No topic has an author
+- **WHEN** a section page lists two topics and neither opening post has an author profile link
+- **THEN** the collection fails
+
+#### Scenario: Failure repeats while the topics are remembered
+- **WHEN** a collection failed because no topic had an author, and the next collection sees the same topics with the same last-post times
+- **THEN** that collection fails again without requesting any topic page
+
+#### Scenario: One topic without an author among others
+- **WHEN** a section page lists two topics and only the first one's opening post has no author profile link
+- **THEN** the collection succeeds and returns the second topic's advertisement
+
 ### Requirement: Advertisement date is the topic starter's latest post
 The advertisement date SHALL be the time of the latest post by the topic starter among the read posts, the opening post included. Posts by other users SHALL NOT move it. The advertisement title SHALL be the topic title and its link SHALL be the topic link.
 
