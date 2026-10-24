@@ -7,11 +7,12 @@ Rules for the Chrome extension in `src/ChromeExtension`.
 - Don't use `any` if a correct type can be described.
 - Specify input and output types for functions.
 - Move reusable utilities into `src/infrastructure`.
+- Work on third-party pages must not slow the host site: run page-wide processing only in `requestIdleCallback` (no `timeout`), stop when `timeRemaining()` runs out and resume in the next idle period, process again only what a `MutationObserver` reports as changed, and handle events with one delegated listener instead of one per element (`src/siteProcessors/searchSites/`, `openspec/specs/search-site-highlighting`). Write highlights as styles that do not change layout (e.g. background only).
 - All HTTP goes through `fetchResource` (`src/infrastructure/Utils.ts`, executed by the background service worker). It adds a W3C `traceparent` to backend calls only (one trace id per loaded page, `src/infrastructure/TraceContext.ts`, `openspec/specs/observability-tracing`) and logs that trace id with the request, so the backend trace can be found in Grafana; don't send it to other hosts.
 
 ## Tests
 - Tests live in `tests/**/*.test.ts` and run with `npm test`: Node's built-in test runner executes TypeScript directly (type stripping, Node 22.18+), DOM is provided by `jsdom`. Tests are not type-checked, so keep them to erasable TypeScript syntax and import sources with an explicit `.ts` extension.
-- Keep page logic that needs tests in modules that depend only on the DOM (no `chrome.*`, no backend clients), e.g. `src/siteProcessors/ebayMag/StockQuantityHighlighter.ts`; site processors call them.
+- Keep page logic that needs tests in modules that depend only on the DOM (no `chrome.*`, no backend clients), e.g. `src/siteProcessors/ebayMag/StockQuantityHighlighter.ts`; site processors call them. Tests load these modules without bundling, so they must not import other source modules (extensionless imports do not resolve in Node, and `constants.ts` needs the build-time `EBAY_HELPER_BACKEND_DOMAIN`): pass such values in from the site processor.
 - Third-party page markup used by tests is a trimmed snapshot in `tests/fixtures/`; refresh it when the site changes.
 - Map OpenSpec scenarios with a `// [OpenSpecScenario("spec", "requirement", "scenario")]` comment directly above the `test(...)` call (see the `write-tests` skill).
 

@@ -7,6 +7,13 @@ import {v4 as uuidv4} from "uuid";
 import {ClientsFactory} from "../clients/ClientsFactory";
 import {ProductWithId} from "../clients/Generated/EbayToolWebApiClient";
 import {Mode} from '../mode';
+import {
+    buildHighlightStyles,
+    getProductHighlightClass,
+    ProductHighlighter,
+    ProductIdsAttribute
+} from './searchSites/ProductHighlighter';
+import {ProductTooltip, TooltipElementId, TooltipProduct} from './searchSites/ProductTooltip';
 
 declare const EBAY_HELPER_BACKEND_DOMAIN: string;
 
@@ -36,14 +43,12 @@ class ProductWithRegex {
     regex: RegExp;
     regexString: string;
     regexFlagsString: string;
-    revenueRub: number | null
     
-    constructor(product: EbayToolBackendClient.ProductWithId, regex: RegExp, rubRate: number) {
+    constructor(product: EbayToolBackendClient.ProductWithId, regex: RegExp) {
         this.product = product;
         this.regex = regex;
         this.regexString = regex.source;
         this.regexFlagsString = regex.flags;
-        this.revenueRub = product.productCalculationResult?.revenueAvg * rubRate;
     }
 }
 
@@ -54,13 +59,7 @@ class SearchSitesProcessor implements ISiteProcessor {
     private _allItemsCacheIdentifier = "searchSitesAllItems";
     private _targetCurrencyRate: number;
     private _targetCurrencyCacheIdentifier = "targetCurrency";
-    private _highlightKnownClass:string = "highlightKnown";
-    private _highlightCheckedClass:string = "highlightChecked";
-    private _highlightInterestingClass:string = "highlightInteresting";
-    private _foundProductIdsAttribute: string = 'data-product-ids';
     private _products: Map<string, ProductWithRegex>;
-    private _lastMousePosition: { x: number, y: number } | null = null;
-    private _tooltipId: string = 'product-price-tooltip';
 
 
     async getTargetCurrencyCached(): Promise<number> {
@@ -99,7 +98,7 @@ class SearchSitesProcessor implements ISiteProcessor {
         let result = new Map<string, ProductWithRegex>();
         
         for (const product of cached) {
-            result.set(product.product.id, new ProductWithRegex(product.product, new RegExp(product.regexString, product.regexFlagsString), this._targetCurrencyRate))
+            result.set(product.product.id, new ProductWithRegex(product.product, new RegExp(product.regexString, product.regexFlagsString)))
         }
         
         return result;
@@ -112,8 +111,7 @@ class SearchSitesProcessor implements ISiteProcessor {
 
             return  new ProductWithRegex(
                 product,
-                new RegExp(product.productRegex, "ig"),
-                this._targetCurrencyRate)
+                new RegExp(product.productRegex, "ig"))
         });
     }
 
@@ -137,317 +135,6 @@ class SearchSitesProcessor implements ISiteProcessor {
             .join("");
     }
 
-
-    // Создание и показ всплывающей подсказки
-    createTooltip(): HTMLDivElement {
-        // Удаляем существующий tooltip, если он есть
-        let existingTooltip = document.getElementById(this._tooltipId);
-        if (existingTooltip) {
-            document.body.removeChild(existingTooltip);
-        }
-
-        let tooltip = document.createElement('div');
-        tooltip.id = this._tooltipId;
-        tooltip.style.cssText = `
-        position: absolute;
-        background-color: white;
-        border: 2px solid #0000cc;
-        border-radius: 5px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.3);
-        z-index: 9999;
-        display: none;
-        font-size: 14px;
-        color: #000;
-        max-width: 300px;
-        max-height: 30vh;
-        overflow-y: auto;
-        overflow-x: hidden;
-        line-height: 1.5;
-    `;
-
-        // Добавляем крестик для закрытия
-        const closeButton = document.createElement('div');
-        closeButton.innerHTML = '✕';
-        closeButton.style.cssText = `
-        position: sticky;
-        top: 0;
-        right: 5px;
-        float: right;
-        cursor: pointer;
-        font-weight: bold;
-        padding: 3px;
-        margin-left: 5px;
-        z-index: 10000;
-    `;
-        closeButton.addEventListener('click', () => {
-            tooltip.style.display = 'none';
-        });
-
-        tooltip.appendChild(closeButton);
-        document.body.appendChild(tooltip);
-
-        // Добавляем отслеживание движения мыши для автозакрытия
-        document.addEventListener('mousemove', (e) => {
-            this._lastMousePosition = { x: e.clientX, y: e.clientY };
-            
-            // Проверяем расстояние между мышью и тултипом
-            if (tooltip.style.display !== 'none') {
-                const tooltipRect = tooltip.getBoundingClientRect();
-                const tooltipCenter = {
-                    x: tooltipRect.left + tooltipRect.width / 2,
-                    y: tooltipRect.top + tooltipRect.height / 2
-                };
-                
-                const distance = Math.sqrt(
-                    Math.pow(this._lastMousePosition.x - tooltipCenter.x, 2) +
-                    Math.pow(this._lastMousePosition.y - tooltipCenter.y, 2)
-                );
-                
-                // Если расстояние больше 300 пикселей, закрываем тултип
-                if (distance > 300) {
-                    tooltip.style.display = 'none';
-                }
-            }
-        });
-
-        return tooltip;
-    }
-
-    // Генерация HTML для отдельного продукта
-    generateProductHtml(product: ProductWithRegex): string {
-        if (!product) return '';
-
-        const ruNames = product.product.ruSearchQueries?.map(q => q.query) ?? [];
-        const searchNamesEscaped = utils.escapeHtml([product.product.name, ...ruNames].join(', '));
-
-        // Формируем заголовок с именем продукта
-        const productHeader = `
-        <strong style="font-size: 16px; color: #0000aa;">
-            <a href="${constants.Urls.backendUrl}Product/${product.product.id}" target="_blank" style="color: #0000aa; text-decoration: none; border-bottom: 1px dotted #0000aa;" title="${searchNamesEscaped}" alt="${searchNamesEscaped}">
-                ${utils.escapeHtml(product.product.name)}
-            </a>
-        </strong>
-    `;
-
-        // Определяем содержимое в зависимости от наличия данных
-        let productContent: string;
-
-        if (product.product.productCalculationResult) {
-            if (product.product.productCalculationResult.quantityTotal > 0) {
-                
-                const avgPrice = product.product.productCalculationResult.revenueAvg;
-                productContent = `
-                <div><strong>Средняя цена:</strong> ${(avgPrice * this._targetCurrencyRate).toFixed(0)} RUB</div>
-                <div><strong>Всего продано:</strong> ${product.product.productCalculationResult.quantityTotal} шт.</div>
-            `;
-            } else {
-                productContent = `Нет данных о продажах`;
-            }
-        } else {
-            productContent = `Нет данных о средней цене`;
-        }
-
-        if (product.product.isCheckRequired) {
-            productContent += '<div style="color: red;">Требуется проверка</div>';
-        }
-
-        if (product.product.weight === 0) {
-            productContent += '<div style="color: red;">Вес не указан</div>';
-        }
-        let elementClass = this.getProductElementClass(product);
-
-        // Собираем всё в единую структуру
-        return `
-        <div class="${elementClass}" style="position: relative; padding: 10px;">
-            ${productHeader}<br>
-            <div style="margin-top: 8px;">
-                ${productContent}
-            </div>
-        </div>
-    `;
-    }
-
-    private getProductElementClass(product: ProductWithRegex) {
-        if (product.product.isInteresting) {
-            return this._highlightInterestingClass
-        } else if (!product.product.isCheckRequired) {
-            return this._highlightCheckedClass
-        } else {
-            return this._highlightKnownClass
-        }
-    }
-
-    // Позиционирование tooltip с учетом границ экрана и положения курсора
-    positionTooltip(tooltip: HTMLElement, targetRect: DOMRect, event: MouseEvent): void {
-        const tooltipWidth = 300; // максимальная ширина tooltip
-        const padding = 10; // отступ от курсора
-
-        // Получаем координаты курсора
-        const mouseX = event.clientX;
-        const mouseY = event.clientY;
-
-        // Проверяем, поместится ли tooltip справа от курсора
-        if (mouseX + tooltipWidth + padding <= window.innerWidth) {
-            tooltip.style.left = `${mouseX + padding}px`;
-        } else {
-            // Если не помещается справа, размещаем слева от курсора
-            tooltip.style.left = `${Math.max(0, mouseX - tooltipWidth - padding)}px`;
-        }
-
-        // Проверяем, поместится ли tooltip снизу от курсора
-        const tooltipHeight = tooltip.offsetHeight || 200; // Используем примерную высоту, если элемент еще не отрендерен
-        if (mouseY + tooltipHeight + padding <= window.innerHeight) {
-            tooltip.style.top = `${mouseY + window.scrollY + padding}px`;
-        } else {
-            // Если не помещается снизу, размещаем сверху от курсора
-            tooltip.style.top = `${Math.max(0, mouseY + window.scrollY - tooltipHeight - padding)}px`;
-        }
-    }
-
-    // Добавляет обработчики к tooltip
-    setupTooltipHandlers(tooltip: HTMLElement): void {
-        // Добавляем обработчик закрытия на крестик
-        const closeButton = tooltip.querySelector('div[style*="cursor: pointer"]');
-        if (closeButton) {
-            closeButton.addEventListener('click', (e) => {
-                e.stopPropagation();
-                tooltip.style.display = 'none';
-            });
-        }
-
-        // Предотвращаем закрытие при клике на ссылки
-        const statsLinks = tooltip.querySelectorAll('a');
-        statsLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.stopPropagation();
-            });
-        });
-    }
-
-
-
-    // Ищет совпадения в текстовом узле
-    findMatches(
-        node: Text
-    ): { matchedIds: string[], hasInteresting: boolean, hasChecked: boolean } | null {
-        let parent = node.parentElement;
-        if (!parent) return null;
-
-        let originalText = node.textContent;
-        if (!originalText) return null;
-        
-        let matchedIds: string[] | null = null;
-        let hasInteresting = false;
-        let hasChecked = false;
-        for (const product of this._products.values()) {
-            product.regex.lastIndex = 0;
-            if (product.regex.test(originalText)) {
-                if (!matchedIds) {
-                    matchedIds = [];
-                }
-                matchedIds.push(product.product.id);
-                
-                if (product.product.isInteresting) {
-                    hasInteresting = true;
-                }
-                if (product.product.isCheckRequired == false) {
-                    hasChecked = true;
-                }
-            }
-        }
-
-        if (!matchedIds) {
-            return null;
-        }
-
-        return {
-            matchedIds,
-            hasInteresting,
-            hasChecked
-        };
-    }
-    
-    async highlightWords() {
-        console.log("highlightWords");
-        
-        const body = document.body;
-        if (!body) {
-            console.error("Document body is null. Unable to traverse DOM.");
-            return;
-        }
-
-        let processedNodes = 0;
-        const traverseNodes = async (element: HTMLElement | null): Promise<void> => {
-            if (!element) return;
-            
-            // Пропускаем элемент, если он уже был обработан или это тултип
-            if (element.id === this._tooltipId) {
-                return;
-            }
-
-            let allMatchedIds: Set<string> | null = null;
-            let hasInteresting = false;
-            let hasChecked = false;
-            
-            let children = Array.from(element.childNodes);
-            for (let i = 0; i < children.length; i++) {
-                const node = children[i];
-                
-                processedNodes++;
-                // Каждые n узлов отдаем управление основному потоку
-                if (processedNodes % 2 === 0) {
-                    await new Promise(resolve => setTimeout(resolve, 0));
-                }
-                
-                if (node.nodeType === Node.TEXT_NODE) {
-                    const result = this.findMatches(node as Text);
-                    if (result) {
-                        if (!allMatchedIds) {
-                            allMatchedIds = new Set<string>();
-                        }
-                        result.matchedIds.forEach(id => allMatchedIds.add(id));
-                        hasInteresting = hasInteresting || result.hasInteresting;
-                        hasChecked = hasChecked || result.hasChecked;
-                    }
-                } else if (node.nodeType === Node.ELEMENT_NODE) {
-                    await traverseNodes(node as HTMLElement);
-                }
-            }
-
-            // Проверяем текущее состояние элемента
-            const hasExistingHighlight = element.hasAttribute(this._foundProductIdsAttribute);
-            const currentMatchedIdsString = allMatchedIds ? Array.from(allMatchedIds).join(',') : '';
-            const existingIds = hasExistingHighlight ? element.getAttribute(this._foundProductIdsAttribute) : '';
-
-            // Если состояние изменилось (включая случай, когда совпадений больше нет)
-            if (currentMatchedIdsString !== existingIds) {
-                // Сначала удаляем старую подсветку
-                if (hasExistingHighlight) {
-                    element.removeAttribute(this._foundProductIdsAttribute);
-                    element.classList.remove(this._highlightInterestingClass);
-                    element.classList.remove(this._highlightCheckedClass);
-                    element.classList.remove(this._highlightKnownClass);
-                    element.removeEventListener('mouseenter', this.onMouseEnterHighlight.bind(this));
-                }
-
-                // Добавляем новую подсветку, только если есть совпадения
-                if (allMatchedIds && allMatchedIds.size > 0) {
-                    if (hasInteresting) {
-                        element.classList.add(this._highlightInterestingClass);
-                    } else if (hasChecked) {
-                        element.classList.add(this._highlightCheckedClass);
-                    } else {
-                        element.classList.add(this._highlightKnownClass);
-                    }
-                    element.setAttribute(this._foundProductIdsAttribute, currentMatchedIdsString);
-                    element.addEventListener('mouseenter', this.onMouseEnterHighlight.bind(this));
-                }
-            }
-        };
-
-        await traverseNodes(body);
-    }
-    
 
 // Обработка страницы chipfind.ru
     async processChipFind(): Promise<void> {
@@ -543,68 +230,48 @@ class SearchSitesProcessor implements ISiteProcessor {
         }
 
         this._products = await this.getAllProductsCached(null, this._allItemsCacheIdentifier);
-       
+        this.startHighlighting();
+    }
 
-        const startBackgroundHighlighting = async () => {
-            while (true) {
-                await this.highlightWords();
-                await utils.sleep(2000);
-            }
+    // Подсветка и подсказка работают сами: подсветка - в периоды простоя браузера и по изменениям DOM.
+    private startHighlighting(): void {
+        const products = Array.from(this._products.values());
+        new ProductHighlighter(
+            document.body,
+            products.map(product => ({
+                id: product.product.id,
+                regex: product.regex,
+                isInteresting: product.product.isInteresting,
+                isCheckRequired: product.product.isCheckRequired,
+            })),
+            callback => window.requestIdleCallback(callback),
+            `#${TooltipElementId}`
+        ).start();
+
+        new ProductTooltip(
+            document,
+            ProductIdsAttribute,
+            id => {
+                const product = this._products.get(id);
+                return product ? this.toTooltipProduct(product) : undefined;
+            },
+            id => `${constants.Urls.backendUrl}Product/${id}`
+        ).start();
+    }
+
+    private toTooltipProduct(product: ProductWithRegex): TooltipProduct {
+        const ruNames = product.product.ruSearchQueries?.map(query => query.query) ?? [];
+        const calculation = product.product.productCalculationResult;
+        return {
+            id: product.product.id,
+            name: product.product.name,
+            searchNames: [product.product.name, ...ruNames],
+            averagePriceRub: calculation ? calculation.revenueAvg * this._targetCurrencyRate : null,
+            quantityTotal: calculation?.quantityTotal ?? 0,
+            isCheckRequired: product.product.isCheckRequired,
+            isWeightMissing: product.product.weight === 0,
+            highlightClass: getProductHighlightClass(product.product),
         };
-
-        let _ = startBackgroundHighlighting()
-    }
-    
-    onMouseEnterHighlight(event: MouseEvent): void {
-        const target = event.currentTarget as HTMLElement;
-        const productIds = target.getAttribute(this._foundProductIdsAttribute);
-        
-        if (productIds) {
-            const ids = productIds.split(',');
-            this.showTooltip(ids, event);
-        }
-    }
-
-    private showTooltip(ids: string[], event: MouseEvent): void {
-        // Создаем новое всплывающее окно
-        const tooltip = this.createTooltip();
-        
-        // Получаем все найденные товары и сортируем их по цене (от большей к меньшей)
-        const sortedProducts = ids
-            .map(id => this._products.get(id))
-            .filter(product => product !== undefined)
-            .sort((a, b) => {
-                const priceA = a.revenueRub || 0;
-                const priceB = b.revenueRub || 0;
-                return priceB - priceA;
-            });
-        
-        // Генерируем содержимое для каждого найденного товара
-        let tooltipContent = '';
-        for (const product of sortedProducts) {
-            tooltipContent += this.generateProductHtml(product);
-            
-            // Добавляем разделитель между товарами, кроме последнего
-            if (product !== sortedProducts[sortedProducts.length - 1]) {
-                tooltipContent += '<hr style="margin: 0; border: 0; border-top: 1px solid #ddd;">';
-            }
-        }
-        
-        // Вставляем контент после кнопки закрытия
-        const closeButton = tooltip.firstChild;
-        const contentContainer = document.createElement('div');
-        contentContainer.innerHTML = tooltipContent;
-        tooltip.insertBefore(contentContainer, closeButton.nextSibling);
-        
-        // Позиционируем всплывающее окно относительно курсора
-        const targetElement = event.currentTarget as HTMLElement;
-        this.positionTooltip(tooltip, targetElement.getBoundingClientRect(), event);
-        
-        // Показываем всплывающее окно
-        tooltip.style.display = 'block';
-        
-        // Настраиваем обработчики событий для всплывающего окна
-        this.setupTooltipHandlers(tooltip);
     }
 
     public async run(): Promise<void> {
@@ -651,22 +318,11 @@ class SearchSitesProcessor implements ISiteProcessor {
 
         // Добавляем стили для подсветки
         const style = document.createElement("style");
-        style.textContent = `
-.${this._highlightKnownClass} {
-    background-color: ${constants.Colors.lightGray};
-    font-weight: bold;
-}
-
-.${this._highlightCheckedClass} {
-    background-color: ${constants.Colors.lightYellow};
-    font-weight: bold;
-}
-
-.${this._highlightInterestingClass} {
-    background-color: ${constants.Colors.lightGreen};
-    font-weight: bold;
-}
-`;
+        style.textContent = buildHighlightStyles({
+            known: constants.Colors.lightGray,
+            checked: constants.Colors.lightYellow,
+            interesting: constants.Colors.lightGreen,
+        });
         document.head.appendChild(style);
     }
 }
