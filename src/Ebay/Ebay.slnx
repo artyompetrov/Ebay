@@ -17,6 +17,7 @@
     <Project Path="Server.Adapters.Driven.GeoIp/Server.Adapters.Driven.GeoIp.csproj" />
     <Project Path="Server.Adapters.Driven.ImageProcessing/Server.Adapters.Driven.ImageProcessing.csproj" />
     <Project Path="Server.Adapters.Driven.MemoryCache/Server.Adapters.Driven.MemoryCache.csproj" />
+    <Project Path="Server.Adapters.Driven.NewAudioPortal/Server.Adapters.Driven.NewAudioPortal.csproj" />
     <Project Path="Server.Adapters.Driven.OpenExchangeRates/Server.Adapters.Driven.OpenExchangeRates.csproj" />
     <Project Path="Server.Adapters.Driven.Plotting/Server.Adapters.Driven.Plotting.csproj" />
     <Project Path="Server.Adapters.Driven.PostgreSql/Server.Adapters.Driven.PostgreSql.csproj" />

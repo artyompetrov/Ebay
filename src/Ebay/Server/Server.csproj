@@ -38,6 +38,7 @@
   <ItemGroup>
     <!-- Not used by any C# code here; provides the Blazor WASM static web assets (wwwroot/_framework) that Server/Program.cs serves transitively via UseBlazorFrameworkFiles(). -->
     <ProjectReference Include="..\Frontend\Frontend.csproj" NoWarn="RT0002" />
+    <ProjectReference Include="..\Server.Adapters.Driven.NewAudioPortal\Server.Adapters.Driven.NewAudioPortal.csproj" />
     <ProjectReference Include="..\Server.Adapters.Driven.Qrz\Server.Adapters.Driven.Qrz.csproj" />
   </ItemGroup>
 

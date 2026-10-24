@@ -91,7 +91,18 @@ public class SaleAdvertisementMonitoringService
         {
             _logger.LogInformation("Starting processing advertisements from {Marketplace}", adapter.Marketplace);
             
-            var advertisements = await adapter.GetRecentAdvertisementsAsync(cancellationToken);
+            var collected = await adapter.GetRecentAdvertisementsAsync(cancellationToken);
+
+            if (collected.TryPickT1(out var error, out var advertisements))
+            {
+                SaleAdvertisementsTracing.MarkFailed(activity, error.Value);
+                _logger.LogError(
+                    "Failed to collect sale advertisements from {Marketplace}: {Error}",
+                    adapter.Marketplace,
+                    error.Value);
+                return;
+            }
+
             activity?.SetTag(SaleAdvertisementsTracing.AdvertisementsCountTag, advertisements.Count);
 
             foreach (var advertisement in advertisements)

@@ -3,10 +3,12 @@ using AwesomeAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Server.Adapters.Driven.ChipFind;
+using Server.Adapters.Driven.NewAudioPortal;
 using Server.Adapters.Driven.Qrz;
 using Tests.Shared;
 using Tests.Unit.Fakes;
 using ChipFindWellKnown = Server.Adapters.Driven.ChipFind.WellKnown;
+using NewAudioPortalWellKnown = Server.Adapters.Driven.NewAudioPortal.WellKnown;
 using QrzWellKnown = Server.Adapters.Driven.Qrz.WellKnown;
 using ScrapingProxyRegistration = Server.Adapters.Driven.ScrapingProxy.ServiceCollectionExtensions;
 
@@ -26,7 +28,7 @@ public sealed class ScrapingProxyRegistrationTests
     {
         await using var services = BuildServices(proxyAddress: null);
 
-        foreach (var clientName in new[] { QrzWellKnown.HttpClientName, ChipFindWellKnown.HttpClientName })
+        foreach (var clientName in new[] { QrzWellKnown.HttpClientName, ChipFindWellKnown.HttpClientName, NewAudioPortalWellKnown.HttpClientName })
         {
             ScrapingProxyServices.GetPrimaryHandler(services, clientName).Should().BeOfType<SocketsHttpHandler>()
                 .Which.UseProxy.Should().BeFalse(clientName);
@@ -38,7 +40,7 @@ public sealed class ScrapingProxyRegistrationTests
     {
         await using var services = BuildServices(ProxyAddress);
 
-        foreach (var clientName in new[] { QrzWellKnown.HttpClientName, ChipFindWellKnown.HttpClientName })
+        foreach (var clientName in new[] { QrzWellKnown.HttpClientName, ChipFindWellKnown.HttpClientName, NewAudioPortalWellKnown.HttpClientName })
         {
             var handler = ScrapingProxyServices.GetPrimaryHandler(services, clientName).Should().BeOfType<SocketsHttpHandler>().Subject;
             handler.UseProxy.Should().BeTrue(clientName);
@@ -81,6 +83,7 @@ public sealed class ScrapingProxyRegistrationTests
             {
                 services.AddQrzAdapter();
                 services.AddChipFindAdapter();
+                services.AddNewAudioPortalAdapter();
                 registerOther?.Invoke(services);
             },
             proxyAddress,

@@ -1,6 +1,8 @@
 using System.Data;
 using System.Diagnostics;
 using AwesomeAssertions;
+using OneOf;
+using OneOf.Types;
 using Server.Adapters.Driven.Smtp;
 using Server.Application;
 using Server.Application.Abstractions.Driven.Abstractions;
@@ -321,6 +323,22 @@ public sealed class SaleAdvertisementMonitoringServiceTests
     }
 
     [Test]
+    [OpenSpecScenario("sale-advertisement-monitoring", "Sources are processed independently", "One failing source does not block the others")]
+    public async Task ProcessRecentAdvertisementsAsync_FirstSourceReturnsError_SecondSourceIsStillProcessed()
+    {
+        var product = CreateProduct("6н2п", isInteresting: true);
+        var context = new TestContext([product]);
+        var failing = new ErrorResultAdapter("Broken");
+        var working = new StaticAdapter(Marketplace, CreateAdvertisement("Лампа 6Н2П новая"));
+
+        await context.CreateService(failing, working).ProcessRecentAdvertisementsAsync(TargetEmail, CancellationToken.None);
+
+        context.Repository.Committed.Should().ContainSingle().Which.Marketplace.Should().Be(Marketplace);
+        context.NotificationAdapter.Sent.Should().ContainSingle();
+        context.Logger.HasErrorContaining(ErrorResultAdapter.ErrorText).Should().BeTrue();
+    }
+
+    [Test]
     [OpenSpecScenario("sale-advertisement-monitoring", "Monitoring is traced", "A run produces nested spans")]
     public async Task ProcessRecentAdvertisementsAsync_WithListener_EmitsRunSourceAdvertisementAndNotifySpans()
     {
@@ -354,6 +372,20 @@ public sealed class SaleAdvertisementMonitoringServiceTests
         await recorder.RunTracedAsync(() => context.CreateService(new FailingAdapter("Broken")).ProcessRecentAdvertisementsAsync(TargetEmail, CancellationToken.None));
 
         recorder.Single("sale-advertisements.source").Status.Should().Be(ActivityStatusCode.Error);
+    }
+
+    [Test]
+    [OpenSpecScenario("sale-advertisement-monitoring", "Monitoring is traced", "A failing source marks its span as an error")]
+    public async Task ProcessRecentAdvertisementsAsync_SourceReturnsError_MarksSourceSpanAsErrorWithDescription()
+    {
+        var context = new TestContext([CreateProduct("6н2п", isInteresting: true)]);
+        using var recorder = new ActivityRecorder();
+
+        await recorder.RunTracedAsync(() => context.CreateService(new ErrorResultAdapter("Broken")).ProcessRecentAdvertisementsAsync(TargetEmail, CancellationToken.None));
+
+        var source = recorder.Single("sale-advertisements.source");
+        source.Status.Should().Be(ActivityStatusCode.Error);
+        source.StatusDescription.Should().Be(ErrorResultAdapter.ErrorText);
     }
 
     private static ProductInfo CreateProduct(string name, bool isInteresting) =>
@@ -500,8 +532,8 @@ public sealed class SaleAdvertisementMonitoringServiceTests
 
         public string Marketplace { get; }
 
-        public Task<IReadOnlyCollection<SaleAdvertisement>> GetRecentAdvertisementsAsync(CancellationToken cancellationToken) =>
-            Task.FromResult<IReadOnlyCollection<SaleAdvertisement>>([_advertisement]);
+        public Task<OneOf<IReadOnlyCollection<SaleAdvertisement>, Error<string>>> GetRecentAdvertisementsAsync(CancellationToken cancellationToken) =>
+            Task.FromResult<OneOf<IReadOnlyCollection<SaleAdvertisement>, Error<string>>>(new[] { _advertisement });
 
         public Task<string?> TryGetContactAsync(SaleAdvertisement saleAdvertisement, CancellationToken cancellationToken) =>
             Task.FromResult(_contact);
@@ -516,8 +548,26 @@ public sealed class SaleAdvertisementMonitoringServiceTests
 
         public string Marketplace { get; }
 
-        public Task<IReadOnlyCollection<SaleAdvertisement>> GetRecentAdvertisementsAsync(CancellationToken cancellationToken) =>
+        public Task<OneOf<IReadOnlyCollection<SaleAdvertisement>, Error<string>>> GetRecentAdvertisementsAsync(CancellationToken cancellationToken) =>
             throw new HttpRequestException("Marketplace is down");
+
+        public Task<string?> TryGetContactAsync(SaleAdvertisement saleAdvertisement, CancellationToken cancellationToken) =>
+            throw new NotSupportedException();
+    }
+
+    private sealed class ErrorResultAdapter : ISaleAdvertisementAdapter
+    {
+        public const string ErrorText = "Section page has no topic list";
+
+        public ErrorResultAdapter(string marketplace)
+        {
+            Marketplace = marketplace;
+        }
+
+        public string Marketplace { get; }
+
+        public Task<OneOf<IReadOnlyCollection<SaleAdvertisement>, Error<string>>> GetRecentAdvertisementsAsync(CancellationToken cancellationToken) =>
+            Task.FromResult<OneOf<IReadOnlyCollection<SaleAdvertisement>, Error<string>>>(new Error<string>(ErrorText));
 
         public Task<string?> TryGetContactAsync(SaleAdvertisement saleAdvertisement, CancellationToken cancellationToken) =>
             throw new NotSupportedException();

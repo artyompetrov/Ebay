@@ -257,7 +257,7 @@ public class TracingTests
     [OpenSpecScenario("observability-tracing", "Application spans are exported", "Spans from every application source are recorded")]
     public async Task SpansFromEveryApplicationSource_AreRecorded()
     {
-        string[] sourceNames = ["Server.Adapters.Driven.ChipFind", "Server.Adapters.Driven.Qrz", "Server.Application.SaleAdvertisements"];
+        string[] sourceNames = ["Server.Adapters.Driven.ChipFind", "Server.Adapters.Driven.Qrz", "Server.Adapters.Driven.NewAudioPortal", "Server.Application.SaleAdvertisements"];
         var operationNames = new Dictionary<string, string>();
 
         foreach (var sourceName in sourceNames)

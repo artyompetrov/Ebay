@@ -37,7 +37,7 @@ public sealed class QrzAdapterTests
         var handler = new RoutingHandler(listPage: static query => QrzHtml.ListPage(QrzHtml.ListEntry(DetailHref(OfferTypeId(query)), StaleDate)));
         var adapter = CreateAdapter(handler, ["components/tubes"]);
 
-        var advertisements = await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
+        var advertisements = (await adapter.GetRecentAdvertisementsAsync(CancellationToken.None)).AsT0;
 
         advertisements.Should().HaveCount(3);
         ListRequests(handler).Should().BeEquivalentTo(
@@ -63,7 +63,7 @@ public sealed class QrzAdapterTests
         });
         var adapter = CreateAdapter(handler, ["components/tubes"]);
 
-        var advertisements = await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
+        var advertisements = (await adapter.GetRecentAdvertisementsAsync(CancellationToken.None)).AsT0;
 
         SellListRequests(handler).Should().Equal(
             $"{ListPagePath}?o=date&type=0",
@@ -114,7 +114,7 @@ public sealed class QrzAdapterTests
         var logger = new RecordingLogger<QrzAdapter>();
         var adapter = CreateAdapter(handler, ["components/tubes"], logger, maxListPages);
 
-        var advertisements = await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
+        var advertisements = (await adapter.GetRecentAdvertisementsAsync(CancellationToken.None)).AsT0;
 
         SellListRequests(handler).Should().HaveCount(maxListPages);
         advertisements.Should().HaveCount(maxListPages);
@@ -134,7 +134,7 @@ public sealed class QrzAdapterTests
         var logger = new RecordingLogger<QrzAdapter>();
         var adapter = CreateAdapter(handler, ["components/tubes"], logger);
 
-        var advertisements = await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
+        var advertisements = (await adapter.GetRecentAdvertisementsAsync(CancellationToken.None)).AsT0;
 
         SellListRequests(handler).Should().HaveCount(2);
         advertisements.Should().ContainSingle().Which.Link.AbsolutePath.Should().Be(DetailHref(1));
@@ -176,7 +176,7 @@ public sealed class QrzAdapterTests
                 : QrzHtml.ListPage(QrzHtml.ListEntry(ListingHref, "17.10.2026 06:36")));
         var adapter = CreateAdapter(handler, ["components/tubes"]);
 
-        var advertisements = await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
+        var advertisements = (await adapter.GetRecentAdvertisementsAsync(CancellationToken.None)).AsT0;
 
         var advertisement = advertisements.Should().ContainSingle().Subject;
         advertisement.SellerKey.Should().Be(SellerHash);
@@ -192,8 +192,8 @@ public sealed class QrzAdapterTests
         var handler = new RoutingHandler(listPage: static _ => QrzHtml.ListPage(QrzHtml.ListEntry(ListingHref, "17.10.2026 06:36")));
         var adapter = CreateAdapter(handler, ["components/tubes"]);
 
-        var first = await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
-        var second = await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
+        var first = (await adapter.GetRecentAdvertisementsAsync(CancellationToken.None)).AsT0;
+        var second = (await adapter.GetRecentAdvertisementsAsync(CancellationToken.None)).AsT0;
 
         handler.ListingRequestCount.Should().Be(1);
         second.Should().ContainSingle().Which.Should().Be(first.Single());
@@ -209,7 +209,7 @@ public sealed class QrzAdapterTests
 
         await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
         date = "Сегодня 11:19";
-        var advertisements = await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
+        var advertisements = (await adapter.GetRecentAdvertisementsAsync(CancellationToken.None)).AsT0;
 
         handler.ListingRequestCount.Should().Be(2);
         advertisements.Should().ContainSingle().Which.Date.Should().Be(new DateTimeOffset(2026, 10, 18, 11, 19, 0, TimeSpan.FromHours(3)));
@@ -224,8 +224,8 @@ public sealed class QrzAdapterTests
         };
         var adapter = CreateAdapter(handler, ["components/tubes"]);
 
-        var first = await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
-        var second = await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
+        var first = (await adapter.GetRecentAdvertisementsAsync(CancellationToken.None)).AsT0;
+        var second = (await adapter.GetRecentAdvertisementsAsync(CancellationToken.None)).AsT0;
 
         first.Should().BeEmpty();
         second.Should().ContainSingle();

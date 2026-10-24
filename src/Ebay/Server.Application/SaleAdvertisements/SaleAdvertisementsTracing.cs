@@ -27,4 +27,6 @@ internal static class SaleAdvertisementsTracing
         activity?.SetStatus(ActivityStatusCode.Error, exception.Message);
         activity?.AddException(exception);
     }
+
+    public static void MarkFailed(Activity? activity, string error) => activity?.SetStatus(ActivityStatusCode.Error, error);
 }

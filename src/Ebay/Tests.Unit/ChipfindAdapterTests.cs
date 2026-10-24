@@ -35,7 +35,7 @@ public class ChipfindAdapterTests
         var logger = new TestLogger<ChipfindAdapter>();
         var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
 
-        var ads = await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
+        var ads = (await adapter.GetRecentAdvertisementsAsync(CancellationToken.None)).AsT0;
         Assert.That(ads, Has.Count.EqualTo(1));
         var ad = ads.Single();
         using (Assert.EnterMultipleScope())
@@ -65,7 +65,7 @@ public class ChipfindAdapterTests
         var logger = new TestLogger<ChipfindAdapter>();
         var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
 
-        var ads = await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
+        var ads = (await adapter.GetRecentAdvertisementsAsync(CancellationToken.None)).AsT0;
         var ad = ads.Single();
         using (Assert.EnterMultipleScope())
         {
@@ -94,7 +94,7 @@ public class ChipfindAdapterTests
         var logger = new TestLogger<ChipfindAdapter>();
         var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
 
-        var ads = await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
+        var ads = (await adapter.GetRecentAdvertisementsAsync(CancellationToken.None)).AsT0;
         var ad = ads.Single();
         using (Assert.EnterMultipleScope())
         {
@@ -190,7 +190,7 @@ public class ChipfindAdapterTests
         var logger = new TestLogger<ChipfindAdapter>();
         var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
 
-        var ads = await adapter.GetRecentAdvertisementsAsync(CancellationToken.None);
+        var ads = (await adapter.GetRecentAdvertisementsAsync(CancellationToken.None)).AsT0;
 
         using (Assert.EnterMultipleScope())
         {
@@ -218,7 +218,7 @@ public class ChipfindAdapterTests
         var factory = new TestHttpClientFactory(new HttpClient(handler));
         var adapter = new ChipfindAdapter(new TestLogger<ChipfindAdapter>(), factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
 
-        var ad = (await adapter.GetRecentAdvertisementsAsync(CancellationToken.None)).Single();
+        var ad = (await adapter.GetRecentAdvertisementsAsync(CancellationToken.None)).AsT0.Single();
 
         ad.SellerKey.Should().Be("ivan petrov");
         ad.SellerName.Should().Be("Ivan Petrov");
