@@ -1,5 +1,3 @@
-using System.Globalization;
-using System.Net;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using Server.Application.Abstractions.Driven.Abstractions;
@@ -7,6 +5,7 @@ using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using Server.Application.Abstractions.Driven.Models;
 using Server.Domain;
+using Server.Domain.SaleAdvertisements;
 
 namespace Server.Application.SaleAdvertisements;
 
@@ -16,16 +15,13 @@ namespace Server.Application.SaleAdvertisements;
 /// </summary>
 public class SaleAdvertisementMonitoringService
 {
-    private const string AmbiguousLineMarker = " [Нашлось несколько товаров] ";
-
     private readonly ILogger<SaleAdvertisementMonitoringService> _logger;
     private readonly IProductEmailSendHistoryRepository _productEmailSendHistoryRepository;
     private readonly IWriteModelUnitOfWorkFactory _unitOfWorkFactory;
     private readonly ISaleAdvertisementAdapter[] _adapters;
-    private readonly IEmailSender _emailSender;
+    private readonly ISaleAdvertisementNotificationAdapter _notificationAdapter;
     private readonly ProductService _productService;
     private readonly ICurrencyQueries _currencyQueries;
-    private readonly TimeSpan _delayAfterEmail;
 
     /// <summary>
     /// Создает сервис мониторинга объявлений о продаже.
@@ -35,39 +31,17 @@ public class SaleAdvertisementMonitoringService
         IProductEmailSendHistoryRepository productEmailSendHistoryRepository,
         IWriteModelUnitOfWorkFactory unitOfWorkFactory,
         IEnumerable<ISaleAdvertisementAdapter> adapters,
-        IEmailSender emailSender,
+        ISaleAdvertisementNotificationAdapter notificationAdapter,
         ProductService productService,
         ICurrencyQueries currencyQueries)
-        : this(
-            logger,
-            productEmailSendHistoryRepository,
-            unitOfWorkFactory,
-            adapters,
-            emailSender,
-            productService,
-            currencyQueries,
-            WellKnown.SaleAdvertisements.DelayAfterEmail)
-    {
-    }
-
-    internal SaleAdvertisementMonitoringService(
-        ILogger<SaleAdvertisementMonitoringService> logger,
-        IProductEmailSendHistoryRepository productEmailSendHistoryRepository,
-        IWriteModelUnitOfWorkFactory unitOfWorkFactory,
-        IEnumerable<ISaleAdvertisementAdapter> adapters,
-        IEmailSender emailSender,
-        ProductService productService,
-        ICurrencyQueries currencyQueries,
-        TimeSpan delayAfterEmail)
     {
         _logger = logger;
         _productEmailSendHistoryRepository = productEmailSendHistoryRepository;
         _unitOfWorkFactory = unitOfWorkFactory;
         _adapters = [.. adapters];
-        _emailSender = emailSender;
+        _notificationAdapter = notificationAdapter;
         _productService = productService;
         _currencyQueries = currencyQueries;
-        _delayAfterEmail = delayAfterEmail;
     }
 
     private sealed record ProductInner(
@@ -77,8 +51,6 @@ public class SaleAdvertisementMonitoringService
         bool IsInteresting,
         double RevenueAvgUsd,
         int QuantityTotal);
-
-    private sealed record NotifiedLine(string Line, bool IsAmbiguous);
 
     private enum Sighting
     {
@@ -97,11 +69,11 @@ public class SaleAdvertisementMonitoringService
         using var activity = SaleAdvertisementsTracing.ActivitySource.StartActivity(SaleAdvertisementsTracing.RunSpan);
 
         var products = await GetProducts(cancellationToken);
-        var targetCurrencyRate = await GetTargetCurrencyRateAsync(cancellationToken);
+        var targetRate = await GetTargetRateAsync(cancellationToken);
 
         foreach (var adapter in _adapters)
         {
-            await ProcessSourceIsolatedAsync(targetEmail, adapter, products, targetCurrencyRate, cancellationToken);
+            await ProcessSourceIsolatedAsync(targetEmail, adapter, products, targetRate, cancellationToken);
         }
     }
 
@@ -109,7 +81,7 @@ public class SaleAdvertisementMonitoringService
         string targetEmail,
         ISaleAdvertisementAdapter adapter,
         IReadOnlyCollection<ProductInner> products,
-        double? targetCurrencyRate,
+        ExchangeRate? targetRate,
         CancellationToken cancellationToken)
     {
         using var activity = SaleAdvertisementsTracing.ActivitySource.StartActivity(SaleAdvertisementsTracing.SourceSpan);
@@ -129,7 +101,7 @@ public class SaleAdvertisementMonitoringService
                     adapter,
                     advertisement,
                     products,
-                    targetCurrencyRate,
+                    targetRate,
                     cancellationToken);
             }
             
@@ -147,7 +119,7 @@ public class SaleAdvertisementMonitoringService
         ISaleAdvertisementAdapter adapter,
         SaleAdvertisement saleAdvertisement,
         IReadOnlyCollection<ProductInner> products,
-        double? targetCurrencyRate,
+        ExchangeRate? targetRate,
         CancellationToken cancellationToken)
     {
         using var activity = SaleAdvertisementsTracing.ActivitySource.StartActivity(SaleAdvertisementsTracing.AdvertisementSpan);
@@ -162,10 +134,7 @@ public class SaleAdvertisementMonitoringService
             // Кеш агрегатов, уже загруженных или созданных в рамках обработки этого объявления: один товар может
             // встретиться в нескольких строках объявления, а созданная запись ещё не сохранена в БД.
             var historyByProductId = new Dictionary<Guid, ProductEmailSendHistory>();
-            var newInterestingProductIds = new HashSet<Guid>();
-            var notifiedProducts = new List<ProductInner>();
-            var notifiedLines = new List<NotifiedLine>();
-            var notifiedLineTexts = new HashSet<string>();
+            var lineMatches = new List<SaleAdvertisementLineMatch>();
             string? contact = null;
             var isContactResolved = false;
 
@@ -185,7 +154,7 @@ public class SaleAdvertisementMonitoringService
                 }
 
                 var isAmbiguous = matchedProducts.Length > 1;
-                var isLineNotified = false;
+                var productMatches = new List<SaleAdvertisementProductMatch>(matchedProducts.Length);
 
                 foreach (var product in matchedProducts)
                 {
@@ -199,46 +168,42 @@ public class SaleAdvertisementMonitoringService
                         historyByProductId,
                         cancellationToken);
 
-                    if (sighting == Sighting.Created && product.IsInteresting && newInterestingProductIds.Add(product.ProductId))
-                    {
-                        notifiedProducts.Add(product);
-                    }
-
-                    isLineNotified |= newInterestingProductIds.Contains(product.ProductId);
+                    productMatches.Add(new SaleAdvertisementProductMatch(
+                        ProductId: product.ProductId,
+                        Name: product.Name,
+                        RevenueAvgUsd: product.RevenueAvgUsd,
+                        QuantityTotal: product.QuantityTotal,
+                        IsInteresting: product.IsInteresting,
+                        IsNewlyRecorded: sighting == Sighting.Created));
                 }
 
-                if (isLineNotified && notifiedLineTexts.Add(line))
-                {
-                    notifiedLines.Add(new NotifiedLine(line, isAmbiguous));
-                }
+                lineMatches.Add(new SaleAdvertisementLineMatch(line, productMatches));
             }
+
+            var notification = SaleAdvertisementNotification.Compose(
+                title: saleAdvertisement.Title,
+                sellerName: saleAdvertisement.SellerName,
+                link: saleAdvertisement.Link,
+                contact: contact,
+                lineMatches: lineMatches,
+                targetRate: targetRate);
 
             activity?.SetTag(SaleAdvertisementsTracing.MatchesCountTag, historyByProductId.Count);
 
             // Deferred commit: if the email send below fails, the history rows written by SaveChangesAsync
             // must not persist, or the retry on the next run will see them as "already notified" and
-            // silently drop the notification for good.
+            // silently drop the notification for good. This is why several history aggregates share one
+            // transaction - a deliberate exception to "one aggregate per transaction" required by the spec.
             await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken);
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            if (notifiedLines.Count > 0)
+            if (notification is not null)
             {
-                await SendNotificationAsync(
-                    targetEmail,
-                    saleAdvertisement,
-                    notifiedLines,
-                    notifiedProducts,
-                    targetCurrencyRate,
-                    contact);
+                await SendNotificationAsync(targetEmail, notification, cancellationToken);
             }
 
             await transaction.CommitAsync(cancellationToken);
-
-            if (notifiedLines.Count > 0)
-            {
-                await Task.Delay(_delayAfterEmail, cancellationToken);
-            }
         }
         catch (Exception e) when (!cancellationToken.IsCancellationRequested)
         {
@@ -317,69 +282,31 @@ public class SaleAdvertisementMonitoringService
 
     private async Task SendNotificationAsync(
         string targetEmail,
-        SaleAdvertisement saleAdvertisement,
-        IReadOnlyCollection<NotifiedLine> notifiedLines,
-        IEnumerable<ProductInner> notifiedProducts,
-        double? targetCurrencyRate,
-        string? contact)
+        SaleAdvertisementNotification notification,
+        CancellationToken cancellationToken)
     {
         using var activity = SaleAdvertisementsTracing.ActivitySource.StartActivity(SaleAdvertisementsTracing.NotifySpan);
 
-        var newItems = string.Join(
-            separator: " ",
-            values: notifiedLines.Select(static x => $"<div>{x.Line}{(x.IsAmbiguous ? AmbiguousLineMarker : "")}</div>"));
-        var priceTable = BuildPriceTable(notifiedProducts, targetCurrencyRate);
-        var emailBody = $"<a href=\"{saleAdvertisement.Link}\">ссылка</a><br><br>{newItems}<br>{priceTable}<br><div>{contact}</div>";
-        var emailTopic = $"{saleAdvertisement.Title} [{saleAdvertisement.SellerName}]";
-
         try
         {
-            await _emailSender.Send(
-                targetAddress: targetEmail,
-                topic: emailTopic,
-                messageText: emailBody);
+            await _notificationAdapter.SendAsync(targetEmail, notification, cancellationToken);
         }
-        catch (Exception e)
+        catch (Exception e) when (!cancellationToken.IsCancellationRequested)
         {
             SaleAdvertisementsTracing.MarkFailed(activity, e);
             throw;
         }
 
-        _logger.LogInformation("Email sent {EmailTopic}", emailTopic);
-        _logger.LogDebug("Email sent {EmailBody}", emailBody);
+        _logger.LogInformation("Notification sent for advertisement {AdvertisementTitle}", notification.Title);
     }
 
-    private static string BuildPriceTable(IEnumerable<ProductInner> notifiedProducts, double? targetCurrencyRate)
-    {
-        var rows = string.Concat(notifiedProducts.Select(x =>
-            $"<tr><td>{WebUtility.HtmlEncode(x.Name)}</td>" +
-            $"<td>{FormatEstimatedPrice(x.RevenueAvgUsd, targetCurrencyRate)}</td>" +
-            $"<td>{x.QuantityTotal.ToString(CultureInfo.InvariantCulture)}</td></tr>"));
-
-        return "<table border=\"1\" cellpadding=\"4\" style=\"border-collapse:collapse\">" +
-               "<tr><th>Товар</th><th>Оценка</th><th>Продано шт.</th></tr>" +
-               rows +
-               "</table>";
-    }
-
-    private static string FormatEstimatedPrice(double revenueAvgUsd, double? targetCurrencyRate)
-    {
-        var (amount, currency) = targetCurrencyRate is { } rate
-            ? (revenueAvgUsd * rate, WellKnown.CurrencyRate.TargetCurrency)
-            : (revenueAvgUsd, WellKnown.CurrencyRate.BaseCurrency);
-
-        var rounded = Math.Round(amount, MidpointRounding.AwayFromZero);
-
-        return $"{rounded.ToString("0", CultureInfo.InvariantCulture)} {currency}";
-    }
-
-    private async Task<double?> GetTargetCurrencyRateAsync(CancellationToken cancellationToken)
+    private async Task<ExchangeRate?> GetTargetRateAsync(CancellationToken cancellationToken)
     {
         var rates = await _currencyQueries.GetCurrencyRatesAsync(cancellationToken);
 
         if (rates.TryGetValue(WellKnown.CurrencyRate.TargetCurrency, out var rate))
         {
-            return rate;
+            return new ExchangeRate(WellKnown.CurrencyRate.TargetCurrency, rate);
         }
 
         _logger.LogWarning(

@@ -1,13 +1,24 @@
 namespace Server.Adapters.Driven.Smtp;
 
-public class SmtpSettings
+/// <summary>
+/// Настройки SMTP-сервера, через который отправляются письма.
+/// </summary>
+public sealed record class SmtpSettings
 {
-    public string Server { get; set; } = null!;
-    public int Port { get; set; }
-    public string Login { get; set; } = null!;
+    public const string SectionName = "Smtp";
 
-    public string Password { get; set; } = null!;
+    public string Server { get; init; } = null!;
 
-    public string Email { get; set; } = null!;
+    public int Port { get; init; }
 
+    public string Login { get; init; } = null!;
+
+    public string Password { get; init; } = null!;
+
+    public string Email { get; init; } = null!;
+
+    /// <summary>
+    /// Пауза после отправки письма, чтобы не упереться в ограничения SMTP-сервера.
+    /// </summary>
+    public TimeSpan DelayAfterEmail { get; init; } = TimeSpan.FromSeconds(5);
 }

@@ -30,7 +30,7 @@ public static class WellKnown
     /// </summary>
     public static class CurrencyRate
     {
-        public const string BaseCurrency = "USD";
+        public const string BaseCurrency = Server.Domain.Currency.BaseCurrencyId;
 
         /// <summary>
         /// Валюта, в которой сотрудникам показываются оценочные цены товаров.
@@ -48,11 +48,6 @@ public static class WellKnown
         /// только чтобы база не копила мусор, а не чтобы повторно уведомлять о том же продавце.
         /// </summary>
         public static readonly TimeSpan RemoveAdvertisementAfter = TimeSpan.FromDays(DaysInYear * RetentionYears);
-
-        /// <summary>
-        /// Пауза после отправки письма, чтобы не упереться в ограничения SMTP-сервера.
-        /// </summary>
-        public static readonly TimeSpan DelayAfterEmail = TimeSpan.FromSeconds(5);
 
         /// <summary>
         /// Имя источника спанов мониторинга объявлений. Экспортируется платформой, потому что начинается с <c>Server.</c>.
