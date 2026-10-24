@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Duende.IdentityServer" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.ApiAuthorization.IdentityServer" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />
