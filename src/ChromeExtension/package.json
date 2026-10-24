@@ -19,6 +19,7 @@
     "scripts": {
         "manifest": "node generateManifest.js",
         "build": "npm run manifest && webpack --config webpack.config.js",
+        "inputs-hash": "node scripts/inputsHash.mjs",
         "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test \"tests/**/*.test.ts\""
     },
     "keywords": [],

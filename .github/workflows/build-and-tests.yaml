@@ -67,9 +67,6 @@ jobs:
           npm ci
           npm test
 
-      - name: Run Chrome extension inputs hash tests
-        run: node --test ./scripts/chrome-extension-inputs-hash/*.test.mjs
-
 
   openspec_validate:
     name: Validate OpenSpec
@@ -130,7 +127,7 @@ jobs:
       - name: Reuse or build Chrome extension image
         id: chrome_extension
         run: |
-          INPUTS_HASH=$(make -s chrome-extension-inputs-hash)
+          INPUTS_HASH=$(cd ./src/ChromeExtension && npm run --silent inputs-hash)
           EXTENSION_IMAGE="${{ env.REGISTRY }}/${{ env.EBAY_CHROME_EXTENSION_IMAGE_NAME }}:$INPUTS_HASH"
           echo "image=$EXTENSION_IMAGE" >> "$GITHUB_OUTPUT"
           BUILT=true

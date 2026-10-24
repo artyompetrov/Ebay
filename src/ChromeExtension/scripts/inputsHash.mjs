@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // Prints a hash of the Chrome extension's inputs, used as the tag of the extension Docker image:
 // CI rebuilds the extension (and so gives it a new version) only when no image with this tag exists.
-// See scripts/chrome-extension-inputs-hash/README.md.
+// See "Build and release" in src/ChromeExtension/AGENTS.md.
 //
-// Usage: chrome-extension-inputs-hash.mjs [repository root]   (default: git top level of the current directory)
+// Usage: npm run --silent inputs-hash [-- <repository root>]   (default: git top level of the current directory)
 
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -22,7 +22,7 @@ const INPUT_PATHSPECS = [
 const GENERATED_CLIENT = 'src/ChromeExtension/src/clients/Generated/EbayToolWebApiClient.ts';
 
 function fail(message) {
-  process.stderr.write(`chrome-extension-inputs-hash: ${message}\n`);
+  process.stderr.write(`inputs-hash: ${message}\n`);
   process.exit(1);
 }
 

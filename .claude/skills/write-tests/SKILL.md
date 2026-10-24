@@ -55,7 +55,7 @@ public async Task GetContent_UnknownPhoto_ReturnsNotFound()
 }
 ```
 
-The Node test runner used by `Frontend/Tests`, `src/ChromeExtension/tests` and repository scripts (`scripts/**/*.test.mjs`) has no real attributes, so JS/TS tests use the exact
+The Node test runner used by `Frontend/Tests` and `src/ChromeExtension/tests` has no real attributes, so JS/TS tests use the exact
 same `[OpenSpecScenario(...)]` text in a `//` comment directly above the `test(...)` call instead:
 
 ```js

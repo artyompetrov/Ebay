@@ -28,14 +28,14 @@ The backend image copies the extension from `ebay-chrome-extension:<hash>`, so i
 The generated client depends on `WebApi.yaml`, `ClientGeneration.WebApi.json`, the NSwag version in `Directory.Packages.props` and the NSwag templates. Hashing the generated file covers all of these exactly. A package bump or a contract change that does not change the client does not rebuild the extension, and an NSwag upgrade that does change it does rebuild it. The cost is that CI must build `Server.Client` before hashing. That project is small and standalone, and the extension image needs its output anyway.
 
 ### Hash algorithm
-`scripts/chrome-extension-inputs-hash/chrome-extension-inputs-hash.mjs`:
+`src/ChromeExtension/scripts/inputsHash.mjs`, run as `npm run --silent inputs-hash` in `src/ChromeExtension`:
 1. List the inputs with `git ls-files -z -- src/ChromeExtension ':(exclude)src/ChromeExtension/tests' ':(exclude,glob)src/ChromeExtension/**/*.md'`, then add the generated client path. Fail if the generated client file is missing.
 2. For each path, sorted by byte order, append `<repo-relative path with />\0<sha256 of the content with CRLF replaced by LF>\n` to a buffer.
 3. Print the sha256 of the buffer in hex.
 
 The paths come from git, so untracked files (`node_modules`, local build output) never count. The content is read from the working tree; this equals the commit in CI. Normalizing CRLF makes the generated client, and so the hash, equal across OSes. The script takes an optional repository root argument (default: the git top level of the current directory), which the tests use. The pathspecs and the generated client path are defined only in this script.
 
-It is Node because repository script tests already use `node --test`, and the tests can create throwaway git repositories to cover every hash scenario. Following the `Makefile` rule, it gets a `.sh` entry point and a `chrome-extension-inputs-hash` target. CI calls `make -s chrome-extension-inputs-hash`.
+It lives in the extension, not in the repository `scripts/`, because it belongs to how the extension is built and released. Its tests, `src/ChromeExtension/tests/InputsHash.test.ts`, run with the extension's `npm test`, which CI and `agent-check` already run and whose folder the coverage checker already scans. The script is plain ESM JavaScript (`.mjs`), not TypeScript, so it runs on the CI runner's default Node without type stripping. The tests create throwaway git repositories to cover every hash scenario. Since the script sits under `src/ChromeExtension`, it is itself an input: changing the hash logic rebuilds the extension once, like a change to the extension `Dockerfile`.
 
 ### Extension image
 `src/ChromeExtension/Dockerfile`, with `src/ChromeExtension` as context, so the Dockerfile and its `.dockerignore` are themselves inputs:
@@ -50,14 +50,11 @@ It is Node because repository script tests already use `node --test`, and the te
 ### CI `build_docker`
 1. Checkout, set up .NET, `dotnet build src/Ebay/Server.Client -c Release` (generates the client).
 2. `docker login ghcr.io` with `PAT` on every branch, because pulling and inspecting the private extension image needs it. Pushes stay `main`-only. Runs without the secret (Dependabot runs get only Dependabot secrets) skip the login and build the extension locally.
-3. `HASH=$(make -s chrome-extension-inputs-hash)`, `EXT=ghcr.io/${{ github.repository_owner }}/ebay-chrome-extension`. The owner is used rather than `github.actor`, which changes with whoever pushes and would make lookups miss.
+3. `HASH=$(cd src/ChromeExtension && npm run --silent inputs-hash)`, `EXT=ghcr.io/${{ github.repository_owner }}/ebay-chrome-extension`. The owner is used rather than `github.actor`, which changes with whoever pushes and would make lookups miss.
 4. If `docker manifest inspect "$EXT:$HASH"` succeeds, `docker pull` it. If it fails with `manifest unknown`, or the run is not logged in, build it from `src/ChromeExtension` with `BUILD_VERSION=$(date +'%y%m.%d.%H.%M%S')` and the domain secret, tagged `$EXT:$HASH`. Any other lookup error (network, registry outage, auth) fails the step: treating it as "no image" would republish the extension under a new version on `main`.
 5. Build the backend image with `--build-arg EXTENSION_IMAGE="$EXT:$HASH"`. The local tag resolves without pushing, so branch builds work.
 6. On `main`: push `$EXT:$HASH` (when built), tag and push `$EXT:latest` every time so it follows `main` after reverts too, then push the backend and nginx images as today.
 7. Log the hash, whether the extension was reused or built, and the extension version (from the image label).
-
-### Test discovery
-`check-openspec-test-coverage.mjs` gets `scripts/**/*.test.mjs` in `ATTRIBUTE_SOURCE_GLOBS`. `agent-check.sh` and the CI test job run `node --test scripts/chrome-extension-inputs-hash/*.test.mjs`.
 
 ## Risks / Trade-offs
 

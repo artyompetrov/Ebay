@@ -13,7 +13,6 @@
 #   make agent-check
 #   make openspec-version-check
 #   make openspec-coverage-check
-#   make -s chrome-extension-inputs-hash
 #
 # Переопределить интерпретатор вручную: make SH="C:/Program Files/Git/bin/bash.exe" agent-check
 
@@ -37,7 +36,7 @@ endif
 RUN = "$(SH)" -l
 SPACE :=$(subst ,, )
 
-.PHONY: help agent-check openspec-version-check openspec-coverage-check chrome-extension-inputs-hash
+.PHONY: help agent-check openspec-version-check openspec-coverage-check
 
 # Без sh в PATH make запускает рецепты напрямую (CreateProcess), поэтому echo и прочие
 # встроенные команды шелла в рецептах использовать нельзя - только $(info) и $(RUN).
@@ -46,7 +45,6 @@ help:
 	$(info $(SPACE)  agent-check              - full pre-PR check: build, all tests, OpenSpec checks)
 	$(info $(SPACE)  openspec-version-check   - openspec CLI and generated skills match .openspec-version)
 	$(info $(SPACE)  openspec-coverage-check  - every spec scenario is mapped to a test (with the checker's own tests))
-	$(info $(SPACE)  chrome-extension-inputs-hash - hash of the Chrome extension inputs, used as the extension image tag)
 	$(info Interpreter: $(SH))
 	@$(RUN) -c "exit 0"
 
@@ -58,6 +56,3 @@ openspec-version-check:
 
 openspec-coverage-check:
 	$(RUN) scripts/check-openspec-test-coverage/check-openspec-test-coverage.sh
-
-chrome-extension-inputs-hash:
-	@$(RUN) scripts/chrome-extension-inputs-hash/chrome-extension-inputs-hash.sh

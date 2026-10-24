@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # Image with only the signed extension. CI tags it with the hash of the extension inputs
-# (scripts/chrome-extension-inputs-hash) and builds it only when the registry has no image with that tag,
+# (`npm run --silent inputs-hash`, scripts/inputsHash.mjs) and builds it only when the registry has no image with that tag,
 # so the extension version changes only when the extension does. src/Dockerfile copies the .crx from it.
 # The generated API client (src/clients/Generated) must exist in the context: build src/Ebay/Server.Client first.
 FROM node:18-alpine AS build

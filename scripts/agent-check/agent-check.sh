@@ -26,7 +26,6 @@ run_step "Run frontend JavaScript tests" node --test "$ROOT_DIR"/src/Ebay/Fronte
 run_step "Install Chrome extension dependencies" in_dir "$ROOT_DIR/src/ChromeExtension" npm ci
 run_step "Run Chrome extension tests" in_dir "$ROOT_DIR/src/ChromeExtension" npm test
 run_step "Build Chrome extension" in_dir "$ROOT_DIR/src/ChromeExtension" npm run build
-run_step "Run Chrome extension inputs hash tests" node --test "$ROOT_DIR"/scripts/chrome-extension-inputs-hash/*.test.mjs
 run_step "Check OpenSpec CLI and skills versions" bash "$ROOT_DIR/scripts/check-openspec-version/check-openspec-version.sh"
 run_step "Validate OpenSpec catalog" in_dir "$ROOT_DIR" openspec validate --all --strict --json
 run_step "Validate OpenSpec archive" in_dir "$ROOT_DIR" openspec validate --archived
