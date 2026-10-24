@@ -14,7 +14,7 @@
 
 ## 3. CI
 
-- [ ] 3.1 `.github/workflows/build-and-tests.yaml` `build_docker`: set up .NET and build `Server.Client`; log in to ghcr on all branches that have the `PAT` secret; compute the hash with `npm run --silent inputs-hash`; run `scripts/extensionImage.mjs` (without a login: build) to reuse or build the extension image `ghcr.io/${{ github.repository_owner }}/ebay-chrome-extension:<hash>` with the timestamp `BUILD_VERSION`; build the backend image with `EXTENSION_IMAGE`; on `main` push `:<hash>` (when built) and `:latest`, then the backend and nginx images; log the hash, reused/built and the version. Verify: the branch run of this change builds the extension (no image for the hash yet) and pushes nothing. A second branch run on a commit that changes only a backend file still builds it (branches do not publish), and its log shows the same hash.
+- [x] 3.1 `.github/workflows/build-and-tests.yaml` `build_docker`: set up .NET and build `Server.Client`; log in to ghcr on all branches that have the `PAT` secret; compute the hash with `npm run --silent inputs-hash`; run `scripts/extensionImage.mjs` (without a login: build) to reuse or build the extension image `ghcr.io/${{ github.repository_owner }}/ebay-chrome-extension:<hash>` with the timestamp `BUILD_VERSION`; build the backend image with `EXTENSION_IMAGE`; on `main` push `:<hash>` (when built) and `:latest`, then the backend and nginx images; log the hash, reused/built and the version. Verify: the branch run of this change builds the extension (no image for the hash yet) and pushes nothing. A second branch run on a commit that changes only a backend file still builds it (branches do not publish), and its log shows the same hash.
 
 ## 4. Documentation
 
@@ -23,8 +23,8 @@
 ## 5. Integration check
 
 - [x] 5.1 Run `make agent-check`. Verify: it passes.
-- [ ] 5.2 After merging, check the first `main` run builds and pushes the extension image, and a later `main` run without extension input changes reuses it. Verify: both runs log the same hash and the second logs "reused"; `https://<domain>/chrome_extensions/mlebgdemjnpnfgcgbbncllpniiicffbm.xml` returns the same `version` after both deploys.
 
 ## Workflow follow-up
 
+- After merging (the change is archived before the merge, so this is not a tracked task): check the first `main` run builds and pushes the extension image, and a later `main` run without extension input changes reuses it. Verify: both runs log the same hash and the second logs "reused"; `https://<domain>/chrome_extensions/mlebgdemjnpnfgcgbbncllpniiicffbm.xml` returns the same `version` after both deploys.
 - Sync the delta spec to `openspec/specs/chrome-extension-release`, archive the change, then run `make openspec-coverage-check`.
