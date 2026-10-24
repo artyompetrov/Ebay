@@ -17,8 +17,12 @@ interface Repository {
     hash(dir?: string): string;
 }
 
+// Without the GIT_* variables a hook or another git process may set, so git and the script act on the throwaway
+// repository, never on the one the tests run from.
+const IsolatedEnv: NodeJS.ProcessEnv = Object.fromEntries(Object.entries(process.env).filter(([name]) => !name.startsWith('GIT_')));
+
 function git(cwd: string, ...args: string[]): void {
-    const result = spawnSync('git', args, { cwd, encoding: 'utf8' });
+    const result = spawnSync('git', args, { cwd, encoding: 'utf8', env: IsolatedEnv });
     assert.equal(result.status, 0, result.stderr);
 }
 
@@ -53,7 +57,7 @@ function repository(t: TestContext): Repository {
             return repo;
         },
         run(dir: string = root): SpawnSyncReturns<string> {
-            return spawnSync(process.execPath, [Script, dir], { encoding: 'utf8' });
+            return spawnSync(process.execPath, [Script, dir], { encoding: 'utf8', env: IsolatedEnv });
         },
         hash(dir: string = root): string {
             const result = repo.run(dir);
@@ -110,6 +114,15 @@ test('an added input changes the hash', (t) => {
     const repo = repository(t);
     const before = repo.hash();
     repo.write('src/ChromeExtension/src/worker.ts', 'export {};\n').commit();
+    assert.notEqual(repo.hash(), before);
+});
+
+// [OpenSpecScenario("chrome-extension-release", "Extension inputs hash", "A removed input changes the hash")]
+test('a removed input changes the hash', (t) => {
+    const repo = repository(t);
+    const before = repo.hash();
+    rmSync(path.join(repo.root, 'src/ChromeExtension/package.json'));
+    repo.commit();
     assert.notEqual(repo.hash(), before);
 });
 
@@ -176,7 +189,7 @@ test('missing generated client is rejected', (t) => {
 
 test('defaults to the repository containing the current directory', (t) => {
     const repo = repository(t);
-    const result = spawnSync(process.execPath, [Script], { cwd: path.join(repo.root, 'src/Ebay'), encoding: 'utf8' });
+    const result = spawnSync(process.execPath, [Script], { cwd: path.join(repo.root, 'src/Ebay'), encoding: 'utf8', env: IsolatedEnv });
     assert.equal(result.status, 0, result.stderr);
     assert.equal(result.stdout.trim(), repo.hash());
 });

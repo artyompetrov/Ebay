@@ -23,6 +23,10 @@ The extension inputs hash SHALL be computed from the paths and contents of the e
 - **WHEN** the hash is computed, then a new file under `src/ChromeExtension/src/` is added and committed, and the hash is computed again
 - **THEN** the two hashes differ
 
+#### Scenario: A removed input changes the hash
+- **WHEN** the hash is computed, then `src/ChromeExtension/package.json` is deleted and the deletion committed, and the hash is computed again
+- **THEN** the two hashes differ
+
 #### Scenario: A change to extension tests or docs keeps the hash
 - **WHEN** the hash is computed, then files under `src/ChromeExtension/tests/`, `src/ChromeExtension/AGENTS.md` and a Markdown file under `src/ChromeExtension/src/` are changed and committed, and the hash is computed again
 - **THEN** both computations return the same hash
@@ -54,7 +58,7 @@ Computing the hash SHALL fail with a non-zero exit status and an error message n
 - **THEN** the computation exits with a non-zero status and its error output names the generated API client file
 
 ### Requirement: Extension is rebuilt only when its inputs change
-Each image build in CI SHALL compute the extension inputs hash and reuse the extension image tagged with that hash when the registry has it and its version is not older than the `latest` one, without rebuilding the extension. Otherwise it SHALL build the extension, with the existing version scheme: the `yymm.dd.HH.MMSS` timestamp of that build. The backend image SHALL contain the `.crx` from the extension image with the hash of the commit it is built from.
+Each image build in CI SHALL compute the extension inputs hash and reuse the extension image tagged with that hash when it is current (see the next requirement), without rebuilding the extension. Otherwise, and in runs without registry credentials, it SHALL build the extension with the existing version scheme: the `yymm.dd.HH.MMSS` timestamp of that build. The backend image SHALL contain the `.crx` from the extension image with the hash of the commit it is built from.
 
 #### Scenario: Deploys without extension changes advertise the same version
 - **WHEN** two images are built in CI on `main` from commits that differ only in files outside the extension inputs
@@ -66,10 +70,36 @@ Each image build in CI SHALL compute the extension inputs hash and reuse the ext
 - **THEN** the extension is rebuilt, the extension image is published with the new hash and `latest`, and the backend image serves a `.crx` whose version is greater than the previous one
 - **NOT COVERED BY TEST:** CI and Docker wiring, which the test suites do not run; verified manually on the first deploy with an extension change
 
-#### Scenario: A revert of extension inputs advertises a newer version
-- **WHEN** an image is built in CI on `main` from a commit that reverts the extension inputs to a state whose hash already has an image in the registry, with a version older than the `latest` image
-- **THEN** the extension is rebuilt and the backend image serves a `.crx` whose version is greater than the `latest` one, so installed extensions update to the reverted code
-- **NOT COVERED BY TEST:** CI and Docker wiring, which the test suites do not run; the reuse decision was checked against a stubbed `docker` when the workflow step was written
+### Requirement: Extension image is reused only while it is current
+The image for the inputs hash SHALL be reused only when the registry has it, its `version` label is a valid version, and that version is not older than the version of the `latest` image (when one exists), compared part by part as numbers. After a revert the hash points to an image with an older version, which Chrome would never install over the newer one, so it SHALL be rebuilt. A registry answer other than "image not found" SHALL fail the build instead of rebuilding.
+
+#### Scenario: Missing image is built
+- **WHEN** the registry answers that no image exists for the hash
+- **THEN** the decision is to build
+
+#### Scenario: Image older than latest is rebuilt
+- **WHEN** the image for the hash has version `2609.30.23.5959` and `latest` has version `2610.1.0.0`
+- **THEN** the decision is to build
+
+#### Scenario: Image as new as latest is reused
+- **WHEN** the image for the hash and `latest` both have version `2610.24.13.4512`
+- **THEN** the decision is to reuse
+
+#### Scenario: Image is reused when there is no latest
+- **WHEN** the image for the hash exists with a valid version and the registry answers that no `latest` image exists
+- **THEN** the decision is to reuse
+
+#### Scenario: Image without a valid version label is rebuilt
+- **WHEN** the image for the hash has an empty or non-numeric `version` label
+- **THEN** the decision is to build
+
+#### Scenario: Latest without a valid version label fails
+- **WHEN** the image for the hash is valid and `latest` has an empty `version` label
+- **THEN** the decision fails with an error naming the invalid label
+
+#### Scenario: Registry lookup error fails
+- **WHEN** the registry lookup fails with an error other than "image not found", such as an authentication error
+- **THEN** the decision fails with an error containing the registry's answer
 
 ### Requirement: Only main publishes the extension image
 Only CI builds on `main` SHALL push the extension image to the registry, tagged with the hash and with `latest`. Builds on other branches SHALL use the extension image they built only for their own backend image.

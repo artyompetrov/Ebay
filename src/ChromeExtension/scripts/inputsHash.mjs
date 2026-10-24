@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Prints a hash of the Chrome extension's inputs, used as the tag of the extension Docker image:
-// CI rebuilds the extension (and so gives it a new version) only when no image with this tag exists.
+// CI reuses the image with this tag when it is current, otherwise rebuilds the extension (scripts/extensionImage.mjs).
 // See "Build and release" in src/ChromeExtension/AGENTS.md.
 //
 // Usage: npm run --silent inputs-hash [-- <repository root>]   (default: git top level of the current directory)

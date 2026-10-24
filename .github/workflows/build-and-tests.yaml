@@ -106,7 +106,7 @@ jobs:
       - name: Generate Chrome extension API client
         run: dotnet build ./src/Ebay/Server.Client --configuration Release
 
-      # Every branch logs in: the extension image is private and is looked up and pulled on every build. Only main pushes.
+      # Every branch logs in: the extension image is looked up and pulled on every build, and the package may be private. Only main pushes.
       # Runs without the PAT secret (e.g. Dependabot's) skip the registry and build the extension locally.
       - name: Log in to the registry
         id: registry
@@ -121,10 +121,9 @@ jobs:
             echo "logged_in=true" >> "$GITHUB_OUTPUT"
           fi
 
-      # The extension is rebuilt, and so gets a new version, only when no image exists for the hash of its inputs,
-      # or when that image is older than `latest` (the inputs were reverted): Chrome never downgrades, so reusing it
-      # would leave users on the reverted code. Only a "manifest unknown" answer means there is no image: any other
-      # lookup error fails the build instead of republishing the extension under a new version.
+      # The extension is rebuilt, and so gets a new version, only when the image for the hash of its inputs is missing
+      # or older than `latest` (after a revert; Chrome never downgrades). src/ChromeExtension/scripts/extensionImage.mjs
+      # decides and fails on registry errors. Runs without the registry login build the extension without asking.
       - name: Reuse or build Chrome extension image
         id: chrome_extension
         run: |
@@ -132,42 +131,19 @@ jobs:
           EXTENSION_IMAGE="${{ env.REGISTRY }}/${{ env.EBAY_CHROME_EXTENSION_IMAGE_NAME }}:$INPUTS_HASH"
           LATEST_IMAGE="${{ env.REGISTRY }}/${{ env.EBAY_CHROME_EXTENSION_IMAGE_NAME }}:latest"
           echo "image=$EXTENSION_IMAGE" >> "$GITHUB_OUTPUT"
-          image_exists() {
-            local lookup
-            if lookup=$(docker manifest inspect "$1" 2>&1); then
-              return 0
-            elif grep -qi "manifest unknown" <<< "$lookup"; then
-              return 1
-            fi
-            echo "Cannot look up $1: $lookup" >&2
-            exit 1
-          }
-          image_version() {
-            docker image inspect --format '{{ index .Config.Labels "version" }}' "$1"
-          }
-          BUILT=true
-          if [ "${{ steps.registry.outputs.logged_in }}" = "true" ] && image_exists "$EXTENSION_IMAGE"; then
-            docker pull -q "$EXTENSION_IMAGE"
-            BUILT=false
-            if image_exists "$LATEST_IMAGE"; then
-              docker pull -q "$LATEST_IMAGE"
-              REUSED_VERSION=$(image_version "$EXTENSION_IMAGE")
-              LATEST_VERSION=$(image_version "$LATEST_IMAGE")
-              if [ "$REUSED_VERSION" != "$LATEST_VERSION" ] && [ "$(printf '%s\n' "$REUSED_VERSION" "$LATEST_VERSION" | sort -V | tail -n 1)" = "$LATEST_VERSION" ]; then
-                echo "$EXTENSION_IMAGE has version $REUSED_VERSION, older than latest $LATEST_VERSION (inputs were reverted), rebuilding"
-                BUILT=true
-              fi
-            fi
+          DECISION=build
+          if [ "${{ steps.registry.outputs.logged_in }}" = "true" ]; then
+            DECISION=$(node ./src/ChromeExtension/scripts/extensionImage.mjs "$EXTENSION_IMAGE" "$LATEST_IMAGE")
           fi
-          if [ "$BUILT" = "false" ]; then
-            echo "Chrome extension inputs unchanged, reusing $EXTENSION_IMAGE"
-          else
+          if [ "$DECISION" = "build" ]; then
             EXTENSION_VERSION=$(date +'%y%m.%d.%H.%M%S')
-            echo "Building $EXTENSION_IMAGE"
+            echo "Building $EXTENSION_IMAGE with version $EXTENSION_VERSION"
             docker build --build-arg BUILD_VERSION="$EXTENSION_VERSION" --build-arg EBAY_HELPER_BACKEND_DOMAIN="${{ secrets.EBAY_HELPER_BACKEND_DOMAIN }}" --tag "$EXTENSION_IMAGE" ./src/ChromeExtension/
+            echo "built=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Reusing $EXTENSION_IMAGE"
+            echo "built=false" >> "$GITHUB_OUTPUT"
           fi
-          echo "Chrome extension version: $(image_version "$EXTENSION_IMAGE")"
-          echo "built=$BUILT" >> "$GITHUB_OUTPUT"
 
       - name: Build Docker Images
         run: |
