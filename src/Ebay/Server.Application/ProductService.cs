@@ -176,14 +176,15 @@ public class ProductService
         return result.Select(Map);
     }
 
-    private static readonly Dictionary<string, string> SimpleReplacements = new()
-    {
-        { "(", "\\(" },
-        { ")", "\\)" },
-        { "/", "\\/" },
-        { ".", "," },
-        { ",", "[,.]" },
-    };
+    private static readonly (string From, string To)[] SimpleReplacements =
+    [
+       ("\\", "/"),
+        ("(", "\\("),
+        (")", "\\)"),
+        ("/", "[/\\]"),
+        (".", ","),
+        (",", "[,.]"),
+    ];
 
     private static readonly (Regex Pattern, string Replacement)[] RegexReplacements =
     [
@@ -236,9 +237,9 @@ public class ProductService
             var w = word.ToLowerInvariant().Trim();
 
             // Simple string replacements
-            foreach (var kvp in SimpleReplacements)
+            foreach (var (from, to) in SimpleReplacements)
             {
-                w = w.Replace(kvp.Key, kvp.Value);
+                w = w.Replace(from, to);
             }
 
             // Regex replacements

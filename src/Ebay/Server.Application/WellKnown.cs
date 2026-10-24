@@ -6,9 +6,9 @@ namespace Server.Application;
 public static class WellKnown
 {
     /// <summary>
-    /// Время проверки товаров на ebay
+    /// Время проверки товаров на ebay (пять лет)
     /// </summary>
-    public const int RecheckTimeInDays = 360 * 2;
+    public const int RecheckTimeInDays = 365 * 5;
 
     /// <summary>
     /// Сумма выручки за штуку от которой интересно работать с товаром
