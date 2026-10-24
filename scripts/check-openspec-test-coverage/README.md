@@ -58,8 +58,8 @@ affected by another started change. Unstarted proposals and archived changes do 
 exemptions. Resetting all completed tasks to unchecked also removes a change's exemption.
 
 **Finishing a change:** sync its final deltas into `openspec/specs` and archive it, then run
-`./scripts/check-openspec-test-coverage/check-openspec-test-coverage.sh` (and the usual
-`agent-check.sh`) before merging. New scenarios then require tests or justified exemptions;
+`make openspec-coverage-check` (and the usual
+`make agent-check`) before merging. New scenarios then require tests or justified exemptions;
 removed/renamed scenarios must not leave stale test tags. The OpenSpec archive command itself
 does not run this project's coverage checker. Merge alone or syncing without archiving does
 not remove an active change's exemption. Do not archive with unsynced specs or use
@@ -86,19 +86,24 @@ can consume for the mapping key. It reuses the CLI wherever it can - `openspec l
 --json` to discover which specs exist and where the openspec root is - and reads only the
 heading lines and the `NOT COVERED BY TEST` bullet itself out of spec.md. Everything else
 about spec.md's structure and validity is left to `openspec validate --all --strict`, which
-already runs as an earlier `agent-check.sh` step.
+already runs as an earlier `make agent-check` step.
 
 For active deltas, the script reuses OpenSpec's `parseDeltaSpec` and `discoverSpecFiles`
 implementations from the npm-installed CLI on PATH. This handles requirement operations,
 nested capability paths, removed requirement lists, renames, and fenced examples without
 another handwritten delta parser. These are internal APIs, not a stable public JSON contract:
-the loader verifies `.openspec-version`, and import/parse failures fail the check. The
-existing Linux/bash workflow requires an npm CLI executable resolvable with `which`;
-unsupported wrappers fail with a diagnostic.
+the loader verifies `.openspec-version`, and import/parse failures fail the check.
+
+The CLI is never spawned by name. `openspec-cli.mjs` finds the npm-installed package on
+`PATH` (on Linux/macOS through the `openspec` symlink into the package, on Windows through
+`node_modules/@fission-ai/openspec` next to npm's `openspec.cmd`) and runs its `bin` entry
+with the current Node. Node cannot execute npm's shims on Windows without a shell
+(`spawnSync openspec ENOENT`), so this keeps one code path for both platforms. Without the
+package on `PATH` the check fails with a diagnostic.
 
 The shell entry point runs the integration tests first, then checks repository coverage.
-A test failure stops the script before the coverage check. Both `agent-check.sh` and CI
-call this single entry point. To run just the integration tests with the pinned CLI on PATH:
+A test failure stops the script before the coverage check. Both `make agent-check` and CI
+(`make openspec-coverage-check`) call this single entry point. To run just the integration tests with the pinned CLI on PATH:
 
 ```sh
 node --test scripts/check-openspec-test-coverage/*.test.mjs
@@ -108,5 +113,5 @@ The tests use temporary projects and the real CLI, including archive/sync behavi
 when upgrading OpenSpec; update the adapter if its package layout or parser API changes.
 
 Used by:
-- `scripts/agent-check/agent-check.sh` (local pre-PR check).
+- `make agent-check` (local pre-PR check) and `make openspec-coverage-check`.
 - `.github/workflows/build-and-tests.yaml` (`openspec_validate` job).

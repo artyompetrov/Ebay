@@ -4,6 +4,12 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="${REPO_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 
+# --- make: the entry point for repository scripts (`make agent-check`, see Makefile) ---
+if ! command -v make >/dev/null 2>&1; then
+  sudo apt-get update
+  sudo apt-get install -y make
+fi
+
 # --- PostgreSQL ---
 if ! dpkg -s postgresql-16 >/dev/null 2>&1; then
   sudo apt-get update

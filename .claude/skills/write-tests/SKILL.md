@@ -86,14 +86,14 @@ requirements remain strict. New-only scenarios are not required until synced, an
 tags are accepted early only for requirements deferred by a started change.
 
 When finishing a change, sync the final specs, archive the change, and run
-`scripts/check-openspec-test-coverage/check-openspec-test-coverage.sh` before merging.
+`make openspec-coverage-check` before merging.
 Archiving removes that change's exemption: final scenarios need tests or justified
 exemptions, and old mappings for removed/renamed scenarios must be fixed. The OpenSpec
 archive command itself does not run the coverage checker. Merge alone, syncing alone, or
 completing every task does not end an active change's exemption. If another started change
 still touches the same requirement, that requirement remains deferred.
 
-The checker and its integration tests run in `agent-check.sh` and CI. Structural errors
+The checker and its integration tests run in `make agent-check` and CI. Structural errors
 remain strict even for deferred requirements. See `scripts/check-openspec-test-coverage/README.md`
 for the exact scope and OpenSpec integration constraints.
 

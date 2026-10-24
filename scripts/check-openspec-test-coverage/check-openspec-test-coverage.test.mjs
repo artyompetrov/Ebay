@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
+import { resolveOpenSpecCli } from './openspec-cli.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, '../..');
@@ -19,11 +20,14 @@ function fixture(t) {
   }
   write('openspec/config.yaml', 'schema: spec-driven\n');
   const runner = 'scripts/check-openspec-test-coverage/check-openspec-test-coverage.mjs';
-  write(runner, readFileSync(path.join(scriptDir, path.basename(runner)), 'utf8'));
+  for (const file of [runner, 'scripts/check-openspec-test-coverage/openspec-cli.mjs']) {
+    write(file, readFileSync(path.join(scriptDir, path.basename(file)), 'utf8'));
+  }
   copyFileSync(path.join(repoRoot, '.openspec-version'), path.join(root, '.openspec-version'));
   const env = { ...process.env, OPENSPEC_TELEMETRY: '0', XDG_CONFIG_HOME: path.join(root, 'config') };
-  function run(command, args) {
-    const result = spawnSync(command, args, { cwd: root, env, encoding: 'utf8' });
+  const cli = resolveOpenSpecCli(env);
+  const options = { cwd: root, env, encoding: 'utf8' };
+  function collect(result) {
     assert.ifError(result.error);
     return { status: result.status, output: result.stdout + result.stderr };
   }
@@ -38,8 +42,8 @@ function fixture(t) {
     spec: (id, requirements) => write(`openspec/specs/${id}/spec.md`, `# ${id}\n\n## Purpose\nDefine fixture behavior for scenario coverage testing.\n\n## Requirements\n${requirements}`),
     tags: (...values) => write('src/Ebay/Frontend/Tests/fixture.test.mjs', values.map(([id, requirement, scenario]) =>
       `// [OpenSpecScenario(${[id, requirement, scenario].map(JSON.stringify).join(', ')})]`).join('\n')),
-    check: () => run(process.execPath, [runner]),
-    archive: (name) => run('openspec', ['archive', name, '--yes']),
+    check: () => collect(spawnSync(process.execPath, [runner], options)),
+    archive: (name) => collect(cli.spawnSync(['archive', name, '--yes'], options)),
   };
 }
 

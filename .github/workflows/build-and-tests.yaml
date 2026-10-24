@@ -77,7 +77,7 @@ jobs:
         run: npm install -g "@fission-ai/openspec@$(cat .openspec-version)"
 
       - name: Check OpenSpec CLI and skills versions
-        run: ./scripts/check-openspec-version/check-openspec-version.sh
+        run: make openspec-version-check
 
       - name: Validate OpenSpec catalog
         run: openspec validate --all --strict --json
@@ -86,7 +86,7 @@ jobs:
         run: openspec validate --archived
 
       - name: Check OpenSpec scenario test coverage
-        run: ./scripts/check-openspec-test-coverage/check-openspec-test-coverage.sh
+        run: make openspec-coverage-check
 
   build_docker:
     name: Build Docker Images
