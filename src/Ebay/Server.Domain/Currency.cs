@@ -4,6 +4,11 @@ namespace Server.Domain;
 
 public sealed class Currency : AggregateRoot<string>
 {
+    /// <summary>
+    /// Базовая валюта: курсы всех валют хранятся как цена одной её единицы.
+    /// </summary>
+    public const string BaseCurrencyId = "USD";
+
     private Currency(string id, string currencyRusName, string currencyApiName, double currencyRate, DateTimeOffset lastUpdate)
         : base(id)
     {

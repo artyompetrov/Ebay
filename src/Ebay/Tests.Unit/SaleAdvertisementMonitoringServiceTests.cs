@@ -1,7 +1,7 @@
 using System.Data;
 using System.Diagnostics;
-using System.Text.RegularExpressions;
 using AwesomeAssertions;
+using Server.Adapters.Driven.Smtp;
 using Server.Application;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
@@ -11,6 +11,7 @@ using Server.Application.SaleAdvertisements;
 using Server.Domain;
 using Server.Domain.Measurements;
 using Server.Domain.Product;
+using Server.Domain.SaleAdvertisements;
 using Tests.Shared;
 using Tests.Unit.Fakes;
 
@@ -25,7 +26,6 @@ public sealed class SaleAdvertisementMonitoringServiceTests
     private const string SellerName = "Seller Name";
     private const string Marketplace = "TestMarket";
     private const string AdvertisementTitle = "Продам лампы";
-    private const string AmbiguousMarker = "[Нашлось несколько товаров]";
     private const double RubRate = 80;
 
     private static readonly DateTimeOffset AdvertisementDate = new(2026, 1, 2, 3, 4, 5, TimeSpan.Zero);
@@ -76,7 +76,7 @@ public sealed class SaleAdvertisementMonitoringServiceTests
         await context.CreateService(adapter).ProcessRecentAdvertisementsAsync(TargetEmail, CancellationToken.None);
 
         context.Repository.Committed.Should().ContainSingle();
-        context.EmailSender.Sent.Should().ContainSingle();
+        context.NotificationAdapter.Sent.Should().ContainSingle();
     }
 
     [Test]
@@ -93,12 +93,12 @@ public sealed class SaleAdvertisementMonitoringServiceTests
         context.Repository.Committed.Should().ContainSingle().Which.Should().BeSameAs(existing);
         existing.AdvertisementDate.Should().Be(AdvertisementDate);
         existing.Link.Should().Be(AdvertisementLink.ToString());
-        context.EmailSender.Sent.Should().BeEmpty();
+        context.NotificationAdapter.Sent.Should().BeEmpty();
     }
 
     [Test]
     [OpenSpecScenario("sale-advertisement-monitoring", "One notification per product, seller and marketplace", "Several advertisement lines for the same product create one record")]
-    [OpenSpecScenario("sale-advertisement-monitoring", "Notification contents", "All matching lines appear in the notification")]
+    [OpenSpecScenario("sale-advertisement-monitoring", "Notification consists of a link, one table and the contact", "All matching lines appear in the notification")]
     public async Task ProcessRecentAdvertisementsAsync_TwoLinesForSameProduct_CreateOneRecordAndOneNotificationWithBothLines()
     {
         var product = CreateProduct("6н2п", isInteresting: true);
@@ -108,8 +108,8 @@ public sealed class SaleAdvertisementMonitoringServiceTests
         await context.CreateService(adapter).ProcessRecentAdvertisementsAsync(TargetEmail, CancellationToken.None);
 
         context.Repository.Committed.Should().ContainSingle();
-        var email = context.EmailSender.Sent.Should().ContainSingle().Subject;
-        email.Body.Should().Contain("6Н2П 10 шт").And.Contain("6Н2П-ЕВ 5 шт");
+        var email = context.NotificationAdapter.Sent.Should().ContainSingle().Subject;
+        NotificationTable.Groups(email.Body).Select(static x => x.LineHtml).Should().Equal("6Н2П 10 шт", "6Н2П-ЕВ 5 шт");
     }
 
     [Test]
@@ -123,7 +123,7 @@ public sealed class SaleAdvertisementMonitoringServiceTests
         await context.CreateService(adapter).ProcessRecentAdvertisementsAsync(TargetEmail, CancellationToken.None);
 
         context.Repository.Committed.Should().ContainSingle();
-        context.EmailSender.Sent.Should().BeEmpty();
+        context.NotificationAdapter.Sent.Should().BeEmpty();
     }
 
     [Test]
@@ -139,7 +139,7 @@ public sealed class SaleAdvertisementMonitoringServiceTests
         await context.CreateService(adapter).ProcessRecentAdvertisementsAsync(TargetEmail, CancellationToken.None);
 
         context.Repository.Committed.Should().ContainSingle();
-        context.EmailSender.Sent.Should().BeEmpty();
+        context.NotificationAdapter.Sent.Should().BeEmpty();
     }
 
     [Test]
@@ -154,11 +154,11 @@ public sealed class SaleAdvertisementMonitoringServiceTests
         await context.CreateService(first, second).ProcessRecentAdvertisementsAsync(TargetEmail, CancellationToken.None);
 
         context.Repository.Committed.Select(static x => x.Marketplace).Should().BeEquivalentTo(["MarketA", "MarketB"]);
-        context.EmailSender.Sent.Should().HaveCount(2);
+        context.NotificationAdapter.Sent.Should().HaveCount(2);
     }
 
     [Test]
-    [OpenSpecScenario("sale-advertisement-monitoring", "Notification contents", "Subject uses the seller display name")]
+    [OpenSpecScenario("sale-advertisement-monitoring", "Notification consists of a link, one table and the contact", "Subject uses the seller display name")]
     public async Task ProcessRecentAdvertisementsAsync_Notification_UsesTitleAndSellerDisplayNameInSubject()
     {
         var product = CreateProduct("6н2п", isInteresting: true);
@@ -173,27 +173,89 @@ public sealed class SaleAdvertisementMonitoringServiceTests
         await context.CreateService(new StaticAdapter(Marketplace, advertisement, contact: "https://www.qrz.ru/user/968d583acd6460911adbe0e9f5e97edb"))
             .ProcessRecentAdvertisementsAsync(TargetEmail, CancellationToken.None);
 
-        var email = context.EmailSender.Sent.Should().ContainSingle().Subject;
+        var email = context.NotificationAdapter.Sent.Should().ContainSingle().Subject;
         email.Topic.Should().Be("Радиолампы [Евгений Смирнов]");
         email.Address.Should().Be(TargetEmail);
         email.Body.Should().Contain(AdvertisementLink.ToString()).And.Contain("https://www.qrz.ru/user/968d583acd6460911adbe0e9f5e97edb");
     }
 
     [Test]
-    [OpenSpecScenario("sale-advertisement-monitoring", "Notification contents", "Ambiguous line is marked")]
-    public async Task ProcessRecentAdvertisementsAsync_AmbiguousLine_IsMarkedInNotification()
+    [OpenSpecScenario("sale-advertisement-monitoring", "Notification table has one group of rows per notified line", "A line that triggered nothing is not shown")]
+    public async Task ProcessRecentAdvertisementsAsync_LineMatchingOnlyAlreadyRecordedProduct_IsNotShown()
     {
-        var context = new TestContext([CreateProduct("6н2п", isInteresting: true), CreateProduct("6н2п", isInteresting: true)]);
-        var adapter = new StaticAdapter(Marketplace, CreateAdvertisement("Лампа 6Н2П новая", "Лампа 6Н2П старая"));
+        var notified = CreateProduct("6н2п", isInteresting: true);
+        var alreadyRecorded = CreateProduct("6н3п", isInteresting: true);
+        var context = new TestContext([notified, alreadyRecorded]);
+        context.Repository.Seed(alreadyRecorded.Id, SellerKey, Marketplace, AdvertisementDate, AdvertisementLink.ToString());
+        var adapter = new StaticAdapter(Marketplace, CreateAdvertisement("Лампа 6Н2П", "Лампа 6Н3П"));
 
         await context.CreateService(adapter).ProcessRecentAdvertisementsAsync(TargetEmail, CancellationToken.None);
 
-        var email = context.EmailSender.Sent.Should().ContainSingle().Subject;
-        email.Body.Should().Contain($"<div>Лампа 6Н2П новая {AmbiguousMarker} </div>");
+        var email = context.NotificationAdapter.Sent.Should().ContainSingle().Subject;
+        NotificationTable.Groups(email.Body).Should().ContainSingle().Which.LineHtml.Should().Be("Лампа 6Н2П");
+        email.Body.Should().NotContain("Лампа 6Н3П");
     }
 
     [Test]
-    [OpenSpecScenario("sale-advertisement-monitoring", "Notification lists notified products with their estimated prices", "Table row shows the product's estimated price in roubles")]
+    [OpenSpecScenario("sale-advertisement-monitoring", "Notification table has one group of rows per notified line", "Identical lines are shown once")]
+    public async Task ProcessRecentAdvertisementsAsync_IdenticalLines_AreShownOnce()
+    {
+        var context = new TestContext([CreateProduct("6н2п", isInteresting: true)]);
+        var adapter = new StaticAdapter(Marketplace, CreateAdvertisement("Лампа 6Н2П", "Лампа 6Н2П"));
+
+        await context.CreateService(adapter).ProcessRecentAdvertisementsAsync(TargetEmail, CancellationToken.None);
+
+        var email = context.NotificationAdapter.Sent.Should().ContainSingle().Subject;
+        NotificationTable.Groups(email.Body).Should().ContainSingle();
+    }
+
+    [Test]
+    [OpenSpecScenario("sale-advertisement-monitoring", "Notification table lists every product a notified line matched", "Triggering product is bold, the other matched product is not")]
+    public async Task ProcessRecentAdvertisementsAsync_LineAlsoMatchesAlreadyRecordedProduct_ListsBothWithOnlyTriggeringBold()
+    {
+        var notified = CreateProduct("6Н2П", isInteresting: true);
+        var alreadyRecorded = CreateProduct("6Н2П-ЕВ", isInteresting: true);
+        var context = new TestContext([notified, alreadyRecorded]);
+        context.Repository.Seed(alreadyRecorded.Id, SellerKey, Marketplace, AdvertisementDate, AdvertisementLink.ToString());
+        var adapter = new StaticAdapter(Marketplace, CreateAdvertisement("Лампа 6Н2П-ЕВ"));
+
+        await context.CreateService(adapter).ProcessRecentAdvertisementsAsync(TargetEmail, CancellationToken.None);
+
+        var email = context.NotificationAdapter.Sent.Should().ContainSingle().Subject;
+        NotificationTable.Groups(email.Body).Should().ContainSingle()
+            .Which.Products.Select(static x => x.NameHtml).Should().Equal("<b>6Н2П</b>", "6Н2П-ЕВ");
+    }
+
+    [Test]
+    [OpenSpecScenario("sale-advertisement-monitoring", "Notification table lists every product a notified line matched", "Non-interesting product matched by a notified line is listed")]
+    public async Task ProcessRecentAdvertisementsAsync_LineAlsoMatchesNonInterestingProduct_ListsBothWithOnlyInterestingBold()
+    {
+        var context = new TestContext([CreateProduct("6н2п", isInteresting: true), CreateProduct("лампа", isInteresting: false)]);
+        var adapter = new StaticAdapter(Marketplace, CreateAdvertisement("Лампа 6Н2П"));
+
+        await context.CreateService(adapter).ProcessRecentAdvertisementsAsync(TargetEmail, CancellationToken.None);
+
+        var email = context.NotificationAdapter.Sent.Should().ContainSingle().Subject;
+        NotificationTable.Groups(email.Body).Should().ContainSingle()
+            .Which.Products.Select(static x => x.NameHtml).Should().Equal("<b>6н2п</b>", "лампа");
+    }
+
+    [Test]
+    [OpenSpecScenario("sale-advertisement-monitoring", "Notification table lists every product a notified line matched", "A product matched by two lines is listed for each line")]
+    public async Task ProcessRecentAdvertisementsAsync_ProductMatchedByTwoLines_IsListedForEachLine()
+    {
+        var context = new TestContext([CreateProduct("6н2п", isInteresting: true)]);
+        var adapter = new StaticAdapter(Marketplace, CreateAdvertisement("6Н2П 10 шт", "6Н2П-ЕВ 5 шт"));
+
+        await context.CreateService(adapter).ProcessRecentAdvertisementsAsync(TargetEmail, CancellationToken.None);
+
+        var email = context.NotificationAdapter.Sent.Should().ContainSingle().Subject;
+        NotificationTable.Groups(email.Body).Should().HaveCount(2)
+            .And.AllSatisfy(static x => x.Products.Should().ContainSingle().Which.NameHtml.Should().Be("<b>6н2п</b>"));
+    }
+
+    [Test]
+    [OpenSpecScenario("sale-advertisement-monitoring", "Notification table rows show the estimated price and units sold", "Table row shows the product's estimated price in roubles")]
     public async Task ProcessRecentAdvertisementsAsync_NotifiedProduct_ShowsEstimatedPriceInRoubles()
     {
         var product = CreateProduct("6Н2П", revenueAvgUsd: 15.4, quantityTotal: 7);
@@ -202,55 +264,10 @@ public sealed class SaleAdvertisementMonitoringServiceTests
 
         await context.CreateService(adapter).ProcessRecentAdvertisementsAsync(TargetEmail, CancellationToken.None);
 
-        var email = context.EmailSender.Sent.Should().ContainSingle().Subject;
-        email.Body.Should().Contain("<tr><td>6Н2П</td><td>1232 RUB</td><td>7</td></tr>");
-    }
-
-    [Test]
-    [OpenSpecScenario("sale-advertisement-monitoring", "Notification lists notified products with their estimated prices", "Products that did not trigger the notification are not listed")]
-    public async Task ProcessRecentAdvertisementsAsync_ProductsThatDidNotTriggerNotification_AreNotListed()
-    {
-        var notified = CreateProduct("6н2п", isInteresting: true);
-        var alreadyRecorded = CreateProduct("6н3п", isInteresting: true);
-        var notInteresting = CreateProduct("6н1п", isInteresting: false);
-        var context = new TestContext([notified, alreadyRecorded, notInteresting]);
-        context.Repository.Seed(alreadyRecorded.Id, SellerKey, Marketplace, AdvertisementDate, AdvertisementLink.ToString());
-        var adapter = new StaticAdapter(Marketplace, CreateAdvertisement("Лампа 6Н2П", "Лампа 6Н3П", "Лампа 6Н1П"));
-
-        await context.CreateService(adapter).ProcessRecentAdvertisementsAsync(TargetEmail, CancellationToken.None);
-
-        var email = context.EmailSender.Sent.Should().ContainSingle().Subject;
-        PriceTableRows(email.Body).Should().ContainSingle().Which.Should().StartWith("<tr><td>6н2п</td>");
-    }
-
-    [Test]
-    [OpenSpecScenario("sale-advertisement-monitoring", "Notification lists notified products with their estimated prices", "A product matched by several lines has one row")]
-    public async Task ProcessRecentAdvertisementsAsync_ProductMatchedBySeveralLines_HasOneRow()
-    {
-        var context = new TestContext([CreateProduct("6н2п", isInteresting: true)]);
-        var adapter = new StaticAdapter(Marketplace, CreateAdvertisement("6Н2П 10 шт", "6Н2П-ЕВ 5 шт"));
-
-        await context.CreateService(adapter).ProcessRecentAdvertisementsAsync(TargetEmail, CancellationToken.None);
-
-        var email = context.EmailSender.Sent.Should().ContainSingle().Subject;
-        PriceTableRows(email.Body).Should().ContainSingle();
-    }
-
-    [Test]
-    [OpenSpecScenario("sale-advertisement-monitoring", "Notification lists notified products with their estimated prices", "Product name is HTML-encoded")]
-    public async Task ProcessRecentAdvertisementsAsync_ProductNameWithMarkup_IsHtmlEncoded()
-    {
-        var product = CreateProduct("<b>6Н2П</b>", isInteresting: true) with
-        {
-            RuSearchQueries = [new SearchQueryWithId(Guid.NewGuid(), "6н2п")]
-        };
-        var context = new TestContext([product]);
-        var adapter = new StaticAdapter(Marketplace, CreateAdvertisement("Лампа 6Н2П новая"));
-
-        await context.CreateService(adapter).ProcessRecentAdvertisementsAsync(TargetEmail, CancellationToken.None);
-
-        var email = context.EmailSender.Sent.Should().ContainSingle().Subject;
-        email.Body.Should().Contain("<td>&lt;b&gt;6Н2П&lt;/b&gt;</td>").And.NotContain("<b>6Н2П</b>");
+        var email = context.NotificationAdapter.Sent.Should().ContainSingle().Subject;
+        NotificationTable.Groups(email.Body).Should().ContainSingle()
+            .Which.Products.Should().ContainSingle()
+            .Which.Should().Be(new NotificationTable.Product(NameHtml: "<b>6Н2П</b>", Price: "1232 RUB", Quantity: "7"));
     }
 
     [Test]
@@ -263,8 +280,8 @@ public sealed class SaleAdvertisementMonitoringServiceTests
 
         await context.CreateService(adapter).ProcessRecentAdvertisementsAsync(TargetEmail, CancellationToken.None);
 
-        var email = context.EmailSender.Sent.Should().ContainSingle().Subject;
-        email.Body.Should().Contain("<td>15 USD</td>");
+        var email = context.NotificationAdapter.Sent.Should().ContainSingle().Subject;
+        NotificationTable.Groups(email.Body).Single().Products.Single().Price.Should().Be("15 USD");
         context.Logger.HasWarningContaining("RUB").Should().BeTrue();
     }
 
@@ -275,17 +292,17 @@ public sealed class SaleAdvertisementMonitoringServiceTests
         var product = CreateProduct("6н2п", isInteresting: true);
         var context = new TestContext([product]);
         var adapter = new StaticAdapter(Marketplace, CreateAdvertisement("Лампа 6Н2П новая"));
-        context.EmailSender.FailNext = true;
+        context.NotificationAdapter.FailNext = true;
 
         await context.CreateService(adapter).ProcessRecentAdvertisementsAsync(TargetEmail, CancellationToken.None);
 
         context.Repository.Committed.Should().BeEmpty();
-        context.EmailSender.Sent.Should().BeEmpty();
+        context.NotificationAdapter.Sent.Should().BeEmpty();
 
         await context.CreateService(adapter).ProcessRecentAdvertisementsAsync(TargetEmail, CancellationToken.None);
 
         context.Repository.Committed.Should().ContainSingle();
-        context.EmailSender.Sent.Should().ContainSingle();
+        context.NotificationAdapter.Sent.Should().ContainSingle();
     }
 
     [Test]
@@ -300,7 +317,7 @@ public sealed class SaleAdvertisementMonitoringServiceTests
         await context.CreateService(failing, working).ProcessRecentAdvertisementsAsync(TargetEmail, CancellationToken.None);
 
         context.Repository.Committed.Should().ContainSingle().Which.Marketplace.Should().Be(Marketplace);
-        context.EmailSender.Sent.Should().ContainSingle();
+        context.NotificationAdapter.Sent.Should().ContainSingle();
     }
 
     [Test]
@@ -360,9 +377,6 @@ public sealed class SaleAdvertisementMonitoringServiceTests
             }
         };
 
-    private static string[] PriceTableRows(string body) =>
-        [.. Regex.Matches(body, "<tr><td>.*?</tr>").Select(static x => x.Value)];
-
     private static ProductCalculationResult InterestingCalculation() =>
         new()
         {
@@ -389,7 +403,7 @@ public sealed class SaleAdvertisementMonitoringServiceTests
 
         public InMemoryHistoryRepository Repository { get; } = new();
 
-        public RecordingEmailSender EmailSender { get; } = new();
+        public RecordingNotificationAdapter NotificationAdapter { get; } = new();
 
         public MutableProductQueries Products { get; }
 
@@ -414,10 +428,9 @@ public sealed class SaleAdvertisementMonitoringServiceTests
                 Repository,
                 new SingleUnitOfWorkFactory(UnitOfWork),
                 adapters,
-                EmailSender,
+                NotificationAdapter,
                 productService,
-                new StaticCurrencyQueries(CurrencyRates),
-                delayAfterEmail: TimeSpan.Zero);
+                new StaticCurrencyQueries(CurrencyRates));
         }
     }
 
@@ -568,15 +581,23 @@ public sealed class SaleAdvertisementMonitoringServiceTests
             throw new NotSupportedException();
     }
 
-    private sealed record SentEmail(string Address, string Topic, string Body);
-
-    private sealed class RecordingEmailSender : IEmailSender
+    /// <summary>
+    /// Sent notification as the email adapter renders it, so scenario assertions cover the whole path to the email.
+    /// </summary>
+    private sealed record SentNotification(string Address, SaleAdvertisementNotification Notification)
     {
-        public List<SentEmail> Sent { get; } = [];
+        public string Topic => SaleAdvertisementNotificationHtml.Subject(Notification);
+
+        public string Body => SaleAdvertisementNotificationHtml.Body(Notification);
+    }
+
+    private sealed class RecordingNotificationAdapter : ISaleAdvertisementNotificationAdapter
+    {
+        public List<SentNotification> Sent { get; } = [];
 
         public bool FailNext { get; set; }
 
-        public Task Send(string targetAddress, string topic, string messageText)
+        public Task SendAsync(string targetEmail, SaleAdvertisementNotification notification, CancellationToken cancellationToken)
         {
             if (FailNext)
             {
@@ -584,7 +605,7 @@ public sealed class SaleAdvertisementMonitoringServiceTests
                 throw new InvalidOperationException("SMTP is down");
             }
 
-            Sent.Add(new SentEmail(targetAddress, topic, messageText));
+            Sent.Add(new SentNotification(targetEmail, notification));
             return Task.CompletedTask;
         }
     }

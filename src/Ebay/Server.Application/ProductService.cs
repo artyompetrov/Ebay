@@ -161,6 +161,7 @@ public class ProductService
             IsCheckRequired: DateTimeOffset.UtcNow - product.LastCheckTime > TimeSpan.FromDays(WellKnown.RecheckTimeInDays),
             CalculatedEbayWeight: (int)Math.Ceiling(product.Weight * WellKnown.EbayWeightMultiplier / 100.0),
             ProductRegex: GetProductRegex(product),
+            // TODO: "interesting product" is a business rule; move it into Server.Domain next to the product model.
             IsInteresting: product.CalculationResult?.RevenueAvg > WellKnown.IsInterestingRevenueUsd &&
                            product.CalculationResult?.QuantityTotal >= WellKnown.IsInterestingRelevantStatistics
         );
@@ -216,6 +217,8 @@ public class ProductService
         { "9", "[- ]?9[- ]?" }
     };
 
+    // TODO: the product search pattern (how a product's name and search queries match free text) is domain knowledge;
+    // move it with its replacement tables into Server.Domain so sale advertisement matching does not depend on ProductService.
     private static Regex GetProductRegex(ProductInfo productInfo)
     {
         var productNames = new HashSet<string>
