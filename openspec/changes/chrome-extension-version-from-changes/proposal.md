@@ -25,6 +25,6 @@ Every deploy publishes a new Chrome extension version, even when the extension d
 - New `src/ChromeExtension/Dockerfile` (and `.dockerignore`) for the extension image.
 - `src/Dockerfile`: the extension build stage is replaced by a copy from the extension image (`EXTENSION_IMAGE` build argument).
 - `.github/workflows/build-and-tests.yaml` `build_docker`: generate the API client, compute the hash, reuse or build (and on `main` push) the extension image, pass it to the backend image build. It logs in to the registry on all branches, not only on `main`.
-- New `src/ChromeExtension/scripts/inputsHash.mjs` (`npm run inputs-hash`) with tests in `src/ChromeExtension/tests`, which the extension's `npm test` already runs in CI and `agent-check`.
-- `AGENTS.md` (navigation, CI, Makefile, Dockerfile) and `src/ChromeExtension/AGENTS.md` (how the extension is built and released).
+- New `src/ChromeExtension/scripts/inputsHash.mjs` (`npm run --silent inputs-hash`) with tests in `src/ChromeExtension/tests`, which the extension's `npm test` already runs in CI and `agent-check`.
+- `AGENTS.md` (CI, Dockerfile) and `src/ChromeExtension/AGENTS.md` (how the extension is built and released).
 - No change to `ExtensionController`, the update XML, the extension code or the version format.

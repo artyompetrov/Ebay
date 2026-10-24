@@ -36,6 +36,9 @@ function repository(t: TestContext): Repository {
     git(root, 'config', 'user.email', 'test@localhost');
     git(root, 'config', 'user.name', 'Test');
     git(root, 'config', 'core.autocrlf', 'false');
+    // Keep a developer's global signing and hooks out of the throwaway commits.
+    git(root, 'config', 'commit.gpgsign', 'false');
+    git(root, 'config', 'core.hooksPath', path.join(root, '.git', 'no-hooks'));
     const repo: Repository = {
         root,
         write(file: string, content: string): Repository {
@@ -91,6 +94,14 @@ test('a change to the generated API client changes the hash', (t) => {
     const repo = repository(t);
     const before = repo.hash();
     repo.write(GeneratedClient, 'export class EbayToolWebApiClient { get() {} }\n');
+    assert.notEqual(repo.hash(), before);
+});
+
+// [OpenSpecScenario("chrome-extension-release", "Extension inputs hash", "A change to the extension build files changes the hash")]
+test('a change to the extension build files changes the hash', (t) => {
+    const repo = repository(t);
+    const before = repo.hash();
+    repo.write('src/ChromeExtension/package.json', '{ "name": "chromeextension" }\n').commit();
     assert.notEqual(repo.hash(), before);
 });
 

@@ -15,6 +15,10 @@ The extension inputs hash SHALL be computed from the paths and contents of the e
 - **WHEN** the hash is computed, then the content of the generated API client file is changed, and the hash is computed again
 - **THEN** the two hashes differ
 
+#### Scenario: A change to the extension build files changes the hash
+- **WHEN** the hash is computed, then `src/ChromeExtension/package.json` is changed and committed, and the hash is computed again
+- **THEN** the two hashes differ
+
 #### Scenario: An added input changes the hash
 - **WHEN** the hash is computed, then a new file under `src/ChromeExtension/src/` is added and committed, and the hash is computed again
 - **THEN** the two hashes differ
@@ -50,7 +54,7 @@ Computing the hash SHALL fail with a non-zero exit status and an error message n
 - **THEN** the computation exits with a non-zero status and its error output names the generated API client file
 
 ### Requirement: Extension is rebuilt only when its inputs change
-Each image build in CI SHALL compute the extension inputs hash and reuse the extension image tagged with that hash when the registry has it, without rebuilding the extension. Only when no such image exists SHALL it build the extension, with the existing version scheme: the `yymm.dd.HH.MMSS` timestamp of that build. The backend image SHALL contain the `.crx` from the extension image with the hash of the commit it is built from.
+Each image build in CI SHALL compute the extension inputs hash and reuse the extension image tagged with that hash when the registry has it and its version is not older than the `latest` one, without rebuilding the extension. Otherwise it SHALL build the extension, with the existing version scheme: the `yymm.dd.HH.MMSS` timestamp of that build. The backend image SHALL contain the `.crx` from the extension image with the hash of the commit it is built from.
 
 #### Scenario: Deploys without extension changes advertise the same version
 - **WHEN** two images are built in CI on `main` from commits that differ only in files outside the extension inputs
@@ -61,6 +65,11 @@ Each image build in CI SHALL compute the extension inputs hash and reuse the ext
 - **WHEN** an image is built in CI on `main` from a commit that changes an extension input
 - **THEN** the extension is rebuilt, the extension image is published with the new hash and `latest`, and the backend image serves a `.crx` whose version is greater than the previous one
 - **NOT COVERED BY TEST:** CI and Docker wiring, which the test suites do not run; verified manually on the first deploy with an extension change
+
+#### Scenario: A revert of extension inputs advertises a newer version
+- **WHEN** an image is built in CI on `main` from a commit that reverts the extension inputs to a state whose hash already has an image in the registry, with a version older than the `latest` image
+- **THEN** the extension is rebuilt and the backend image serves a `.crx` whose version is greater than the `latest` one, so installed extensions update to the reverted code
+- **NOT COVERED BY TEST:** CI and Docker wiring, which the test suites do not run; the reuse decision was checked against a stubbed `docker` when the workflow step was written
 
 ### Requirement: Only main publishes the extension image
 Only CI builds on `main` SHALL push the extension image to the registry, tagged with the hash and with `latest`. Builds on other branches SHALL use the extension image they built only for their own backend image.
