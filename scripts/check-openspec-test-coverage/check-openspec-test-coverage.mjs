@@ -2,10 +2,10 @@
 // Cross-checks [OpenSpecScenario] test attributes against openspec/specs/**/spec.md scenarios.
 // See scripts/check-openspec-test-coverage/README.md for the rules this enforces.
 
-import { execFileSync } from 'node:child_process';
-import { readFileSync, realpathSync, globSync } from 'node:fs';
+import { readFileSync, globSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { resolveOpenSpecCli } from './openspec-cli.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const fallbackRoot = path.resolve(scriptDir, '..', '..');
@@ -41,10 +41,8 @@ function requirementKey(specId, requirement) {
 // JSON omits requirement headings. Reuse the parser shipped with the npm CLI
 // on PATH. These internal modules are version-pinned and covered by integration
 // tests; loading/parsing errors must never silently disable coverage checks.
-async function loadOpenSpecParsers() {
-  const executable = realpathSync(execFileSync('which', ['openspec'], { encoding: 'utf8' }).trim());
-  const packageRoot = path.resolve(path.dirname(executable), '..');
-  const installed = JSON.parse(readFileSync(path.join(packageRoot, 'package.json'), 'utf8'));
+async function loadOpenSpecParsers(cli) {
+  const { packageRoot, manifest: installed } = cli;
   const expected = readFileSync(path.join(fallbackRoot, '.openspec-version'), 'utf8').trim();
   if (installed.name !== '@fission-ai/openspec' || installed.version !== expected) {
     throw new Error(`Expected npm-installed @fission-ai/openspec@${expected} on PATH; found ${installed.name}@${installed.version}`);
@@ -56,8 +54,8 @@ async function loadOpenSpecParsers() {
   return { parseDeltaSpec: requirements.parseDeltaSpec, discoverSpecFiles: discovery.discoverSpecFiles };
 }
 
-async function findStartedRequirements(rootDir) {
-  const raw = execFileSync('openspec', ['list', '--json'], { cwd: rootDir, encoding: 'utf8' });
+async function findStartedRequirements(cli, rootDir) {
+  const raw = cli.execSync(['list', '--json'], { cwd: rootDir, encoding: 'utf8' });
   const data = JSON.parse(raw);
   if (data.root.path !== rootDir) throw new Error('OpenSpec changes and specs resolved to different roots');
   const startedChanges = data.changes.filter((change) => {
@@ -68,7 +66,7 @@ async function findStartedRequirements(rootDir) {
   });
   const requirements = new Map();
   if (startedChanges.length === 0) return requirements;
-  const { parseDeltaSpec, discoverSpecFiles } = await loadOpenSpecParsers();
+  const { parseDeltaSpec, discoverSpecFiles } = await loadOpenSpecParsers(cli);
   for (const change of startedChanges) {
     const specsDir = path.join(rootDir, 'openspec', 'changes', change.name, 'specs');
     for (const { id: specId, specFile } of await discoverSpecFiles(specsDir)) {
@@ -89,8 +87,8 @@ async function findStartedRequirements(rootDir) {
   return requirements;
 }
 
-function listSpecIds(rootDir) {
-  const raw = execFileSync('openspec', ['list', '--specs', '--json'], { cwd: rootDir, encoding: 'utf8' });
+function listSpecIds(cli, rootDir) {
+  const raw = cli.execSync(['list', '--specs', '--json'], { cwd: rootDir, encoding: 'utf8' });
   const data = JSON.parse(raw);
   return { specIds: data.specs.map((spec) => spec.id), root: data.root.path };
 }
@@ -187,8 +185,9 @@ async function main() {
   let root;
   let startedRequirements;
   try {
-    ({ specIds, root } = listSpecIds(fallbackRoot));
-    startedRequirements = await findStartedRequirements(root);
+    const cli = resolveOpenSpecCli();
+    ({ specIds, root } = listSpecIds(cli, fallbackRoot));
+    startedRequirements = await findStartedRequirements(cli, root);
   } catch (error) {
     console.error('Failed to load OpenSpec coverage scope. Check the pinned CLI installation and change specs.');
     console.error(error.message);

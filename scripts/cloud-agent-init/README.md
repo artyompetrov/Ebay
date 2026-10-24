@@ -1,6 +1,7 @@
 # Cloud agent init script
 
-`init.sh` provisions a fresh cloud sandbox for working on this repo: PostgreSQL 16,
+`init.sh` provisions a fresh cloud sandbox for working on this repo: `make` (the entry point for repository
+scripts, see the root `Makefile`), PostgreSQL 16,
 the Docker daemon (the sandbox ships Docker but doesn't start it; needed by the Testcontainers-based integration tests),
 the .NET SDK, `dotnet-ef`, `dotnet restore`, `npm install` for the Chrome extension,
 and the OpenSpec CLI. It's idempotent, so re-running it on an already-provisioned

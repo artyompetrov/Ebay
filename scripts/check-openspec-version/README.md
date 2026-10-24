@@ -11,7 +11,7 @@ agents end up following instructions for a different CLI version than the one
 actually installed. The script fails loudly instead of letting that happen silently.
 
 Used by:
-- `scripts/agent-check/agent-check.sh` (local pre-PR check).
+- `make agent-check` (local pre-PR check) and `make openspec-version-check`.
 - `.github/workflows/build-and-tests.yaml`'s `openspec_validate` job.
 
 To fix a reported mismatch: install the pinned version
