@@ -1,0 +1,5 @@
+node_modules/
+tests/
+_extension/build/
+_extension/manifest.json
+**/*.md

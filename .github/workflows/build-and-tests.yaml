@@ -14,6 +14,8 @@ env:
   REGISTRY: ghcr.io
   EBAY_HELPER_IMAGE_NAME: ${{ github.actor }}/ebay:latest
   EBAY_NGINX_IMAGE_NAME: ${{ github.actor }}/nginx:latest
+  # Tagged with the hash of the extension inputs, so the owner, not whoever pushed, keeps lookups stable.
+  EBAY_CHROME_EXTENSION_IMAGE_NAME: ${{ github.repository_owner }}/ebay-chrome-extension
 
 jobs:
 
@@ -95,16 +97,70 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      # NSwag writes the extension's API client while building Server.Client; it is part of the extension inputs hash.
+      - name: Generate Chrome extension API client
+        run: dotnet build ./src/Ebay/Server.Client --configuration Release
+
+      # Every branch logs in: the extension image is looked up and pulled on every build, and the package may be private. Only main pushes.
+      # Runs without the PAT secret (e.g. Dependabot's) skip the registry and build the extension locally.
+      - name: Log in to the registry
+        id: registry
+        env:
+          PAT: ${{ secrets.PAT }}
+        run: |
+          if [ -z "$PAT" ]; then
+            echo "PAT secret is not available, the Chrome extension image will be built without a registry lookup"
+            echo "logged_in=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "$PAT" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+            echo "logged_in=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # The extension is rebuilt, and so gets a new version, only when the image for the hash of its inputs is missing
+      # or older than `latest` (after a revert; Chrome never downgrades). src/ChromeExtension/scripts/extensionImage.mjs
+      # decides and fails on registry errors. Runs without the registry login build the extension without asking.
+      - name: Reuse or build Chrome extension image
+        id: chrome_extension
+        run: |
+          INPUTS_HASH=$(cd ./src/ChromeExtension && npm run --silent inputs-hash)
+          EXTENSION_IMAGE="${{ env.REGISTRY }}/${{ env.EBAY_CHROME_EXTENSION_IMAGE_NAME }}:$INPUTS_HASH"
+          LATEST_IMAGE="${{ env.REGISTRY }}/${{ env.EBAY_CHROME_EXTENSION_IMAGE_NAME }}:latest"
+          echo "image=$EXTENSION_IMAGE" >> "$GITHUB_OUTPUT"
+          DECISION=build
+          if [ "${{ steps.registry.outputs.logged_in }}" = "true" ]; then
+            DECISION=$(node ./src/ChromeExtension/scripts/extensionImage.mjs "$EXTENSION_IMAGE" "$LATEST_IMAGE")
+          fi
+          if [ "$DECISION" = "build" ]; then
+            EXTENSION_VERSION=$(date +'%y%m.%d.%H.%M%S')
+            echo "Building $EXTENSION_IMAGE with version $EXTENSION_VERSION"
+            docker build --build-arg BUILD_VERSION="$EXTENSION_VERSION" --build-arg EBAY_HELPER_BACKEND_DOMAIN="${{ secrets.EBAY_HELPER_BACKEND_DOMAIN }}" --tag "$EXTENSION_IMAGE" ./src/ChromeExtension/
+            echo "built=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Reusing $EXTENSION_IMAGE"
+            echo "built=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Build Docker Images
         run: |
           BUILD_VERSION=$(date +'%y%m.%d.%H.%M%S')
-          docker build -f ./src/Dockerfile --build-arg BUILD_VERSION="$BUILD_VERSION" --build-arg EBAY_HELPER_BACKEND_DOMAIN="${{ secrets.EBAY_HELPER_BACKEND_DOMAIN }}" --tag ${{ env.REGISTRY }}/${{ env.EBAY_HELPER_IMAGE_NAME }} ./src/
+          docker build -f ./src/Dockerfile --build-arg BUILD_VERSION="$BUILD_VERSION" --build-arg EXTENSION_IMAGE="${{ steps.chrome_extension.outputs.image }}" --tag ${{ env.REGISTRY }}/${{ env.EBAY_HELPER_IMAGE_NAME }} ./src/
           docker build -f ./deploy/build/nginx/Dockerfile --tag ${{ env.REGISTRY }}/${{ env.EBAY_NGINX_IMAGE_NAME }} ./deploy/build/nginx/
 
+      # `latest` always matches the extension deployed from main: the next build compares against it, and local builds of src/Dockerfile default to it.
       - name: Publish Docker Images
         if: github.ref == 'refs/heads/main'
         run: |
-          echo ${{ secrets.PAT }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+          EXTENSION_IMAGE="${{ steps.chrome_extension.outputs.image }}"
+          if [ "${{ steps.chrome_extension.outputs.built }}" = "true" ]; then
+            docker push "$EXTENSION_IMAGE"
+          fi
+          docker tag "$EXTENSION_IMAGE" ${{ env.REGISTRY }}/${{ env.EBAY_CHROME_EXTENSION_IMAGE_NAME }}:latest
+          docker push ${{ env.REGISTRY }}/${{ env.EBAY_CHROME_EXTENSION_IMAGE_NAME }}:latest
           docker push ${{ env.REGISTRY }}/${{ env.EBAY_HELPER_IMAGE_NAME }}
           docker push ${{ env.REGISTRY }}/${{ env.EBAY_NGINX_IMAGE_NAME }}
 
