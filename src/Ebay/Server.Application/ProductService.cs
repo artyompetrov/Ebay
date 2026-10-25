@@ -178,10 +178,10 @@ public class ProductService
 
     private static readonly (string From, string To)[] SimpleReplacements =
     [
-       ("\\", "/"),
+        ("\\", "/"),
         ("(", "\\("),
         (")", "\\)"),
-        ("/", "[/\\]"),
+        ("/", @"[/\\]"),
         (".", ","),
         (",", "[,.]"),
     ];
@@ -220,7 +220,7 @@ public class ProductService
 
     // TODO: the product search pattern (how a product's name and search queries match free text) is domain knowledge;
     // move it with its replacement tables into Server.Domain so sale advertisement matching does not depend on ProductService.
-    private static Regex GetProductRegex(ProductInfo productInfo)
+    internal static Regex GetProductRegex(ProductInfo productInfo)
     {
         var productNames = new HashSet<string>
         {
