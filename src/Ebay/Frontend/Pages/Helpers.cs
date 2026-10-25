@@ -5,7 +5,7 @@ namespace Client.Pages;
 
 internal static partial class Helpers
 {
-    public static string GetSearchLink(string query, Guid productId) => $"https://www.ebay.com/sch/i.html?_nkw={query}&LH_Sold=1&tool_productId={productId}";
+    public static string GetSearchLink(string query, Guid productId) => $"https://www.ebay.com/sch/i.html?_nkw={query}&LH_Sold=1&LH_BIN=1&tool_productId={productId}";
 
     /// <summary>
     /// Подсвечивает «меньшинство» (русские или английские буквы) в заданном тексте.
