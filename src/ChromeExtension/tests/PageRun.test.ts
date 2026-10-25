@@ -34,6 +34,7 @@ function environment(telemetry: PageTelemetry, overrides: Partial<PageRunEnviron
             return true;
         },
         onNoProcessors: () => {},
+        onProcessorsMatched: () => {},
         ...overrides
     };
     return env;

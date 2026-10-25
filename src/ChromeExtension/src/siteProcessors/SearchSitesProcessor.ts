@@ -3,6 +3,8 @@ import * as utils from "../infrastructure/Utils";
 import * as constants from '../constants';
 import { ISiteProcessor } from './ISiteProcessor';
 import type {TelemetrySpan} from '../infrastructure/telemetry/PageTelemetry';
+import {telemetry} from '../infrastructure/Telemetry';
+import {tracedIdleScheduler} from '../infrastructure/telemetry/BackgroundWork';
 // noinspection SpellCheckingInspection
 import {v4 as uuidv4} from "uuid";
 import {ClientsFactory} from "../clients/ClientsFactory";
@@ -238,7 +240,9 @@ class SearchSitesProcessor implements ISiteProcessor {
     // Подсветка и подсказка работают сами: подсветка - в периоды простоя браузера и по изменениям DOM.
     private startHighlighting(): void {
         const products = Array.from(this._products.values());
-        new ProductHighlighter(
+        // The scheduler only runs passes after start(), when the highlighter exists.
+        let highlighter: ProductHighlighter | undefined;
+        highlighter = new ProductHighlighter(
             document.body,
             products.map(product => ({
                 id: product.product.id,
@@ -246,9 +250,13 @@ class SearchSitesProcessor implements ISiteProcessor {
                 isInteresting: product.product.isInteresting,
                 isCheckRequired: product.product.isCheckRequired,
             })),
-            callback => window.requestIdleCallback(callback),
+            tracedIdleScheduler(telemetry, 'product highlighting', callback => window.requestIdleCallback(callback), {
+                processedCount: () => highlighter?.processedCount() ?? 0,
+                hasPendingWork: () => highlighter?.hasPendingWork() ?? false
+            }),
             `#${TooltipElementId}`
-        ).start();
+        );
+        highlighter.start();
 
         new ProductTooltip(
             document,

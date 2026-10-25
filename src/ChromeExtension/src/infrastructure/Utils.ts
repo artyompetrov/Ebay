@@ -1,8 +1,11 @@
 ﻿import * as constants from "../constants";
 import {telemetry} from "./Telemetry";
 import {finishClientCall, isBackendCall, startClientCall} from "./telemetry/HttpClientSpans";
+import {cachedOrFallback, CachedData, waitForElement} from "./telemetry/TracedLookups";
 import type {TelemetrySpan} from "./telemetry/PageTelemetry";
 import type {WorkerFetchTiming} from "./telemetry/TelemetryTypes";
+
+const ElementPollIntervalMs = 100;
 
 interface WorkerResponse {
     body: string;
@@ -22,19 +25,9 @@ export function getMax(array: number[]) {
 }
 
 
-// Функция для ожидания загрузки элемента
+// Функция для ожидания загрузки элемента; ожидание записывается спаном `wait <selector>`.
 export async function sleepElementLoaded(selector: string, elementToSearchIn: Document | Element,  retryForever: boolean = false): Promise<Element> {
-    let retry = 0;
-    while (true) {
-        if (!retryForever) {
-            retry++;
-        }
-        if (retry > 200) throw new Error("unable to find element by selector " + selector);
-
-        let element = elementToSearchIn.querySelector(selector);
-        if (element !== null) return element;
-        await sleep(100);
-    }
+    return waitForElement(telemetry, selector, elementToSearchIn, retryForever, () => sleep(ElementPollIntervalMs));
 }
 
 // Функция для паузы выполнения кода
@@ -42,45 +35,17 @@ export function sleep(ms: number): Promise<number> {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-interface CachedData<T> {
-    value: T;
-    expirationTime: number;
-}
-
 export function getCachedDataOrFallback<T>(
     key: string,
     fallbackLogic: () => Promise<T>,
     ttlInSeconds: number
-): Promise<T | null> {
-    return new Promise((resolve, reject) => {
-        chrome.storage.local.get(key, async (result) => {
-            const data: CachedData<T> | undefined = result[key];
-
-            if (data && Date.now() <= data.expirationTime) {
-                // Если данные валидны
-                console.log(`${key} loaded from cache.`);
-                resolve(data.value);
-            } else {
-                // Данные отсутствуют или устарели
-                console.log(`${key} not in cache or expired. Fetching new data...`);
-                try {
-                    const newData = await fallbackLogic(); // Выполняем fallback логику
-                    const expirationTime = Date.now() + ttlInSeconds * 1000;
-
-                    // Сохраняем новые данные в кэш
-                    const cachedData: CachedData<T> = { value: newData, expirationTime };
-                    chrome.storage.local.set({ [key]: cachedData }, () => {
-                        console.log(`${key} cached for ${ttlInSeconds} seconds.`);
-                    });
-
-                    resolve(newData); // Возвращаем данные из fallback логики
-                } catch (error) {
-                    console.error(`Failed to fetch data for ${key}:`, error);
-                    reject(error);
-                }
-            }
-        });
-    });
+): Promise<T> {
+    return cachedOrFallback(telemetry, key, {
+        read: async (cacheKey: string) => (await chrome.storage.local.get(cacheKey))[cacheKey] as CachedData<T> | undefined,
+        write: (cacheKey: string, data: CachedData<T>) => {
+            chrome.storage.local.set({[cacheKey]: data}).catch(error => console.error(`Failed to cache ${cacheKey}:`, error));
+        }
+    }, fallbackLogic, ttlInSeconds, Date.now);
 }
 
 export function removeFromCache(key: string){

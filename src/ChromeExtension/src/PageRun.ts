@@ -26,6 +26,8 @@ export interface PageRunEnvironment {
     checkForUpdates: () => Promise<boolean>;
     /** Called once when no processor matched. */
     onNoProcessors: () => void;
+    /** Called once when processors matched, to start the page observers (long frames). */
+    onProcessorsMatched: () => void;
 }
 
 const NavigationEvents: (keyof NavigationTiming)[] = ['responseEnd', 'domContentLoadedEventEnd', 'loadEventEnd'];
@@ -67,6 +69,7 @@ export async function runPage(processors: ISiteProcessor[], environment: PageRun
     addNavigationEvents(root, environment);
     root.addEvent('extension.script_start', {}, environment.scriptStart);
     root.addEvent('extension.handler_matched', {'extension.processors': names.join(', ')}, matchedAt);
+    environment.onProcessorsMatched();
 
     try {
         const actualVersion = await telemetry.withSpan('update check', {}, () => environment.checkForUpdates());
@@ -76,7 +79,7 @@ export async function runPage(processors: ISiteProcessor[], environment: PageRun
         }
 
         for (const processor of processors) {
-            await telemetry.withSpan(`processor ${processor.name}`, {}, span => processor.run(span));
+            await telemetry.withSpan(`processor ${processor.name}`, {}, span => telemetry.withDefaultParent(span, () => processor.run(span)));
             if (processor.breakAfterSearchProcessor) {
                 break;
             }

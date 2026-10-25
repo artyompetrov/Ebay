@@ -4,6 +4,10 @@ import * as utils from "../infrastructure/Utils";
 import * as constants from '../constants';
 import { ISiteProcessor } from './ISiteProcessor';
 import type {TelemetrySpan} from '../infrastructure/telemetry/PageTelemetry';
+import {telemetry} from '../infrastructure/Telemetry';
+import {showLotPanel} from './ebay/LotPanel';
+import {startBackgroundWork} from '../infrastructure/telemetry/BackgroundWork';
+import {traceClicks} from '../infrastructure/telemetry/PageObservers';
 import {ClientsFactory} from "../clients/ClientsFactory";
 import {Mode} from '../mode';
 import { getLotSyncStatus } from "./ebay/LotSyncStatus";
@@ -270,6 +274,7 @@ class EbaySiteProcessor implements ISiteProcessor {
         div.appendChild(form)
         bodyElement.appendChild(div);
         div.hidden = true
+        traceClicks(telemetry, div);
         this._panel = div;
     }
 
@@ -1080,7 +1085,7 @@ class EbaySiteProcessor implements ISiteProcessor {
         } catch (error) {
             await this.showAndSaveError(error);
         }
-        this._panel.hidden = false;
+        showLotPanel(this._panel, telemetry.pageSpan);
     }
 
 
@@ -1128,12 +1133,16 @@ class EbaySiteProcessor implements ISiteProcessor {
         let ids = links.map(function (x) {
             return x.id
         })
+        // Every iteration is a trace of its own, linked to the page's trace; the client's calls go under it.
+        let pollSpan: TelemetrySpan | undefined;
+        const pollingClient = await new ClientsFactory().getEbayToolBackendClient(() => pollSpan)
         // noinspection InfiniteLoopJS
         while (true) {
+            pollSpan = startBackgroundWork(telemetry, 'poll lot states', {attributes: {'ebay.lots_count': ids.length}})
             try {
                 //console.log("UpdatingLotStates")
-                let getLotStatesAnswer = await this._ebayToolBackendClient.getLotStates(ids)
-                let ignoredLots = new Set(await this._ebayToolBackendClient.getIgnoredLots(this._currentProductId))
+                let getLotStatesAnswer = await pollingClient.getLotStates(ids)
+                let ignoredLots = new Set(await pollingClient.getIgnoredLots(this._currentProductId))
 
                 let lastUpdates = new Map(getLotStatesAnswer.map(p => [p.lotId, p.lastUpdate]));
 
@@ -1149,7 +1158,10 @@ class EbaySiteProcessor implements ISiteProcessor {
 
                 this._needActualizationLotsIds = selectLotsToOpen(classified, this.batchOpen)
             } catch (error) {
+                pollSpan.recordException(error)
                 await this.saveErrorToBackend(error)
+            } finally {
+                pollSpan.end()
             }
             await utils.sleep(1000)
         }

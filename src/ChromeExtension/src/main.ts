@@ -10,6 +10,7 @@ import {Mode} from './mode';
 import {tryGetEbayShippingRateTableSiteProcessor} from "./siteProcessors/EbayShippingRateTableSiteProcessor";
 import {tryGetEbayMagSiteProcessor} from "./siteProcessors/EbayMagSiteProcessor";
 import {NavigationTiming, runPage} from "./PageRun";
+import {LongFrameEntry, observeLongFrames} from "./infrastructure/telemetry/PageObservers";
 
 async function getCurrentMode(): Promise<Mode> {
     const {mode} = await chrome.storage.local.get(['mode']);
@@ -51,6 +52,22 @@ function getNavigationTiming(): NavigationTiming | undefined {
         : {responseEnd: entry.responseEnd, domContentLoadedEventEnd: entry.domContentLoadedEventEnd, loadEventEnd: entry.loadEventEnd};
 }
 
+const LongFrameEntryType = 'long-animation-frame';
+const LongTaskEntryType = 'longtask';
+
+function observeSlowFrames(): void {
+    observeLongFrames(telemetry, performance.timeOrigin, chrome.runtime.getURL(''), onEntries => {
+        const supported = PerformanceObserver.supportedEntryTypes;
+        const type = supported.indexOf(LongFrameEntryType) >= 0 ? LongFrameEntryType : LongTaskEntryType;
+        if (supported.indexOf(type) < 0) {
+            return;
+        }
+
+        new PerformanceObserver(list => onEntries(list.getEntries() as unknown as LongFrameEntry[]))
+            .observe({type, buffered: true});
+    });
+}
+
 export async function run() {
     const mode = await getCurrentMode();
     await runPage(getMatchingSiteProcessors(mode), {
@@ -65,7 +82,8 @@ export async function run() {
             'page.visibility_state': document.visibilityState
         },
         checkForUpdates: UpdatesCheckerClient.checkForUpdates,
-        onNoProcessors: () => console.log("No processors found for current page")
+        onNoProcessors: () => console.log("No processors found for current page"),
+        onProcessorsMatched: observeSlowFrames
     });
 }
 

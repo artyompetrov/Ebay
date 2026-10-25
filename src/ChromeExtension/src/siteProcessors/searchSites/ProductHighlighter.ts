@@ -81,6 +81,7 @@ export class ProductHighlighter {
     private _walker: TreeWalker | null = null;
     private _job: ElementJob | null = null;
     private _isScheduled = false;
+    private _processedCount = 0;
 
     constructor(root: Element, products: readonly HighlightProduct[], requestIdle: IdleScheduler, ignoredSelector: string | null = null) {
         this._root = root;
@@ -140,6 +141,16 @@ export class ProductHighlighter {
         });
     }
 
+    // Сколько элементов проверено с начала работы (для телеметрии проходов).
+    public processedCount(): number {
+        return this._processedCount;
+    }
+
+    // Осталась ли работа после прохода (проход упёрся в конец времени простоя).
+    public hasPendingWork(): boolean {
+        return this.hasWork();
+    }
+
     private hasWork(): boolean {
         return this._job !== null || this._walker !== null || this._pendingElements.size > 0 || this._pendingSubtrees.size > 0;
     }
@@ -155,6 +166,7 @@ export class ProductHighlighter {
             if (!this.advanceJob(this._job, budget)) return;
 
             this.applyHighlight(this._job.element, this._job.matchedIds);
+            this._processedCount++;
             this._job = null;
         }
     }

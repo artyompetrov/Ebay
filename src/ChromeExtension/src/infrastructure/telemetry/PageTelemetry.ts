@@ -186,6 +186,7 @@ export class PageTelemetry {
     private discarded = false;
     private sendScheduled = false;
     private root: TelemetrySpan | undefined;
+    private defaultParent: TelemetrySpan | undefined;
 
     constructor(options: PageTelemetryOptions) {
         this.options = options;
@@ -239,7 +240,7 @@ export class PageTelemetry {
     }
 
     startSpan(name: string, options: StartSpanOptions = {}): TelemetrySpan {
-        const parent = options.parent === undefined ? this.root : options.parent ?? undefined;
+        const parent = options.parent === undefined ? this.defaultParent ?? this.root : options.parent ?? undefined;
         const parentContext = parent?.context;
         const span = new TelemetrySpan(this, {
             traceId: parentContext?.traceId ?? toHex(this.options.randomBytes(TraceIdBytes)),
@@ -272,6 +273,20 @@ export class PageTelemetry {
         }
     }
 
+    /**
+     * Makes `span` the parent of spans and logs started without an explicit parent while `work` runs (a processor
+     * run), instead of the page root span. Processors run one after another, so this needs no async context.
+     */
+    async withDefaultParent<T>(span: TelemetrySpan, work: () => Promise<T>): Promise<T> {
+        const previous = this.defaultParent;
+        this.defaultParent = span;
+        try {
+            return await work();
+        } finally {
+            this.defaultParent = previous;
+        }
+    }
+
     /** W3C `traceparent` value that makes the receiver continue the trace under `span`. */
     traceParent(span: TelemetrySpan): string {
         const context = span.context;
@@ -284,7 +299,7 @@ export class PageTelemetry {
             return;
         }
 
-        const context = (span ?? this.root)?.context;
+        const context = (span ?? this.defaultParent ?? this.root)?.context;
         const record: LogRecord = {
             time: this.options.now(),
             severity,

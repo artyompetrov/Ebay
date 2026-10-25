@@ -6,9 +6,16 @@ import {fetchResource} from "../infrastructure/Utils";
 import {FetchWrapperCustom} from "./FetchWrapperCustom";
 import type {TelemetrySpan} from "../infrastructure/telemetry/PageTelemetry";
 
-/** `fetch` whose calls are recorded as client spans under `parent` (by default the page root span). */
-function tracedFetch(parent?: TelemetrySpan): typeof fetch {
-    return (input: RequestInfo, init?: RequestInit) => fetchResource(input, init ?? {}, parent);
+/**
+ * Parent of a client's calls: a span, or a function returning the current one (a polling client whose every
+ * iteration is its own trace). Without it calls go under the current processor span or the page root span.
+ */
+export type SpanSource = TelemetrySpan | (() => TelemetrySpan | undefined);
+
+/** `fetch` whose calls are recorded as client spans under `parent`. */
+function tracedFetch(parent?: SpanSource): typeof fetch {
+    return (input: RequestInfo, init?: RequestInit) =>
+        fetchResource(input, init ?? {}, typeof parent === 'function' ? parent() : parent);
 }
 
 export class ClientsFactory {
@@ -41,7 +48,7 @@ export class ClientsFactory {
         }
     }
 
-    async getBackendOAuth2Client(parent?: TelemetrySpan): Promise<OAuth2Client> {
+    async getBackendOAuth2Client(parent?: SpanSource): Promise<OAuth2Client> {
         await this.saveCodeVerifier();
         
         return new OAuth2Client({
@@ -53,7 +60,7 @@ export class ClientsFactory {
         });
     }
 
-    async getEbayOAuth2Client(parent?: TelemetrySpan): Promise<OAuth2Client> {
+    async getEbayOAuth2Client(parent?: SpanSource): Promise<OAuth2Client> {
         await this.saveCodeVerifier();
         const settings = await this.getEbaySettings();
 
@@ -68,7 +75,7 @@ export class ClientsFactory {
     }
 
     /** Backend client whose calls are recorded under `parent` (by default the page root span). */
-    async getEbayToolWebApiClient(parent?: TelemetrySpan): Promise<EbayToolWebApiClient.EbayToolWebApiClient> {
+    async getEbayToolWebApiClient(parent?: SpanSource): Promise<EbayToolWebApiClient.EbayToolWebApiClient> {
         await chrome.storage.local.set({return_page: document.location.href});
 
         return new EbayToolWebApiClient.EbayToolWebApiClient(constants.Urls.backendUrl + 'api',
@@ -76,12 +83,12 @@ export class ClientsFactory {
 
     }
 
-    async getEbayToolBackendClient(parent?: TelemetrySpan): Promise<EbayToolWebApiClient.EbayToolWebApiClient> {
+    async getEbayToolBackendClient(parent?: SpanSource): Promise<EbayToolWebApiClient.EbayToolWebApiClient> {
         return this.getEbayToolWebApiClient(parent);
     }
     
     /** eBay API client whose calls are recorded under `parent` (by default the page root span). */
-    async getEbayClient(parent?: TelemetrySpan): Promise<EbayClient.EbayClient> {
+    async getEbayClient(parent?: SpanSource): Promise<EbayClient.EbayClient> {
         await chrome.storage.local.set({return_page: document.location.href});
         const settings = await this.getEbaySettings();
 
@@ -90,7 +97,7 @@ export class ClientsFactory {
 
     }
 
-    getAuthorizeFetch(oAuth2Client: OAuth2Client, scope: string, tokenStore: string, redirectUri: string, parent?: TelemetrySpan): FetchWrapperCustom {
+    getAuthorizeFetch(oAuth2Client: OAuth2Client, scope: string, tokenStore: string, redirectUri: string, parent?: SpanSource): FetchWrapperCustom {
         return new FetchWrapperCustom({
             client: oAuth2Client,
             getNewToken: async () => {

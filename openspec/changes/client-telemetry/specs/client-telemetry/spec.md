@@ -92,7 +92,7 @@ Within a processed page the extension SHALL record a span for each wait for a pa
 - **THEN** a cache lookup span with cache-hit attribute `true` is exported
 
 ### Requirement: Extension background work is traced as linked traces
-Each polling iteration and each idle-time processing pass of a page SHALL be recorded as the root span of its own trace, linked to the page's root span, so a long-open page never grows a single trace without bound.
+Each polling iteration and each idle-time processing pass of a page SHALL be recorded as the root span of its own trace, linked to the page's root span, so a long-open page never grows a single trace without bound. At most 60 idle passes per minute SHALL be recorded; the passes left out are counted on the next recorded one.
 
 #### Scenario: A polling iteration is its own linked trace
 - **WHEN** a processor performs a polling iteration after its initial run
@@ -101,6 +101,10 @@ Each polling iteration and each idle-time processing pass of a page SHALL be rec
 #### Scenario: An idle highlighting pass is its own linked trace
 - **WHEN** the search-site highlighter runs an idle-time pass
 - **THEN** the pass is exported as a root span with a link to the page's root span and attributes for the items processed
+
+#### Scenario: Idle passes beyond the per-minute cap are counted
+- **WHEN** the highlighter runs 61 idle passes within one minute and then another pass in the next minute
+- **THEN** 60 passes of the first minute are exported, and the pass of the next minute carries a skipped-passes count of 1
 
 ### Requirement: Extension backend calls are client spans that parent backend spans
 The extension SHALL record a client span for every HTTP call (method, path without query, server address, status) and SHALL send a sampled `traceparent` naming that span to the backend only. Calls from one page load SHALL share the trace of their parent span, which for page work is the page trace. A failure or `5xx` SHALL mark the span as an error.
@@ -129,11 +133,11 @@ For each HTTP call the extension SHALL record, as children of the call's client 
 - **THEN** a worker fetch span is exported as a child of the call's client span, and the client span's duration covers it
 
 ### Requirement: Extension slow frames and panel interactions are traced
-On a processed page the extension SHALL record long animation frames over 50 ms as span events with the duration and whether extension scripts ran in them, at most 60 per minute, and SHALL record each click on its own panel controls as a span named after the control id, without any entered values.
+On a processed page the extension SHALL record long animation frames over 50 ms as spans in the page trace with the duration and whether extension scripts ran in them, at most 60 per minute, and SHALL record each click on its own panel controls as a span named after the control id, without any entered values.
 
 #### Scenario: A long frame caused by the extension is recorded
 - **WHEN** an extension script blocks the page for more than 50 ms on a processed page
-- **THEN** a long-frame event with its duration and an extension-script attribute `true` is exported in the page trace
+- **THEN** a long-frame span with its duration and an extension-script attribute `true` is exported in the page trace
 
 #### Scenario: A panel button click is a span without values
 - **WHEN** the user types a price into the lot panel and clicks its submit button
