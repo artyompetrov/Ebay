@@ -2,10 +2,14 @@ using System.IO.Compression;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using Client.Clients.Generated;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework.Internal;
 using Polly;
 using Polly.Timeout;
+using Server.Application.Abstractions.Driven.Abstractions;
+using Server.Application.Abstractions.Driven.Abstractions.Repositories;
 using SkiaSharp;
+using DomainCurrency = Server.Domain.Currency;
 
 namespace Tests.Integration;
 
@@ -59,6 +63,29 @@ public static class TestHelpers
     }
 
     public static WebApiClient CreateWebApiClient(HttpClient httpClient) => new(httpClient);
+
+    public static async Task EnsureCurrencyExistsAsync(string currencyEbayName)
+    {
+        var services = IntegrationTestsSetupFixture.Factory.Services;
+        var currencyRepository = services.GetRequiredService<ICurrencyRepository>();
+        await using var unitOfWork = await services.GetRequiredService<IWriteModelUnitOfWorkFactory>()
+            .BeginAsync(CancellationToken.None);
+
+        var existing = await currencyRepository.GetByIdAsync(unitOfWork, currencyEbayName, CancellationToken.None);
+        if (existing != null)
+        {
+            return;
+        }
+
+        var currency = DomainCurrency.Create(
+            currencyEbayName: currencyEbayName,
+            currencyRusName: currencyEbayName,
+            currencyApiName: currencyEbayName,
+            currencyRate: 1.0,
+            lastUpdate: DateTimeOffset.UtcNow);
+        await currencyRepository.AddAsync(unitOfWork, currency, CancellationToken.None);
+        await unitOfWork.SaveChangesAsync(CancellationToken.None);
+    }
 
     public static async Task<Guid> CreateProductAsync(WebApiClient ebayClient)
     {
