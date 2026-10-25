@@ -1,4 +1,5 @@
 ﻿import {OAuth2Client, OAuth2Token} from '@badgateway/oauth2-client';
+import {logger} from '../infrastructure/Telemetry';
 
 
 type OAuth2FetchOptions = {
@@ -187,7 +188,7 @@ export class FetchWrapperCustom {
                     newToken = await this.options.client.refreshToken(oldToken);
                 }
             } catch (err) {
-                console.warn('[oauth2] refresh token not accepted, we\'ll try reauthenticating');
+                logger.warn('[oauth2] Refresh token not accepted, re-authenticating');
             }
 
             if (!newToken) {
@@ -253,7 +254,7 @@ export class FetchWrapperCustom {
                 await this.refreshToken();
             } catch (err) {
                 // eslint-disable-next-line no-console
-                console.error('[fetch-mw-oauth2] error while doing a background OAuth2 auto-refresh', err);
+                logger.error('[oauth2] Background OAuth2 token refresh failed', err);
             }
         }, expiresIn - 60 * 1000);
 

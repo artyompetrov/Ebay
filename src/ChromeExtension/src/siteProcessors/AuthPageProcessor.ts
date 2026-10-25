@@ -1,5 +1,6 @@
 ﻿import { ISiteProcessor } from './ISiteProcessor';
 import type {TelemetrySpan} from '../infrastructure/telemetry/PageTelemetry';
+import {logger} from '../infrastructure/Telemetry';
 import {ClientsFactory} from "../clients/ClientsFactory";
 import * as constants from '../constants';
 import * as utils from "../infrastructure/Utils";
@@ -28,7 +29,7 @@ class AuthPageProcessor implements ISiteProcessor {
     }
 
     async  extensionAuthPage() {
-        console.log("extensionAuthPage")
+        logger.debug("extensionAuthPage")
         let clientsFactory = new ClientsFactory();
         let backendOAuth2Client = await clientsFactory.getBackendOAuth2Client();
         let url = new URL(document.location.href)
@@ -58,7 +59,7 @@ class AuthPageProcessor implements ISiteProcessor {
     }
     
     async  ebayApiAuthPage() {
-        console.log("ebayApiAuthPage")
+        logger.debug("ebayApiAuthPage")
         let clientsFactory = new ClientsFactory();
         let ebayOAuth2Client = await clientsFactory.getEbayOAuth2Client();
         const settings = await clientsFactory.getEbaySettings();

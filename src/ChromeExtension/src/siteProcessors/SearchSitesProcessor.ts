@@ -3,7 +3,7 @@ import * as utils from "../infrastructure/Utils";
 import * as constants from '../constants';
 import { ISiteProcessor } from './ISiteProcessor';
 import type {TelemetrySpan} from '../infrastructure/telemetry/PageTelemetry';
-import {telemetry} from '../infrastructure/Telemetry';
+import {logger, telemetry} from '../infrastructure/Telemetry';
 import {tracedIdleScheduler} from '../infrastructure/telemetry/BackgroundWork';
 // noinspection SpellCheckingInspection
 import {v4 as uuidv4} from "uuid";
@@ -89,7 +89,7 @@ class SearchSitesProcessor implements ISiteProcessor {
         if (productId) {
             const trimmedProductId = productId.trim().toLowerCase();
             if (!cached.some(p => p.product.id.trim().toLowerCase() === trimmedProductId)) {
-                console.log(`Product ID ${trimmedProductId} not found in cache, refreshing cache, clearing cache...`);
+                logger.debug(`Product ID ${trimmedProductId} not found in cache, refreshing the cache`);
                 utils.removeFromCache(allItemsCacheIdentifier);
 
                 cached = await utils.getCachedDataOrFallback(allItemsCacheIdentifier, async () => {
@@ -142,7 +142,7 @@ class SearchSitesProcessor implements ISiteProcessor {
 
 // Обработка страницы chipfind.ru
     async processChipFind(): Promise<void> {
-        console.log("processChipFind");
+        logger.debug("processChipFind");
         if (location.pathname === "/market/search.htm" || location.pathname === "/market/") {
             await utils.sleepElementLoaded('div.pages', document);
             await utils.sleepElementLoaded('.plus a', document);
@@ -175,7 +175,7 @@ class SearchSitesProcessor implements ISiteProcessor {
 
     // Обработка страницы avito.ru в фоне
     async processAvitoBackground(): Promise<void> {
-        console.log("processAvitoBackground");
+        logger.debug("processAvitoBackground");
         let found = false;
         do {
             await utils.sleep(300);
@@ -191,7 +191,7 @@ class SearchSitesProcessor implements ISiteProcessor {
 
     // Обработка страницы avito.ru
     async processAvito(): Promise<void> {
-        console.log("processAvito");
+        logger.debug("processAvito");
         let description = document.querySelectorAll<HTMLDivElement>('div[itemprop="description"]');
 
         description.forEach(function (post) {
@@ -285,7 +285,7 @@ class SearchSitesProcessor implements ISiteProcessor {
     }
 
     public async run(span: TelemetrySpan): Promise<void> {
-        console.log("searchSitePages");
+        logger.debug("searchSitePages");
         
         const clientsFactory = new ClientsFactory();
         this._ebayToolBackendClient = await clientsFactory.getEbayToolBackendClient()
@@ -304,7 +304,7 @@ class SearchSitesProcessor implements ISiteProcessor {
         // noinspection JSUnusedLocalSymbols
         chrome.runtime.onMessage.addListener(async (message: {action: string, text: string}, sender, sendResponse) => {
             if (message.action === "processText") {
-                console.log("Received message", message.text);
+                logger.local("Received message", message.text);
                 try {
                     const productName = message.text.trim();
                     await this._ebayToolBackendClient.createProduct(new EbayToolBackendClient.ProductWithoutId({
@@ -321,7 +321,7 @@ class SearchSitesProcessor implements ISiteProcessor {
                 }
                 catch (error) {
                     this.showToast("Error while creating a product");
-                    console.log(JSON.stringify(error))
+                    logger.error("Failed to create a product", error)
                 }
             }
         });

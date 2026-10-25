@@ -2,6 +2,7 @@
 // records to the background worker (openspec/specs/client-telemetry).
 
 import {PageTelemetry} from './telemetry/PageTelemetry';
+import {Logger, logUncaughtErrors} from './telemetry/Logger';
 import type {TelemetryBatchMessage} from './telemetry/TelemetryTypes';
 
 function send(message: TelemetryBatchMessage): void {
@@ -27,6 +28,11 @@ export const telemetry = new PageTelemetry({
         setTimeout(callback, delayMs);
     }
 });
+
+/** Logs to the console and records for export (the worker exports what the backend's level allows). */
+export const logger = new Logger(telemetry, console);
+
+logUncaughtErrors(window, logger, chrome.runtime.getURL(''));
 
 // Hidden: hand everything over now, a background tab may never get another chance. Unloaded: also end the root.
 document.addEventListener('visibilitychange', () => {

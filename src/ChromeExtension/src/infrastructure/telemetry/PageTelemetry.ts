@@ -132,6 +132,11 @@ export class TelemetrySpan {
     }
 
     setAttribute(name: string, value: AttributeValue): this {
+        // An ended span may already be queued for export: it must not change any more.
+        if (this.ended) {
+            return this;
+        }
+
         this.record.attributes[name] = limit(value);
         return this;
     }
@@ -144,6 +149,10 @@ export class TelemetrySpan {
     }
 
     addEvent(name: string, attributes: Attributes = {}, time?: number): this {
+        if (this.ended) {
+            return this;
+        }
+
         const event: SpanEventRecord = {name, time: time ?? this.owner.now(), attributes: {}};
         for (const key of Object.keys(attributes)) {
             event.attributes[key] = limit(attributes[key]);
@@ -159,6 +168,10 @@ export class TelemetrySpan {
     }
 
     setError(message: string): this {
+        if (this.ended) {
+            return this;
+        }
+
         this.record.status = StatusError;
         this.record.statusMessage = limit(message) as string;
         return this;
@@ -196,6 +209,11 @@ export class PageTelemetry {
     /** The page root span, once {@link startPageSpan} was called. */
     get pageSpan(): TelemetrySpan | undefined {
         return this.root;
+    }
+
+    /** The span work without an explicit parent goes under: the current processor (or submit) span or the page root. */
+    get currentSpan(): TelemetrySpan | undefined {
+        return this.defaultParent ?? this.root;
     }
 
     get isActive(): boolean {

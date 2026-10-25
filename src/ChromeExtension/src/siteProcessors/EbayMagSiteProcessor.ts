@@ -1,5 +1,6 @@
 import { ISiteProcessor } from './ISiteProcessor';
 import type {TelemetrySpan} from '../infrastructure/telemetry/PageTelemetry';
+import {logger} from '../infrastructure/Telemetry';
 import * as utils from "../infrastructure/Utils";
 import { ClientsFactory } from "../clients/ClientsFactory";
 import { highlightStockRows, StockLot } from "./ebayMag/StockQuantityHighlighter";
@@ -41,7 +42,7 @@ class EbayMagSiteProcessor implements ISiteProcessor {
                     await this.searchForDescription();
                 }
                 catch (e) {
-                    console.error(e);
+                    logger.error("ebayMag background processing failed", e);
                 }
 
                 await utils.sleep(1000);
@@ -140,7 +141,7 @@ class EbayMagSiteProcessor implements ISiteProcessor {
             return description;
         }
         catch (error) {
-            console.error('Failed to load lot description', error);
+            logger.error('Failed to load lot description', error);
             return null;
         }
     }
@@ -177,7 +178,7 @@ class EbayMagSiteProcessor implements ISiteProcessor {
             link.textContent = initialText;
             this.setLinkDifferenceState(link, this.hasDescriptionDifference(description, textarea.value));
         } catch (error) {
-            console.error('Failed to update lot description', error);
+            logger.error('Failed to update lot description', error);
             link.textContent = initialText ?? lotId;
         }
     }

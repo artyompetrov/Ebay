@@ -1,4 +1,5 @@
 ﻿import * as Utils from "../infrastructure/Utils"; 
+import {logger} from '../infrastructure/Telemetry';
 
 export async function  checkForUpdates(): Promise<boolean> {
     const currentVersion = chrome.runtime.getManifest().version;
@@ -45,7 +46,7 @@ export async function  checkForUpdates(): Promise<boolean> {
         let alertMessage = `Ebay Helper extension New version available: ${remoteVersion}`
         if (currentVersion === "1.0.0.0") {
             // Локальный дебаг
-            console.log("Alerting " + alertMessage)
+            logger.info("Alerting " + alertMessage)
 
             return true;
         } else {
@@ -55,7 +56,7 @@ export async function  checkForUpdates(): Promise<boolean> {
         }
     }
 
-    console.log("No updates available. Current version is up-to-date.");
+    logger.debug("No updates available, the extension is up to date");
 
     return true;
 }

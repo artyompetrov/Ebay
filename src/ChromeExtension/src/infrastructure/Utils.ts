@@ -1,5 +1,5 @@
 ﻿import * as constants from "../constants";
-import {telemetry} from "./Telemetry";
+import {logger, telemetry} from "./Telemetry";
 import {finishClientCall, isBackendCall, startClientCall} from "./telemetry/HttpClientSpans";
 import {cachedOrFallback, CachedData, waitForElement} from "./telemetry/TracedLookups";
 import type {TelemetrySpan} from "./telemetry/PageTelemetry";
@@ -43,7 +43,7 @@ export function getCachedDataOrFallback<T>(
     return cachedOrFallback(telemetry, key, {
         read: async (cacheKey: string) => (await chrome.storage.local.get(cacheKey))[cacheKey] as CachedData<T> | undefined,
         write: (cacheKey: string, data: CachedData<T>) => {
-            chrome.storage.local.set({[cacheKey]: data}).catch(error => console.error(`Failed to cache ${cacheKey}:`, error));
+            chrome.storage.local.set({[cacheKey]: data}).catch(error => logger.error(`Failed to cache ${cacheKey}`, error));
         }
     }, fallbackLogic, ttlInSeconds, Date.now);
 }
@@ -84,46 +84,26 @@ export async function fetchResource(input: RequestInfo, originalInit: RequestIni
             try {
                 const [response, error, timing] = messageResponse as [WorkerResponse | null, unknown, WorkerFetchTiming];
                 finishClientCall(telemetry, call, response === null ? { error, timing } : { status: response.status, timing });
-                let logEntry = "Request: " + JSON.stringify(input);
-                if (isBackendCall(input, constants.Urls.backendUrl)) {
-                    logEntry += "\nTrace id: " + call.span.context.traceId;
-                }
-                if (constants.Settings.extendedLogging) {
-                    logEntry += "\n\nRequest body: \n" + JSON.stringify(init);
-                }
+                logger.httpCall({
+                    method: (init.method ?? 'GET').toUpperCase(),
+                    url: typeof input === 'string' ? input : input.url,
+                    status: response?.status,
+                    isBackendCall: isBackendCall(input, constants.Urls.backendUrl),
+                    requestBody: typeof init.body === 'string' ? init.body : undefined,
+                    responseBody: response?.body,
+                    span: call.span
+                });
                 if (response === null) {
-                    logEntry += "\n\nNo response"
-                    console.log(logEntry);
                     reject(error);
                 } else {
-                    logEntry += "\n\nResponse " + response.status + " " + response.statusText;
-
-                    if (constants.Settings.extendedLogging) {
-                        logEntry += "\n\nResponse headers:\n" + JSON.stringify(response.headers);
-                    }
-
-                    let body = new Blob([response.body]);
-
-
-                    if (constants.Settings.extendedLogging) {
-                        logEntry += "\n\nResponse body:\n";
-                        try {
-                            const loggedBody = await new Response(body).text();
-                            logEntry += loggedBody;
-                        } catch (logError) {
-                            logEntry += "Failed to log response body: " + logError;
-                        }
-                    }
-
-                    console.log(logEntry);
-                    resolve(new Response(body, {
+                    resolve(new Response(new Blob([response.body]), {
                         headers: new Headers(response.headers),
                         status: response.status,
                         statusText: response.statusText
                     }));
                 }
             } catch (error) {
-                console.log("An error occurred while processing the response:", error);
+                logger.error("Failed to process the response", error, {}, call.span);
                 reject(error);
             }
         });

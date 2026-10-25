@@ -34,6 +34,3 @@ export const Auth = {
     }
 };
 
-export const Settings = {
-    extendedLogging: true
-};

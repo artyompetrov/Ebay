@@ -1,5 +1,5 @@
 // First import: the telemetry module is evaluated before the others, so its start time is the script start.
-import {scriptStart, telemetry} from "./infrastructure/Telemetry";
+import {logger, scriptStart, telemetry} from "./infrastructure/Telemetry";
 import * as UpdatesCheckerClient from "./clients/UpdatesCheckerClient";
 import {tryGetEbaySiteProcessor} from "./siteProcessors/EbaySiteProcessor";
 import {ISiteProcessor} from "./siteProcessors/ISiteProcessor";
@@ -82,7 +82,7 @@ export async function run() {
             'page.visibility_state': document.visibilityState
         },
         checkForUpdates: UpdatesCheckerClient.checkForUpdates,
-        onNoProcessors: () => console.log("No processors found for current page"),
+        onNoProcessors: () => logger.debug("No processors found for current page"),
         onProcessorsMatched: observeSlowFrames
     });
 }
