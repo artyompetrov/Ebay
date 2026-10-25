@@ -6,7 +6,8 @@ if (!backendDomain) { throw new Error('EBAY_HELPER_BACKEND_DOMAIN is required');
 module.exports = {
     entry: {
         ebay: "./src/main.ts",
-        options: "./src/options.ts"
+        options: "./src/options.ts",
+        background: "./src/background.ts"
     },
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],

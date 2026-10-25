@@ -276,11 +276,15 @@ Clients SHALL export in batches below 1 MiB, keep at most 2048 pending items (dr
 - **THEN** it is posted as several batches, each below 1 MiB
 
 ### Requirement: Pending telemetry leaves the page when it is hidden
-When a page is hidden or unloaded, a client SHALL end its open page-level span and hand all pending records over for export without waiting for the batch interval.
+When a page becomes hidden or is unloaded, a client SHALL hand all pending records over for export without waiting for the batch interval. When the page is unloaded, the extension SHALL first end its page root span if it is still open. A page that is only hidden (e.g. a lot opened in a background tab) keeps its root span open.
 
 #### Scenario: Extension records leave the tab when it is hidden
 - **WHEN** a processed page with unsent spans becomes hidden
-- **THEN** the root span is ended and the pending records are handed to the background worker in the same event handler
+- **THEN** the pending records are handed to the background worker in the same event handler, and the root span stays open
+
+#### Scenario: An unloaded page ends its root span
+- **WHEN** a processed page whose root span is still open is unloaded
+- **THEN** the root span is ended and handed to the background worker in the same event handler
 
 #### Scenario: Frontend records are exported when the tab is hidden
 - **WHEN** the frontend tab becomes hidden with unexported spans

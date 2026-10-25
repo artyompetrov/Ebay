@@ -3,6 +3,7 @@ import * as EbayToolBackendClient from "../clients/Generated/EbayToolWebApiClien
 import * as utils from "../infrastructure/Utils";
 import * as constants from '../constants';
 import { ISiteProcessor } from './ISiteProcessor';
+import type {TelemetrySpan} from '../infrastructure/telemetry/PageTelemetry';
 import {ClientsFactory} from "../clients/ClientsFactory";
 import {Mode} from '../mode';
 import { getLotSyncStatus } from "./ebay/LotSyncStatus";
@@ -77,6 +78,7 @@ class LotLink {
 
 
 class EbaySiteProcessor implements ISiteProcessor {
+    readonly name = 'EbaySiteProcessor';
 
     breakAfterSearchProcessor: boolean = false;
     
@@ -1154,7 +1156,7 @@ class EbaySiteProcessor implements ISiteProcessor {
     }
 
 
-    public async run() {
+    public async run(span: TelemetrySpan) {
         
         let clientsFactory = new ClientsFactory();
         this._ebayClient = await clientsFactory.getEbayClient();

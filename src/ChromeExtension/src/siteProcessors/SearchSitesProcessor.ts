@@ -2,6 +2,7 @@ import * as EbayToolBackendClient from "../clients/Generated/EbayToolWebApiClien
 import * as utils from "../infrastructure/Utils";
 import * as constants from '../constants';
 import { ISiteProcessor } from './ISiteProcessor';
+import type {TelemetrySpan} from '../infrastructure/telemetry/PageTelemetry';
 // noinspection SpellCheckingInspection
 import {v4 as uuidv4} from "uuid";
 import {ClientsFactory} from "../clients/ClientsFactory";
@@ -53,6 +54,7 @@ class ProductWithRegex {
 }
 
 class SearchSitesProcessor implements ISiteProcessor {
+    readonly name = 'SearchSitesProcessor';
     breakAfterSearchProcessor: boolean = false;
     
     private _ebayToolBackendClient: EbayToolBackendClient.EbayToolWebApiClient;
@@ -274,7 +276,7 @@ class SearchSitesProcessor implements ISiteProcessor {
         };
     }
 
-    public async run(): Promise<void> {
+    public async run(span: TelemetrySpan): Promise<void> {
         console.log("searchSitePages");
         
         const clientsFactory = new ClientsFactory();

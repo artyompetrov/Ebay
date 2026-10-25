@@ -1,4 +1,5 @@
 ﻿import { ISiteProcessor } from './ISiteProcessor';
+import type {TelemetrySpan} from '../infrastructure/telemetry/PageTelemetry';
 import {ClientsFactory} from "../clients/ClientsFactory";
 import * as constants from '../constants';
 import * as utils from "../infrastructure/Utils";
@@ -15,8 +16,9 @@ export function tryGetAuthPageProcessor() : ISiteProcessor | null {
 
 
 class AuthPageProcessor implements ISiteProcessor {
+    readonly name = 'AuthPageProcessor';
     breakAfterSearchProcessor: boolean = true;
-    async run(): Promise<void> {
+    async run(span: TelemetrySpan): Promise<void> {
         let currentPage = location.protocol + '//' + location.host + location.pathname
         if (currentPage === constants.Urls.extensionAuthRedirectUrl) {
             await this.extensionAuthPage();

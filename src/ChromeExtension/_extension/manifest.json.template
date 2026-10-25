@@ -37,6 +37,6 @@
   ],
   "options_page": "options.html",
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "build/background.js"
   }
 }

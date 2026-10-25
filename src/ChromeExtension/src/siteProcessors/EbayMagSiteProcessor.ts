@@ -1,4 +1,5 @@
 import { ISiteProcessor } from './ISiteProcessor';
+import type {TelemetrySpan} from '../infrastructure/telemetry/PageTelemetry';
 import * as utils from "../infrastructure/Utils";
 import { ClientsFactory } from "../clients/ClientsFactory";
 import { highlightStockRows, StockLot } from "./ebayMag/StockQuantityHighlighter";
@@ -16,11 +17,12 @@ export function tryGetEbayMagSiteProcessor(): ISiteProcessor | null {
 }
 
 class EbayMagSiteProcessor implements ISiteProcessor {
+    readonly name = 'EbayMagSiteProcessor';
     breakAfterSearchProcessor: boolean = true;
     private backendClient: EbayToolWebApiClientType | null = null;
     private readonly lotDescriptionCache = new Map<string, string>();
 
-    async run(): Promise<void> {
+    async run(span: TelemetrySpan): Promise<void> {
         await utils.sleepElementLoaded('body', document);
 
         let clientsFactory = new ClientsFactory();

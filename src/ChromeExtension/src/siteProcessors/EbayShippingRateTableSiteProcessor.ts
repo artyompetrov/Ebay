@@ -1,4 +1,5 @@
 ﻿import { ISiteProcessor } from './ISiteProcessor';
+import type {TelemetrySpan} from '../infrastructure/telemetry/PageTelemetry';
 import * as utils from "../infrastructure/Utils";
 import {ClientsFactory} from "../clients/ClientsFactory";
 
@@ -14,9 +15,10 @@ export function tryGetEbayShippingRateTableSiteProcessor() : ISiteProcessor | nu
 }
 
 class EbayShippingRateTableSiteProcessor implements ISiteProcessor {
+    readonly name = 'EbayShippingRateTableSiteProcessor';
     breakAfterSearchProcessor: boolean = true;
 
-    async run(): Promise<void> {
+    async run(span: TelemetrySpan): Promise<void> {
         let value = (<HTMLSelectElement>(await utils.sleepElementLoaded("#createRateTables", document))).value;
 
         let clientsFactory = new ClientsFactory();

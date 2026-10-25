@@ -1,3 +1,5 @@
+// First import: the telemetry module is evaluated before the others, so its start time is the script start.
+import {scriptStart, telemetry} from "./infrastructure/Telemetry";
 import * as UpdatesCheckerClient from "./clients/UpdatesCheckerClient";
 import {tryGetEbaySiteProcessor} from "./siteProcessors/EbaySiteProcessor";
 import {ISiteProcessor} from "./siteProcessors/ISiteProcessor";
@@ -7,13 +9,14 @@ import {tryGetAvitoSavedSearchesProcessor} from "./siteProcessors/AvitoSavedSear
 import {Mode} from './mode';
 import {tryGetEbayShippingRateTableSiteProcessor} from "./siteProcessors/EbayShippingRateTableSiteProcessor";
 import {tryGetEbayMagSiteProcessor} from "./siteProcessors/EbayMagSiteProcessor";
+import {NavigationTiming, runPage} from "./PageRun";
 
-async function getMatchingSiteProcessors(): Promise<ISiteProcessor[]> {
+async function getCurrentMode(): Promise<Mode> {
     const {mode} = await chrome.storage.local.get(['mode']);
-    let currentMode = mode as Mode;
-    if (!currentMode) {
-        currentMode = Mode.NotSelected
-    }
+    return (mode as Mode) || Mode.NotSelected;
+}
+
+function getMatchingSiteProcessors(currentMode: Mode): ISiteProcessor[] {
 
     let processors: ISiteProcessor[]
     switch(currentMode) {
@@ -41,22 +44,29 @@ async function getMatchingSiteProcessors(): Promise<ISiteProcessor[]> {
     return processors.filter((processor) => processor !== null);
 }
 
+function getNavigationTiming(): NavigationTiming | undefined {
+    const [entry] = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];
+    return entry === undefined
+        ? undefined
+        : {responseEnd: entry.responseEnd, domContentLoadedEventEnd: entry.domContentLoadedEventEnd, loadEventEnd: entry.loadEventEnd};
+}
+
 export async function run() {
-    const actualVersion = await UpdatesCheckerClient.checkForUpdates();
-    if (!actualVersion) return;
-
-    const processors = await getMatchingSiteProcessors();
-    if (processors.length > 0) {
-        for (const processor of processors) {
-            await processor.run();
-
-            if (processor.breakAfterSearchProcessor) {
-                break;
-            }
-        }
-    } else {
-        console.log("No processors found for current page");
-    }
+    const mode = await getCurrentMode();
+    await runPage(getMatchingSiteProcessors(mode), {
+        telemetry,
+        timeOrigin: performance.timeOrigin,
+        scriptStart,
+        navigationTiming: getNavigationTiming(),
+        pageAttributes: {
+            'url.path': location.pathname,
+            'server.address': location.host,
+            'extension.mode': mode,
+            'page.visibility_state': document.visibilityState
+        },
+        checkForUpdates: UpdatesCheckerClient.checkForUpdates,
+        onNoProcessors: () => console.log("No processors found for current page")
+    });
 }
 
 run();
