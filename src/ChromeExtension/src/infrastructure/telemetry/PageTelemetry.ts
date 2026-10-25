@@ -55,6 +55,8 @@ const ExceptionEventName = 'exception';
 // A URL's query string and fragment can carry tokens, OAuth codes or search terms: never record them.
 const UrlWithQueryPattern = /(https?:\/\/[^\s"'<>?#]+)[?#][^\s"'<>]*/gi;
 const BearerTokenPattern = /(Bearer\s+)[A-Za-z0-9\-._~+/]+=*/gi;
+// OAuth secrets as JSON properties ("access_token":"...") or form fields (code=...&code_verifier=...).
+const SecretValuePattern = /((?:^|[^A-Za-z0-9_])"?(?:access_token|refresh_token|id_token|code_verifier|client_secret|code)"?\s*[:=]\s*"?)[^"&\s,}]+/gi;
 const RedactedToken = '$1[redacted]';
 
 export type RandomBytes = (count: number) => Uint8Array;
@@ -79,9 +81,9 @@ export interface StartSpanOptions {
     startTime?: number;
 }
 
-/** Removes query strings and fragments of URLs and bearer tokens from a text. */
+/** Removes query strings and fragments of URLs, bearer tokens and OAuth secrets from a text. */
 export function scrubText(text: string): string {
-    return text.replace(UrlWithQueryPattern, '$1').replace(BearerTokenPattern, RedactedToken);
+    return text.replace(UrlWithQueryPattern, '$1').replace(BearerTokenPattern, RedactedToken).replace(SecretValuePattern, RedactedToken);
 }
 
 function limit(value: AttributeValue): AttributeValue {
@@ -110,7 +112,9 @@ function errorAttributes(error: unknown): Attributes {
         };
     }
 
-    return {'exception.type': typeof error, 'exception.message': String(error)};
+    // Generated clients throw problem DTOs, not Errors: their title and detail say what went wrong.
+    const message = error !== null && typeof error === 'object' ? JSON.stringify(error) : String(error);
+    return {'exception.type': error !== null && typeof error === 'object' ? error.constructor.name : typeof error, 'exception.message': message};
 }
 
 export class TelemetrySpan {
@@ -213,7 +217,8 @@ export class PageTelemetry {
 
     /** The span work without an explicit parent goes under: the current processor (or submit) span or the page root. */
     get currentSpan(): TelemetrySpan | undefined {
-        return this.defaultParent ?? this.root;
+        // An ended default parent (interleaved runs) must not adopt later work.
+        return this.defaultParent !== undefined && !this.defaultParent.isEnded ? this.defaultParent : this.root;
     }
 
     get isActive(): boolean {
@@ -258,7 +263,7 @@ export class PageTelemetry {
     }
 
     startSpan(name: string, options: StartSpanOptions = {}): TelemetrySpan {
-        const parent = options.parent === undefined ? this.defaultParent ?? this.root : options.parent ?? undefined;
+        const parent = options.parent === undefined ? this.currentSpan : options.parent ?? undefined;
         const parentContext = parent?.context;
         const span = new TelemetrySpan(this, {
             traceId: parentContext?.traceId ?? toHex(this.options.randomBytes(TraceIdBytes)),
@@ -317,7 +322,7 @@ export class PageTelemetry {
             return;
         }
 
-        const context = (span ?? this.defaultParent ?? this.root)?.context;
+        const context = (span ?? this.currentSpan)?.context;
         const record: LogRecord = {
             time: this.options.now(),
             severity,

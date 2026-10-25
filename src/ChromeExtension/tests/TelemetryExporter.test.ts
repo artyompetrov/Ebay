@@ -135,6 +135,41 @@ test('log records below the served level are not exported', async () => {
     assert.deepEqual(logMessages(posted), ['page processed']);
 });
 
+test('overlapping exports never post the same records twice', async () => {
+    const { exporter, posted } = createExporter();
+
+    exporter.accept(batch([span('only once')], [log('only once')]));
+    await Promise.all([exporter.export(), exporter.export()]);
+
+    const spanNames = posted.filter(p => p.signal === 'traces')
+        .flatMap(p => p.json.resourceSpans.flatMap((r: any) => r.scopeSpans.flatMap((s: any) => s.spans.map((x: any) => x.name))));
+    assert.deepEqual(spanNames, ['only once']);
+    assert.deepEqual(logMessages(posted), ['only once']);
+});
+
+test('dropped counts survive consecutive failed exports and are reported by the first successful one', async () => {
+    let accept = false;
+    const { exporter, posted } = createExporter(() => accept);
+
+    exporter.accept(batch([span('first')], []));
+    await exporter.export();
+    exporter.accept(batch([span('second')], []));
+    await exporter.export();
+    accept = true;
+    await exporter.export();
+
+    assert.ok(logMessages(posted).includes('Telemetry dropped 2 spans and 0 log records'));
+});
+
+test('the served level None stops log export', async () => {
+    const { exporter, posted } = createExporter(() => true, 25 as SeverityNumber);
+
+    exporter.accept(batch([], [log('critical', 21)]));
+    await exporter.export();
+
+    assert.deepEqual(logMessages(posted), []);
+});
+
 test('more than 1 MiB of pending telemetry is posted as several batches below 1 MiB', async () => {
     const { exporter, posted } = createExporter();
     const spans = Array.from({ length: 40 }, (_, i) => span(`span ${i}`, { padding: 'x'.repeat(40_000) }));

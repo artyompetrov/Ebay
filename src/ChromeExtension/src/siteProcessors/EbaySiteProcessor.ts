@@ -846,7 +846,7 @@ class EbaySiteProcessor implements ISiteProcessor {
         }
 
         logger.trace("Received from server: " + JSON.stringify(serverLotInfoWithProductId.lotInfo))
-        logger.trace("CurrentPage: " + JSON.stringify(this._lotInfo))
+        logger.local("CurrentPage", this._lotInfo)
     }
 
 
@@ -1004,11 +1004,12 @@ class EbaySiteProcessor implements ISiteProcessor {
         let counter = 0;
         while (!this._purchaseHistory || !this._titleChangeDate) {
             await utils.sleep(100);
-            logger.debug("retry " + counter)
+            counter++;
             if (counter > 600) {
                 throw new Error("waitForPurchaseHistoryAndTitleDate run out of retries")
             }
         }
+        logger.debug("Purchase history and title date read after " + counter + " retries")
 
         const titleChangeDate = new Date(this._titleChangeDate);
         this._lotInfo.purchaseHistory = this._purchaseHistory.filter(purchase =>

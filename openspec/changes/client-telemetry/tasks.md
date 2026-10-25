@@ -39,7 +39,7 @@ The change ships in two PRs. Stage 1 (groups 1-6): backend relay, removal of cli
 
 ## 6. Stage 1 integration checks
 
-- [ ] 6.1 Add TraceQL/LogQL examples for `ebay_chrome_extension` (page root with `panel.shown`, logs by `trace_id`/`session.id`) to the root `AGENTS.md` Navigation entry for Grafana. Run `make agent-check`, `npm test && npm run build` in `src/ChromeExtension` and the .NET test suites. Verify: all pass, and `make openspec-coverage-check` passes, with extension and relay scenarios mapped.
+- [x] 6.1 Add TraceQL/LogQL examples for `ebay_chrome_extension` (page root with `panel.shown`, logs by `trace_id`/`session.id`) to the root `AGENTS.md` Navigation entry for Grafana. Run `make agent-check`, `npm test && npm run build` in `src/ChromeExtension` and the .NET test suites. Verify: all pass, and `make openspec-coverage-check` passes, with extension and relay scenarios mapped.
 - [ ] 6.2 After the stage 1 deploy, run the extension and relay checks from design "Migration Plan" step 2 through the Grafana MCP, using the lot page from the proposal. Record in the PR the reaction-time breakdown the trace shows (navigation → handler matched → footer wait → backend/eBay calls → `panel.shown`). Verify: the trace exists with backend spans nested under extension client spans, Loki returns correlated records, and no relay request appears as an `ebay_helper` trace.
 
 ## 7. Blazor frontend telemetry

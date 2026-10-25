@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
 using OneOf;
 using OneOf.Types;
 using Server.Application.Abstractions.Driven.Abstractions;
@@ -16,7 +17,7 @@ public sealed class ClientTelemetryServiceTests
         var adapter = new RecordingAdapter(new Success());
         var batch = Enumerable.Range(0, ClientTelemetryService.MaxBatchBytes).Select(static i => (byte)i).ToArray();
 
-        var result = await new ClientTelemetryService(adapter)
+        var result = await new ClientTelemetryService(adapter, NullLogger<ClientTelemetryService>.Instance)
             .ForwardAsync(ClientTelemetrySignal.Logs, new MemoryStream(batch), declaredLength: null, CancellationToken.None);
 
         result.IsT0.Should().BeTrue();
@@ -30,7 +31,7 @@ public sealed class ClientTelemetryServiceTests
         var adapter = new RecordingAdapter(new Success());
         var body = new UnreadableStream();
 
-        var result = await new ClientTelemetryService(adapter)
+        var result = await new ClientTelemetryService(adapter, NullLogger<ClientTelemetryService>.Instance)
             .ForwardAsync(ClientTelemetrySignal.Traces, body, ClientTelemetryService.MaxBatchBytes + 1L, CancellationToken.None);
 
         result.IsT1.Should().BeTrue();
@@ -43,7 +44,7 @@ public sealed class ClientTelemetryServiceTests
         var adapter = new RecordingAdapter(new Success());
         var body = new MemoryStream(new byte[ClientTelemetryService.MaxBatchBytes + 1]);
 
-        var result = await new ClientTelemetryService(adapter)
+        var result = await new ClientTelemetryService(adapter, NullLogger<ClientTelemetryService>.Instance)
             .ForwardAsync(ClientTelemetrySignal.Traces, body, declaredLength: null, CancellationToken.None);
 
         result.IsT1.Should().BeTrue();
@@ -55,7 +56,7 @@ public sealed class ClientTelemetryServiceTests
     {
         var adapter = new RecordingAdapter(new ClientTelemetryBatchRejected("400"));
 
-        var result = await new ClientTelemetryService(adapter)
+        var result = await new ClientTelemetryService(adapter, NullLogger<ClientTelemetryService>.Instance)
             .ForwardAsync(ClientTelemetrySignal.Traces, new MemoryStream([1]), declaredLength: 1, CancellationToken.None);
 
         result.IsT2.Should().BeTrue();
@@ -66,7 +67,7 @@ public sealed class ClientTelemetryServiceTests
     {
         var adapter = new RecordingAdapter(new Error<string>("503"));
 
-        var result = await new ClientTelemetryService(adapter)
+        var result = await new ClientTelemetryService(adapter, NullLogger<ClientTelemetryService>.Instance)
             .ForwardAsync(ClientTelemetrySignal.Traces, new MemoryStream([1]), declaredLength: 1, CancellationToken.None);
 
         result.IsT3.Should().BeTrue();

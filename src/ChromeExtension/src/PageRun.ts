@@ -20,8 +20,15 @@ export interface PageRunEnvironment {
     /** When the content script started, in milliseconds since the Unix epoch. */
     scriptStart: number;
     navigationTiming: NavigationTiming | undefined;
-    /** Attributes of the page root span (path and host without query, extension mode, visibility). */
+    /**
+     * Calls back when a navigation milestone not yet reached at start (`domContentLoaded`, `load`) is reached, with
+     * its time in milliseconds since the Unix epoch.
+     */
+    onLaterMilestone: (callback: (name: string, time: number) => void) => void;
+    /** Attributes of the page root span (host, extension mode, visibility). */
     pageAttributes: Attributes;
+    /** Path of the page, recorded only when every matched processor allows it. */
+    pagePath: string;
     /** Resolves `false` when a newer extension version is available and the page must not be processed. */
     checkForUpdates: () => Promise<boolean>;
     /** Called once when no processor matched. */
@@ -62,17 +69,22 @@ export async function runPage(processors: ISiteProcessor[], environment: PageRun
     const names = processors.map(processor => processor.name);
     const matchedAt = telemetry.now();
     telemetry.activate();
+    // A processor that runs on any site (search-site highlighting) must not turn the browsing history into traces.
+    const pathAllowed = processors.every(processor => processor.recordsPagePath !== false);
     const root = telemetry.startPageSpan(`page ${names.join(', ')}`, environment.timeOrigin, {
         ...environment.pageAttributes,
+        ...(pathAllowed ? {'url.path': environment.pagePath} : {}),
         'extension.processors': names.join(', ')
     });
     addNavigationEvents(root, environment);
+    environment.onLaterMilestone((name, time) => root.addEvent(name, {}, time));
     root.addEvent('extension.script_start', {}, environment.scriptStart);
     root.addEvent('extension.handler_matched', {'extension.processors': names.join(', ')}, matchedAt);
     environment.onProcessorsMatched();
 
     try {
-        const actualVersion = await telemetry.withSpan('update check', {}, () => environment.checkForUpdates());
+        const actualVersion = await telemetry.withSpan('update check', {}, span =>
+            telemetry.withDefaultParent(span, () => environment.checkForUpdates()));
         root.setAttribute('extension.update_available', !actualVersion);
         if (!actualVersion) {
             return;

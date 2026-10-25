@@ -133,6 +133,22 @@ test('neither the bearer token nor the query string of a backend call is exporte
     }
 });
 
+test('bodies of the backend OAuth endpoints are never exported, even at Trace level', async () => {
+    const page = createPage(1);
+
+    page.logger.httpCall({
+        method: 'POST', url: `${BackendUrl}connect/token`, status: 200, isBackendCall: true,
+        requestBody: 'grant_type=authorization_code&code=distinctive-code&code_verifier=distinctive-verifier',
+        responseBody: '{"access_token":"distinctive-access-token","expires_in":2592000}', span: page.root
+    });
+
+    const exported = await page.exportAll();
+    assert.ok(exported.includes('/connect/token'), 'the call itself is logged');
+    for (const secret of ['distinctive-code', 'distinctive-verifier', 'distinctive-access-token']) {
+        assert.equal(exported.includes(secret), false, `${secret} was exported`);
+    }
+});
+
 // [OpenSpecScenario("client-telemetry", "Client errors are logged and recorded on spans", "An extension processing error becomes an error log and an error span")]
 test('an error caught by a processor is an Error record with type, message and stack, and fails the processor span', async () => {
     const page = createPage();
@@ -161,7 +177,8 @@ test('an error caught by a processor is an Error record with type, message and s
 test('an unhandled rejection from extension code is logged, one from the host page is ignored', async () => {
     const page = createPage();
     const window = new JSDOM('<!doctype html><body></body>').window;
-    logUncaughtErrors(window, page.logger, ExtensionUrl);
+    const processor = page.telemetry.startSpan('processor EbaySiteProcessor');
+    logUncaughtErrors(window, page.logger, ExtensionUrl, () => processor);
 
     for (const sourceUrl of [`${ExtensionUrl}build/ebay.js`, 'https://www.ebay.com/static/app.js']) {
         const reason = new Error(`rejected in ${sourceUrl}`);
@@ -171,8 +188,15 @@ test('an unhandled rejection from extension code is logged, one from the host pa
         window.dispatchEvent(event);
     }
 
-    const errors = (await page.exportedLogs()).filter(log => log.severityNumber === 17);
+    processor.end();
+    const exported = await page.exportAll();
+    const logs = exported.split('\n').filter(text => text.includes('resourceLogs'))
+        .flatMap(text => JSON.parse(text).resourceLogs[0].scopeLogs[0].logRecords);
+    const errors = logs.filter((log: any) => log.severityNumber === 17);
     assert.equal(errors.length, 1);
     assert.equal(errors[0].body.stringValue, 'Unhandled promise rejection in the extension');
-    assert.equal(errors[0].traceId, page.root.context.traceId);
+    assert.equal(errors[0].spanId, processor.context.spanId);
+    const spans = exported.split('\n').filter(text => text.includes('resourceSpans'))
+        .flatMap(text => JSON.parse(text).resourceSpans[0].scopeSpans[0].spans);
+    assert.equal(spans.find((span: any) => span.name === 'processor EbaySiteProcessor').status.code, 2, 'the active span is failed');
 });

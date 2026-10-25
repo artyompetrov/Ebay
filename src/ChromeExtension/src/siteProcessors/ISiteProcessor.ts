@@ -8,4 +8,10 @@ export interface ISiteProcessor {
     run(span: TelemetrySpan): Promise<void>;
     
     breakAfterSearchProcessor: boolean;
+
+    /**
+     * `false` for a processor that runs on any site: then the page's path is not recorded, only its host
+     * (openspec/specs/client-telemetry). Recorded by default.
+     */
+    readonly recordsPagePath?: boolean;
 }

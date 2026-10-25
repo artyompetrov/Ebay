@@ -14,6 +14,8 @@ const ErrorSeverity: SeverityNumber = 17;
 
 /** Longest body logged at Trace level; the rest is cut. */
 const MaxLoggedBodyLength = 4096;
+/** OAuth endpoints of the backend: their bodies are codes and tokens and are never logged. */
+const OAuthPathPrefix = '/connect/';
 
 export interface ConsoleLike {
     debug(...data: unknown[]): void;
@@ -89,6 +91,9 @@ export class Logger {
             this.local(`${summary}: request body`, entry.requestBody, 'response body', entry.responseBody);
             return;
         }
+        if (url.pathname.startsWith(OAuthPathPrefix)) {
+            return;
+        }
 
         if (entry.requestBody !== undefined) {
             this.trace(`${summary}: request body ${cut(entry.requestBody)}`, {}, entry.span);
@@ -110,20 +115,22 @@ function stackOf(value: unknown): string {
 }
 
 /**
- * Logs uncaught errors and unhandled promise rejections that come from this extension's scripts; errors of the
- * host page are not ours and are ignored.
+ * Reports uncaught errors and unhandled promise rejections that come from this extension's scripts (see
+ * {@link reportCaughtError}) on the span `currentSpan` returns; errors of the host page are not ours and are ignored.
+ * A rejection is attributed by the stack of its reason, so a reason without a stack cannot be told apart from the
+ * page's own and is ignored.
  */
-export function logUncaughtErrors(target: EventTarget, logger: Logger, extensionUrl: string): void {
+export function logUncaughtErrors(target: EventTarget, logger: Logger, extensionUrl: string, currentSpan: () => TelemetrySpan | undefined): void {
     target.addEventListener('error', (event: Event) => {
         const errorEvent = event as ErrorEvent;
         if (errorEvent.filename?.startsWith(extensionUrl) || stackOf(errorEvent.error).includes(extensionUrl)) {
-            logger.error('Uncaught error in the extension', errorEvent.error ?? errorEvent.message);
+            reportCaughtError(logger, 'Uncaught error in the extension', errorEvent.error ?? errorEvent.message, currentSpan());
         }
     });
     target.addEventListener('unhandledrejection', (event: Event) => {
         const reason = (event as PromiseRejectionEvent).reason;
         if (stackOf(reason).includes(extensionUrl)) {
-            logger.error('Unhandled promise rejection in the extension', reason);
+            reportCaughtError(logger, 'Unhandled promise rejection in the extension', reason, currentSpan());
         }
     });
 }

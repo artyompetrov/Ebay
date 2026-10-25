@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using OneOf;
 using OneOf.Types;
@@ -58,9 +59,10 @@ internal sealed class OtlpCollectorAdapter : IClientTelemetryAdapter
             }
 
             var status = $"The collector answered {(int)response.StatusCode} ({response.StatusCode})";
-            return response.StatusCode is >= System.Net.HttpStatusCode.BadRequest and < System.Net.HttpStatusCode.InternalServerError
-                ? new ClientTelemetryBatchRejected(status)
-                : new Error<string>(status);
+            // Timeouts and backpressure are the collector's state, not a fault of the batch.
+            var isBatchFault = response.StatusCode is >= HttpStatusCode.BadRequest and < HttpStatusCode.InternalServerError
+                and not HttpStatusCode.RequestTimeout and not HttpStatusCode.TooManyRequests;
+            return isBatchFault ? new ClientTelemetryBatchRejected(status) : new Error<string>(status);
         }
     }
 

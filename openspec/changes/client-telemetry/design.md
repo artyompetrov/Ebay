@@ -91,7 +91,7 @@ See proposal.md (Why). Current state that shapes the approach (verified against 
   - URL strings in messages and attributes are scrubbed (query removed) before recording.
   - Mapping of the existing `console.*` calls: progress messages become `debug`; payloads sent to or received from the backend become `trace` with the body truncated to 4 KB; eBay and third-party payloads stay console-only (`console` directly, never recorded); errors become `error`.
   - `extendedLogging` is removed. Headers are no longer logged anywhere, including the console.
-- **Third-party page paths.** `url.path` and `server.address` of pages handled on third-party sites (e.g. search pages of shops) are exported; they can contain search terms in the path. Decision: keep them, because the path is needed for debugging and the data goes only to our own backend. Query strings are never exported.
+- **Third-party page paths.** The search-site highlighting (Supplier mode) matches every site except eBay and the backend, so recording paths there would record the browsing history. Decision (user): such pages record only `server.address`; a page with any processor that runs on known sites (eBay, ebayMag, auth pages) also records `url.path`. A processor opts out with `recordsPagePath = false`. Query strings are never exported.
 - **`session.id`.** A random id per content-script instance (tab page load), set as a resource-like attribute on every record. The worker groups records by `session.id`.
 
 ### D3. Frontend: System.Diagnostics plus a hand-written OTLP/JSON exporter

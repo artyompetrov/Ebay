@@ -66,6 +66,17 @@ test('frames of 50 ms or less are not recorded and frames of the site alone are 
     assert.equal(recorded[0].attributes['extension.script'], false);
 });
 
+test('a long frame after the page root ended is a trace of its own linked to the page', () => {
+    const page = createPage();
+    page.root.end();
+
+    const [frame] = frames(page, [{ startTime: 9000, duration: 80 }]);
+
+    assert.notEqual(frame.traceId, page.root.context.traceId);
+    assert.equal(frame.parentSpanId, undefined);
+    assert.deepEqual(frame.links, [page.root.context]);
+});
+
 test('at most 60 long frames a minute are recorded', () => {
     const page = createPage();
 

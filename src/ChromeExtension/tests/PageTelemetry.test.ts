@@ -158,6 +158,30 @@ test('query strings, fragments and bearer tokens are removed from recorded text'
         'GET https://backend.test/api/lots answered with Bearer [redacted]');
 });
 
+test('OAuth codes and tokens are removed from form and JSON bodies', () => {
+    assert.equal(
+        scrubText('grant_type=authorization_code&code=SplxlOBe&code_verifier=dBjftJeZ&client_id=Ebay.ChromeExtension'),
+        'grant_type=authorization_code&code=[redacted]&code_verifier=[redacted]&client_id=Ebay.ChromeExtension');
+    assert.equal(
+        scrubText('{"access_token":"eyJhbGci","token_type":"Bearer","refresh_token":"8xLOxBtZ","status_code":500}'),
+        '{"access_token":"[redacted]","token_type":"Bearer","refresh_token":"[redacted]","status_code":500}');
+});
+
+test('work started after an interleaved default parent ended goes under the page root', async () => {
+    const { telemetry } = createHarness();
+    telemetry.activate();
+    const root = telemetry.startPageSpan('page', 1);
+    const submit = telemetry.startSpan('submit lot', { parent: null });
+
+    let release: () => void = () => {};
+    const running = telemetry.withDefaultParent(submit, () => new Promise<void>(resolve => { release = resolve; }));
+    submit.end();
+
+    assert.equal(telemetry.currentSpan, root);
+    release();
+    await running;
+});
+
 test('attribute values and messages are scrubbed and cut to 4096 characters', () => {
     const { telemetry, sent } = createHarness();
     telemetry.activate();

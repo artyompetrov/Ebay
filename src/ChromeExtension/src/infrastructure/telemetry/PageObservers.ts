@@ -43,7 +43,13 @@ export function observeLongFrames(telemetry: PageTelemetry, timeOrigin: number, 
             }
 
             recordedInWindow++;
+            // Once the page root ended, a frame is a trace of its own linked to the page's, so a long-open page
+            // never grows one trace without bound.
+            const root = telemetry.pageSpan;
+            const afterPage = root !== undefined && root.isEnded;
             const span = telemetry.startSpan('long animation frame', {
+                parent: afterPage ? null : undefined,
+                links: afterPage ? [root.context] : [],
                 startTime: start,
                 attributes: {
                     'frame.duration_ms': entry.duration,

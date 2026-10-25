@@ -26,8 +26,12 @@ function environment(telemetry: PageTelemetry, overrides: Partial<PageRunEnviron
         telemetry,
         timeOrigin: TimeOrigin,
         scriptStart: TimeOrigin + 300,
-        navigationTiming: { responseEnd: 120, domContentLoadedEventEnd: 450, loadEventEnd: 0 },
-        pageAttributes: { 'url.path': '/itm/158345271749', 'server.address': 'www.ebay.com' },
+        navigationTiming: { responseEnd: 120, domContentLoadedEventEnd: 0, loadEventEnd: 0 },
+        onLaterMilestone: (callback: (name: string, time: number) => void) => {
+            callback('domContentLoaded', TimeOrigin + 450);
+        },
+        pagePath: '/itm/158345271749',
+        pageAttributes: { 'server.address': 'www.ebay.com' },
         updateChecks: 0,
         checkForUpdates: async () => {
             env.updateChecks++;
@@ -40,8 +44,8 @@ function environment(telemetry: PageTelemetry, overrides: Partial<PageRunEnviron
     return env;
 }
 
-function processor(name: string, work: (span: TelemetrySpan) => void = () => {}) {
-    return { name, breakAfterSearchProcessor: false, run: async (span: TelemetrySpan) => work(span) };
+function processor(name: string, work: (span: TelemetrySpan) => void = () => {}, recordsPagePath?: boolean) {
+    return { name, breakAfterSearchProcessor: false, recordsPagePath, run: async (span: TelemetrySpan) => work(span) };
 }
 
 // [OpenSpecScenario("client-telemetry", "Extension telemetry is gated on a matched page handler", "An unrelated page produces no telemetry and no backend call")]
@@ -57,6 +61,7 @@ test('a page without matching processors sends no telemetry and does not check f
     assert.equal(sent.length, 0);
 });
 
+// [OpenSpecScenario("client-telemetry", "Pages handled on any site record only their host", "A lot page keeps its path")]
 // [OpenSpecScenario("client-telemetry", "Extension page reaction is traced from navigation start", "The root span starts at navigation start")]
 test('the page root span starts at navigation start and carries the navigation and match events', async () => {
     const { telemetry, sent } = createTelemetry();
@@ -71,10 +76,38 @@ test('the page root span starts at navigation start and carries the navigation a
     assert.equal(root.attributes['url.path'], '/itm/158345271749');
     const events = new Map(root.events.map(event => [event.name, event]));
     assert.equal(events.get('responseEnd')!.time, TimeOrigin + 120);
-    assert.equal(events.get('domContentLoaded')!.time, TimeOrigin + 450);
+    assert.equal(events.get('domContentLoaded')!.time, TimeOrigin + 450, 'reached after the script started');
     assert.equal(events.has('load'), false, 'not reached yet');
     assert.equal(events.get('extension.script_start')!.time, TimeOrigin + 300);
     assert.equal(events.get('extension.handler_matched')!.attributes['extension.processors'], 'EbaySiteProcessor');
+});
+
+// [OpenSpecScenario("client-telemetry", "Pages handled on any site record only their host", "A page matched only by the search-site highlighting has no path")]
+test('a page handled only by a processor that runs on any site records its host but not its path', async () => {
+    const { telemetry, sent } = createTelemetry();
+
+    await runPage([processor('SearchSitesProcessor', () => {}, false)], environment(telemetry));
+    telemetry.flush();
+
+    const root = sent.flatMap(message => message.spans).find(span => span.parentSpanId === undefined)!;
+    assert.equal(root.attributes['server.address'], 'www.ebay.com');
+    assert.equal('url.path' in root.attributes, false);
+});
+
+test('the HTTP call of the update check is a child of the update check span', async () => {
+    const { telemetry, sent } = createTelemetry();
+
+    await runPage([processor('EbaySiteProcessor')], environment(telemetry, {
+        checkForUpdates: async () => {
+            telemetry.startSpan('GET /chrome_extensions/x.xml', { kind: 2 }).end();
+            return true;
+        }
+    }));
+    telemetry.flush();
+
+    const spans = sent.flatMap(message => message.spans);
+    const check = spans.find(span => span.name === 'update check')!;
+    assert.equal(spans.find(span => span.name.startsWith('GET'))!.parentSpanId, check.spanId);
 });
 
 test('the update check and every processor run are child spans of the page root', async () => {

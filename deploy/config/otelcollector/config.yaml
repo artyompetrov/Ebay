@@ -8,13 +8,14 @@
 
 processors:
   transform:
-  # Clients post their telemetry to the backend relay every few seconds; the relay's request logs would bury the
-  # backend's own records, and the client data they carry is in Loki already.
+  # Clients post their telemetry to the backend relay every few seconds; the relay's routine request logs would
+  # bury the backend's own records, and the client data they carry is in Loki already. Warnings and errors of the
+  # relay (a batch that could not be relayed) are kept.
   filter/telemetry_relay:
     error_mode: ignore
     logs:
       log_record:
-        - 'IsMatch(attributes["RequestPath"], "^/api/telemetry/")'
+        - 'severity_number < SEVERITY_NUMBER_WARN and IsMatch(attributes["RequestPath"], "^/api/telemetry/")'
   transform/level:
     log_statements:
       - context: log

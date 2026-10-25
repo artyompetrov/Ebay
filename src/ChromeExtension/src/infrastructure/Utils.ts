@@ -81,6 +81,13 @@ export async function fetchResource(input: RequestInfo, originalInit: RequestIni
     const init = call.init;
     return new Promise((resolve, reject) => {
         chrome.runtime.sendMessage({ kind: 'fetch', input, init }, async messageResponse => {
+            if (messageResponse === undefined) {
+                // The worker did not answer (it was restarted or the extension was reloaded).
+                const lostError = new Error("No answer from the background worker: " + (chrome.runtime.lastError?.message ?? "unknown reason"));
+                finishClientCall(telemetry, call, { error: lostError });
+                reject(lostError);
+                return;
+            }
             try {
                 const [response, error, timing] = messageResponse as [WorkerResponse | null, unknown, WorkerFetchTiming];
                 finishClientCall(telemetry, call, response === null ? { error, timing } : { status: response.status, timing });

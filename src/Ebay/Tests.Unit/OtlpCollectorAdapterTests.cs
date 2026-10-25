@@ -38,6 +38,17 @@ public sealed class OtlpCollectorAdapterTests
         result.IsT1.Should().BeTrue();
     }
 
+    [TestCase(HttpStatusCode.TooManyRequests)]
+    [TestCase(HttpStatusCode.RequestTimeout)]
+    public async Task ForwardAsync_CollectorBackpressure_ReturnsError(HttpStatusCode status)
+    {
+        using var handler = new RecordingHandler(_ => new HttpResponseMessage(status));
+
+        var result = await CreateAdapter(handler).ForwardAsync(ClientTelemetrySignal.Logs, new byte[] { 1 }, CancellationToken.None);
+
+        result.IsT2.Should().BeTrue();
+    }
+
     [Test]
     public async Task ForwardAsync_CollectorServerError_ReturnsErrorWithoutRetry()
     {

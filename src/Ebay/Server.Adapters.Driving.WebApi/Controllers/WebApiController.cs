@@ -780,8 +780,9 @@ public sealed class WebApiController : WebApiControllerBase
         return forwarded.Match<IActionResult>(
             _ => Ok(),
             static _ => ProblemAnswers.TelemetryProblem(StatusCodes.Status413PayloadTooLarge, "The telemetry batch is larger than 1 MiB."),
-            static rejected => ProblemAnswers.TelemetryProblem(StatusCodes.Status400BadRequest, rejected.Reason),
-            static error => ProblemAnswers.TelemetryProblem(StatusCodes.Status502BadGateway, error.Value));
+            // The reasons name the collector and its address: they are logged, not answered.
+            static _ => ProblemAnswers.TelemetryProblem(StatusCodes.Status400BadRequest, "The telemetry store rejected the batch."),
+            static _ => ProblemAnswers.TelemetryProblem(StatusCodes.Status502BadGateway, "The telemetry store is unavailable."));
     }
 
     public override async Task<IActionResult> CalculatePricesForAll(CancellationToken cancellationToken = default)

@@ -15,8 +15,8 @@ export interface TelemetryExporterOptions {
     schedule: (callback: () => void, delayMs: number) => void;
     /** Posts one serialized batch to the relay; resolves `true` when it was accepted. Must not throw. */
     post: (signal: TelemetrySignal, body: Uint8Array) => Promise<boolean>;
-    /** Minimum severity of exported log records, as served by the backend. Must not throw. */
-    minSeverity: () => Promise<SeverityNumber>;
+    /** Minimum severity of exported log records, as served by the backend (above 21: none). Must not throw. */
+    minSeverity: () => Promise<number>;
 }
 
 type ReadableSpans = Parameters<typeof JsonTraceSerializer.serializeRequest>[0];
@@ -112,6 +112,9 @@ function toReadableLogs(pending: PendingLog[]): ReadableLogs {
     })) as unknown as ReadableLogs;
 }
 
+const serializeSpans = (items: PendingSpan[]): Uint8Array | undefined => JsonTraceSerializer.serializeRequest(toReadableSpans(items));
+const serializeLogs = (items: PendingLog[]): Uint8Array | undefined => JsonLogsSerializer.serializeRequest(toReadableLogs(items));
+
 interface SerializedBatch {
     body: Uint8Array;
     itemCount: number;
@@ -203,24 +206,37 @@ export class TelemetryExporter {
         }
     }
 
-    /** Exports everything pending: spans first, then logs below the served level are dropped and the rest sent. */
+    /**
+     * Exports everything pending: spans first, then the logs at or above the served level. The pending records are
+     * taken before anything is awaited, so overlapping exports never send the same records twice.
+     */
     async export(): Promise<void> {
         const spans = this.spans;
-        const minSeverity = await this.options.minSeverity();
-        const logs = this.logs.filter(pending => pending.log.severity >= minSeverity);
+        const pendingLogs = this.logs;
         this.spans = [];
         this.logs = [];
 
+        this.droppedSpans += await this.send('traces', spans, serializeSpans);
+        const minSeverity = await this.options.minSeverity();
+        await this.reportDropped();
+        this.droppedLogs += await this.send('logs', pendingLogs.filter(pending => pending.log.severity >= minSeverity), serializeLogs);
+    }
+
+    /** Sends the counts of dropped items on their own; on failure they are kept for the next export. */
+    private async reportDropped(): Promise<void> {
         const droppedSpans = this.droppedSpans;
         const droppedLogs = this.droppedLogs;
-        if (droppedSpans + droppedLogs > 0) {
-            logs.push({resource: this.resourceOf(WorkerSessionId), log: this.droppedReport(droppedSpans, droppedLogs)});
-            this.droppedSpans = 0;
-            this.droppedLogs = 0;
+        if (droppedSpans + droppedLogs === 0) {
+            return;
         }
 
-        this.droppedSpans += await this.send('traces', spans, items => JsonTraceSerializer.serializeRequest(toReadableSpans(items)));
-        this.droppedLogs += await this.send('logs', logs, items => JsonLogsSerializer.serializeRequest(toReadableLogs(items)));
+        this.droppedSpans = 0;
+        this.droppedLogs = 0;
+        const report = {resource: this.resourceOf(WorkerSessionId), log: this.droppedReport(droppedSpans, droppedLogs)};
+        if (await this.send('logs', [report], serializeLogs) > 0) {
+            this.droppedSpans += droppedSpans;
+            this.droppedLogs += droppedLogs;
+        }
     }
 
     /** Posts the items in batches; returns how many items were dropped. A failed batch is not retried. */

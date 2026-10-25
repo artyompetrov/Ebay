@@ -57,6 +57,8 @@ class ProductWithRegex {
 
 class SearchSitesProcessor implements ISiteProcessor {
     readonly name = 'SearchSitesProcessor';
+    // Runs on every site except eBay and the backend: recording paths would record the browsing history.
+    readonly recordsPagePath = false;
     breakAfterSearchProcessor: boolean = false;
     
     private _ebayToolBackendClient: EbayToolBackendClient.EbayToolWebApiClient;

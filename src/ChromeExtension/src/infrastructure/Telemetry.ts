@@ -32,7 +32,7 @@ export const telemetry = new PageTelemetry({
 /** Logs to the console and records for export (the worker exports what the backend's level allows). */
 export const logger = new Logger(telemetry, console);
 
-logUncaughtErrors(window, logger, chrome.runtime.getURL(''));
+logUncaughtErrors(window, logger, chrome.runtime.getURL(''), () => telemetry.currentSpan);
 
 // Hidden: hand everything over now, a background tab may never get another chance. Unloaded: also end the root.
 document.addEventListener('visibilitychange', () => {

@@ -68,6 +68,16 @@ function observeSlowFrames(): void {
     });
 }
 
+function onLaterNavigationMilestone(callback: (name: string, time: number) => void): void {
+    const reachedAt = (): number => telemetry.now();
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => callback('domContentLoaded', reachedAt()), {once: true});
+    }
+    if (document.readyState !== 'complete') {
+        window.addEventListener('load', () => callback('load', reachedAt()), {once: true});
+    }
+}
+
 export async function run() {
     const mode = await getCurrentMode();
     await runPage(getMatchingSiteProcessors(mode), {
@@ -75,8 +85,9 @@ export async function run() {
         timeOrigin: performance.timeOrigin,
         scriptStart,
         navigationTiming: getNavigationTiming(),
+        onLaterMilestone: onLaterNavigationMilestone,
+        pagePath: location.pathname,
         pageAttributes: {
-            'url.path': location.pathname,
             'server.address': location.host,
             'extension.mode': mode,
             'page.visibility_state': document.visibilityState

@@ -1,6 +1,8 @@
 import { ISiteProcessor } from './ISiteProcessor';
 import type {TelemetrySpan} from '../infrastructure/telemetry/PageTelemetry';
-import {logger} from '../infrastructure/Telemetry';
+import {logger, telemetry} from '../infrastructure/Telemetry';
+import {startBackgroundWork} from '../infrastructure/telemetry/BackgroundWork';
+import {reportCaughtError} from '../infrastructure/telemetry/Logger';
 import * as utils from "../infrastructure/Utils";
 import { ClientsFactory } from "../clients/ClientsFactory";
 import { highlightStockRows, StockLot } from "./ebayMag/StockQuantityHighlighter";
@@ -35,14 +37,21 @@ class EbayMagSiteProcessor implements ISiteProcessor {
             productUrl: getProductMeasurementsUrl(x.productId),
         }]));
 
+        // Every iteration is a trace of its own, linked to the page's; the client's calls go under it.
+        let iterationSpan: TelemetrySpan | undefined;
+        this.backendClient = await clientsFactory.getEbayToolWebApiClient(() => iterationSpan);
         const startBackground = async () => {
             while (true) {
+                iterationSpan = startBackgroundWork(telemetry, 'ebayMag stock and description pass');
                 try {
                     highlightStockRows(document, stockLotsById);
                     await this.searchForDescription();
                 }
                 catch (e) {
-                    logger.error("ebayMag background processing failed", e);
+                    reportCaughtError(logger, "ebayMag background processing failed", e, iterationSpan);
+                }
+                finally {
+                    iterationSpan.end();
                 }
 
                 await utils.sleep(1000);

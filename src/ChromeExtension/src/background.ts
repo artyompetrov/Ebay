@@ -23,16 +23,19 @@ const SettingsPath = 'api/telemetry/v1/settings';
 const SettingsCacheMs = 10 * 60 * 1000;
 const ErrorSeverity: SeverityNumber = 17;
 const DefaultMinSeverity: SeverityNumber = 5;
-const SeverityByLevel: Record<string, SeverityNumber> = {
+/** Above every severity: the backend serves `None` to stop log export. */
+const NoLogsSeverity = 25;
+const SeverityByLevel: Record<string, number> = {
     Trace: 1,
     Debug: 5,
     Information: 9,
     Warning: 13,
     Error: 17,
-    Critical: 21
+    Critical: 21,
+    None: NoLogsSeverity
 };
-
-let cachedMinSeverity: {value: SeverityNumber; fetchedAt: number} | undefined;
+/** Session storage survives the worker being stopped when idle, unlike module state. */
+const SettingsCacheKey = 'telemetryMinSeverity';
 
 function now(): number {
     return performance.timeOrigin + performance.now();
@@ -57,12 +60,13 @@ async function postTelemetry(signal: TelemetrySignal, body: Uint8Array): Promise
     }
 }
 
-async function minSeverity(): Promise<SeverityNumber> {
-    if (cachedMinSeverity !== undefined && Date.now() - cachedMinSeverity.fetchedAt < SettingsCacheMs) {
-        return cachedMinSeverity.value;
+async function minSeverity(): Promise<number> {
+    const cached = (await chrome.storage.session.get(SettingsCacheKey))[SettingsCacheKey] as {value: number; fetchedAt: number} | undefined;
+    if (cached !== undefined && Date.now() - cached.fetchedAt < SettingsCacheMs) {
+        return cached.value;
     }
 
-    let value = DefaultMinSeverity;
+    let value: number = DefaultMinSeverity;
     try {
         const token = await storedAccessToken();
         if (token !== undefined) {
@@ -76,7 +80,7 @@ async function minSeverity(): Promise<SeverityNumber> {
         // The default level applies until the settings can be read.
     }
 
-    cachedMinSeverity = {value, fetchedAt: Date.now()};
+    await chrome.storage.session.set({[SettingsCacheKey]: {value, fetchedAt: Date.now()}});
     return value;
 }
 

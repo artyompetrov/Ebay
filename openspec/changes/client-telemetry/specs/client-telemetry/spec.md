@@ -18,7 +18,7 @@ The backend SHALL accept OTLP/JSON trace data at `POST /api/telemetry/v1/traces`
 - **THEN** the collector receives the identical bytes at `/v1/logs` and the client gets `200`
 
 ### Requirement: Telemetry relay accepts only authenticated, bounded requests
-The relay SHALL require Web API authentication and SHALL reject a body larger than 1 MiB with `413` without forwarding any part of it. When the collector rejects a batch as invalid (`4xx`), the relay SHALL answer `400`; when the collector fails or is unreachable, `502`. The relay SHALL NOT retry. Error answers SHALL use the Web API problem format.
+The relay SHALL require Web API authentication and SHALL reject a body larger than 1 MiB with `413` without forwarding any part of it. When the collector rejects a batch as invalid (`4xx` other than `408` and `429`), the relay SHALL answer `400`; when the collector fails, is unreachable, times out or applies backpressure, `502`. The relay SHALL NOT retry. Error answers SHALL use the Web API problem format.
 
 #### Scenario: An anonymous request is rejected
 - **WHEN** a client posts a trace batch to `/api/telemetry/v1/traces` without an access token
@@ -68,6 +68,17 @@ The Chrome extension SHALL NOT export spans or log records and SHALL NOT call an
 #### Scenario: Early records are kept for a matched page
 - **WHEN** the extension writes a log record before matching and a processor then matches the page
 - **THEN** that log record is exported in the page's trace
+
+### Requirement: Pages handled on any site record only their host
+When every processor that matched a page is one that runs on any site (the search-site highlighting in Supplier mode), the extension SHALL record the page's host but not its path, so the traces do not become a browsing history.
+
+#### Scenario: A page matched only by the search-site highlighting has no path
+- **WHEN** the extension processes a third-party page on which only the search-site highlighting matched
+- **THEN** the page root span carries the host and no `url.path` attribute
+
+#### Scenario: A lot page keeps its path
+- **WHEN** the extension processes an eBay lot page
+- **THEN** the page root span carries the page's path
 
 ### Requirement: Extension page reaction is traced from navigation start
 For a matched page the extension SHALL record a root span starting at the browser's navigation start, with events for the document's navigation milestones and for the handler match, and a child span per processor run. A processor that shows its panel SHALL add a `panel.shown` event.

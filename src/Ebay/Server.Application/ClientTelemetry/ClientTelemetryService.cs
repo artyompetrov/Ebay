@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using OneOf;
 using OneOf.Types;
 using Server.Application.Abstractions.Driven.Abstractions;
@@ -18,13 +19,15 @@ public sealed class ClientTelemetryService
     private const int ReadChunkBytes = 64 * 1024;
 
     private readonly IClientTelemetryAdapter _clientTelemetryAdapter;
+    private readonly ILogger<ClientTelemetryService> _logger;
 
     /// <summary>
     /// Creates the client telemetry relay use case.
     /// </summary>
-    public ClientTelemetryService(IClientTelemetryAdapter clientTelemetryAdapter)
+    public ClientTelemetryService(IClientTelemetryAdapter clientTelemetryAdapter, ILogger<ClientTelemetryService> logger)
     {
         _clientTelemetryAdapter = clientTelemetryAdapter;
+        _logger = logger;
     }
 
     /// <summary>
@@ -54,10 +57,19 @@ public sealed class ClientTelemetryService
         }
 
         var forwarded = await _clientTelemetryAdapter.ForwardAsync(signal, batch, cancellationToken);
+        // Clients drop a failed batch without telling anyone, so this is the only place a lost batch is visible.
         return forwarded.Match<OneOf<Success, ClientTelemetryBatchTooLarge, ClientTelemetryBatchRejected, Error<string>>>(
             static success => success,
-            static rejected => rejected,
-            static error => error);
+            rejected =>
+            {
+                _logger.LogWarning("A client {Signal} batch of {Bytes} bytes was rejected: {Reason}", signal, batch.Length, rejected.Reason);
+                return rejected;
+            },
+            error =>
+            {
+                _logger.LogWarning("A client {Signal} batch of {Bytes} bytes was not relayed: {Reason}", signal, batch.Length, error.Value);
+                return error;
+            });
     }
 
     /// <summary>
