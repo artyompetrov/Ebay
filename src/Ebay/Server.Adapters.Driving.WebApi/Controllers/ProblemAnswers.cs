@@ -48,6 +48,17 @@ internal static class ProblemAnswers
                         static g => (object)g.Select(static x => x.Message).ToArray())
             }));
 
+    /// <summary>
+    /// A client telemetry batch could not be relayed; <paramref name="title" /> says why.
+    /// </summary>
+    public static ObjectResult TelemetryProblem(int status, string title) =>
+        ToResult(new TelemetryProblemDetailedInfo(
+            detail: null,
+            instance: null,
+            status: status,
+            title: title,
+            type: nameof(TelemetryProblemDetailedInfo)));
+
     private static ObjectResult ToResult(ProblemDetailedInfo problemDetails) =>
         new(problemDetails) { StatusCode = problemDetails.Status };
 }

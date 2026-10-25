@@ -87,6 +87,35 @@ public class TracingTests
     public Task WellKnownPath_IsNotTraced() => AssertNotTracedAsync("/.well-known/openid-configuration");
 
     [Test]
+    [OpenSpecScenario("observability-tracing", "Infrastructure and static requests are not traced", "Telemetry relay is not traced")]
+    public async Task TelemetryRelay_AndItsCollectorCall_AreNotTraced()
+    {
+        using var client = await CreateAuthenticatedClientAsync();
+        var relayTraceId = ActivityTraceId.CreateRandom();
+        var controlTraceId = ActivityTraceId.CreateRandom();
+
+        using (var request = CreateRequest(HttpMethod.Post, "/api/telemetry/v1/traces", relayTraceId, sampled: true))
+        {
+            request.Content = new StringContent("""{"resourceSpans":[]}""", Encoding.UTF8, "application/json");
+            using var response = await client.SendAsync(request);
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
+
+        // A traced request sent afterwards; once its span is exported, a span of the relay request would be too.
+        using (await SendAsync(client, HttpMethod.Get, TracedControlPath, controlTraceId, sampled: true))
+        {
+        }
+
+        await TestHelpers.RetryUntilValidationSuccessAsync(() =>
+        {
+            Spans.SpansOf(controlTraceId).Should().Contain(static span => IsServerSpan(span));
+            return Task.CompletedTask;
+        });
+        // Neither the relay's server span nor its HttpClient call to the collector.
+        await AssertStaysEmptyAsync(() => Spans.SpansOf(relayTraceId));
+    }
+
+    [Test]
     [OpenSpecScenario("observability-tracing", "Database commands are traced inside their request", "A request that reads the database has a nested database span")]
     public async Task RequestReadingDatabase_HasDatabaseSpanUnderServerSpan()
     {

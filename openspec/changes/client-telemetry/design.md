@@ -40,14 +40,16 @@ See proposal.md (Why). Current state that shapes the approach (verified against 
 - **Endpoints.** `POST /api/telemetry/v1/traces`, `POST /api/telemetry/v1/logs` and `GET /api/telemetry/v1/settings`, under tag `Telemetry`. The `/telemetry/` prefix is a deliberate exception to the `ebay/v1`/`webapi/v1` prefix rule (`src/Ebay/AGENTS.md`): it mirrors the OTLP paths. Document it there.
 - **Why a relay.** It reuses the existing bearer auth and the clients' existing host permissions. The collector stays private, and no nginx or introspection work is needed. Rejected alternatives: an nginx `location /otlp/` with `auth_request` (new nginx config, introspection endpoint, CORS in nginx), and an unauthenticated ingest (flooding).
 - **Raw body.** The request body must reach the action unread.
-  - Declare the body in the contract so NSwag generates the abstract method without a bound body parameter. A binary/opaque body (`application/json` with a string/binary schema, or `x-` options of the generator) is to be confirmed in task 1.1 by inspecting the generated base class.
+  - The contract declares the body as `application/json` with a `type: string, format: binary` schema and `required: false`. NSwag then generates an `IFormFile? body` parameter. MVC never binds it for a JSON request and never reads the body for it. Because the parameter is nullable, the implicit `[Required]` check does not reject the request.
   - The `WebApiController` override reads `Request.Body` itself. It first rejects on `Content-Length > 1 MiB`, then copies into a buffer capped at 1 MiB + 1 byte, so a chunked body is never partially forwarded.
   - `[RequestSizeLimit]` is not used: it throws inside the action, and `ErrorFilter` would turn that into a 500.
 - **Layering.** The controller maps HTTP to `ClientTelemetryService` (`Server.Application`). The service returns `OneOf<Success, TooLarge, Rejected, Error<string>>`, mapped to 200/413/400/502 with `ProblemAnswers`. The service is a thin pass-through. That is acceptable, because it keeps the controller free of the driven port.
 - **Driven port.** `IClientTelemetryAdapter.ForwardAsync(signal, ReadOnlyMemory<byte>, ct)`. Adapter: a new `Server.Adapters.Driven.OtlpCollector` project with a named HttpClient whose base address is `OTEL_EXPORTER_OTLP_ENDPOINT`, the collector address the backend already exports its own telemetry to, so deployment needs no new setting. Integration tests replace the named client's primary handler with a fake collector in `ConfigureServices`, so the backend's own exporters are not affected.
-- **Settings.** The `ClientTelemetry__MinLevel` option (default `Debug`) is served by `GET /api/telemetry/v1/settings` as `{ minLevel }`.
+- **Settings.** The `ClientTelemetry__MinLevel` option (default `Debug`) is served by `GET /api/telemetry/v1/settings` as `{ minLevel }`. The option lives in the Web API adapter (`ClientTelemetryOptions`), because it is configuration served to clients, not a use case. `minLevel` is a plain string in the contract, not an enum, because MVC serializes responses with Newtonsoft.Json and would write an enum as its number.
 - **Not traced.** `/api/telemetry/` is added to `TracedRequestFilter`. The sampler then drops the adapter's outgoing span as well.
-- **No log flood.** The relay request also generates ASP.NET Hosting and HttpClient logs every few seconds per client. Suppress them with a category filter for the relay's named HttpClient. For hosting logs, verify the effective level in task 1.3; if per-request Information logs appear, filter them by path for `/api/telemetry/`.
+- **No log flood.** Every request writes about 7 Information records: hosting, routing, MVC and CORS (measured in Loki). With clients exporting every few seconds, the relay's own request logs would bury everything else.
+  - The relay's named HttpClient uses `RemoveAllLoggers()`.
+  - The collector's logs pipeline drops records whose `RequestPath` attribute starts with `/api/telemetry/` (`filter/telemetry_relay`). Logging categories cannot see the path, and the request scope adds `RequestPath` to every record written during a request.
 
 ### D2. Extension: lightweight recorder in the content script, OTel SDK in the background worker
 - **Content script.** A dependency-free `src/infrastructure/telemetry/` recorder.
@@ -141,6 +143,3 @@ See proposal.md (Why). Current state that shapes the approach (verified against 
    - No `/api/telemetry/` request appears as an `ebay_helper` trace.
 3. Rollback: revert the PR. `Down` recreates an empty `ClientErrors` table. Clients without telemetry keep working.
 
-## Open Questions
-
-- Exact OpenAPI/NSwag declaration that yields an override without a bound body (D1). It changes only the contract's declaration, not the behaviour; it is resolved in task 1.1.

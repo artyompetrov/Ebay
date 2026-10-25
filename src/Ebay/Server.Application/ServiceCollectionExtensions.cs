@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
+using Server.Application.ClientTelemetry;
 using Server.Application.Currencies;
 using Server.Application.DbCache;
 using Server.Application.LotForSale;
@@ -37,6 +38,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ProductPassportService>();
         services.AddSingleton<IgnoredLotService>();
         services.AddSingleton<ClientErrorService>();
+        services.AddSingleton<ClientTelemetryService>();
         services.AddSingleton<MatchedMeasurementService>();
         services.AddSingleton<MeasurementPlotService>();
         services.AddSingleton<TubeWorkingPointService>();
