@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using Server.Adapters.Driven.OtlpCollector;
 
 namespace Tests.Integration;
 
@@ -30,6 +31,8 @@ public class IntegrationTestsSetupFixture
     public static SpanCollector SpanCollector { get; } = new();
 
     public static MetricCollector MetricCollector { get; } = new();
+
+    public static FakeOtlpCollector OtlpCollector { get; } = new();
 
     /// <summary>Connection string of this fixture's scratch database.</summary>
     public static string DatabaseConnectionString => _serverConnectionString;
@@ -66,6 +69,8 @@ public class IntegrationTestsSetupFixture
                     services.ConfigureOpenTelemetryTracerProvider(static tracing =>
                         tracing.AddProcessor(new SimpleActivityExportProcessor(SpanCollector)));
                     services.ConfigureOpenTelemetryMeterProvider(static metrics => metrics.AddReader(MetricCollector.Reader));
+                    services.AddHttpClient(OtlpCollectorAdapter.HttpClientName)
+                        .ConfigurePrimaryHttpMessageHandler(static () => OtlpCollector.CreateHandler());
                 });
             });
 

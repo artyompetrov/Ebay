@@ -7,6 +7,7 @@ using Server.Adapters.Driven.ImageProcessing;
 using Server.Adapters.Driven.MemoryCache;
 using Server.Adapters.Driven.NewAudioPortal;
 using Server.Adapters.Driven.OpenExchangeRates;
+using Server.Adapters.Driven.OtlpCollector;
 using Server.Adapters.Driven.Plotting;
 using Server.Adapters.Driven.Qrz;
 using Server.Adapters.Driven.Smtp;
@@ -37,6 +38,7 @@ public class Program
         builder.Services.AddQrzAdapter();
         builder.Services.AddNewAudioPortalAdapter();
         builder.Services.AddOpenExchangeRatesAdapter();
+        builder.Services.AddOtlpCollectorAdapter();
         builder.Services.AddPlottingAdapter();
         builder.Services.AddMemoryCacheAdapter();
         builder.Services.AddEfReadModelAdapter();

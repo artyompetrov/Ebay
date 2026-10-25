@@ -15,6 +15,8 @@ public sealed class TracedRequestFilterTests
     [TestCase("/_content/Microsoft.AspNetCore.Identity.UI/css/site.css")]
     [TestCase("/.well-known/openid-configuration")]
     [TestCase("/favicon.ico")]
+    [TestCase("/api/telemetry/v1/traces")]
+    [TestCase("/api/telemetry/v1/logs")]
     [TestCase("/css/open-iconic/font/fonts/open-iconic.ttf")]
     [TestCase("/css/open-iconic/font/fonts/open-iconic.woff")]
     public void IsTraced_InfrastructureOrStaticPath_ReturnsFalse(string path)

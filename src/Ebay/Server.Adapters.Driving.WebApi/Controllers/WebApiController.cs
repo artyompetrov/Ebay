@@ -1,11 +1,15 @@
 using System.Diagnostics;
 using System.Globalization;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Server.Adapters.Driving.WebApi.Generated;
 using Server.Application.Abstractions.Driven.Abstractions.Queries;
 using Server.Application.Abstractions.Driving.Abstractions.Services;
 using Server.Application;
+using Server.Application.Abstractions.Driven.Abstractions;
+using Server.Application.ClientTelemetry;
 using Server.Application.LotDataExtractor;
 using Server.Application.MatchedPairs;
 using Server.Application.TubeWorkingPoints;
@@ -41,7 +45,8 @@ public sealed class WebApiController : WebApiControllerBase
     private readonly IPassportQueries _passportQueries;
     private readonly IgnoredLotService _ignoredLotService;
     private readonly IIgnoredLotQueries _ignoredLotQueries;
-    private readonly ClientErrorService _clientErrorService;
+    private readonly ClientTelemetryService _clientTelemetryService;
+    private readonly ClientTelemetryOptions _clientTelemetryOptions;
 
     public WebApiController(
         LotForSaleService lotForSaleService,
@@ -59,7 +64,8 @@ public sealed class WebApiController : WebApiControllerBase
         IPassportQueries passportQueries,
         IgnoredLotService ignoredLotService,
         IIgnoredLotQueries ignoredLotQueries,
-        ClientErrorService clientErrorService)
+        ClientTelemetryService clientTelemetryService,
+        IOptions<ClientTelemetryOptions> clientTelemetryOptions)
     {
         _lotForSaleService = lotForSaleService;
         _measurementPhotoService = measurementPhotoService;
@@ -76,7 +82,8 @@ public sealed class WebApiController : WebApiControllerBase
         _passportQueries = passportQueries;
         _ignoredLotService = ignoredLotService;
         _ignoredLotQueries = ignoredLotQueries;
-        _clientErrorService = clientErrorService;
+        _clientTelemetryService = clientTelemetryService;
+        _clientTelemetryOptions = clientTelemetryOptions.Value;
     }
 
     public override async Task<IActionResult> CreateLotForSale(LotForSaleCreateRequest body, CancellationToken cancellationToken = default)
@@ -755,10 +762,27 @@ public sealed class WebApiController : WebApiControllerBase
             ManualFieldsExtractor.ExtractManualData(lotTextFields).ToApiExtractedData().ToList());
     }
 
-    public override async Task<IActionResult> SaveError(ClientErrorInfo body, CancellationToken cancellationToken = default)
+    // The contract declares the OTLP/JSON body as binary, so the generated method takes an IFormFile; for an
+    // application/json request it is never bound. The body is read raw from the request instead, so it is
+    // forwarded byte-for-byte and never parsed.
+    public override Task<IActionResult> ExportClientTraces(IFormFile? body, CancellationToken cancellationToken = default) =>
+        ExportClientTelemetryAsync(ClientTelemetrySignal.Traces, cancellationToken);
+
+    public override Task<IActionResult> ExportClientLogs(IFormFile? body, CancellationToken cancellationToken = default) =>
+        ExportClientTelemetryAsync(ClientTelemetrySignal.Logs, cancellationToken);
+
+    public override Task<ActionResult<ClientTelemetrySettings>> GetClientTelemetrySettings(CancellationToken cancellationToken = default) =>
+        Task.FromResult<ActionResult<ClientTelemetrySettings>>(_clientTelemetryOptions.ToSettings());
+
+    private async Task<IActionResult> ExportClientTelemetryAsync(ClientTelemetrySignal signal, CancellationToken cancellationToken)
     {
-        await _clientErrorService.SaveErrorAsync(body.Url, body.Error, cancellationToken);
-        return Ok();
+        var forwarded = await _clientTelemetryService.ForwardAsync(signal, Request.Body, Request.ContentLength, cancellationToken);
+        return forwarded.Match<IActionResult>(
+            _ => Ok(),
+            static _ => ProblemAnswers.TelemetryProblem(StatusCodes.Status413PayloadTooLarge, "The telemetry batch is larger than 1 MiB."),
+            // The reasons name the collector and its address: they are logged, not answered.
+            static _ => ProblemAnswers.TelemetryProblem(StatusCodes.Status400BadRequest, "The telemetry store rejected the batch."),
+            static _ => ProblemAnswers.TelemetryProblem(StatusCodes.Status502BadGateway, "The telemetry store is unavailable."));
     }
 
     public override async Task<IActionResult> CalculatePricesForAll(CancellationToken cancellationToken = default)

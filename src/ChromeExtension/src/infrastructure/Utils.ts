@@ -1,8 +1,18 @@
 ﻿import * as constants from "../constants";
-import {PageTraceContext} from "./TraceContext";
+import {logger, telemetry} from "./Telemetry";
+import {finishClientCall, isBackendCall, startClientCall} from "./telemetry/HttpClientSpans";
+import {cachedOrFallback, CachedData, waitForElement} from "./telemetry/TracedLookups";
+import type {TelemetrySpan} from "./telemetry/PageTelemetry";
+import type {WorkerFetchTiming} from "./telemetry/TelemetryTypes";
 
-// Content scripts are loaded once per page, so this module-level context gives each page its own trace.
-const pageTraceContext = new PageTraceContext(constants.Urls.backendUrl);
+const ElementPollIntervalMs = 100;
+
+interface WorkerResponse {
+    body: string;
+    status: number;
+    statusText: string;
+    headers: Record<string, string>;
+}
 
 export function getMax(array: number[]) {
     let largest = 0;
@@ -15,19 +25,9 @@ export function getMax(array: number[]) {
 }
 
 
-// Функция для ожидания загрузки элемента
+// Функция для ожидания загрузки элемента; ожидание записывается спаном `wait <selector>`.
 export async function sleepElementLoaded(selector: string, elementToSearchIn: Document | Element,  retryForever: boolean = false): Promise<Element> {
-    let retry = 0;
-    while (true) {
-        if (!retryForever) {
-            retry++;
-        }
-        if (retry > 200) throw new Error("unable to find element by selector " + selector);
-
-        let element = elementToSearchIn.querySelector(selector);
-        if (element !== null) return element;
-        await sleep(100);
-    }
+    return waitForElement(telemetry, selector, elementToSearchIn, retryForever, () => sleep(ElementPollIntervalMs));
 }
 
 // Функция для паузы выполнения кода
@@ -35,45 +35,17 @@ export function sleep(ms: number): Promise<number> {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-interface CachedData<T> {
-    value: T;
-    expirationTime: number;
-}
-
 export function getCachedDataOrFallback<T>(
     key: string,
     fallbackLogic: () => Promise<T>,
     ttlInSeconds: number
-): Promise<T | null> {
-    return new Promise((resolve, reject) => {
-        chrome.storage.local.get(key, async (result) => {
-            const data: CachedData<T> | undefined = result[key];
-
-            if (data && Date.now() <= data.expirationTime) {
-                // Если данные валидны
-                console.log(`${key} loaded from cache.`);
-                resolve(data.value);
-            } else {
-                // Данные отсутствуют или устарели
-                console.log(`${key} not in cache or expired. Fetching new data...`);
-                try {
-                    const newData = await fallbackLogic(); // Выполняем fallback логику
-                    const expirationTime = Date.now() + ttlInSeconds * 1000;
-
-                    // Сохраняем новые данные в кэш
-                    const cachedData: CachedData<T> = { value: newData, expirationTime };
-                    chrome.storage.local.set({ [key]: cachedData }, () => {
-                        console.log(`${key} cached for ${ttlInSeconds} seconds.`);
-                    });
-
-                    resolve(newData); // Возвращаем данные из fallback логики
-                } catch (error) {
-                    console.error(`Failed to fetch data for ${key}:`, error);
-                    reject(error);
-                }
-            }
-        });
-    });
+): Promise<T> {
+    return cachedOrFallback(telemetry, key, {
+        read: async (cacheKey: string) => (await chrome.storage.local.get(cacheKey))[cacheKey] as CachedData<T> | undefined,
+        write: (cacheKey: string, data: CachedData<T>) => {
+            chrome.storage.local.set({[cacheKey]: data}).catch(error => logger.error(`Failed to cache ${cacheKey}`, error));
+        }
+    }, fallbackLogic, ttlInSeconds, Date.now);
 }
 
 export function removeFromCache(key: string){
@@ -100,52 +72,45 @@ export function matchesAnyRegex(regexSet: RegExp[], value: string): boolean {
     return regexSet.some((regex) => regex.test(value));
 }
 
-export async function fetchResource(input: RequestInfo, originalInit: RequestInit): Promise<Response> {
-    const init = pageTraceContext.withTraceParent(input, originalInit);
+/**
+ * Makes an HTTP call through the background worker, recorded as a client span under `parent` (by default the page
+ * root span); a backend call carries a `traceparent` naming that span.
+ */
+export async function fetchResource(input: RequestInfo, originalInit: RequestInit, parent?: TelemetrySpan): Promise<Response> {
+    const call = startClientCall(telemetry, input, originalInit, constants.Urls.backendUrl, parent);
+    const init = call.init;
     return new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage({ input, init }, async messageResponse => {
+        chrome.runtime.sendMessage({ kind: 'fetch', input, init }, async messageResponse => {
+            if (messageResponse === undefined) {
+                // The worker did not answer (it was restarted or the extension was reloaded).
+                const lostError = new Error("No answer from the background worker: " + (chrome.runtime.lastError?.message ?? "unknown reason"));
+                finishClientCall(telemetry, call, { error: lostError });
+                reject(lostError);
+                return;
+            }
             try {
-                const [response, error] = messageResponse;
-                let logEntry = "Request: " + JSON.stringify(input);
-                if (pageTraceContext.isBackendCall(input)) {
-                    logEntry += "\nTrace id: " + pageTraceContext.traceId;
-                }
-                if (constants.Settings.extendedLogging) {
-                    logEntry += "\n\nRequest body: \n" + JSON.stringify(init);
-                }
+                const [response, error, timing] = messageResponse as [WorkerResponse | null, unknown, WorkerFetchTiming];
+                finishClientCall(telemetry, call, response === null ? { error, timing } : { status: response.status, timing });
+                logger.httpCall({
+                    method: (init.method ?? 'GET').toUpperCase(),
+                    url: typeof input === 'string' ? input : input.url,
+                    status: response?.status,
+                    isBackendCall: isBackendCall(input, constants.Urls.backendUrl),
+                    requestBody: typeof init.body === 'string' ? init.body : undefined,
+                    responseBody: response?.body,
+                    span: call.span
+                });
                 if (response === null) {
-                    logEntry += "\n\nNo response"
-                    console.log(logEntry);
                     reject(error);
                 } else {
-                    logEntry += "\n\nResponse " + response.status + " " + response.statusText;
-
-                    if (constants.Settings.extendedLogging) {
-                        logEntry += "\n\nResponse headers:\n" + JSON.stringify(response.headers);
-                    }
-
-                    let body = new Blob([response.body]);
-
-
-                    if (constants.Settings.extendedLogging) {
-                        logEntry += "\n\nResponse body:\n";
-                        try {
-                            const loggedBody = await new Response(body).text();
-                            logEntry += loggedBody;
-                        } catch (logError) {
-                            logEntry += "Failed to log response body: " + logError;
-                        }
-                    }
-
-                    console.log(logEntry);
-                    resolve(new Response(body, {
+                    resolve(new Response(new Blob([response.body]), {
                         headers: new Headers(response.headers),
                         status: response.status,
                         statusText: response.statusText
                     }));
                 }
             } catch (error) {
-                console.log("An error occurred while processing the response:", error);
+                logger.error("Failed to process the response", error, {}, call.span);
                 reject(error);
             }
         });

@@ -3,6 +3,12 @@ import * as EbayToolBackendClient from "../clients/Generated/EbayToolWebApiClien
 import * as utils from "../infrastructure/Utils";
 import * as constants from '../constants';
 import { ISiteProcessor } from './ISiteProcessor';
+import type {TelemetrySpan} from '../infrastructure/telemetry/PageTelemetry';
+import {logger, telemetry} from '../infrastructure/Telemetry';
+import {showLotPanel} from './ebay/LotPanel';
+import {startBackgroundWork} from '../infrastructure/telemetry/BackgroundWork';
+import {traceClicks} from '../infrastructure/telemetry/PageObservers';
+import {reportCaughtError} from '../infrastructure/telemetry/Logger';
 import {ClientsFactory} from "../clients/ClientsFactory";
 import {Mode} from '../mode';
 import { getLotSyncStatus } from "./ebay/LotSyncStatus";
@@ -77,6 +83,7 @@ class LotLink {
 
 
 class EbaySiteProcessor implements ISiteProcessor {
+    readonly name = 'EbaySiteProcessor';
 
     breakAfterSearchProcessor: boolean = false;
     
@@ -268,6 +275,7 @@ class EbaySiteProcessor implements ISiteProcessor {
         div.appendChild(form)
         bodyElement.appendChild(div);
         div.hidden = true
+        traceClicks(telemetry, div);
         this._panel = div;
     }
 
@@ -278,7 +286,7 @@ class EbaySiteProcessor implements ISiteProcessor {
 
 
     async  ignoreThatLot() {
-        console.log("Ignoring lot " + this._lotInfo.lotId + " for product " + this._currentProductId)
+        logger.info("Ignoring lot " + this._lotInfo.lotId + " for product " + this._currentProductId, {"ebay.lot_id": this._lotInfo.lotId, "product.id": this._currentProductId})
         await this._ebayToolBackendClient.ignoreLots([this._lotInfo.lotId], this._currentProductId)
         this.showThatLotIsIgnored();
         window.close()
@@ -353,8 +361,17 @@ class EbaySiteProcessor implements ISiteProcessor {
 
 
     private async handleSubmit(event: SubmitEvent): Promise<void> {
+        event.preventDefault();
+        const submitSpan = startBackgroundWork(telemetry, 'submit lot');
         try {
-            event.preventDefault();
+            await telemetry.withDefaultParent(submitSpan, () => this.submitLot(event));
+        } finally {
+            submitSpan.end();
+        }
+    }
+
+    private async submitLot(event: SubmitEvent): Promise<void> {
+        try {
             let data = new FormData(<HTMLFormElement>event.target);
 
 
@@ -378,7 +395,7 @@ class EbaySiteProcessor implements ISiteProcessor {
                 throw new Error("Product id not set");
             }
 
-            console.log("Sending to backend: " + JSON.stringify(this._lotInfo))
+            logger.info("Sending lot " + this._lotInfo.lotId + " to the backend", {"ebay.lot_id": this._lotInfo.lotId, "product.id": productId})
             await this._ebayToolBackendClient.upsertLotInfo(this._lotInfo, productId)
 
             await this.productPage()
@@ -387,7 +404,7 @@ class EbaySiteProcessor implements ISiteProcessor {
                 window.close()
             }
         } catch (error) {
-            await this.showAndSaveError(error)
+            await this.showError(error)
         }
     }
 
@@ -523,12 +540,12 @@ class EbaySiteProcessor implements ISiteProcessor {
                 // Проверяем, можем ли мы получить доступ к содержимому
                 const iframeDoc = myIframe.contentDocument;
                 if (!iframeDoc) {
-                    console.error('unable to get content inside iframe');
+                    logger.warn('Unable to get the content inside the description iframe');
                     return;
                 }
                 await utils.sleepElementLoaded('footer', iframeDoc)
 
-                console.log("fillPurchaseHistory")
+                logger.debug("fillPurchaseHistory")
 
                 let result = new Array<PurchaseInfoInner>();
                 let fixedPriceBlock = iframeDoc.querySelector('div.fixed-price tbody')
@@ -553,10 +570,7 @@ class EbaySiteProcessor implements ISiteProcessor {
                 });
 
             } catch (error) {
-                console.error(
-                    'Нas no access to iframe due to Same-Origin Policy:',
-                    error
-                );
+                logger.warn('No access to the iframe due to the Same-Origin Policy', {'exception.message': String(error)});
             }
         });
     }
@@ -584,12 +598,12 @@ class EbaySiteProcessor implements ISiteProcessor {
                 // Проверяем, можем ли мы получить доступ к содержимому
                 const iframeDoc = myIframe.contentDocument;
                 if (!iframeDoc) {
-                    console.error('unable to get content inside iframe');
+                    logger.warn('Unable to get the content inside the description iframe');
                     return;
                 }
                 await utils.sleepElementLoaded('footer', iframeDoc)
 
-                console.log("parseRevisionSummary")
+                logger.debug("parseRevisionSummary")
 
                 let table = iframeDoc.querySelector('div#vi-revision-history-layout-container table')
                 if (table) {
@@ -612,10 +626,7 @@ class EbaySiteProcessor implements ISiteProcessor {
                 }
 
             } catch (error) {
-                console.error(
-                    'Нas no access to iframe due to Same-Origin Policy:',
-                    error
-                );
+                logger.warn('No access to the iframe due to the Same-Origin Policy', {'exception.message': String(error)});
             }
         });
     }
@@ -671,7 +682,7 @@ class EbaySiteProcessor implements ISiteProcessor {
 
         productId = productId?.trim()?.toLowerCase()
         if (productId && !cached.some(p => p.id.trim().toLowerCase() === productId)) {
-            console.log(`Product ID ${productId} not found in cache, refreshing cache, clearing cache...`);
+            logger.debug(`Product ID ${productId} not found in cache, refreshing the cache`);
             utils.removeFromCache(this._allItemsCacheIdentifier);
 
             return await utils.getCachedDataOrFallback(this._allItemsCacheIdentifier, async () => {
@@ -826,16 +837,16 @@ class EbaySiteProcessor implements ISiteProcessor {
                 break;
             case 'newSales':
                 panel.style.cssText = `background-color: ${constants.Colors.lightYellow};`
-                console.log(`Update needed because ebay has sales newer than the last stored sale`)
+                logger.debug(`Update needed because ebay has sales newer than the last stored sale`)
                 break;
             case 'listingDiffers':
                 panel.style.cssText = `background-color: ${constants.Colors.lightPink};`
-                console.log(`Update needed because server and ebay lot info differs`)
+                logger.debug(`Update needed because server and ebay lot info differs`)
                 break;
         }
 
-        console.log("Received from server: " + JSON.stringify(serverLotInfoWithProductId.lotInfo))
-        console.log("CurrentPage: " + JSON.stringify(this._lotInfo))
+        logger.trace("Received from server: " + JSON.stringify(serverLotInfoWithProductId.lotInfo))
+        logger.local("CurrentPage", this._lotInfo)
     }
 
 
@@ -850,7 +861,7 @@ class EbaySiteProcessor implements ISiteProcessor {
             return dictionary;
         }, {})
 
-        console.log(JSON.stringify(extractedData))
+        logger.trace("Extracted data: " + JSON.stringify(extractedData))
         return extractedData
     }
 
@@ -911,7 +922,7 @@ class EbaySiteProcessor implements ISiteProcessor {
         {
             if (error instanceof EbayClient.ApiException && error.message === "Not Found") {
                 this._notFound = true;
-                console.log("multivariant lots are not supported")
+                logger.warn("Multivariant lots are not supported")
             } else {
                 throw error;
             }
@@ -955,7 +966,7 @@ class EbaySiteProcessor implements ISiteProcessor {
 
 
     async fillLotInfo(ebayItem: EbayClient.Item, shippingCountry: string) {
-        console.log(JSON.stringify(ebayItem))
+        logger.local("eBay item", ebayItem)
 
         if (ebayItem.price.convertedFromValue === undefined) {
             this._lotInfo.price = parseFloat(ebayItem.price.value)
@@ -993,11 +1004,12 @@ class EbaySiteProcessor implements ISiteProcessor {
         let counter = 0;
         while (!this._purchaseHistory || !this._titleChangeDate) {
             await utils.sleep(100);
-            console.log("retry " + counter)
+            counter++;
             if (counter > 600) {
                 throw new Error("waitForPurchaseHistoryAndTitleDate run out of retries")
             }
         }
+        logger.debug("Purchase history and title date read after " + counter + " retries")
 
         const titleChangeDate = new Date(this._titleChangeDate);
         this._lotInfo.purchaseHistory = this._purchaseHistory.filter(purchase =>
@@ -1038,17 +1050,9 @@ class EbaySiteProcessor implements ISiteProcessor {
         
     }
 
-    async showAndSaveError(error: Error) {
-
-        let errorText: string
-        if (error instanceof EbayToolBackendClient.ValidationProblemDetailedInfo) {
-            let validationError = <EbayToolBackendClient.ValidationProblemDetailedInfo>error
-            errorText = JSON.stringify(validationError.errors)
-        } else {
-            errorText = error.stack;
-        }
-
-        console.log("ERROR " + errorText + " " + JSON.stringify(error))
+    /** Shows the error in the lot panel and reports it (see {@link reportError}). */
+    async showError(error: Error) {
+        const errorText = this.reportError(error);
 
         let errorDiv = await utils.sleepElementLoaded('div.' + this.panelClass + ' #' + this.errorElementId, document)
         let span = document.createElement('span');
@@ -1056,7 +1060,6 @@ class EbaySiteProcessor implements ISiteProcessor {
         span.innerHTML = errorText
         errorDiv.appendChild(span)
         errorDiv.appendChild(document.createElement('br'))
-        await this.saveErrorToBackend(error);
     }
 
 
@@ -1068,7 +1071,7 @@ class EbaySiteProcessor implements ISiteProcessor {
     }
 
     async productPage() {
-        console.log("productPage")
+        logger.debug("productPage")
 
         await this.createPanel()
         try {
@@ -1076,9 +1079,9 @@ class EbaySiteProcessor implements ISiteProcessor {
             this.openFullDescription();
             await this.hideErrorsAndEnableSubmit()
         } catch (error) {
-            await this.showAndSaveError(error);
+            await this.showError(error);
         }
-        this._panel.hidden = false;
+        showLotPanel(this._panel, telemetry.pageSpan);
     }
 
 
@@ -1090,7 +1093,7 @@ class EbaySiteProcessor implements ISiteProcessor {
     }
 
     async searchPage() {
-        console.log("SearchPage")
+        logger.debug("SearchPage")
 
         //только на странице проданные лоты
         if (new URL(document.location.href).searchParams?.get('LH_Sold')?.trim() !== "1") return;
@@ -1126,12 +1129,15 @@ class EbaySiteProcessor implements ISiteProcessor {
         let ids = links.map(function (x) {
             return x.id
         })
+        // Every iteration is a trace of its own, linked to the page's trace; the client's calls go under it.
+        let pollSpan: TelemetrySpan | undefined;
+        const pollingClient = await new ClientsFactory().getEbayToolBackendClient(() => pollSpan)
         // noinspection InfiniteLoopJS
         while (true) {
+            pollSpan = startBackgroundWork(telemetry, 'poll lot states', {attributes: {'ebay.lots_count': ids.length}})
             try {
-                //console.log("UpdatingLotStates")
-                let getLotStatesAnswer = await this._ebayToolBackendClient.getLotStates(ids)
-                let ignoredLots = new Set(await this._ebayToolBackendClient.getIgnoredLots(this._currentProductId))
+                let getLotStatesAnswer = await pollingClient.getLotStates(ids)
+                let ignoredLots = new Set(await pollingClient.getIgnoredLots(this._currentProductId))
 
                 let lastUpdates = new Map(getLotStatesAnswer.map(p => [p.lotId, p.lastUpdate]));
 
@@ -1147,14 +1153,16 @@ class EbaySiteProcessor implements ISiteProcessor {
 
                 this._needActualizationLotsIds = selectLotsToOpen(classified, this.batchOpen)
             } catch (error) {
-                await this.saveErrorToBackend(error)
+                this.reportError(error, pollSpan)
+            } finally {
+                pollSpan.end()
             }
             await utils.sleep(1000)
         }
     }
 
 
-    public async run() {
+    public async run(span: TelemetrySpan) {
         
         let clientsFactory = new ClientsFactory();
         this._ebayClient = await clientsFactory.getEbayClient();
@@ -1164,7 +1172,7 @@ class EbaySiteProcessor implements ISiteProcessor {
 
         this._currentProductId = this.getCurrentProductIdParam();
         if (!this._currentProductId) {
-            console.log("productId not found")
+            logger.debug("productId not found")
             return;
         }
         let currentPage = location.protocol + '//' + location.host + location.pathname
@@ -1176,21 +1184,19 @@ class EbaySiteProcessor implements ISiteProcessor {
                 await this.searchPage();
             }
         } catch (error) {
-            await this.saveErrorToBackend(error)
+            this.reportError(error)
         }
     }
 
 
-    async saveErrorToBackend(error: Error) {
-        let errorText = JSON.stringify(error) + " " + error?.stack
-        try {
-            let errorText = JSON.stringify(error) + " " + error?.stack
-            await this._ebayToolBackendClient.saveError(new EbayToolBackendClient.ClientErrorInfo({
-                error: errorText,
-                url: document.location.href
-            }))
-        } catch {
-            console.log("Unable to save error to backend " + errorText)
-        }
+    /**
+     * Logs the error (exported with its type, message and stack trace) and marks the span it was caught in, by
+     * default the current processor, submit or page span, as failed. Returns the text shown to the user.
+     */
+    reportError(error: Error, span: TelemetrySpan | undefined = telemetry.currentSpan): string {
+        const isValidationError = error instanceof EbayToolBackendClient.ValidationProblemDetailedInfo;
+        const errorText = isValidationError ? JSON.stringify(error.errors) : error?.stack ?? String(error);
+        reportCaughtError(logger, "Lot processing failed", error, span, isValidationError ? {'validation.errors': errorText} : {});
+        return errorText;
     }
 }

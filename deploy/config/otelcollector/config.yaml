@@ -8,6 +8,14 @@
 
 processors:
   transform:
+  # Clients post their telemetry to the backend relay every few seconds; the relay's routine request logs would
+  # bury the backend's own records, and the client data they carry is in Loki already. Warnings and errors of the
+  # relay (a batch that could not be relayed) are kept.
+  filter/telemetry_relay:
+    error_mode: ignore
+    logs:
+      log_record:
+        - 'severity_number < SEVERITY_NUMBER_WARN and IsMatch(attributes["RequestPath"], "^/api/telemetry/")'
   transform/level:
     log_statements:
       - context: log
@@ -40,19 +48,16 @@ exporters:
   # Prometheus' native OTLP receiver; the exporter appends /v1/metrics to this endpoint.
   otlphttp/prometheus:
     endpoint: http://ebay_prometheus:9090/api/v1/otlp
-  debug:
-    verbosity: detailed
 
 service:
   pipelines:
     logs:
       receivers: [otlp]
-      processors: [transform/level, groupbyattrs/level, transform/promote_level, batch]
-      exporters: [debug, otlphttp/loki]
+      processors: [filter/telemetry_relay, transform/level, groupbyattrs/level, transform/promote_level, batch]
+      exporters: [otlphttp/loki]
     traces:
       receivers: [otlp]
       processors: [batch]
-      # No debug exporter here: detailed output for every span would flood the collector's stdout.
       exporters: [otlp/tempo]
     metrics:
       receivers: [otlp]

@@ -10,6 +10,11 @@ public static class ServiceCollectionExtensions
     {
         var appAssembly = typeof(ServiceCollectionExtensions).Assembly;
 
+        services.AddOptions<ClientTelemetryOptions>()
+            .BindConfiguration(ClientTelemetryOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
         services.AddControllers(options => options.Filters.Add<ErrorFilter>())
             .AddApplicationPart(appAssembly)
             // TODO: NSwag generates the DTOs for System.Text.Json ([JsonExtensionData], [JsonConstructor]), but MVC

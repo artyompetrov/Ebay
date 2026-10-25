@@ -215,30 +215,6 @@ namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelD
                     b.ToTable("CacheEntries", "wm");
                 });
 
-            modelBuilder.Entity("Server.Domain.ClientError", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset>("ChangedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ErrorText")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Url")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ClientErrors", "wm");
-                });
-
             modelBuilder.Entity("Server.Domain.Currency", b =>
                 {
                     b.Property<string>("Id")
@@ -278,10 +254,12 @@ namespace Server.Adapters.Driven.EF.WriteModel.Migrations.Migrations.WriteModelD
             modelBuilder.Entity("Server.Domain.IgnoredLot", b =>
                 {
                     b.Property<Guid>("ProductId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("ProductId");
 
                     b.Property<long>("LotId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnName("LotId");
 
                     b.HasKey("ProductId", "LotId");
 

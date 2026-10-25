@@ -4,6 +4,19 @@ import * as constants from '../constants';
 import {generateCodeVerifier, OAuth2Client} from "@badgateway/oauth2-client";
 import {fetchResource} from "../infrastructure/Utils";
 import {FetchWrapperCustom} from "./FetchWrapperCustom";
+import type {TelemetrySpan} from "../infrastructure/telemetry/PageTelemetry";
+
+/**
+ * Parent of a client's calls: a span, or a function returning the current one (a polling client whose every
+ * iteration is its own trace). Without it calls go under the current processor span or the page root span.
+ */
+export type SpanSource = TelemetrySpan | (() => TelemetrySpan | undefined);
+
+/** `fetch` whose calls are recorded as client spans under `parent`. */
+function tracedFetch(parent?: SpanSource): typeof fetch {
+    return (input: RequestInfo, init?: RequestInit) =>
+        fetchResource(input, init ?? {}, typeof parent === 'function' ? parent() : parent);
+}
 
 export class ClientsFactory {
     async getEbaySettings(): Promise<{ clientId: string; clientSecret: string; redirectUriCode: string }> {
@@ -35,7 +48,7 @@ export class ClientsFactory {
         }
     }
 
-    async getBackendOAuth2Client(): Promise<OAuth2Client> {
+    async getBackendOAuth2Client(parent?: SpanSource): Promise<OAuth2Client> {
         await this.saveCodeVerifier();
         
         return new OAuth2Client({
@@ -43,11 +56,11 @@ export class ClientsFactory {
             clientId: constants.Auth.Backend.ClientId,
             tokenEndpoint:  constants.Auth.Backend.TokenEndpoint,
             authorizationEndpoint: constants.Auth.Backend.AuthorizationEndpoint,
-            fetch: fetchResource
+            fetch: tracedFetch(parent)
         });
     }
 
-    async getEbayOAuth2Client(): Promise<OAuth2Client> {
+    async getEbayOAuth2Client(parent?: SpanSource): Promise<OAuth2Client> {
         await this.saveCodeVerifier();
         const settings = await this.getEbaySettings();
 
@@ -57,32 +70,34 @@ export class ClientsFactory {
             tokenEndpoint: constants.Auth.Ebay.TokenEndpoint,
             authorizationEndpoint: constants.Auth.Ebay.AuthorizationEndpoint,
             clientSecret: settings.clientSecret,
-            fetch: fetchResource
+            fetch: tracedFetch(parent)
         })
     }
 
-    async getEbayToolWebApiClient(): Promise<EbayToolWebApiClient.EbayToolWebApiClient> {
+    /** Backend client whose calls are recorded under `parent` (by default the page root span). */
+    async getEbayToolWebApiClient(parent?: SpanSource): Promise<EbayToolWebApiClient.EbayToolWebApiClient> {
         await chrome.storage.local.set({return_page: document.location.href});
 
         return new EbayToolWebApiClient.EbayToolWebApiClient(constants.Urls.backendUrl + 'api',
-            this.getAuthorizeFetch(await this.getBackendOAuth2Client(), constants.Auth.Backend.Scope, "ebayToolTokenStore", constants.Urls.extensionAuthRedirectUrl));
+            this.getAuthorizeFetch(await this.getBackendOAuth2Client(parent), constants.Auth.Backend.Scope, "ebayToolTokenStore", constants.Urls.extensionAuthRedirectUrl, parent));
 
     }
 
-    async getEbayToolBackendClient(): Promise<EbayToolWebApiClient.EbayToolWebApiClient> {
-        return this.getEbayToolWebApiClient();
+    async getEbayToolBackendClient(parent?: SpanSource): Promise<EbayToolWebApiClient.EbayToolWebApiClient> {
+        return this.getEbayToolWebApiClient(parent);
     }
     
-    async getEbayClient(): Promise<EbayClient.EbayClient> {
+    /** eBay API client whose calls are recorded under `parent` (by default the page root span). */
+    async getEbayClient(parent?: SpanSource): Promise<EbayClient.EbayClient> {
         await chrome.storage.local.set({return_page: document.location.href});
         const settings = await this.getEbaySettings();
 
         return new EbayClient.EbayClient("https://api.ebay.com/buy/browse/v1",
-            this.getAuthorizeFetch(await this.getEbayOAuth2Client(), constants.Auth.Ebay.Scope, "ebayTokenStore", settings.redirectUriCode));
+            this.getAuthorizeFetch(await this.getEbayOAuth2Client(parent), constants.Auth.Ebay.Scope, "ebayTokenStore", settings.redirectUriCode, parent));
 
     }
 
-    getAuthorizeFetch(oAuth2Client: OAuth2Client, scope: string, tokenStore: string, redirectUri: string): FetchWrapperCustom {
+    getAuthorizeFetch(oAuth2Client: OAuth2Client, scope: string, tokenStore: string, redirectUri: string, parent?: SpanSource): FetchWrapperCustom {
         return new FetchWrapperCustom({
             client: oAuth2Client,
             getNewToken: async () => {
@@ -100,7 +115,7 @@ export class ClientsFactory {
                 if (token) return JSON.parse(token);
                 return null;
             },
-            fetch: fetchResource
+            fetch: tracedFetch(parent)
         })
     }
 }

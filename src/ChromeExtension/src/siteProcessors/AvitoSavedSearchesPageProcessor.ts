@@ -1,4 +1,5 @@
 ﻿import { ISiteProcessor } from './ISiteProcessor';
+import type {TelemetrySpan} from '../infrastructure/telemetry/PageTelemetry';
 import {ClientsFactory} from "../clients/ClientsFactory";
 import {ProductWithId} from "../clients/Generated/EbayToolWebApiClient";
 import * as constants from '../constants';
@@ -16,9 +17,10 @@ export function tryGetAvitoSavedSearchesProcessor() : ISiteProcessor | null {
 
 
 class AvitoSavedSearchesPageProcessor implements ISiteProcessor {
+    readonly name = 'AvitoSavedSearchesPageProcessor';
     breakAfterSearchProcessor: boolean = true;
 
-    async run(): Promise<void> {
+    async run(span: TelemetrySpan): Promise<void> {
         window.onload = async function() {
             const ebayToolBackendClient = await new ClientsFactory().getEbayToolBackendClient();
 

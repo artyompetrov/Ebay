@@ -1,4 +1,8 @@
 import { ISiteProcessor } from './ISiteProcessor';
+import type {TelemetrySpan} from '../infrastructure/telemetry/PageTelemetry';
+import {logger, telemetry} from '../infrastructure/Telemetry';
+import {startBackgroundWork} from '../infrastructure/telemetry/BackgroundWork';
+import {reportCaughtError} from '../infrastructure/telemetry/Logger';
 import * as utils from "../infrastructure/Utils";
 import { ClientsFactory } from "../clients/ClientsFactory";
 import { highlightStockRows, StockLot } from "./ebayMag/StockQuantityHighlighter";
@@ -16,11 +20,12 @@ export function tryGetEbayMagSiteProcessor(): ISiteProcessor | null {
 }
 
 class EbayMagSiteProcessor implements ISiteProcessor {
+    readonly name = 'EbayMagSiteProcessor';
     breakAfterSearchProcessor: boolean = true;
     private backendClient: EbayToolWebApiClientType | null = null;
     private readonly lotDescriptionCache = new Map<string, string>();
 
-    async run(): Promise<void> {
+    async run(span: TelemetrySpan): Promise<void> {
         await utils.sleepElementLoaded('body', document);
 
         let clientsFactory = new ClientsFactory();
@@ -32,14 +37,21 @@ class EbayMagSiteProcessor implements ISiteProcessor {
             productUrl: getProductMeasurementsUrl(x.productId),
         }]));
 
+        // Every iteration is a trace of its own, linked to the page's; the client's calls go under it.
+        let iterationSpan: TelemetrySpan | undefined;
+        this.backendClient = await clientsFactory.getEbayToolWebApiClient(() => iterationSpan);
         const startBackground = async () => {
             while (true) {
+                iterationSpan = startBackgroundWork(telemetry, 'ebayMag stock and description pass');
                 try {
                     highlightStockRows(document, stockLotsById);
                     await this.searchForDescription();
                 }
                 catch (e) {
-                    console.error(e);
+                    reportCaughtError(logger, "ebayMag background processing failed", e, iterationSpan);
+                }
+                finally {
+                    iterationSpan.end();
                 }
 
                 await utils.sleep(1000);
@@ -138,7 +150,7 @@ class EbayMagSiteProcessor implements ISiteProcessor {
             return description;
         }
         catch (error) {
-            console.error('Failed to load lot description', error);
+            logger.error('Failed to load lot description', error);
             return null;
         }
     }
@@ -175,7 +187,7 @@ class EbayMagSiteProcessor implements ISiteProcessor {
             link.textContent = initialText;
             this.setLinkDifferenceState(link, this.hasDescriptionDifference(description, textarea.value));
         } catch (error) {
-            console.error('Failed to update lot description', error);
+            logger.error('Failed to update lot description', error);
             link.textContent = initialText ?? lotId;
         }
     }

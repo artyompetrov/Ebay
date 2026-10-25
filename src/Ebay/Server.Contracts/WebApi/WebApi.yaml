@@ -1045,21 +1045,93 @@ paths:
                   $ref: '#/components/schemas/ExtractedFields'
       tags:
       - Ebay
-  /ebay/v1/error/:
+  /telemetry/v1/traces:
     post:
-      operationId: SaveError
-      summary: Save Error
+      operationId: ExportClientTraces
+      summary: Relays an OTLP/JSON trace batch of a browser client to the collector
+      description: The body is an OTLP/JSON `ExportTraceServiceRequest`; it is forwarded byte-for-byte and never parsed.
+      tags:
+      - Telemetry
       requestBody:
+        # Not marked required: the generator then declares the (never bound) body parameter nullable, so MVC
+        # does not reject the request for it; the action reads the raw body itself.
+        required: false
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ClientErrorInfo'
-        required: true
+              type: string
+              format: binary
       responses:
         '200':
-          description: Ok
+          description: The collector accepted the batch
+        '400':
+          description: The collector rejected the batch as invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TelemetryProblemDetailedInfo'
+        '413':
+          description: The batch is larger than 1 MiB
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TelemetryProblemDetailedInfo'
+        '502':
+          description: The collector failed or is unreachable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TelemetryProblemDetailedInfo'
+  /telemetry/v1/logs:
+    post:
+      operationId: ExportClientLogs
+      summary: Relays an OTLP/JSON log batch of a browser client to the collector
+      description: The body is an OTLP/JSON `ExportLogsServiceRequest`; it is forwarded byte-for-byte and never parsed.
       tags:
-      - Ebay
+      - Telemetry
+      requestBody:
+        # Not marked required: the generator then declares the (never bound) body parameter nullable, so MVC
+        # does not reject the request for it; the action reads the raw body itself.
+        required: false
+        content:
+          application/json:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '200':
+          description: The collector accepted the batch
+        '400':
+          description: The collector rejected the batch as invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TelemetryProblemDetailedInfo'
+        '413':
+          description: The batch is larger than 1 MiB
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TelemetryProblemDetailedInfo'
+        '502':
+          description: The collector failed or is unreachable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TelemetryProblemDetailedInfo'
+  /telemetry/v1/settings:
+    get:
+      operationId: GetClientTelemetrySettings
+      summary: Returns the telemetry settings browser clients apply
+      tags:
+      - Telemetry
+      responses:
+        '200':
+          description: Client telemetry settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientTelemetrySettings'
   /ebay/v1/calculate_prices_for_all/:
     post:
       operationId: CalculatePricesForAll
@@ -1842,16 +1914,6 @@ components:
       required:
       - lotId
       - lastUpdate
-    ClientErrorInfo:
-      type: object
-      properties:
-        url:
-          type: string
-        error:
-          type: string
-      required:
-      - url
-      - error
     ShippingType:
       type: object
       properties:
@@ -2011,6 +2073,24 @@ components:
       properties:
         errors:
           additionalProperties: {}
+    TelemetryProblemDetailedInfo:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/ProblemDetailedInfo'
+      properties: {}
+    ClientTelemetrySettings:
+      type: object
+      additionalProperties: false
+      required:
+      - minLevel
+      properties:
+        minLevel:
+          type: string
+          # A plain string rather than an enum: MVC serializes responses with Newtonsoft.Json, which would write an
+          # enum as its number (see the TODO in Server.Adapters.Driving.WebApi/ServiceCollectionExtensions.cs).
+          description: >-
+            Minimum severity of the log records a client exports, one of `Trace`, `Debug`, `Information`,
+            `Warning`, `Error`, `Critical`.
   requestBodies:
     IgnoreLotsIgnoredlots:
       content:

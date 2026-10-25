@@ -4,13 +4,14 @@ namespace Server.Platform.Tracing;
 
 /// <summary>
 /// Decides which incoming requests get a server span: the health check, <c>/.well-known/</c> discovery
-/// and static frontend files are excluded because they only add noise.
+/// and static frontend files are excluded because they only add noise, and the client telemetry relay because
+/// a trace of every telemetry export would bury the client traces it carries.
 /// </summary>
 internal static class TracedRequestFilter
 {
     private const char PathSeparator = '/';
 
-    private static readonly string[] ExcludedPathPrefixes = ["/_framework/", "/_content/", "/.well-known/"];
+    private static readonly string[] ExcludedPathPrefixes = ["/_framework/", "/_content/", "/.well-known/", "/api/telemetry/"];
 
     private static readonly string[] StaticAssetExtensions =
         [".js", ".css", ".wasm", ".map", ".ico", ".png", ".jpg", ".svg", ".woff", ".woff2", ".ttf", ".otf", ".eot"];
