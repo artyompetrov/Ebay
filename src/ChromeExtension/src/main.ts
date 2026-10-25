@@ -49,8 +49,15 @@ function getNavigationTiming(): NavigationTiming | undefined {
     const [entry] = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];
     return entry === undefined
         ? undefined
-        : {responseEnd: entry.responseEnd, domContentLoadedEventEnd: entry.domContentLoadedEventEnd, loadEventEnd: entry.loadEventEnd};
+        : {
+            responseStart: entry.responseStart,
+            responseEnd: entry.responseEnd,
+            domContentLoadedEventEnd: entry.domContentLoadedEventEnd,
+            loadEventEnd: entry.loadEventEnd
+        };
 }
+
+const initialNavigationTiming = getNavigationTiming();
 
 const LongFrameEntryType = 'long-animation-frame';
 const LongTaskEntryType = 'longtask';
@@ -70,11 +77,31 @@ function observeSlowFrames(): void {
 
 function onLaterNavigationMilestone(callback: (name: string, time: number) => void): void {
     const reachedAt = (): number => telemetry.now();
+    // At document_start the navigation entry is often still empty: then the response times are read on load.
+    const responseKnownAtStart = (initialNavigationTiming?.responseEnd ?? 0) > 0;
+    const addResponseTimes = (): void => {
+        const timing = getNavigationTiming();
+        if (responseKnownAtStart || timing === undefined) {
+            return;
+        }
+        if (timing.responseStart > 0) {
+            callback('responseStart', performance.timeOrigin + timing.responseStart);
+        }
+        if (timing.responseEnd > 0) {
+            callback('responseEnd', performance.timeOrigin + timing.responseEnd);
+        }
+    };
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => callback('domContentLoaded', reachedAt()), {once: true});
     }
     if (document.readyState !== 'complete') {
-        window.addEventListener('load', () => callback('load', reachedAt()), {once: true});
+        window.addEventListener('load', () => {
+            addResponseTimes();
+            callback('load', reachedAt());
+        }, {once: true});
+    } else {
+        addResponseTimes();
     }
 }
 
@@ -84,7 +111,7 @@ export async function run() {
         telemetry,
         timeOrigin: performance.timeOrigin,
         scriptStart,
-        navigationTiming: getNavigationTiming(),
+        navigationTiming: initialNavigationTiming,
         onLaterMilestone: onLaterNavigationMilestone,
         pagePath: location.pathname,
         pageAttributes: {

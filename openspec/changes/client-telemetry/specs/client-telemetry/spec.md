@@ -83,6 +83,10 @@ When every processor that matched a page is one that runs on any site (the searc
 ### Requirement: Extension page reaction is traced from navigation start
 For a matched page the extension SHALL record a root span starting at the browser's navigation start, with events for the document's navigation milestones and for the handler match, and a child span per processor run. A processor that shows its panel SHALL add a `panel.shown` event.
 
+#### Scenario: Response times unknown at document start are added later
+- **WHEN** the browser's navigation entry has no response times yet when the extension starts on a matched page
+- **THEN** `responseStart` and `responseEnd` events are added to the root span once the page has loaded
+
 #### Scenario: The root span starts at navigation start
 - **WHEN** the extension processes an eBay lot page
 - **THEN** the exported root span's start time equals the page's navigation start, and it has events for `responseEnd`, `domContentLoaded` and `extension.handler_matched` with the processor names
@@ -92,7 +96,7 @@ For a matched page the extension SHALL record a root span starting at the browse
 - **THEN** the root span carries a `panel.shown` event at that time, and the processor's span is its child in the same trace
 
 ### Requirement: Extension waits and lookups are traced
-Within a processed page the extension SHALL record a span for each wait for a page element (selector and attempt count), for the update check, and for each cached-data lookup (whether it was a cache hit).
+Within a processed page the extension SHALL record a span for each wait for a page element (selector and attempt count), for the update check, for each cached-data lookup (whether it was a cache hit), for each extension storage access while creating its clients, and for each eBay page it loads in a hidden frame, from creating the frame until its content was read, with a `load` event.
 
 #### Scenario: Waiting for an element is a span
 - **WHEN** a processor waits for the page footer to appear
@@ -101,6 +105,10 @@ Within a processed page the extension SHALL record a span for each wait for a pa
 #### Scenario: A cache lookup records the hit
 - **WHEN** a processor reads cached data that is present and not expired
 - **THEN** a cache lookup span with cache-hit attribute `true` is exported
+
+#### Scenario: Loading a hidden eBay page is a span with its load time
+- **WHEN** the lot processor loads the purchase history page in a hidden frame and reads it
+- **THEN** a frame span is exported from the frame's creation until the content was read, with a `load` event at the time the frame loaded
 
 ### Requirement: Extension background work is traced as linked traces
 Each polling iteration and each idle-time processing pass of a page SHALL be recorded as the root span of its own trace, linked to the page's root span, so a long-open page never grows a single trace without bound. At most 60 idle passes per minute SHALL be recorded; the passes left out are counted on the next recorded one.
@@ -144,7 +152,11 @@ For each HTTP call the extension SHALL record, as children of the call's client 
 - **THEN** a worker fetch span is exported as a child of the call's client span, and the client span's duration covers it
 
 ### Requirement: Extension slow frames and panel interactions are traced
-On a processed page the extension SHALL record long animation frames over 50 ms as spans in the page trace with the duration and whether extension scripts ran in them, at most 60 per minute, and SHALL record each click on its own panel controls as a span named after the control id, without any entered values.
+On a processed page the extension SHALL record long animation frames over 50 ms as spans with the duration and whether extension scripts ran in them, at most 60 per minute; after the page root span ended only frames in which an extension script ran, and SHALL record each click on its own panel controls as a span named after the control id, without any entered values.
+
+#### Scenario: A frame of the site alone after the page was processed is not recorded
+- **WHEN** a frame longer than 50 ms in which no extension script ran happens after the page root span ended
+- **THEN** no span is exported for it
 
 #### Scenario: A long frame caused by the extension is recorded
 - **WHEN** an extension script blocks the page for more than 50 ms on a processed page
