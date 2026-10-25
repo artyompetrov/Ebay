@@ -70,11 +70,21 @@ test('a long frame after the page root ended is a trace of its own linked to the
     const page = createPage();
     page.root.end();
 
-    const [frame] = frames(page, [{ startTime: 9000, duration: 80 }]);
+    const [frame] = frames(page, [{ startTime: 9000, duration: 80, scripts: [{ sourceURL: `${ExtensionUrl}build/ebay.js` }] }]);
 
     assert.notEqual(frame.traceId, page.root.context.traceId);
     assert.equal(frame.parentSpanId, undefined);
     assert.deepEqual(frame.links, [page.root.context]);
+});
+
+// [OpenSpecScenario("client-telemetry", "Extension slow frames and panel interactions are traced", "A frame of the site alone after the page was processed is not recorded")]
+test('after the page root ended, frames in which no extension script ran are not recorded', () => {
+    const page = createPage();
+    page.root.end();
+
+    const recorded = frames(page, [{ startTime: 9000, duration: 300, scripts: [{ sourceURL: 'https://www.ebay.com/static/app.js' }] }]);
+
+    assert.equal(recorded.length, 0);
 });
 
 test('at most 60 long frames a minute are recorded', () => {

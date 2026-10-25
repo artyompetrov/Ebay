@@ -8,6 +8,7 @@ import type {ISiteProcessor} from './siteProcessors/ISiteProcessor';
 
 /** Navigation milestones of the document, in milliseconds since navigation start (0 when not reached yet). */
 export interface NavigationTiming {
+    responseStart: number;
     responseEnd: number;
     domContentLoadedEventEnd: number;
     loadEventEnd: number;
@@ -21,8 +22,9 @@ export interface PageRunEnvironment {
     scriptStart: number;
     navigationTiming: NavigationTiming | undefined;
     /**
-     * Calls back when a navigation milestone not yet reached at start (`domContentLoaded`, `load`) is reached, with
-     * its time in milliseconds since the Unix epoch.
+     * Calls back for each navigation milestone not known at start (`domContentLoaded`, `load`, and `responseStart`/
+     * `responseEnd` when the navigation entry was still empty at document start) once it is, with its time in
+     * milliseconds since the Unix epoch.
      */
     onLaterMilestone: (callback: (name: string, time: number) => void) => void;
     /** Attributes of the page root span (host, extension mode, visibility). */
@@ -37,8 +39,9 @@ export interface PageRunEnvironment {
     onProcessorsMatched: () => void;
 }
 
-const NavigationEvents: (keyof NavigationTiming)[] = ['responseEnd', 'domContentLoadedEventEnd', 'loadEventEnd'];
+const NavigationEvents: (keyof NavigationTiming)[] = ['responseStart', 'responseEnd', 'domContentLoadedEventEnd', 'loadEventEnd'];
 const NavigationEventNames: Record<keyof NavigationTiming, string> = {
+    responseStart: 'responseStart',
     responseEnd: 'responseEnd',
     domContentLoadedEventEnd: 'domContentLoaded',
     loadEventEnd: 'load'

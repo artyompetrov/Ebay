@@ -5,12 +5,23 @@ import {generateCodeVerifier, OAuth2Client} from "@badgateway/oauth2-client";
 import {fetchResource} from "../infrastructure/Utils";
 import {FetchWrapperCustom} from "./FetchWrapperCustom";
 import type {TelemetrySpan} from "../infrastructure/telemetry/PageTelemetry";
+import {telemetry} from "../infrastructure/Telemetry";
 
 /**
  * Parent of a client's calls: a span, or a function returning the current one (a polling client whose every
  * iteration is its own trace). Without it calls go under the current processor span or the page root span.
  */
 export type SpanSource = TelemetrySpan | (() => TelemetrySpan | undefined);
+
+/** Reads `chrome.storage.local`, recorded as a `storage get <keys>` span. */
+function storageGet(keys: string[]): Promise<Record<string, any>> {
+    return telemetry.withSpan(`storage get ${keys.join(', ')}`, {}, () => chrome.storage.local.get(keys));
+}
+
+/** Writes `chrome.storage.local`, recorded as a `storage set <keys>` span. */
+function storageSet(items: Record<string, unknown>): Promise<void> {
+    return telemetry.withSpan(`storage set ${Object.keys(items).join(', ')}`, {}, () => chrome.storage.local.set(items));
+}
 
 /** `fetch` whose calls are recorded as client spans under `parent`. */
 function tracedFetch(parent?: SpanSource): typeof fetch {
@@ -24,7 +35,7 @@ export class ClientsFactory {
             ebay_client_id,
             ebay_client_secret,
             ebay_redirect_uri_code
-        } = await chrome.storage.local.get(["ebay_client_id", "ebay_client_secret", "ebay_redirect_uri_code"]);
+        } = await storageGet(["ebay_client_id", "ebay_client_secret", "ebay_redirect_uri_code"]);
         
         if (ebay_client_id && ebay_client_secret && ebay_redirect_uri_code) {
             return {
@@ -40,11 +51,11 @@ export class ClientsFactory {
         }
     }
     async saveCodeVerifier() {
-        let codeVerifier = (await chrome.storage.local.get(["code_verifier"]))?.code_verifier;
+        let codeVerifier = (await storageGet(["code_verifier"]))?.code_verifier;
 
         if (codeVerifier === null || codeVerifier === undefined) {
             let codeVerifier = await generateCodeVerifier();
-            await chrome.storage.local.set({code_verifier: codeVerifier})
+            await storageSet({code_verifier: codeVerifier})
         }
     }
 
@@ -76,7 +87,7 @@ export class ClientsFactory {
 
     /** Backend client whose calls are recorded under `parent` (by default the page root span). */
     async getEbayToolWebApiClient(parent?: SpanSource): Promise<EbayToolWebApiClient.EbayToolWebApiClient> {
-        await chrome.storage.local.set({return_page: document.location.href});
+        await storageSet({return_page: document.location.href});
 
         return new EbayToolWebApiClient.EbayToolWebApiClient(constants.Urls.backendUrl + 'api',
             this.getAuthorizeFetch(await this.getBackendOAuth2Client(parent), constants.Auth.Backend.Scope, "ebayToolTokenStore", constants.Urls.extensionAuthRedirectUrl, parent));
@@ -89,7 +100,7 @@ export class ClientsFactory {
     
     /** eBay API client whose calls are recorded under `parent` (by default the page root span). */
     async getEbayClient(parent?: SpanSource): Promise<EbayClient.EbayClient> {
-        await chrome.storage.local.set({return_page: document.location.href});
+        await storageSet({return_page: document.location.href});
         const settings = await this.getEbaySettings();
 
         return new EbayClient.EbayClient("https://api.ebay.com/buy/browse/v1",
@@ -101,7 +112,7 @@ export class ClientsFactory {
         return new FetchWrapperCustom({
             client: oAuth2Client,
             getNewToken: async () => {
-                let codeVerifier = (await chrome.storage.local.get(["code_verifier"])).code_verifier;
+                let codeVerifier = (await storageGet(["code_verifier"])).code_verifier;
                 document.location.href = await oAuth2Client.authorizationCode.getAuthorizeUri({
                     redirectUri: redirectUri,
                     codeVerifier,
@@ -110,8 +121,8 @@ export class ClientsFactory {
                 return null;
             },
             getStoredToken: async () => {
-                if (constants.Urls.backendUrl !== (await chrome.storage.local.get(["backend_url"])).backend_url) return null;
-                let token = (await chrome.storage.local.get(tokenStore))[tokenStore];
+                if (constants.Urls.backendUrl !== (await storageGet(["backend_url"])).backend_url) return null;
+                let token = (await storageGet([tokenStore]))[tokenStore];
                 if (token) return JSON.parse(token);
                 return null;
             },

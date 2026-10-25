@@ -26,7 +26,7 @@ function environment(telemetry: PageTelemetry, overrides: Partial<PageRunEnviron
         telemetry,
         timeOrigin: TimeOrigin,
         scriptStart: TimeOrigin + 300,
-        navigationTiming: { responseEnd: 120, domContentLoadedEventEnd: 0, loadEventEnd: 0 },
+        navigationTiming: { responseStart: 80, responseEnd: 120, domContentLoadedEventEnd: 0, loadEventEnd: 0 },
         onLaterMilestone: (callback: (name: string, time: number) => void) => {
             callback('domContentLoaded', TimeOrigin + 450);
         },
@@ -75,6 +75,7 @@ test('the page root span starts at navigation start and carries the navigation a
     assert.equal(root.startTime, TimeOrigin);
     assert.equal(root.attributes['url.path'], '/itm/158345271749');
     const events = new Map(root.events.map(event => [event.name, event]));
+    assert.equal(events.get('responseStart')!.time, TimeOrigin + 80);
     assert.equal(events.get('responseEnd')!.time, TimeOrigin + 120);
     assert.equal(events.get('domContentLoaded')!.time, TimeOrigin + 450, 'reached after the script started');
     assert.equal(events.has('load'), false, 'not reached yet');
@@ -92,6 +93,25 @@ test('a page handled only by a processor that runs on any site records its host 
     const root = sent.flatMap(message => message.spans).find(span => span.parentSpanId === undefined)!;
     assert.equal(root.attributes['server.address'], 'www.ebay.com');
     assert.equal('url.path' in root.attributes, false);
+});
+
+// [OpenSpecScenario("client-telemetry", "Extension page reaction is traced from navigation start", "Response times unknown at document start are added later")]
+test('response times unknown at document start are added when they become known', async () => {
+    const { telemetry, sent } = createTelemetry();
+
+    await runPage([processor('EbaySiteProcessor')], environment(telemetry, {
+        navigationTiming: undefined,
+        onLaterMilestone: (callback: (name: string, time: number) => void) => {
+            callback('responseStart', TimeOrigin + 900);
+            callback('responseEnd', TimeOrigin + 1400);
+            callback('load', TimeOrigin + 5000);
+        }
+    }));
+    telemetry.flush();
+
+    const root = sent.flatMap(message => message.spans).find(span => span.parentSpanId === undefined)!;
+    assert.deepEqual(root.events.filter(event => event.name.startsWith('response') || event.name === 'load').map(event => [event.name, event.time]),
+        [['responseStart', TimeOrigin + 900], ['responseEnd', TimeOrigin + 1400], ['load', TimeOrigin + 5000]]);
 });
 
 test('the HTTP call of the update check is a child of the update check span', async () => {

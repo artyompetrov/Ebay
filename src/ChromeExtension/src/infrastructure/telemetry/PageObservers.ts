@@ -33,6 +33,12 @@ export function observeLongFrames(telemetry: PageTelemetry, timeOrigin: number, 
                 continue;
             }
 
+            // Once the page root ended, a frame of the site alone says nothing about the extension: skip it.
+            const extensionScript = (entry.scripts ?? []).some(script => script.sourceURL?.startsWith(extensionUrl) === true);
+            if (telemetry.pageSpan?.isEnded === true && !extensionScript) {
+                continue;
+            }
+
             const start = timeOrigin + entry.startTime;
             if (start - windowStart >= MinuteMs) {
                 windowStart = start;
@@ -54,7 +60,7 @@ export function observeLongFrames(telemetry: PageTelemetry, timeOrigin: number, 
                 attributes: {
                     'frame.duration_ms': entry.duration,
                     'frame.blocking_duration_ms': entry.blockingDuration ?? entry.duration,
-                    'extension.script': (entry.scripts ?? []).some(script => script.sourceURL?.startsWith(extensionUrl) === true)
+                    'extension.script': extensionScript
                 }
             });
             span.end(start + entry.duration);

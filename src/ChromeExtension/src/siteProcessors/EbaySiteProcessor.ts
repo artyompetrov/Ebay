@@ -6,6 +6,7 @@ import { ISiteProcessor } from './ISiteProcessor';
 import type {TelemetrySpan} from '../infrastructure/telemetry/PageTelemetry';
 import {logger, telemetry} from '../infrastructure/Telemetry';
 import {showLotPanel} from './ebay/LotPanel';
+import {loadHiddenPageFrame} from './ebay/HiddenPageFrame';
 import {startBackgroundWork} from '../infrastructure/telemetry/BackgroundWork';
 import {traceClicks} from '../infrastructure/telemetry/PageObservers';
 import {reportCaughtError} from '../infrastructure/telemetry/Logger';
@@ -521,31 +522,14 @@ class EbaySiteProcessor implements ISiteProcessor {
 
     private fillPurchaseHistory() {
         let itemId = location.pathname.match(/\/itm\/([0-9]+)/)[1];
-        let purchaseHistoryUrl = `https://${location.hostname}/bin/purchaseHistory?item=${itemId}`;
-        let id = 'PurchaseHistoryFrame';
-        if (document.getElementById(id)) return;
-        const myIframe = document.createElement('iframe');
-        myIframe.id = id;
-        myIframe.src = purchaseHistoryUrl;
-
-        // Можно задать стили или атрибуты:
-        myIframe.width = '1920';
-        myIframe.height = '1080';
-        myIframe.style.border = '1px solid #ccc';
-
-        document.body.appendChild(myIframe);
-
-        myIframe.addEventListener('load', async () => {
-            try {
-                // Проверяем, можем ли мы получить доступ к содержимому
-                const iframeDoc = myIframe.contentDocument;
-                if (!iframeDoc) {
-                    logger.warn('Unable to get the content inside the description iframe');
-                    return;
-                }
+        loadHiddenPageFrame(document, telemetry, logger, {
+            id: 'PurchaseHistoryFrame',
+            url: `https://${location.hostname}/bin/purchaseHistory?item=${itemId}`,
+            spanName: 'iframe purchase history',
+            read: async (iframeDoc, span) => {
                 await utils.sleepElementLoaded('footer', iframeDoc)
 
-                logger.debug("fillPurchaseHistory")
+                logger.debug("fillPurchaseHistory", {}, span)
 
                 let result = new Array<PurchaseInfoInner>();
                 let fixedPriceBlock = iframeDoc.querySelector('div.fixed-price tbody')
@@ -568,42 +552,21 @@ class EbaySiteProcessor implements ISiteProcessor {
                         date: x.date.toISOString(), quantity: x.quantity, price: x.price?.price, isRecent: true /*todo is recent игнорируется бекендом при сохранении*/
                     })
                 });
-
-            } catch (error) {
-                logger.warn('No access to the iframe due to the Same-Origin Policy', {'exception.message': String(error)});
             }
         });
     }
 
 
     private fillUpdateTitleDate() {
-
         let itemId = location.pathname.match(/\/itm\/([0-9]+)/)[1];
-        let url = `https://${location.hostname}/rvh/${itemId}`;
-        let id = 'UpdateTitleDateFrame';
-        if (document.getElementById(id)) return;
-        const myIframe = document.createElement('iframe');
-        myIframe.id = id;
-        myIframe.src = url;
-
-        // Можно задать стили или атрибуты:
-        myIframe.width = '1920';
-        myIframe.height = '1080';
-        myIframe.style.border = '1px solid #ccc';
-
-        document.body.appendChild(myIframe);
-
-        myIframe.addEventListener('load', async () => {
-            try {
-                // Проверяем, можем ли мы получить доступ к содержимому
-                const iframeDoc = myIframe.contentDocument;
-                if (!iframeDoc) {
-                    logger.warn('Unable to get the content inside the description iframe');
-                    return;
-                }
+        loadHiddenPageFrame(document, telemetry, logger, {
+            id: 'UpdateTitleDateFrame',
+            url: `https://${location.hostname}/rvh/${itemId}`,
+            spanName: 'iframe revision history',
+            read: async (iframeDoc, span) => {
                 await utils.sleepElementLoaded('footer', iframeDoc)
 
-                logger.debug("parseRevisionSummary")
+                logger.debug("parseRevisionSummary", {}, span)
 
                 let table = iframeDoc.querySelector('div#vi-revision-history-layout-container table')
                 if (table) {
@@ -624,9 +587,6 @@ class EbaySiteProcessor implements ISiteProcessor {
                 } else {
                     this._titleChangeDate = new Date(0).toISOString()
                 }
-
-            } catch (error) {
-                logger.warn('No access to the iframe due to the Same-Origin Policy', {'exception.message': String(error)});
             }
         });
     }
@@ -1001,15 +961,18 @@ class EbaySiteProcessor implements ISiteProcessor {
 
 
     async waitForPurchaseHistoryAndTitleDate() {
-        let counter = 0;
-        while (!this._purchaseHistory || !this._titleChangeDate) {
-            await utils.sleep(100);
-            counter++;
-            if (counter > 600) {
-                throw new Error("waitForPurchaseHistoryAndTitleDate run out of retries")
+        await telemetry.withSpan('wait purchase history and title date', {}, async span => {
+            let counter = 0;
+            while (!this._purchaseHistory || !this._titleChangeDate) {
+                await utils.sleep(100);
+                counter++;
+                span.setAttribute('dom.attempts', counter);
+                if (counter > 600) {
+                    throw new Error("waitForPurchaseHistoryAndTitleDate run out of retries")
+                }
             }
-        }
-        logger.debug("Purchase history and title date read after " + counter + " retries")
+            logger.debug("Purchase history and title date read after " + counter + " retries")
+        });
 
         const titleChangeDate = new Date(this._titleChangeDate);
         this._lotInfo.purchaseHistory = this._purchaseHistory.filter(purchase =>
@@ -1034,7 +997,7 @@ class EbaySiteProcessor implements ISiteProcessor {
             return;
         }
 
-        let extractedDataByFieldName = await this.extractManualFieldsData();
+        let extractedDataByFieldName = await telemetry.withSpan('extract manual fields', {}, () => this.extractManualFieldsData());
 
         this.fillPurchaseHistory();
         this.fillUpdateTitleDate();
@@ -1045,7 +1008,7 @@ class EbaySiteProcessor implements ISiteProcessor {
             this.fillPcs(extractedDataByFieldName),
         ]);
         
-        await this.compareLotInfos(this._serverLotInfo);
+        await telemetry.withSpan('compare lot infos', {}, () => this.compareLotInfos(this._serverLotInfo));
         
         
     }
@@ -1165,8 +1128,10 @@ class EbaySiteProcessor implements ISiteProcessor {
     public async run(span: TelemetrySpan) {
         
         let clientsFactory = new ClientsFactory();
-        this._ebayClient = await clientsFactory.getEbayClient();
-        this._ebayToolBackendClient = await clientsFactory.getEbayToolBackendClient();
+        await telemetry.withSpan('create clients', {}, async () => {
+            this._ebayClient = await clientsFactory.getEbayClient();
+            this._ebayToolBackendClient = await clientsFactory.getEbayToolBackendClient();
+        });
         
         await utils.sleepElementLoaded('footer', document)
 
