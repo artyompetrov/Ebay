@@ -5,6 +5,15 @@ import * as constants from '../constants';
 import { ISiteProcessor } from './ISiteProcessor';
 import {ClientsFactory} from "../clients/ClientsFactory";
 import {Mode} from '../mode';
+import { getLotSyncStatus } from "./ebay/LotSyncStatus";
+import { classifySoldResults, selectLotsToOpen, SoldResultStatus } from "./ebay/SoldSearchResults";
+
+const soldResultColors: Record<SoldResultStatus, string> = {
+    ignored: constants.Colors.lightGray,
+    notStored: constants.Colors.lightPink,
+    soldAfterRegistration: constants.Colors.lightYellow,
+    registered: constants.Colors.lightGreen,
+};
 
 const ebaySiteRegex: RegExp =  /(?:^|\.)ebay\.com$/i;
 
@@ -62,7 +71,6 @@ class LotLink {
     id: number;
     itemHtmlElement: HTMLElement;
     soldDate: Date
-    importantCount: number | null
     previousColor: string | null
     color: string | null
 }
@@ -327,7 +335,7 @@ class EbaySiteProcessor implements ISiteProcessor {
 
             let lastWindow: WindowProxy;
 
-            for (let lotId of this._needActualizationLotsIds.slice(0, this.batchOpen)) {
+            for (let lotId of this._needActualizationLotsIds) {
                 let url = "https://www.ebay.com/itm/" + lotId + "?" + this.currentProductIdParamName + "=" + this._currentProductId;
                 lastWindow = window.open(url, '_blank');
 
@@ -804,55 +812,30 @@ class EbaySiteProcessor implements ISiteProcessor {
     }
 
 
-    async compareLotInfos(serverLotInfoWithProductId: EbayToolBackendClient.LotInfoWithProductId) {
-        if (serverLotInfoWithProductId === undefined) return;
-
-        let serverLotInfoJson = serverLotInfoWithProductId.lotInfo.toJSON()
-        serverLotInfoJson["pcs"] = undefined
-        serverLotInfoJson["categories"] = undefined
-        serverLotInfoJson["description"] = undefined
-        serverLotInfoJson["shortDescription"] = undefined
-        serverLotInfoJson["seller"] = undefined
-        serverLotInfoJson["purchaseHistory"] = undefined
-
-        let lotInfoJson = this._lotInfo.toJSON()
-        lotInfoJson["pcs"] = undefined
-        lotInfoJson["categories"] = undefined
-        lotInfoJson["description"] = undefined
-        lotInfoJson["shortDescription"] = undefined
-        lotInfoJson["seller"] = undefined
-        lotInfoJson["purchaseHistory"] = undefined
-
-        let serverLotInfoJsonString = JSON.stringify(serverLotInfoJson)
-        let currentPageLotInfoJsonString = JSON.stringify(lotInfoJson)
+    async compareLotInfos(serverLotInfoWithProductId: EbayToolBackendClient.LotInfoWithProductId | undefined) {
+        let status = getLotSyncStatus(serverLotInfoWithProductId?.lotInfo, this._lotInfo)
 
         let panel = <HTMLDivElement>await utils.sleepElementLoaded('div.' + this.panelClass, document);
-        if (serverLotInfoJsonString === currentPageLotInfoJsonString) {
-            let serverMaxDate = utils.getMax(serverLotInfoWithProductId.lotInfo.purchaseHistory.map(x => {
-                if (x.price !== undefined) {
-                    return new Date(x.date).getTime()
-                } else return 0;
-            }))
-            let ebayMaxDate = utils.getMax(this._lotInfo.purchaseHistory.map(x => {
-                if (x.price !== undefined) {
-                    return new Date(x.date).getTime();
-                } else return 0;
-            }))
-
-            if (ebayMaxDate === 0 || serverMaxDate === ebayMaxDate) {
+        switch (status) {
+            case 'notStored':
+                panel.style.cssText = `background-color: white;`
+                return;
+            case 'inSync':
                 panel.style.cssText = `background-color: ${constants.Colors.lightGreen};`
                 this._serverAndEbayAreEqual = true;
-            } else {
+                break;
+            case 'newSales':
                 panel.style.cssText = `background-color: ${constants.Colors.lightYellow};`
-                console.log(`Update needed because last sale server ${serverMaxDate} and ebay last sale ${ebayMaxDate}`)
-            }
-        } else {
-            panel.style.cssText = `background-color: ${constants.Colors.lightPink};`
-            console.log(`Update needed because server and ebay lot info differs`)
+                console.log(`Update needed because ebay has sales newer than the last stored sale`)
+                break;
+            case 'listingDiffers':
+                panel.style.cssText = `background-color: ${constants.Colors.lightPink};`
+                console.log(`Update needed because server and ebay lot info differs`)
+                break;
         }
 
-        console.log("Received from server: " + serverLotInfoJsonString)
-        console.log("CurrentPage: " + currentPageLotInfoJsonString)
+        console.log("Received from server: " + JSON.stringify(serverLotInfoWithProductId.lotInfo))
+        console.log("CurrentPage: " + JSON.stringify(this._lotInfo))
     }
 
 
@@ -1150,45 +1133,19 @@ class EbaySiteProcessor implements ISiteProcessor {
                 let getLotStatesAnswer = await this._ebayToolBackendClient.getLotStates(ids)
                 let ignoredLots = new Set(await this._ebayToolBackendClient.getIgnoredLots(this._currentProductId))
 
-                let knownLots = new Map(getLotStatesAnswer.map(p => [p.lotId, p]));
+                let lastUpdates = new Map(getLotStatesAnswer.map(p => [p.lotId, p.lastUpdate]));
 
-                let importantCount = 0;
-                links.forEach(function (x) {
+                let classified = classifySoldResults(links.map(x => ({lotId: x.id, soldDate: x.soldDate})), lastUpdates, ignoredLots, this.interestedInTopNItems)
+
+                links.forEach((x, index) => {
                     x.previousColor = x.color;
-
-                    if (!ignoredLots.has(x.id)) {
-                        if (knownLots.has(x.id)) {
-                            let lotState = knownLots.get(x.id)
-
-                            let diffInDays = Math.ceil((x.soldDate.getTime() - new Date(lotState.lastUpdate).getTime()) / (1000 * 60 * 60 * 24));
-                            if (diffInDays > 0) {
-                                x.color = constants.Colors.lightYellow
-                            } else {
-                                x.color = constants.Colors.lightGreen
-                            }
-                            importantCount++;
-                        } else {
-                            x.color = constants.Colors.lightPink
-                            importantCount++;
-                        }
-                    } else {
-                        x.color = constants.Colors.lightGray
-                    }
-
-                    x.importantCount = importantCount;
-                })
-
-                let filteredLinks = links.filter(item => item.importantCount <= this.interestedInTopNItems);
-
-                filteredLinks.forEach(x => {
-                    if (x.color !== null && x.previousColor !== x.color) {
+                    x.color = soldResultColors[classified[index].status]
+                    if (classified[index].shown && x.previousColor !== x.color) {
                         x.itemHtmlElement.style.cssText = `background-color: ${x.color};`
                     }
                 });
 
-                this._needActualizationLotsIds = filteredLinks
-                    .filter(x => x.color === constants.Colors.lightYellow || x.color === constants.Colors.lightPink)
-                    .map(x => x.id)
+                this._needActualizationLotsIds = selectLotsToOpen(classified, this.batchOpen)
             } catch (error) {
                 await this.saveErrorToBackend(error)
             }

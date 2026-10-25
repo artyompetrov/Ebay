@@ -1,5 +1,6 @@
 using AwesomeAssertions;
 using Server.Domain;
+using Tests.Shared;
 
 namespace Tests.Unit;
 
@@ -52,6 +53,7 @@ public sealed class LotTests
     }
 
     [Test]
+    [OpenSpecScenario("ebay-lot-registration", "A sale is registered once per date", "Same sale submitted twice")]
     public void UpsertPurchase_UpdatesExistingPurchase_WhenOneAlreadyExistsForThatDate()
     {
         var lot = CreateLot();

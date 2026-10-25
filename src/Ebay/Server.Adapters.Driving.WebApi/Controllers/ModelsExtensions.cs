@@ -149,7 +149,7 @@ internal static class ModelsExtensions
         price: purchase.Price,
         quantity: purchase.Quantity,
         purchaseCalculationResult: purchase.CalculationResult.ToApiPurchaseCalculationResult(),
-        isRecent: titleChangeDate < purchase.Date
+        isRecent: purchase.Date >= titleChangeDate
     );
     }
 

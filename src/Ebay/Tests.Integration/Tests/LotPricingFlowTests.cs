@@ -1,10 +1,6 @@
 using Tests.Shared;
 using System.Net;
 using Client.Clients.Generated;
-using Microsoft.Extensions.DependencyInjection;
-using Server.Application.Abstractions.Driven.Abstractions;
-using Server.Application.Abstractions.Driven.Abstractions.Repositories;
-using DomainCurrency = Server.Domain.Currency;
 
 namespace Tests.Integration.Tests;
 
@@ -18,7 +14,7 @@ public class LotPricingFlowTests
         var ebayClient = TestHelpers.CreateWebApiClient(httpClient);
         var productId = await TestHelpers.CreateProductAsync(ebayClient);
 
-        await EnsureCurrencyExistsAsync("KZT");
+        await TestHelpers.EnsureCurrencyExistsAsync("KZT");
 
         var lotId = TestHelpers.NextMeasurementSeed();
         var titleChangeDate = DateTimeOffset.UtcNow.AddDays(-30);
@@ -83,7 +79,7 @@ public class LotPricingFlowTests
         var ebayClient = TestHelpers.CreateWebApiClient(httpClient);
         var productId = await TestHelpers.CreateProductAsync(ebayClient);
 
-        await EnsureCurrencyExistsAsync("KZT");
+        await TestHelpers.EnsureCurrencyExistsAsync("KZT");
 
         var lotId = TestHelpers.NextMeasurementSeed();
         var lotInfo = new LotInfo
@@ -126,28 +122,5 @@ public class LotPricingFlowTests
         // ApiException<NotFoundProblemDetailedInfo> subtype NSwag emits for this schema-typed error response.
         var exception = Assert.CatchAsync<ApiException>(() => ebayClient.GetLotInfoAsync(lotId));
         Assert.That(exception!.StatusCode, Is.EqualTo((int)HttpStatusCode.BadRequest));
-    }
-
-    private static async Task EnsureCurrencyExistsAsync(string currencyEbayName)
-    {
-        var services = IntegrationTestsSetupFixture.Factory.Services;
-        var currencyRepository = services.GetRequiredService<ICurrencyRepository>();
-        await using var unitOfWork = await services.GetRequiredService<IWriteModelUnitOfWorkFactory>()
-            .BeginAsync(CancellationToken.None);
-
-        var existing = await currencyRepository.GetByIdAsync(unitOfWork, currencyEbayName, CancellationToken.None);
-        if (existing != null)
-        {
-            return;
-        }
-
-        var currency = DomainCurrency.Create(
-            currencyEbayName: currencyEbayName,
-            currencyRusName: currencyEbayName,
-            currencyApiName: currencyEbayName,
-            currencyRate: 1.0,
-            lastUpdate: DateTimeOffset.UtcNow);
-        await currencyRepository.AddAsync(unitOfWork, currency, CancellationToken.None);
-        await unitOfWork.SaveChangesAsync(CancellationToken.None);
     }
 }

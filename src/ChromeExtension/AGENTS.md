@@ -12,7 +12,8 @@ Rules for the Chrome extension in `src/ChromeExtension`.
 
 ## Tests
 - Tests live in `tests/**/*.test.ts` and run with `npm test`: Node's built-in test runner executes TypeScript directly (type stripping, Node 22.18+), DOM is provided by `jsdom`. Tests are not type-checked, so keep them to erasable TypeScript syntax and import sources with an explicit `.ts` extension.
-- Keep page logic that needs tests in modules that depend only on the DOM (no `chrome.*`, no backend clients), e.g. `src/siteProcessors/ebayMag/StockQuantityHighlighter.ts`; site processors call them. Tests load these modules without bundling, so they must not import other source modules (extensionless imports do not resolve in Node, and `constants.ts` needs the build-time `EBAY_HELPER_BACKEND_DOMAIN`): pass such values in from the site processor.
+- Keep page logic that needs tests in modules that depend only on the DOM (no `chrome.*`, no backend clients), e.g. `src/siteProcessors/ebayMag/StockQuantityHighlighter.ts`; site processors call them. Tests load these modules without bundling, so they must not import other source modules (extensionless imports do not resolve in Node, and `constants.ts` needs the build-time `EBAY_HELPER_BACKEND_DOMAIN`): pass such values in from the site processor. Decisions that need no DOM take plain data instead of generated client classes, e.g. the eBay lot sync status and sold-results colouring in `src/siteProcessors/ebay/` (`openspec/specs/ebay-lot-registration`).
+- Compare backend DTOs by explicit fields, never by `JSON.stringify` of generated client objects: key order, `null` vs. missing values and extra keys depend on the response and the generator.
 - Third-party page markup used by tests is a trimmed snapshot in `tests/fixtures/`; refresh it when the site changes.
 - Map OpenSpec scenarios with a `// [OpenSpecScenario("spec", "requirement", "scenario")]` comment directly above the `test(...)` call (see the `write-tests` skill).
 
