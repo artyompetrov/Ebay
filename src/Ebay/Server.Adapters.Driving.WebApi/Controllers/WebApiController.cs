@@ -45,7 +45,6 @@ public sealed class WebApiController : WebApiControllerBase
     private readonly IPassportQueries _passportQueries;
     private readonly IgnoredLotService _ignoredLotService;
     private readonly IIgnoredLotQueries _ignoredLotQueries;
-    private readonly ClientErrorService _clientErrorService;
     private readonly ClientTelemetryService _clientTelemetryService;
     private readonly ClientTelemetryOptions _clientTelemetryOptions;
 
@@ -65,7 +64,6 @@ public sealed class WebApiController : WebApiControllerBase
         IPassportQueries passportQueries,
         IgnoredLotService ignoredLotService,
         IIgnoredLotQueries ignoredLotQueries,
-        ClientErrorService clientErrorService,
         ClientTelemetryService clientTelemetryService,
         IOptions<ClientTelemetryOptions> clientTelemetryOptions)
     {
@@ -84,7 +82,6 @@ public sealed class WebApiController : WebApiControllerBase
         _passportQueries = passportQueries;
         _ignoredLotService = ignoredLotService;
         _ignoredLotQueries = ignoredLotQueries;
-        _clientErrorService = clientErrorService;
         _clientTelemetryService = clientTelemetryService;
         _clientTelemetryOptions = clientTelemetryOptions.Value;
     }
@@ -763,12 +760,6 @@ public sealed class WebApiController : WebApiControllerBase
 
         return Task.FromResult<ActionResult<ICollection<ExtractedFields>>>(
             ManualFieldsExtractor.ExtractManualData(lotTextFields).ToApiExtractedData().ToList());
-    }
-
-    public override async Task<IActionResult> SaveError(ClientErrorInfo body, CancellationToken cancellationToken = default)
-    {
-        await _clientErrorService.SaveErrorAsync(body.Url, body.Error, cancellationToken);
-        return Ok();
     }
 
     // The contract declares the OTLP/JSON body as binary, so the generated method takes an IFormFile; for an

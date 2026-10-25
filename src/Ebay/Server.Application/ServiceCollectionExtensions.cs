@@ -37,7 +37,6 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<LotService>();
         services.AddSingleton<ProductPassportService>();
         services.AddSingleton<IgnoredLotService>();
-        services.AddSingleton<ClientErrorService>();
         services.AddSingleton<ClientTelemetryService>();
         services.AddSingleton<MatchedMeasurementService>();
         services.AddSingleton<MeasurementPlotService>();

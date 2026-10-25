@@ -118,7 +118,7 @@ See proposal.md (Why). Current state that shapes the approach (verified against 
   - Resource attributes: `service.name=ebay_frontend`, `service.version` from `AssemblyInformationalVersionAttribute`, and `session.id` (a new GUID per app load).
 
 ### D4. Remove client error storage outright
-`SaveError`/`ClientErrorInfo` are removed from `WebApi.yaml`, together with `ClientErrorService`, `IClientErrorRepository`, `ClientErrorRepository`, `ClientError` and the `DbSet`. A WriteModel migration drops `wm."ClientErrors"`; `Down` recreates the empty table. The extension stops calling `saveError` (group 3) before the operation leaves the contract (group 4), so the extension build never breaks. Older extension builds catch the resulting `404`. The table is write-only, so there is nothing to migrate.
+`SaveError`/`ClientErrorInfo` are removed from `WebApi.yaml`, together with `ClientErrorService`, `IClientErrorRepository`, `ClientErrorRepository`, `ClientError` and the `DbSet`. A WriteModel migration drops `wm."ClientErrors"`; `Down` recreates the empty table. The extension stops calling `saveError` (group 4) before the operation leaves the contract (group 5), so the extension build never breaks. Older extension builds catch the resulting `4xx` (`405`: only the frontend's GET fallback matches the path). The table is write-only, so there is nothing to migrate.
 
 ## Risks / Trade-offs
 

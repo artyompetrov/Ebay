@@ -295,8 +295,8 @@ When a page becomes hidden or is unloaded, a client SHALL hand all pending recor
 - **THEN** an export starts without waiting for the batch interval
 
 ### Requirement: Client errors are not stored in the database
-The backend SHALL NOT offer an endpoint for storing client error reports and SHALL NOT keep a client error table; `POST /api/ebay/v1/error/` SHALL answer `404`.
+The backend SHALL NOT offer an endpoint for storing client error reports and SHALL NOT keep a client error table; `POST /api/ebay/v1/error/` SHALL be answered with a client error (`4xx`), as any path without an API endpoint is.
 
 #### Scenario: The old error endpoint no longer exists
 - **WHEN** an authenticated client posts an error report to `/api/ebay/v1/error/`
-- **THEN** the response is `404`
+- **THEN** the response is a client error (`4xx`)

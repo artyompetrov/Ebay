@@ -1045,21 +1045,6 @@ paths:
                   $ref: '#/components/schemas/ExtractedFields'
       tags:
       - Ebay
-  /ebay/v1/error/:
-    post:
-      operationId: SaveError
-      summary: Save Error
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ClientErrorInfo'
-        required: true
-      responses:
-        '200':
-          description: Ok
-      tags:
-      - Ebay
   /telemetry/v1/traces:
     post:
       operationId: ExportClientTraces
@@ -1929,16 +1914,6 @@ components:
       required:
       - lotId
       - lastUpdate
-    ClientErrorInfo:
-      type: object
-      properties:
-        url:
-          type: string
-        error:
-          type: string
-      required:
-      - url
-      - error
     ShippingType:
       type: object
       properties:

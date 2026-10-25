@@ -158,6 +158,18 @@ public class ClientTelemetryRelayTests
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
+    [Test]
+    [OpenSpecScenario("client-telemetry", "Client errors are not stored in the database", "The old error endpoint no longer exists")]
+    public async Task OldErrorEndpoint_AnswersClientError()
+    {
+        using var client = await CreateAuthenticatedClientAsync();
+
+        using var response = await client.PostAsJsonAsync("/api/ebay/v1/error/", new { url = "https://www.ebay.com/itm/1", error = "boom" });
+
+        // No API endpoint: only the frontend's GET fallback matches the path, so a POST gets 405.
+        ((int)response.StatusCode).Should().BeInRange(400, 499);
+    }
+
     private static string NewMarker() => $"relay-test-{Guid.NewGuid():N}";
 
     /// <summary>A JSON batch of exactly <paramref name="size"/> bytes that carries <paramref name="marker"/>.</summary>

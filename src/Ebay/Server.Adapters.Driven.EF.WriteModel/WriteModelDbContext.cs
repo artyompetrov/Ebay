@@ -375,20 +375,6 @@ public sealed class WriteModelDbContext : DbContext
                 .HasForeignKey(x => x.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
-
-        modelBuilder.Entity<ClientError>(entity =>
-        {
-            entity.HasKey(x => x.Id);
-
-            entity.Property(x => x.Id)
-                .ValueGeneratedNever();
-
-            entity.Property(x => x.Url)
-                .IsRequired();
-
-            entity.Property(x => x.ErrorText)
-                .IsRequired();
-        });
     }
 
     public DbSet<LotForSale> LotForSales { get; set; } = null!;
@@ -402,7 +388,6 @@ public sealed class WriteModelDbContext : DbContext
     public DbSet<ProductEmailSendHistory> ProductEmailSendHistories { get; set; } = null!;
     public DbSet<ProductPassport> ProductPassports { get; set; } = null!;
     public DbSet<IgnoredLot> IgnoredLots { get; set; } = null!;
-    public DbSet<ClientError> ClientErrors { get; set; } = null!;
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

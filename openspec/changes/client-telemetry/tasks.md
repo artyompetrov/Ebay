@@ -34,8 +34,8 @@ The change ships in two PRs. Stage 1 (groups 1-6): backend relay, removal of cli
 
 ## 5. Remove client error storage
 
-- [ ] 5.1 Remove `SaveError`/`ClientErrorInfo` from `WebApi.yaml`, and remove `WebApiController.SaveError`, `ClientErrorService`, `IClientErrorRepository`, `ClientErrorRepository`, `Server.Domain/ClientError.cs`, the `DbSet` and the registrations. Verify: `dotnet build src/Ebay`, `npm run build` in `src/ChromeExtension` (regenerated client) and `git grep -n ClientError -- src ':!**/Migrations/**'` (no hits) all pass.
-- [ ] 5.2 Add a WriteModel EF migration that drops `wm."ClientErrors"`, with a `Down` that recreates the empty table. Verify: integration tests run migrations on a fresh DB, and a new test tagged `client-telemetry` / "The old error endpoint no longer exists" gets `404` from `POST /api/ebay/v1/error/`.
+- [x] 5.1 Remove `SaveError`/`ClientErrorInfo` from `WebApi.yaml`, and remove `WebApiController.SaveError`, `ClientErrorService`, `IClientErrorRepository`, `ClientErrorRepository`, `Server.Domain/ClientError.cs`, the `DbSet` and the registrations. Verify: `dotnet build src/Ebay`, `npm run build` in `src/ChromeExtension` (regenerated client) and `git grep -n ClientError -- src ':!**/Migrations/**'` (no hits) all pass.
+- [x] 5.2 Add a WriteModel EF migration that drops `wm."ClientErrors"`, with a `Down` that recreates the empty table. Verify: integration tests run migrations on a fresh DB, and a new test tagged `client-telemetry` / "The old error endpoint no longer exists" gets a `4xx` from `POST /api/ebay/v1/error/`.
 
 ## 6. Stage 1 integration checks
 

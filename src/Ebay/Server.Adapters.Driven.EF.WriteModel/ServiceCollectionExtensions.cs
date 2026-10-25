@@ -60,7 +60,6 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IProductEmailSendHistoryRepository, ProductEmailSendHistoryRepository>();
         services.AddSingleton<IProductPassportRepository, ProductPassportRepository>();
         services.AddSingleton<IIgnoredLotRepository, IgnoredLotRepository>();
-        services.AddSingleton<IClientErrorRepository, ClientErrorRepository>();
         services.AddSingleton<IMeasurementPhotoRepository, MeasurementPhotoRepository>();
     }
 }
