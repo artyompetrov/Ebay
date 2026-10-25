@@ -58,8 +58,8 @@ See proposal.md (Why). Current state that shapes the approach (verified against 
   - Ended records are queued and sent to the worker in one `chrome.runtime.sendMessage({ kind: 'telemetry', records })`. The queue is sent when it reaches 50 records, every 1 s, or immediately on `pagehide`/`visibilitychange → hidden`. Sending only on these triggers keeps the message cost per page small.
   - The tests are plain unit tests: the recorder has no `chrome.*` dependency, and the transport is injected.
 - **Worker.** `background.ts` becomes a webpack entry (and `manifest.json.template` → `background.service_worker` changes accordingly).
-  - It owns `@opentelemetry/sdk-trace-base` and `@opentelemetry/sdk-logs` with `BatchSpanProcessor`/`BatchLogRecordProcessor` (2 s schedule, queue 2048, drop oldest), resource attributes and `SpanLimits` (attribute value ≤ 4 KB, 64 attributes, 128 events).
-  - It converts incoming records to the SDK's readable span/log shapes and serializes them with `@opentelemetry/otlp-transformer` (JSON).
+  - It owns the export (`TelemetryExporter`): a queue of at most 2048 spans and 2048 logs (dropping the oldest), exported 2 s after the first record or at once at 512, with resource attributes per tab (`session.id`). Attribute values and messages are already cut to 4 KB by the recorder.
+  - It converts the records to the OpenTelemetry readable span/log shapes and serializes them with `@opentelemetry/otlp-transformer` (JSON). The SDK's span and log processors are not used: they expect spans created by the SDK's own tracer, while the ids here are created by the content script (they go into `traceparent` before the span ends). The transformer guarantees the OTLP encoding (hex ids, nanosecond times, span kind and status values).
   - It posts to the relay without `traceparent`, using the stored token. The token lookup uses the same `backend_url` match and `expiresAt` check as `getStoredToken`. A missing or expired token, `401`, `4xx`, `5xx` or a network error means the batch is dropped and counted.
   - Before each export it fetches the settings (cached for 10 min) and applies the level filter to logs in the worker, so the content script needs no settings round trip.
   - The worker also records its own spans: the fetch for each relayed HTTP call, as a child of the content script's client span, and worker wake-ups. MV3 kills idle workers, so the 2 s schedule keeps the loss window small.
@@ -122,7 +122,7 @@ See proposal.md (Why). Current state that shapes the approach (verified against 
 
 ## Risks / Trade-offs
 
-- [Content-script cost on every page] → the recorder is a few KB with no dependencies. On unhandled pages it only buffers in memory and sends nothing. Task 2.1 sets a size budget: the content script grows by ≤ 10 KB.
+- [Content-script cost on every page] → the recorder has no dependencies. On unhandled pages it only buffers in memory and sends nothing. Measured in a minified production build, the telemetry code adds 14.4 KB to the content script (261 127 → 275 511 bytes), above the 10 KB budget of task 2.1. In exchange, the extension is now built in webpack `production` mode without the inline source map (unminified, so stack traces stay readable). The shipped content script shrinks from 2 444 008 to 640 108 bytes.
 - [MV3 worker termination can lose a pending batch] → a 2 s schedule and flushing when the queue reaches 512 items. Dropped counts are reported when they are known.
 - [`pagehide` handoff is best effort] → records are sent synchronously in the handler, and in-flight messages usually survive because the worker is a separate process.
 - [The extension token is written only on login (30-day lifetime, no refresh token)] → after it expires, the next backend call of the extension starts a login, which stores a new token. Telemetry is lost only in that short gap. Export itself never starts a login.
