@@ -117,6 +117,14 @@ See proposal.md (Why). Current state that shapes the approach (verified against 
   - `visibilitychange → hidden` calls a `[JSExport]` method that triggers an immediate export. This is the first `JSExport` in the project; document it.
   - Resource attributes: `service.name=ebay_frontend`, `service.version` from `AssemblyInformationalVersionAttribute`, and `session.id` (a new GUID per app load).
 
+- **Implementation notes (stage 2).**
+  - `AddFrontendTelemetry` also sets the logging minimum to `Trace` with `Microsoft`/`System` at Information: without it the logger factory drops Debug records before the telemetry provider sees them, and framework Debug records (one per render) would flood the export.
+  - `Program.cs` sets `DistributedContextPropagator.Current` to the no-output propagator, so only `TracingMessageHandler` sends trace context.
+  - Spans are started without becoming `Activity.Current` (`FrontendTracer`). `TracedComponentBase` makes its step span current only inside its async `SetParametersAsync` override, so it ends with the step. It re-implements `IHandleAfterRender` to see every render. When a step completes asynchronously, `ComponentBase` has already rendered the final state before the task completed, so the navigation ends at that render; when it completes synchronously, at the next one. The `render` span runs from the render request (`ShouldRender`, or the first `SetParametersAsync`) to `OnAfterRender`.
+  - A click span starts at the click and ends at the end of the last span recorded in its 1 s window, when the window has passed. The parent fallback is whichever started later: the click or the running navigation. So a click on a link does not adopt the new page's spans.
+  - `Interop` became an injectable browser-only service, so its wrappers can reach `FrontendTracer`. `Measurements` scans through `IBarcodeScanner` instead of calling `Interop` directly.
+  - The Playwright render-exception check uses the real currencies page with a malformed `lastUpdate` (it parses the date while rendering) instead of a test-only page in the production assembly.
+
 ### D4. Remove client error storage outright
 `SaveError`/`ClientErrorInfo` are removed from `WebApi.yaml`, together with `ClientErrorService`, `IClientErrorRepository`, `ClientErrorRepository`, `ClientError` and the `DbSet`. A WriteModel migration drops `wm."ClientErrors"`; `Down` recreates the empty table. The extension stops calling `saveError` (group 4) before the operation leaves the contract (group 5), so the extension build never breaks. Older extension builds catch the resulting `4xx` (`405`: only the frontend's GET fallback matches the path). The table is write-only, so there is nothing to migrate.
 

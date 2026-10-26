@@ -1,9 +1,11 @@
 using AwesomeAssertions;
 using Bunit;
+using Client;
 using Client.Clients.Generated;
 using Client.Pages;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using Tests.Frontend.Telemetry;
 using Tests.Shared;
 
 namespace Tests.Frontend;
@@ -18,7 +20,8 @@ public sealed class MeasurementsTests
     public async Task PhotoIndicators_ShowCountsAndMeasurementSpecificNavigation_AndReloadAfterDeletion()
     {
         await using var context = new BunitContext();
-        context.Services.AddLogging();
+        TelemetryTestHost.AddTelemetry(context.Services, new FakeBrowserTelemetry(), TimeProvider.System);
+        context.Services.AddSingleton<IBarcodeScanner>(new UnusedBarcodeScanner());
         context.JSInterop.Mode = JSRuntimeMode.Loose;
         using var api = new OfficeApiHandler();
         using var http = new HttpClient(api) { BaseAddress = new Uri("https://test.local/") };
@@ -33,5 +36,10 @@ public sealed class MeasurementsTests
         api.PhotoCount = 1;
         var returned = context.Render<Measurements>(p => p.Add(x => x.Product, product));
         returned.WaitForAssertion(() => returned.Find("a[href='measurement-photos/MEA1234']").TextContent.Should().Contain("1"));
+    }
+
+    private sealed class UnusedBarcodeScanner : IBarcodeScanner
+    {
+        public Task<string> ScanAsync() => throw new InvalidOperationException("The test does not scan.");
     }
 }
