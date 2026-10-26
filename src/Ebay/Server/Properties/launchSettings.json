@@ -22,7 +22,9 @@
         "AuthorizationClient__ClientId": "client_id",
         "AuthorizationClient__Scope": "ServerAPI",
         "AuthorizationClient__ClientSecret": "secret",
-        "IdentityServer__Key__Type": "Development"
+        "IdentityServer__Key__Type": "Development",
+        "DevelopmentUser__Email": "dev@localhost",
+        "DevelopmentUser__Password": "Dev-Passw0rd!"
       }
     }
   }

@@ -71,6 +71,7 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 - Run: `dotnet run --launch-profile Server --project /workspace/Ebay/src/Ebay/Server/Server.csproj`.
 - Use `launchSettings.json` for backend runtime settings; don't use `appsettings*.json`.
 - Use PostgreSQL on port `15432` for the local DB (running the app manually).
+- A local run signs in as `dev@localhost` / `Dev-Passw0rd!` (`DevelopmentUser__*` in `launchSettings.json`): `DevelopmentUserSeeder` (`Server.Adapters.Driven.EF.Identity`) creates that user on start only in the `Development` environment, with the credentials configured and no users in the database (`openspec/specs/user-accounts`). Never set `DevelopmentUser__*` or the `Development` environment on a server.
 - `Tests.Integration` gets its PostgreSQL from `PostgresTestServer`: a Testcontainers `postgres:16` container by default (Docker is the only prerequisite), or the server in `EBAY_TESTS_POSTGRES_CONNECTION_STRING` if set (optional override, e.g. the local `15432` DB; CI doesn't set it and uses Testcontainers on the runner's Docker). Each fixture creates and drops its own scratch database; don't connect tests to the shared `ebay` database. Don't disable Testcontainers cleanup (`WithCleanUp(false)` is banned).
 - In cloud sandboxes `init.sh` starts `dockerd`, and the Claude hook sets `TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=mirror.gcr.io` because anonymous Docker Hub pulls get HTTP 429 there.
 - For eventual consistency in integration tests, use `Tests.Integration/TestHelpers.RetryUntilValidationSuccessAsync`.
