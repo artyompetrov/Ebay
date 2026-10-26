@@ -10,5 +10,5 @@ public sealed record DbCacheOptions
     /// <summary>
     /// При локальном запуске кеш не читается, значения всегда пересчитываются.
     /// </summary>
-    public bool IsLocalRun { get; init; }
+    public bool IsLocalRun { get; init; } = true;
 }

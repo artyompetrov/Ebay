@@ -10,7 +10,7 @@ public sealed record BackgroundTasksOptions
     /// <summary>
     /// Отключает фоновые задачи, которые работают только на сервере.
     /// </summary>
-    public bool IsLocalRun { get; init; }
+    public bool IsLocalRun { get; init; } = true;
 
     /// <summary>
     /// Адрес, на который отправляются уведомления о новых объявлениях о продаже.
