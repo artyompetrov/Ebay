@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Net;
+using System.Net.Http.Json;
 using AwesomeAssertions;
 using Client.Telemetry;
 using Microsoft.Extensions.Logging;
@@ -97,6 +98,24 @@ public sealed class TracingMessageHandlerTests
         kept.Logs.Should().Contain(static l => l.Category == TracingMessageHandler.BodyLogCategory && l.Message.Contains("tube", StringComparison.Ordinal));
         host.Relay.Posts.Should().NotBeEmpty().And.OnlyContain(static p =>
             !p.Body.Contains("distinctive-7f3a", StringComparison.Ordinal) && !p.Body.Contains("secretParameter", StringComparison.Ordinal));
+    }
+
+    [Test]
+    public async Task BodyRecords_BelongToTheClientSpanOfTheCall()
+    {
+        using var host = new TelemetryTestHost();
+        host.Level.Set(LogLevel.Trace);
+        using var backend = new BackendStub { Body = new { name = "tube" } };
+        using var client = host.CreateTracedClient(backend);
+        var navigation = host.Tracer.StartNavigation("/", "Products")!;
+
+        (await client.PostAsJsonAsync("api/ebay/v1/products", new { name = "6N2P" })).Dispose();
+        navigation.Stop();
+
+        var pending = host.KeepOnly(navigation.TraceId);
+        var call = pending.Spans.Single(static s => s.Kind == ActivityKind.Client);
+        pending.Logs.Where(static l => l.Category == TracingMessageHandler.BodyLogCategory).Should().HaveCount(2)
+            .And.OnlyContain(l => l.SpanId == call.SpanId);
     }
 
     private sealed class UnreachableBackend : HttpMessageHandler

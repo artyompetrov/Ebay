@@ -44,6 +44,8 @@ internal sealed class TracingMessageHandler : DelegatingHandler
         request.Headers.Remove(TraceParentHeader);
         if (activity is not null)
         {
+            // Current for this async method only, so records written during the call (the bodies) belong to its span.
+            Activity.Current = activity;
             activity.SetTag("http.request.method", method);
             activity.SetTag("server.address", uri.Host);
             activity.SetTag("server.port", uri.Port);
