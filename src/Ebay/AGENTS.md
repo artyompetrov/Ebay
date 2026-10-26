@@ -4,7 +4,7 @@ Rules for the C# backend and Blazor frontend in `src/Ebay`.
 
 ## Code style
 - Before making changes to C# code, study not only `src/.editorconfig` but also `src/Ebay/Directory.Build.props`.
-- Use `System.Text.Json` for new C# contracts/clients.
+- JSON is `System.Text.Json` only; `Newtonsoft.Json` is not referenced. MVC uses its web defaults (camelCase, case-insensitive names, numbers accepted as strings), the same library NSwag generates the DTOs and clients for, so their `[JsonExtensionData]` and string-enum attributes apply on the wire.
 - For testable code in domain/application, avoid unnecessary dependencies on static methods.
 - In `Server.Application`, document all `public` types and `public` members with XML comments (`///`).
 - Use `DateTimeOffset` and `DateOnly` for date/time; do not use `DateTime`.

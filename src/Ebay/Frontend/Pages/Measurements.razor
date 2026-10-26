@@ -5,7 +5,7 @@
 @using System.Linq
 @using Client.Extensions
 @using Microsoft.AspNetCore.Authorization
-@using Newtonsoft.Json
+@using System.Text.Json
 @attribute [Authorize]
 @inject WebApiClient EbayClient
 @inject WebApiClient WebApiClient
@@ -682,7 +682,7 @@
         }
         catch (ApiException<ValidationProblemDetailedInfo> ex)
         {
-            _error = JsonConvert.SerializeObject(ex.Result);
+            _error = JsonSerializer.Serialize(ex.Result);
         }
         catch (Exception ex)
         {
