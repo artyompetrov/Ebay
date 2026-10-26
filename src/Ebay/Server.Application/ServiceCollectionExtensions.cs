@@ -50,6 +50,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<SaleAdvertisementMonitoringService>();
         services.AddSingleton<SaleAdvertisementCleanupService>();
         services.AddSingleton<CurrencyRateService>();
+        services.AddSingleton<DefaultCurrencyService>();
         services.AddSingleton<DbCacheCleanupService>();
         services.AddSingleton<SigningKeyCleanupService>();
         services.AddSingleton<MeasurementPlotWarmupService>();
