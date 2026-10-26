@@ -57,7 +57,7 @@ services:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://ebay_otelcollector:4318
       - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
       - OTEL_SERVICE_NAME=ebay_helper
-      - EbayServer__IsLocalRun=${LOCAL_RUN:-true}
+      - EbayServer__IsLocalRun=${LOCAL_RUN:-false}
       - EbayServer__TargetEmail=${EMAIL}
       - Smtp__Server=${SMTP_SERVER}
       - Smtp__Port=${SMTP_PORT}

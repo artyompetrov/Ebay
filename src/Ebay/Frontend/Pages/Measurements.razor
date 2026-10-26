@@ -5,7 +5,9 @@
 @using System.Linq
 @using Client.Extensions
 @using Microsoft.AspNetCore.Authorization
+@using System.Text.Encodings.Web
 @using System.Text.Json
+@using System.Text.Unicode
 @attribute [Authorize]
 @inject WebApiClient EbayClient
 @inject WebApiClient WebApiClient
@@ -397,6 +399,9 @@
 <QuestionPopup @ref="_questionPopup"/>
 
 @code {
+    // Shows the Russian validation messages as they are, not as \uXXXX escapes (the default encoder escapes non-ASCII).
+    private static readonly JsonSerializerOptions ErrorJsonOptions = new() { Encoder = JavaScriptEncoder.Create(UnicodeRanges.All) };
+
     private string? _error;
     private string? _message;
     private ProductState? _selectedState;
@@ -682,7 +687,7 @@
         }
         catch (ApiException<ValidationProblemDetailedInfo> ex)
         {
-            _error = JsonSerializer.Serialize(ex.Result);
+            _error = JsonSerializer.Serialize(ex.Result, ErrorJsonOptions);
         }
         catch (Exception ex)
         {
