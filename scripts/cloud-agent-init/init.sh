@@ -41,12 +41,23 @@ SQL
 # --- Docker (integration tests start PostgreSQL via Testcontainers) ---
 # The sandbox ships Docker but does not start the daemon.
 if command -v dockerd >/dev/null 2>&1 && ! docker info >/dev/null 2>&1; then
+  # The sandbox image keeps the pid files of the boot it was snapshotted from. When such a pid now belongs to
+  # another process (e.g. a PostgreSQL worker started above), dockerd takes it for its running containerd, waits
+  # for that containerd's socket and gives up with "timeout waiting for containerd to start". A pid file whose
+  # process is not containerd/dockerd is stale, so drop it.
+  for pid_file in /var/run/docker/containerd/containerd.pid /var/run/docker.pid; do
+    pid="$(sudo cat "$pid_file" 2>/dev/null || true)"
+    if [ -n "$pid" ] && ! grep -qxE 'containerd|dockerd' "/proc/$pid/comm" 2>/dev/null; then
+      sudo rm -f "$pid_file"
+    fi
+  done
   sudo sh -c 'nohup dockerd >/var/log/dockerd.log 2>&1 &'
   for _ in $(seq 1 30); do
     docker info >/dev/null 2>&1 && break
     sleep 1
   done
-  docker info >/dev/null 2>&1 || echo "WARNING: Docker daemon did not start; see /var/log/dockerd.log" >&2
+  # stdout, not stderr: the Claude Code SessionStart hook shows the agent only its stdout.
+  docker info >/dev/null 2>&1 || echo "WARNING: Docker daemon did not start; see /var/log/dockerd.log"
 fi
 
 # --- .NET SDK ---

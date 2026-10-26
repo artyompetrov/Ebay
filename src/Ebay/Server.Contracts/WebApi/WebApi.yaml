@@ -2086,8 +2086,6 @@ components:
       properties:
         minLevel:
           type: string
-          # A plain string rather than an enum: MVC serializes responses with Newtonsoft.Json, which would write an
-          # enum as its number (see the TODO in Server.Adapters.Driving.WebApi/ServiceCollectionExtensions.cs).
           description: >-
             Minimum severity of the log records a client exports, one of `Trace`, `Debug`, `Information`,
             `Warning`, `Error`, `Critical`.

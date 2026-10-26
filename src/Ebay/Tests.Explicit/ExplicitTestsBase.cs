@@ -1,6 +1,6 @@
 using System.Net.Http.Headers;
+using System.Text.Json;
 using Client.Clients.Generated;
-using Newtonsoft.Json.Linq;
 using Server;
 
 namespace Tests.Explicit;
@@ -53,7 +53,8 @@ public abstract class ExplicitTestsBase
             .GetAwaiter()
             .GetResult();
 
-        var token = JToken.Parse(res.Content.ReadAsStringAsync().GetAwaiter().GetResult())["access_token"]!.ToString();
+        using var tokenResponse = JsonDocument.Parse(res.Content.ReadAsStringAsync().GetAwaiter().GetResult());
+        var token = tokenResponse.RootElement.GetProperty("access_token").ToString();
 
         HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme: "Bearer", parameter: token);
 

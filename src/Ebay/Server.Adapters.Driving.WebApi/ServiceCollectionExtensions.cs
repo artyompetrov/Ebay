@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Adapters.Driving.WebApi.Controllers;
 
@@ -16,12 +17,13 @@ public static class ServiceCollectionExtensions
             .ValidateOnStart();
 
         services.AddControllers(options => options.Filters.Add<ErrorFilter>())
+            // MVC serializes with System.Text.Json (web defaults: camelCase, case-insensitive names, numbers may come
+            // as strings), the library NSwag generates the DTOs for, so their [JsonExtensionData], [JsonConstructor]
+            // and string-enum attributes apply on the wire.
             .AddApplicationPart(appAssembly)
-            // TODO: NSwag generates the DTOs for System.Text.Json ([JsonExtensionData], [JsonConstructor]), but MVC
-            // serializes them with Newtonsoft.Json, which ignores those attributes and emits the AdditionalProperties
-            // dictionary as an ordinary "additionalProperties" field for every schema that allows extra keys. Switching to
-            // System.Text.Json changes request binding for all endpoints (e.g. numbers sent as strings), so it is deferred.
-            .AddNewtonsoftJson();
+            // NSwag puts the string-enum converter only on enum properties, so an enum that is a whole request body
+            // (the measurement state) would otherwise be read as a number only. Names and numbers are both accepted.
+            .AddJsonOptions(static options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
         services.AddRazorPages()
             .AddApplicationPart(appAssembly);

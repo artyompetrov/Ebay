@@ -13,6 +13,8 @@ public static class ServiceCollectionExtensions
 
         services.AddHostedService<SaleAdvertisementMonitoringBackgroundTask>();
         services.AddHostedService<SaleAdvertisementCleanupBackgroundTask>();
+        // Before CurrencyRateBackgroundTask: the rate refresh only updates currencies that exist.
+        services.AddHostedService<DefaultCurrenciesHostedService>();
         services.AddHostedService<CurrencyRateBackgroundTask>();
         services.AddHostedService<DbCacheCleanupHostedService>();
         services.AddHostedService<SigningKeyCleanupHostedService>();

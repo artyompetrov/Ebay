@@ -1,7 +1,7 @@
 using System.Diagnostics;
+using System.Text.Json;
 using Client.Clients.Generated;
 using Microsoft.AspNetCore.Components.Forms;
-using Newtonsoft.Json.Linq;
 using ProductWithId = Client.Clients.Generated.ProductWithId;
 
 namespace Client.Extensions;
@@ -26,13 +26,14 @@ internal static class ModelExtensions
         {
             var fieldName = errorsAdditionalProperty.Key;
             // The server always sends an array of messages per field (ProblemAnswers.ValidationError).
-            if (errorsAdditionalProperty.Value is not JArray jArray)
+            // System.Text.Json puts every extension-data value into the dictionary as a JsonElement.
+            if (errorsAdditionalProperty.Value is not JsonElement { ValueKind: JsonValueKind.Array } messages)
             {
                 throw new UnreachableException(
-                    $"{nameof(errorsAdditionalProperty)}.{nameof(errorsAdditionalProperty.Value)} expected to be jArray");
+                    $"{nameof(errorsAdditionalProperty)}.{nameof(errorsAdditionalProperty.Value)} expected to be a JSON array");
             }
 
-            List<string> errors = [.. jArray.Select(static error => error.ToString())];
+            List<string> errors = [.. messages.EnumerateArray().Select(static error => error.ToString())];
 
             yield return new ValidationProblemParsed(FieldName: fieldName, Errors: errors);
         }

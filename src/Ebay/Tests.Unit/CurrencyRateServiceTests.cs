@@ -101,25 +101,6 @@ public sealed class CurrencyRateServiceTests
             throw new NotSupportedException();
     }
 
-    private sealed class InMemoryCurrencyRepository : ICurrencyRepository
-    {
-        private readonly Dictionary<string, Currency> _currencies;
-
-        public InMemoryCurrencyRepository(params Currency[] currencies)
-        {
-            _currencies = currencies.ToDictionary(static x => x.Id);
-        }
-
-        public Task<Currency?> GetByIdAsync(IWriteModelUnitOfWork unitOfWork, string id, CancellationToken cancellationToken) =>
-            Task.FromResult(_currencies.GetValueOrDefault(id));
-
-        public Task AddAsync(IWriteModelUnitOfWork unitOfWork, Currency aggregate, CancellationToken cancellationToken) => throw new NotSupportedException();
-
-        public Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, string id, CancellationToken cancellationToken) => throw new NotSupportedException();
-
-        public Task RemoveAsync(IWriteModelUnitOfWork unitOfWork, IReadOnlySet<string> id, CancellationToken cancellationToken) => throw new NotSupportedException();
-    }
-
     private sealed class RecordingUnitOfWork : IWriteModelUnitOfWork
     {
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;

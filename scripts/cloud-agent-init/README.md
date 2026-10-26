@@ -25,3 +25,11 @@ share the sandbox's egress IP and get HTTP 429, so export
 `TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=mirror.gcr.io` (the Claude hook does this through
 `CLAUDE_ENV_FILE`; do the same in any other agent's setup). If Docker is unusable, set
 `EBAY_TESTS_POSTGRES_CONNECTION_STRING` to the local PostgreSQL on port 15432 instead.
+
+The sandbox image keeps Docker's pid files from the boot it was snapshotted from. If the stale
+`containerd.pid` now names another live process (often a PostgreSQL worker), `dockerd` waits for
+that "containerd" and fails with `timeout waiting for containerd to start`; `init.sh` therefore
+deletes a Docker pid file whose process is not `containerd`/`dockerd` before starting the daemon.
+
+The local PostgreSQL (port 15432) is not for tests: it is the database of the app run by hand
+(`src/Ebay/Server/Properties/launchSettings.json`) and of `dotnet ef` commands.

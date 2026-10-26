@@ -137,6 +137,21 @@ public class ProductMeasurementFlowTests
         });
     }
 
+    [Test]
+    public async Task UpdateMeasurementState_StateSentAsContractName_IsApplied()
+    {
+        using var context = await CreateMeasurementContextAsync();
+        var url = $"api/ebay/v1/products/{context.ProductId}/measurements/{context.MeasurementId}/state/";
+
+        // The contract declares MeasurementState as a string enum; the generated TypeScript client sends it as a name.
+        using var response = await context.HttpClient.PostAsync(
+            url, new StringContent("\"Sold\"", System.Text.Encoding.UTF8, "application/json"));
+
+        response.EnsureSuccessStatusCode();
+        var measurements = await context.EbayClient.GetMeasurementsAsync(measurementState: null, productId: context.ProductId);
+        measurements.Single().MeasurementState.Should().Be(MeasurementState.Sold);
+    }
+
     private static async Task<MeasurementContext> CreateMeasurementContextAsync()
     {
         var httpClient = IntegrationTestsSetupFixture.Factory.CreateClient();

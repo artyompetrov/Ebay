@@ -148,6 +148,24 @@ public class LotRegistrationTests
         FindPropertyNames(document.RootElement).Should().NotContain(AdditionalPropertiesField);
     }
 
+    [Test]
+    public async Task UpsertLotInfo_ShippingNotSet_AnswersMessagesPerField()
+    {
+        var context = await CreateContextAsync();
+        var lotInfo = CreateLotInfo(context.LotId, TitleChangeDate, []);
+        lotInfo.Shipping = null;
+
+        var exception = await FluentActions
+            .Awaiting(() => context.Client.UpsertLotInfoAsync(lotInfo, context.ProductId))
+            .Should().ThrowAsync<ApiException<ValidationProblemDetailedInfo>>();
+
+        var errors = exception.Which.Result.Errors.AdditionalProperties;
+        errors.Keys.Should().Equal(nameof(LotInfo.Shipping));
+        var messages = errors[nameof(LotInfo.Shipping)].Should().BeOfType<JsonElement>().Subject;
+        messages.ValueKind.Should().Be(JsonValueKind.Array);
+        messages.GetArrayLength().Should().BePositive();
+    }
+
     private static IEnumerable<string> FindPropertyNames(JsonElement element) => element.ValueKind switch
     {
         JsonValueKind.Object => element.EnumerateObject().SelectMany(static x => FindPropertyNames(x.Value).Prepend(x.Name)),
