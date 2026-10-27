@@ -6,9 +6,9 @@ using HtmlAgilityPack;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Server.Adapters.Driven.ScrapingProxy;
 using OneOf;
 using OneOf.Types;
+using Server.Adapters.Driven.ScrapingProxy;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Models;
 

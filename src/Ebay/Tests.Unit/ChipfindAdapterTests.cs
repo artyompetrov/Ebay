@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Time.Testing;
 using Server.Adapters.Driven.ChipFind;
 using Server.Adapters.Driven.ScrapingProxy;
 using Server.Application.Abstractions.Driven.Abstractions;
@@ -374,7 +373,7 @@ public class ChipfindAdapterTests
     [OpenSpecScenario("scraping-proxy", "A collection starts with a probe of the site's main page", "Passing probe is followed by the collection")]
     public async Task GetRecentAdvertisementsAsync_ProbePasses_RequestsMainPageThenFeed()
     {
-        var time = new FakeTimeProvider();
+        var time = new RotationClock(TimeSpan.FromSeconds(10));
         var chipfind = new ScriptedHandler(time, static (call, _, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
         {
             Content = new StringContent(call == 0 ? "<html>main page</html>" : EmptyFeed),
@@ -393,7 +392,7 @@ public class ChipfindAdapterTests
     [OpenSpecScenario("scraping-proxy", "A collection without a working exit IP ends with an error", "Every IP change is used up")]
     public async Task GetRecentAdvertisementsAsync_EveryProbeFails_ReturnsErrorWithoutFeedRequest()
     {
-        var time = new FakeTimeProvider();
+        var time = new RotationClock(TimeSpan.FromSeconds(10));
         var chipfind = new ScriptedHandler(time, static _ => HttpStatusCode.Forbidden);
         var changeIp = ExitGuardTestKit.ChangeIpHandler(time);
 
@@ -412,7 +411,7 @@ public class ChipfindAdapterTests
     [OpenSpecScenario("scraping-proxy", "Without a configured proxy, a collection does not probe", "No proxy address, no probe")]
     public async Task GetRecentAdvertisementsAsync_NoProxyAddress_StartsWithFeed()
     {
-        var time = new FakeTimeProvider();
+        var time = new RotationClock(TimeSpan.FromSeconds(10));
         var chipfind = new ScriptedHandler(time, static (_, _, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
         {
             Content = new StringContent(EmptyFeed),
@@ -429,7 +428,7 @@ public class ChipfindAdapterTests
     }
 
     private static ChipfindAdapter CreateAdapterWithGuard(
-        FakeTimeProvider time,
+        RotationClock time,
         ScriptedHandler chipfind,
         ScriptedHandler changeIp,
         string? proxyAddress,

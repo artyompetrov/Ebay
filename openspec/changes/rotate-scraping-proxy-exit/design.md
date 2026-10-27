@@ -67,7 +67,7 @@ probe
 
 - No proxy address: `Success` at once, without a probe.
 - The guard is a stateless singleton. The adapters run one after another in a run, so two rotations never overlap. The guard does not lock, and that is noted in a comment.
-- After a successful probe, the pooled connection stays and the collection reuses it. A failed probe's connection is torn down by the cancellation or error. `PooledConnectionLifetime` (2 min) already makes sure later connections pick up a new exit IP.
+- Probe requests carry `Connection: close`, so a probe's connection (the `CONNECT` tunnel opened from the current exit IP) never returns to the pool. Otherwise a non-2xx probe would leave a pooled tunnel that the next probe, after the IP change, could reuse from the old exit IP. The collection after a passing probe opens its own connection, which costs one extra TLS handshake per collection.
 
 ### D4. The IP change client is a separate, unproxied named client
 
@@ -86,8 +86,8 @@ New `ScrapingProxyOptions` members:
 |---|---|---|
 | `ChangeIpUrl` | none | absolute `http`/`https`; needs `Address` |
 | `MaxIpChangeAttempts` | 20 | 1-100 |
-| `ProbeTimeout` | 15 s | positive |
-| `IpChangeDelay` | 10 s | at least 5 s (the provider rejects a repeated request within 3-5 s) |
+| `ProbeTimeout` | 15 s | positive, at most 5 min |
+| `IpChangeDelay` | 10 s | 5 s to 10 min (the provider rejects a repeated request within 3-5 s) |
 
 - They are bound from `ScrapingProxy__ChangeIpUrl`, `__MaxIpChangeAttempts`, `__ProbeTimeout`, `__IpChangeDelay`.
 - `PrintMembers` masks `ChangeIpUrl` as `***`, as it already does for `Password`.
@@ -107,7 +107,7 @@ New `ScrapingProxyOptions` members:
 - Each IP change is a span `scraping-proxy.change-ip`, tagged with `attempt` and `new_ip` when the response has one.
 - Logs:
   - Warning for each failed probe (probe URI, attempt, reason).
-  - Warning for a failed IP change request.
+  - Warning for a failed IP change request: the HTTP status, the `HttpRequestError`, the answer's `status`, or "unreadable answer" (a non-JSON answer or an unsupported charset). It never includes the provider's message text, which could echo the link.
   - Information for each IP change with `new_ip`.
   - Information when a probe passes after at least one IP change.
 - The final failure is the `Error<string>` that the service already logs at Error.
@@ -126,7 +126,7 @@ New `ScrapingProxyOptions` members:
 - [Worst case per source is 20 × (15 s probe + 10 s delay + 10 s IP change timeout) + 15 s ≈ 12 min, three sources ≈ 36 min] → It happens only when no exit IP works, which is already a failed run. Runs never overlap: the background task waits its 30 min interval after a run ends, so a long run only delays the next one. The numbers are settings.
 - [Rotating for one site moves the shared exit IP for the others] → The adapters run one after another and each probes before collecting, so the next source either keeps the new IP or rotates further. Accepted.
 - [The provider's timer-based IP change would drop a good exit IP] → Deploy note: turn it off in the provider dashboard.
-- [The `IHttpClientFactory` handler may hold a pooled connection whose tunnel was opened on the old exit IP] → The probe runs over that same pool, so a stale tunnel fails the probe and gets torn down. A passing probe means the pool works.
+- [The `IHttpClientFactory` handler may hold a pooled connection whose tunnel was opened on the old exit IP] → Probe connections are closed after use (D3). A collection connection that is still pooled from an earlier collection is at most 2 min old (`PooledConnectionLifetime`).
 
 ## Migration Plan
 

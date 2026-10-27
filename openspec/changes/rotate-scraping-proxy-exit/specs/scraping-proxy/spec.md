@@ -110,7 +110,7 @@ When a proxy address is configured and the proxy is unreachable or refuses the r
 - **THEN** the collection returns an error result instead of advertisements fetched directly from qrz.ru
 
 ### Requirement: Invalid proxy settings fail startup
-The server SHALL refuse to start when the proxy settings are invalid: an address that is not an absolute `http` URI with a host, an address containing user info, a login without a password or a password without a login, a login/password or IP change link without an address, an IP change link that is not an absolute `http` or `https` URI, a maximum number of IP changes outside 1-100, a probe timeout that is not positive, or an IP change delay under 5 s (the provider rejects the same request repeated within 3-5 s).
+The server SHALL refuse to start when the proxy settings are invalid: an address that is not an absolute `http` URI with a host, an address containing user info, a login without a password or a password without a login, a login/password or IP change link without an address, an IP change link that is not an absolute `http` or `https` URI, a maximum number of IP changes outside 1-100, a probe timeout that is not positive or over 5 min, or an IP change delay under 5 s (the provider rejects the same request repeated within 3-5 s) or over 10 min.
 
 #### Scenario: Non-http proxy address
 - **WHEN** the proxy address is `socks5://proxy.example:1080`
@@ -155,6 +155,14 @@ The server SHALL refuse to start when the proxy settings are invalid: an address
 #### Scenario: Non-positive probe timeout
 - **WHEN** the proxy address is `http://proxy.example:8080` and the probe timeout is `00:00:00`
 - **THEN** options validation fails for the probe timeout
+
+#### Scenario: Probe timeout too long
+- **WHEN** the proxy address is `http://proxy.example:8080` and the probe timeout is `00:06:00`
+- **THEN** options validation fails for the probe timeout
+
+#### Scenario: IP change delay too long
+- **WHEN** the proxy address is `http://proxy.example:8080` and the IP change delay is `00:11:00`
+- **THEN** options validation fails for the IP change delay
 
 #### Scenario: IP change delay below the provider's limit
 - **WHEN** the proxy address is `http://proxy.example:8080` and the IP change delay is `00:00:04`

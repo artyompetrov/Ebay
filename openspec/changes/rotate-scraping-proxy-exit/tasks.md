@@ -6,7 +6,7 @@
 
 ## 2. Shared library
 
-- [x] 2.1 Add `Polly` to the ScrapingProxy project and `Microsoft.Extensions.TimeProvider.Testing` to `Directory.Packages.props` and `Tests.Unit`. Verify that `dotnet build` of the solution succeeds.
+- [x] 2.1 Add `Polly.Core` to `Directory.Packages.props` and the ScrapingProxy project and `Microsoft.Extensions.TimeProvider.Testing` to `Directory.Packages.props` and `Tests.Unit`. Verify that `dotnet build` of the solution succeeds.
 - [x] 2.2 Move the browser `User-Agent` to a public `ScrapingProxyDefaults.BrowserUserAgent` constant and use it in the qrz and newaudioportal clients instead of their `WellKnown.UserAgent` copies (design D4). Verify that the existing qrz/newaudioportal tests pass.
 - [x] 2.3 Rename `AddScrapingProxyOptions()` to `AddScrapingProxy()` and update its three adapter call sites. Register the unproxied `scraping-proxy-change-ip` client there (browser `User-Agent`, 10 s timeout, `RemoveAllLoggers()`) and `TimeProvider.System` (`TryAddSingleton`) (design D4, D5). Verify with a `ScrapingProxyRegistrationTests` test for "IP change link is requested directly with a browser User-Agent", tagged `[OpenSpecScenario]`, and the existing registration tests passing.
 - [x] 2.4 Implement the probe in `ScrapingProxyExitGuard` (design D2) and register `IScrapingProxyExitGuard` in `AddScrapingProxy()`. Verify with `ScrapingProxyExitGuardTests` (fake handlers + `FakeTimeProvider`, design D8) for "Non-success status fails the probe", "Body that stops arriving fails the probe", "Unreachable site fails the probe" and "Failed probe without an IP change link", tagged `[OpenSpecScenario]`.

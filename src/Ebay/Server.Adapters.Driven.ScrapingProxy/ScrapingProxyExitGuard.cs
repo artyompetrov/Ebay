@@ -119,7 +119,10 @@ internal sealed class ScrapingProxyExitGuard : IScrapingProxyExitGuard
         try
         {
             var httpClient = _httpClientFactory.CreateClient(httpClientName);
-            using var response = await httpClient.GetAsync(probeUri, HttpCompletionOption.ResponseHeadersRead, linked.Token);
+            // Соединение пробы не возвращается в пул: туннель, открытый с прежнего внешнего IP, иначе достался бы
+            // следующей пробе после смены IP. Сбор после успешной пробы откроет своё соединение.
+            using var request = new HttpRequestMessage(HttpMethod.Get, probeUri) { Headers = { ConnectionClose = true } };
+            using var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, linked.Token);
 
             if (response.IsSuccessStatusCode)
             {
@@ -132,8 +135,10 @@ internal sealed class ScrapingProxyExitGuard : IScrapingProxyExitGuard
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
-            // Таймаут пробы (или HttpClient.Timeout, если он короче): тело не пришло целиком вовремя.
-            reason = string.Create(CultureInfo.InvariantCulture, $"timeout after {_options.ProbeTimeout.TotalSeconds} s");
+            // Тело не пришло целиком вовремя: сработал таймаут пробы или, если он короче, HttpClient.Timeout клиента.
+            reason = timeout.IsCancellationRequested
+                ? string.Create(CultureInfo.InvariantCulture, $"probe timeout after {_options.ProbeTimeout.TotalSeconds} s")
+                : "HTTP client timeout";
         }
         catch (HttpRequestException e) when (!cancellationToken.IsCancellationRequested)
         {
@@ -199,7 +204,8 @@ internal sealed class ScrapingProxyExitGuard : IScrapingProxyExitGuard
                     return;
                 }
 
-                failure = $"answer status {answer?.Status}: {answer?.Message}";
+                // Текст сообщения провайдера не пишется: он мог бы повторить ссылку с ключом прокси.
+                failure = $"answer status {answer?.Status}";
             }
             else
             {
@@ -214,8 +220,9 @@ internal sealed class ScrapingProxyExitGuard : IScrapingProxyExitGuard
         {
             failure = $"request error {e.HttpRequestError}";
         }
-        catch (JsonException)
+        catch (Exception e) when (e is JsonException or NotSupportedException or InvalidOperationException)
         {
+            // Ответ не JSON или в неподдерживаемой кодировке: смена IP всё равно засчитана, ротация продолжается.
             failure = "unreadable answer";
         }
 
@@ -228,6 +235,5 @@ internal sealed class ScrapingProxyExitGuard : IScrapingProxyExitGuard
     /// </summary>
     private sealed record ChangeIpAnswer(
         [property: JsonPropertyName("status")] string? Status,
-        [property: JsonPropertyName("new_ip")] string? NewIp,
-        [property: JsonPropertyName("message")] string? Message);
+        [property: JsonPropertyName("new_ip")] string? NewIp);
 }

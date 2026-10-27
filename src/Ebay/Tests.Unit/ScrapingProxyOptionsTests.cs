@@ -149,6 +149,24 @@ public sealed class ScrapingProxyOptionsTests
     }
 
     [Test]
+    [OpenSpecScenario("scraping-proxy", "Invalid proxy settings fail startup", "Probe timeout too long")]
+    public void Validate_LongProbeTimeout_FailsForProbeTimeout()
+    {
+        ShouldFailFor(
+            new ScrapingProxyOptions { Address = ValidAddress, ProbeTimeout = TimeSpan.FromMinutes(6) },
+            nameof(ScrapingProxyOptions.ProbeTimeout));
+    }
+
+    [Test]
+    [OpenSpecScenario("scraping-proxy", "Invalid proxy settings fail startup", "IP change delay too long")]
+    public void Validate_LongIpChangeDelay_FailsForIpChangeDelay()
+    {
+        ShouldFailFor(
+            new ScrapingProxyOptions { Address = ValidAddress, IpChangeDelay = TimeSpan.FromMinutes(11) },
+            nameof(ScrapingProxyOptions.IpChangeDelay));
+    }
+
+    [Test]
     public void Defaults_MatchSpec()
     {
         var options = new ScrapingProxyOptions();

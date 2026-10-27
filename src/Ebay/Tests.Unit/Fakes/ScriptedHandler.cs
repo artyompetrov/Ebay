@@ -43,11 +43,12 @@ internal sealed class ScriptedHandler : HttpMessageHandler
                 request.Method,
                 request.RequestUri,
                 request.Headers.UserAgent.ToString(),
+                request.Headers.ConnectionClose == true,
                 _timeProvider.GetUtcNow()));
         }
 
         return _respond(call, request, cancellationToken);
     }
 
-    internal sealed record RecordedRequest(HttpMethod Method, Uri? Uri, string UserAgent, DateTimeOffset At);
+    internal sealed record RecordedRequest(HttpMethod Method, Uri? Uri, string UserAgent, bool ConnectionClose, DateTimeOffset At);
 }

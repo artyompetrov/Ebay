@@ -1,5 +1,4 @@
 using System.Net;
-using Microsoft.Extensions.Time.Testing;
 
 namespace Tests.Unit.Fakes;
 
@@ -14,16 +13,14 @@ internal static class ExitGuardTestKit
         new(time, static (_, _, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(ChangeIpOkAnswer) }));
 
     /// <summary>
-    /// Двигает поддельное время, пока вызов не завершится: паузы ротации идут по нему.
+    /// Ждёт завершения вызова и каждый раз, когда ротация встаёт на паузу смены IP, сдвигает время на эту паузу.
+    /// Время не двигается во время запросов, поэтому таймаут пробы срабатывает только там, где тест его вызывает.
     /// </summary>
-    public static async Task<T> AdvanceUntilDoneAsync<T>(FakeTimeProvider time, Task<T> task)
+    public static async Task<T> AdvanceUntilDoneAsync<T>(RotationClock clock, Task<T> task)
     {
-        var step = TimeSpan.FromSeconds(1);
-
-        while (!task.IsCompleted)
+        while (await Task.WhenAny(task, clock.WaitForDelayAsync()) != task)
         {
-            time.Advance(step);
-            await Task.Delay(TimeSpan.FromMilliseconds(1));
+            clock.Advance(clock.IpChangeDelay);
         }
 
         return await task;

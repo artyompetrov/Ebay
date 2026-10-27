@@ -14,7 +14,9 @@ public static class ServiceCollectionExtensions
         // других кешей процесса не задевали его записи.
         services.AddKeyedSingleton<IMemoryCache, MemoryCache>(WellKnown.CacheServiceKey);
         services.AddScrapingProxy();
-        services.AddHttpClient(WellKnown.HttpClientName, static client => client.DefaultRequestHeaders.UserAgent.ParseAdd(ScrapingProxyDefaults.BrowserUserAgent))
+        services.AddHttpClient(
+                WellKnown.HttpClientName,
+                static client => client.DefaultRequestHeaders.UserAgent.ParseAdd(ScrapingProxyDefaults.BrowserUserAgent))
             .UseScrapingProxy();
         services.AddSingleton(new ChipFindAdapterOptions(DelayMilliseconds: 5000));
         services.AddSingleton<ISaleAdvertisementAdapter, ChipfindAdapter>();

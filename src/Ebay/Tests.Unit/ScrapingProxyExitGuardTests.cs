@@ -34,21 +34,22 @@ public sealed class ScrapingProxyExitGuardTests
     [OpenSpecScenario("scraping-proxy", "A collection starts with a probe of the site's main page", "Non-success status fails the probe")]
     public async Task EnsureWorkingExit_ForbiddenMainPage_Fails()
     {
-        var time = new FakeTimeProvider();
+        var time = new RotationClock(IpChangeDelay);
         var site = new ScriptedHandler(time, static _ => HttpStatusCode.Forbidden);
 
         var result = await CreateGuard(time, site, changeIp: null, changeIpUrl: null).EnsureWorkingExitAsync(SiteClientName, ProbeUri, CancellationToken.None);
 
         result.AsT1.Value.Should().Contain("status 403");
+        // Соединение пробы закрывается: туннель с прежнего IP не должен достаться пробе после смены IP.
         site.Requests.Should().ContainSingle().Which.Should().Match<ScriptedHandler.RecordedRequest>(
-            static r => r.Method == HttpMethod.Get && r.Uri == ProbeUri);
+            static r => r.Method == HttpMethod.Get && r.Uri == ProbeUri && r.ConnectionClose);
     }
 
     [Test]
     [OpenSpecScenario("scraping-proxy", "A collection starts with a probe of the site's main page", "Body that stops arriving fails the probe")]
     public async Task EnsureWorkingExit_BodyStalls_FailsOnProbeTimeout()
     {
-        var time = new FakeTimeProvider();
+        var time = new RotationClock(IpChangeDelay);
         var bodyStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var site = new ScriptedHandler(time, (_, _, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
         {
@@ -66,7 +67,7 @@ public sealed class ScrapingProxyExitGuardTests
     [OpenSpecScenario("scraping-proxy", "A collection starts with a probe of the site's main page", "Unreachable site fails the probe")]
     public async Task EnsureWorkingExit_ConnectionError_Fails()
     {
-        var time = new FakeTimeProvider();
+        var time = new RotationClock(IpChangeDelay);
         var site = new ScriptedHandler(time, static (_, _, _) =>
             throw new HttpRequestException(HttpRequestError.ConnectionError, "Connection refused"));
 
@@ -79,7 +80,7 @@ public sealed class ScrapingProxyExitGuardTests
     [OpenSpecScenario("scraping-proxy", "A collection without a working exit IP ends with an error", "Failed probe without an IP change link")]
     public async Task EnsureWorkingExit_NoChangeIpUrl_ProbesOnceAndFails()
     {
-        var time = new FakeTimeProvider();
+        var time = new RotationClock(IpChangeDelay);
         var site = new ScriptedHandler(time, static _ => HttpStatusCode.Forbidden);
 
         var result = await CreateGuard(time, site, changeIp: null, changeIpUrl: null).EnsureWorkingExitAsync(SiteClientName, ProbeUri, CancellationToken.None);
@@ -92,7 +93,7 @@ public sealed class ScrapingProxyExitGuardTests
     [OpenSpecScenario("scraping-proxy", "A failed probe switches the proxy exit IP and probes again", "Passing first probe keeps the current exit IP")]
     public async Task EnsureWorkingExit_FirstProbePasses_DoesNotChangeIp()
     {
-        var time = new FakeTimeProvider();
+        var time = new RotationClock(IpChangeDelay);
         var site = new ScriptedHandler(time, static _ => HttpStatusCode.OK);
         var changeIp = ExitGuardTestKit.ChangeIpHandler(time);
 
@@ -106,7 +107,7 @@ public sealed class ScrapingProxyExitGuardTests
     [OpenSpecScenario("scraping-proxy", "A failed probe switches the proxy exit IP and probes again", "Probe passes after several IP changes")]
     public async Task EnsureWorkingExit_PassesAfterThreeFailures_ChangesIpThreeTimesWithDelay()
     {
-        var time = new FakeTimeProvider();
+        var time = new RotationClock(IpChangeDelay);
         var site = new ScriptedHandler(time, static call => call < 3 ? HttpStatusCode.Forbidden : HttpStatusCode.OK);
         var changeIp = ExitGuardTestKit.ChangeIpHandler(time);
 
@@ -130,7 +131,7 @@ public sealed class ScrapingProxyExitGuardTests
     [OpenSpecScenario("scraping-proxy", "A failed probe switches the proxy exit IP and probes again", "Failed IP change request still counts as an attempt")]
     public async Task EnsureWorkingExit_FailedIpChangeRequest_CountsAsAttempt()
     {
-        var time = new FakeTimeProvider();
+        var time = new RotationClock(IpChangeDelay);
         var site = new ScriptedHandler(time, static _ => HttpStatusCode.Forbidden);
         var changeIp = new ScriptedHandler(time, static (call, _, _) => Task.FromResult(call == 0
             ? new HttpResponseMessage(HttpStatusCode.InternalServerError)
@@ -145,16 +146,31 @@ public sealed class ScrapingProxyExitGuardTests
     }
 
     [Test]
+    public async Task EnsureWorkingExit_UnreadableIpChangeAnswer_ContinuesRotation()
+    {
+        var time = new RotationClock(IpChangeDelay);
+        var site = new ScriptedHandler(time, static call => call == 0 ? HttpStatusCode.Forbidden : HttpStatusCode.OK);
+        var changeIp = new ScriptedHandler(time, static (_, _, _) =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("<html>not json</html>") }));
+
+        var result = await ExitGuardTestKit.AdvanceUntilDoneAsync(time, CreateGuard(time, site, changeIp)
+            .EnsureWorkingExitAsync(SiteClientName, ProbeUri, CancellationToken.None));
+
+        result.IsT0.Should().BeTrue();
+        changeIp.Requests.Should().ContainSingle();
+    }
+
+    [Test]
     [OpenSpecScenario("scraping-proxy", "A failed probe switches the proxy exit IP and probes again", "Cancellation ends the rotation without an error result")]
     public async Task EnsureWorkingExit_CancelledDuringDelay_ThrowsCancellationWithoutMoreIpChanges()
     {
-        var time = new FakeTimeProvider();
+        var time = new RotationClock(IpChangeDelay);
         var site = new ScriptedHandler(time, static _ => HttpStatusCode.Forbidden);
         var changeIp = ExitGuardTestKit.ChangeIpHandler(time);
         using var cancellation = new CancellationTokenSource();
 
         var ensure = CreateGuard(time, site, changeIp).EnsureWorkingExitAsync(SiteClientName, ProbeUri, cancellation.Token);
-        // Обработчики отвечают синхронно, поэтому к этому моменту первая смена IP уже запрошена и идёт пауза.
+        await time.WaitForDelayAsync();
         changeIp.Requests.Should().ContainSingle();
         await cancellation.CancelAsync();
         time.Advance(IpChangeDelay);
@@ -167,7 +183,7 @@ public sealed class ScrapingProxyExitGuardTests
     [Test]
     public async Task EnsureWorkingExit_NoProxyAddress_DoesNotProbe()
     {
-        var time = new FakeTimeProvider();
+        var time = new RotationClock(IpChangeDelay);
         var site = new ScriptedHandler(time, static _ => HttpStatusCode.Forbidden);
         var guard = new ScrapingProxyExitGuard(
             new NamedClientFactory(new Dictionary<string, HttpMessageHandler> { [SiteClientName] = site }),
@@ -190,7 +206,7 @@ public sealed class ScrapingProxyExitGuardTests
         var rotation = await RunRotationOnRealRegistrationsAsync(logs);
 
         rotation.ChangeIpRequests.Should().Be(1);
-        rotation.Error.Should().NotContain(ProxyKey);
+        rotation.Error.Should().Contain(nameof(HttpRequestError.ProxyTunnelError)).And.NotContain(ProxyKey);
         logs.Records.Should().Contain(static r => r.Contains("exit IP change 1 requested", StringComparison.Ordinal));
         logs.Records.Should().NotContain(static r => r.Contains(ProxyKey, StringComparison.Ordinal));
     }
@@ -201,15 +217,19 @@ public sealed class ScrapingProxyExitGuardTests
     {
         using var testSource = new ActivitySource(nameof(Rotation_OnRealRegistrations_SpansDoNotContainProxyKey));
         var stopped = new ConcurrentQueue<Activity>();
+        var traceId = default(ActivityTraceId);
+        // Записываются только спаны трассы этого теста, чтобы не задевать параллельные тесты, проверяющие свои спаны.
         using var listener = new ActivityListener
         {
             ShouldListenTo = static _ => true,
-            Sample = static (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+            Sample = (ref ActivityCreationOptions<ActivityContext> options) =>
+                options.Source == testSource || (traceId != default && options.Parent.TraceId == traceId)
+                    ? ActivitySamplingResult.AllDataAndRecorded
+                    : ActivitySamplingResult.None,
             ActivityStopped = stopped.Enqueue,
         };
         ActivitySource.AddActivityListener(listener);
 
-        ActivityTraceId traceId;
         (int ChangeIpRequests, string Error, Uri ChangeIpBase) rotation;
         using (var root = testSource.StartActivity("test"))
         {
@@ -235,7 +255,8 @@ public sealed class ScrapingProxyExitGuardTests
     /// </summary>
     private static async Task<(int ChangeIpRequests, string Error, Uri ChangeIpBase)> RunRotationOnRealRegistrationsAsync(RecordingLoggerProvider? logs)
     {
-        var time = new FakeTimeProvider();
+        // Пауза по умолчанию (10 с) совпадает с IpChangeDelay теста.
+        var time = new RotationClock(IpChangeDelay);
         await using var proxy = new StubProxy(requireAuthentication: false);
         await using var changeIpServer = new LoopbackHttpServer(ExitGuardTestKit.ChangeIpOkAnswer);
         await using var services = ScrapingProxyServices.Build(

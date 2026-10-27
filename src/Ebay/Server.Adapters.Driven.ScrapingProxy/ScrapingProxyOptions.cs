@@ -24,6 +24,14 @@ internal sealed record ScrapingProxyOptions : IValidatableObject
     private static readonly TimeSpan MinIpChangeDelay = TimeSpan.FromSeconds(5);
 
     /// <summary>
+    /// Верхние границы держат значения в пределах, которые принимают таймер отмены и пауза Polly, и не дают одной
+    /// ротации растянуться на часы.
+    /// </summary>
+    private static readonly TimeSpan MaxProbeTimeout = TimeSpan.FromMinutes(5);
+
+    private static readonly TimeSpan MaxIpChangeDelay = TimeSpan.FromMinutes(10);
+
+    /// <summary>
     /// Адрес прокси, абсолютный <c>http://host:port</c> без логина и пароля внутри.
     /// </summary>
     public string? Address { get; init; }
@@ -76,15 +84,17 @@ internal sealed record ScrapingProxyOptions : IValidatableObject
                 [nameof(MaxIpChangeAttempts)]);
         }
 
-        if (ProbeTimeout <= TimeSpan.Zero)
-        {
-            yield return new ValidationResult("Scraping proxy probe timeout must be positive.", [nameof(ProbeTimeout)]);
-        }
-
-        if (IpChangeDelay < MinIpChangeDelay)
+        if (ProbeTimeout <= TimeSpan.Zero || ProbeTimeout > MaxProbeTimeout)
         {
             yield return new ValidationResult(
-                $"Scraping proxy IP change delay must be at least {MinIpChangeDelay.TotalSeconds} seconds.",
+                $"Scraping proxy probe timeout must be positive and at most {MaxProbeTimeout}.",
+                [nameof(ProbeTimeout)]);
+        }
+
+        if (IpChangeDelay < MinIpChangeDelay || IpChangeDelay > MaxIpChangeDelay)
+        {
+            yield return new ValidationResult(
+                $"Scraping proxy IP change delay must be between {MinIpChangeDelay} and {MaxIpChangeDelay}.",
                 [nameof(IpChangeDelay)]);
         }
 

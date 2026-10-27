@@ -15,13 +15,12 @@ internal sealed class LoopbackHttpServer : IAsyncDisposable
     private readonly Task _loop;
     private int _requestCount;
 
+    private const int StartAttempts = 5;
+
     public LoopbackHttpServer(string body)
     {
         _body = body;
-        var port = GetFreePort();
-        BaseAddress = new Uri($"http://{IPAddress.Loopback}:{port}/");
-        _listener.Prefixes.Add(BaseAddress.ToString());
-        _listener.Start();
+        BaseAddress = StartOnFreePort(_listener);
         _loop = LoopAsync();
     }
 
@@ -54,6 +53,30 @@ internal sealed class LoopbackHttpServer : IAsyncDisposable
         catch (Exception e) when (e is HttpListenerException or ObjectDisposedException or InvalidOperationException)
         {
             // Сервер остановлен в DisposeAsync.
+        }
+    }
+
+    /// <summary>
+    /// HttpListener не умеет слушать порт 0, поэтому порт берётся у TcpListener; между освобождением и занятием его
+    /// может перехватить параллельный тест, тогда пробуется другой порт.
+    /// </summary>
+    private static Uri StartOnFreePort(HttpListener listener)
+    {
+        for (var attempt = 1; ; attempt++)
+        {
+            var address = new Uri($"http://{IPAddress.Loopback}:{GetFreePort()}/");
+            listener.Prefixes.Clear();
+            listener.Prefixes.Add(address.ToString());
+
+            try
+            {
+                listener.Start();
+                return address;
+            }
+            catch (HttpListenerException) when (attempt < StartAttempts)
+            {
+                // Порт заняли: следующая попытка.
+            }
         }
     }
 
