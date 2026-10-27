@@ -18,8 +18,8 @@ public static class ServiceCollectionExtensions
         // Singleton: процессный кеш разобранных страниц объявлений; свой keyed-экземпляр, чтобы лимиты и вытеснение
         // других кешей процесса не задевали его записи.
         services.AddKeyedSingleton<IMemoryCache, MemoryCache>(WellKnown.CacheServiceKey);
-        services.AddScrapingProxyOptions();
-        services.AddHttpClient(WellKnown.HttpClientName, static client => client.DefaultRequestHeaders.UserAgent.ParseAdd(WellKnown.UserAgent))
+        services.AddScrapingProxy();
+        services.AddHttpClient(WellKnown.HttpClientName, static client => client.DefaultRequestHeaders.UserAgent.ParseAdd(ScrapingProxyDefaults.BrowserUserAgent))
             .UseScrapingProxy();
         services.TryAddSingleton(TimeProvider.System);
         services.AddSingleton<ISaleAdvertisementAdapter, QrzAdapter>();

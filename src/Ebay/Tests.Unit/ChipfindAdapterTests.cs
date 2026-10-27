@@ -3,11 +3,16 @@ using AwesomeAssertions;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Time.Testing;
 using Server.Adapters.Driven.ChipFind;
+using Server.Adapters.Driven.ScrapingProxy;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Models;
 using Tests.Shared;
 using Tests.Unit.Fakes;
+using ChipFindWellKnown = Server.Adapters.Driven.ChipFind.WellKnown;
 
 namespace Tests.Unit;
 
@@ -15,6 +20,9 @@ namespace Tests.Unit;
 [TestOf(typeof(ChipfindAdapter))]
 public class ChipfindAdapterTests
 {
+    private const string ProxyAddress = "http://proxy.example:8080";
+    private const string EmptyFeed = "<rss><channel></channel></rss>";
+
     [Test]
     [OpenSpecScenario("chipfind-monitoring", "Sale advertisement feed parsing", "Parses pre-formatted description items")]
     public async Task Parse_PreFormattedItems_DoesNotLogWarning()
@@ -33,7 +41,7 @@ public class ChipfindAdapterTests
         var httpClient = new HttpClient(handler);
         var factory = new TestHttpClientFactory(httpClient);
         var logger = new TestLogger<ChipfindAdapter>();
-        var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
+        var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0), PassingExitGuard.Instance);
 
         var ads = (await adapter.GetRecentAdvertisementsAsync(CancellationToken.None)).AsT0;
         Assert.That(ads, Has.Count.EqualTo(1));
@@ -63,7 +71,7 @@ public class ChipfindAdapterTests
         var httpClient = new HttpClient(handler);
         var factory = new TestHttpClientFactory(httpClient);
         var logger = new TestLogger<ChipfindAdapter>();
-        var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
+        var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0), PassingExitGuard.Instance);
 
         var ads = (await adapter.GetRecentAdvertisementsAsync(CancellationToken.None)).AsT0;
         var ad = ads.Single();
@@ -92,7 +100,7 @@ public class ChipfindAdapterTests
         var httpClient = new HttpClient(handler);
         var factory = new TestHttpClientFactory(httpClient);
         var logger = new TestLogger<ChipfindAdapter>();
-        var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
+        var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0), PassingExitGuard.Instance);
 
         var ads = (await adapter.GetRecentAdvertisementsAsync(CancellationToken.None)).AsT0;
         var ad = ads.Single();
@@ -188,7 +196,7 @@ public class ChipfindAdapterTests
         var httpClient = new HttpClient(handler);
         var factory = new TestHttpClientFactory(httpClient);
         var logger = new TestLogger<ChipfindAdapter>();
-        var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
+        var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0), PassingExitGuard.Instance);
 
         var ads = (await adapter.GetRecentAdvertisementsAsync(CancellationToken.None)).AsT0;
 
@@ -216,7 +224,7 @@ public class ChipfindAdapterTests
 
         var handler = new StaticMessageHandler(xml);
         var factory = new TestHttpClientFactory(new HttpClient(handler));
-        var adapter = new ChipfindAdapter(new TestLogger<ChipfindAdapter>(), factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
+        var adapter = new ChipfindAdapter(new TestLogger<ChipfindAdapter>(), factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0), PassingExitGuard.Instance);
 
         var ad = (await adapter.GetRecentAdvertisementsAsync(CancellationToken.None)).AsT0.Single();
 
@@ -239,7 +247,7 @@ public class ChipfindAdapterTests
         var httpClient = new HttpClient(handler);
         var factory = new TestHttpClientFactory(httpClient);
         var logger = new TestLogger<ChipfindAdapter>();
-        var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
+        var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0), PassingExitGuard.Instance);
 
         var contact = await adapter.TryGetContactAsync(
             saleAdvertisement: new SaleAdvertisement(
@@ -268,7 +276,7 @@ public class ChipfindAdapterTests
         var httpClient = new HttpClient(handler);
         var factory = new TestHttpClientFactory(httpClient);
         var logger = new TestLogger<ChipfindAdapter>();
-        var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
+        var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0), PassingExitGuard.Instance);
 
         var contact = await adapter.TryGetContactAsync(
             saleAdvertisement: new SaleAdvertisement(
@@ -297,7 +305,7 @@ public class ChipfindAdapterTests
         var httpClient = new HttpClient(handler);
         var factory = new TestHttpClientFactory(httpClient);
         var logger = new TestLogger<ChipfindAdapter>();
-        var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
+        var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0), PassingExitGuard.Instance);
 
         var contact = await adapter.TryGetContactAsync(
             saleAdvertisement: new SaleAdvertisement(
@@ -326,7 +334,7 @@ public class ChipfindAdapterTests
         var httpClient = new HttpClient(handler);
         var factory = new TestHttpClientFactory(httpClient);
         var logger = new TestLogger<ChipfindAdapter>();
-        var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0));
+        var adapter = new ChipfindAdapter(logger, factory, new MemoryCache(new MemoryCacheOptions()), new ChipFindAdapterOptions(0), PassingExitGuard.Instance);
         var saleAdvertisement = new SaleAdvertisement(
             Title: "title",
             SellerKey: "seller",
@@ -354,11 +362,98 @@ public class ChipfindAdapterTests
 
         var collect = () => services.GetRequiredService<ISaleAdvertisementAdapter>().GetRecentAdvertisementsAsync(CancellationToken.None);
 
-        await collect.Should().ThrowAsync<HttpRequestException>();
+        // Проба главной страницы получает 502 от заглушки, а ссылки смены IP нет: сбор заканчивается ошибкой.
+        (await collect()).IsT1.Should().BeTrue();
         // Сначала запрос без учётных данных, затем повтор с ними в ответ на 407.
         proxy.Requests.Should().Equal(
             new ProxyRequest("CONNECT www.chipfind.ru:443 HTTP/1.1", ProxyAuthorization: null),
             new ProxyRequest("CONNECT www.chipfind.ru:443 HTTP/1.1", ScrapingProxyServices.ExpectedBasicCredentials));
+    }
+
+    [Test]
+    [OpenSpecScenario("scraping-proxy", "A collection starts with a probe of the site's main page", "Passing probe is followed by the collection")]
+    public async Task GetRecentAdvertisementsAsync_ProbePasses_RequestsMainPageThenFeed()
+    {
+        var time = new FakeTimeProvider();
+        var chipfind = new ScriptedHandler(time, static (call, _, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(call == 0 ? "<html>main page</html>" : EmptyFeed),
+        }));
+
+        var result = await CreateAdapterWithGuard(time, chipfind, ExitGuardTestKit.ChangeIpHandler(time), proxyAddress: ProxyAddress)
+            .GetRecentAdvertisementsAsync(CancellationToken.None);
+
+        result.IsT0.Should().BeTrue();
+        chipfind.Requests.Select(static r => r.Uri).Should().Equal(
+            new Uri("https://www.chipfind.ru/"),
+            new Uri("https://www.chipfind.ru/market/sale_full.xml"));
+    }
+
+    [Test]
+    [OpenSpecScenario("scraping-proxy", "A collection without a working exit IP ends with an error", "Every IP change is used up")]
+    public async Task GetRecentAdvertisementsAsync_EveryProbeFails_ReturnsErrorWithoutFeedRequest()
+    {
+        var time = new FakeTimeProvider();
+        var chipfind = new ScriptedHandler(time, static _ => HttpStatusCode.Forbidden);
+        var changeIp = ExitGuardTestKit.ChangeIpHandler(time);
+
+        var result = await ExitGuardTestKit.AdvanceUntilDoneAsync(
+            time,
+            CreateAdapterWithGuard(time, chipfind, changeIp, proxyAddress: ProxyAddress, maxIpChangeAttempts: 3)
+                .GetRecentAdvertisementsAsync(CancellationToken.None));
+
+        result.AsT1.Value.Should().Contain("after 3 IP changes");
+        changeIp.Requests.Should().HaveCount(3);
+        chipfind.Requests.Should().HaveCount(4)
+            .And.AllSatisfy(static r => r.Uri.Should().Be(new Uri("https://www.chipfind.ru/")));
+    }
+
+    [Test]
+    [OpenSpecScenario("scraping-proxy", "Without a configured proxy, a collection does not probe", "No proxy address, no probe")]
+    public async Task GetRecentAdvertisementsAsync_NoProxyAddress_StartsWithFeed()
+    {
+        var time = new FakeTimeProvider();
+        var chipfind = new ScriptedHandler(time, static (_, _, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(EmptyFeed),
+        }));
+        var changeIp = ExitGuardTestKit.ChangeIpHandler(time);
+
+        var result = await CreateAdapterWithGuard(time, chipfind, changeIp, proxyAddress: null)
+            .GetRecentAdvertisementsAsync(CancellationToken.None);
+
+        result.IsT0.Should().BeTrue();
+        chipfind.Requests.Should().ContainSingle()
+            .Which.Uri.Should().Be(new Uri("https://www.chipfind.ru/market/sale_full.xml"));
+        changeIp.Requests.Should().BeEmpty();
+    }
+
+    private static ChipfindAdapter CreateAdapterWithGuard(
+        FakeTimeProvider time,
+        ScriptedHandler chipfind,
+        ScriptedHandler changeIp,
+        string? proxyAddress,
+        int maxIpChangeAttempts = 20)
+    {
+        var factory = new NamedClientFactory(new Dictionary<string, HttpMessageHandler>
+        {
+            [ChipFindWellKnown.HttpClientName] = chipfind,
+            ["scraping-proxy-change-ip"] = changeIp,
+        });
+        var options = new ScrapingProxyOptions
+        {
+            Address = proxyAddress,
+            ChangeIpUrl = proxyAddress is null ? null : "https://changeip.mobileproxy.space/?proxy_key=abc123&format=json",
+            MaxIpChangeAttempts = maxIpChangeAttempts,
+        };
+        var guard = new ScrapingProxyExitGuard(factory, Options.Create(options), time, NullLogger<ScrapingProxyExitGuard>.Instance);
+
+        return new ChipfindAdapter(
+            new TestLogger<ChipfindAdapter>(),
+            factory,
+            new MemoryCache(new MemoryCacheOptions()),
+            new ChipFindAdapterOptions(0),
+            guard);
     }
 
     private sealed class CountingMessageHandler : HttpMessageHandler

@@ -1,5 +1,6 @@
 using System.Net;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
 namespace Server.Adapters.Driven.ScrapingProxy;
@@ -13,12 +14,13 @@ public static class ServiceCollectionExtensions
     private static readonly TimeSpan PooledConnectionLifetime = TimeSpan.FromMinutes(2);
 
     /// <summary>
-    /// Регистрирует настройки прокси (секция <c>ScrapingProxy</c>) с проверкой при старте хоста; повторный вызов ничего не делает, поэтому его вызывает
-    /// каждый адаптер, которому нужен прокси.
+    /// Регистрирует настройки прокси (секция <c>ScrapingProxy</c>) с проверкой при старте хоста,
+    /// <see cref="IScrapingProxyExitGuard"/> и клиент ссылки смены IP (без прокси парсеров и без логов запросов: в ссылке
+    /// ключ прокси). Повторный вызов ничего не делает, поэтому его вызывает каждый адаптер, которому нужен прокси.
     /// </summary>
-    public static void AddScrapingProxyOptions(this IServiceCollection services)
+    public static void AddScrapingProxy(this IServiceCollection services)
     {
-        if (services.Any(static d => d.ServiceType == typeof(IValidateOptions<ScrapingProxyOptions>)))
+        if (services.Any(static d => d.ServiceType == typeof(IScrapingProxyExitGuard)))
         {
             return;
         }
@@ -27,12 +29,21 @@ public static class ServiceCollectionExtensions
             .BindConfiguration(ScrapingProxyOptions.SectionName)
             .ValidateDataAnnotations()
             .ValidateOnStart();
+
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddHttpClient(WellKnown.ChangeIpHttpClientName, static client =>
+            {
+                client.DefaultRequestHeaders.UserAgent.ParseAdd(ScrapingProxyDefaults.BrowserUserAgent);
+                client.Timeout = WellKnown.ChangeIpTimeout;
+            })
+            .RemoveAllLoggers();
+        services.AddSingleton<IScrapingProxyExitGuard, ScrapingProxyExitGuard>();
     }
 
     /// <summary>
     /// Направляет запросы клиента через прокси из секции <c>ScrapingProxy</c>, а без адреса - напрямую,
     /// игнорируя системные настройки прокси процесса (<c>HTTP_PROXY</c>/<c>HTTPS_PROXY</c>). Обхода прокси
-    /// при его ошибке нет: запрос просто падает. Требует <see cref="AddScrapingProxyOptions"/>.
+    /// при его ошибке нет: запрос просто падает. Требует <see cref="AddScrapingProxy"/>.
     /// </summary>
     public static IHttpClientBuilder UseScrapingProxy(this IHttpClientBuilder builder) =>
         builder.ConfigurePrimaryHttpMessageHandler(static serviceProvider =>

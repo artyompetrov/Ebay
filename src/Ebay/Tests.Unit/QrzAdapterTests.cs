@@ -260,7 +260,8 @@ public sealed class QrzAdapterTests
 
         var collect = () => services.GetRequiredService<ISaleAdvertisementAdapter>().GetRecentAdvertisementsAsync(CancellationToken.None);
 
-        await collect.Should().ThrowAsync<HttpRequestException>();
+        // Проба главной страницы получает 502 от заглушки, а ссылки смены IP нет: сбор заканчивается ошибкой.
+        (await collect()).IsT1.Should().BeTrue();
         // Сначала запрос без учётных данных, затем повтор с ними в ответ на 407.
         proxy.Requests.Should().Equal(
             new ProxyRequest("CONNECT www.qrz.ru:443 HTTP/1.1", ProxyAuthorization: null),
@@ -276,7 +277,7 @@ public sealed class QrzAdapterTests
 
         var collect = () => services.GetRequiredService<ISaleAdvertisementAdapter>().GetRecentAdvertisementsAsync(CancellationToken.None);
 
-        await collect.Should().ThrowAsync<HttpRequestException>();
+        (await collect()).IsT1.Should().BeTrue();
         proxy.Requests.Should().ContainSingle()
             .Which.Should().Be(new ProxyRequest("CONNECT www.qrz.ru:443 HTTP/1.1", ProxyAuthorization: null));
     }
@@ -294,8 +295,7 @@ public sealed class QrzAdapterTests
         var collect = () => services.GetRequiredService<ISaleAdvertisementAdapter>().GetRecentAdvertisementsAsync(CancellationToken.None);
 
         // Отказ в соединении с портом прокси, а не ошибка DNS или ответа сайта, как было бы при прямом запросе.
-        (await collect.Should().ThrowAsync<HttpRequestException>())
-            .Which.HttpRequestError.Should().Be(HttpRequestError.ConnectionError);
+        (await collect()).AsT1.Value.Should().Contain(nameof(HttpRequestError.ConnectionError));
     }
 
     private static ServiceProvider BuildServicesWithProxy(Uri proxyAddress, bool withCredentials) =>
@@ -318,7 +318,8 @@ public sealed class QrzAdapterTests
             new SingleClientFactory(new HttpClient(handler)),
             new MemoryCache(new MemoryCacheOptions()),
             new FixedTimeProvider(Now),
-            Options.Create(maxListPages is { } pages ? options with { MaxListPages = pages } : options));
+            Options.Create(maxListPages is { } pages ? options with { MaxListPages = pages } : options),
+            PassingExitGuard.Instance);
     }
 
     private static string DetailHref(int id) => $"/classifieds/detail/lampa_{id}";

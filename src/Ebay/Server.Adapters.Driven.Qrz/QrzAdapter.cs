@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OneOf;
 using OneOf.Types;
+using Server.Adapters.Driven.ScrapingProxy;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Models;
 
@@ -27,25 +28,35 @@ internal sealed class QrzAdapter : ISaleAdvertisementAdapter
     private readonly IMemoryCache _memoryCache;
     private readonly TimeProvider _timeProvider;
     private readonly QrzAdapterOptions _options;
+    private readonly IScrapingProxyExitGuard _exitGuard;
 
     public QrzAdapter(
         ILogger<QrzAdapter> logger,
         IHttpClientFactory httpClientFactory,
         [FromKeyedServices(WellKnown.CacheServiceKey)] IMemoryCache memoryCache,
         TimeProvider timeProvider,
-        IOptions<QrzAdapterOptions> options)
+        IOptions<QrzAdapterOptions> options,
+        IScrapingProxyExitGuard exitGuard)
     {
         _logger = logger;
         _httpClientFactory = httpClientFactory;
         _memoryCache = memoryCache;
         _timeProvider = timeProvider;
         _options = options.Value;
+        _exitGuard = exitGuard;
     }
 
     public string Marketplace => WellKnown.Marketplace;
 
     public async Task<OneOf<IReadOnlyCollection<SaleAdvertisement>, Error<string>>> GetRecentAdvertisementsAsync(CancellationToken cancellationToken)
     {
+        var exit = await _exitGuard.EnsureWorkingExitAsync(WellKnown.HttpClientName, WellKnown.BaseUri, cancellationToken);
+
+        if (exit.TryPickT1(out var exitError, out _))
+        {
+            return exitError;
+        }
+
         var listings = new Dictionary<long, QrzListing>();
 
         foreach (var category in _options.EffectiveCategories)

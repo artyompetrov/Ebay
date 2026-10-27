@@ -6,6 +6,7 @@ using HtmlAgilityPack;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Server.Adapters.Driven.ScrapingProxy;
 using OneOf;
 using OneOf.Types;
 using Server.Application.Abstractions.Driven.Abstractions;
@@ -21,17 +22,20 @@ public class ChipfindAdapter : ISaleAdvertisementAdapter
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IMemoryCache _memoryCache;
     private readonly ChipFindAdapterOptions _options;
+    private readonly IScrapingProxyExitGuard _exitGuard;
 
     public ChipfindAdapter(
         ILogger<ChipfindAdapter> logger,
         IHttpClientFactory httpClientFactory,
         [FromKeyedServices(WellKnown.CacheServiceKey)] IMemoryCache memoryCache,
-        ChipFindAdapterOptions options)
+        ChipFindAdapterOptions options,
+        IScrapingProxyExitGuard exitGuard)
     {
         _logger = logger;
         _httpClientFactory = httpClientFactory;
         _memoryCache = memoryCache;
         _options = options;
+        _exitGuard = exitGuard;
     }
 
     public string Marketplace => WellKnown.Marketplace;
@@ -39,12 +43,17 @@ public class ChipfindAdapter : ISaleAdvertisementAdapter
     public async Task<OneOf<IReadOnlyCollection<SaleAdvertisement>, Error<string>>> GetRecentAdvertisementsAsync(
         CancellationToken cancellationToken)
     {
+        var exit = await _exitGuard.EnsureWorkingExitAsync(WellKnown.HttpClientName, WellKnown.BaseUri, cancellationToken);
+
+        if (exit.TryPickT1(out var exitError, out _))
+        {
+            return exitError;
+        }
+
         using var activity = ActivitySource.StartActivity(WellKnown.FeedSpan);
 
-        var url = "https://www.chipfind.ru/market/sale_full.xml";
-
         var httpClient = _httpClientFactory.CreateClient(WellKnown.HttpClientName);
-        var xmlContent = await httpClient.GetStringAsync(url, cancellationToken);
+        var xmlContent = await httpClient.GetStringAsync(WellKnown.FeedUri, cancellationToken);
 
         var xdoc = XDocument.Parse(xmlContent);
 
