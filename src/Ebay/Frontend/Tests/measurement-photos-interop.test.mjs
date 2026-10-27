@@ -234,3 +234,52 @@ test("StartQrScanner removes the zoom slider once a barcode is decoded", async (
 
     assert.equal(harness.createdSliders[0].removed, true);
 });
+
+function createScriptLoadingSandbox() {
+    const appended = [];
+    const sandbox = {
+        navigator: { userAgent: "Desktop" },
+        document: {
+            head: { appendChild: element => appended.push(element) },
+            createElement: tagName => ({ tagName }),
+            getElementById: () => ({
+                classList: { add: () => {}, remove: () => {} },
+                insertAdjacentElement: () => {}
+            })
+        }
+    };
+    return { sandbox, appended };
+}
+
+test("StartQrScanner loads html5-qrcode served with the app before scanning", async () => {
+    const { runInNewContext } = await import("node:vm");
+    const { sandbox, appended } = createScriptLoadingSandbox();
+    runInNewContext(interopSource.replaceAll("export function", "function"), sandbox);
+
+    const scan = sandbox.StartQrScanner();
+    assert.equal(appended.length, 1);
+    assert.equal(appended[0].tagName, "script");
+    assert.equal(appended[0].src, "lib/html5-qrcode/html5-qrcode.min.js");
+
+    sandbox.Html5Qrcode = class {
+        async start(constraints, config, decoded) { decoded("MEA1234"); }
+        async stop() {}
+        clear() {}
+    };
+    appended[0].onload();
+
+    assert.equal(await scan, "MEA1234");
+});
+
+test("StartQrScanner rejects with a clear error when html5-qrcode fails to load, and the next scan loads it again", async () => {
+    const { runInNewContext } = await import("node:vm");
+    const { sandbox, appended } = createScriptLoadingSandbox();
+    runInNewContext(interopSource.replaceAll("export function", "function"), sandbox);
+
+    const scan = sandbox.StartQrScanner();
+    appended[0].onerror();
+
+    await assert.rejects(scan, { message: "Failed to load html5-qrcode from lib/html5-qrcode/html5-qrcode.min.js" });
+    sandbox.StartQrScanner();
+    assert.equal(appended.length, 2);
+});

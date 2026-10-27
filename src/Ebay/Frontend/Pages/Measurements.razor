@@ -15,7 +15,6 @@
 @inject WebApiClient WebApiClient
 @inject ILogger<Measurements> Logger
 
-<script src="https://unpkg.com/html5-qrcode"></script>
 <style>
     #reader video {
         transform: scaleX(-1); /* зеркалирование по горизонтали */
@@ -690,9 +689,11 @@
         catch (ApiException<ValidationProblemDetailedInfo> ex)
         {
             _error = JsonSerializer.Serialize(ex.Result, ErrorJsonOptions);
+            Logger.LogWarning("Measurement upload for product {ProductId} was rejected by validation: {ValidationErrors}", ProductId, _error);
         }
         catch (Exception ex)
         {
+            Logger.LogError(ex, "Failed to upload a measurement for product {ProductId}", ProductId);
             _error = ex.ToString();
         }
 

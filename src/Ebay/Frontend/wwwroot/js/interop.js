@@ -6,29 +6,44 @@ export function SetFocusByElementId(elementId) {
 }
 
 const productDescriptionEditors = new Map();
-let quillAssetsPromise = null;
+const loadingScripts = new Map();
+
+// Loads a classic script once per page. A failed load is forgotten, so the next call tries again.
+function loadScript(src, libraryName) {
+    if (!loadingScripts.has(src)) {
+        loadingScripts.set(src, new Promise((resolve, reject) => {
+            const script = document.createElement("script");
+            script.src = src;
+            script.onload = () => resolve();
+            script.onerror = () => {
+                loadingScripts.delete(src);
+                script.remove?.();
+                reject(new Error(`Failed to load ${libraryName} from ${src}`));
+            };
+            document.head.appendChild(script);
+        }));
+    }
+
+    return loadingScripts.get(src);
+}
+
+let quillStylesheetAdded = false;
 
 function loadQuillAssets() {
     if (typeof Quill !== "undefined") {
         return Promise.resolve();
     }
 
-    if (!quillAssetsPromise) {
-        quillAssetsPromise = new Promise((resolve, reject) => {
-            const link = document.createElement("link");
-            link.rel = "stylesheet";
-            link.href = "https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css";
-            document.head.appendChild(link);
-
-            const script = document.createElement("script");
-            script.src = "https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js";
-            script.onload = () => resolve();
-            script.onerror = () => reject(new Error("Failed to load Quill"));
-            document.head.appendChild(script);
-        });
+    if (!quillStylesheetAdded) {
+        quillStylesheetAdded = true;
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = "https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css";
+        document.head.appendChild(link);
     }
 
-    return quillAssetsPromise;
+    // TODO: serve Quill from wwwroot/lib like html5-qrcode, so the editor does not depend on a third-party CDN.
+    return loadScript("https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js", "Quill");
 }
 
 export function InitProductDescriptionEditor(elementId, initialHtml) {
@@ -104,7 +119,23 @@ function createZoomSlider(html5QrCode, capabilities, reader) {
     activeZoomSlider = slider;
 }
 
+// html5-qrcode is served with the app (wwwroot/lib) rather than from a CDN, so scanning does not depend on a
+// third-party host being reachable from the operator's network.
+const html5QrcodeScriptUrl = "lib/html5-qrcode/html5-qrcode.min.js";
+
+function loadHtml5Qrcode() {
+    if (typeof Html5Qrcode !== "undefined") {
+        return Promise.resolve();
+    }
+
+    return loadScript(html5QrcodeScriptUrl, "html5-qrcode");
+}
+
 export function StartQrScanner() {
+    return loadHtml5Qrcode().then(scanQrCode);
+}
+
+function scanQrCode() {
     const reader = document.getElementById("reader");
     ApplyQrScannerOrientation(reader, IsMobileClient());
     removeZoomSlider();
