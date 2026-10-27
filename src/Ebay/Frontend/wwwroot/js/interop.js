@@ -140,3 +140,168 @@ export function StartQrScanner() {
         });
     });
 }
+
+// Frontend telemetry (openspec/specs/client-telemetry): what the browser observes is queued here and pulled by .NET
+// (Telemetry/BrowserTelemetry.cs) on every export tick; the queues are bounded so a tab left open never grows them.
+const maxQueuedTelemetryEntries = 200;
+const longFrameThresholdMs = 50;
+const maxLongFramesPerMinute = 60;
+const millisecondsPerMinute = 60000;
+const frontendAssembly = "Frontend.dll";
+
+const telemetryQueues = { clicks: [], vitals: [], errors: [] };
+let longFrameWindow = { start: 0, count: 0 };
+let largestContentfulPaint = null;
+let cumulativeLayoutShift = 0;
+let reportedLayoutShift = 0;
+let slowestInteraction = 0;
+let reportedInteraction = 0;
+let telemetryStarted = false;
+
+function epochNow() {
+    return performance.timeOrigin + performance.now();
+}
+
+function enqueue(queue, entry) {
+    queue.push(entry);
+    if (queue.length > maxQueuedTelemetryEntries) {
+        queue.shift();
+    }
+}
+
+function observe(type, callback) {
+    try {
+        new PerformanceObserver(list => list.getEntries().forEach(callback)).observe({ type, buffered: true });
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+function recordLongFrame(start, duration, blockingDuration) {
+    const now = epochNow();
+    if (now - longFrameWindow.start >= millisecondsPerMinute) {
+        longFrameWindow = { start: now, count: 0 };
+    }
+    if (duration <= longFrameThresholdMs || longFrameWindow.count >= maxLongFramesPerMinute) {
+        return;
+    }
+    longFrameWindow.count++;
+    enqueue(telemetryQueues.vitals, {
+        name: "long_animation_frame",
+        value: duration,
+        time: performance.timeOrigin + start,
+        blockingDuration
+    });
+}
+
+// The element a click is named after: the nearest one with an id, never the app root itself.
+export function ClickTargetId(target) {
+    const element = target?.closest?.("[id]");
+    return element && element.id !== "app" ? element.id : null;
+}
+
+export function ErrorOf(reason) {
+    if (reason instanceof Error) {
+        return { type: reason.name, message: reason.message, stack: reason.stack ?? null };
+    }
+    return { type: typeof reason, message: String(reason), stack: null };
+}
+
+/** Starts the observers and wires the export on hide to the [JSExport] TelemetryJsExports.FlushOnHidden. */
+export function StartTelemetryCollection() {
+    return startTelemetryCollection();
+}
+
+async function startTelemetryCollection() {
+    if (telemetryStarted) {
+        return;
+    }
+    telemetryStarted = true;
+
+    document.addEventListener("click", event => {
+        const id = ClickTargetId(event.target);
+        if (id) {
+            enqueue(telemetryQueues.clicks, { id, time: epochNow() });
+        }
+    }, { capture: true });
+
+    window.addEventListener("error", event => {
+        const error = event.error ? ErrorOf(event.error) : { type: "Error", message: event.message, stack: null };
+        enqueue(telemetryQueues.errors, { ...error, time: epochNow() });
+    });
+    window.addEventListener("unhandledrejection", event => {
+        enqueue(telemetryQueues.errors, { ...ErrorOf(event.reason), time: epochNow() });
+    });
+
+    observe("largest-contentful-paint", entry => {
+        largestContentfulPaint = { name: "lcp", value: entry.startTime, time: performance.timeOrigin + entry.startTime };
+    });
+    observe("layout-shift", entry => {
+        if (!entry.hadRecentInput) {
+            cumulativeLayoutShift += entry.value;
+        }
+    });
+    observe("event", entry => {
+        if (entry.interactionId && entry.duration > slowestInteraction) {
+            slowestInteraction = entry.duration;
+        }
+    });
+    if (!observe("long-animation-frame", entry => recordLongFrame(entry.startTime, entry.duration, entry.blockingDuration))) {
+        observe("longtask", entry => recordLongFrame(entry.startTime, entry.duration, null));
+    }
+
+    const runtime = await globalThis.getDotnetRuntime(0);
+    const exports = await runtime.getAssemblyExports(frontendAssembly);
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "hidden") {
+            exports.Client.Telemetry.TelemetryJsExports.FlushOnHidden();
+        }
+    });
+}
+
+export function GetTimeOrigin() {
+    return performance.timeOrigin;
+}
+
+export function TakeClicks() {
+    return JSON.stringify(telemetryQueues.clicks.splice(0));
+}
+
+export function BootTimingOf(navigation, resources, timeOrigin) {
+    const atTime = value => value > 0 ? timeOrigin + value : null;
+    const framework = resources.filter(resource => resource.name.includes("/_framework/"));
+    return {
+        responseEnd: atTime(navigation?.responseEnd ?? 0),
+        domContentLoaded: atTime(navigation?.domContentLoadedEventEnd ?? 0),
+        frameworkResources: framework.length,
+        frameworkBytes: framework.reduce((sum, resource) => sum + (resource.transferSize || resource.encodedBodySize || 0), 0),
+        frameworkStart: framework.length ? timeOrigin + Math.min(...framework.map(resource => resource.startTime)) : null,
+        frameworkEnd: framework.length ? timeOrigin + Math.max(...framework.map(resource => resource.responseEnd)) : null
+    };
+}
+
+export function TakeBootTiming() {
+    return JSON.stringify(BootTimingOf(
+        performance.getEntriesByType("navigation")[0],
+        performance.getEntriesByType("resource"),
+        performance.timeOrigin));
+}
+
+export function TakeTelemetryEvents() {
+    const vitals = telemetryQueues.vitals.splice(0);
+    const now = epochNow();
+    if (largestContentfulPaint) {
+        vitals.push(largestContentfulPaint);
+        largestContentfulPaint = null;
+    }
+    if (cumulativeLayoutShift !== reportedLayoutShift) {
+        reportedLayoutShift = cumulativeLayoutShift;
+        vitals.push({ name: "cls", value: cumulativeLayoutShift, time: now });
+    }
+    if (slowestInteraction !== reportedInteraction) {
+        reportedInteraction = slowestInteraction;
+        vitals.push({ name: "inp", value: slowestInteraction, time: now });
+    }
+    return JSON.stringify({ vitals, errors: telemetryQueues.errors.splice(0) });
+}

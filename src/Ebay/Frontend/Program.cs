@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using System.Runtime.InteropServices.JavaScript;
 using Client.Clients.Generated;
+using Client.Telemetry;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -12,6 +14,8 @@ public class Program
 
     public static async Task Main(string[] args)
     {
+        // Only TracingMessageHandler sends trace context, and only to the backend (openspec/specs/client-telemetry).
+        DistributedContextPropagator.Current = DistributedContextPropagator.CreateNoOutputPropagator();
 
         var builder = WebAssemblyHostBuilder.CreateDefault(args);
         // Same strict container validation as the server host, in every environment.
@@ -23,9 +27,12 @@ public class Program
         builder.RootComponents.Add<App>("#app");
         builder.RootComponents.Add<HeadOutlet>("head::after");
 
+        var backendBaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
+        builder.Services.AddFrontendTelemetry(backendBaseAddress);
         builder.Services.AddHttpClient(
                 name: ServerApiHttpClientName,
-                client => client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress))
+                client => client.BaseAddress = backendBaseAddress)
+            .AddTracing(backendBaseAddress)
             .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
 
         // The API client uses the named "ServerAPI" HttpClient, which attaches access tokens to requests to the server.
@@ -36,13 +43,22 @@ public class Program
 
         builder.Services.AddApiAuthorization();
 
-        if (OperatingSystem.IsBrowser())
+        if (!OperatingSystem.IsBrowser())
         {
-            // The scanner uses the browser camera through JS interop, so it exists only in the browser.
-            builder.Services.AddSingleton<IBarcodeScanner, BarcodeScanner>();
-            await JSHost.ImportAsync(moduleName: "interop", moduleUrl: "/js/interop.js");
+            throw new UnreachableException("The frontend runs only in the browser (Blazor WebAssembly).");
         }
 
-        await builder.Build().RunAsync();
+        // Browser-only services: they use JS interop.
+        builder.Services.AddSingleton<Interop>();
+        builder.Services.AddSingleton<IBarcodeScanner, BarcodeScanner>();
+        builder.Services.AddSingleton<IBrowserTelemetry, BrowserTelemetry>();
+        await JSHost.ImportAsync(moduleName: "interop", moduleUrl: "/js/interop.js");
+        await BrowserTelemetry.StartAsync();
+
+        var host = builder.Build();
+        var exporter = host.Services.StartFrontendTelemetry();
+        TelemetryJsExports.Attach(exporter);
+        _ = exporter.RunAsync(CancellationToken.None);
+        await host.RunAsync();
     }
 }

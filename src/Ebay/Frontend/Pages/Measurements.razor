@@ -1,3 +1,5 @@
+@inherits TracedComponentBase
+@inject IBarcodeScanner BarcodeScanner
 @using Client.Clients.Generated
 @using System.Collections.Generic
 @using System.Collections.ObjectModel
@@ -665,7 +667,7 @@
                 return;
             }
 
-            var qrCodeData = await Interop.StartQrScanner();
+            var qrCodeData = await BarcodeScanner.ScanAsync();
             var id = qrCodeData.Split('/').Last();
 
             await using var stream = file.OpenReadStream();

@@ -6,6 +6,7 @@ using Client.Clients.Generated;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using Tests.Frontend.Telemetry;
 using Tests.Shared;
 
 namespace Tests.Frontend;
@@ -126,7 +127,7 @@ public sealed class MeasurementPhotosTests
     private static FakeBarcodeScanner Configure(BunitContext context, PhotoApiHandler api)
     {
         context.JSInterop.Mode = JSRuntimeMode.Loose;
-        context.Services.AddLogging();
+        TelemetryTestHost.AddTelemetry(context.Services, new FakeBrowserTelemetry(), TimeProvider.System);
         context.Services.AddSingleton(new WebApiClient(new HttpClient(api) { BaseAddress = new Uri("https://test.local/") })
         {
             BaseUrl = "https://test.local/api"
