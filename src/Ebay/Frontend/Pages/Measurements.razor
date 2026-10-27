@@ -690,9 +690,11 @@
         catch (ApiException<ValidationProblemDetailedInfo> ex)
         {
             _error = JsonSerializer.Serialize(ex.Result, ErrorJsonOptions);
+            Logger.LogWarning("Measurement upload for product {ProductId} was rejected by validation: {ValidationErrors}", ProductId, _error);
         }
         catch (Exception ex)
         {
+            Logger.LogError(ex, "Failed to upload a measurement for product {ProductId}", ProductId);
             _error = ex.ToString();
         }
 
