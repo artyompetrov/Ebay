@@ -59,9 +59,15 @@ public sealed class FrontendTelemetryBrowserTests
         await using var session = await BrowserSession.OpenAsync(server, "/currencies");
         await WaitForSpanAsync(server, static s => s.Name == "nav /currencies");
 
+        // Keep a record pending at every export tick, so each tick posts and can be observed. Without it the app
+        // may have nothing to export and the next tick is invisible.
+        await session.Page.EvaluateAsync("""
+            () => setInterval(() => window.dispatchEvent(new ErrorEvent('error', { error: new Error('tick-marker'), message: 'tick-marker' })), 100)
+            """);
+
         // Right after an export tick, so the next tick is almost a full interval away.
         var lastPost = server.Posts.Count;
-        await WaitUntilAsync(() => server.Posts.Count > lastPost);
+        await WaitUntilAsync(() => server.Posts.Skip(lastPost).Any(static p => p.Body.Contains("tick-marker", StringComparison.Ordinal)));
         var hiddenAt = DateTimeOffset.UtcNow;
         await session.Page.EvaluateAsync("""
             () => {
