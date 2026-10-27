@@ -58,7 +58,9 @@ Results of 6.2 (production, 2026-10-25): extension page traces reach Tempo with 
 ## 8. Stage 2 integration checks
 
 - [x] 8.1 Add TraceQL/LogQL examples for `ebay_frontend` to the root `AGENTS.md` Navigation entry. Run `make agent-check` and the .NET test suites. Verify: all pass, and `make openspec-coverage-check` reports every `client-telemetry` scenario mapped.
-- [ ] 8.2 After the stage 2 deploy, check through the Grafana MCP that frontend navigations appear under `ebay_frontend` with backend spans nested under frontend client spans, and that Loki returns `{service_name="ebay_frontend"}` records with `trace_id`. Record the result in the PR.
+- [x] 8.2 After the stage 2 deploy, check through the Grafana MCP that frontend navigations appear under `ebay_frontend` with backend spans nested under frontend client spans, and that Loki returns `{service_name="ebay_frontend"}` records with `trace_id`. Record the result in the PR.
+
+Results of 8.2 (production, 2026-10-27): frontend navigations reach Tempo as `ebay_frontend` (`nav /`, `nav /Product/{ProductId:guid}/{Tab?}` without the product id), and every backend call's server span and its SQL hang under the frontend's client span. The initial load starts at navigation start and carries the boot timing, the `responseEnd`/`domContentLoaded`/`framework.loaded`/`first_render` events, LCP and long frames; on a phone the first render came 8.7 s after navigation start (framework download 1.2 s, LCP 4.3 s, long frames up to about 590 ms). On a product page the navigation ends once the page has rendered (9 ms); the Measurements tab loads its data inside `Measurements parameters set` (1.6 s). Loki returns `{service_name="ebay_frontend"}` records (a measurement status change) with severity, scope, `service_version` and `session_id`; these records carry no `trace_id`, because a change event outside a click on an element with an id runs in no span (records written inside a span carry it, checked by the tests and a local run against the production collector config). No relay errors appear in the backend logs.
 
 ## Workflow follow-up
 
