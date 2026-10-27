@@ -17,7 +17,7 @@ The backend SHALL record a server span for every incoming HTTP request that is n
 - **THEN** a server span is recorded for that request in the trace given by the header
 
 ### Requirement: Infrastructure and static requests are not traced
-The backend SHALL NOT record spans for requests to the health check endpoint, to `/.well-known/` paths, to static frontend paths (under `/_framework/` or `/_content/`) or to files with a static asset extension (`.js`, `.css`, `.wasm`, `.map`, `.ico`, `.png`, `.jpg`, `.svg`, `.woff`, `.woff2`, `.ttf`, `.otf`, `.eot`).
+The backend SHALL NOT record spans for requests to the health check endpoint, to the client telemetry relay (`/api/telemetry/`), to `/.well-known/` paths, to static frontend paths (under `/_framework/` or `/_content/`) or to files with a static asset extension (`.js`, `.css`, `.wasm`, `.map`, `.ico`, `.png`, `.jpg`, `.svg`, `.woff`, `.woff2`, `.ttf`, `.otf`, `.eot`).
 
 #### Scenario: Health check is not traced
 - **WHEN** a client calls `/api/health` while spans are being collected
@@ -34,6 +34,10 @@ The backend SHALL NOT record spans for requests to the health check endpoint, to
 #### Scenario: Well-known path is not traced
 - **WHEN** a client requests `/.well-known/openid-configuration` while spans are being collected
 - **THEN** no span is recorded for that request
+
+#### Scenario: Telemetry relay is not traced
+- **WHEN** an authenticated client posts a trace batch to `/api/telemetry/v1/traces` while spans are being collected
+- **THEN** no span is recorded for that request or for the relay's call to the collector
 
 ### Requirement: Database commands are traced inside their request
 The backend SHALL record a client span for every database command it executes inside a request or application span, as a child of that span. The span SHALL carry the SQL statement text and SHALL NOT carry parameter values.
@@ -142,18 +146,3 @@ Every lookup of measurement content (photo and thumbnail bytes, rendered plots) 
 #### Scenario: A cache hit is recorded
 - **WHEN** the same content is requested again while it is still cached, while spans are being collected
 - **THEN** a cache lookup span is recorded with a cache-hit attribute of `true`
-
-### Requirement: Chrome extension calls from one page share a trace
-The Chrome extension SHALL send a W3C `traceparent` header, marked as sampled, with every call it makes to the backend. All backend calls made while the extension processes one loaded page SHALL carry the same trace id, each with its own parent span id, so the backend records them in one trace. Calls made while processing another page load SHALL use a different trace id. Calls to hosts other than the backend SHALL NOT carry a `traceparent` header.
-
-#### Scenario: Backend calls from one page carry the same trace id
-- **WHEN** the extension makes two calls to the backend while processing the same page
-- **THEN** both calls carry a valid sampled `traceparent` header with the same trace id and different parent span ids
-
-#### Scenario: Another page load gets another trace id
-- **WHEN** the extension makes a backend call while processing one page load and another backend call while processing a different page load
-- **THEN** the two calls carry different trace ids
-
-#### Scenario: Calls to other hosts carry no trace context
-- **WHEN** the extension calls a host other than the backend (for example the eBay API)
-- **THEN** that call carries no `traceparent` header
