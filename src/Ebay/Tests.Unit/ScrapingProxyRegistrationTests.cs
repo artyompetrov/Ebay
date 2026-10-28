@@ -5,6 +5,8 @@ using Microsoft.Extensions.Options;
 using Server.Adapters.Driven.ChipFind;
 using Server.Adapters.Driven.NewAudioPortal;
 using Server.Adapters.Driven.Qrz;
+using Server.Adapters.Driven.ScrapingProxy;
+using Server.Application.Abstractions.Driven.Abstractions;
 using Tests.Shared;
 using Tests.Unit.Fakes;
 using ChipFindWellKnown = Server.Adapters.Driven.ChipFind.WellKnown;
@@ -19,6 +21,7 @@ namespace Tests.Unit;
 public sealed class ScrapingProxyRegistrationTests
 {
     private const string UnrelatedClientName = "unrelated";
+    private const string ChangeIpClientName = "scraping-proxy-change-ip";
 
     private static readonly Uri ProxyAddress = new("http://proxy.example:8080");
 
@@ -68,13 +71,60 @@ public sealed class ScrapingProxyRegistrationTests
 
     [Test]
     [OpenSpecScenario("scraping-proxy", "Invalid proxy settings fail startup", "Non-http proxy address")]
-    public async Task AddScrapingProxyOptions_InvalidAddress_FailsStartupValidation()
+    public async Task AddScrapingProxy_InvalidAddress_FailsStartupValidation()
     {
         await using var services = BuildServices(new Uri("socks5://proxy.example:1080"));
 
         var validate = () => services.GetRequiredService<IStartupValidator>().Validate();
 
         validate.Should().Throw<OptionsValidationException>();
+    }
+
+    [Test]
+    [OpenSpecScenario("scraping-proxy", "A failed probe switches the proxy exit IP and probes again", "IP change link is requested directly with a browser User-Agent")]
+    public async Task AddScrapingProxy_ChangeIpClient_IsNotProxiedAndSendsBrowserUserAgent()
+    {
+        await using var services = BuildServices(ProxyAddress);
+
+        // Без явного Proxy обработчик использует системные настройки процесса, а не прокси парсеров.
+        ScrapingProxyServices.GetPrimaryHandler(services, ChangeIpClientName).Should().BeOfType<SocketsHttpHandler>()
+            .Which.Proxy.Should().BeNull();
+        services.GetRequiredService<IHttpClientFactory>().CreateClient(ChangeIpClientName)
+            .DefaultRequestHeaders.UserAgent.ToString().Should().Be(ScrapingProxyDefaults.BrowserUserAgent);
+    }
+
+    [Test]
+    [OpenSpecScenario("scraping-proxy", "A collection starts with a probe of the site's main page", "Each source probes its own main page")]
+    public async Task Collections_WithProxyAddress_ProbeTheirOwnMainPageFirst()
+    {
+        var expectedProbes = new Dictionary<string, Uri>
+        {
+            [QrzWellKnown.HttpClientName] = new("https://www.qrz.ru/"),
+            [ChipFindWellKnown.HttpClientName] = new("https://www.chipfind.ru/"),
+            [NewAudioPortalWellKnown.HttpClientName] = new("https://newaudioportal.com/"),
+        };
+        // Проба не проходит (403), а ссылки смены IP нет: каждый сбор останавливается сразу после первого запроса.
+        var handlers = expectedProbes.Keys.ToDictionary(
+            static name => name,
+            static _ => new ScriptedHandler(TimeProvider.System, static _ => HttpStatusCode.Forbidden));
+        await using var services = BuildServices(ProxyAddress, services =>
+        {
+            foreach (var (name, handler) in handlers)
+            {
+                services.AddHttpClient(name).ConfigurePrimaryHttpMessageHandler(() => handler);
+            }
+        });
+
+        foreach (var adapter in services.GetServices<ISaleAdvertisementAdapter>())
+        {
+            (await adapter.GetRecentAdvertisementsAsync(CancellationToken.None)).IsT1.Should().BeTrue(adapter.Marketplace);
+        }
+
+        foreach (var (name, probeUri) in expectedProbes)
+        {
+            handlers[name].Requests.Should().ContainSingle(name)
+                .Which.Should().Match<ScriptedHandler.RecordedRequest>(r => r.Method == HttpMethod.Get && r.Uri == probeUri);
+        }
     }
 
     private static ServiceProvider BuildServices(Uri? proxyAddress, Action<IServiceCollection>? registerOther = null) =>

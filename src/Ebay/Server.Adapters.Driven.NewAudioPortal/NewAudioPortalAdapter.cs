@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OneOf;
 using OneOf.Types;
+using Server.Adapters.Driven.ScrapingProxy;
 using Server.Application.Abstractions.Driven.Abstractions;
 using Server.Application.Abstractions.Driven.Models;
 
@@ -27,23 +28,33 @@ internal sealed partial class NewAudioPortalAdapter : ISaleAdvertisementAdapter
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IMemoryCache _memoryCache;
     private readonly NewAudioPortalAdapterOptions _options;
+    private readonly IScrapingProxyExitGuard _exitGuard;
 
     public NewAudioPortalAdapter(
         ILogger<NewAudioPortalAdapter> logger,
         IHttpClientFactory httpClientFactory,
         [FromKeyedServices(WellKnown.CacheServiceKey)] IMemoryCache memoryCache,
-        IOptions<NewAudioPortalAdapterOptions> options)
+        IOptions<NewAudioPortalAdapterOptions> options,
+        IScrapingProxyExitGuard exitGuard)
     {
         _logger = logger;
         _httpClientFactory = httpClientFactory;
         _memoryCache = memoryCache;
         _options = options.Value;
+        _exitGuard = exitGuard;
     }
 
     public string Marketplace => WellKnown.Marketplace;
 
     public async Task<OneOf<IReadOnlyCollection<SaleAdvertisement>, Error<string>>> GetRecentAdvertisementsAsync(CancellationToken cancellationToken)
     {
+        var exit = await _exitGuard.EnsureWorkingExitAsync(WellKnown.HttpClientName, WellKnown.BaseUri, cancellationToken);
+
+        if (exit.TryPickT1(out var exitError, out _))
+        {
+            return exitError;
+        }
+
         var topics = new Dictionary<long, NewAudioPortalTopicRow>();
 
         foreach (var section in _options.EffectiveSections)

@@ -67,6 +67,7 @@ services:
       - ScrapingProxy__Address=${SCRAPING_PROXY_ADDRESS:-}
       - ScrapingProxy__Username=${SCRAPING_PROXY_USERNAME:-}
       - ScrapingProxy__Password=${SCRAPING_PROXY_PASSWORD:-}
+      - ScrapingProxy__ChangeIpUrl=${SCRAPING_PROXY_CHANGE_IP_URL:-}
     networks:
       - internal_network
 

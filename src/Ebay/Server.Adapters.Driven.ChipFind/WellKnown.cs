@@ -18,6 +18,13 @@ internal static class WellKnown
     public const string Marketplace = "Chipfind";
 
     /// <summary>
+    /// Главная страница сайта: проба прокси перед сбором.
+    /// </summary>
+    public static readonly Uri BaseUri = new("https://www.chipfind.ru/");
+
+    public static readonly Uri FeedUri = new(BaseUri, "market/sale_full.xml");
+
+    /// <summary>
     /// Имя источника спанов адаптера.
     /// </summary>
     public const string ActivitySourceName = "Server.Adapters.Driven.ChipFind";

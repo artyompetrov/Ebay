@@ -17,11 +17,6 @@ internal static class WellKnown
     /// </summary>
     public const string Marketplace = "Qrz";
 
-    /// <summary>
-    /// User-Agent запросов: часть сайтов отвечает иначе клиентам без браузерного User-Agent.
-    /// </summary>
-    public const string UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)";
-
     public static readonly Uri BaseUri = new("https://www.qrz.ru/");
 
     public static readonly string[] DefaultCategories = ["components/tubes"];

@@ -348,7 +348,8 @@ public sealed class NewAudioPortalAdapterTests
 
         var collect = () => services.GetRequiredService<ISaleAdvertisementAdapter>().GetRecentAdvertisementsAsync(CancellationToken.None);
 
-        await collect.Should().ThrowAsync<HttpRequestException>();
+        // Проба главной страницы получает 502 от заглушки, а ссылки смены IP нет: сбор заканчивается ошибкой.
+        (await collect()).IsT1.Should().BeTrue();
         // Сначала запрос без учётных данных, затем повтор с ними в ответ на 407.
         proxy.Requests.Should().Equal(
             new ProxyRequest("CONNECT newaudioportal.com:443 HTTP/1.1", ProxyAuthorization: null),
@@ -375,7 +376,8 @@ public sealed class NewAudioPortalAdapterTests
             logger ?? new RecordingLogger<NewAudioPortalAdapter>(),
             new SingleClientFactory(new HttpClient(handler)),
             new MemoryCache(new MemoryCacheOptions()),
-            Options.Create(new NewAudioPortalAdapterOptions { RequestDelay = TimeSpan.Zero }));
+            Options.Create(new NewAudioPortalAdapterOptions { RequestDelay = TimeSpan.Zero }),
+            PassingExitGuard.Instance);
 
     /// <summary>
     /// Отвечает на запросы раздела и тем: страница N темы - элемент N-1 списка <see cref="Topics"/>.
