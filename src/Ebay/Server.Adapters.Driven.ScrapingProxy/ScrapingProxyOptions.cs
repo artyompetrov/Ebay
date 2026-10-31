@@ -55,7 +55,7 @@ internal sealed record ScrapingProxyOptions : IValidatableObject
     /// <summary>
     /// За сколько должна прийти главная страница сайта целиком, чтобы проба прошла.
     /// </summary>
-    public TimeSpan ProbeTimeout { get; init; } = TimeSpan.FromSeconds(15);
+    public TimeSpan ProbeTimeout { get; init; } = TimeSpan.FromSeconds(45);
 
     /// <summary>
     /// Пауза после запроса смены IP перед следующей пробой: провайдеру нужно время переключить IP.

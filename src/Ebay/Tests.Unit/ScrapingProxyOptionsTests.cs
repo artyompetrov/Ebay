@@ -172,7 +172,7 @@ public sealed class ScrapingProxyOptionsTests
         var options = new ScrapingProxyOptions();
 
         options.Should().BeEquivalentTo(
-            new { MaxIpChangeAttempts = 20, ProbeTimeout = TimeSpan.FromSeconds(15), IpChangeDelay = TimeSpan.FromSeconds(10) },
+            new { MaxIpChangeAttempts = 20, ProbeTimeout = TimeSpan.FromSeconds(45), IpChangeDelay = TimeSpan.FromSeconds(10) },
             static o => o.ExcludingMissingMembers());
     }
 
