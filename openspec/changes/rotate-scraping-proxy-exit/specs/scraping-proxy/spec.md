@@ -3,7 +3,7 @@
 ## ADDED Requirements
 
 ### Requirement: A collection starts with a probe of the site's main page
-When a proxy address is configured, a sale advertisement source that scrapes a third-party site SHALL, before requesting anything else in a collection, request its site's main page through the proxy: `https://www.qrz.ru/`, `https://www.chipfind.ru/` or `https://newaudioportal.com/`. The probe SHALL pass only when the response has a 2xx status and its whole body is received within the probe timeout (default 15 s).
+When a proxy address is configured, a sale advertisement source that scrapes a third-party site SHALL, before requesting anything else in a collection, request its site's main page through the proxy: `https://www.qrz.ru/`, `https://www.chipfind.ru/` or `https://newaudioportal.com/`. The probe SHALL pass only when the response has a 2xx status and its whole body is received within the probe timeout (default 45 s).
 
 #### Scenario: Passing probe is followed by the collection
 - **WHEN** a proxy address is configured, the chipfind.ru main page answers `200` with a full body, and a chipfind.ru collection runs

@@ -10,7 +10,7 @@ The scraping sources go through a mobile proxy (mobileproxy.space), and the targ
 - When the probe fails and an IP change link is configured, the system calls the link, waits, and probes again, up to a configured number of IP changes (default 20). The first passing probe ends the loop, and the collection runs on that exit IP, which then stays in use for the next sources and runs for as long as their probes pass.
 - When every attempt fails, the source's collection ends with an error result (the monitoring run logs it and goes on to the next source, as it already does for collection errors), without requesting the feed.
 - Without an IP change link, the probe runs once and a failure ends the collection with an error instead of hanging on the feed for 100 s. Without a proxy address, there is no probe and behavior is unchanged.
-- New settings in the `ScrapingProxy` section: `ChangeIpUrl` (secret: it carries the provider's proxy key), `MaxIpChangeAttempts` (default 20), `ProbeTimeout` (default 15 s), `IpChangeDelay` (default 10 s), validated at startup. The IP change link never appears in logs or traces.
+- New settings in the `ScrapingProxy` section: `ChangeIpUrl` (secret: it carries the provider's proxy key), `MaxIpChangeAttempts` (default 20), `ProbeTimeout` (default 45 s), `IpChangeDelay` (default 10 s), validated at startup. The IP change link never appears in logs or traces.
 - **BREAKING** (internal): an unreachable proxy now ends a collection with an error result from the probe instead of an `HttpRequestException` thrown from the first feed request.
 
 ## Capabilities

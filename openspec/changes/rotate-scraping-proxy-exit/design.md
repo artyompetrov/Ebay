@@ -38,7 +38,7 @@
 
 - The probe sends `GET probeUri` with `HttpCompletionOption.ResponseHeadersRead`, checks for a 2xx status, then copies the body to `Stream.Null`.
 - The whole probe runs under `new CancellationTokenSource(ProbeTimeout, timeProvider)` (the injected `TimeProvider`), linked with the caller's token through `CreateLinkedTokenSource`.
-- A timeout, an `HttpRequestException` or a non-2xx status are probe failures, recorded with a short reason (`status 403`, `timeout after 15 s`, `connection error: ...`).
+- A timeout, an `HttpRequestException` or a non-2xx status are probe failures, recorded with a short reason (`status 403`, `probe timeout after 45 s`, `connection error: ...`).
 - Cancellation of the caller's token is not a probe failure. The framework's `OperationCanceledException` is not caught (the `catch` filters on the probe token having fired while the caller's token has not) and propagates out of the collection. That matters because the service only suppresses *exceptions* after cancellation: an `Error<string>` returned on shutdown would be logged at Error.
 - Reading the whole body is the point: TSPU passes the headers and the first kilobytes. Checking headers only, or using `HEAD`, would pass on a throttled IP.
 - The qrz (~160 KB) and newaudioportal (~250 KB) main pages are well above the ~16 KB where throttling shows up. chipfind's page size behind the Cloudflare challenge could not be checked from a datacenter IP (see Risks).
@@ -86,9 +86,10 @@ New `ScrapingProxyOptions` members:
 |---|---|---|
 | `ChangeIpUrl` | none | absolute `http`/`https`; needs `Address` |
 | `MaxIpChangeAttempts` | 20 | 1-100 |
-| `ProbeTimeout` | 15 s | positive, at most 5 min |
+| `ProbeTimeout` | 45 s | positive, at most 5 min |
 | `IpChangeDelay` | 10 s | 5 s to 10 min (the provider rejects a repeated request within 3-5 s) |
 
+- `ProbeTimeout` was 15 s at first. On production the mobile proxy gives about 15-30 KB/s, so the ~250 KB newaudioportal.com main page took 9-15 s even on working exit IPs, and slow but working IPs failed the probe until all IP changes were spent. 45 s leaves 3x headroom over the slowest passed probe and still catches a frozen body.
 - They are bound from `ScrapingProxy__ChangeIpUrl`, `__MaxIpChangeAttempts`, `__ProbeTimeout`, `__IpChangeDelay`.
 - `PrintMembers` masks `ChangeIpUrl` as `***`, as it already does for `Password`.
 - The defaults are member initializers, so a missing setting keeps them.
@@ -123,7 +124,7 @@ New `ScrapingProxyOptions` members:
 ## Risks / Trade-offs
 
 - [chipfind.ru's main page may be challenged by Cloudflare on mobile IPs where the feed is not, or be smaller than ~16 KB, so a throttled IP could pass] → After deploy, check `scraping-proxy.probe` spans for chipfind (status, `probe.bytes`) next to the feed result. If the main page doesn't predict the feed, switch chipfind's probe URI to another small page. This is a constant in one adapter.
-- [Worst case per source is 20 × (15 s probe + 10 s delay + 10 s IP change timeout) + 15 s ≈ 12 min, three sources ≈ 36 min] → It happens only when no exit IP works, which is already a failed run. Runs never overlap: the background task waits its 30 min interval after a run ends, so a long run only delays the next one. The numbers are settings.
+- [Worst case per source is 20 × (45 s probe + 10 s delay + 10 s IP change timeout) + 45 s ≈ 22 min, three sources ≈ 67 min] → It happens only when no exit IP works, which is already a failed run. Runs never overlap: the background task waits its 30 min interval after a run ends, so a long run only delays the next one. The numbers are settings.
 - [Rotating for one site moves the shared exit IP for the others] → The adapters run one after another and each probes before collecting, so the next source either keeps the new IP or rotates further. Accepted.
 - [The provider's timer-based IP change would drop a good exit IP] → Deploy note: turn it off in the provider dashboard.
 - [The `IHttpClientFactory` handler may hold a pooled connection whose tunnel was opened on the old exit IP] → Probe connections are closed after use (D3). A collection connection that is still pooled from an earlier collection is at most 2 min old (`PooledConnectionLifetime`).

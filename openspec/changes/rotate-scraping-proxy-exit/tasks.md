@@ -2,7 +2,7 @@
 
 ## 1. Options
 
-- [x] 1.1 Add `ChangeIpUrl`, `MaxIpChangeAttempts` (20), `ProbeTimeout` (15 s), `IpChangeDelay` (10 s) to `ScrapingProxyOptions` with the validation rules of the `scraping-proxy` requirement "Invalid proxy settings fail startup" (validation messages never include the link), and mask `ChangeIpUrl` in `PrintMembers` (design D5). Verify with `ScrapingProxyOptionsTests` covering every scenario of that requirement and "Settings text hides the IP change link", tagged `[OpenSpecScenario]`.
+- [x] 1.1 Add `ChangeIpUrl`, `MaxIpChangeAttempts` (20), `ProbeTimeout` (45 s), `IpChangeDelay` (10 s) to `ScrapingProxyOptions` with the validation rules of the `scraping-proxy` requirement "Invalid proxy settings fail startup" (validation messages never include the link), and mask `ChangeIpUrl` in `PrintMembers` (design D5). Verify with `ScrapingProxyOptionsTests` covering every scenario of that requirement and "Settings text hides the IP change link", tagged `[OpenSpecScenario]`.
 
 ## 2. Shared library
 
